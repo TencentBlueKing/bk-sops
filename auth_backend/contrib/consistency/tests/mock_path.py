@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import unicode_literals
+
 LEGACY_RESOURCE_TYPE_LIB = 'auth_backend.contrib.consistency.legacy.resource_type_lib'
 
 CONSISTENCY_LEGACY_CONF = 'auth_backend.contrib.consistency.legacy.conf'

@@ -19,4 +19,4 @@ class Tasktmpl3Config(AppConfig):
     verbose_name = 'GcloudTasktmpl3'
 
     def ready(self):
-        from permissions import task_template_resource  # noqa
+        from .permissions import task_template_resource  # noqa

@@ -17,22 +17,20 @@ from pipeline.exceptions import ComponentDataLackException
 from pipeline.component_framework.base import ComponentMeta
 
 
-class Component(object):
-    __metaclass__ = ComponentMeta
-
+class Component(object, metaclass=ComponentMeta):
     def __init__(self, data_dict):
         self.data_dict = data_dict
 
     @classmethod
     def outputs_format(cls):
         outputs = cls.bound_service().outputs()
-        outputs = map(lambda oi: oi.as_dict(), outputs)
+        outputs = [oi.as_dict() for oi in outputs]
         return outputs
 
     @classmethod
     def inputs_format(cls):
         inputs = cls.bound_service().inputs()
-        inputs = map(lambda ii: ii.as_dict(), inputs)
+        inputs = [ii.as_dict() for ii in inputs]
         return inputs
 
     @classmethod
@@ -68,7 +66,7 @@ class Component(object):
         data_dict = self.clean_execute_data(context)
         inputs = {}
 
-        for key, tag_info in data_dict.items():
+        for key, tag_info in list(data_dict.items()):
             if tag_info is None:
                 raise ComponentDataLackException('Lack of inputs: %s' % key)
 

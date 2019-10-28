@@ -11,17 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 import copy
 import factory
+
 from django.test import TestCase
 from django.db.models import signals
 
 from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
-
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
+
 from gcloud.core.models import Project
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate

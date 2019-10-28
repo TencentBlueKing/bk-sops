@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from UserDict import UserDict
+from collections import UserDict
 
 from django.contrib.auth import get_user_model
 

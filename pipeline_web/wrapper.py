@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 import datetime
 import hashlib
 import copy
+from functools import cmp_to_key
+
 import ujson as json
 
 from pipeline.core.constants import PE
@@ -207,7 +209,7 @@ class PipelineTemplateWebWrapper(object):
                 # 被引用者权重 +1
                 referenced_weight[ref] += 1
 
-        return [i[0] for i in sorted(referenced_weight.items(), cmp=lambda x, y: cmp(x[1], y[1]), reverse=True)]
+        return [i[0] for i in sorted(referenced_weight.items(), key=cmp_to_key(lambda x, y: y[1] - x[1]))]
 
     @classmethod
     def _update_or_create_version(cls, template, order):
@@ -243,10 +245,10 @@ class PipelineTemplateWebWrapper(object):
         temp_id_old_to_new = {}
 
         if not override:
-            template_id_list = template.keys()
+            template_id_list = list(template.keys())
             exist_str_id = PipelineTemplate.objects.filter(template_id__in=template_id_list).values_list('template_id',
                                                                                                          flat=True)
-            old_id_list = template.keys()
+            old_id_list = list(template.keys())
             template_node_id_old_to_new = {}
 
             # replace id
@@ -284,7 +286,7 @@ class PipelineTemplateWebWrapper(object):
                                                                                                        {})
                             for key, constant in constant_dict.items():
                                 source_info = constant['source_info']
-                                source_id_list = source_info.keys()
+                                source_id_list = list(source_info.keys())
                                 for old_source_id in source_id_list:
                                     new_source_id = node_id_maps['activity'][old_source_id]
                                     source_info[new_source_id] = source_info.pop(old_source_id)

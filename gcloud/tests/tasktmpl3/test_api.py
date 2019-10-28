@@ -11,163 +11,160 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 from django.test import TestCase
 
 from gcloud.tasktmpl3 import api
 
 
 class ApiTestCase(TestCase):
-
     def test_replace_job_relate_id_in_templates_data(self):
         # for template contain job_var constants
 
-        assert_data = {u'activities': {
-            u'node7ee2048214dbf045e0043fe1f62b': {
-                u'component': {
-                    u'code': u'job_execute_task',
-                    u'data': {
-                        u'job_global_var': {u'hook': False, u'value': []},
-                        u'job_task_id': {u'hook': False,
-                                         u'value': 82401}}},
-                u'type': u'ServiceActivity'},
-            u'node51f27cbf5d61d50b36d1b25b58ed': {
-                u'component': {
-                    u'code': u'job_execute_task', u'data': {
-                        u'job_global_var': {
-                            u'hook': False,
-                            u'value': [{
-                                u'value': u'0:1.1.1.1,0:2.2.2.2,0:3.3.3.3',
-                                u'type': 2,
-                                u'description': u'',
-                                u'name': u'id-2018112023375235',
-                                u'id': 71821},
+        assert_data = {'activities': {
+            'node7ee2048214dbf045e0043fe1f62b': {
+                'component': {
+                    'code': 'job_execute_task',
+                    'data': {
+                        'job_global_var': {'hook': False, 'value': []},
+                        'job_task_id': {'hook': False,
+                                        'value': 82401}}},
+                'type': 'ServiceActivity'},
+            'node51f27cbf5d61d50b36d1b25b58ed': {
+                'component': {
+                    'code': 'job_execute_task', 'data': {
+                        'job_global_var': {
+                            'hook': False,
+                            'value': [{
+                                'value': '0:1.1.1.1,0:2.2.2.2,0:3.3.3.3',
+                                'type': 2,
+                                'description': '',
+                                'name': 'id-2018112023375235',
+                                'id': 71821},
                                 {
-                                    u'value': u'a"bc\'cb\'a',
-                                    u'type': 1,
-                                    u'description': u'',
-                                    u'name': u'str1',
-                                    u'id': 71831},
+                                    'value': 'a"bc\'cb\'a',
+                                    'type': 1,
+                                    'description': '',
+                                    'name': 'str1',
+                                    'id': 71831},
                                 {
-                                    u'value': u'ctx1',
-                                    u'type': 1,
-                                    u'description': u'ctx1',
-                                    u'name': u'ctx1',
-                                    u'id': 71841},
+                                    'value': 'ctx1',
+                                    'type': 1,
+                                    'description': 'ctx1',
+                                    'name': 'ctx1',
+                                    'id': 71841},
                                 {
-                                    u'value': u'(a b c)',
-                                    u'type': 3,
-                                    u'description': u'',
-                                    u'name': u'aa',
-                                    u'id': 71851},
+                                    'value': '(a b c)',
+                                    'type': 3,
+                                    'description': '',
+                                    'name': 'aa',
+                                    'id': 71851},
                                 {
-                                    u'value': u'([A]=a [B]=b [C]=c)',
-                                    u'type': 4,
-                                    u'description': u'',
-                                    u'name': u'bb',
-                                    u'id': 71861},
+                                    'value': '([A]=a [B]=b [C]=c)',
+                                    'type': 4,
+                                    'description': '',
+                                    'name': 'bb',
+                                    'id': 71861},
                                 {
-                                    u'value': u'const_str',
-                                    u'type': 1,
-                                    u'description': u'const_str',
-                                    u'name': u'const_str',
-                                    u'id': 71901},
+                                    'value': 'const_str',
+                                    'type': 1,
+                                    'description': 'const_str',
+                                    'name': 'const_str',
+                                    'id': 71901},
                                 {
-                                    u'value': u"<script>alert1('xss')</script>",
-                                    u'type': 1,
-                                    u'description': u'',
-                                    u'name': u'str2',
-                                    u'id': 72011}]},
-                        u'job_task_id': {
-                            u'hook': False,
-                            u'value': 82251}}},
-                u'type': u'ServiceActivity', },
-            u'node10dfa52df286c92c180398a78a5f': {
-                u'component': {
-                    u'code': u'job_execute_task', u'data': {
-                        u'job_global_var': {u'hook': True,
-                                            u'value': u'${job_global_var}'},
-                        u'job_task_id': {u'hook': False, u'value': 10001}}},
-                u'type': u'ServiceActivity'}},
-            u'constants': {
-                u'${job_global_var}': {u'value': [
-                    {u'value': u'5', u'type': 1,
-                     u'name': u'SECONDS', u'id': 11},
-                    {u'value': u'0', u'type': 1,
-                     u'name': u'EXIT', u'id': 21},
-                    {u'value': u'0:1.1.1.1,0:1.1.1.12,0:1.1.1.17', u'type': 2,
-                     u'description': u'wewew',
-                     u'name': u'id-201868163412877', u'id': 31}]}}}
+                                    'value': "<script>alert1('xss')</script>",
+                                    'type': 1,
+                                    'description': '',
+                                    'name': 'str2',
+                                    'id': 72011}]},
+                        'job_task_id': {
+                            'hook': False,
+                            'value': 82251}}},
+                'type': 'ServiceActivity', },
+            'node10dfa52df286c92c180398a78a5f': {
+                'component': {
+                    'code': 'job_execute_task', 'data': {
+                        'job_global_var': {'hook': True,
+                                           'value': '${job_global_var}'},
+                        'job_task_id': {'hook': False, 'value': 10001}}},
+                'type': 'ServiceActivity'}},
+            'constants': {
+                '${job_global_var}': {'value': [
+                    {'value': '5', 'type': 1,
+                     'name': 'SECONDS', 'id': 11},
+                    {'value': '0', 'type': 1,
+                     'name': 'EXIT', 'id': 21},
+                    {'value': '0:1.1.1.1,0:1.1.1.12,0:1.1.1.17', 'type': 2,
+                     'description': 'wewew',
+                     'name': 'id-201868163412877', 'id': 31}]}}}
 
         template_data = {'pipeline_template_data': {
             'template': {
-                '1': {'tree': {u'activities': {
-                    u'node7ee2048214dbf045e0043fe1f62b': {
-                        u'component': {u'code': u'job_execute_task', u'data': {
-                            u'job_global_var': {u'hook': False, u'value': []},
-                            u'job_task_id': {u'hook': False, u'value': 8240}}},
-                        u'type': u'ServiceActivity'},
-                    u'node51f27cbf5d61d50b36d1b25b58ed': {u'component': {u'code': u'job_execute_task', u'data': {
-                        u'job_global_var': {u'hook': False, u'value': [{
-                            u'value': u'0:1.1.1.1,0:2.2.2.2,0:3.3.3.3',
-                            u'type': 2,
-                            u'description': u'',
-                            u'name': u'id-2018112023375235',
-                            u'id': 7182},
+                '1': {'tree': {'activities': {
+                    'node7ee2048214dbf045e0043fe1f62b': {
+                        'component': {'code': 'job_execute_task', 'data': {
+                            'job_global_var': {'hook': False, 'value': []},
+                            'job_task_id': {'hook': False, 'value': 8240}}},
+                        'type': 'ServiceActivity'},
+                    'node51f27cbf5d61d50b36d1b25b58ed': {'component': {'code': 'job_execute_task', 'data': {
+                        'job_global_var': {'hook': False, 'value': [{
+                            'value': '0:1.1.1.1,0:2.2.2.2,0:3.3.3.3',
+                            'type': 2,
+                            'description': '',
+                            'name': 'id-2018112023375235',
+                            'id': 7182},
                             {
-                                u'value': u'a"bc\'cb\'a',
-                                u'type': 1,
-                                u'description': u'',
-                                u'name': u'str1',
-                                u'id': 7183},
+                                'value': 'a"bc\'cb\'a',
+                                'type': 1,
+                                'description': '',
+                                'name': 'str1',
+                                'id': 7183},
                             {
-                                u'value': u'ctx1',
-                                u'type': 1,
-                                u'description': u'ctx1',
-                                u'name': u'ctx1',
-                                u'id': 7184},
+                                'value': 'ctx1',
+                                'type': 1,
+                                'description': 'ctx1',
+                                'name': 'ctx1',
+                                'id': 7184},
                             {
-                                u'value': u'(a b c)',
-                                u'type': 3,
-                                u'description': u'',
-                                u'name': u'aa',
-                                u'id': 7185},
+                                'value': '(a b c)',
+                                'type': 3,
+                                'description': '',
+                                'name': 'aa',
+                                'id': 7185},
                             {
-                                u'value': u'([A]=a [B]=b [C]=c)',
-                                u'type': 4,
-                                u'description': u'',
-                                u'name': u'bb',
-                                u'id': 7186},
+                                'value': '([A]=a [B]=b [C]=c)',
+                                'type': 4,
+                                'description': '',
+                                'name': 'bb',
+                                'id': 7186},
                             {
-                                u'value': u'const_str',
-                                u'type': 1,
-                                u'description': u'const_str',
-                                u'name': u'const_str',
-                                u'id': 7190},
+                                'value': 'const_str',
+                                'type': 1,
+                                'description': 'const_str',
+                                'name': 'const_str',
+                                'id': 7190},
                             {
-                                u'value': u"<script>alert1('xss')</script>",
-                                u'type': 1,
-                                u'description': u'',
-                                u'name': u'str2',
-                                u'id': 7201}]},
-                        u'job_task_id': {u'hook': False, u'value': 8225}}}, u'type': u'ServiceActivity', },
-                    u'node10dfa52df286c92c180398a78a5f': {
-                        u'component': {
-                            u'code': u'job_execute_task', u'data': {
-                                u'job_global_var': {u'hook': True,
-                                                    u'value': u'${job_global_var}'},
-                                u'job_task_id': {u'hook': False, u'value': 1000}}},
-                        u'type': u'ServiceActivity'}}, u'constants': {
-                    u'${job_global_var}': {
-                        u'value': [
-                            {u'value': u'5', u'type': 1,
-                             u'name': u'SECONDS', u'id': 1},
-                            {u'value': u'0', u'type': 1,
-                             u'name': u'EXIT', u'id': 2},
-                            {u'value': u'0:1.1.1.1,0:1.1.1.12,0:1.1.1.17', u'type': 2,
-                             u'description': u'wewew',
-                             u'name': u'id-201868163412877', u'id': 3}]}}}}
+                                'value': "<script>alert1('xss')</script>",
+                                'type': 1,
+                                'description': '',
+                                'name': 'str2',
+                                'id': 7201}]},
+                        'job_task_id': {'hook': False, 'value': 8225}}}, 'type': 'ServiceActivity', },
+                    'node10dfa52df286c92c180398a78a5f': {
+                        'component': {
+                            'code': 'job_execute_task', 'data': {
+                                'job_global_var': {'hook': True,
+                                                   'value': '${job_global_var}'},
+                                'job_task_id': {'hook': False, 'value': 1000}}},
+                        'type': 'ServiceActivity'}}, 'constants': {
+                    '${job_global_var}': {
+                        'value': [
+                            {'value': '5', 'type': 1,
+                             'name': 'SECONDS', 'id': 1},
+                            {'value': '0', 'type': 1,
+                             'name': 'EXIT', 'id': 2},
+                            {'value': '0:1.1.1.1,0:1.1.1.12,0:1.1.1.17', 'type': 2,
+                             'description': 'wewew',
+                             'name': 'id-201868163412877', 'id': 3}]}}}}
             }
         }}
 
@@ -187,34 +184,34 @@ class ApiTestCase(TestCase):
 
         # for template do not have job atom
 
-        assert_data = {u'activities': {
-            u'node7ee2048214dbf045e0043fe1f62b': {
-                u'component': {u'code': u'not_a_job', u'data': {
-                    u'job_global_var': {u'hook': False, u'value': []},
-                    u'job_task_id': {u'hook': False, u'value': 82401}}},
-                u'type': u'ServiceActivity'},
-            u'node51f27cbf5d61d50b36d1b25b58ed': {u'component': {u'code': u'not_a_job', u'data': {}},
-                                                  u'type': u'ServiceActivity'},
-            u'node10dfa52df286c92c180398a78a5f': {u'component': {u'code': u'not_a_job', u'data': {
-                u'job_global_var': {u'hook': True,
-                                    u'value': u'${job_global_var}'},
-                u'job_task_id': {u'hook': False, u'value': 10001}}}, u'type': u'ServiceActivity'}}, u'constants': {}}
+        assert_data = {'activities': {
+            'node7ee2048214dbf045e0043fe1f62b': {
+                'component': {'code': 'not_a_job', 'data': {
+                    'job_global_var': {'hook': False, 'value': []},
+                    'job_task_id': {'hook': False, 'value': 82401}}},
+                'type': 'ServiceActivity'},
+            'node51f27cbf5d61d50b36d1b25b58ed': {'component': {'code': 'not_a_job', 'data': {}},
+                                                 'type': 'ServiceActivity'},
+            'node10dfa52df286c92c180398a78a5f': {'component': {'code': 'not_a_job', 'data': {
+                'job_global_var': {'hook': True,
+                                   'value': '${job_global_var}'},
+                'job_task_id': {'hook': False, 'value': 10001}}}, 'type': 'ServiceActivity'}}, 'constants': {}}
 
         template_data = {'pipeline_template_data': {
             'template': {
-                '1': {'tree': {u'activities': {
-                    u'node7ee2048214dbf045e0043fe1f62b': {
-                        u'component': {u'code': u'not_a_job', u'data': {
-                            u'job_global_var': {u'hook': False, u'value': []},
-                            u'job_task_id': {u'hook': False, u'value': 82401}}},
-                        u'type': u'ServiceActivity'},
-                    u'node51f27cbf5d61d50b36d1b25b58ed': {u'component': {u'code': u'not_a_job', u'data': {}},
-                                                          u'type': u'ServiceActivity'},
-                    u'node10dfa52df286c92c180398a78a5f': {u'component': {u'code': u'not_a_job', u'data': {
-                        u'job_global_var': {u'hook': True,
-                                            u'value': u'${job_global_var}'},
-                        u'job_task_id': {u'hook': False, u'value': 10001}}}, u'type': u'ServiceActivity'}},
-                    u'constants': {}}}
+                '1': {'tree': {'activities': {
+                    'node7ee2048214dbf045e0043fe1f62b': {
+                        'component': {'code': 'not_a_job', 'data': {
+                            'job_global_var': {'hook': False, 'value': []},
+                            'job_task_id': {'hook': False, 'value': 82401}}},
+                        'type': 'ServiceActivity'},
+                    'node51f27cbf5d61d50b36d1b25b58ed': {'component': {'code': 'not_a_job', 'data': {}},
+                                                         'type': 'ServiceActivity'},
+                    'node10dfa52df286c92c180398a78a5f': {'component': {'code': 'not_a_job', 'data': {
+                        'job_global_var': {'hook': True,
+                                           'value': '${job_global_var}'},
+                        'job_task_id': {'hook': False, 'value': 10001}}}, 'type': 'ServiceActivity'}},
+                    'constants': {}}}
             }
         }}
 

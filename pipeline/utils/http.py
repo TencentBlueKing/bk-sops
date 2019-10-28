@@ -29,7 +29,7 @@ def http_post_request(url, data=None, json=None, **kwargs):
             message = 'the format of HTTP request result is valid: %s' % e
             logger.exception(message)
             return {'result': False, 'code': 1, 'message': message}
-    message = u"HTTP request failed，Http status code is：%s" % response.status_code
+    message = "HTTP request failed，Http status code is：%s" % response.status_code
     logger.error(message)
     return {'result': False, 'code': response.status_code, 'message': message}
 
@@ -44,6 +44,6 @@ def http_get_request(url, params=None, **kwargs):
             message = 'the format of HTTP request result is valid: %s' % e
             logger.exception(message)
             return {'result': False, 'code': 1, 'message': message}
-    message = u"HTTP request failed，Http status code is：%s" % response.status_code
+    message = "HTTP request failed，Http status code is：%s" % response.status_code
     logger.error(message)
     return {'result': False, 'code': response.status_code, 'message': message}

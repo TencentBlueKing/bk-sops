@@ -24,7 +24,7 @@ def recursive_replace_id(pipeline_data):
     pipeline_data[PE.id] = node_uniqid()
     replace_all_id(pipeline_data)
     activities = pipeline_data[PE.activities]
-    for act_id, act in activities.items():
+    for act_id, act in list(activities.items()):
         if act[PE.type] == PE.SubProcess:
             recursive_replace_id(act[PE.pipeline])
             act[PE.pipeline][PE.id] = act_id
@@ -49,7 +49,7 @@ def replace_all_id(pipeline_data):
     # replace activities id
     activity_id_maps = {}
     activities = pipeline_data[PE.activities]
-    keys = activities.keys()
+    keys = list(activities.keys())
     for old_id in keys:
         substituted_id = node_uniqid()
         node_map[old_id] = substituted_id
@@ -59,7 +59,7 @@ def replace_all_id(pipeline_data):
     # replace gateways id
     gateway_id_maps = {}
     gateways = pipeline_data[PE.gateways]
-    keys = gateways.keys()
+    keys = list(gateways.keys())
     for old_id in keys:
         substituted_id = node_uniqid()
         node_map[old_id] = substituted_id
@@ -68,7 +68,7 @@ def replace_all_id(pipeline_data):
 
     # step.2 replace flows id
     flow_id_maps = {}
-    keys = flows.keys()
+    keys = list(flows.keys())
     for old_id in keys:
         substituted_id = line_uniqid()
         flow_map[old_id] = substituted_id
@@ -91,7 +91,7 @@ def replace_all_id(pipeline_data):
 
 
 def _replace_id_in_data(pipeline_data, node_map):
-    for var_key, var_info in pipeline_data.get(PE.data, {}).get(PE.inputs, {}).items():
+    for var_key, var_info in list(pipeline_data.get(PE.data, {}).get(PE.inputs, {}).items()):
         if PE.source_act in var_info:
             var_info[PE.source_act] = node_map[var_info[PE.source_act]]
 
@@ -106,11 +106,11 @@ def _replace_front_end_data_id(pipeline_data, node_map, flow_map):
         for location in pipeline_data['location']:
             location[PE.id] = node_map[location[PE.id]]
     if 'constants' in pipeline_data:
-        for key, constant in pipeline_data[PE.constants].items():
+        for key, constant in list(pipeline_data[PE.constants].items()):
             source_info = constant.get('source_info', None)
             if source_info:
                 replaced_constant = {}
-                for source_step, source_keys in source_info.items():
+                for source_step, source_keys in list(source_info.items()):
                     try:
                         replaced_constant[node_map[source_step]] = source_keys
                     except KeyError as e:
@@ -172,7 +172,7 @@ def _replace_gateway_id(flows, gateways, gateway_id, substituted_id):
             for flow_id in gateway[PE.incoming]:
                 flows[flow_id][PE.target] = substituted_id
             # replace converge_gateway_id
-            for g_id, gw in gateways.items():
+            for g_id, gw in list(gateways.items()):
                 if PE.converge_gateway_id in gw and gw[PE.converge_gateway_id] == gateway_id:
                     gw[PE.converge_gateway_id] = substituted_id
         else:

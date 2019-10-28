@@ -24,7 +24,7 @@ class Data(object):
         base = {'inputs': {},
                 'outputs': self.outputs}
 
-        for key, value in self.inputs.items():
+        for key, value in list(self.inputs.items()):
             base['inputs'][key] = value.to_dict() if isinstance(value, Var) else value
 
         return base
@@ -37,7 +37,7 @@ class Params(object):
     def to_dict(self):
         base = {}
 
-        for key, value in self.params.items():
+        for key, value in list(self.params.items()):
             base[key] = value.to_dict() if isinstance(value, Var) else value
 
         return base

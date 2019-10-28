@@ -72,7 +72,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                                                      project_id=project_id,
                                                      is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            return False, _(u"保存失败，引用的流程模板不存在！")
+            return False, _("保存失败，引用的流程模板不存在！")
 
         # create appmaker
         from gcloud.contrib.appmaker.permissions import mini_app_resource
@@ -126,7 +126,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 app_params['desc'],
             )
             if not app_create_result['result']:
-                return False, _(u"创建轻应用失败：%s") % app_create_result['message']
+                return False, _("创建轻应用失败：%s") % app_create_result['message']
 
             app_code = app_create_result['data']['bk_light_app_code']
             app_maker_obj.code = app_code
@@ -142,7 +142,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     is_deleted=False
                 )
             except AppMaker.DoesNotExist:
-                return False, _(u"保存失败，当前操作的轻应用不存在或已删除！")
+                return False, _("保存失败，当前操作的轻应用不存在或已删除！")
 
             verify_or_raise_auth_failed(principal_type='user',
                                         principal_id=app_params['username'],
@@ -166,7 +166,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     app_params['desc'],
                 )
                 if not app_edit_result['result']:
-                    return False, _(u"编辑轻应用失败：%s") % app_edit_result['message']
+                    return False, _("编辑轻应用失败：%s") % app_edit_result['message']
 
             app_maker_obj.name = app_params['name']
             app_maker_obj.desc = app_params['desc']
@@ -179,8 +179,8 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             logo = base64.b64encode(app_params['logo_content'])
             app_logo_result = modify_app_logo(app_maker_obj.creator, app_code, logo)
             if not app_logo_result['result']:
-                logger.warning(u"AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,
-                                                                            app_logo_result['message']))
+                logger.warning("AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,
+                                                                           app_logo_result['message']))
             # update app maker info
             app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
 
@@ -201,7 +201,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 is_deleted=False
             )
         except AppMaker.DoesNotExist:
-            return False, _(u"当前操作的轻应用不存在或已删除！")
+            return False, _("当前操作的轻应用不存在或已删除！")
 
         del_name = time_now_str()
         if not fake:
@@ -212,13 +212,13 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 del_name[:20],
             )
             if not app_edit_result['result']:
-                return False, _(u"删除失败：%s") % app_edit_result['message']
+                return False, _("删除失败：%s") % app_edit_result['message']
 
             # delete app on blueking desk
             app_del_result = del_maker_app(app_maker_obj.creator,
                                            app_maker_obj.code)
             if not app_del_result['result']:
-                return False, _(u"删除失败：%s") % app_del_result['message']
+                return False, _("删除失败：%s") % app_del_result['message']
 
         app_maker_obj.is_deleted = True
         app_maker_obj.name = del_name[:20]
@@ -235,7 +235,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         if filters is None:
             filters = {}
         prefix_filters = {}
-        for cond, value in filters.items():
+        for cond, value in list(filters.items()):
             if value in ['None', ''] or cond == 'type':
                 continue
             if cond == 'create_time':
@@ -255,7 +255,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         try:
             appmaker = self.filter(**prefix_filters)
         except Exception as e:
-            message = u"query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
+            message = "query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
             return False, message
         if group_by == AE.project_id:
             # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
@@ -295,20 +295,20 @@ class AppMaker(models.Model):
     """
     APP maker的基本信息
     """
-    project = models.ForeignKey(Project, verbose_name=_(u"所属项目"), null=True, on_delete=models.SET_NULL)
-    name = models.CharField(_(u"APP名称"), max_length=255)
-    code = models.CharField(_(u"APP编码"), max_length=255)
-    info = models.CharField(_(u"APP基本信息"), max_length=255, null=True)
-    desc = models.CharField(_(u"APP描述信息"), max_length=255, null=True)
-    logo_url = models.TextField(_(u"轻应用logo存放地址"), default='', blank=True)
-    link = models.URLField(_(u"gcloud链接"), max_length=255)
-    creator = models.CharField(_(u"创建人"), max_length=100)
-    create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
-    editor = models.CharField(_(u"编辑人"), max_length=100, null=True)
-    edit_time = models.DateTimeField(_(u"编辑时间"), auto_now=True, null=True)
-    task_template = models.ForeignKey(TaskTemplate, verbose_name=_(u"关联模板"))
-    template_scheme_id = models.CharField(_(u"执行方案"), max_length=100, blank=True)
-    is_deleted = models.BooleanField(_(u"是否删除"), default=False)
+    project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, on_delete=models.SET_NULL)
+    name = models.CharField(_("APP名称"), max_length=255)
+    code = models.CharField(_("APP编码"), max_length=255)
+    info = models.CharField(_("APP基本信息"), max_length=255, null=True)
+    desc = models.CharField(_("APP描述信息"), max_length=255, null=True)
+    logo_url = models.TextField(_("轻应用logo存放地址"), default='', blank=True)
+    link = models.URLField(_("gcloud链接"), max_length=255)
+    creator = models.CharField(_("创建人"), max_length=100)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    editor = models.CharField(_("编辑人"), max_length=100, null=True)
+    edit_time = models.DateTimeField(_("编辑时间"), auto_now=True, null=True)
+    task_template = models.ForeignKey(TaskTemplate, verbose_name=_("关联模板"))
+    template_scheme_id = models.CharField(_("执行方案"), max_length=100, blank=True)
+    is_deleted = models.BooleanField(_("是否删除"), default=False)
 
     objects = AppMakerManager()
 
@@ -329,9 +329,9 @@ class AppMaker(models.Model):
         return self.task_template.category
 
     def __unicode__(self):
-        return u'%s_%s' % (self.project, self.name)
+        return '%s_%s' % (self.project, self.name)
 
     class Meta:
-        verbose_name = _(u"轻应用 AppMaker")
-        verbose_name_plural = _(u"轻应用 AppMaker")
+        verbose_name = _("轻应用 AppMaker")
+        verbose_name_plural = _("轻应用 AppMaker")
         ordering = ['-id']

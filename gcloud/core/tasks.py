@@ -57,7 +57,7 @@ def cmdb_business_sync_task(task_id):
                 sync_projects_from_cmdb(username=settings.SYSTEM_USE_API_ACCOUNT, use_cache=False)
             except exceptions.APIError as e:
                 loggger.error('An error occurred when sync cmdb business, message: {msg}, trace: {trace}'.format(
-                    msg=e.message,
+                    msg=str(e),
                     trace=traceback.format_exc()))
         else:
             loggger.info('Can not get sync_business lock, sync operation abandon')

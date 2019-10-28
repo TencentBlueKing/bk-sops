@@ -26,9 +26,10 @@ logger = logging.getLogger('root')
 
 @contextmanager
 def hook_sandbox(hook, fullname):
-    hook_name = hook.__func__.func_name
+    hook_name = hook.__func__.__name__
     try:
-        logger.info('Execute {hook_name} for {module}'.format(module=fullname, hook_name=hook_name))
+        logger.info('Execute {hook_name} for {module}'.format(
+            module=fullname, hook_name=hook_name))
         yield
     except Exception:
         logger.error('{module} {hook_name} raise exception: {traceback}'.format(
@@ -38,22 +39,23 @@ def hook_sandbox(hook, fullname):
         ))
 
 
-class NonstandardModuleImporter(object):
-    __metaclass__ = ABCMeta
-
+class NonstandardModuleImporter(object, metaclass=ABCMeta):
     def __init__(self, modules, name=None):
         self.name = name
         self.modules = modules
 
     def find_module(self, fullname, path=None):
-        logger.info('=============FINDER: {cls}'.format(cls=self.__class__.__name__))
+        logger.info('=============FINDER: {cls}'.format(
+            cls=self.__class__.__name__))
         logger.info('Try to find module: {module} in path: {path}'.format(module=fullname,
                                                                           path=path))
 
-        logger.info('Check if in declared nonstandard modules: {modules}'.format(modules=self.modules))
+        logger.info('Check if in declared nonstandard modules: {modules}'.format(
+            modules=self.modules))
         root_parent = fullname.split('.')[0]
         if root_parent not in self.modules:
-            logger.info('Root module({module}) are not find in nonstandard modules'.format(module=root_parent))
+            logger.info('Root module({module}) are not find in nonstandard modules'.format(
+                module=root_parent))
             return None
 
         logger.info('Check if is built-in module')
@@ -79,11 +81,13 @@ class NonstandardModuleImporter(object):
         try:
             imp.acquire_lock()
 
-            logger.info('=============LOADER: {cls}'.format(cls=self.__class__.__name__))
+            logger.info('=============LOADER: {cls}'.format(
+                cls=self.__class__.__name__))
             logger.info('Try to load module: {module}'.format(module=fullname))
 
             if fullname in sys.modules:
-                logger.info('Module {module} already loaded'.format(module=fullname))
+                logger.info(
+                    'Module {module} already loaded'.format(module=fullname))
                 return sys.modules[fullname]
 
             is_pkg = self.is_package(fullname)
@@ -92,7 +96,7 @@ class NonstandardModuleImporter(object):
                 src_code = self.get_source(fullname)
             except ImportError as e:
                 logger.info('Get source code for {module} error: {message}'.format(module=fullname,
-                                                                                   message=e.message))
+                                                                                   message=e))
                 return None
 
             logger.info('Importing {module}'.format(module=fullname))
@@ -110,7 +114,8 @@ class NonstandardModuleImporter(object):
             else:
                 mod.__package__ = fullname.rpartition('.')[0]
 
-            logger.info('Module prepared, ready to execute source code for {module}'.format(module=fullname))
+            logger.info('Module prepared, ready to execute source code for {module}'.format(
+                module=fullname))
             logger.info('Source code for {module}:\n{src_code}'.format(module=fullname,
                                                                        src_code=src_code))
 
@@ -133,7 +138,8 @@ class NonstandardModuleImporter(object):
             logger.error(err_msg)
 
             if fullname in sys.modules:
-                logger.info('Remove module {module} from sys.modules'.format(module=fullname))
+                logger.info(
+                    'Remove module {module} from sys.modules'.format(module=fullname))
                 del sys.modules[fullname]
 
             raise ImportError(err_msg)
@@ -142,7 +148,7 @@ class NonstandardModuleImporter(object):
             imp.release_lock()
 
     def _execute_src_code(self, src_code, module):
-        exec src_code in module.__dict__
+        exec(src_code, module.__dict__)
 
     @abstractmethod
     def is_package(self, fullname):
@@ -177,9 +183,7 @@ class NonstandardModuleImporter(object):
         pass
 
 
-class AutoInstallRequirementsImporter(NonstandardModuleImporter):
-    __metaclass__ = ABCMeta
-
+class AutoInstallRequirementsImporter(NonstandardModuleImporter, metaclass=ABCMeta):
     def post_load_module_hook(self, fullname, module):
         requirements = getattr(module, '__requirements__', [])
         if not isinstance(requirements, list) or not requirements:

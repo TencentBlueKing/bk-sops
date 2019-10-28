@@ -31,7 +31,7 @@ from gcloud.conf import settings
 logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
-__group_name__ = _(u"配置平台(CMDB)")
+__group_name__ = _("配置平台(CMDB)")
 __group_icon__ = '%scomponents/atoms/cc/cc.png' % settings.STATIC_URL
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
@@ -81,7 +81,7 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     if invalid_ip_list:
         result = {
             'result': False,
-            'message': _(u"查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}").format(
+            'message': _("查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}").format(
                 ip=','.join(invalid_ip_list)
             )
         }
@@ -141,30 +141,30 @@ def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account):
 def cc_format_tree_mode_id(front_id_list):
     if front_id_list is None:
         return []
-    return map(lambda x: int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x), front_id_list)
+    return [int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x) for x in front_id_list]
 
 
 class CCTransferHostModuleService(Service):
 
     def inputs_format(self):
         return [
-            self.InputItem(name=_(u'业务 ID'),
+            self.InputItem(name=_('业务 ID'),
                            key='biz_cc_id',
                            type='string',
-                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-            self.InputItem(name=_(u'主机内网 IP'),
+                           schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_(u'待转移的主机内网 IP，以 "," 分隔'))),
-            self.InputItem(name=_(u'模块 ID'),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+            self.InputItem(name=_('模块 ID'),
                            key='cc_module_select',
                            type='array',
-                           schema=ArrayItemSchema(description=_(u'转移目标模块 ID 列表'),
-                                                  item_schema=IntItemSchema(description=_(u'模块 ID')))),
-            self.InputItem(name=_(u'转移方式'),
+                           schema=ArrayItemSchema(description=_('转移目标模块 ID 列表'),
+                                                  item_schema=IntItemSchema(description=_('模块 ID')))),
+            self.InputItem(name=_('转移方式'),
                            key='cc_is_increment',
                            type='string',
-                           schema=StringItemSchema(description=_(u'主机转移方式，覆盖(false)或追加(true)'),
+                           schema=StringItemSchema(description=_('主机转移方式，覆盖(false)或追加(true)'),
                                                    enum=['false', 'true'])),
         ]
 
@@ -189,7 +189,7 @@ class CCTransferHostModuleService(Service):
             data.set_outputs('ex_data', host_result['message'])
             return False
 
-        cc_module_select = data.get_one_of_inputs('cc_module_select')
+        cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_module_select'))
         cc_is_increment = data.get_one_of_inputs('cc_is_increment')
 
         cc_kwargs = {
@@ -210,7 +210,7 @@ class CCTransferHostModuleService(Service):
 
 
 class CCTransferHostModuleComponent(Component):
-    name = _(u"转移主机模块")
+    name = _("转移主机模块")
     code = 'cc_transfer_host_module'
     bound_service = CCTransferHostModuleService
     form = '%scomponents/atoms/cc/cc_transfer_host_module.js' % settings.STATIC_URL
@@ -220,22 +220,22 @@ class CCUpdateHostService(Service):
 
     def inputs_format(self):
         return [
-            self.InputItem(name=_(u'业务 ID'),
+            self.InputItem(name=_('业务 ID'),
                            key='biz_cc_id',
                            type='string',
-                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-            self.InputItem(name=_(u'主机内网 IP'),
+                           schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_(u'待转移的主机内网 IP，以 "," 分隔'))),
-            self.InputItem(name=_(u'主机属性'),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+            self.InputItem(name=_('主机属性'),
                            key='cc_host_property',
                            type='string',
-                           schema=StringItemSchema(description=_(u'待修改主机属性'))),
-            self.InputItem(name=_(u'主机属性值'),
+                           schema=StringItemSchema(description=_('待修改主机属性'))),
+            self.InputItem(name=_('主机属性值'),
                            key='cc_host_prop_value',
                            type='string',
-                           schema=StringItemSchema(description=_(u'更新后的属性值')))]
+                           schema=StringItemSchema(description=_('更新后的属性值')))]
 
     def outputs_format(self):
         return []
@@ -272,7 +272,7 @@ class CCUpdateHostService(Service):
 
             cc_host_prop_value = bk_isp_name['data'].get(data.get_one_of_inputs('cc_host_prop_value'))
             if not cc_host_prop_value:
-                data.set_outputs('ex_data', _(u"所属运营商校验失败，请重试并修改为正确的所属运营商"))
+                data.set_outputs('ex_data', _("所属运营商校验失败，请重试并修改为正确的所属运营商"))
                 return False
 
         elif cc_host_property == "bk_state_name":
@@ -287,7 +287,7 @@ class CCUpdateHostService(Service):
 
             cc_host_prop_value = bk_state_name['data'].get(data.get_one_of_inputs('cc_host_prop_value'))
             if not cc_host_prop_value:
-                data.set_outputs('ex_data', _(u"所在国家校验失败，请重试并修改为正确的所在国家"))
+                data.set_outputs('ex_data', _("所在国家校验失败，请重试并修改为正确的所在国家"))
                 return False
         elif cc_host_property == "bk_province_name":
             bk_province_name = cc_format_prop_data(executor,
@@ -300,7 +300,7 @@ class CCUpdateHostService(Service):
                 return False
             cc_host_prop_value = bk_province_name['data'].get(data.get_one_of_inputs('cc_host_prop_value'))
             if not cc_host_prop_value:
-                data.set_outputs('ex_data', _(u"所在省份校验失败，请重试并修改为正确的所在省份"))
+                data.set_outputs('ex_data', _("所在省份校验失败，请重试并修改为正确的所在省份"))
                 return False
         else:
             cc_host_prop_value = data.get_one_of_inputs('cc_host_prop_value')
@@ -323,7 +323,7 @@ class CCUpdateHostService(Service):
 
 
 class CCUpdateHostComponent(Component):
-    name = _(u"更新主机属性")
+    name = _("更新主机属性")
     code = 'cc_update_host'
     bound_service = CCUpdateHostService
     form = '%scomponents/atoms/cc/cc_update_host.js' % settings.STATIC_URL
@@ -333,21 +333,21 @@ class CCReplaceFaultMachineService(Service):
 
     def inputs_format(self):
         return [
-            self.InputItem(name=_(u'业务 ID'),
+            self.InputItem(name=_('业务 ID'),
                            key='biz_cc_id',
                            type='string',
-                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-            self.InputItem(name=_(u'主机替换信息'),
+                           schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_('主机替换信息'),
                            key='cc_host_replace_detail',
                            type='object',
-                           schema=ArrayItemSchema(description=_(u'主机替换信息'),
+                           schema=ArrayItemSchema(description=_('主机替换信息'),
                                                   item_schema=ObjectItemSchema(
-                                                      description=_(u'替换机与被替换机信息'),
+                                                      description=_('替换机与被替换机信息'),
                                                       property_schemas={
                                                           'cc_fault_ip': StringItemSchema(
-                                                              description=_(u'故障机 内网IP')),
+                                                              description=_('故障机 内网IP')),
                                                           'cc_new_ip': StringItemSchema(
-                                                              description=_(u'替换机 内网IP'))
+                                                              description=_('替换机 内网IP'))
                                                       })))]
 
     def outputs_format(self):
@@ -398,8 +398,8 @@ class CCReplaceFaultMachineService(Service):
                 get_ip_by_regex(item['cc_new_ip']))
 
         all_hosts = []
-        all_hosts.extend(fault_replace_ip_map.keys())
-        all_hosts.extend(fault_replace_ip_map.values())
+        all_hosts.extend(list(fault_replace_ip_map.keys()))
+        all_hosts.extend(list(fault_replace_ip_map.values()))
         search_kwargs['ip'] = {
             'data': all_hosts,
             'exact': 1,
@@ -428,16 +428,16 @@ class CCReplaceFaultMachineService(Service):
                          hosts_result['data']['info']}
         fault_replace_id_map = {}
 
-        for fault_ip, new_ip in fault_replace_ip_map.items():
+        for fault_ip, new_ip in list(fault_replace_ip_map.items()):
             fault_host = host_dict.get(fault_ip)
             new_host = host_dict.get(new_ip)
 
             if not fault_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % fault_ip)
+                data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
                 return False
 
             if not new_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % new_ip)
+                data.outputs.ex_data = _("无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % new_ip
                 return False
 
             update_item = {
@@ -493,16 +493,16 @@ class CCReplaceFaultMachineService(Service):
             if not transfer_result['result']:
                 message = cc_handle_api_error('cc.transfer_host_module', kwargs, transfer_result)
                 self.logger.error(message)
-                data.outputs.ex_data = u"{msg}\n{success}".format(
+                data.outputs.ex_data = "{msg}\n{success}".format(
                     msg=message,
-                    success=_(u"成功替换的机器: %s") % ','.join(success))
+                    success=_("成功替换的机器: %s") % ','.join(success))
                 return False
 
             success.append(host_id_to_ip[kwargs['bk_host_id'][0]])
 
 
 class CCReplaceFaultMachineComponent(Component):
-    name = _(u"故障机替换")
+    name = _("故障机替换")
     code = 'cc_replace_fault_machine'
     bound_service = CCReplaceFaultMachineService
     form = '%scomponents/atoms/cc/cc_replace_fault_machine.js' % settings.STATIC_URL
@@ -512,15 +512,15 @@ class CCEmptySetHostsService(Service):
 
     def inputs_format(self):
         return [
-            self.InputItem(name=_(u'业务 ID'),
+            self.InputItem(name=_('业务 ID'),
                            key='biz_cc_id',
                            type='string',
-                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-            self.InputItem(name=_(u'集群列表'),
+                           schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_('集群列表'),
                            key='cc_set_select',
                            type='array',
-                           schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
-                                                  item_schema=IntItemSchema(description=_(u'集群 ID'))))]
+                           schema=ArrayItemSchema(description=_('需要清空的集群 ID 列表'),
+                                                  item_schema=IntItemSchema(description=_('集群 ID'))))]
 
     def outputs_format(self):
         return []
@@ -553,7 +553,7 @@ class CCEmptySetHostsService(Service):
 
 
 class CCEmptySetHostsComponent(Component):
-    name = _(u"清空集群中主机")
+    name = _("清空集群中主机")
     code = 'cc_empty_set_hosts'
     bound_service = CCEmptySetHostsService
     form = '%scomponents/atoms/cc/cc_empty_set_hosts.js' % settings.STATIC_URL
@@ -562,15 +562,15 @@ class CCEmptySetHostsComponent(Component):
 class CCBatchDeleteSetService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'集群列表'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('集群列表'),
                                key='cc_set_select',
                                type='array',
-                               schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_(u'集群 ID'))))]
+                               schema=ArrayItemSchema(description=_('需要清空的集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_('集群 ID'))))]
 
     def outputs_format(self):
         return []
@@ -605,7 +605,7 @@ class CCBatchDeleteSetService(Service):
 
 
 class CCBatchDeleteSetComponent(Component):
-    name = _(u"删除集群")
+    name = _("删除集群")
     code = 'cc_batch_delete_set'
     bound_service = CCBatchDeleteSetService
     form = '%scomponents/atoms/cc/cc_batch_delete_set.js' % settings.STATIC_URL
@@ -614,19 +614,19 @@ class CCBatchDeleteSetComponent(Component):
 class CCUpdateSetServiceStatusService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'集群列表'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('集群列表'),
                                key='cc_set_select',
                                type='array',
-                               schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_(u'集群 ID')))),
-                self.InputItem(name=_(u'服务状态'),
+                               schema=ArrayItemSchema(description=_('需要清空的集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_('集群 ID')))),
+                self.InputItem(name=_('服务状态'),
                                key='cc_set_status',
                                type='string',
-                               schema=StringItemSchema(description=_(u'集群服务器状态，开放(1)或关闭(2)'),
+                               schema=StringItemSchema(description=_('集群服务器状态，开放(1)或关闭(2)'),
                                                        enum=['1', '2']))]
 
     def outputs_format(self):
@@ -663,7 +663,7 @@ class CCUpdateSetServiceStatusService(Service):
 
 
 class CCUpdateSetServiceStatusComponent(Component):
-    name = _(u"修改集群服务状态")
+    name = _("修改集群服务状态")
     code = 'cc_update_set_service_status'
     bound_service = CCUpdateSetServiceStatusService
     form = '%scomponents/atoms/cc/cc_update_set_service_status.js' % settings.STATIC_URL
@@ -672,20 +672,20 @@ class CCUpdateSetServiceStatusComponent(Component):
 class CCCreateSetService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'父实例'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('父实例'),
                                key='cc_set_parent_select',
                                type='array',
-                               schema=ArrayItemSchema(description=_(u'父实例 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_(u'实例 ID')))),
-                self.InputItem(name=_(u'集群信息'),
+                               schema=ArrayItemSchema(description=_('父实例 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_('实例 ID')))),
+                self.InputItem(name=_('集群信息'),
                                key='cc_set_info',
                                type='array',
-                               schema=ArrayItemSchema(description=_(u'新集群信息对象列表'),
-                                                      item_schema=ObjectItemSchema(description=_(u'集群信息描述对象'),
+                               schema=ArrayItemSchema(description=_('新集群信息对象列表'),
+                                                      item_schema=ObjectItemSchema(description=_('集群信息描述对象'),
                                                                                    property_schemas={})))]
 
     def outputs_format(self):
@@ -712,7 +712,7 @@ class CCCreateSetService(Service):
         for parent_id in cc_set_parent_select:
             cc_kwargs['data']['bk_parent_id'] = parent_id
             for set_params in cc_set_info:
-                for key, value in set_params.items():
+                for key, value in list(set_params.items()):
                     if value:
                         if key == "bk_set_env":
                             bk_set_env = cc_format_prop_data(executor,
@@ -726,7 +726,7 @@ class CCCreateSetService(Service):
 
                             value = bk_set_env['data'].get(value)
                             if not value:
-                                data.set_outputs('ex_data', _(u"环境类型校验失败，请重试并修改为正确的环境类型"))
+                                data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
                                 return False
 
                         elif key == "bk_service_status":
@@ -741,7 +741,7 @@ class CCCreateSetService(Service):
 
                             value = bk_service_status['data'].get(value)
                             if not value:
-                                data.set_outputs('ex_data', _(u"服务状态校验失败，请重试并修改为正确的服务状态"))
+                                data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
                                 return False
 
                         cc_kwargs['data'][key] = value
@@ -756,7 +756,7 @@ class CCCreateSetService(Service):
 
 
 class CCCreateSetComponent(Component):
-    name = _(u"创建集群")
+    name = _("创建集群")
     code = 'cc_create_set'
     bound_service = CCCreateSetService
     form = '%scomponents/atoms/cc/cc_create_set.js' % settings.STATIC_URL
@@ -765,23 +765,23 @@ class CCCreateSetComponent(Component):
 class CCUpdateSetService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'集群列表'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('集群列表'),
                                key='cc_set_select',
                                type='array',
-                               schema=ArrayItemSchema(description=_(u'集群 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_(u'集群 ID')))),
-                self.InputItem(name=_(u'集群属性'),
+                               schema=ArrayItemSchema(description=_('集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_('集群 ID')))),
+                self.InputItem(name=_('集群属性'),
                                key='cc_set_property',
                                type='string',
-                               schema=StringItemSchema(description=_(u'需要修改的集群属性'))),
-                self.InputItem(name=_(u'属性值'),
+                               schema=StringItemSchema(description=_('需要修改的集群属性'))),
+                self.InputItem(name=_('属性值'),
                                key='cc_set_prop_value',
                                type='string',
-                               schema=StringItemSchema(description=_(u'集群属性更新后的值')))]
+                               schema=StringItemSchema(description=_('集群属性更新后的值')))]
 
     def outputs_format(self):
         return []
@@ -811,7 +811,7 @@ class CCUpdateSetService(Service):
 
             cc_set_prop_value = bk_service_status['data'].get(data.get_one_of_inputs('cc_set_prop_value'))
             if not cc_set_prop_value:
-                data.set_outputs('ex_data', _(u"服务状态校验失败，请重试并修改为正确的服务状态"))
+                data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
                 return False
 
         elif cc_set_property == "bk_set_env":
@@ -826,7 +826,7 @@ class CCUpdateSetService(Service):
 
             cc_set_prop_value = bk_set_env['data'].get(data.get_one_of_inputs('cc_set_prop_value'))
             if not cc_set_prop_value:
-                data.set_outputs('ex_data', _(u"环境类型校验失败，请重试并修改为正确的环境类型"))
+                data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
                 return False
 
         else:
@@ -851,7 +851,7 @@ class CCUpdateSetService(Service):
 
 
 class CCUpdateSetComponent(Component):
-    name = _(u"更新集群属性")
+    name = _("更新集群属性")
     code = 'cc_update_set'
     bound_service = CCUpdateSetService
     form = '%scomponents/atoms/cc/cc_update_set.js' % settings.STATIC_URL
@@ -860,23 +860,23 @@ class CCUpdateSetComponent(Component):
 class CCUpdateModuleService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'模块'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('模块'),
                                key='cc_module_select',
                                type='array',
-                               schema=ArrayItemSchema(description=_(u'模块 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_(u'模块 ID')))),
-                self.InputItem(name=_(u'模块属性'),
+                               schema=ArrayItemSchema(description=_('模块 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_('模块 ID')))),
+                self.InputItem(name=_('模块属性'),
                                key='cc_module_property',
                                type='string',
-                               schema=StringItemSchema(description=_(u'需要修改的模块属性'))),
-                self.InputItem(name=_(u'属性值'),
+                               schema=StringItemSchema(description=_('需要修改的模块属性'))),
+                self.InputItem(name=_('属性值'),
                                key='cc_module_prop_value',
                                type='string',
-                               schema=StringItemSchema(description=_(u'模块属性更新后的值')))]
+                               schema=StringItemSchema(description=_('模块属性更新后的值')))]
 
     def outputs_format(self):
         return []
@@ -916,7 +916,7 @@ class CCUpdateModuleService(Service):
 
             cc_module_prop_value = bk_module_type['data'].get(data.get_one_of_inputs('cc_module_prop_value'))
             if not cc_module_prop_value:
-                data.set_outputs('ex_data', _(u"模块类型校验失败，请重试并填写正确的模块类型"))
+                data.set_outputs('ex_data', _("模块类型校验失败，请重试并填写正确的模块类型"))
                 return False
         else:
             cc_module_prop_value = data.get_one_of_inputs('cc_module_prop_value')
@@ -941,7 +941,7 @@ class CCUpdateModuleService(Service):
 
 
 class CCUpdateModuleComponent(Component):
-    name = _(u"更新模块属性")
+    name = _("更新模块属性")
     code = 'cc_update_module'
     bound_service = CCUpdateModuleService
     form = '%scomponents/atoms/cc/cc_update_module.js' % settings.STATIC_URL
@@ -950,14 +950,14 @@ class CCUpdateModuleComponent(Component):
 class CCTransferHostToIdleService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'主机 IP'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_(u'转移到空闲机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到空闲机的主机内网 IP，多个以 "," 分隔')))]
 
     def outputs_format(self):
         return []
@@ -998,7 +998,7 @@ class CCTransferHostToIdleService(Service):
 
 
 class CCTransferHostToIdleComponent(Component):
-    name = _(u"转移主机至空闲机")
+    name = _("转移主机至空闲机")
     code = 'cc_transfer_to_idle'
     bound_service = CCTransferHostToIdleService
     form = '%scomponents/atoms/cc/cc_transfer_to_idle.js' % settings.STATIC_URL
@@ -1007,14 +1007,14 @@ class CCTransferHostToIdleComponent(Component):
 class CmdbTransferFaultHostService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'主机 IP'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_(u'转移到故障机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到故障机的主机内网 IP，多个以 "," 分隔')))]
 
     def outputs_format(self):
         return []
@@ -1051,7 +1051,7 @@ class CmdbTransferFaultHostService(Service):
 
 
 class CmdbTransferFaultHostComponent(Component):
-    name = _(u'转移主机到业务的故障机模块')
+    name = _('转移主机到业务的故障机模块')
     code = 'cmdb_transfer_fault_host'
     bound_service = CmdbTransferFaultHostService
     form = '%scomponents/atoms/cc/cmdb_transfer_fault_host.js' % settings.STATIC_URL
@@ -1060,14 +1060,14 @@ class CmdbTransferFaultHostComponent(Component):
 class CmdbTransferHostResourceModuleService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'主机 IP'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_(u'转移到资源池的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个以 "," 分隔')))]
 
     def outputs_format(self):
         return []
@@ -1104,7 +1104,7 @@ class CmdbTransferHostResourceModuleService(Service):
 
 
 class CmdbTransferHostResourceModuleComponent(Component):
-    name = _(u'转移主机至资源池')
+    name = _('转移主机至资源池')
     code = 'cmdb_transfer_host_resource'
     bound_service = CmdbTransferHostResourceModuleService
     form = '%scomponents/atoms/cc/cmdb_transfer_host_resource.js' % settings.STATIC_URL

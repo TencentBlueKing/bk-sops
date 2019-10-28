@@ -21,7 +21,7 @@ class TestStreamValidation(TestCase):
     def test_distance_from_start(self):
         tree, gateway_validation_assert, _ = flow_valid_case(self)
         distances = {}
-        for gid, g in tree[PE.gateways].items():
+        for gid, g in list(tree[PE.gateways].items()):
             distance_from(
                 origin=tree[PE.start_event],
                 node=g,
@@ -29,14 +29,14 @@ class TestStreamValidation(TestCase):
                 marked=distances
             )
 
-        for gid, ga in gateway_validation_assert.items():
+        for gid, ga in list(gateway_validation_assert.items()):
             actual = distances[gid]
             expect = ga['distance']
             self.assertEqual(actual,
                              expect,
                              msg='{id} actual: {a}, expect: {e}'.format(id=gid, a=actual, e=expect))
 
-        for gid, ga in gateway_validation_assert.items():
+        for gid, ga in list(gateway_validation_assert.items()):
             actual = distance_from(
                 origin=tree[PE.start_event],
                 node=tree[PE.gateways][gid],
@@ -80,7 +80,7 @@ class TestStreamValidation(TestCase):
                     if converge_id is None:
                         break
 
-            for _, c in converge.items():
+            for _, c in list(converge.items()):
                 actual = c['match']
                 expect = c['match_assert']
                 self.assertEqual(actual,
@@ -93,7 +93,7 @@ class TestStreamValidation(TestCase):
                                  expect,
                                  msg='{id} actual: {a}, expect: {e}'.format(id=c[PE.id], a=actual, e=expect))
 
-            for _, g in gateway.items():
+            for _, g in list(gateway.items()):
                 actual = g['match']
                 expect = g['match_assert']
                 self.assertEqual(actual,
@@ -148,7 +148,7 @@ class TestStreamValidation(TestCase):
         tree, gateway_validation_assert, _ = flow_valid_case(self)
         converged = validate_gateways(tree)
 
-        for cid, converge_items in converged.items():
+        for cid, converge_items in list(converged.items()):
             actual = len(converge_items)
             expect = gateway_validation_assert[cid]['converged_len']
             self.assertEqual(
@@ -163,7 +163,7 @@ class TestStreamValidation(TestCase):
                              expect,
                              msg='{id} actual: {a}, expect: {e}'.format(id=cid, a=actual, e=expect))
 
-        for gid, gateway in tree[PE.gateways].items():
+        for gid, gateway in list(tree[PE.gateways].items()):
             if gateway[PE.type] != PE.ConvergeGateway:
                 actual = gateway[PE.converge_gateway_id]
                 expect = gateway_validation_assert[gid]['match_assert']
@@ -183,7 +183,7 @@ class TestStreamValidation(TestCase):
         validate_gateways(tree)
         data = validate_stream(tree)
 
-        for nid, expect in stream_assert.items():
+        for nid, expect in list(stream_assert.items()):
             actual = data[nid][STREAM]
             self.assertEqual(
                 actual,

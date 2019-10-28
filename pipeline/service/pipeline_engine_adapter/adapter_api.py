@@ -113,7 +113,7 @@ def _get_node_state(tree):
         return STATE_MAP[tree['state']]
 
     # iterate children and get child state recursively
-    for identifier_code, child_tree in tree['children'].items():
+    for identifier_code, child_tree in list(tree['children'].items()):
         status.append(_get_node_state(child_tree))
 
     # summary parent state
@@ -138,7 +138,7 @@ def _get_parent_state_from_children_state(parent_state, children_state_list):
 
 def _collect_descendants(tree, descendants):
     # iterate children for tree
-    for identifier_code, child_tree in tree['children'].items():
+    for identifier_code, child_tree in list(tree['children'].items()):
         child_status = _map(child_tree)
         descendants[identifier_code] = child_status
 

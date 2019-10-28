@@ -12,11 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import zlib
-
-try:
-    import cPickle as pickle
-except Exception:
-    import pickle
+import pickle
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -45,8 +41,8 @@ class SignalManager(models.Manager):
 
 
 class Signal(models.Model):
-    module_path = models.TextField(_(u"信号模块名"))
-    name = models.CharField(_(u"信号属性名"), max_length=64)
-    kwargs = IOField(verbose_name=_(u"信号参数"))
+    module_path = models.TextField(_("信号模块名"))
+    name = models.CharField(_("信号属性名"), max_length=64)
+    kwargs = IOField(verbose_name=_("信号参数"))
 
     objects = SignalManager()

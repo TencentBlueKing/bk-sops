@@ -14,8 +14,6 @@ gcloud.utils.random
 An extension of built-in random module.
 """
 
-from __future__ import absolute_import
-
 from random import choice
 
 

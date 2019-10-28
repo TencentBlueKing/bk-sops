@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 
 import itertools
 
@@ -60,7 +59,7 @@ class SubprocessHandlerTestCase(TestCase):
                 subprocess_h.hydrate_node_data.assert_called_once_with(subprocess_act)
 
                 if data_inputs:
-                    calls = [mock.call(k, v) for k, v in data_inputs.items()]
+                    calls = [mock.call(k, v) for k, v in list(data_inputs.items())]
                     context.set_global_var.assert_has_calls(calls)
 
                 subprocess_h.hydrate_data.assert_called_once_with(context.variables)

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
+
 import logging
 import traceback
 
@@ -42,8 +42,8 @@ class ExclusiveGatewayHandler(FlowElementHandler):
             hydrate_context = hydrate_data(process.top_pipeline.context.variables)
             next_node = element.next(hydrate_context)
         except PipelineException as e:
-            logger.error(traceback.format_exc(e))
-            Status.objects.fail(element, ex_data=e.message)
+            logger.error(traceback.format_exc())
+            Status.objects.fail(element, ex_data=str(e))
             return self.HandleResult(next_node=None, should_return=True, should_sleep=True)
         Status.objects.finish(element)
         return self.HandleResult(next_node=next_node, should_return=False, should_sleep=False)

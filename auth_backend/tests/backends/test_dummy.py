@@ -11,16 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch, call
+from __future__ import absolute_import, unicode_literals
 
 from django.test import TestCase
+from mock import MagicMock, call, patch
 
+from auth_backend.backends.dummy import FreeAuthBackend, utils
 from auth_backend.resources.django import DjangoModelResource
-
-from gcloud.contrib.auth.backend import utils
-from gcloud.contrib.auth.backend import FreeAuthBackend
-
-from gcloud.tests.mock_settings import *  # noqa
+from auth_backend.tests.mock_path import *  # noqa
 
 
 class TestResource(DjangoModelResource):
@@ -80,7 +78,7 @@ class FreeAuthBackendTestCase(TestCase):
                                        'message': 'success',
                                        'data': {}})
 
-    @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_perms_with_none_instance(self):
         resource = MagicMock()
         auth_result = self.backend.verify_perms(principal_type=self.principal_type,
@@ -98,7 +96,7 @@ class FreeAuthBackendTestCase(TestCase):
                                                            instances=[],
                                                            ignore_relate_instance_act=False)
 
-    @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_perms_with_instance(self):
         resource = MagicMock()
         instance = MagicMock()
@@ -118,7 +116,7 @@ class FreeAuthBackendTestCase(TestCase):
                                                            instances=[instance],
                                                            ignore_relate_instance_act=False)
 
-    @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_batch_verify_perms_with_none_instance(self):
         resource = MagicMock()
         auth_result = self.backend.batch_verify_perms(principal_type=self.principal_type,
@@ -136,7 +134,7 @@ class FreeAuthBackendTestCase(TestCase):
                                                            instances=[],
                                                            ignore_relate_instance_act=False)
 
-    @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_batch_verify_perms_with_instances(self):
         resource = MagicMock()
         instances = [MagicMock()]
@@ -156,7 +154,7 @@ class FreeAuthBackendTestCase(TestCase):
                                                            instances=instances,
                                                            ignore_relate_instance_act=False)
 
-    @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_multiple_resource_perms(self):
         resource_1 = MagicMock()
         resource_2 = MagicMock()
@@ -192,7 +190,7 @@ class FreeAuthBackendTestCase(TestCase):
                           principal_id=self.principal_id,
                           action_ids=self.action_ids)
 
-    @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_search_authorized_resources(self):
         ids = ['1', '2', '3']
         mock_qs = MagicMock()
@@ -208,7 +206,8 @@ class FreeAuthBackendTestCase(TestCase):
             operations=[],
             inspect=None,
             id_field='id',
-            resource_cls=MagicMock())
+            resource_cls=MagicMock(),
+            backend=self.backend)
         resource.resource_cls.objectest_search_authorized_resourcests = MagicMock()
         resource.resource_cls.objects.all = MagicMock(return_value=mock_qs)
 
@@ -230,7 +229,7 @@ class FreeAuthBackendTestCase(TestCase):
                                                            instances=[],
                                                            ignore_relate_instance_act=False)
 
-    @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value='instance_id'))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value='instance_id'))
     def test_search_resources_perms_principals(self):
         resource = MagicMock()
         resource.rtype = 'resource_type_token'
@@ -247,7 +246,7 @@ class FreeAuthBackendTestCase(TestCase):
 
         principals = [{'principal_type': 'user', 'principal_id': uid} for uid in ids]
 
-        with patch(GCLOUD_CONTRIB_AUTH_BACKEND_GET_USER_MODEL, MagicMock(return_value=user_model)):
+        with patch(DUMMY_BACKEND_GET_USER_MODEL, MagicMock(return_value=user_model)):
             auth_result = self.backend.search_resources_perms_principals(resource=resource,
                                                                          resources_actions=[
                                                                              {'action_id': action_id_1,

@@ -45,7 +45,7 @@ class ComponentAPI(object):
         self.url = self.get_url_with_api_ver()
         try:
             return self._call(*args, **kwargs)
-        except ComponentAPIException, e:
+        except ComponentAPIException as e:
             # Combine log message
             log_message = [e.error_message, ]
             log_message.append('url=%(url)s' % {'url': e.api_obj.url})
@@ -80,10 +80,10 @@ class ComponentAPI(object):
         # Request remote server
         try:
             resp = self.client.request(self.method, self.url, params=params, data=data)
-        except Exception, e:
+        except Exception as e:
             logger.exception('Error occurred when requesting method=%s url=%s',
                              self.method, self.url)
-            raise ComponentAPIException(self, u'Request component error, Exception: %s' % str(e))
+            raise ComponentAPIException(self, 'Request component error, Exception: %s' % str(e))
 
         # Parse result
         if resp.status_code != self.HTTP_STATUS_OK:
@@ -94,8 +94,8 @@ class ComponentAPI(object):
             json_resp = resp.json()
             if not json_resp['result']:
                 # 组件返回错误时，记录相应的 request_id
-                log_message = (u'Component return error message: %(message)s, request_id=%(request_id)s, '
-                               u'url=%(url)s, params=%(params)s, data=%(data)s, response=%(response)s') % {
+                log_message = ('Component return error message: %(message)s, request_id=%(request_id)s, '
+                               'url=%(url)s, params=%(params)s, data=%(data)s, response=%(response)s') % {
                     'request_id': json_resp.get('request_id'),
                     'message': json_resp['message'],
                     'url': self.url,

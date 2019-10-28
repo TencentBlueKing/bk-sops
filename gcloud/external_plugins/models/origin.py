@@ -91,9 +91,9 @@ class OriginalPackageSourceManager(PackageSourceManager):
 
 
 class OriginalPackageSource(PackageSource):
-    name = models.CharField(_(u"包源"), max_length=128)
-    desc = models.TextField(_(u"包源说明"), max_length=1000, blank=True)
-    packages = JSONTextField(_(u"模块配置"))
+    name = models.CharField(_("包源"), max_length=128)
+    desc = models.TextField(_("包源说明"), max_length=1000, blank=True)
+    packages = JSONTextField(_("模块配置"))
 
     objects = OriginalPackageSourceManager()
 
@@ -134,13 +134,13 @@ class OriginalPackageSource(PackageSource):
 
 @original_source
 class GitRepoOriginalSource(OriginalPackageSource):
-    repo_address = models.TextField(_(u"仓库链接"))
-    repo_raw_address = models.TextField(_(u"文件托管仓库链接"), help_text=_(u"可以通过web直接访问源文件的链接前缀"))
-    branch = models.CharField(_(u"分支名"), max_length=128)
+    repo_address = models.TextField(_("仓库链接"))
+    repo_raw_address = models.TextField(_("文件托管仓库链接"), help_text=_("可以通过web直接访问源文件的链接前缀"))
+    branch = models.CharField(_("分支名"), max_length=128)
 
     class Meta:
-        verbose_name = _(u"GIT远程包源 GitRepoOriginalSource")
-        verbose_name_plural = _(u"GIT远程包源 GitRepoOriginalSource")
+        verbose_name = _("GIT远程包源 GitRepoOriginalSource")
+        verbose_name_plural = _("GIT远程包源 GitRepoOriginalSource")
         ordering = ['-id']
 
     @staticmethod
@@ -158,14 +158,14 @@ class GitRepoOriginalSource(OriginalPackageSource):
 
 @original_source
 class S3OriginalSource(OriginalPackageSource):
-    service_address = models.TextField(_(u"对象存储服务地址"))
-    bucket = models.TextField(_(u"bucket 名"))
-    access_key = models.TextField(_(u"access key"))
-    secret_key = models.TextField(_(u"secret key"))
+    service_address = models.TextField(_("对象存储服务地址"))
+    bucket = models.TextField(_("bucket 名"))
+    access_key = models.TextField(_("access key"))
+    secret_key = models.TextField(_("secret key"))
 
     class Meta:
-        verbose_name = _(u"S3远程包源 S3OriginalSource")
-        verbose_name_plural = _(u"S3远程包源 S3OriginalSource")
+        verbose_name = _("S3远程包源 S3OriginalSource")
+        verbose_name_plural = _("S3远程包源 S3OriginalSource")
         ordering = ['-id']
 
     @staticmethod
@@ -184,11 +184,11 @@ class S3OriginalSource(OriginalPackageSource):
 
 @original_source
 class FileSystemOriginalSource(OriginalPackageSource):
-    path = models.TextField(_(u"文件系统路径"))
+    path = models.TextField(_("文件系统路径"))
 
     class Meta:
-        verbose_name = _(u"FS远程包源 FileSystemOriginalSource")
-        verbose_name_plural = _(u"FS远程包源 FileSystemOriginalSource")
+        verbose_name = _("FS远程包源 FileSystemOriginalSource")
+        verbose_name_plural = _("FS远程包源 FileSystemOriginalSource")
         ordering = ['-id']
 
     @staticmethod

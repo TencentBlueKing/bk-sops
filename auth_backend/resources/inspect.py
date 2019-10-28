@@ -11,12 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 import abc
 
+from builtins import object
+from future.utils import with_metaclass
 
-class InstanceInspect(object):
-    __metaclass__ = abc.ABCMeta
 
+class InstanceInspect(with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def creator_type(self, instance):
         raise NotImplementedError()

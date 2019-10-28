@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import Queue
+import queue
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -40,7 +40,7 @@ def not_in_parallel_gateway(gateway_stack, start_from=None):
         id_stack = [g[PE.id] for g in gateway_stack]
         start = id_stack.index(start_from)
 
-    for i in xrange(start, len(gateway_stack)):
+    for i in range(start, len(gateway_stack)):
         gateway = gateway_stack[i]
         if gateway[PE.type] in PARALLEL_GATEWAYS:
             return False
@@ -56,7 +56,7 @@ def matched_in_prev_blocks(gid, current_start, block_nodes):
     :return:
     """
     prev_nodes = set()
-    for prev_start, nodes in block_nodes.items():
+    for prev_start, nodes in list(block_nodes.items()):
         if prev_start == current_start:
             continue
         prev_nodes.update(nodes)
@@ -125,7 +125,7 @@ def match_converge(converges,
                     target[i] = None
                     break
                 else:
-                    raise exceptions.ConvergeMatchError(cur_index, _(u"并行网关中的分支网关必须将所有分支汇聚到一个汇聚网关"))
+                    raise exceptions.ConvergeMatchError(cur_index, _("并行网关中的分支网关必须将所有分支汇聚到一个汇聚网关"))
 
             converge_id, shared = match_converge(converges=converges,
                                                  gateways=gateways,
@@ -176,7 +176,7 @@ def match_converge(converges,
             if not_in_parallel_gateway(stack):
                 converge_end = True
             else:
-                raise exceptions.ConvergeMatchError(cur_index, _(u"并行网关中的分支网关必须将所有分支汇聚到一个汇聚网关"))
+                raise exceptions.ConvergeMatchError(cur_index, _("并行网关中的分支网关必须将所有分支汇聚到一个汇聚网关"))
 
         # exclusive gateway point back to self
         elif is_exg and target[i] == current_gateway[PE.id]:
@@ -186,7 +186,7 @@ def match_converge(converges,
 
         # exclusive gateway converge at different converge gateway
         elif is_exg and target[i] in converges and converge_id != target[i]:
-            raise exceptions.ConvergeMatchError(cur_index, _(u"分支网关的所有分支第一个遇到的汇聚网关必须是同一个"))
+            raise exceptions.ConvergeMatchError(cur_index, _("分支网关的所有分支第一个遇到的汇聚网关必须是同一个"))
 
         # meet previous node
         elif is_exg and target[i] is None:
@@ -196,7 +196,7 @@ def match_converge(converges,
 
         # invalid cases
         else:
-            raise exceptions.ConvergeMatchError(cur_index, _(u"非法网关，请检查其分支是否符合规则"))
+            raise exceptions.ConvergeMatchError(cur_index, _("非法网关，请检查其分支是否符合规则"))
 
     if is_exg:
         if converge_id in converges:
@@ -213,12 +213,12 @@ def match_converge(converges,
             for gateway_id in converged.get(converge_id, []):
                 # find another parallel gateway
                 if gateways[gateway_id][PE.type] in PARALLEL_GATEWAYS:
-                    raise exceptions.ConvergeMatchError(converge_id, _(u"汇聚网关只能汇聚来自同一个并行网关的分支"))
+                    raise exceptions.ConvergeMatchError(converge_id, _("汇聚网关只能汇聚来自同一个并行网关的分支"))
 
             shared = True
 
         elif converge_incoming < gateway_outgoing:
-            raise exceptions.ConvergeMatchError(converge_id, _(u"汇聚网关没有汇聚其对应的并行网关的所有分支"))
+            raise exceptions.ConvergeMatchError(converge_id, _("汇聚网关没有汇聚其对应的并行网关的所有分支"))
 
     current_gateway['match'] = converge_id
     current_gateway['share_converge'] = shared
@@ -294,7 +294,7 @@ def validate_gateways(tree):
     process_order = []
 
     # data preparation
-    for i, item in tree[PE.gateways].items():
+    for i, item in list(tree[PE.gateways].items()):
         node = {
             PE.incoming: item[PE.incoming] if isinstance(item[PE.incoming], list) else [item[PE.incoming]],
             PE.outgoing: item[PE.outgoing] if isinstance(item[PE.outgoing], list) else [item[PE.outgoing]],
@@ -321,7 +321,7 @@ def validate_gateways(tree):
                 origin=tree[PE.start_event],
                 tree=tree,
                 marked=distances):
-            raise exceptions.ConvergeMatchError(node[PE.id], _(u"无法获取该网关距离开始节点的距离"))
+            raise exceptions.ConvergeMatchError(node[PE.id], _("无法获取该网关距离开始节点的距离"))
 
         if item[PE.type] == PE.ConvergeGateway:
             converges[i] = node
@@ -332,7 +332,7 @@ def validate_gateways(tree):
         all[i] = node
 
     # calculate positive incoming number for converge
-    for nid, node in all.items():
+    for nid, node in list(all.items()):
         for t in node[PE.target]:
             if t in converges and distances[t] > distances[nid]:
                 converge_positive_in[t] = converge_positive_in.setdefault(t, 0) + 1
@@ -485,7 +485,7 @@ def validate_stream(tree):
     parallel_converges = {}
     visited = set({})
 
-    for nid, node in nodes.items():
+    for nid, node in list(nodes.items()):
         node.setdefault(STREAM, set())
 
         # set allow streams for parallel's converge
@@ -496,7 +496,7 @@ def validate_stream(tree):
             }
 
     # build stream from start
-    node_queue = Queue.Queue()
+    node_queue = queue.Queue()
     node_queue.put(nodes[start_event_id])
     while not node_queue.empty():
 
@@ -519,7 +519,7 @@ def validate_stream(tree):
         flowing(where=node, to=nodes, parallel_converges=parallel_converges)
 
     # data clean
-    for nid, n in nodes.items():
+    for nid, n in list(nodes.items()):
         if len(n[STREAM]) != 1:
             raise exceptions.StreamValidateError(node_id=nid)
 
@@ -527,7 +527,7 @@ def validate_stream(tree):
         n[STREAM] = n[STREAM].pop()
 
     # isolate node check
-    for __, node in nodes.items():
+    for __, node in list(nodes.items()):
         if not node[STREAM]:
             raise exceptions.IsolateNodeError()
 

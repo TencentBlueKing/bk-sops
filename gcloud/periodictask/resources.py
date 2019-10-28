@@ -170,7 +170,7 @@ class PeriodicTaskResource(GCloudModelResource):
             pipeline_tree = json.loads(bundle.data.pop('pipeline_tree'))
             project_path = bundle.data['project']
         except (KeyError, ValueError) as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
 
         # XSS handle
         name = name_handler(name, PERIOD_TASK_NAME_MAX_LENGTH)
@@ -180,7 +180,7 @@ class PeriodicTaskResource(GCloudModelResource):
         try:
             validate_web_pipeline_tree(pipeline_tree)
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
 
         try:
             template = TaskTemplate.objects.get(id=template_id)
@@ -205,7 +205,7 @@ class PeriodicTaskResource(GCloudModelResource):
         try:
             project = Project.objects.get(id=int(project_path.split('/')[-2]))
         except Exception as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
 
         try:
             kwargs['task'] = PeriodicTask.objects.create_pipeline_task(
@@ -218,7 +218,7 @@ class PeriodicTaskResource(GCloudModelResource):
             )
         except Exception as e:
             logger.warning(traceback.format_exc())
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
 
         response = super(PeriodicTaskResource, self).obj_create(bundle, **kwargs)
         response.obj.set_enabled(True)

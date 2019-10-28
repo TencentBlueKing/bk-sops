@@ -11,13 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 import copy
 import json
 import logging
-import jsonschema
 
+import jsonschema
 from django.test import TestCase, Client
 
 from pipeline.exceptions import PipelineException
@@ -28,7 +26,6 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.periodictask.models import PeriodicTask
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -383,6 +380,7 @@ class APITest(TestCase):
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
+                    template_source='project',
                     create_method='api',
                     create_info=TEST_APP_CODE,
                     flow_type='common',
@@ -427,6 +425,7 @@ class APITest(TestCase):
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
+                    template_source='common',
                     create_method='api',
                     create_info=TEST_APP_CODE,
                     flow_type='common',
@@ -934,7 +933,6 @@ class APITest(TestCase):
                                     content_type='application/json')
 
         data = json.loads(response.content)
-
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 

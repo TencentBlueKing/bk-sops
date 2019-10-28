@@ -11,29 +11,28 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 
-import Queue
-import ujson as json
-import zlib
+import copy
 import hashlib
 import logging
-import copy
+import queue
+import zlib
 
-from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+import ujson as json
 from django.db import models, transaction
+from django.utils import timezone
 from django.utils.module_loading import import_string
+from django.utils.translation import ugettext_lazy as _
 
-from pipeline.service import task_service
-from pipeline.utils.uniqid import uniqid, node_uniqid
-from pipeline.parser.utils import replace_all_id
-from pipeline.parser.context import get_pipeline_context
-from pipeline.utils.graph import Graph
-from pipeline.exceptions import SubprocessRefError
-from pipeline.engine.utils import calculate_elapsed_time, ActionResult
-from pipeline.core.constants import PE
 from pipeline.conf import settings
+from pipeline.core.constants import PE
+from pipeline.engine.utils import ActionResult, calculate_elapsed_time
+from pipeline.exceptions import SubprocessRefError
+from pipeline.parser.context import get_pipeline_context
+from pipeline.parser.utils import replace_all_id
+from pipeline.service import task_service
+from pipeline.utils.graph import Graph
+from pipeline.utils.uniqid import node_uniqid, uniqid
 
 MAX_LEN_OF_NAME = 128
 logger = logging.getLogger('root')
@@ -46,11 +45,11 @@ class CompressJSONField(models.BinaryField):
 
     def get_prep_value(self, value):
         value = super(CompressJSONField, self).get_prep_value(value)
-        return zlib.compress(json.dumps(value), self.compress_level)
+        return zlib.compress(json.dumps(value).encode('utf-8'), self.compress_level)
 
     def to_python(self, value):
         value = super(CompressJSONField, self).to_python(value)
-        return json.loads(zlib.decompress(value))
+        return json.loads(zlib.decompress(value).decode('utf-8'))
 
     def from_db_value(self, value, expression, connection, context):
         return self.to_python(value)
@@ -59,7 +58,7 @@ class CompressJSONField(models.BinaryField):
 class SnapshotManager(models.Manager):
     def create_or_get_snapshot(self, data):
         h = hashlib.md5()
-        h.update(json.dumps(data))
+        h.update(json.dumps(data).encode('utf-8'))
         snapshot, created = self.get_or_create(md5sum=h.hexdigest())
         if created:
             snapshot.data = data
@@ -74,20 +73,20 @@ class Snapshot(models.Model):
     """
     数据快照
     """
-    md5sum = models.CharField(_(u"快照字符串的md5sum"), max_length=32, unique=True)
-    create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
+    md5sum = models.CharField(_("快照字符串的md5sum"), max_length=32, unique=True)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
     data = CompressJSONField(null=True, blank=True)
 
     objects = SnapshotManager()
 
     class Meta:
-        verbose_name = _(u"模板快照")
-        verbose_name_plural = _(u"模板快照")
+        verbose_name = _("模板快照")
+        verbose_name_plural = _("模板快照")
         ordering = ['-id']
         app_label = 'pipeline'
 
     def __unicode__(self):
-        return unicode(self.md5sum)
+        return str(self.md5sum)
 
     def has_change(self, data):
         """
@@ -96,7 +95,7 @@ class Snapshot(models.Model):
         @return: 新的 md5，md5 是否有变化
         """
         h = hashlib.md5()
-        h.update(json.dumps(data))
+        h.update(json.dumps(data).encode('utf-8'))
         md5 = h.hexdigest()
         return md5, self.md5sum != md5
 
@@ -115,7 +114,7 @@ def get_subprocess_act_list(pipeline_data):
     @return: 子流程节点
     """
     activities = pipeline_data[PE.activities]
-    act_ids = filter(lambda act_id: activities[act_id][PE.type] == PE.SubProcess, activities)
+    act_ids = [act_id for act_id in activities if activities[act_id][PE.type] == PE.SubProcess]
     return [activities[act_id] for act_id in act_ids]
 
 
@@ -125,7 +124,7 @@ def _act_id_in_graph(act):
     @param act: 子流程节点
     @return: 模板 ID:版本 或 模板ID
     """
-    return '%s:%s' % (act['template_id'], act['version']) if act.get('version') else act['template_id']
+    return '{}:{}'.format(act['template_id'], act['version']) if act.get('version') else act['template_id']
 
 
 class TemplateManager(models.Manager):
@@ -142,9 +141,9 @@ class TemplateManager(models.Manager):
             sub_refs, name_map = self.construct_subprocess_ref_graph(data, root_id=root_id,
                                                                      root_name=root_name)
         except PipelineTemplate.DoesNotExist as e:
-            return False, e.message
+            return False, str(e)
 
-        nodes = sub_refs.keys()
+        nodes = list(sub_refs.keys())
         flows = []
         for node in nodes:
             for ref in sub_refs[node]:
@@ -154,8 +153,8 @@ class TemplateManager(models.Manager):
         # circle reference check
         trace = graph.get_cycle()
         if trace:
-            name_trace = u" → ".join(map(lambda proc_id: name_map[proc_id], trace))
-            return False, _(u"子流程引用链中存在循环引用：%s") % name_trace
+            name_trace = " → ".join([name_map[proc_id] for proc_id in trace])
+            return False, _("子流程引用链中存在循环引用：%s") % name_trace
 
         return True, ''
 
@@ -203,7 +202,7 @@ class TemplateManager(models.Manager):
         @return: 子流程引用图，模板 ID -> 模板姓名映射字典
         """
         subprocess_act = get_subprocess_act_list(pipeline_data)
-        tid_queue = Queue.Queue()
+        tid_queue = queue.Queue()
         graph = {}
         version = {}
         name_map = {}
@@ -241,7 +240,7 @@ class TemplateManager(models.Manager):
         """
         replace_all_id(pipeline_data)
         activities = pipeline_data[PE.activities]
-        for act_id, act in activities.items():
+        for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
                 subproc_data = self.get(template_id=act['template_id']) \
                     .data_for_version(act.get('version'))
@@ -259,7 +258,7 @@ class TemplateManager(models.Manager):
         """
         replace_all_id(pipeline_data)
         activities = pipeline_data[PE.activities]
-        for act_id, act in activities.items():
+        for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
                 subproc_data = act['pipeline']
                 self.unfold_subprocess(subproc_data)
@@ -271,31 +270,33 @@ class PipelineTemplate(models.Model):
     """
     流程模板
     """
-    template_id = models.CharField(_(u"模板ID"), max_length=32, unique=True)
-    name = models.CharField(_(u"模板名称"), max_length=MAX_LEN_OF_NAME, default='default_template')
-    create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
-    creator = models.CharField(_(u"创建者"), max_length=32)
-    description = models.TextField(_(u"描述"), null=True, blank=True)
-    editor = models.CharField(_(u"修改者"), max_length=32, null=True, blank=True)
-    edit_time = models.DateTimeField(_(u"修改时间"), auto_now=True)
-    snapshot = models.ForeignKey(Snapshot, verbose_name=_(u"模板结构数据"), related_name='snapshot_templates')
-    has_subprocess = models.BooleanField(_(u"是否含有子流程"), default=False)
+    template_id = models.CharField(_("模板ID"), max_length=32, unique=True)
+    name = models.CharField(_("模板名称"), max_length=MAX_LEN_OF_NAME, default='default_template')
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    creator = models.CharField(_("创建者"), max_length=32)
+    description = models.TextField(_("描述"), null=True, blank=True)
+    editor = models.CharField(_("修改者"), max_length=32, null=True, blank=True)
+    edit_time = models.DateTimeField(_("修改时间"), auto_now=True)
+    snapshot = models.ForeignKey(Snapshot, verbose_name=_("模板结构数据"),
+                                 related_name='snapshot_templates',
+                                 on_delete=models.DO_NOTHING)
+    has_subprocess = models.BooleanField(_("是否含有子流程"), default=False)
     is_deleted = models.BooleanField(
-        _(u"是否删除"),
+        _("是否删除"),
         default=False,
-        help_text=_(u"表示当前模板是否删除")
+        help_text=_("表示当前模板是否删除")
     )
 
     objects = TemplateManager()
 
     class Meta:
-        verbose_name = _(u"Pipeline模板")
-        verbose_name_plural = _(u"Pipeline模板")
+        verbose_name = _("Pipeline模板")
+        verbose_name_plural = _("Pipeline模板")
         ordering = ['-edit_time']
         app_label = 'pipeline'
 
     def __unicode__(self):
-        return '%s-%s' % (self.template_id, self.name)
+        return '{}-{}'.format(self.template_id, self.name)
 
     @property
     def data(self):
@@ -389,7 +390,7 @@ class PipelineTemplate(models.Model):
         exclude_keys = ['template_id', 'creator', 'create_time', 'is_deleted']
         for key in exclude_keys:
             kwargs.pop(key, None)
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             setattr(self, key, value)
         self.save()
 
@@ -408,7 +409,7 @@ class PipelineTemplate(models.Model):
         )
 
     def set_has_subprocess_bit(self):
-        acts = self.data[PE.activities].values()
+        acts = list(self.data[PE.activities].values())
         self.has_subprocess = any([act['type'] == PE.SubProcess for act in acts])
 
 
@@ -434,10 +435,10 @@ class TemplateRelationship(models.Model):
     """
     流程模板引用关系：直接引用
     """
-    ancestor_template_id = models.CharField(_(u"根模板ID"), max_length=32, db_index=True)
-    descendant_template_id = models.CharField(_(u"子流程模板ID"), max_length=32, null=False)
-    subprocess_node_id = models.CharField(_(u"子流程节点 ID"), max_length=32, null=False)
-    version = models.CharField(_(u"快照字符串的md5"), max_length=32, null=False)
+    ancestor_template_id = models.CharField(_("根模板ID"), max_length=32, db_index=True)
+    descendant_template_id = models.CharField(_("子流程模板ID"), max_length=32, null=False)
+    subprocess_node_id = models.CharField(_("子流程节点 ID"), max_length=32, null=False)
+    version = models.CharField(_("快照字符串的md5"), max_length=32, null=False)
 
     objects = TemplateRelationShipManager()
 
@@ -460,8 +461,8 @@ class TemplateCurrentVersion(models.Model):
     """
     记录流程模板当前版本的表
     """
-    template_id = models.CharField(_(u"模板ID"), max_length=32, db_index=True)
-    current_version = models.CharField(_(u"快照字符串的md5"), max_length=32, null=False)
+    template_id = models.CharField(_("模板ID"), max_length=32, db_index=True)
+    current_version = models.CharField(_("快照字符串的md5"), max_length=32, null=False)
 
     objects = TemplateCurrentVersionManager()
 
@@ -488,10 +489,10 @@ class TemplateVersion(models.Model):
     """
     模板版本号记录节点
     """
-    template = models.ForeignKey(PipelineTemplate, verbose_name=_(u"模板 ID"), null=False)
-    snapshot = models.ForeignKey(Snapshot, verbose_name=_(u"模板数据 ID"), null=False)
-    md5 = models.CharField(_(u"快照字符串的md5"), max_length=32, db_index=True)
-    date = models.DateTimeField(_(u"添加日期"), auto_now_add=True)
+    template = models.ForeignKey(PipelineTemplate, verbose_name=_("模板 ID"), null=False, on_delete=models.CASCADE)
+    snapshot = models.ForeignKey(Snapshot, verbose_name=_("模板数据 ID"), null=False, on_delete=models.CASCADE)
+    md5 = models.CharField(_("快照字符串的md5"), max_length=32, db_index=True)
+    date = models.DateTimeField(_("添加日期"), auto_now_add=True)
 
     objects = TemplateVersionManager()
 
@@ -500,11 +501,12 @@ class TemplateScheme(models.Model):
     """
     模板执行方案
     """
-    template = models.ForeignKey(PipelineTemplate, verbose_name=_(u"对应模板 ID"), null=False, blank=False)
-    unique_id = models.CharField(_(u"方案唯一ID"), max_length=97, unique=True, null=False, blank=True)
-    name = models.CharField(_(u"方案名称"), max_length=64, null=False, blank=False)
-    edit_time = models.DateTimeField(_(u"修改时间"), auto_now=True)
-    data = CompressJSONField(verbose_name=_(u"方案数据"))
+    template = models.ForeignKey(PipelineTemplate, verbose_name=_("对应模板 ID"),
+                                 null=False, blank=False, on_delete=models.CASCADE)
+    unique_id = models.CharField(_("方案唯一ID"), max_length=97, unique=True, null=False, blank=True)
+    name = models.CharField(_("方案名称"), max_length=64, null=False, blank=False)
+    edit_time = models.DateTimeField(_("修改时间"), auto_now=True)
+    data = CompressJSONField(verbose_name=_("方案数据"))
 
 
 class InstanceManager(models.Manager):
@@ -526,7 +528,7 @@ class InstanceManager(models.Manager):
 
         inputs = inputs or {}
 
-        for key, val in inputs.items():
+        for key, val in list(inputs.items()):
             if key in exec_data['data']['inputs']:
                 exec_data['data']['inputs'][key]['value'] = val
 
@@ -593,55 +595,58 @@ class PipelineInstance(models.Model):
     """
     流程实例对象
     """
-    instance_id = models.CharField(_(u"实例ID"), max_length=32, unique=True)
-    template = models.ForeignKey(PipelineTemplate, verbose_name=_(u"Pipeline模板"),
+    instance_id = models.CharField(_("实例ID"), max_length=32, unique=True)
+    template = models.ForeignKey(PipelineTemplate, verbose_name=_("Pipeline模板"),
                                  null=True, blank=True, on_delete=models.SET_NULL)
-    name = models.CharField(_(u"实例名称"), max_length=MAX_LEN_OF_NAME, default='default_instance')
-    creator = models.CharField(_(u"创建者"), max_length=32, blank=True)
-    create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
-    executor = models.CharField(_(u"执行者"), max_length=32, blank=True)
-    start_time = models.DateTimeField(_(u"启动时间"), null=True, blank=True)
-    finish_time = models.DateTimeField(_(u"结束时间"), null=True, blank=True)
-    description = models.TextField(_(u"描述"), blank=True)
-    is_started = models.BooleanField(_(u"是否已经启动"), default=False)
-    is_finished = models.BooleanField(_(u"是否已经完成"), default=False)
+    name = models.CharField(_("实例名称"), max_length=MAX_LEN_OF_NAME, default='default_instance')
+    creator = models.CharField(_("创建者"), max_length=32, blank=True)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    executor = models.CharField(_("执行者"), max_length=32, blank=True)
+    start_time = models.DateTimeField(_("启动时间"), null=True, blank=True)
+    finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
+    description = models.TextField(_("描述"), blank=True)
+    is_started = models.BooleanField(_("是否已经启动"), default=False)
+    is_finished = models.BooleanField(_("是否已经完成"), default=False)
     is_deleted = models.BooleanField(
-        _(u"是否已经删除"),
+        _("是否已经删除"),
         default=False,
-        help_text=_(u"表示当前实例是否删除")
+        help_text=_("表示当前实例是否删除")
     )
     snapshot = models.ForeignKey(
         Snapshot,
         blank=True,
         null=True,
         related_name='snapshot_instances',
-        verbose_name=_(u"实例结构数据，指向实例对应的模板的结构数据")
+        verbose_name=_("实例结构数据，指向实例对应的模板的结构数据"),
+        on_delete=models.SET_NULL
     )
     execution_snapshot = models.ForeignKey(
         Snapshot,
         blank=True,
         null=True,
         related_name='execution_snapshot_instances',
-        verbose_name=_(u"用于实例执行的结构数据")
+        verbose_name=_("用于实例执行的结构数据"),
+        on_delete=models.SET_NULL
     )
     tree_info = models.ForeignKey(
         TreeInfo,
         blank=True,
         null=True,
         related_name='tree_info_instances',
-        verbose_name=_(u"提前计算好的一些流程结构数据")
+        verbose_name=_("提前计算好的一些流程结构数据"),
+        on_delete=models.SET_NULL
     )
 
     objects = InstanceManager()
 
     class Meta:
-        verbose_name = _(u"Pipeline实例")
-        verbose_name_plural = _(u"Pipeline实例")
+        verbose_name = _("Pipeline实例")
+        verbose_name_plural = _("Pipeline实例")
         ordering = ['-create_time']
         app_label = 'pipeline'
 
     def __unicode__(self):
-        return '%s-%s' % (self.instance_id, self.name)
+        return '{}-{}'.format(self.instance_id, self.name)
 
     @property
     def data(self):
@@ -678,7 +683,7 @@ class PipelineInstance(models.Model):
         """
         replace_all_id(exec_data)
         activities = exec_data[PE.activities]
-        for act_id, act in activities.items():
+        for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
                 self._replace_id(act['pipeline'])
                 act['pipeline']['id'] = act_id
@@ -767,7 +772,7 @@ class PipelineInstance(models.Model):
         node_id_set.add(data[PE.end_event]['id'])
         for gid in data[PE.gateways]:
             node_id_set.add(gid)
-        for aid, act_data in data[PE.activities].items():
+        for aid, act_data in list(data[PE.activities].items()):
             node_id_set.add(aid)
             if act_data[PE.type] == PE.SubProcess:
                 self._get_node_id_set(node_id_set, act_data['pipeline'])

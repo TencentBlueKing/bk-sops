@@ -60,7 +60,7 @@ def get_nodes_dict(data):
     nodes.update(data[PE.activities])
     nodes.update(data[PE.gateways])
 
-    for node in nodes.values():
+    for node in list(nodes.values()):
         # format to list
         node[PE.incoming] = format_to_list(node[PE.incoming])
         node[PE.outgoing] = format_to_list(node[PE.outgoing])

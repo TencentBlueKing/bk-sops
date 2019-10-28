@@ -63,7 +63,7 @@ def mark_request_whether_is_trust(view_func):
         except UserNotExistError as e:
             return JsonResponse({
                 'result': False,
-                'message': e.message
+                'message': str(e)
             })
 
         return view_func(request, *args, **kwargs)
@@ -155,7 +155,7 @@ def api_verify_perms(auth_resource, actions, get_kwargs):
         def wrapper(request, *args, **kwargs):
             if not getattr(request, 'is_trust', False):
                 get_filters = {}
-                for kwarg, filter_arg in get_kwargs.items():
+                for kwarg, filter_arg in list(get_kwargs.items()):
                     get_filters[filter_arg] = kwargs.get(kwarg)
 
                 # project_id value replace

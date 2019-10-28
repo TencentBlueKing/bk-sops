@@ -46,8 +46,8 @@ class ComponentModel(models.Model):
     objects = ComponentManager()
 
     class Meta:
-        verbose_name = _(u"组件 Component")
-        verbose_name_plural = _(u"组件 Component")
+        verbose_name = _("组件 Component")
+        verbose_name_plural = _("组件 Component")
         ordering = ['-id']
 
     def __unicode__(self):

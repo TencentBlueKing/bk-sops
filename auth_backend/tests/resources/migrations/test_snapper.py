@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 from django.test import TestCase
 from mock import MagicMock, patch
 
@@ -40,7 +42,7 @@ class ResourceStateSnapperTestCase(TestCase):
 
         with patch(SNAPPER_RESOURCE_TYPE_LIB, resource_type_lib):
             expect = {}
-            for resource in resource_type_lib.values():
+            for resource in list(resource_type_lib.values()):
                 resource_snapshot = resource.snapshot()
                 expect.setdefault(resource.scope_type, []).append(resource_snapshot)
 

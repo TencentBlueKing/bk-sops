@@ -41,7 +41,7 @@ class ComponentMeta(type):
 
         # Add all attributes to the class
         attrs.setdefault('desc', '')
-        for obj_name, obj in attrs.items():
+        for obj_name, obj in list(attrs.items()):
             setattr(new_class, obj_name, obj)
 
         # check
@@ -69,7 +69,7 @@ class ComponentMeta(type):
             new_class.__module__.split(".")[-1].title()
         )
         setattr(new_class, 'group_name', group_name)
-        new_name = u"%s-%s" % (group_name, new_class.name)
+        new_name = "%s-%s" % (group_name, new_class.name)
 
         # category/group name
         group_icon = getattr(

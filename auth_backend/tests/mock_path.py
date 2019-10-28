@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import unicode_literals
+
 FINDER_CODECS_OPEN = 'auth_backend.resources.migrations.finder.codecs.open'
 FINDER_JSON_LOAD = 'auth_backend.resources.migrations.finder.json.load'
 FINDER_JSON_DUMP = 'auth_backend.resources.migrations.finder.json.dump'
@@ -24,6 +26,7 @@ LOADER_APP_LABEL = 'auth_backend.resources.migrations.loader.APP_LABEL'
 
 MIGRATION_MIGRATION_CLASS = 'auth_backend.resources.migrations.migration.settings.AUTH_BACKEND_RESOURCE_MIGRATION_CLASS'
 MIGRATION_IMPORT_STRING = 'auth_backend.resources.migrations.migration.import_string'
+MIGRATION_DIFFER_SETTINGS = 'auth_backend.resources.migrations.differ.settings'
 
 SNAPPER_RESOURCE_TYPE_LIB = 'auth_backend.resources.migrations.snapper.resource_type_lib'
 
@@ -49,3 +52,7 @@ SHORTCUTS_BUILD_NEED_PERMISSION = 'auth_backend.plugins.shortcuts.build_need_per
 SHORTCUTS_RESOURCE_TYPE_LIB = 'auth_backend.plugins.shortcuts.resource_type_lib'
 
 CONF_SCOPE_TYPE_NAMES = 'auth_backend.conf.SCOPE_TYPE_NAMES'
+
+DUMMY_BACKEND_UTILS_RESOURCE_ID_FOR = 'auth_backend.backends.dummy.utils.resource_id_for'
+DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR = 'auth_backend.backends.dummy.utils.resource_actions_for'
+DUMMY_BACKEND_GET_USER_MODEL = 'auth_backend.backends.dummy.get_user_model'

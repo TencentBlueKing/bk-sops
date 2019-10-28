@@ -11,8 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 import json
 import logging
+from builtins import object
 
 import requests
 from requests.exceptions import HTTPError
@@ -64,7 +67,7 @@ class BKIAMClient(object):
             _headers.update(headers)
 
         logger.debug(
-            u'bk_iam client request({method}) {url} with headers: {headers}, data: {data}, params: {params}'.format(
+            'bk_iam client request({method}) {url} with headers: {headers}, data: {data}, params: {params}'.format(
                 method=method, url=url, headers=_headers, data=data, params=params
             ))
 
@@ -73,7 +76,7 @@ class BKIAMClient(object):
         try:
             response.raise_for_status()
         except HTTPError as e:
-            message = u'bk_iam request({url}) error: {e}, response: {response}'.format(
+            message = 'bk_iam request({url}) error: {e}, response: {response}'.format(
                 url=response.request.url, e=e, response=response.text)
             logger.error(message)
 
@@ -84,20 +87,20 @@ class BKIAMClient(object):
 
         try:
             resp_data = response.json()
-            logger.debug(u'bk_iam request({url}) return: {data}'.format(url=response.request.url, data=resp_data))
+            logger.debug('bk_iam request({url}) return: {data}'.format(url=response.request.url, data=resp_data))
             if not resp_data['result']:
-                logger.error(u'bk_iam return error, message {message}, request_id={request_id}, '
-                             u'url={url}, headers={headers}, params={params}, data={data}, '
-                             u'response={response}'.format(message=resp_data['message'],
-                                                           request_id=resp_data.get('request_id'),
-                                                           url=url,
-                                                           headers=_headers,
-                                                           params=params,
-                                                           data=data,
-                                                           response=response.text))
+                logger.error('bk_iam return error, message {message}, request_id={request_id}, '
+                             'url={url}, headers={headers}, params={params}, data={data}, '
+                             'response={response}'.format(message=resp_data['message'],
+                                                          request_id=resp_data.get('request_id'),
+                                                          url=url,
+                                                          headers=_headers,
+                                                          params=params,
+                                                          data=data,
+                                                          response=response.text))
             return resp_data
         except Exception as e:
-            message = u'bk_iam request({url}) error, response json convert failed: {e}, response: {response}'.format(
+            message = 'bk_iam request({url}) error, response json convert failed: {e}, response: {response}'.format(
                 url=response.request.url, e=e, response=response.content)
             logger.error(message)
 

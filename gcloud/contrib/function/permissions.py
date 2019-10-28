@@ -18,9 +18,9 @@ from auth_backend.backends.bkiam import BKIAMBackend
 
 function_center_resource = NeverInitiateResource(
     rtype='function_center',
-    name=_(u"职能化中心"),
+    name=_("职能化中心"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
-    actions=[Action(id='view', name=_(u"查看"), is_instance_related=False)],
+    scope_name=_("标准运维"),
+    actions=[Action(id='view', name=_("查看"), is_instance_related=False)],
     backend=BKIAMBackend())

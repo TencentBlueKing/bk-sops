@@ -23,17 +23,17 @@ from gcloud.core.permissions import project_resource
 
 taskflow_resource = DjangoModelResource(
     rtype='task',
-    name=_(u"任务实例"),
+    name=_("任务实例"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
+    scope_name=_("标准运维"),
     actions=[
-        Action(id='view', name=_(u"查看"), is_instance_related=True),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='operate', name=_(u"控制"), is_instance_related=True),
-        Action(id='claim', name=_(u"认领"), is_instance_related=True),
-        Action(id='delete', name=_(u"删除"), is_instance_related=True),
-        Action(id='clone', name=_(u"克隆"), is_instance_related=True)
+        Action(id='view', name=_("查看"), is_instance_related=True),
+        Action(id='edit', name=_("编辑"), is_instance_related=True),
+        Action(id='operate', name=_("控制"), is_instance_related=True),
+        Action(id='claim', name=_("认领"), is_instance_related=True),
+        Action(id='delete', name=_("删除"), is_instance_related=True),
+        Action(id='clone', name=_("克隆"), is_instance_related=True)
     ],
     operations=[
         {

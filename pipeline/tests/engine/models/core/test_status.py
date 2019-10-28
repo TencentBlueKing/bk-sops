@@ -40,9 +40,9 @@ class TestStatus(TestCase):
         # transit test
         with patch(PIPELINE_HISTORY_RECORD, mock_record):
             with patch(PIPELINE_HISTORY_LINK_HISTORY, mock_link_history):
-                for is_pipeline, appoint_map in states.TRANSITION_MAP.items():
-                    for is_appoint, state_map in appoint_map.items():
-                        for from_state, to_state_set in state_map.items():
+                for is_pipeline, appoint_map in list(states.TRANSITION_MAP.items()):
+                    for is_appoint, state_map in list(appoint_map.items()):
+                        for from_state, to_state_set in list(state_map.items()):
 
                             # valid transit
                             for to_state in to_state_set:
