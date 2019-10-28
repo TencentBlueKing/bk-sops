@@ -255,10 +255,8 @@
                     checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
-                isloadCacheStatus: false,
                 isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
-                cacheNodeId: '',
                 nodeInfoType: '',
                 state: '',
                 selectedFlowPath: path, // 选择面包屑路径
@@ -284,7 +282,8 @@
                 showNodeList: [0, 1, 2],
                 ellipsis: '...',
                 operateLoading: false,
-                retrievedCovergeGateways: [] // 遍历过的汇聚节点
+                retrievedCovergeGateways: [], // 遍历过的汇聚节点
+                statusTree: {}// 状态树
             }
         },
         computed: {
@@ -395,30 +394,17 @@
                 'skipExclusiveGateway',
                 'pauseNodeResume'
             ]),
+            // 加载状态
             async loadTaskStatus () {
                 try {
                     this.$emit('taskStatusLoadChange', true)
-                    const data = {
-                        instance_id: this.taskId,
-                        project_id: this.project_id
-                    }
-                    if (this.selectedFlowPath.length > 1) {
-                        data.instance_id = this.instance_id
-                        data.subprocess_id = this.taskId
-                    }
-                    const instanceStatus = !this.isloadCacheStatus
-                        ? await this.getInstanceStatus(data)
-                        : await this.getCacheStatusData()
-                    if (instanceStatus.result) {
-                        this.state = instanceStatus.data.state
-                        this.instanceStatus = instanceStatus.data
-                        if (this.state === 'RUNNING') {
-                            this.setTaskStatusTimer()
-                        }
-                        this.updateNodeInfo()
+                    const data = this.statusTree[this.taskId]
+                    // 失败或完成时，才能直接取缓存状态树种的数据
+                    if (data && ['FINISHED', 'FAILED'].includes(this.state)) {
+                        this.initInstanceStatusData()
                     } else {
-                        this.cancelTaskStatusTimer()
-                        errorHandler(instanceStatus, this)
+                        await this.getInstanceStatusData(data)
+                        this.initInstanceStatusData()
                     }
                 } catch (e) {
                     this.cancelTaskStatusTimer()
@@ -427,23 +413,41 @@
                     this.$emit('taskStatusLoadChange', false)
                 }
             },
-            /**
-             * 获取缓存状态数据
-             * @description
-             * 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
-             * 然后使用 updateCanvas 替代 v-if
-             */
-            getCacheStatusData () {
-                return new Promise((resolve) => {
-                    this.isloadCacheStatus = false
-                    const cacheStatus = this.instanceStatus.children
+            // 通过接口获取状态数据
+            async getInstanceStatusData () {
+                const data = {
+                    instance_id: this.taskId,
+                    project_id: this.project_id
+                }
+                if (this.selectedFlowPath.length > 1) {
+                    data.instance_id = this.instance_id
+                    data.subprocess_id = this.taskId
+                }
+                const instanceStatus = await this.getInstanceStatus(data)
+                if (instanceStatus.result) {
+                    this.statusTree[this.taskId] = instanceStatus.data
+                } else {
+                    this.cancelTaskStatusTimer()
+                    errorHandler(instanceStatus, this)
+                }
+            },
+            // 通过状态树更新状态数据
+            async initInstanceStatusData () {
+                // start
+                // 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
+                // 然后使用 updateCanvas 替代 v-if
+                const data = await new Promise((resolve, reject) => {
                     setTimeout(() => {
-                        resolve({
-                            data: cacheStatus[this.cacheNodeId],
-                            result: true
-                        })
+                        resolve(this.statusTree[this.taskId])
                     }, 0)
                 })
+                // end
+                this.instanceStatus = data
+                this.state = data.state
+                if (this.state === 'RUNNING') {
+                    this.setTaskStatusTimer()
+                }
+                this.updateNodeInfo()
             },
             async taskExecute () {
                 try {
@@ -909,11 +913,6 @@
                     type: 'SubProcess'
                 })
                 this.pipelineData = this.pipelineData.activities[id].pipeline
-                // 子流程完成或失败时，点击获取接口缓存的数据
-                if (['FINISHED', 'FAILED'].includes(this.state)) {
-                    this.isloadCacheStatus = true
-                    this.cacheNodeId = id
-                }
                 this.updateTaskStatus(id)
             },
             // 面包屑点击
