@@ -61,6 +61,14 @@ common_template_resource = DjangoModelResource(
         {
             'operate_id': 'export',
             'actions_id': ['view']
+        },
+        {
+            'operate_id': 'create_scheme',
+            'actions_id': ['view', 'edit']
+        },
+        {
+            'operate_id': 'delete_scheme',
+            'actions_id': ['view', 'edit']
         }
     ],
     resource_cls=CommonTemplate,

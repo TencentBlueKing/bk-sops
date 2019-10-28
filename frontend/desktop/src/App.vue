@@ -108,6 +108,7 @@
             bus.$on('showMessage', info => {
                 this.$bkMessage({
                     message: info.message,
+                    isSingleLine: false,
                     theme: info.theme || 'error'
                 })
             })
@@ -118,6 +119,7 @@
             window.show_msg = (message, type) => {
                 this.$bkMessage({
                     message,
+                    isSingleLine: false,
                     theme: type
                 })
             }

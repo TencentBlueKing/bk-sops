@@ -360,11 +360,11 @@
                         width: '285',
                         title: 'instanceName',
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.businessId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.projectId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
                         }
                     },
                     {
-                        prop: 'businessName', // 识别id
+                        prop: 'projectName', // 识别id
                         label: i18n.ownBusiness, // 表头显示名称
                         align: 'center' // 对其格式，可选（right，left，center）
                     },
@@ -427,11 +427,11 @@
                         label: i18n.instanceName,
                         title: 'instanceName',
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.businessId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.projectId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
                         }
                     },
                     {
-                        prop: 'businessName',
+                        prop: 'projectName',
                         label: i18n.ownBusiness,
                         align: 'center'
                     },
@@ -464,7 +464,7 @@
                 choiceTimeType: 'day',
                 choiceTimeTypeCategoryName: '',
                 choiceTimeTypeCategory: undefined,
-                choiceTimeTypeBusinessName: '',
+                choiceTimeTypeProjectName: '',
                 choiceTimeTypeBusiness: undefined,
                 timeTypeTime: [],
                 isInstanceTypeLoading: false,

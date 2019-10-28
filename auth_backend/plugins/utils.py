@@ -48,7 +48,9 @@ def build_need_permission(auth_resource, action_id, instance=None, scope_id=None
     return base_info
 
 
-@with_cache(seconds=10, prefix=CACHE_PREFIX, ex=[0, 1, "action_ids"])
+@with_cache(seconds=10,
+            prefix='{}_search_all_resources_authorized_actions'.format(CACHE_PREFIX),
+            ex=[0, 1, "action_ids"])
 def search_all_resources_authorized_actions(username, resource_type, auth_resource, action_ids=None, scope_id=None):
     """
     @summary: 获取所有用户对某个资源类型的所有资源实例的权限
