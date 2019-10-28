@@ -282,8 +282,7 @@
                 showNodeList: [0, 1, 2],
                 ellipsis: '...',
                 operateLoading: false,
-                retrievedCovergeGateways: [], // 遍历过的汇聚节点
-                statusTree: {}// 状态树
+                retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
         },
         computed: {
@@ -394,17 +393,32 @@
                 'skipExclusiveGateway',
                 'pauseNodeResume'
             ]),
-            // 加载状态
             async loadTaskStatus () {
                 try {
                     this.$emit('taskStatusLoadChange', true)
-                    const data = this.statusTree[this.taskId]
-                    // 失败或完成时，才能直接取缓存状态树种的数据
-                    if (data && ['FINISHED', 'FAILED'].includes(this.state)) {
-                        this.initInstanceStatusData()
+                    const data = {
+                        instance_id: this.taskId,
+                        project_id: this.project_id
+                    }
+                    if (this.selectedFlowPath.length > 1) {
+                        data.instance_id = this.instance_id
+                        data.subprocess_id = this.taskId
+                    }
+                    const instanceStatus = ['FINISHED', 'FAILED'].includes(this.state)
+                        && this.instanceStatus.children
+                        && this.instanceStatus.children[this.taskId]
+                        ? await this.getCacheStatusData()
+                        : await this.getInstanceStatus(data)
+                    if (instanceStatus.result) {
+                        this.state = instanceStatus.data.state
+                        this.instanceStatus = instanceStatus.data
+                        if (this.state === 'RUNNING') {
+                            this.setTaskStatusTimer()
+                        }
+                        this.updateNodeInfo()
                     } else {
-                        await this.getInstanceStatusData(data)
-                        this.initInstanceStatusData()
+                        this.cancelTaskStatusTimer()
+                        errorHandler(instanceStatus, this)
                     }
                 } catch (e) {
                     this.cancelTaskStatusTimer()
@@ -413,41 +427,22 @@
                     this.$emit('taskStatusLoadChange', false)
                 }
             },
-            // 通过接口获取状态数据
-            async getInstanceStatusData () {
-                const data = {
-                    instance_id: this.taskId,
-                    project_id: this.project_id
-                }
-                if (this.selectedFlowPath.length > 1) {
-                    data.instance_id = this.instance_id
-                    data.subprocess_id = this.taskId
-                }
-                const instanceStatus = await this.getInstanceStatus(data)
-                if (instanceStatus.result) {
-                    this.statusTree[this.taskId] = instanceStatus.data
-                } else {
-                    this.cancelTaskStatusTimer()
-                    errorHandler(instanceStatus, this)
-                }
-            },
-            // 通过状态树更新状态数据
-            async initInstanceStatusData () {
-                // start
-                // 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
-                // 然后使用 updateCanvas 替代 v-if
-                const data = await new Promise((resolve, reject) => {
+            /**
+             * 获取缓存状态数据
+             * @description
+             * 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
+             * 然后使用 updateCanvas 替代 v-if
+             */
+            getCacheStatusData () {
+                return new Promise((resolve) => {
+                    const cacheStatus = this.instanceStatus.children
                     setTimeout(() => {
-                        resolve(this.statusTree[this.taskId])
+                        resolve({
+                            data: cacheStatus[this.taskId],
+                            result: true
+                        })
                     }, 0)
                 })
-                // end
-                this.instanceStatus = data
-                this.state = data.state
-                if (this.state === 'RUNNING') {
-                    this.setTaskStatusTimer()
-                }
-                this.updateNodeInfo()
             },
             async taskExecute () {
                 try {
