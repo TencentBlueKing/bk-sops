@@ -131,21 +131,31 @@ def collect(request, project_id):
         return JsonResponse(ctx)
 
 
-@require_GET
+@require_POST
 def export_templates(request, project_id):
     try:
-        template_id_list = json.loads(request.GET.get('template_id_list'))
+        data = json.loads(request.body)
     except Exception:
-        return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+        return JsonResponse({'result': False, 'message': 'invalid json'})
+
+    try:
+        template_id_list = data['template_id_list']
+    except KeyError:
+        return JsonResponse({'result': False, 'message': 'template_id_list can not be none'})
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
 
+    if not template_id_list:
+        return JsonResponse({'result': False, 'message': 'template_id_list can not be empty'})
+
     templates = TaskTemplate.objects.filter(id__in=template_id_list, project_id=project_id, is_deleted=False)
     perms_tuples = [(task_template_resource, [task_template_resource.actions.view.id], t) for t in templates]
-    batch_verify_or_raise_auth_failed(principal_type='user',
-                                      principal_id=request.user.username,
-                                      perms_tuples=perms_tuples)
+    batch_verify_or_raise_auth_failed(
+        principal_type='user',
+        principal_id=request.user.username,
+        perms_tuples=perms_tuples
+    )
 
     # wash
     try:
