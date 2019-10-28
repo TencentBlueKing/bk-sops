@@ -25,8 +25,12 @@ from auth_backend.resources import resource_type_lib
 from gcloud.core import roles
 from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
 from gcloud.core.models import UserDefaultProject
-from gcloud.core.utils import convert_group_name, apply_permission_url
+from gcloud.core.utils import (
+    convert_group_name,
+    apply_permission_url,
+)
 from gcloud.core.permissions import project_resource
+from gcloud.core.api_adapter import get_all_users
 
 auth_backend = get_backend_from_config()
 logger = logging.getLogger('root')
@@ -179,3 +183,14 @@ def query_resource_verify_perms(request):
         'code': -1
     }
     return JsonResponse(ctx)
+
+
+@require_GET
+def get_user_list(request):
+    """
+    @summary: 获取当前平台所有用户
+    @param request:
+    @return:
+    """
+    result = get_all_users(request)
+    return JsonResponse(result)

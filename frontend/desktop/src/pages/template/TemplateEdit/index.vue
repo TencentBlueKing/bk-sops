@@ -257,13 +257,18 @@
                 }
             }
         },
-        created () {
+        async created () {
             this.initTemplateData()
+            // 获取流程内置变量
+            this.templateDataLoading = true
+            const result = await this.loadInternalVariable()
+            this.setInternalVariable(result.data || [])
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
                 const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
+                this.templateDataLoading = false
             }
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
@@ -304,6 +309,7 @@
                 'saveTemplateData',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
+                'loadInternalVariable',
                 'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
@@ -329,6 +335,7 @@
                 'setStartpoint',
                 'setEndpoint',
                 'setBranchCondition',
+                'setInternalVariable',
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree'
@@ -410,7 +417,6 @@
                 }
             },
             async getTemplateData () {
-                this.templateDataLoading = true
                 try {
                     const data = {
                         templateId: this.template_id,

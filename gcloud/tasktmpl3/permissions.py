@@ -75,7 +75,7 @@ task_template_resource = DjangoModelResource(
         {
             'operate_id': 'delete_scheme',
             'actions_id': ['view', 'edit']
-        },
+        }
     ],
     parent=project_resource,
     resource_cls=TaskTemplate,

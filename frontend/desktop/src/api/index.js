@@ -151,6 +151,17 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取内置变量变量列表
+     */
+    getInternalVariableList () {
+        const prefixUrl = this.getPrefix('internalVariable')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程列表
      */
     getSubAtomList (data) {
@@ -591,8 +602,9 @@ const api = {
      */
     getPreviewNodeData (data) {
         const prefixUrl = this.getPrefix('instancePreview')
-        const { templateId, excludeTaskNodesId, common } = data
+        const { templateId, excludeTaskNodesId, common, version } = data
         const dataJson = {
+            version,
             template_id: templateId,
             exclude_task_nodes_id: excludeTaskNodesId,
             template_source: 'project'
@@ -830,10 +842,10 @@ const api = {
      */
     getJobInstanceLog (data) {
         const prefixUrl = this.getPrefix('jobInstanceLog')
-        const { job_instance_id } = data
+        const { job_instance_id, project_id } = data
         const opts = {
             method: 'GET',
-            url: prefixUrl,
+            url: `${prefixUrl}${project_id}/`,
             params: {
                 job_instance_id
             }
