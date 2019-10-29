@@ -10,7 +10,9 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="canvas-container">
+    <div
+        id="canvasContainer"
+        class="canvas-container">
         <js-flow
             ref="jsFlow"
             selector="entry-item"
@@ -87,15 +89,6 @@
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
-        <shortcut-panel
-            v-show="idOfNodeShortcutPanel"
-            id="shortcutPanel"
-            :canvas-data="canvasData"
-            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
-            @onAppendNode="onAppendNode"
-            @onInsertNode="onInsertNode"
-            @onShowNodeConfig="onShowNodeConfig">
-        </shortcut-panel>
         <div ref="dragReferenceLine" class="drag-reference-line"></div>
     </div>
 </template>
@@ -108,9 +101,9 @@
     import HelpInfo from './HelpInfo/index.vue'
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
+    import dom from '@/utils/dom.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
-    import ShortcutPanel from './NodeTemplate/ShortcutPanel.vue'
     
     export default {
         name: 'TemplateCanvas',
@@ -119,8 +112,7 @@
             NodeTemplate,
             PalettePanel,
             ToolPanel,
-            HelpInfo,
-            ShortcutPanel
+            HelpInfo
         },
         props: {
             showPalette: {
@@ -204,19 +196,9 @@
                     id: '',
                     arrow: ''
                 },
-                shortcutPanelNode: {},
-                shortcutPanelTemplate: null,
                 flowData,
                 endpointOptions,
                 connectorOptions
-            }
-        },
-        watch: {
-            idOfNodeShortcutPanel (newId, oldId) {
-                if (newId) {
-                    const panel = document.getElementById('shortcutPanel')
-                    document.getElementById(newId).appendChild(panel)
-                }
             }
         },
         mounted () {
@@ -750,6 +732,9 @@
             },
             // 隐藏快捷节点面板
             handleShortcutPanelHide (e) {
+                if (e && dom.parentClsContains('canvas-node', e.target)) {
+                    return false
+                }
                 this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
                 this.idOfNodeShortcutPanel = ''
@@ -876,6 +861,7 @@
             .branch-condition {
                 padding: 4px 6px;
                 width: 60px;
+                min-height: 20px;
                 font-size: 12px;
                 text-align: center;
                 color: #978e4d;

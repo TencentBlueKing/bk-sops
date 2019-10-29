@@ -13,7 +13,7 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
-        @click.stop="onNodeClick"
+        @click="onNodeClick"
         @dblclick="onDblclick">
         <component
             :is="nodeTemplate"
@@ -30,6 +30,15 @@
             class="common-icon-dark-circle-close close-icon"
             @click.stop="onNodeRemove">
         </i>
+        <ShortcutPanel
+            :node="node"
+            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+            :canvas-data="canvasData"
+            @onAppendNode="onAppendNode"
+            @onInsertNode="onInsertNode"
+            @onShowNodeConfig="onShowNodeConfig">
+        </ShortcutPanel>
+
     </div>
 </template>
 <script>
@@ -57,6 +66,16 @@
             editable: {
                 type: Boolean,
                 default: true
+            },
+            idOfNodeShortcutPanel: {
+                type: String,
+                default: ''
+            },
+            canvasData: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -133,6 +152,15 @@
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
+            },
+            onAppendNode (data) {
+                this.$emit('onAppendNode', data)
+            },
+            onShowNodeConfig (id) {
+                this.$emit('onShowNodeConfig', id)
+            },
+            onInsertNode (data) {
+                this.$emit('onInsertNode', data)
             }
         }
     }
