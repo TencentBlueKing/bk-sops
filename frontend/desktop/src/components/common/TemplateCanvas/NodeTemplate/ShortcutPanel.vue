@@ -12,6 +12,7 @@
 <template>
     <div
         ref="shortcutWrap"
+        v-if="idOfNodeShortcutPanel === node.id"
         class="shortcut-panel"
         @mouseover.stop>
         <ul class="shortcut-wrap">
@@ -33,6 +34,12 @@
         name: 'ShortcutPanel',
         props: {
             canvasData: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            node: {
                 type: Object,
                 default () {
                     return {}
