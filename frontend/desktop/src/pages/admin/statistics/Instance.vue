@@ -178,10 +178,10 @@
             prop: 'createTime'
         },
         {
-            label: gettext('标准插件数'),
+            label: gettext('插件数'),
             prop: 'atomTotal',
             sortable: true,
-            width: 120
+            width: 100
         },
         {
             label: gettext('子流程数'),
