@@ -11,7 +11,9 @@
 */
 <template>
     <div class="help-info-wrap">
-        <div v-if="isShowHotKey" class="hot-key-container">
+        <div
+            v-if="isShowHotKey"
+            :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
                     <template v-if="isMac">
