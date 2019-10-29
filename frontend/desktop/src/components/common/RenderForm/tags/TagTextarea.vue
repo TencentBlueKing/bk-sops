@@ -14,7 +14,7 @@
         <el-input
             type="textarea"
             v-model="textareaValue"
-            :class="{ 'rf-view-textarea-value': !formMode, 'rf-view-textarea': !editable }"
+            :class="{ 'rf-view-textarea-value': !formMode }"
             :disabled="!editable || !formMode"
             :autosize="formMode ? { minRows: 2 } : true"
             resize="none"
@@ -85,6 +85,7 @@
     /deep/ .el-textarea__inner {
         padding: 6px 0 0;
         line-height: 24px;
+        color: #333333;
     }
 }
 </style>
