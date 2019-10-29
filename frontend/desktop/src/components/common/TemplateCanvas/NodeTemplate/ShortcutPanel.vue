@@ -12,8 +12,8 @@
 <template>
     <div
         ref="shortcutWrap"
-        v-if="idOfNodeShortcutPanel === node.id"
-        class="shortcut-panel">
+        class="shortcut-panel"
+        @mouseover.stop>
         <ul class="shortcut-wrap">
             <li
                 v-if="isShowConfigIcon"
@@ -23,7 +23,7 @@
                 v-for="(name, index) in nodeTypeList"
                 :key="index"
                 :class="['shortcut-item', `common-icon-node-${name}`]"
-                @click="onAppendNode(name)"></li>
+                @click.stop="onAppendNode(name)"></li>
         </ul>
     </div>
 </template>
@@ -33,12 +33,6 @@
         name: 'ShortcutPanel',
         props: {
             canvasData: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
-            node: {
                 type: Object,
                 default () {
                     return {}

@@ -30,14 +30,6 @@
             class="common-icon-dark-circle-close close-icon"
             @click.stop="onNodeRemove">
         </i>
-        <ShortcutPanel
-            :node="node"
-            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
-            :canvas-data="canvasData"
-            @onAppendNode="onAppendNode"
-            @onInsertNode="onInsertNode"
-            @onShowNodeConfig="onShowNodeConfig">
-        </ShortcutPanel>
     </div>
 </template>
 <script>
@@ -65,16 +57,6 @@
             editable: {
                 type: Boolean,
                 default: true
-            },
-            idOfNodeShortcutPanel: {
-                type: String,
-                default: ''
-            },
-            canvasData: {
-                type: Object,
-                default () {
-                    return {}
-                }
             }
         },
         data () {
@@ -123,7 +105,7 @@
                             'branchgateway',
                             'convergegateway'
                         ].indexOf(this.node.type) > -1) {
-                        this.$emit('onNodeWrapClick', this.node.id, e)
+                        this.$emit('onNodeClick', this.node.id, e)
                         // e.stopPropagation()
                     }
                 }
@@ -151,15 +133,6 @@
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
-            },
-            onAppendNode (data) {
-                this.$emit('onAppendNode', data)
-            },
-            onShowNodeConfig (id) {
-                this.$emit('onShowNodeConfig', id)
-            },
-            onInsertNode (data) {
-                this.$emit('onInsertNode', data)
             }
         }
     }
