@@ -523,7 +523,7 @@
                 try {
                     const res = await this.instanceRevoke(this.instance_id)
                     if (res.result) {
-                        this.state = 'REVOKE'
+                        this.state = 'REVOKED'
                         this.$bkMessage({
                             message: gettext('任务撤销成功'),
                             theme: 'success'
