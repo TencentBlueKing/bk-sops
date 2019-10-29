@@ -343,7 +343,7 @@
                 }
             },
             onCreateNodeBefore (node) {
-                const validateMessage = validatePipeline.isLocationValid(node, this.flowData.nodes)
+                const validateMessage = validatePipeline.isLocationValid(node, this.canvasData.locations)
 
                 if (!validateMessage.result) {
                     this.$bkMessage({
