@@ -53,15 +53,8 @@ def form(request):
 
 @require_POST
 def export_templates(request):
-    try:
-        data = json.loads(request.body)
-    except Exception:
-        return JsonResponse({'result': False, 'message': 'invalid json'})
-
-    try:
-        template_id_list = data['template_id_list']
-    except KeyError:
-        return JsonResponse({'result': False, 'message': 'template_id_list can not be none'})
+    data = json.loads(request.body)
+    template_id_list = data['template_id_list']
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
