@@ -129,7 +129,7 @@
             },
             onIpSearch (keyword) {
                 if (keyword) {
-                    const keyArr = keyword.split(',').filter(item => {
+                    const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
                         return item.trim() !== ''
                     })
                     const list = this.staticIpList.filter(item => {
