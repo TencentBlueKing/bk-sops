@@ -24,7 +24,6 @@
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
             @onConnectionDragStop="onConnectionDragStop"
-            @onBeforeDrag="onBeforeDrag"
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
@@ -67,8 +66,8 @@
                     :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
                     @onInsertNode="onInsertNode"
                     @onAppendNode="onAppendNode"
-                    @onShowNodeConfig="onNodeClick"
-                    @onNodeWrapClick="onNodeWrapClick"
+                    @onShowNodeConfig="onShowNodeConfig"
+                    @onNodeClick="onNodeClick"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
                     @onRetryClick="onRetryClick"
@@ -88,6 +87,15 @@
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
+        <shortcut-panel
+            v-show="idOfNodeShortcutPanel"
+            id="shortcutPanel"
+            :canvas-data="canvasData"
+            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+            @onAppendNode="onAppendNode"
+            @onInsertNode="onInsertNode"
+            @onShowNodeConfig="onShowNodeConfig">
+        </shortcut-panel>
         <div ref="dragReferenceLine" class="drag-reference-line"></div>
     </div>
 </template>
@@ -102,6 +110,7 @@
     import tools from '@/utils/tools.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
+    import ShortcutPanel from './NodeTemplate/ShortcutPanel.vue'
     
     export default {
         name: 'TemplateCanvas',
@@ -110,7 +119,8 @@
             NodeTemplate,
             PalettePanel,
             ToolPanel,
-            HelpInfo
+            HelpInfo,
+            ShortcutPanel
         },
         props: {
             showPalette: {
@@ -194,9 +204,19 @@
                     id: '',
                     arrow: ''
                 },
+                shortcutPanelNode: {},
+                shortcutPanelTemplate: null,
                 flowData,
                 endpointOptions,
                 connectorOptions
+            }
+        },
+        watch: {
+            idOfNodeShortcutPanel (newId, oldId) {
+                if (newId) {
+                    const panel = document.getElementById('shortcutPanel')
+                    document.getElementById(newId).appendChild(panel)
+                }
             }
         },
         mounted () {
@@ -351,8 +371,8 @@
             removeAllConnector () {
                 this.$refs.jsFlow.removeAllConnector()
             },
-            onNodeClick (id) {
-                this.$emit('onNodeClick', id)
+            onShowNodeConfig (id) {
+                this.$emit('onShowNodeConfig', id)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -583,10 +603,6 @@
                     this.handleReferenceLineHide()
                 }
             },
-            // 连线拖拽前回调
-            onBeforeDrag (connection) {
-                this.handleReferenceLineHide()
-            },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
                 if (!this.editable) {
@@ -707,11 +723,12 @@
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
                 })
             },
-            // 点击展开快捷节点面板
-            onNodeWrapClick (id, event) {
+            // 点击节点
+            onNodeClick (id, event) {
+                this.$emit('onNodeClick', id)
                 // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
                 if (!this.editable) {
-                    this.onNodeClick(id)
+                    this.onShowNodeConfig(id)
                     return
                 }
                 if (this.referenceLine.id) {
@@ -721,14 +738,15 @@
                     this.handleReferenceLineHide()
                     return
                 }
+                this.showShortcutPane(id)
+            },
+            // 显示快捷节点面板
+            showShortcutPane (id) {
                 if (this.idOfNodeShortcutPanel) {
                     this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 }
                 this.onUpdateNodeInfo(id, { isActived: true })
-                // 切换节点层级状态
-                this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
-                this.toggleNodeLevel(id, true)
-                this.idOfNodeShortcutPanel = id
+                this.updataSelctedNodeData(id)
             },
             // 隐藏快捷节点面板
             handleShortcutPanelHide (e) {
@@ -746,6 +764,13 @@
                     node.classList.add('actived')
                 }
             },
+            // 更新选中节点数据
+            updataSelctedNodeData (id) {
+                // 切换节点层级状态
+                this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
+                this.toggleNodeLevel(id, true)
+                this.idOfNodeShortcutPanel = id
+            },
             // 节点后面追加
             onAppendNode ({ location, line }) {
                 this.$refs.jsFlow.createNode(location)
@@ -753,6 +778,7 @@
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(line)
+                    this.showShortcutPane(location.id)
                 })
             },
             /**
@@ -794,6 +820,7 @@
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
+                    this.showShortcutPane(location.id)
                 })
             }
         }
@@ -894,7 +921,7 @@
             }
         }
         .jsflow-node.actived {
-            z-index: 5;
+            z-index: 4;
         }
     }
     .drag-reference-line {

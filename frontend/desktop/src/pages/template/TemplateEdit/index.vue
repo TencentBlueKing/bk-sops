@@ -43,7 +43,7 @@
                 :canvas-data="canvasData"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
-                @onNodeClick="onNodeClick"
+                @onShowNodeConfig="onShowNodeConfig"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
@@ -701,9 +701,9 @@
                 this.searchAtom(payload)
             },
             /**
-             * 任务节点点击
+             * 打开节点配置面板
              */
-            onNodeClick (id) {
+            onShowNodeConfig (id) {
                 this.isShowConditionEdit = false
                 this.toggleSettingPanel(false)
                 const nodeType = this.locations.filter(item => {
