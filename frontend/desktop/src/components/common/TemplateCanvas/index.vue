@@ -169,6 +169,14 @@
                 lines,
                 nodes
             }
+            let combinedEndpointOptions = endpointOptions
+            if (!this.editable) {
+                combinedEndpointOptions = Object.assign({}, endpointOptions, {
+                    isTarget: false,
+                    isSource: false,
+                    connectionsDetachable: false
+                })
+            }
             return {
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
@@ -193,7 +201,7 @@
                     arrow: ''
                 },
                 flowData,
-                endpointOptions,
+                endpointOptions: combinedEndpointOptions,
                 connectorOptions
             }
         },
