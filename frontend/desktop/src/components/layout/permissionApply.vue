@@ -5,14 +5,14 @@
                 <img :src="lock" alt="permission-lock" />
             </div>
             <h3>{{permissionTitle}}</h3>
-            <p>{{permissionContent}}</p>
+            <p>{{i18n.resourceContent}}</p>
             <div class="operation-btns">
                 <bk-button
                     theme="primary"
                     @click="applyBtnClick">
                     {{i18n.apply}}
                 </bk-button>
-                <bk-button
+                <!-- <bk-button
                     theme="default"
                     v-if="permissionData.type === 'project' && viewMode !== 'appmaker'"
                     v-cursor="{ active: !hasProjectPermission }"
@@ -21,7 +21,7 @@
                     }"
                     @click="goToCreateProject">
                     {{i18n.create}}
-                </bk-button>
+                </bk-button> -->
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@
                     resourceTitle: gettext('无权限访问'),
                     projectTitle: gettext('无权限访问项目'),
                     resourceContent: gettext('你没有相应资源的访问权限，请申请权限或联系管理员授权'),
-                    projectContent: gettext('你可以申请已有项目的权限，或新建项目'),
+                    // projectContent: gettext('你可以申请已有项目的权限'),
                     apply: gettext('去申请'),
                     create: gettext('新建项目')
                 }
@@ -76,9 +76,9 @@
             permissionTitle () {
                 return this.permissionData.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
             },
-            permissionContent () {
-                return this.permissionData.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
-            },
+            // permissionContent () {
+            //     return this.permissionData.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
+            // },
             hasProjectPermission () {
                 return this.hasPermission(['create'], this.authActions, this.authOperations)
             }
