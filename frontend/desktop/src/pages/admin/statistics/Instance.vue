@@ -270,7 +270,7 @@
                 instanceData: [],
                 instanceProject: '',
                 instanceCategory: '',
-                instanceSort: '-instanceId',
+                instanceSort: '',
                 instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 pagination: {
@@ -410,6 +410,9 @@
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
+                    if (this.instanceSort === '') {
+                        delete query.conditions.order_by
+                    }
                     this.instanceData = await this.loadAnalysisData(query, 'instance')
                 } catch (e) {
                     errorHandler(e, this)
@@ -442,8 +445,10 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.instanceSort = val.prop
-                } else {
+                } else if (val.order === 'decending') {
                     this.instanceSort = `-${val.prop}`
+                } else {
+                    this.instanceSort = ''
                 }
                 this.getTableData()
             },

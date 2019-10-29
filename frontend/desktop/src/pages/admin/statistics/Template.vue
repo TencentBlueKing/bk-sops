@@ -207,7 +207,7 @@
                 tplData: [],
                 tplProject: '',
                 tplCategory: '',
-                tplSort: '-templateId',
+                tplSort: '',
                 tplDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 pagination: {
@@ -323,6 +323,9 @@
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
+                    if (this.tplSort === '') {
+                        delete query.conditions.order_by
+                    }
                     this.tplData = await this.loadAnalysisData(query, 'tpl')
                 } catch (e) {
                     errorHandler(e, this)
@@ -345,8 +348,10 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.tplSort = val.prop
-                } else {
+                } else if (val.order === 'descending') {
                     this.tplSort = `-${val.prop}`
+                } else {
+                    this.tplSort = ''
                 }
                 this.getTplData()
             },

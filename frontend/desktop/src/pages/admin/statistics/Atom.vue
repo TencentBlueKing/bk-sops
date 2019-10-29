@@ -383,6 +383,9 @@
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
+                    if (this.tableSort === '') {
+                        delete query.conditions.order_by
+                    }
                     this.tableData = await this.loadAnalysisData(query, 'table')
                 } catch (e) {
                     errorHandler(e, this)
@@ -410,8 +413,10 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.tableSort = val.prop
-                } else {
+                } else if (val.order === 'decending') {
                     this.tableSort = `-${val.prop}`
+                } else {
+                    this.tableSort = ''
                 }
                 this.getTableData()
             },

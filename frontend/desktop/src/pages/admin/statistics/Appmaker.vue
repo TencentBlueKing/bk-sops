@@ -181,7 +181,7 @@
                 appmakerData: [],
                 appmakerProject: '',
                 appmakerCategory: '',
-                appmakerSort: '-templateId',
+                appmakerSort: '',
                 appmakerDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 pagination: {
@@ -297,6 +297,9 @@
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
+                    if (this.appmakerSort === '') {
+                        delete query.conditions.order_by
+                    }
                     this.appmakerData = await this.loadAnalysisData(query, 'appmaker')
                 } catch (e) {
                     errorHandler(e, this)
@@ -319,8 +322,10 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.appmakerSort = val.prop
-                } else {
+                } else if (val.order === 'descending') {
                     this.appmakerSort = `-${val.prop}`
+                } else {
+                    this.appmakerSort = ''
                 }
                 this.getAppmakerData()
             },
