@@ -404,11 +404,15 @@
                         data.instance_id = this.instance_id
                         data.subprocess_id = this.taskId
                     }
-                    const instanceStatus = ['FINISHED', 'FAILED'].includes(this.state)
+                    let instanceStatus = {}
+                    if (['FINISHED', 'FAILED'].includes(this.state)
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
-                        ? await this.getCacheStatusData()
-                        : await this.getInstanceStatus(data)
+                    ) {
+                        instanceStatus = await this.getCacheStatusData()
+                    } else {
+                        instanceStatus = await this.getInstanceStatus(data)
+                    }
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
