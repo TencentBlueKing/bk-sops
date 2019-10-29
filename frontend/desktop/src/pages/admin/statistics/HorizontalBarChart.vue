@@ -105,7 +105,7 @@
             getBlockStyle (val) {
                 if (this.totalNumber === 0 || val === 0) {
                     return {
-                        width: '3px',
+                        width: '1px',
                         background: '#c0c4cc'
                     }
                 }
