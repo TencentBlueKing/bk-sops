@@ -78,6 +78,7 @@
                             :key="item.prop"
                             :label="item.label"
                             :prop="item.prop"
+                            :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -130,7 +131,8 @@
         {
             label: gettext('创建任务数'),
             prop: 'instanceTotal',
-            sortable: true
+            sortable: true,
+            width: 120
         }
     ]
 

@@ -78,6 +78,7 @@
                             :key="item.prop"
                             :label="item.label"
                             :prop="item.prop"
+                            :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -110,7 +111,8 @@
         {
             label: gettext('流程ID'),
             prop: 'templateId',
-            sortable: true
+            sortable: true,
+            width: 90
         },
         {
             label: gettext('流程名称'),
@@ -126,27 +128,32 @@
         },
         {
             label: gettext('创建人'),
-            prop: 'creator'
+            prop: 'creator',
+            width: 100
         },
         {
             label: gettext('标准插件数'),
             prop: 'atomTotal',
-            sortable: true
+            sortable: true,
+            width: 120
         },
         {
             label: gettext('子流程数'),
             prop: 'subprocessTotal',
-            sortable: true
+            sortable: true,
+            width: 110
         },
         {
             label: gettext('网关数'),
             prop: 'gatewaysTotal',
-            sortable: true
+            sortable: true,
+            width: 90
         },
         {
             label: gettext('创建任务数'),
             prop: 'instanceTotal',
-            sortable: true
+            sortable: true,
+            width: 120
         },
         {
             label: gettext('被引用为子流程数'),
