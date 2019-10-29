@@ -14,7 +14,7 @@
         <div class="list-wrapper">
             <BaseTitle :title="i18n.projectManage"></BaseTitle>
             <div class="list-header">
-                <bk-button
+                <!-- <bk-button
                     v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"
                     theme="primary"
                     :class="['create-project-btn', {
@@ -22,7 +22,7 @@
                     }]"
                     @click="onCreateProject">
                     {{i18n.createProject}}
-                </bk-button>
+                </bk-button> -->
                 <div class="filter-area">
                     <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{i18n.showClosedProject}}</bk-checkbox>
                     <div class="search-input">
@@ -545,6 +545,7 @@
     }
     .list-header {
         padding: 20px 0;
+        overflow: hidden;
         .create-project-btn {
             width: 120px;
             height: 32px;
