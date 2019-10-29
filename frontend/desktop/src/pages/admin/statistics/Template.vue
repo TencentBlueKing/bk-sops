@@ -132,38 +132,40 @@
             width: 100
         },
         {
-            label: gettext('标准插件数'),
+            label: gettext('插件数'),
             prop: 'atomTotal',
             sortable: true,
-            width: 120
+            width: 100
         },
         {
-            label: gettext('子流程数'),
+            label: gettext('子流程'),
             prop: 'subprocessTotal',
             sortable: true,
-            width: 110
+            width: 100
         },
         {
             label: gettext('网关数'),
             prop: 'gatewaysTotal',
             sortable: true,
-            width: 90
+            width: 100
         },
         {
-            label: gettext('创建任务数'),
+            label: gettext('已执行'),
             prop: 'instanceTotal',
             sortable: true,
-            width: 120
+            width: 100
         },
         {
-            label: gettext('被引用为子流程数'),
+            label: gettext('被引用'),
             prop: 'relationshipTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
-            label: gettext('创建周期任务数'),
+            label: gettext('周期任务'),
             prop: 'periodicTotal',
-            sortable: true
+            sortable: true,
+            width: 110
         }
     ]
 
