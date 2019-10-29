@@ -84,7 +84,7 @@
                         :current="currentPage"
                         :count="totalCount"
                         :limit="listCountPerPage"
-                        :limit-list="[2]"
+                        :limit-list="[listCountPerPage]"
                         :show-limit="false"
                         @change="onPageChange">
                     </bk-pagination>
