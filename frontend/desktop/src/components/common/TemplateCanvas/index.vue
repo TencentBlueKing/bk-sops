@@ -819,7 +819,7 @@
             user-select: none;
         }
         .jtk-endpoint {
-            z-index: 4;
+            z-index: 2;
             cursor: pointer;
         }
         .jsflow-node {
