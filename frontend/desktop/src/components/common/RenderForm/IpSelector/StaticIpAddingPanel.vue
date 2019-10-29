@@ -59,10 +59,10 @@
             <div class="table-pagination">
                 <bk-pagination
                     v-if="isPaginationShow"
-                    :current.sync="currentPage"
+                    :current="currentPage"
                     :count="totalCount"
                     :limit="listCountPerPage"
-                    :limit-list="[15,20,30]"
+                    :limit-list="[listCountPerPage]"
                     :show-limit="false"
                     @change="onPageChange">
                 </bk-pagination>
@@ -100,12 +100,18 @@
                 listAllSelected: false,
                 isPaginationShow: totalPage > 1,
                 selectedIp: this.staticIps.slice(0),
+                isSearchMode: false,
+                searchResult: [],
                 currentPage: 1,
                 totalCount: this.staticIpList.length,
-                totalPage,
                 listCountPerPage,
                 listInPage,
                 i18n
+            }
+        },
+        computed: {
+            list () {
+                return this.isSearchMode ? this.searchResult : this.staticIpList
             }
         },
         watch: {
@@ -116,19 +122,25 @@
         methods: {
             setPanigation (list = []) {
                 this.listInPage = list.slice(0, this.listCountPerPage)
-                this.totalPage = Math.ceil(list.length / this.listCountPerPage)
-                this.isPaginationShow = this.totalPage > 1
+                const totalPage = Math.ceil(list.length / this.listCountPerPage)
+                this.isPaginationShow = totalPage > 1
+                this.totalCount = list.length
                 this.currentPage = 1
             },
             onIpSearch (keyword) {
                 if (keyword) {
-                    const keyArr = keyword.split(',')
+                    const keyArr = keyword.split(',').filter(item => {
+                        return item.trim() !== ''
+                    })
                     const list = this.staticIpList.filter(item => {
                         return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
                     })
+                    this.searchResult = list
                     this.setPanigation(list)
+                    this.isSearchMode = true
                 } else {
                     this.setPanigation(this.staticIpList)
+                    this.isSearchMode = false
                 }
             },
             onSelectAllClick () {
@@ -168,7 +180,7 @@
             onPageChange (page) {
                 this.currentPage = page
                 this.listAllSelected = false
-                this.listInPage = this.staticIpList.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+                this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             onAddIpConfirm () {
                 this.$emit('onAddIpConfirm', this.selectedIp.slice(0))
@@ -280,12 +292,5 @@
 }
 .table-pagination {
     margin-top: 20px;
-    .bk-page {
-        justify-content: flex-end;
-        /deep/ .page-item {
-            min-width: 30px;
-            font-size: 12px;
-        }
-    }
 }
 </style>
