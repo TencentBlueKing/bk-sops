@@ -35,7 +35,7 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 300,
-            y: 135,
+            y: 149,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
