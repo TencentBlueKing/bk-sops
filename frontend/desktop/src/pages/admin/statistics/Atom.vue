@@ -215,7 +215,7 @@
         },
         {
             id: 'atom_fail_percent',
-            name: gettext('执行失败率')
+            name: gettext('执行失败率(%)')
         }
     ]
 
