@@ -9,6 +9,7 @@
             <div class="operation-btns">
                 <bk-button
                     theme="primary"
+                    :loading="loading"
                     @click="applyBtnClick">
                     {{i18n.apply}}
                 </bk-button>
@@ -49,6 +50,7 @@
         data () {
             return {
                 url: '',
+                loading: false,
                 authActions: [],
                 lock: require('../../assets/images/lock-radius.svg'),
                 i18n: {
@@ -111,7 +113,7 @@
             ]),
             applyBtnClick () {
                 if (this.permissionData.type === 'project') {
-                    const isProjectValid = this.permissionData.permission.every(perm => {
+                    const isProjectValid = this.permissionData.permission.length && this.permissionData.permission.every(perm => {
                         return perm.resources.every(resource => {
                             return resource.every(item => {
                                 return this.projectList.find(project => {
@@ -130,7 +132,7 @@
                 }
             },
             goToAuthCenter () {
-                if (this.urlLoading || !this.url) {
+                if (this.loading || !this.url) {
                     return
                 }
                 
