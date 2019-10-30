@@ -87,7 +87,7 @@
                             :key="item.prop"
                             :label="item.label"
                             :prop="item.prop"
-                            :width="['templateId', 'instanceId'].indexOf(item.prop) > -1 ? 100 : 'auto'"
+                            :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -102,7 +102,7 @@
                                     v-else-if="item.prop === 'instanceName'"
                                     class="table-link"
                                     target="_blank"
-                                    :title="props.row.templateName"
+                                    :title="props.row.instanceName"
                                     :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
                                     {{props.row.instanceName}}
                                 </a>
@@ -140,7 +140,8 @@
             {
                 label: gettext('流程ID'),
                 prop: 'templateId',
-                sortable: true
+                sortable: true,
+                width: 100
             },
             {
                 label: gettext('流程名称'),
@@ -168,7 +169,8 @@
             {
                 label: gettext('任务ID'),
                 prop: 'instanceId',
-                sortable: true
+                sortable: true,
+                width: 100
             },
             {
                 label: gettext('任务名称'),
@@ -383,6 +385,9 @@
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
+                    if (this.tableSort === '') {
+                        delete query.conditions.order_by
+                    }
                     this.tableData = await this.loadAnalysisData(query, 'table')
                 } catch (e) {
                     errorHandler(e, this)
@@ -410,8 +415,10 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.tableSort = val.prop
-                } else {
+                } else if (val.order === 'decending') {
                     this.tableSort = `-${val.prop}`
+                } else {
+                    this.tableSort = ''
                 }
                 this.getTableData()
             },

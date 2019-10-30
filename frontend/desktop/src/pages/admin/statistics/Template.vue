@@ -78,6 +78,7 @@
                             :key="item.prop"
                             :label="item.label"
                             :prop="item.prop"
+                            :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -110,7 +111,8 @@
         {
             label: gettext('流程ID'),
             prop: 'templateId',
-            sortable: true
+            sortable: true,
+            width: 90
         },
         {
             label: gettext('流程名称'),
@@ -126,37 +128,44 @@
         },
         {
             label: gettext('创建人'),
-            prop: 'creator'
+            prop: 'creator',
+            width: 100
         },
         {
-            label: gettext('标准插件数'),
+            label: gettext('插件数'),
             prop: 'atomTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
-            label: gettext('子流程数'),
+            label: gettext('子流程'),
             prop: 'subprocessTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
             label: gettext('网关数'),
             prop: 'gatewaysTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
-            label: gettext('创建任务数'),
+            label: gettext('已执行'),
             prop: 'instanceTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
-            label: gettext('被引用为子流程数'),
+            label: gettext('被引用'),
             prop: 'relationshipTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
-            label: gettext('创建周期任务数'),
+            label: gettext('周期任务'),
             prop: 'periodicTotal',
-            sortable: true
+            sortable: true,
+            width: 110
         }
     ]
 
@@ -207,7 +216,7 @@
                 tplData: [],
                 tplProject: '',
                 tplCategory: '',
-                tplSort: '-templateId',
+                tplSort: '',
                 tplDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 pagination: {
@@ -323,6 +332,9 @@
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
+                    if (this.tplSort === '') {
+                        delete query.conditions.order_by
+                    }
                     this.tplData = await this.loadAnalysisData(query, 'tpl')
                 } catch (e) {
                     errorHandler(e, this)
@@ -345,8 +357,10 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.tplSort = val.prop
-                } else {
+                } else if (val.order === 'descending') {
                     this.tplSort = `-${val.prop}`
+                } else {
+                    this.tplSort = ''
                 }
                 this.getTplData()
             },
