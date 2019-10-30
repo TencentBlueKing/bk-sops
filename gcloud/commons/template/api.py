@@ -135,7 +135,7 @@ def import_templates(request):
                                       perms_tuples=perms_tuples)
 
     try:
-        result = CommonTemplate.objects.import_templates(templates_data, override)
+        result = CommonTemplate.objects.import_templates(templates_data, override, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({
