@@ -237,8 +237,10 @@
             },
             scrollPanelToView (index) {
                 if (index > 0) {
-                    const itemHeight = document.querySelector('.variable-content').offsetHeight
-                    this.$refs.variableList.scrollTop = itemHeight * index
+                    this.$nextTick(() => {
+                        const itemHeight = document.querySelector('.variable-content').offsetHeight
+                        this.$refs.variableList.scrollTop = itemHeight * index
+                    })
                 }
             },
             /**
