@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-10-23 19:34+0800\n"
+"POT-Creation-Date: 2019-10-30 14:56+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -156,40 +156,40 @@ msgstr "[BK_SOPS Notification]Periodic task start failed"
 msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
 msgstr "Periodic task[{task_name}]in business [{cc_name}] which should be schedule at [{start_time}] started failed, error message: [{ex_data}]"
 
-#: gcloud/commons/template/models.py:172
+#: gcloud/commons/template/models.py:176
 msgid "模板类型"
 msgstr "Template Type"
 
-#: gcloud/commons/template/models.py:182
+#: gcloud/commons/template/models.py:186
 msgid "收藏模板的人"
 msgstr "Template favorited by"
 
-#: gcloud/commons/template/models.py:184
+#: gcloud/commons/template/models.py:188
 msgid "流程事件通知方式"
 msgstr "Events Notify Types"
 
-#: gcloud/commons/template/models.py:189
+#: gcloud/commons/template/models.py:193
 msgid "流程事件通知人"
 msgstr "Events Notify personnel"
 
-#: gcloud/commons/template/models.py:192
+#: gcloud/commons/template/models.py:196
 msgid "流程超时时间(分钟)"
 msgstr "Time-out"
 
-#: gcloud/commons/template/models.py:195 gcloud/contrib/appmaker/models.py:311
+#: gcloud/commons/template/models.py:199 gcloud/contrib/appmaker/models.py:311
 #: gcloud/taskflow3/models.py:785 pipeline/models.py:284
 msgid "是否删除"
 msgstr "Deleted"
 
-#: gcloud/commons/template/models.py:377 gcloud/commons/template/models.py:378
+#: gcloud/commons/template/models.py:382 gcloud/commons/template/models.py:383
 msgid "公共流程模板 CommonTemplate"
 msgstr "Common Template"
 
-#: gcloud/commons/template/models.py:388 gcloud/commons/template/models.py:389
+#: gcloud/commons/template/models.py:393 gcloud/commons/template/models.py:394
 msgid "通用流程模板ID"
 msgstr "Common Template ID"
 
-#: gcloud/commons/template/models.py:394 gcloud/commons/template/models.py:395
+#: gcloud/commons/template/models.py:399 gcloud/commons/template/models.py:400
 msgid "公共流程模板权限 CommonTmplPerm"
 msgstr "Common Template Permission"
 
@@ -287,7 +287,7 @@ msgid "删除失败：%s"
 msgstr "Delete failed: %s"
 
 #: gcloud/contrib/appmaker/models.py:298 gcloud/periodictask/models.py:76
-#: gcloud/taskflow3/models.py:760 gcloud/tasktmpl3/models.py:415
+#: gcloud/taskflow3/models.py:760 gcloud/tasktmpl3/models.py:416
 msgid "所属项目"
 msgstr "Belong to project"
 
@@ -370,7 +370,7 @@ msgid "已执行"
 msgstr "Executed"
 
 #: gcloud/contrib/function/models.py:27 gcloud/taskflow3/models.py:452
-#: gcloud/tasktmpl3/models.py:176
+#: gcloud/tasktmpl3/models.py:177
 msgid "已完成"
 msgstr "Finished"
 
@@ -801,7 +801,7 @@ msgid "FS远程包源 FileSystemOriginalSource"
 msgstr "FileSystemOriginalSource"
 
 #: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:446
-#: gcloud/tasktmpl3/models.py:170
+#: gcloud/tasktmpl3/models.py:171
 #: gcloud/tests/external_plugins/models/test_sync_task.py:38
 msgid "执行中"
 msgstr "Executing"
@@ -964,7 +964,7 @@ msgstr "Task ID"
 msgid "任务名称"
 msgstr "Task Name"
 
-#: gcloud/taskflow3/models.py:441 gcloud/tasktmpl3/models.py:165
+#: gcloud/taskflow3/models.py:441 gcloud/tasktmpl3/models.py:166
 msgid "未执行"
 msgstr "Created"
 
@@ -1012,7 +1012,7 @@ msgstr "Clone"
 msgid "无法删除未进入完成或撤销状态的流程"
 msgstr "You cannot delete flow which is not successful or revoked"
 
-#: gcloud/tasktmpl3/models.py:426 gcloud/tasktmpl3/models.py:427
+#: gcloud/tasktmpl3/models.py:427 gcloud/tasktmpl3/models.py:428
 msgid "流程模板 TaskTemplate"
 msgstr "TaskTemplate"
 
@@ -1794,9 +1794,9 @@ msgstr "Variable"
 
 #: pipeline_plugins/cmdb_ip_picker/query.py:81
 #: pipeline_plugins/cmdb_ip_picker/query.py:143
-#: pipeline_plugins/cmdb_ip_picker/utils.py:54
-#: pipeline_plugins/cmdb_ip_picker/utils.py:281
-#: pipeline_plugins/cmdb_ip_picker/utils.py:287
+#: pipeline_plugins/cmdb_ip_picker/utils.py:52
+#: pipeline_plugins/cmdb_ip_picker/utils.py:270
+#: pipeline_plugins/cmdb_ip_picker/utils.py:276
 #: pipeline_plugins/components/collections/sites/open/cc.py:34
 msgid "配置平台(CMDB)"
 msgstr "Conf System(CMDB)"
@@ -1805,11 +1805,11 @@ msgstr "Conf System(CMDB)"
 msgid "管控平台(GSE)"
 msgstr "Control System(GSE)"
 
-#: pipeline_plugins/cmdb_ip_picker/utils.py:297
+#: pipeline_plugins/cmdb_ip_picker/utils.py:286
 msgid "集群"
 msgstr "Set"
 
-#: pipeline_plugins/cmdb_ip_picker/utils.py:303
+#: pipeline_plugins/cmdb_ip_picker/utils.py:292
 #: pipeline_plugins/components/collections/sites/open/cc.py:867
 msgid "模块"
 msgstr "Module"
@@ -2559,15 +2559,15 @@ msgstr "Script"
 msgid "文件"
 msgstr "File"
 
-#: pipeline_plugins/components/query/sites/open/query.py:487
+#: pipeline_plugins/components/query/sites/open/query.py:489
 msgid "文件上传失败， 文件大小超过2G"
 msgstr "file upload fail, file size can not over 2G"
 
-#: pipeline_plugins/components/query/sites/open/query.py:493
+#: pipeline_plugins/components/query/sites/open/query.py:495
 msgid "文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符"
 msgstr "Upload file failed, which name should not contain chinese or \\/:*?\"<>|"
 
-#: pipeline_plugins/components/query/sites/open/query.py:504
+#: pipeline_plugins/components/query/sites/open/query.py:506
 msgid "文件上传归档失败，请联系管理员"
 msgstr "file archive failed, contact admin please"
 
@@ -2628,8 +2628,8 @@ msgid "下拉框变量"
 msgstr "Select variable"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:36
-msgid "IP选择器(简单版)"
-msgstr "IP Selector(Simple)"
+msgid "IP选择器(即将下线，请用新版)"
+msgstr "IP Selector(Deprecated)"
 
 #: pipeline_plugins/variables/collections/sites/open/cc.py:90
 msgid "IP选择器"
@@ -2687,4 +2687,3 @@ msgstr "City"
 #: weixin/core/models.py:68 weixin/core/models.py:69
 msgid "微信用户"
 msgstr "Wechat User"
-
