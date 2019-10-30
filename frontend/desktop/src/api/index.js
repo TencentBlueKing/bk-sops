@@ -1543,6 +1543,17 @@ const api = {
             data: dataBody
         }
         return request(opts)
+    },
+    /**
+     * 获取人员列表
+     */
+    getMemberList () {
+        const prefixUrl = this.getPrefix('userList')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
     }
 }
 
