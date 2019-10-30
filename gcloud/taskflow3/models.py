@@ -864,6 +864,10 @@ class TaskFlowInstance(models.Model):
         return self.pipeline_instance.is_finished
 
     @property
+    def is_revoked(self):
+        return self.pipeline_instance.is_revoked
+
+    @property
     def elapsed_time(self):
         return self.pipeline_instance.elapsed_time
 

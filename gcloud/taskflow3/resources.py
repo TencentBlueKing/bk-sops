@@ -116,6 +116,10 @@ class TaskFlowInstanceResource(GCloudModelResource):
         attribute='is_finished',
         readonly=True,
         null=True)
+    is_revoked = fields.BooleanField(
+        attribute='is_revoked',
+        readonly=True,
+        null=True)
     creator_name = fields.CharField(
         attribute='creator_name',
         readonly=True,
