@@ -87,21 +87,14 @@
                             :key="item.prop"
                             :label="item.label"
                             :prop="item.prop"
+                            :width="item.hasOwnProperty('width') ? item.width : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
-                                    v-if="item.prop === 'templateName'"
+                                    v-if="item.prop === 'instanceName'"
                                     class="table-link"
                                     target="_blank"
-                                    :title="props.row.templateName"
-                                    :href="`${site_url}template/edit/${props.row.projectId}/?template_id=${props.row.templateId}`">
-                                    {{props.row.templateName}}
-                                </a>
-                                <a
-                                    v-else-if="item.prop === 'instanceName'"
-                                    class="table-link"
-                                    target="_blank"
-                                    :title="props.row.templateName"
+                                    :title="props.row.instanceName"
                                     :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
                                     {{props.row.instanceName}}
                                 </a>
@@ -160,7 +153,8 @@
         {
             label: gettext('任务ID'),
             prop: 'instanceId',
-            sortable: true
+            sortable: true,
+            width: 90
         },
         {
             label: gettext('任务名称'),
@@ -176,31 +170,36 @@
         },
         {
             label: gettext('创建人'),
-            prop: 'creator'
+            prop: 'creator',
+            width: 100
         },
         {
             label: gettext('创建时间'),
             prop: 'createTime'
         },
         {
-            label: gettext('标准插件数'),
+            label: gettext('插件数'),
             prop: 'atomTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
             label: gettext('子流程数'),
             prop: 'subprocessTotal',
-            sortable: true
+            sortable: true,
+            width: 120
         },
         {
             label: gettext('网关数'),
             prop: 'gatewaysTotal',
-            sortable: true
+            sortable: true,
+            width: 100
         },
         {
             label: gettext('耗时'),
             prop: 'elapsedTime',
-            sortable: true
+            sortable: true,
+            width: 100
         }
     ]
 
@@ -270,7 +269,7 @@
                 instanceData: [],
                 instanceProject: '',
                 instanceCategory: '',
-                instanceSort: '-instanceId',
+                instanceSort: '',
                 instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 pagination: {
@@ -410,6 +409,9 @@
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
+                    if (this.instanceSort === '') {
+                        delete query.conditions.order_by
+                    }
                     this.instanceData = await this.loadAnalysisData(query, 'instance')
                 } catch (e) {
                     errorHandler(e, this)
@@ -442,8 +444,10 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.instanceSort = val.prop
-                } else {
+                } else if (val.order === 'decending') {
                     this.instanceSort = `-${val.prop}`
+                } else {
+                    this.instanceSort = ''
                 }
                 this.getTableData()
             },

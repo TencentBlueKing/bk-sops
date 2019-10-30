@@ -36,9 +36,9 @@
         </bk-form>
         <div class="content-wrapper" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
             <div class="chart-content">
-                <template v-if="dataLoading || dataList.length > 0">
+                <template v-if="dataLoading || sortedData.length > 0">
                     <div
-                        v-for="(item, index) in dataList"
+                        v-for="(item, index) in sortedData"
                         class="data-item"
                         :key="index">
                         <span class="data-label" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
@@ -96,13 +96,16 @@
         computed: {
             totalNumber () {
                 return this.dataList.reduce((acc, cur) => acc + cur.value, 0)
+            },
+            sortedData () {
+                return this.dataList.sort((a, b) => b.value - a.value)
             }
         },
         methods: {
             getBlockStyle (val) {
                 if (this.totalNumber === 0 || val === 0) {
                     return {
-                        width: '3px',
+                        width: '1px',
                         background: '#c0c4cc'
                     }
                 }
