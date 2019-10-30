@@ -765,7 +765,11 @@
                 const classList = e.target.classList
                 const isParamsBtn = classList.contains('params-btn')
                 const isTooltipBtn = classList.contains('tooltip-btn')
-                if (!this.isNodeInfoPanelShow || isParamsBtn || isTooltipBtn) {
+                if (!this.isNodeInfoPanelShow
+                    || isParamsBtn
+                    || isTooltipBtn
+                    || e.target.className.indexOf('bk-option') > -1
+                ) {
                     return
                 }
                 console.log(1)
