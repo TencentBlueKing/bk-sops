@@ -33,7 +33,7 @@ logger = logging.getLogger('root')
 
 class VarIpPickerVariable(LazyVariable):
     code = 'ip'
-    name = _(u"IP选择器(简单版)")
+    name = _(u"IP选择器(即将下线，请用新版)")
     type = 'general'
     tag = 'var_ip_picker.ip_picker'
     form = '%svariables/sites/%s/var_ip_picker.js' % (settings.STATIC_URL, settings.RUN_VER)
