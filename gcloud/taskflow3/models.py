@@ -503,7 +503,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
+        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
         component_data = component.values('component_code').annotate(
             execute_times=Count('component_code')).order_by('component_code')
         total = component_list.count()
@@ -523,26 +523,16 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         return total, groups
 
     def group_by_atom_execute_fail_times(self, taskflow, *args):
-        # 查询各标准插件重试次数
+        # 查询各标准插件失败次数
         component_dict = ComponentModel.objects.get_component_dict()
         component_list = ComponentModel.objects.filter(status=True).values('code')
 
         instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
-        component_data = component.values('component_code').annotate(
-            execute_times=Count('component_code')).order_by('component_code')
-        component_success_data = component.filter(is_retry=False).values('component_code').annotate(
-            success_times=Count('component_code')).order_by('component_code')
-        # 用于计算所有标准插件的成功列表
-        success_component_dict = {}
-        for data in component_success_data:
-            success_component_dict[data['component_code']] = data['success_times']
-        total = component_list.count()
-        execute_data = {}
-        for component in component_data:
-            value = component['execute_times'] - success_component_dict.get(component['component_code'], 0)
-            execute_data[component['component_code']] = value
+        component_data = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
+        component_failed_data = component_data.filter(status=False).values('component_code').annotate(
+            failed_times=Count('component_code')).order_by('component_code')
+        failed_dict = {item['component_code']: item['failed_times'] for item in component_failed_data}
 
         groups = []
         for data in component_list:
@@ -550,9 +540,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
-                'value': execute_data.get(code, 0)
+                'value': failed_dict.get(code, 0)
             })
-        return total, groups
+        return component_list.count(), groups
 
     def group_by_atom_avg_execute_time(self, taskflow, *args):
         # 查询各标准插件被执行次数
@@ -562,7 +552,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
+        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
         component_data = component.values('component_code').annotate(
             avg_execute_time=Avg('elapsed_time')).order_by('component_code')
         total = component_list.count()
@@ -585,25 +575,23 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         # 查询各标准插件重试次数
         component_dict = ComponentModel.objects.get_component_dict()
         component_list = ComponentModel.objects.filter(status=True).values('code')
+        total = component_list.count()
 
         instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
+        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
         component_data = component.values('component_code').annotate(
             execute_times=Count('component_code')).order_by('component_code')
-        component_success_data = component.filter(is_retry=False).values('component_code').annotate(
-            success_times=Count('component_code')).order_by('component_code')
-        # 用于计算所有标准插件的成功列表
-        success_component_dict = {}
-        for data in component_success_data:
-            success_component_dict[data['component_code']] = data['success_times']
-        total = component_list.count()
-        execute_data = {}
+        component_failed_data = component_data.filter(status=False).values('component_code').annotate(
+            failed_times=Count('component_code')).order_by('component_code')
+        failed_dict = {item['component_code']: item['failed_times'] for item in component_failed_data}
+        fail_percent = {}
         for component in component_data:
+            component_code = component['component_code']
             execute_times = component['execute_times']
-            failed_times = execute_times - success_component_dict.get(component['component_code'], 0)
-            failed_times_percent = '%.2f %%' % (failed_times / 1.0 / execute_times * 100)
-            execute_data[component['component_code']] = failed_times_percent
+            fail_percent[component_code] = '%.2f' % (
+                (failed_dict.get(component_code, 0) * 1.00 / execute_times) * 100
+            )
 
         groups = []
         for data in component_list:
@@ -611,7 +599,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
-                'value': execute_data.get(code, 0)
+                'value': fail_percent.get(code, 0)
             })
         return total, groups
 
