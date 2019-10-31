@@ -11,8 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
+
+import ujson as json
 
 from .exceptions import ComponentAPIException
 from .conf import COMPONENT_SYSTEM_HOST
@@ -47,8 +48,7 @@ class ComponentAPI(object):
             return self._call(*args, **kwargs)
         except ComponentAPIException as e:
             # Combine log message
-            log_message = [e.error_message, ]
-            log_message.append('url=%(url)s' % {'url': e.api_obj.url})
+            log_message = [e.error_message, 'url=%(url)s' % {'url': e.api_obj.url}]
             if e.resp:
                 log_message.append('content: %s' % e.resp.text)
 

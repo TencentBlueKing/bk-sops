@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import copy
-import json
 import logging
 
+import ujson as json
 import jsonschema
 from django.test import TestCase, Client
 

@@ -66,14 +66,14 @@ def is_user_functor(request):
     """
     判断是否是职能化人员
     """
-    return is_user_role(request.user.username, 'functor')
+    return is_user_role(request.user.username, 'functor') and False
 
 
 def is_user_auditor(request):
     """
     判断是否是审计人员
     """
-    return is_user_role(request.user.username, 'auditor')
+    return is_user_role(request.user.username, 'auditor') and False
 
 
 @with_cache(settings.DEFAULT_CACHE_TIME_FOR_AUTH, ex=[0, 1])
