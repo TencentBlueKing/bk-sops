@@ -262,6 +262,7 @@
                 cacheNodeId: '',
                 nodeInfoType: '',
                 state: '',
+                selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
                 instanceStatus: {},
                 taskParamsType: '',
@@ -1010,17 +1011,23 @@
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
-                this.addSelectNode(nodeActivities.id)
+                this.cancelSelectedNode(this.selectedNodeId)
+                this.addSelectedNode(nodeActivities.id)
             },
             // 添加选中节点
-            addSelectNode (nodeId) {
+            addSelectedNode (nodeId) {
+                this.selectedNodeId = nodeId
                 if (this.$refs.templateCanvas && this.nodeSwitching === false) {
-                    this.$refs.templateCanvas.addSelectNode(nodeId)
+                    this.$refs.templateCanvas.toggleSelectedNode(nodeId, true)
                     return
                 }
                 this.addToCanvasQueues(() => {
-                    this.$refs.templateCanvas.addSelectNode(nodeId)
+                    this.$refs.templateCanvas.toggleSelectedNode(nodeId, true)
                 }, [nodeId])
+            },
+            cancelSelectedNode (nodeId) {
+                const canvasTempalte = this.$refs.templateCanvas
+                canvasTempalte && canvasTempalte.toggleSelectedNode(nodeId, false)
             },
             /**
              * 往画布组件队列中添加待执行事件
