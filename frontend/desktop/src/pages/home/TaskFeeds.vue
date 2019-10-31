@@ -301,5 +301,18 @@
     .goto-task-detail {
         color: #4b9aff;
     }
+    .common-icon-dark-circle-pause {
+        color: #ff9c01;
+    }
+    .common-icon-dark-circle-shape {
+        color: #979BA5;
+    }
+    .common-icon-dark-circle-ellipsis {
+        color: #3c96ff;
+    }
+    .common-icon-dark-circle-close {
+        color: $redDefault;
+    }
+
 }
 </style>
