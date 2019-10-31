@@ -418,6 +418,12 @@
                     hook: this.inputAtomHook,
                     value: this.inputAtomData
                 }
+            },
+            groupInfo () {
+                if (this.isSingleAtom) {
+                    return this.singleAtom.find(item => item.code === this.currentAtom)
+                }
+                return {}
             }
         },
         watch: {
@@ -797,7 +803,9 @@
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
                         can_retry: this.isRetry,
-                        isSkipped: this.isSkip
+                        isSkipped: this.isSkip,
+                        group: this.groupInfo.group_name,
+                        icon: this.groupInfo.group_icon
                     })
                     this.$emit('hideConfigPanel')
                     return isValid
