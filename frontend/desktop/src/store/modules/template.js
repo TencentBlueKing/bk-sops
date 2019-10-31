@@ -769,7 +769,9 @@ const template = {
                     stage_name: item.stage_name,
                     status: item.status,
                     x: item.x,
-                    y: item.y
+                    y: item.y,
+                    group: item.group,
+                    icon: item.icon
                 }
             })
             // 完整的画布数据
