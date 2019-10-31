@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
 
+import ujson as json
 from django.http import JsonResponse
 from django.contrib.auth.models import Group
 from django.views.decorators.http import require_POST, require_GET
