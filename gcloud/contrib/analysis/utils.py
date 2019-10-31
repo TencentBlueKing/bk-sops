@@ -12,10 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import json
 import time
 import logging
 
+import ujson as json
 from django.utils import timezone
 
 from gcloud.core.constant import AE
