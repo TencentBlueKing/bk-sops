@@ -77,10 +77,12 @@
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :the-key-of-editing="theKeyOfEditing"
+                        @onChangeEdit="onChangeEdit"
                         @onEditVariable="onEditVariable"
                         @onChangeVariableOutput="onChangeVariableOutput"
                         @onDeleteVariable="onDeleteVariable" />
                 </draggable>
+                <!-- 新建变量 -->
                 <li v-if="isVariableEditing && theKeyOfEditing === ''">
                     <VariableEdit
                         ref="addVariablePanel"
