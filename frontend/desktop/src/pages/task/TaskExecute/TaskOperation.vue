@@ -662,6 +662,9 @@
                 }
             },
             handleNodeInfoPanelHide (e) {
+                if (dom.parentClsContains('canvas-node', e.target)) {
+                    return false
+                }
                 const classList = e.target.classList
                 const isParamsBtn = classList.contains('params-btn')
                 const isTooltipBtn = classList.contains('tooltip-btn')
