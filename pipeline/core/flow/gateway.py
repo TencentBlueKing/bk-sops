@@ -11,8 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 from abc import ABCMeta
+
+import ujson as json
 
 from pipeline.core.flow.base import FlowNode
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
