@@ -113,6 +113,7 @@
                     :editable="false"
                     :show-palette="false"
                     :canvas-data="canvasData"
+                    @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
@@ -271,6 +272,7 @@
                 nodeSwitching: false,
                 isGatewaySelectDialogShow: false,
                 gatewayBranches: [],
+                canvasMountedQueues: [], // canvas pending queues
                 pending: {
                     skip: false,
                     selectGateway: false,
@@ -993,7 +995,7 @@
                 this.cancelTaskStatusTimer()
                 this.updateTaskStatus(id)
             },
-            // 更新节点的参数信息
+            // 更新节点的参数面板信息
             updataNodeParamsInfo (nodeActivities) {
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
@@ -1005,6 +1007,35 @@
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
+                this.addSelectNode(nodeActivities.id)
+            },
+            // 添加选中节点
+            addSelectNode (nodeId) {
+                if (this.$refs.templateCanvas && this.nodeSwitching === false) {
+                    this.$refs.templateCanvas.addSelectNode(nodeId)
+                    return
+                }
+                this.addToCanvasQueues(() => {
+                    this.$refs.templateCanvas.addSelectNode(nodeId)
+                }, [nodeId])
+            },
+            /**
+             * 往画布组件队列中添加待执行事件
+             * @param {Function} func -事件
+             * @param {Array} params -事件参数
+             */
+            addToCanvasQueues (func, params) {
+                this.canvasMountedQueues.push({
+                    params: params,
+                    func
+                })
+            },
+            // 下次画布组件更新后执行队列
+            onTemplateCanvasMounted () {
+                this.canvasMountedQueues.forEach(action => {
+                    action.func.apply(this, action.params)
+                })
+                this.canvasMountedQueues = []
             },
             onRetrySuccess (id) {
                 this.isNodeInfoPanelShow = false
