@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import requests
-import json
 
+import ujson as json
 from django.http import HttpResponse
 from django.http.response import HttpResponseForbidden
 from django.utils.translation import ugettext_lazy as _

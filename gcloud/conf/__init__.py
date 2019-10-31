@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License.
 import datetime
 import decimal
 import uuid
-import json
 
+import ujson as json
 from django.utils.functional import Promise
 from django.utils.encoding import force_text
 from django.core.serializers.json import DjangoJSONEncoder
@@ -62,6 +62,8 @@ def default(self, o):
         return r
     elif isinstance(o, (decimal.Decimal, uuid.UUID)):
         return str(o)
+    elif isinstance(o, bytes):
+        return o.decode('utf-8')
     else:
         try:
             return super(DjangoJSONEncoder, self).default(o)

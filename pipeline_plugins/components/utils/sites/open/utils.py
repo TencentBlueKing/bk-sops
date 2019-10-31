@@ -11,11 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import re
 import logging
 
 from urllib import urlencode
+import ujson as json
 from cryptography.fernet import Fernet
 from django.core.cache import cache
 

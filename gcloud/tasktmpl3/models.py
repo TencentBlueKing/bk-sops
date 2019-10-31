@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import json
 import re
 
+import ujson as json
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Count

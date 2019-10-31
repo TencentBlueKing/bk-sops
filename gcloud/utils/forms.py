@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import functools
 
+import ujson as json
 from django import forms
 from django.http.response import JsonResponse
 from django.core.exceptions import ValidationError
