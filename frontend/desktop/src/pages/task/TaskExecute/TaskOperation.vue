@@ -402,7 +402,7 @@
                         instance_id: this.taskId,
                         project_id: this.project_id
                     }
-                    if (this.selectedFlowPath.length > 1) {
+                    if (this.selectedFlowPath.length > 1 && this.selectedFlowPath[1].type !== 'ServiceActivity') {
                         data.instance_id = this.instance_id
                         data.subprocess_id = this.taskId
                     }
@@ -945,6 +945,7 @@
             },
             onClickTreeNode (nodeHeirarchy, nodeType) {
                 let nodeActivities
+                let parentNodeActivities
                 const nodePath = [{
                     id: this.instance_id,
                     name: this.instanceName,
@@ -961,34 +962,48 @@
                             nodeId: nodeActivities.id,
                             type: nodeActivities.type
                         })
+                        if (nodeActivities.type === 'SubProcess') {
+                            parentNodeActivities = nodeActivities
+                        }
                     })
+
                     this.selectedFlowPath = nodePath
-                    if (nodeActivities.type === 'SubProcess') { // click subprocess node
-                        this.nodeSwitching = true
-                        this.pipelineData = nodeActivities.pipeline
-                        this.cancelTaskStatusTimer()
-                        this.updateTaskStatus(nodeActivities.id)
+                    if (nodeActivities.type === 'SubProcess') {
+                        this.switchCanvasView(nodeActivities)
                         this.treeNodeConfig = {}
-                    } else { // click single task node
-                        let subprocessStack = []
-                        if (this.selectedFlowPath.length > 1) {
-                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                    } else {
+                        if (parentNodeActivities && parentNodeActivities.id !== this.taskId) { // 不在当前 taskId 的任务中
+                            this.switchCanvasView(parentNodeActivities)
+                        } else if (!parentNodeActivities && this.taskId !== this.instance_id) { // 属于第二级任务
+                            this.switchCanvasView(this.completePipelineData, true)
                         }
-                        this.treeNodeConfig = {
-                            component_code: nodeActivities.component.code,
-                            node_id: nodeActivities.id,
-                            instance_id: this.instance_id,
-                            subprocess_stack: JSON.stringify(subprocessStack)
-                        }
+                        this.updataNodeParamsInfo(nodeActivities)
                     }
                 } else {
-                    nodeActivities = this.completePipelineData
-                    this.nodeSwitching = true
-                    this.pipelineData = nodeActivities
                     this.selectedFlowPath = nodePath
-                    this.cancelTaskStatusTimer()
-                    this.updateTaskStatus(this.instance_id)
+                    this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
+                }
+            },
+            // 切换画布视图
+            switchCanvasView (nodeActivities, isRootNode = false) {
+                const id = isRootNode ? this.instance_id : nodeActivities.id
+                this.nodeSwitching = true
+                this.pipelineData = isRootNode ? nodeActivities : nodeActivities.pipeline
+                this.cancelTaskStatusTimer()
+                this.updateTaskStatus(id)
+            },
+            // 更新节点的参数信息
+            updataNodeParamsInfo (nodeActivities) {
+                let subprocessStack = []
+                if (this.selectedFlowPath.length > 1) {
+                    subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                }
+                this.treeNodeConfig = {
+                    component_code: nodeActivities.component.code,
+                    node_id: nodeActivities.id,
+                    instance_id: this.instance_id,
+                    subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
             onRetrySuccess (id) {
