@@ -807,6 +807,16 @@
                     this.$refs.jsFlow.createConnector(endLine)
                     this.showShortcutPane(location.id)
                 })
+            },
+            /**
+             * 添加选中节点
+             * @description
+             * 临时添加该方法，后面还和 jsflow 配合实现
+             */
+            addSelectNode (nodeId) {
+                this.selecAtomtNodeId = nodeId
+                const node = document.getElementById(nodeId)
+                node && node.classList.add('selected')
             }
         }
     }
