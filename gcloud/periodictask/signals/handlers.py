@@ -34,6 +34,7 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         pipeline_instance=pipeline_instance,
         category=periodic_task.extra_info['category'],
         template_id=periodic_task.extra_info['template_num_id'],
+        template_source=periodic_task.extra_info.get('template_source'),
         create_method='periodic',
         create_info='',
         flow_type='common',

@@ -190,9 +190,14 @@ class TaskFlowInstanceResource(GCloudModelResource):
         except PipelineException as e:
             raise BadRequest(e.message)
 
+        try:
+            project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
+        except NotFound:
+            raise BadRequest('project with uri(%s) does not exist' % bundle.data.get('project'))
+
         if template_source == PROJECT:
             try:
-                template = TaskTemplate.objects.get(pk=template_id)
+                template = TaskTemplate.objects.get(pk=template_id, project=project, is_deleted=False)
             except TaskTemplate.DoesNotExist:
                 raise BadRequest('template[pk=%s] does not exist' % template_id)
 
@@ -220,15 +225,9 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
         else:
             try:
-                template = CommonTemplate.objects.get(pk=str(template_id),
-                                                      is_deleted=False)
+                template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
             except CommonTemplate.DoesNotExist:
                 raise BadRequest('common template[pk=%s] does not exist' % template_id)
-
-            try:
-                project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
-            except NotFound:
-                raise BadRequest('project with uri(%s) does not exist' % bundle.data.get('project'))
 
             perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
                             (common_template_resource, [common_template_resource.actions.create_task.id], template)]
