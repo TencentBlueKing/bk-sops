@@ -32,7 +32,6 @@ logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _(u"配置平台(CMDB)")
-__group_icon__ = '%scomponents/atoms/cc/cc.png' % settings.STATIC_URL
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
