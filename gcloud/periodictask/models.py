@@ -137,16 +137,19 @@ class PeriodicTask(models.Model):
         name = ''
         if self.template_source == PROJECT:
             try:
-                name = TaskTemplate.objects.get(project=self.project, id=self.template_id).name
-            except Exception as e:
-                logger.warning(_(u"流程模板[project={project}, id={template_id}]不存在：{error}").format(
-                    project=self.project, template_id=self.template_id, error=e))
+                template = TaskTemplate.objects.get(project=self.project, id=self.template_id)
+            except TaskTemplate.DoesNotExist:
+                logger.warning(_(u"流程模板[project={project}, id={template_id}]不存在").format(
+                    project=self.project, template_id=self.template_id))
+            else:
+                name = template.name
         elif self.template_source == COMMON:
             try:
-                name = CommonTemplate.objects.get(id=self.template_id).name
-            except Exception as e:
-                logger.warning(_(u"公共流程模板[id={template_id}]不存在：{error}").format(
-                    template_id=self.template_id, error=e))
+                template = CommonTemplate.objects.get(id=self.template_id)
+            except CommonTemplate.DoesNotExist:
+                logger.warning(_(u"公共流程模板[id={template_id}]不存在").format(template_id=self.template_id))
+            else:
+                name = template.name
         return name
 
     def set_enabled(self, enabled):
