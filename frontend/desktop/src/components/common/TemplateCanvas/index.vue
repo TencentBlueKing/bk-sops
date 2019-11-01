@@ -634,10 +634,15 @@
                 if (pX > 0 && pY < 0) r = 360 - r
                 // set style
                 const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
-                line.style.display = 'block'
-                line.style.width = len + 'px'
-                line.style.transformOrigin = `top left`
-                line.style.transform = 'rotate(' + r + 'deg)'
+                window.requestAnimationFrame(() => {
+                    line.style.display = 'block'
+                    line.style.width = len + 'px'
+                    line.style.transformOrigin = `top left`
+                    line.style.transform = 'rotate(' + r + 'deg)'
+                    if (!this.referenceLine.id) {
+                        this.handleReferenceLineHide()
+                    }
+                })
                 document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 移出参考线
@@ -931,6 +936,7 @@
         left: 120px;
         top: 126px;
         z-index: 1;
+        cursor: grab;
         &::before {
             position: absolute;
             right: 0;
