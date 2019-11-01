@@ -19,7 +19,7 @@
             <li
                 v-if="isShowConfigIcon"
                 class="shortcut-item common-icon-gear"
-                @click.stop="onShowNodeConfig"></li>
+                @click.stop="onConfigBtnClick"></li>
             <li
                 v-for="(name, index) in nodeTypeList"
                 :key="index"
@@ -69,8 +69,8 @@
             }
         },
         methods: {
-            onShowNodeConfig () {
-                this.$emit('onShowNodeConfig', this.idOfNodeShortcutPanel)
+            onConfigBtnClick () {
+                this.$emit('onConfigBtnClick', this.idOfNodeShortcutPanel)
             },
             /**
              * 添加节点

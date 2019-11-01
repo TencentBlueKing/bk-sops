@@ -41,6 +41,7 @@
                 :common="common"
                 :template_id="template_id"
                 :canvas-data="canvasData"
+                @onNodeClick="onNodeClick"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
                 @onShowNodeConfig="onShowNodeConfig"
@@ -931,6 +932,9 @@
                 this.allowLeave = false
                 this.leaveToPath = ''
                 this.isLeaveDialogShow = false
+            },
+            onNodeClick () {
+                this.hideConfigPanel()
             },
             // 删除本地缓存
             onDeleteDraft (key) {
