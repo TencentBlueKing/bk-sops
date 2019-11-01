@@ -420,7 +420,7 @@
                 }
             },
             groupInfo () {
-                if (this.isSingleAtom) {
+                if (this.isSingleAtom && this.currentAtom) {
                     return this.singleAtom.find(item => item.code === this.currentAtom)
                 }
                 return {}
