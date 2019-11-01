@@ -18,7 +18,7 @@
             {
                 'rf-has-hook': showHook,
                 'show-label': option.showLabel,
-                'rf-has-hook': option.showHook,
+                'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols
             }
         ]"
@@ -348,6 +348,9 @@
     &.rf-col-layout {
         display: inline-block;
         margin: 0;
+    }
+    &.rf-view-mode {
+        margin: 8px 0;
     }
     .rf-tag-label {
         float: left;

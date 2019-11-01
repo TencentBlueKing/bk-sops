@@ -316,7 +316,7 @@
             onCloseWindows () {
                 this.isPermissionsDialog = false
             },
-            async onEditConfirm (app) {
+            async onEditConfirm (app, callback) {
                 if (this.pending.edit) return
                 this.pending.edit = true
                 const id = this.isCreateNewApp ? '0' : this.currentAppData.id
@@ -331,6 +331,7 @@
                     const resp = await this.appmakerEdit(formData)
                     if (resp.result) {
                         this.isEditDialogShow = false
+                        typeof callback === 'function' && callback()
                         this.loadData()
                     } else {
                         errorHandler(resp, this)

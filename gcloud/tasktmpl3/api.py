@@ -217,7 +217,7 @@ def import_templates(request, project_id):
                                       perms_tuples=perms_tuples)
 
     try:
-        result = TaskTemplate.objects.import_templates(templates_data, override, project_id)
+        result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({
@@ -289,7 +289,7 @@ def import_preset_template_and_replace_job_id(request, project_id):
     replace_job_relate_id_in_templates_data(job_id_map, templates_data)
 
     try:
-        result = TaskTemplate.objects.import_templates(templates_data, False, project_id)
+        result = TaskTemplate.objects.import_templates(templates_data, False, project_id, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({

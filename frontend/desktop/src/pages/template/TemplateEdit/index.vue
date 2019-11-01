@@ -776,6 +776,7 @@
                             }
                             return
                         }
+                        // 删除任务节点
                         if (changeType === 'delete') {
                             if (this.idOfNodeInConfigPanel === location.id) {
                                 this.idOfNodeInConfigPanel = ''
