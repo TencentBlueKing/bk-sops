@@ -175,7 +175,7 @@ class PeriodicTaskTestCase(TestCase):
     def test_task_template_name(self):
         self.assertEqual(self.task.task_template_name, self.template.name)
 
-    @patch(TASKTEMPLATE_GET, MagicMock(side_effect=Exception()))
+    @patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist))
     def test_task_template_name__task_does_not_exist(self):
         self.assertEqual(self.task.task_template_name, '')
 
