@@ -105,10 +105,12 @@
                         return true
                     }
                 })
-                if (this.isGatewayNode(currType) && !this.isGatewayNode(type)) {
+                const isGatewayCurrNode = this.isGatewayNode(currType)
+                const isGatewayAppendNode = this.isGatewayNode(type)
+                if (isGatewayCurrNode && !isGatewayAppendNode) {
                     location.y -= 5
                 }
-                if (!this.isGatewayNode(currType) && this.isGatewayNode(type)) {
+                if (!isGatewayCurrNode && isGatewayAppendNode) {
                     location.y += 5
                 }
                 /**
@@ -132,7 +134,7 @@
                     this.$emit('onAppendNode', { location, line })
                 }
             },
-            // 是不是网管节点
+            // 是不是网关节点
             isGatewayNode (type) {
                 return ['parallelgateway', 'branchgateway', 'convergegateway'].indexOf(type) > -1
             },
