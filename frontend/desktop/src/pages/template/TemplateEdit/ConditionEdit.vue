@@ -73,10 +73,10 @@
             }
         },
         mounted () {
-            document.body.addEventListener('click', this.handleConditionEdit, false)
+            document.body.addEventListener('mousedown', this.handleConditionEdit, false)
         },
         beforeDestroy () {
-            document.body.removeEventListener('click', this.handleConditionEdit, false)
+            document.body.removeEventListener('mousedown', this.handleConditionEdit, false)
         },
         methods: {
             updateConditionData (data) {

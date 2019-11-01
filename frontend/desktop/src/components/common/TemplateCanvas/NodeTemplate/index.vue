@@ -14,7 +14,7 @@
         class="canvas-node-item"
         @mousedown="onMousedown"
         @click="onNodeClick"
-        @dblclick="onDblclick">
+        @dblclick="onNodeDblclick">
         <component
             :is="nodeTemplate"
             :node="node"
@@ -36,7 +36,7 @@
             :canvas-data="canvasData"
             @onAppendNode="onAppendNode"
             @onInsertNode="onInsertNode"
-            @onShowNodeConfig="onShowNodeConfig">
+            @onConfigBtnClick="onConfigBtnClick">
         </ShortcutPanel>
 
     </div>
@@ -92,7 +92,8 @@
                     branchgateway: BranchGateway,
                     parallelgateway: ParallelGateway,
                     convergegateway: ConvergeGateway
-                }
+                },
+                clickTimer: null
             }
         },
         computed: {
@@ -105,29 +106,23 @@
                 const { pageX: x, pageY: y } = e
                 this.moveFlag = { x, y }
             },
-            onDblclick () {
-                this.$emit('onShowNodeConfig', this.node.id)
+            onNodeDblclick () {
+                clearTimeout(this.clickTimer)
+                this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
-                const moveBuffer = 2
-                const { pageX: x, pageY: y } = e
-                if (
-                    Math.abs(x - this.moveFlag.x) < moveBuffer
-                    && Math.abs(y - this.moveFlag.y) < moveBuffer
-                ) {
+                clearTimeout(this.clickTimer)
+                this.clickTimer = setTimeout(() => {
+                    const moveBuffer = 2
+                    const { pageX: x, pageY: y } = e
                     if (
-                        [
-                            'startpoint',
-                            'tasknode',
-                            'subflow',
-                            'parallelgateway',
-                            'branchgateway',
-                            'convergegateway'
-                        ].indexOf(this.node.type) > -1) {
+                        Math.abs(x - this.moveFlag.x) < moveBuffer
+                        && Math.abs(y - this.moveFlag.y) < moveBuffer
+                        && this.node.type !== 'endpoint'
+                    ) {
                         this.$emit('onNodeClick', this.node.id, e)
-                        // e.stopPropagation()
                     }
-                }
+                }, 200)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -156,8 +151,8 @@
             onAppendNode (data) {
                 this.$emit('onAppendNode', data)
             },
-            onShowNodeConfig (id) {
-                this.$emit('onShowNodeConfig', id)
+            onConfigBtnClick (id) {
+                this.$emit('onConfigBtnClick', id)
             },
             onInsertNode (data) {
                 this.$emit('onInsertNode', data)
@@ -228,8 +223,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             background: #96a1b9;
             border-radius: 50%;
             &:hover {
@@ -251,14 +246,14 @@
         }
         .gateway-node {
             position: relative;
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
             text-align: center;
             &:before {
                 content: '';
                 position: absolute;
-                top: 4px;
-                left: 4px;
+                top: 1px;
+                left: 2px;
                 width: 28px;
                 height: 28px;
                 background: #ffffff;
@@ -268,8 +263,8 @@
             }
         }
         .node-type-icon {
-            height: 36px;
-            line-height: 36px;
+            height: 32px;
+            line-height: 32px;
             font-size: 24px;
             color: $blueDark;
             text-align: center;
