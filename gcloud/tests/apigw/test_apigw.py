@@ -20,6 +20,7 @@ import jsonschema
 
 from django.test import TestCase, Client
 
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from pipeline.exceptions import PipelineException
 
 from gcloud.conf import settings
@@ -747,15 +748,17 @@ class APITest(TestCase):
                                                                 bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, '')))
-    def test_query_task_count__extend_classified_count_fail(self):
+    def test_query_task_count__dispatch_fail(self):
         response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'group_by': 'category'}),
                                     content_type='application/json')
 
-        TaskFlowInstance.objects.extend_classified_count.assert_called_once_with('category',
-                                                                                 {'project_id': TEST_PROJECT_ID,
-                                                                                  'is_deleted': False})
-
+        task_flow_instance.dispatch.assert_called_once_with(
+            'category', {
+                'project_id': TEST_BIZ_CC_ID,
+                'is_deleted': False
+            }
+        )
         data = json.loads(response.content)
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)

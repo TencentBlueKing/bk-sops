@@ -48,6 +48,7 @@ from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
@@ -444,7 +445,7 @@ def query_task_count(request, project_id):
 
     filters = {'project_id': project.id, 'is_deleted': False}
     filters.update(conditions)
-    success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
+    success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})
