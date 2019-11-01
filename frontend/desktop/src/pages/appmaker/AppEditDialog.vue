@@ -221,20 +221,23 @@
             }
         },
         watch: {
-            currentAppData (val) {
-                const { template_id, name, template_scheme_id, desc, logo_url, auth_actions } = val
-                this.appData = {
-                    appActions: auth_actions,
-                    appTemplate: template_id ? Number(template_id) : '',
-                    appName: name,
-                    appScheme: template_scheme_id ? Number(template_scheme_id) : '',
-                    appDesc: desc,
-                    appLogo: undefined
-                }
-                this.logoUrl = logo_url
-                if (template_id !== '') {
-                    this.getTemplateScheme()
-                }
+            currentAppData: {
+                handler (val) {
+                    const { template_id, name, template_scheme_id, desc, logo_url, auth_actions } = val
+                    this.appData = {
+                        appActions: auth_actions,
+                        appTemplate: template_id ? Number(template_id) : '',
+                        appName: name,
+                        appScheme: template_scheme_id ? Number(template_scheme_id) : '',
+                        appDesc: desc,
+                        appLogo: undefined
+                    }
+                    this.logoUrl = logo_url
+                    if (template_id !== '') {
+                        this.getTemplateScheme()
+                    }
+                },
+                deep: true
             }
         },
         created () {
@@ -325,13 +328,23 @@
                 this.appData.appName = this.appData.appName.trim()
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
-                    this.$emit('onEditConfirm', this.appData)
+                    this.$emit('onEditConfirm', this.appData, this.resetAppData)
                 })
             },
             onCancel () {
                 this.$emit('onEditCancel')
                 this.errors.clear()
                 this.appTemplateEmpty = false
+            },
+            resetAppData () {
+                this.appData = {
+                    appTemplate: '',
+                    appName: '',
+                    appScheme: '',
+                    appDesc: '',
+                    appActions: [],
+                    appLogo: undefined
+                }
             }
         }
     }

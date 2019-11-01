@@ -87,7 +87,7 @@ class TaskTemplateManager(BaseTemplateManager):
         }
         return result
 
-    def import_templates(self, template_data, override, project_id):
+    def import_templates(self, template_data, override, project_id, operator=None):
         project = Project.objects.get(id=project_id)
         check_info = self.import_operation_check(template_data, project_id)
 
@@ -114,7 +114,8 @@ class TaskTemplateManager(BaseTemplateManager):
                                                                 check_info=check_info,
                                                                 override=override,
                                                                 defaults_getter=defaults_getter,
-                                                                resource=resource_type_lib['flow'])
+                                                                resource=resource_type_lib['flow'],
+                                                                operator=operator)
 
     def extend_classified_count(self, group_by, filters=None, page=None, limit=None):
         """

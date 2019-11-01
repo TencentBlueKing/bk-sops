@@ -231,6 +231,9 @@ $localBorderColor: #d8e2e7;
     cursor: pointer;
     &:hover {
         background: $blueStatus;
+        .col-key-copy {
+            display: inline-block;
+        }
     }
     &.variable-editing {
         background: $blueStatus;
@@ -301,6 +304,7 @@ $localBorderColor: #d8e2e7;
         line-height: 2;
     }
     .col-key-copy {
+        display: none;
         margin-left: 2px;
         color: #52699d;
         text-decoration: underline;

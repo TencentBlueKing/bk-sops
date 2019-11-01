@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-23 19:34+0800\n"
+"POT-Creation-Date: 2019-10-30 14:56+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -415,16 +415,16 @@ msgstr "Loading"
 msgid "请求数据失败"
 msgstr "Get data failed"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:112
+#: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:129
 msgid "提交"
 msgstr "Submit"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:113
+#: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:130
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:149
 msgid "点击上传"
 msgstr "Upload"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:114
+#: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:131
 msgid "选择文件"
 msgstr "Select"
 
@@ -1801,7 +1801,7 @@ msgstr "Change"
 msgid "只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K"
 msgstr "Only JPG/PNG type files can be uploaded. The recommended size is 100px*100px, which cannot exceed 100K"
 
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:299
+#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:302
 msgid "图片大小不能超过 100K"
 msgstr "Size cannot exceed 100K"
 
@@ -3558,14 +3558,14 @@ msgstr "Please enter a number"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:361
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:78
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:65
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:70
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:105
 msgid "目标IP"
 msgstr "Target IP"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:362
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:79
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:66
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:71
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:106
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
@@ -3573,7 +3573,7 @@ msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] o
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:375
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:92
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:74
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:79
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:119
 msgid "目标账户"
 msgstr "Target Account"
@@ -3611,13 +3611,13 @@ msgid "执行账户"
 msgstr "Account"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:106
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:82
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:87
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:133
 msgid "目标路径"
 msgstr "Target Path"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:107
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:83
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:88
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:134
 msgid "请输入绝对路径"
 msgstr "Please enter absolute path"
