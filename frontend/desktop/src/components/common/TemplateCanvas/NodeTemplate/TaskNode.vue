@@ -19,7 +19,8 @@
                 { 'actived': node.isActived }
             ]">
             <div class="node-status-block">
-                <img class="node-icon" :src="node.icon || defaultTypeIcon" />
+                <img v-if="node.icon" class="node-icon" :src="node.icon" />
+                <i v-else :class="['node-icon-font', getIconCls(node.group)]"></i>
             </div>
             <div class="node-name">
                 <p>{{ node.name }}</p>
@@ -76,6 +77,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
         name: 'TaskNode',
@@ -89,7 +91,6 @@
         },
         data () {
             return {
-                defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
                 i18n: {
                     retry: gettext('重试'),
                     skip: gettext('跳过'),
@@ -131,6 +132,13 @@
             }
         },
         methods: {
+            getIconCls (group) {
+                const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(group))
+                if (systemType) {
+                    return `common-icon-sys-${systemType.toLowerCase()}`
+                }
+                return 'common-icon-sys-default'
+            },
             onRetryClick () {
                 this.$emit('onRetryClick', this.node.id)
             },
@@ -156,6 +164,10 @@
     .node-status-block {
         .node-icon {
             width: 16px;
+        }
+        .node-icon-font {
+            font-size: 16px;
+            color: #ffffff;
         }
     }
     .node-options-icon {
