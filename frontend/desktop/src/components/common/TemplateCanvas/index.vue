@@ -807,6 +807,20 @@
                     this.$refs.jsFlow.createConnector(endLine)
                     this.showShortcutPane(location.id)
                 })
+            },
+            /**
+             * 切换选中节点
+             * @description
+             * 临时添加该方法，后面还和 jsflow 配合实现
+             */
+            toggleSelectedNode (nodeId, isSelected) {
+                this.selecAtomtNodeId = nodeId
+                const node = document.getElementById(nodeId)
+                if (isSelected) {
+                    node && node.classList.add('selected')
+                } else {
+                    node && node.classList.remove('selected')
+                }
             }
         }
     }
