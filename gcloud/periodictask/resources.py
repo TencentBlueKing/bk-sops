@@ -176,7 +176,12 @@ class PeriodicTaskResource(GCloudModelResource):
             cron = json.loads(bundle.data.pop('cron'))
             pipeline_tree = json.loads(bundle.data.pop('pipeline_tree'))
         except (KeyError, ValueError) as e:
-            raise BadRequest(e.message)
+            message = 'create periodic_task params error: %s' % e.message
+            logger.error(message)
+            raise BadRequest(message)
+
+        if not isinstance(cron, dict):
+            raise BadRequest('cron must be a object json string')
 
         # XSS handle
         name = name_handler(name, PERIOD_TASK_NAME_MAX_LENGTH)
@@ -212,9 +217,6 @@ class PeriodicTaskResource(GCloudModelResource):
                 replace_template_id(TaskTemplate, pipeline_tree)
             except TaskTemplate.DoesNotExist:
                 raise BadRequest('invalid subprocess, check subprocess node please')
-
-            if not isinstance(cron, dict):
-                raise BadRequest('cron must be a object json string')
 
         elif template_source == COMMON:
             try:
