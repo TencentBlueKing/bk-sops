@@ -175,6 +175,14 @@
                 lines,
                 nodes
             }
+            let combinedEndpointOptions = endpointOptions
+            if (!this.editable) {
+                combinedEndpointOptions = Object.assign({}, endpointOptions, {
+                    isTarget: false,
+                    isSource: false,
+                    connectionsDetachable: false
+                })
+            }
             return {
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
@@ -199,7 +207,7 @@
                     arrow: ''
                 },
                 flowData,
-                endpointOptions,
+                endpointOptions: combinedEndpointOptions,
                 connectorOptions
             }
         },
@@ -865,7 +873,7 @@
             user-select: none;
         }
         .jtk-endpoint {
-            z-index: 4;
+            z-index: 2;
             cursor: pointer;
         }
         .jsflow-node {

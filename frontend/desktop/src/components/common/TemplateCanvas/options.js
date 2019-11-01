@@ -33,8 +33,8 @@ export const endpointOptions = {
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
     ],
-    paintStyle: { fill: 'rgba(0, 0, 0, 0)', strokeWidth: 1, radius: 7 },
-    hoverPaintStyle: { fill: '#348af3', stroke: '#348af3' },
+    paintStyle: { fill: 'transparent', stroke: 'transparent', strokeWidth: 6, radius: 8 },
+    hoverPaintStyle: { fill: '#3a84ff', stroke: 'transparent', strokeWidth: 6 },
     cssClass: 'template-canvas-endpoint',
     hoverClass: 'template-canvas-endpoint-hover',
     isSource: true, // 端点是否可以作为拖动源
