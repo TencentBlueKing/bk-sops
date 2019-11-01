@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import copy
-
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.components.utils import (
@@ -80,34 +78,16 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     # 筛选条件
     filters = kwargs['filters']
     if filters:
-        filters_dct = {}
-        for ft in filters:
-            filters_dct.setdefault(ft['field'], [])
-            filters_dct[ft['field']] += format_condition_value(ft['value'])
-        new_topo_tree = process_topo_tree_by_condition(biz_topo_tree, filters_dct)
-        filter_host = set(filters_dct.pop('host', []))
-        # 把拓扑筛选条件转换成 modules 筛选条件
-        filter_modules = get_modules_by_condition(new_topo_tree, filters_dct)
-        filter_modules_id = get_modules_id(filter_modules)
-        data = [host for host in data if set(host['host_modules_id']) & set(filter_modules_id)]
-        if filter_host:
-            data = [host for host in data if host['bk_host_innerip'] in filter_host]
+        data = filter_hosts(filters, biz_topo_tree, data)
 
     # 过滤条件
     excludes = kwargs['excludes']
     if excludes:
-        excludes_dct = {}
-        for ex in excludes:
-            excludes_dct.setdefault(ex['field'], [])
-            excludes_dct[ex['field']] += format_condition_value(ex['value'])
-        new_topo_tree = process_topo_tree_by_condition(biz_topo_tree, excludes_dct)
-        exclude_host = set(excludes_dct.pop('host', []))
-        # 把拓扑排除条件转换成 modules 排除条件
-        exclude_modules = [] if not excludes_dct else get_modules_by_condition(new_topo_tree, excludes_dct)
-        exclude_modules_id = get_modules_id(exclude_modules)
-        data = [host for host in data if not (set(host['host_modules_id']) & set(exclude_modules_id))]
-        if exclude_host:
-            data = [host for host in data if host['bk_host_innerip'] not in exclude_host]
+        # 先把 data 中符合全部排除条件的 hosts 找出来，然后筛除
+        exclude_hosts = filter_hosts(excludes, biz_topo_tree, data)
+        exclude_host_ids = [host['bk_host_innerip'] for host in exclude_hosts]
+        new_data = [host for host in data if host['bk_host_innerip'] not in exclude_host_ids]
+        data = new_data
 
     result = {
         'result': True,
@@ -116,6 +96,31 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         'message': ''
     }
     return result
+
+
+def filter_hosts(filters, biz_topo_tree, hosts):
+    filters_dct = format_condition_dict(filters)
+    filter_host = set(filters_dct.pop('host', []))
+    # 把拓扑筛选条件转换成 modules 筛选条件
+    filter_modules = get_modules_by_condition(biz_topo_tree, filters_dct)
+    filter_modules_id = get_modules_id(filter_modules)
+    data = [host for host in hosts if set(host['host_modules_id']) & set(filter_modules_id)]
+    if filter_host:
+        data = [host for host in data if host['bk_host_innerip'] in filter_host]
+    return data
+
+
+def format_condition_dict(conditons):
+    """
+    @summary: 将 field 相同的聚合成字典中的一条记录
+    @param conditons:
+    @return:
+    """
+    con_dct = {}
+    for con in conditons:
+        con_dct.setdefault(con['field'], [])
+        con_dct[con['field']] += format_condition_value(con['value'])
+    return con_dct
 
 
 def format_condition_value(conditions):
@@ -129,8 +134,8 @@ def format_condition_value(conditions):
     """
     formatted = []
     for val in conditions:
-        formatted += [item for item in val.strip().split('\n') if item]
-    return formatted
+        formatted += [item.strip() for item in val.strip().split('\n') if item.strip()]
+    return list(set(formatted))
 
 
 def build_cmdb_search_host_kwargs(bk_biz_id, bk_supplier_account, kwargs, biz_topo_tree):
@@ -211,22 +216,6 @@ def get_modules_id(modules):
     @return:
     """
     return [mod.get('bk_module_id') or mod.get('bk_inst_id') for mod in modules]
-
-
-def process_topo_tree_by_condition(topo_tree, condition):
-    """
-    @summary: 根据过滤条件保留或者排除空闲机池
-    @param topo_tree:
-    @param condition:
-    @return:
-    """
-    # 筛选条件只包含set、module，不需要处理 topo_tree
-    if not (set(condition.keys()) - {'set', 'module'}):
-        return topo_tree
-    # 筛选条件包含非set、module，那么一定不包含 topo_tree 中的空闲机池集群
-    new_tree = copy.deepcopy(topo_tree)
-    new_tree['child'] = [child for child in new_tree['child'] if child['bk_obj_id'] not in ['set', 'module']]
-    return new_tree
 
 
 def get_modules_by_condition(bk_obj, condition):

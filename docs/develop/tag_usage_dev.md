@@ -339,6 +339,12 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 **方法**
   - `onSubmit`：手动上传按钮点击时间回调，默认开始执行上传，若配置项传入 `submit` 属性，则执行该方法
+  - `beforeUpload`: 上传之前钩子函数，若返回 false 或者返回 Promise 且被 reject，则取消上传，参数 file
+  - `beforeRemove`: 删除文件之前的钩子函数，若返回 false 或者返回 Promise 且被 reject，则取消删除，参数 file， fileList
+  - `onSuccess`: 文件上传成功时的钩子函数，参数 file， fileList
+  - `onRemove`: 文件列表移除文件时的钩子函数，参数 file， fileList
+  - `fileChange`: 上传文件变更时的钩子函数，添加文件、上传成功和上传失败时都会被调用，参数 file， fileList
+  - `onError`: 文件上传失败时的钩子函数，参数 err, file， fileList
 
 
 # 标准插件中定义的方法

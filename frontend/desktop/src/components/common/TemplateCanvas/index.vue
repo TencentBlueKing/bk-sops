@@ -104,7 +104,7 @@
     import dom from '@/utils/dom.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
-    
+
     export default {
         name: 'TemplateCanvas',
         components: {
@@ -391,7 +391,7 @@
                         return false
                     }
                 }
-                const validateMessage = validatePipeline.isLocationValid(node, this.flowData.nodes)
+                const validateMessage = validatePipeline.isLocationValid(node, this.canvasData.locations)
 
                 if (!validateMessage.result) {
                     this.$bkMessage({
