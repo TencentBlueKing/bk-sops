@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import ujson as json
 from django.core.cache import cache
 
 from gcloud.conf import settings
