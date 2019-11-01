@@ -26,6 +26,7 @@
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
             @onConnectionDragStop="onConnectionDragStop"
+            @onBeforeDrag="onBeforeDrag"
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
@@ -577,6 +578,9 @@
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = false
                 }
+            },
+            onBeforeDrag () {
+                this.handleReferenceLineHide()
             },
             // 节点拖动回调
             onNodeMoving (node) {
