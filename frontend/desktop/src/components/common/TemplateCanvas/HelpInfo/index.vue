@@ -20,14 +20,14 @@
                         <p class="text title">Mac</p>
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                        <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                        <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                     <template v-else>
                         <p class="text title">Windows</p>
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                        <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                        <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                 </div>
@@ -40,7 +40,7 @@
     const isMac = /macintosh|mac os x/i.test(navigator.userAgent.toLowerCase())
     const hotKeyTriggeringConditions = [
         { emit: 'onZoomIn', keyCodes: [107, 187], ctrl: true },
-        { emit: 'onZoomOut', keyCodes: [109, 198], ctrl: true },
+        { emit: 'onZoomOut', keyCodes: [109, 189], ctrl: true },
         { emit: 'onResetPosition', keyCodes: [96, 48], ctrl: true }
     ]
     export default {

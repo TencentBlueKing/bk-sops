@@ -19,7 +19,7 @@
             <li
                 v-if="isShowConfigIcon"
                 class="shortcut-item common-icon-gear"
-                @click.stop="onShowNodeConfig"></li>
+                @click.stop="onConfigBtnClick"></li>
             <li
                 v-for="(name, index) in nodeTypeList"
                 :key="index"
@@ -69,8 +69,8 @@
             }
         },
         methods: {
-            onShowNodeConfig () {
-                this.$emit('onShowNodeConfig', this.idOfNodeShortcutPanel)
+            onConfigBtnClick () {
+                this.$emit('onConfigBtnClick', this.idOfNodeShortcutPanel)
             },
             /**
              * 添加节点
@@ -105,6 +105,14 @@
                         return true
                     }
                 })
+                const isGatewayCurrNode = this.isGatewayNode(currType)
+                const isGatewayAppendNode = this.isGatewayNode(type)
+                if (isGatewayCurrNode && !isGatewayAppendNode) {
+                    location.y -= 5
+                }
+                if (!isGatewayCurrNode && isGatewayAppendNode) {
+                    location.y += 5
+                }
                 /**
                  * 添加规则
                  * 当前节点类型为并行/分支网管：都是 onAppendNode
@@ -125,6 +133,10 @@
                     }
                     this.$emit('onAppendNode', { location, line })
                 }
+            },
+            // 是不是网关节点
+            isGatewayNode (type) {
+                return ['parallelgateway', 'branchgateway', 'convergegateway'].indexOf(type) > -1
             },
             // 是否存在节点在需要追加节点后面
             isHaveNodeBehind (id) {

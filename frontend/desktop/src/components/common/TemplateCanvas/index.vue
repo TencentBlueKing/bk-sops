@@ -26,6 +26,7 @@
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
             @onConnectionDragStop="onConnectionDragStop"
+            @onBeforeDrag="onBeforeDrag"
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
@@ -66,9 +67,10 @@
                     :is-node-check-open="isNodeCheckOpen"
                     :editable="editable"
                     :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+                    @onConfigBtnClick="onShowNodeConfig"
                     @onInsertNode="onInsertNode"
                     @onAppendNode="onAppendNode"
-                    @onShowNodeConfig="onShowNodeConfig"
+                    @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
@@ -578,11 +580,17 @@
                     this.isDisableEndPoint = false
                 }
             },
+            onBeforeDrag () {
+                this.handleReferenceLineHide()
+            },
             // 节点拖动回调
             onNodeMoving (node) {
                 // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
                 if (this.referenceLine.id && this.referenceLine.id === node.id) {
                     this.handleReferenceLineHide()
+                }
+                if (node.id !== this.idOfNodeShortcutPanel) {
+                    this.handleShortcutPanelHide()
                 }
             },
             // 锚点点击回调
@@ -626,10 +634,15 @@
                 if (pX > 0 && pY < 0) r = 360 - r
                 // set style
                 const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
-                line.style.display = 'block'
-                line.style.width = len + 'px'
-                line.style.transformOrigin = `top left`
-                line.style.transform = 'rotate(' + r + 'deg)'
+                window.requestAnimationFrame(() => {
+                    line.style.display = 'block'
+                    line.style.width = len + 'px'
+                    line.style.transformOrigin = `top left`
+                    line.style.transform = 'rotate(' + r + 'deg)'
+                    if (!this.referenceLine.id) {
+                        this.handleReferenceLineHide()
+                    }
+                })
                 document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 移出参考线
@@ -721,6 +734,10 @@
                     return
                 }
                 this.showShortcutPane(id)
+            },
+            onNodeDblclick (id) {
+                this.onShowNodeConfig(id)
+                this.handleShortcutPanelHide()
             },
             // 显示快捷节点面板
             showShortcutPane (id) {
@@ -933,6 +950,7 @@
         left: 120px;
         top: 126px;
         z-index: 1;
+        cursor: grab;
         &::before {
             position: absolute;
             right: 0;

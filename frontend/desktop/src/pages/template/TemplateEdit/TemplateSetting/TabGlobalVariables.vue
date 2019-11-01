@@ -32,9 +32,9 @@
                         {{ i18n.attrDesc2 }}
                         <i class="common-icon-hide-right" style="color: #de9524"></i>
                         {{ i18n.attrDesc3 }}
-                        <i class="common-icon-eye-show" style="color: #219f42"></i>
+                        <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
                         {{ i18n.attrDesc4 }}
-                        <i class="common-icon-eye-hide color-org" style="color: #de9524"></i>
+                        <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
                         {{ i18n.attrDesc5 }}
                     </p>
                 </div>
@@ -414,9 +414,6 @@ $localBorderColor: #d8e2e7;
                 .common-icon-eye-hide {
                     margin-left: 8px;
                     font-size: 15px;
-                }
-                .color-org{
-                    color: #de9524;
                 }
             }
         }
