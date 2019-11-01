@@ -118,19 +118,9 @@
                     if (
                         Math.abs(x - this.moveFlag.x) < moveBuffer
                         && Math.abs(y - this.moveFlag.y) < moveBuffer
+                        && this.node.type !== 'endpoint'
                     ) {
-                        if (
-                            [
-                                'startpoint',
-                                'tasknode',
-                                'subflow',
-                                'parallelgateway',
-                                'branchgateway',
-                                'convergegateway'
-                            ].indexOf(this.node.type) > -1) {
-                            this.$emit('onNodeClick', this.node.id, e)
-                            // e.stopPropagation()
-                        }
+                        this.$emit('onNodeClick', this.node.id, e)
                     }
                 }, 200)
             },
