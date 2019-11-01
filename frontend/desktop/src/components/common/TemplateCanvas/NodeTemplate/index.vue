@@ -14,7 +14,7 @@
         class="canvas-node-item"
         @mousedown="onMousedown"
         @click="onNodeClick"
-        @dblclick="onDblclick">
+        @dblclick="onNodeDblclick">
         <component
             :is="nodeTemplate"
             :node="node"
@@ -36,7 +36,7 @@
             :canvas-data="canvasData"
             @onAppendNode="onAppendNode"
             @onInsertNode="onInsertNode"
-            @onShowNodeConfig="onShowNodeConfig">
+            @onConfigBtnClick="onConfigBtnClick">
         </ShortcutPanel>
 
     </div>
@@ -92,7 +92,8 @@
                     branchgateway: BranchGateway,
                     parallelgateway: ParallelGateway,
                     convergegateway: ConvergeGateway
-                }
+                },
+                clickTimer: null
             }
         },
         computed: {
@@ -105,29 +106,33 @@
                 const { pageX: x, pageY: y } = e
                 this.moveFlag = { x, y }
             },
-            onDblclick () {
-                this.$emit('onShowNodeConfig', this.node.id)
+            onNodeDblclick () {
+                clearTimeout(this.clickTimer)
+                this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
-                const moveBuffer = 2
-                const { pageX: x, pageY: y } = e
-                if (
-                    Math.abs(x - this.moveFlag.x) < moveBuffer
-                    && Math.abs(y - this.moveFlag.y) < moveBuffer
-                ) {
+                clearTimeout(this.clickTimer)
+                this.clickTimer = setTimeout(() => {
+                    const moveBuffer = 2
+                    const { pageX: x, pageY: y } = e
                     if (
-                        [
-                            'startpoint',
-                            'tasknode',
-                            'subflow',
-                            'parallelgateway',
-                            'branchgateway',
-                            'convergegateway'
-                        ].indexOf(this.node.type) > -1) {
-                        this.$emit('onNodeClick', this.node.id, e)
-                        // e.stopPropagation()
+                        Math.abs(x - this.moveFlag.x) < moveBuffer
+                        && Math.abs(y - this.moveFlag.y) < moveBuffer
+                    ) {
+                        if (
+                            [
+                                'startpoint',
+                                'tasknode',
+                                'subflow',
+                                'parallelgateway',
+                                'branchgateway',
+                                'convergegateway'
+                            ].indexOf(this.node.type) > -1) {
+                            this.$emit('onNodeClick', this.node.id, e)
+                            // e.stopPropagation()
+                        }
                     }
-                }
+                }, 200)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -156,8 +161,8 @@
             onAppendNode (data) {
                 this.$emit('onAppendNode', data)
             },
-            onShowNodeConfig (id) {
-                this.$emit('onShowNodeConfig', id)
+            onConfigBtnClick (id) {
+                this.$emit('onConfigBtnClick', id)
             },
             onInsertNode (data) {
                 this.$emit('onInsertNode', data)

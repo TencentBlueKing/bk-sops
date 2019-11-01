@@ -67,9 +67,10 @@
                     :is-node-check-open="isNodeCheckOpen"
                     :editable="editable"
                     :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+                    @onConfigBtnClick="onShowNodeConfig"
                     @onInsertNode="onInsertNode"
                     @onAppendNode="onAppendNode"
-                    @onShowNodeConfig="onShowNodeConfig"
+                    @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
@@ -588,6 +589,9 @@
                 if (this.referenceLine.id && this.referenceLine.id === node.id) {
                     this.handleReferenceLineHide()
                 }
+                if (node.id !== this.idOfNodeShortcutPanel) {
+                    this.handleShortcutPanelHide()
+                }
             },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
@@ -725,6 +729,10 @@
                     return
                 }
                 this.showShortcutPane(id)
+            },
+            onNodeDblclick (id) {
+                this.onShowNodeConfig(id)
+                this.handleShortcutPanelHide()
             },
             // 显示快捷节点面板
             showShortcutPane (id) {
