@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import json
 from copy import deepcopy
 
+import ujson as json
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 

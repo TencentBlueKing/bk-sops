@@ -12,11 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import json
 import logging
 import traceback
 from copy import deepcopy
 
+import ujson as json
 from django.db import models, transaction
 from django.db.models import Count, Avg
 from django.utils.translation import ugettext_lazy as _
