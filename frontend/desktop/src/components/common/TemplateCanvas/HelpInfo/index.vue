@@ -11,21 +11,25 @@
 */
 <template>
     <div class="help-info-wrap">
-        <div v-if="isShowHotKey" class="hot-key-container">
+        <div
+            v-if="isShowHotKey"
+            :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
-                <div v-if="isMac" class="hot-key-panel">
-                    <p class="text title">Mac</p>
-                    <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
-                    <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                    <p class="text">Ctrl + o {{i18n.reduction}}</p>
-                    <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
-                </div>
-                <div v-else class="hot-key-panel">
-                    <p class="text title">Windows</p>
-                    <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
-                    <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                    <p class="text">Ctrl + o {{i18n.reduction}}</p>
-                    <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                <div :class="['hot-key-panel', { 'min-top': !editable }]">
+                    <template v-if="isMac">
+                        <p class="text title">Mac</p>
+                        <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
+                        <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
+                        <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                        <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                    </template>
+                    <template v-else>
+                        <p class="text title">Windows</p>
+                        <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
+                        <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
+                        <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                        <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                    </template>
                 </div>
             </transition>
         </div>
@@ -34,12 +38,21 @@
 <script>
     import '@/utils/i18n.js'
     const isMac = /macintosh|mac os x/i.test(navigator.userAgent.toLowerCase())
+    const hotKeyTriggeringConditions = [
+        { emit: 'onZoomIn', keyCodes: [107, 187], ctrl: true },
+        { emit: 'onZoomOut', keyCodes: [109, 198], ctrl: true },
+        { emit: 'onResetPosition', keyCodes: [96, 48], ctrl: true }
+    ]
     export default {
         name: 'HelpInfo',
         props: {
             isShowHotKey: {
                 type: Boolean,
                 default: false
+            },
+            editable: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
@@ -57,7 +70,8 @@
                     moveNode: gettext('箭头（上下左右）：移动流程元素'),
                     cancel: gettext('：取消选中')
                 },
-                isMac
+                isMac,
+                hotKeyTriggeringConditions
             }
         },
         mounted () {
@@ -72,18 +86,19 @@
             },
             handerKeyDown (e) {
                 const ctrl = window.event.ctrlKey
-                if ((e.keyCode === 107 || e.keyCode === 187) && ctrl) {
+                const action = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl)
+                if (action && this.isUsable(action.emit)) {
                     e.preventDefault()
-                    this.$emit('onZoomIn')
+                    this.$emit(action.emit)
                 }
-                if ((e.keyCode === 109 || e.keyCode === 189) && ctrl) {
-                    e.preventDefault()
-                    this.$emit('onZoomOut')
+            },
+            isUsable (emitName) {
+                // 只读模式可用快捷键列表
+                const readOnlyModeCanUse = ['onZoomIn', 'onZoomOut', 'onResetPosition']
+                if (!this.editable && readOnlyModeCanUse.indexOf(emitName) < -1) {
+                    return false
                 }
-                if (e.keyCode === 79 && ctrl) {
-                    e.preventDefault()
-                    this.$emit('onResetPosition')
-                }
+                return true
             }
         }
     }
@@ -105,6 +120,10 @@
         border-radius: 10px;
         background-color: #777A85;
         transition: all 0.5s ease;
+        &.min-top {
+            left: 40px;
+            top: 70px;
+        }
         .title {
             margin-bottom: 20px;
         }

@@ -10,7 +10,9 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="canvas-container">
+    <div
+        id="canvasContainer"
+        class="canvas-container">
         <js-flow
             ref="jsFlow"
             selector="entry-item"
@@ -66,8 +68,8 @@
                     :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
                     @onInsertNode="onInsertNode"
                     @onAppendNode="onAppendNode"
-                    @onShowNodeConfig="onNodeClick"
-                    @onNodeWrapClick="onNodeWrapClick"
+                    @onShowNodeConfig="onShowNodeConfig"
+                    @onNodeClick="onNodeClick"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
                     @onRetryClick="onRetryClick"
@@ -80,6 +82,7 @@
             </template>
         </js-flow>
         <help-info
+            :editable="editable"
             :is-show-hot-key="isShowHotKey"
             @onZoomIn="onZoomIn"
             @onZoomOut="onZoomOut"
@@ -98,6 +101,7 @@
     import HelpInfo from './HelpInfo/index.vue'
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
+    import dom from '@/utils/dom.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import validatePipeline from '@/utils/validatePipeline.js'
     
@@ -349,8 +353,8 @@
             removeAllConnector () {
                 this.$refs.jsFlow.removeAllConnector()
             },
-            onNodeClick (id) {
-                this.$emit('onNodeClick', id)
+            onShowNodeConfig (id) {
+                this.$emit('onShowNodeConfig', id)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -583,6 +587,9 @@
             },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
+                if (!this.editable) {
+                    return false
+                }
                 const deviationMap = {
                     'Left': { x: 2, y: 0 },
                     'Right': { x: -2, y: 0 },
@@ -596,7 +603,7 @@
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
                     )
-                    this.referenceLine.id = ''
+                    this.handleReferenceLineHide()
                     return false
                 }
                 const line = this.$refs.dragReferenceLine
@@ -623,15 +630,17 @@
                 line.style.width = len + 'px'
                 line.style.transformOrigin = `top left`
                 line.style.transform = 'rotate(' + r + 'deg)'
-                document.body.addEventListener('click', this.handleReferenceLineHide, false)
+                document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 移出参考线
             handleReferenceLineHide () {
                 const line = this.$refs.dragReferenceLine
+                if (line) {
+                    line.style.display = 'none'
+                }
                 this.referenceLine.id = ''
-                line.style.display = 'none'
                 document.getElementById('canvas-flow').removeEventListener('mousemove', this.handleReferenceLine, false)
-                document.body.removeEventListener('click', this.handleReferenceLineHide, false)
+                document.body.removeEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 创建连线
             createLine (source, target) {
@@ -696,11 +705,12 @@
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
                 })
             },
-            // 点击展开快捷节点面板
-            onNodeWrapClick (id, event) {
+            // 点击节点
+            onNodeClick (id, event) {
+                this.$emit('onNodeClick', id)
                 // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
                 if (!this.editable) {
-                    this.onNodeClick(id)
+                    this.onShowNodeConfig(id)
                     return
                 }
                 if (this.referenceLine.id) {
@@ -710,30 +720,41 @@
                     this.handleReferenceLineHide()
                     return
                 }
+                this.showShortcutPane(id)
+            },
+            // 显示快捷节点面板
+            showShortcutPane (id) {
                 if (this.idOfNodeShortcutPanel) {
                     this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 }
                 this.onUpdateNodeInfo(id, { isActived: true })
-                // 切换节点层级状态
-                this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
-                this.toggleNodeLevel(id, true)
-                this.idOfNodeShortcutPanel = id
+                this.updataSelctedNodeData(id)
             },
             // 隐藏快捷节点面板
             handleShortcutPanelHide (e) {
+                if (e && dom.parentClsContains('canvas-node', e.target)) {
+                    return false
+                }
                 this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
                 this.idOfNodeShortcutPanel = ''
             },
             // 切换节点层级状态
             toggleNodeLevel (id, isActived) {
-                if (!id) return
                 const node = document.getElementById(id)
+                if (!id || !node) return
                 if (!isActived) {
                     node.classList.remove('actived')
                 } else {
                     node.classList.add('actived')
                 }
+            },
+            // 更新选中节点数据
+            updataSelctedNodeData (id) {
+                // 切换节点层级状态
+                this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
+                this.toggleNodeLevel(id, true)
+                this.idOfNodeShortcutPanel = id
             },
             // 节点后面追加
             onAppendNode ({ location, line }) {
@@ -742,6 +763,7 @@
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(line)
+                    this.showShortcutPane(location.id)
                 })
             },
             /**
@@ -783,6 +805,7 @@
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(startLine)
                     this.$refs.jsFlow.createConnector(endLine)
+                    this.showShortcutPane(location.id)
                 })
             }
         }
@@ -838,6 +861,7 @@
             .branch-condition {
                 padding: 4px 6px;
                 width: 60px;
+                min-height: 20px;
                 font-size: 12px;
                 text-align: center;
                 color: #978e4d;
@@ -883,7 +907,7 @@
             }
         }
         .jsflow-node.actived {
-            z-index: 5;
+            z-index: 4;
         }
     }
     .drag-reference-line {

@@ -43,7 +43,7 @@
                 :canvas-data="canvasData"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
-                @onNodeClick="onNodeClick"
+                @onShowNodeConfig="onShowNodeConfig"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
@@ -135,6 +135,7 @@
         tips: gettext('系统不会保存您所做的更改，确认离开？'),
         saved: gettext('保存成功'),
         error: gettext('任务节点参数错误，请点击错误节点查看详情'),
+        conditionError: gettext('分支节点参数错误，请点击错误节点查看详情'),
         deleteSuccess: gettext('删除本地缓存成功'),
         deleteFail: gettext('该本地缓存不存在，删除失败'),
         replaceSuccess: gettext('替换流程成功'),
@@ -701,9 +702,9 @@
                 this.searchAtom(payload)
             },
             /**
-             * 任务节点点击
+             * 打开节点配置面板
              */
-            onNodeClick (id) {
+            onShowNodeConfig (id) {
                 this.isShowConditionEdit = false
                 this.toggleSettingPanel(false)
                 const nodeType = this.locations.filter(item => {
@@ -1055,7 +1056,7 @@
                 })
                 if (!checkResult && isShowError) {
                     this.$bkMessage({
-                        'message': i18n.error,
+                        'message': i18n.conditionError,
                         'theme': 'error'
                     })
                 }
