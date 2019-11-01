@@ -438,13 +438,13 @@
             this.initData()
         },
         mounted () {
-            document.body.addEventListener('mousedown', this.handleNodeConfigPanelShow, false)
+            document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
             if (this.errorCouldBeIgnored) {
                 this.isDisable = true
             }
         },
         beforeDestroy () {
-            document.body.removeEventListener('mousedown', this.handleNodeConfigPanelShow, false)
+            document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
         },
         methods: {
             ...mapMutations('atomForm/', [
