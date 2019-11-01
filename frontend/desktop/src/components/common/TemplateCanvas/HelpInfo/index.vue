@@ -85,7 +85,6 @@
                 this.$emit('onCloseHotkeyInfo')
             },
             handerKeyDown (e) {
-                console.log(e.keyCode, 'e.keyCode')
                 const ctrl = window.event.ctrlKey
                 const action = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl)
                 if (action && this.isUsable(action.emit)) {
