@@ -10,24 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from django.contrib import admin
-
-from pipeline import models
-
-
-@admin.register(models.PipelineTemplate)
-class PipelineTemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'template_id', 'name', 'create_time', 'edit_time']
-    list_filter = ['is_deleted']
-    search_fields = ['name']
-    raw_id_fields = ['snapshot']
-
-
-@admin.register(models.PipelineInstance)
-class PipelineInstanceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'template', 'name', 'instance_id', 'create_time', 'start_time', 'finish_time',
-                    'is_deleted']
-    list_filter = ['is_started', 'is_finished', 'is_revoked', 'is_deleted']
-    search_fields = ['name']
-    raw_id_fields = ['template', 'snapshot', 'execution_snapshot']

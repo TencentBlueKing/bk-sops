@@ -38,6 +38,7 @@ from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
@@ -322,11 +323,11 @@ def replace_all_templates_tree_node_id(request):
 @require_GET
 def get_template_count(request, project_id):
     group_by = request.GET.get('group_by', 'category')
-    result_dict = check_and_rename_params('{}', group_by)
+    result_dict = check_and_rename_params({}, group_by)
     if not result_dict['success']:
         return JsonResponse({'result': False, 'message': result_dict['content']})
     filters = {'is_deleted': False, 'project_id': project_id}
-    success, content = TaskTemplate.objects.extend_classified_count(result_dict['group_by'], filters)
+    success, content = task_template.dispatch(result_dict['group_by'], filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})

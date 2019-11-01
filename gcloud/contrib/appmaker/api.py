@@ -23,6 +23,7 @@ from gcloud.conf import settings
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.schema import APP_MAKER_PARAMS_SCHEMA
 from gcloud.core.utils import check_and_rename_params
+from gcloud.contrib.analysis.analyse_items import app_maker
 
 logger = logging.getLogger("root")
 
@@ -91,11 +92,11 @@ def save(request, project_id):
 @require_GET
 def get_appmaker_count(request, project_id):
     group_by = request.GET.get('group_by', 'category')
-    result_dict = check_and_rename_params('{}', group_by)
+    result_dict = check_and_rename_params({}, group_by)
     if not result_dict['success']:
         return JsonResponse({'result': False, 'message': result_dict['content']})
     filters = {'is_deleted': False, 'project_id': project_id}
-    success, content = AppMaker.objects.extend_classified_count(result_dict['group_by'], filters)
+    success, content = app_maker.dispatch(result_dict['group_by'], filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})

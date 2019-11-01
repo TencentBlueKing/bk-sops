@@ -16,14 +16,12 @@ from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
 
 from auth_backend.plugins.decorators import verify_perms
+from gcloud.contrib.analysis.decorators import standardize_params
 
-from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.analysis.permissions import statistics_resource
 from gcloud.core.constant import AE
 from gcloud.core.constant import TASK_CATEGORY
-from gcloud.core.utils import check_and_rename_params
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
 
 
 @require_GET
@@ -55,122 +53,59 @@ def analysis_home(request):
 
 @require_POST
 @verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
-def query_instance_by_group(request):
+@standardize_params
+def query_instance_by_group(*args):
     """
     @summary 按起始时间、业务（可选）查询各类型任务实例个数和占比
-    :param request
+    :param args: (group_by, filters, page_index, limit)
     """
-    conditions = request.POST.get('conditions', {})
-    page_index = int(request.POST.get('pageIndex', 1))
-    limit = int(request.POST.get('limit', 10))
-
-    group_by = request.POST.get('group_by', None)
-    # 参数校验
-    result_dict = check_and_rename_params(conditions, group_by)
-    if not result_dict['success']:
-        return JsonResponse({'result': False, 'message': result_dict['content']})
-    conditions = result_dict['conditions']
-    group_by = result_dict['group_by']
-    # 过滤参数填写
-    filters = {'is_deleted': False}
-    filters.update(conditions)
-    # 根据类型分组
-    success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters, page_index, limit)
-    if not success:
-        return JsonResponse({'result': False, 'message': content})
-    return JsonResponse({'result': True, 'data': content})
+    success, content = task_flow_instance.dispatch(*args)
+    return success, content
 
 
 @require_POST
 @verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
-def query_template_by_group(request):
+@standardize_params
+def query_template_by_group(*args):
     """
     @summary 查询模板相关信息
-    :param request:
+    :param args: (group_by, filters, page_index, limit)
     """
-    conditions = request.POST.get('conditions', {})
-    page_index = int(request.POST.get('pageIndex', 1))
-    limit = int(request.POST.get('limit', 10))
-
-    group_by = request.POST.get('group_by', None)
-
-    # 参数校验并进行转换
-    result_dict = check_and_rename_params(conditions, group_by)
-    if not result_dict['success']:
-        return JsonResponse({'result': False, 'message': result_dict['content']})
-    conditions = result_dict['conditions']
-    # 过滤参数填写
-    filters = {'is_deleted': False}
-    filters.update(conditions)
-    # 根据类型分组
-    success, content = TaskTemplate.objects.extend_classified_count(result_dict['group_by'], filters, page_index, limit)
-    if not success:
-        return JsonResponse({'result': False, 'message': content})
-    return JsonResponse({'result': True, 'data': content})
+    success, content = task_template.dispatch(*args)
+    return success, content
 
 
 @require_POST
 @verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
-def query_atom_by_group(request):
+@standardize_params
+def query_atom_by_group(*args):
     """
     @summary 查询标准插件相关信息
-    :param request:
+    :param args: (group_by, filters, page_index, limit)
     """
-    conditions = request.POST.get('conditions', '{}')
-    page_index = int(request.POST.get('pageIndex', 1))
-    limit = int(request.POST.get('limit', 10))
-
-    group_by = request.POST.get('group_by', None)
-
-    # 参数校验并进行转换
-    result_dict = check_and_rename_params(conditions, group_by)
-    if not result_dict['success']:
-        return JsonResponse({'result': False, 'message': result_dict['content']})
-    conditions = result_dict['conditions']
-    group_by = result_dict['group_by']
-    # 过滤参数填写
-    filters = {'is_deleted': False}
-    filters.update(conditions)
-    # 根据类型分组
-    if group_by in [AE.atom_execute, AE.atom_instance]:
-        success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters, page_index, limit)
+    group_by = args[0]
+    if group_by in AE.atom_dimensions:
+        success, content = task_flow_instance.dispatch(*args)
     else:
-        success, content = TaskTemplate.objects.extend_classified_count(group_by, filters, page_index, limit)
-    if not success:
-        return JsonResponse({'result': False, 'message': content})
-    return JsonResponse({'result': True, 'data': content})
+        success, content = task_template.dispatch(*args)
+    return success, content
 
 
 @require_POST
 @verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
-def query_appmaker_by_group(request):
+@standardize_params
+def query_appmaker_by_group(*args):
     """
     查询appmaker信息
-    :param request:
+    :param args: (group_by, filters, page_index, limit)
     """
-    conditions = request.POST.get('conditions', {})
-    page_index = int(request.POST.get('pageIndex', 1))
-    limit = int(request.POST.get('limit', 10))
-
-    group_by = request.POST.get('group_by', None)
-
-    # 参数校验并进行转换
-    result_dict = check_and_rename_params(conditions, group_by)
-    if not result_dict['success']:
-        return JsonResponse({'result': False, 'message': result_dict['content']})
-    conditions = result_dict['conditions']
-    group_by = result_dict['group_by']
-    # 过滤参数填写
-    filters = {'is_deleted': False}
+    group_by = args[0]
+    filters = args[1]
     if group_by == AE.appmaker_instance:
         # 如果是查询标准插件流程相关 需要加上 create_method = app_maker 的条件
         filters[AE.create_method] = AE.app_maker
-        filters.update(conditions)
-        success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters, page_index, limit)
+        success, content = task_flow_instance.dispatch(*args)
     else:
-        filters.update(conditions)
         # 根据类型分组
-        success, content = AppMaker.objects.extend_classified_count(group_by, filters)
-    if not success:
-        return JsonResponse({'result': False, 'message': content})
-    return JsonResponse({'result': True, 'data': content})
+        success, content = app_maker.dispatch(group_by, filters)
+    return success, content
