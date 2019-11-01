@@ -29,10 +29,11 @@
                         <bk-collapse v-for="group in listInPanel" :key="group.type">
                             <bk-collapse-item :name="group.group_name">
                                 <div class="group-header">
-                                    <img class="header-icon" :src="group.group_icon || defaultTypeIcon" />
+                                    <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
+                                    <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
                                     <span class="header-title">{{group.group_name}}
                                         <span class="header-atom">
-                                            {{group.list.length}}{{i18n.num}}
+                                            ({{group.list.length}})
                                         </span>
                                     </span>
                                 </div>
@@ -72,6 +73,7 @@
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
     import toolsUtils from '@/utils/tools.js'
+    import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
         name: 'NodeMenu',
@@ -116,8 +118,7 @@
                 },
                 defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
                 i18n: {
-                    placeholder: gettext('请输入名称'),
-                    num: gettext('个')
+                    placeholder: gettext('请输入名称')
                 }
             }
         },
@@ -135,6 +136,13 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            getIconCls (type) {
+                const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(type))
+                if (systemType) {
+                    return `common-icon-sys-${systemType.toLowerCase()}`
+                }
+                return 'common-icon-sys-default'
+            },
             onClickPin () {
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
             },
@@ -221,7 +229,13 @@
     .group-header {
         height: 42px;
         overflow: hidden;
-        .header-icon {
+        .group-icon-font {
+            float: left;
+            margin-top: 13px;
+            font-size: 16px;
+            color: #52699d;
+        }
+        .group-icon-img {
             float: left;
             margin-top: 13px;
             width: 16px;
@@ -234,7 +248,6 @@
             font-size: 14px;
             overflow: hidden;
             .header-atom {
-                float: right;
                 color: #a9b2bd;
                 font-size: 12px;
             }
