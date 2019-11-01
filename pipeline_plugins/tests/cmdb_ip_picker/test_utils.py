@@ -11,15 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
 from mock import patch
+from django.test import TestCase
+
 from pipeline_plugins.cmdb_ip_picker.utils import (
     get_modules_id,
     get_modules_by_condition,
     get_modules_of_bk_obj,
     get_objects_of_topo_tree,
     get_cmdb_topo_tree,
-    process_topo_tree_by_condition,
     format_condition_value,
     build_cmdb_search_host_kwargs,
     get_ip_picker_result
@@ -143,21 +143,6 @@ class TestGetObjects(TestCase):
             },
         ]
         self.assertEquals(get_modules_id(modules), [8, 9])
-
-    def test_process_topo_tree_by_condition(self):
-        condition = {'group': [1, 3]}
-        expected = {
-            "default": 0,
-            "bk_obj_name": u"业务",
-            "bk_obj_id": "biz",
-            "child": [],
-            "bk_inst_id": 2,
-            "bk_inst_name": u"蓝鲸"
-        }
-        self.assertEquals(process_topo_tree_by_condition(self.topo_tree, condition), expected)
-
-        condition = {'set': [1, 3]}
-        self.assertEquals(process_topo_tree_by_condition(self.topo_tree, condition), self.topo_tree)
 
     def test_get_modules_by_condition(self):
         filters_dct = {

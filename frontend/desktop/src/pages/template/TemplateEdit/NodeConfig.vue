@@ -44,14 +44,14 @@
                                 v-bk-tooltips="{
                                     content: atomDesc,
                                     width: '400',
-                                    placements: ['left'] }">
+                                    placements: ['bottom-end'] }">
                             </i>
                             <!-- 子流程版本更新 -->
                             <i class="common-icon-clock-inversion update-tooltip"
                                 v-if="subflowHasUpdate"
                                 v-bk-tooltips="{
                                     content: i18n.update,
-                                    placements: ['left'] }"
+                                    placements: ['bottom-end'] }"
                                 @click="onUpdateSubflowVersion">
                             </i>
                             <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
@@ -261,7 +261,7 @@
                     trigger: 'mouseenter',
                     theme: 'dark',
                     content: '#html-error-ingored-tootip',
-                    placement: 'left'
+                    placement: 'bottom-end'
                 },
                 atomConfigLoading: false,
                 errorCouldBeIgnored: false,
