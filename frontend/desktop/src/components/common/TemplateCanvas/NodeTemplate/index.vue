@@ -228,8 +228,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             background: #96a1b9;
             border-radius: 50%;
             &:hover {
@@ -251,14 +251,14 @@
         }
         .gateway-node {
             position: relative;
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
             text-align: center;
             &:before {
                 content: '';
                 position: absolute;
-                top: 4px;
-                left: 4px;
+                top: 1px;
+                left: 2px;
                 width: 28px;
                 height: 28px;
                 background: #ffffff;
@@ -268,8 +268,8 @@
             }
         }
         .node-type-icon {
-            height: 36px;
-            line-height: 36px;
+            height: 32px;
+            line-height: 32px;
             font-size: 24px;
             color: $blueDark;
             text-align: center;
