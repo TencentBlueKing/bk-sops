@@ -196,7 +196,7 @@
             }
         }
         .edit-wrapper {
-            padding: 20px 20px 0;
+            padding: 20px;
             height: calc(100% - 150px);
             overflow-y: auto;
             @include scrollbar;
