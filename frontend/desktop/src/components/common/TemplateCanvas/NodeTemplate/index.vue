@@ -13,7 +13,8 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
-        @click.stop="onNodeClick">
+        @click="onNodeClick"
+        @dblclick="onDblclick">
         <component
             :is="nodeTemplate"
             :node="node"
@@ -37,6 +38,7 @@
             @onInsertNode="onInsertNode"
             @onShowNodeConfig="onShowNodeConfig">
         </ShortcutPanel>
+
     </div>
 </template>
 <script>
@@ -103,6 +105,9 @@
                 const { pageX: x, pageY: y } = e
                 this.moveFlag = { x, y }
             },
+            onDblclick () {
+                this.$emit('onShowNodeConfig', this.node.id)
+            },
             onNodeClick (e) {
                 const moveBuffer = 2
                 const { pageX: x, pageY: y } = e
@@ -119,7 +124,7 @@
                             'branchgateway',
                             'convergegateway'
                         ].indexOf(this.node.type) > -1) {
-                        this.$emit('onNodeWrapClick', this.node.id, e)
+                        this.$emit('onNodeClick', this.node.id, e)
                         // e.stopPropagation()
                     }
                 }
