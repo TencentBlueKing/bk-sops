@@ -105,6 +105,12 @@
                         return true
                     }
                 })
+                if (this.isGatewayNode(currType) && !this.isGatewayNode(type)) {
+                    location.y -= 5
+                }
+                if (!this.isGatewayNode(currType) && this.isGatewayNode(type)) {
+                    location.y += 5
+                }
                 /**
                  * 添加规则
                  * 当前节点类型为并行/分支网管：都是 onAppendNode
@@ -125,6 +131,10 @@
                     }
                     this.$emit('onAppendNode', { location, line })
                 }
+            },
+            // 是不是网管节点
+            isGatewayNode (type) {
+                return ['parallelgateway', 'branchgateway', 'convergegateway'].indexOf(type) > -1
             },
             // 是否存在节点在需要追加节点后面
             isHaveNodeBehind (id) {
