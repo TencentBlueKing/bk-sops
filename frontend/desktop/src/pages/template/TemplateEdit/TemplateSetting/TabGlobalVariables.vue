@@ -281,8 +281,8 @@
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
                 // 滚到到底部
-                const allvarLen = this.systemConstantsList.length + this.constantsArray.length
-                this.scrollPanelToView(allvarLen)
+                const allVarLen = this.systemConstantsList.length + this.constantsArray.length
+                this.scrollPanelToView(allVarLen)
             },
             /**
              * 变量输出勾选
