@@ -862,11 +862,10 @@
                 const actionType = 'task' + action.charAt(0).toUpperCase() + action.slice(1)
                 this[actionType]()
             },
-            onNodeClick (id) {
-                const node = this.canvasData.locations.filter(item => item.id === id)[0]
-                if (node.type === 'tasknode') {
+            onNodeClick (id, type) {
+                if (type === 'tasknode') {
                     this.handleSingleNodeClick(id, 'singleAtom')
-                } else if (node.type === 'subflow') {
+                } else if (type === 'subflow') {
                     this.handleSubflowAtomClick(id)
                 } else {
                     this.handleSingleNodeClick(id, 'controlNode')
