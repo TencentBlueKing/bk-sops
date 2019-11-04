@@ -38,12 +38,12 @@
              * type
              * @description
              * all -人员和邮件组
-             * rtx -人员
+             * user -人员
              * email -邮件组
              */
             type: {
                 type: String,
-                default: 'rtx'
+                default: 'user'
             },
             value: {
                 type: Array,
@@ -102,7 +102,7 @@
                         this.getAllData()
                         break
                     default:
-                        this.getRtxData()
+                        this.getUserData()
                 }
             },
             change (tags) {
@@ -114,7 +114,7 @@
             remove (tag) {
                 this.$emit('remove', tag)
             },
-            async getRtxData () {
+            async getUserData () {
                 if (this.memberlist && this.memberlist.length === 0) {
                     const result = await this.loadMemberList()
                     this.setMemberList(result.data)
