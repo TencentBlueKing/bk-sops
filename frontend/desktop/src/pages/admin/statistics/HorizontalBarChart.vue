@@ -66,6 +66,30 @@
                 <no-data v-else></no-data>
             </div>
         </div>
+        <div class="view-all-btn" v-if="!dataLoading && sortedData.length > 7" @click="onViewAllClick">{{ i18n.viewAll }}</div>
+        <bk-dialog
+            v-model="isDialogShow"
+            :fullscreen="true"
+            :title="title"
+            header-position="left"
+            :close-icon="false">
+            <div class="dialog-content">
+                <div
+                    v-for="(item, index) in sortedData"
+                    class="data-item"
+                    :key="index">
+                    <span class="data-label" :title="item.name" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
+                    <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
+                        <div class="block" :style="getBlockStyle(item.value)">
+                            <span class="num">{{ item.value }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <template v-slot:footer>
+                <bk-button theme="default" @click="isDialogShow = false">{{ i18n.close }}</bk-button>
+            </template>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -117,7 +141,12 @@
             return {
                 sortList: SORT_LIST,
                 selectedSortType: SORT_LIST[0].id,
-                selectedValue: ''
+                selectedValue: '',
+                isDialogShow: false,
+                i18n: {
+                    viewAll: gettext('查看全部'),
+                    close: gettext('关闭')
+                }
             }
         },
         computed: {
@@ -145,6 +174,9 @@
             },
             onOptionClick (selector, id) {
                 this.$emit('onFilterClick', id, selector)
+            },
+            onViewAllClick () {
+                this.isDialogShow = true
             }
         }
     }
@@ -152,8 +184,8 @@
 <style lang="scss" scoped>
     .horizontal-bar-chart {
         position: relative;
-        padding: 20px 20px 0;
-        height: 340px;
+        padding: 20px;
+        height: 360px;
         background: #ffffff;
         border: 1px solid #dcdee5;
         border-radius: 2px;
@@ -214,5 +246,20 @@
             color: #63656e;
             transform: translateX(100%);
         }
+    }
+    .view-all-btn {
+        position: absolute;
+        right: 20px;
+        bottom: 10px;
+        font-size: 14px;
+        color: #3a84ff;
+        cursor: pointer;
+    }
+    .dialog-content {
+        margin: 0 auto;
+        padding: 30px;
+        width: 1000px;
+        height: 100%;
+        overflow-y: auto;
     }
 </style>
