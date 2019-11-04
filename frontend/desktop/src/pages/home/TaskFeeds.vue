@@ -143,12 +143,12 @@
                                 status.text = gettext('执行中')
                                 break
                             case 'SUSPENDED':
-                                status.cls = 'execute'
+                                status.cls = 'pause'
                                 status.icon = 'common-icon-dark-circle-pause'
                                 status.text = gettext('暂停')
                                 break
                             case 'NODE_SUSPENDED':
-                                status.cls = 'execute'
+                                status.cls = 'pause'
                                 status.icon = 'common-icon-dark-circle-pause'
                                 status.text = gettext('节点暂停')
                                 break
@@ -271,6 +271,9 @@
         &.revoke {
             color: $blueDisable;
         }
+        &.pause {
+            color: $yellowDefault;
+        }
         .status-icon {
             display: inline-block;
         }
@@ -301,18 +304,5 @@
     .goto-task-detail {
         color: #4b9aff;
     }
-    .common-icon-dark-circle-pause {
-        color: #ff9c01;
-    }
-    .common-icon-dark-circle-shape {
-        color: #979BA5;
-    }
-    .common-icon-dark-circle-ellipsis {
-        color: #3c96ff;
-    }
-    .common-icon-dark-circle-close {
-        color: $redDefault;
-    }
-
 }
 </style>
