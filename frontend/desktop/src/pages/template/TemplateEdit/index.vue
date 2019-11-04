@@ -686,7 +686,10 @@
             /**
              * 任务节点点击
              */
-            onNodeClick (id) {
+            onNodeClick (id, type) {
+                if (['tasknode', 'subflow'].indexOf(type) === -1) {
+                    return false
+                }
                 this.toggleSettingPanel(false)
                 const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
