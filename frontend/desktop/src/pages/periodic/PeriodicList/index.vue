@@ -172,6 +172,7 @@
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             type="normal"
+            :entrance="'periodicTask'"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
