@@ -13,6 +13,20 @@
     <div class="horizontal-bar-chart">
         <h3 class="chart-title">{{title}}</h3>
         <bk-form class="select-wrapper" form-type="inline">
+            <bk-form-item>
+                <bk-select
+                    style="width: 120px"
+                    :clearable="false"
+                    v-model="selectedSortType">
+                    <bk-option
+                        v-for="option in sortList"
+                        :key="option.id"
+                        :id="option.id"
+                        :name="option.name">
+                        {{option.name}}
+                    </bk-option>
+                </bk-select>
+            </bk-form-item>
             <bk-form-item
                 v-for="selector in selectorList"
                 :key="selector.id">
@@ -41,7 +55,7 @@
                         v-for="(item, index) in sortedData"
                         class="data-item"
                         :key="index">
-                        <span class="data-label" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
+                        <span class="data-label" :title="item.name" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
                         <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
                             <div class="block" :style="getBlockStyle(item.value)">
                                 <span class="num">{{ item.value }}</span>
@@ -56,6 +70,17 @@
 </template>
 <script>
     import NoData from '@/components/common/base/NoData.vue'
+
+    const SORT_LIST = [
+        {
+            id: 'descending',
+            name: gettext('降序排列')
+        },
+        {
+            id: 'ascending',
+            name: gettext('升序排列')
+        }
+    ]
 
     export default {
         name: 'HorizontalBarChart',
@@ -90,6 +115,8 @@
         },
         data () {
             return {
+                sortList: SORT_LIST,
+                selectedSortType: SORT_LIST[0].id,
                 selectedValue: ''
             }
         },
@@ -98,7 +125,10 @@
                 return this.dataList.reduce((acc, cur) => acc + cur.value, 0)
             },
             sortedData () {
-                return this.dataList.sort((a, b) => b.value - a.value)
+                if (this.selectedSortType === 'descending') {
+                    return this.dataList.sort((a, b) => b.value - a.value)
+                }
+                return this.dataList.sort((a, b) => a.value - b.value)
             }
         },
         methods: {

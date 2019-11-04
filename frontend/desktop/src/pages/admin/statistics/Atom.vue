@@ -14,7 +14,7 @@
         <horizontal-bar-chart
             :title="i18n.rankTitle"
             :selector-list="rankSelector"
-            :label-width="200"
+            :label-width="400"
             :data-list="rankData"
             :data-loading="rankDataLoading"
             @onFilterClick="rankFilterChange">
