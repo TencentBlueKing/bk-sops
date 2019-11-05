@@ -11,6 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-default_app_config = 'auth_backend.contrib.consistency.apps.ConsistencyConfig'
+from django.dispatch import Signal
+
+instance_register_fail_signal = Signal(providing_args=['resource', 'instance', 'scope_id'])
+instance_batch_register_fail_signal = Signal(providing_args=['resource', 'instances', 'scope_id'])
