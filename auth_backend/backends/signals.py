@@ -13,39 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import, unicode_literals
 
-from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+from django.dispatch import Signal
 
-
-class AuthBaseException(Exception):
-    pass
-
-
-class AuthLookupError(AuthBaseException):
-    pass
-
-
-class AuthKeyError(AuthBaseException):
-    pass
-
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthBackendError(AuthBaseException):
-    pass
-
-
-class AuthOperationFailedError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
-        self.status = status
+instance_register_fail_signal = Signal(providing_args=['resource', 'instance', 'scope_id'])
+instance_batch_register_fail_signal = Signal(providing_args=['resource', 'instances', 'scope_id'])
