@@ -432,6 +432,7 @@
             idOfNodeInConfigPanel (val) {
                 this.nodeId = val
                 this.taskTypeEmpty = false
+                this.subflowHasUpdate = false
                 this.errors.clear()
                 this.initData()
             },
