@@ -28,9 +28,9 @@ def forward_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    snapshot_json = '0003_bk_sops_201910231718'
+    snapshot_json = '0004_bk_sops_201911051158'
 
-    dependencies = [('auth_backend', '0002_201909061515')]
+    dependencies = [('auth_backend', '0003_201910251722')]
 
     operations = [
         migrations.RunPython(forward_func)
