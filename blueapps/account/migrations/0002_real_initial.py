@@ -108,7 +108,6 @@ class Migration(migrations.Migration):
         with connection.cursor() as cursor:
             cursor.execute('show tables;')
             rows = {item[0] for item in cursor.fetchall()}
-            print rows
             if 'account_user' in rows:
                 self.operations = []
         return super(Migration, self).apply(project_state, schema_editor, collect_sql)

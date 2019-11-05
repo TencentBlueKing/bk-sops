@@ -95,6 +95,10 @@ class AnalysisElement(object):
     atom_cite = 'atom_cite'
     atom_template = 'atom_template'
     atom_execute = 'atom_execute'
+    atom_execute_times = 'atom_execute_times'
+    atom_execute_fail_times = 'atom_execute_fail_times'
+    atom_avg_execute_time = 'atom_avg_execute_time'
+    atom_fail_percent = 'atom_fail_percent'
     atom_instance = 'atom_instance'
     template_node = 'template_node'
     template_cite = 'template_cite'
@@ -115,6 +119,7 @@ class AnalysisElement(object):
                   'project_id',
                   'atom_template',
                   'atom_execute',
+                  'atom_execute_fail_times',
                   'atom_instance',
                   'template_node',
                   'template_cite',
@@ -122,7 +127,16 @@ class AnalysisElement(object):
                   'instance_details',
                   'instance_time',
                   'appmaker_instance',
-                  'atom_cite']
+                  'atom_cite',
+                  'atom_execute_times',
+                  'atom_avg_execute_time',
+                  'atom_fail_percent']
+    atom_dimensions = [atom_execute,
+                       atom_instance,
+                       atom_execute_times,
+                       atom_execute_fail_times,
+                       atom_avg_execute_time,
+                       atom_fail_percent]
 
 
 AE = AnalysisElement()

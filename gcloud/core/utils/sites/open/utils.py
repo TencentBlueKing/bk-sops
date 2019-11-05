@@ -11,14 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
 
 from django.core.cache import cache
 
 from gcloud.conf import settings
 from gcloud import exceptions
-from gcloud.core.constant import AE
 from gcloud.core.api_adapter import get_user_info
 
 logger = logging.getLogger("root")
@@ -112,42 +110,6 @@ def _get_user_info(username, use_cache=True):
 def convert_readable_username(username):
     """将用户名转换成昵称"""
     return username
-
-
-def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
-    """
-    检验参数是否正确
-    :param conditions:参数是一个dict
-    :param group_by:分组凭据
-    :param group_by_check:分组检查内容
-    :return:
-    """
-    # conditions 是否是一个dict.
-    # 本地测试时请注释该try
-    result_dict = {'success': False, 'content': None, "conditions": conditions, "group_by": None}
-    try:
-        conditions = json.loads(conditions)
-    except Exception:
-        message = u"param conditions[%s] cannot be converted to dict" % conditions
-        logger.error(message)
-        result_dict['content'] = message
-        return result_dict
-    if not isinstance(conditions, dict):
-        message = u"params conditions[%s] are invalid dict data" % conditions
-        logger.error(message)
-        result_dict['content'] = message
-        return result_dict
-    # 检查传递分组是否有误
-    if group_by not in group_by_check:
-        message = u"params group_by[%s] is invalid" % group_by
-        logger.error(message)
-        result_dict['content'] = message
-        return result_dict
-
-    result_dict['success'] = True
-    result_dict['group_by'] = group_by
-    result_dict['conditions'] = conditions
-    return result_dict
 
 
 def convert_group_name(biz_cc_id, role):

@@ -13,13 +13,13 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button theme="default" size="small" :disabled="!editable" @click="onAddPanelShow">{{i18n.add}}</bk-button>
+                <bk-button theme="default" :disabled="!editable" @click="onAddPanelShow">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
                     @hide="onDropdownHide">
-                    <bk-button theme="default" size="small" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
+                    <bk-button theme="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
                         <span>{{i18n.moreOperations}}</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </bk-button>
@@ -80,10 +80,10 @@
                 </table>
                 <div class="table-pagination" v-if="isPaginationShow">
                     <bk-pagination
-                        :current.sync="currentPage"
+                        :current="currentPage"
                         :count="totalCount"
                         :limit="listCountPerPage"
-                        :limit-list="[15,20,30]"
+                        :limit-list="[listCountPerPage]"
                         :show-limit="false"
                         @change="onPageChange">
                     </bk-pagination>
@@ -143,10 +143,10 @@
                 isIpAddingPanelShow: false,
                 isSearchMode: false,
                 copyText: '',
+                searchResult: [],
                 isPaginationShow: totalPage > 1,
                 currentPage: 1,
                 totalCount: this.staticIps.length,
-                totalPage: totalPage,
                 listCountPerPage: listCountPerPage,
                 listInPage: this.staticIps.slice(0, listCountPerPage),
                 dataError: false,
@@ -177,6 +177,9 @@
             },
             isShowQuantity () {
                 return this.staticIps.length
+            },
+            list () {
+                return this.isSearchMode ? this.searchResult : this.staticIps
             }
         },
         watch: {
@@ -190,8 +193,9 @@
         methods: {
             setPanigation (list = []) {
                 this.listInPage = list.slice(0, this.listCountPerPage)
-                this.totalPage = Math.ceil(list.length / this.listCountPerPage)
-                this.isPaginationShow = this.totalPage > 1
+                const totalPage = Math.ceil(list.length / this.listCountPerPage)
+                this.isPaginationShow = totalPage > 1
+                this.totalCount = list.length
                 this.currentPage = 1
             },
             onAddPanelShow () {
@@ -235,10 +239,13 @@
             },
             onStaticIpSearch (keyword) {
                 if (keyword) {
-                    const keyArr = keyword.split(',')
+                    const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
+                        return item !== ''
+                    })
                     const list = this.staticIps.filter(item => {
                         return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
                     })
+                    this.searchResult = list
                     this.setPanigation(list)
                     this.isSearchMode = true
                 } else {
@@ -267,7 +274,7 @@
             },
             onPageChange (page) {
                 this.currentPage = page
-                this.listInPage = this.staticIps.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+                this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             validate () {
                 if (this.staticIps.length) {
@@ -289,6 +296,7 @@
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
         padding: 0px;
+        font-size: 12px;
     }
 }
 .operation-btn {
@@ -315,7 +323,7 @@
 }
 .ip-search-wrap {
     position: absolute;
-    top: -3px;
+    top: 0;
     right: 0;
     width: 50%;
 }
@@ -368,14 +376,5 @@
 }
 .table-pagination {
     margin-top: 20px;
-    .bk-page {
-        justify-content: flex-end;
-        /deep/ .page-item {
-            min-width: 30px;
-            height: 30px;
-            line-height: 30px;
-            font-size: 12px;
-        }
-    }
 }
 </style>
