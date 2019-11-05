@@ -11,11 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import time
 import jsonschema
 import pytz
 
+import ujson as json
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test.client import RequestFactory
