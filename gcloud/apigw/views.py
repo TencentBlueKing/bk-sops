@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
 
+import ujson as json
 import jsonschema
 from django.http import JsonResponse
 from django.forms.fields import BooleanField
@@ -48,6 +48,7 @@ from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
@@ -143,7 +144,6 @@ def get_template_info(request, template_id, project_id):
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project.id,
                                                                                 is_deleted=False)
-            auth_resource = task_template_resource
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
@@ -152,16 +152,17 @@ def get_template_info(request, template_id, project_id):
                                                    project_id=project.id,
                                                    biz_id=project.bk_biz_id)}
             return JsonResponse(result)
+        auth_resource = task_template_resource
     else:
         try:
             tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
-            auth_resource = common_template_resource
         except CommonTemplate.DoesNotExist:
             result = {
                 'result': False,
                 'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
             }
             return JsonResponse(result)
+        auth_resource = common_template_resource
 
     if not request.is_trust:
         verify_or_raise_auth_failed(principal_type='user',
@@ -191,7 +192,6 @@ def get_common_template_list(request):
 def get_common_template_info(request, template_id):
     try:
         tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
-        auth_resource = common_template_resource
     except CommonTemplate.DoesNotExist:
         result = {
             'result': False,
@@ -199,6 +199,7 @@ def get_common_template_info(request, template_id):
         }
         return JsonResponse(result)
 
+    auth_resource = common_template_resource
     if not request.is_trust:
         verify_or_raise_auth_failed(principal_type='user',
                                     principal_id=request.user.username,
@@ -235,18 +236,11 @@ def create_task(request, template_id, project_id):
 
     # 兼容老版本的接口调用
     if template_source in {BUSINESS, PROJECT}:
+        template_source = PROJECT
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project.id,
                                                                                 is_deleted=False)
-
-            if not request.is_trust:
-                verify_or_raise_auth_failed(principal_type='user',
-                                            principal_id=request.user.username,
-                                            resource=task_template_resource,
-                                            action_ids=[task_template_resource.actions.create_task.id],
-                                            instance=tmpl,
-                                            status=200)
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
@@ -255,25 +249,32 @@ def create_task(request, template_id, project_id):
                                                    project_id=project.id,
                                                    biz_id=project.bk_biz_id)}
             return JsonResponse(result)
+
+        if not request.is_trust:
+            verify_or_raise_auth_failed(principal_type='user',
+                                        principal_id=request.user.username,
+                                        resource=task_template_resource,
+                                        action_ids=[task_template_resource.actions.create_task.id],
+                                        instance=tmpl,
+                                        status=200)
     else:
         try:
             tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                   is_deleted=False)
-
-            if not request.is_trust:
-                perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
-                                (common_template_resource, [common_template_resource.actions.create_task.id], tmpl)]
-                batch_verify_or_raise_auth_failed(principal_type='user',
-                                                  principal_id=request.user.username,
-                                                  perms_tuples=perms_tuples,
-                                                  status=200)
-
         except CommonTemplate.DoesNotExist:
             result = {
                 'result': False,
                 'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
             }
             return JsonResponse(result)
+
+        if not request.is_trust:
+            perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
+                            (common_template_resource, [common_template_resource.actions.create_task.id], tmpl)]
+            batch_verify_or_raise_auth_failed(principal_type='user',
+                                              principal_id=request.user.username,
+                                              perms_tuples=perms_tuples,
+                                              status=200)
 
     try:
         params.setdefault('flow_type', 'common')
@@ -309,6 +310,7 @@ def create_task(request, template_id, project_id):
         pipeline_instance=data,
         category=tmpl.category,
         template_id=template_id,
+        template_source=template_source,
         create_method='api',
         create_info=app_code,
         flow_type=params.get('flow_type', 'common'),
@@ -442,7 +444,7 @@ def query_task_count(request, project_id):
 
     filters = {'project_id': project.id, 'is_deleted': False}
     filters.update(conditions)
-    success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
+    success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})
@@ -453,6 +455,7 @@ def info_data_from_period_task(task, detail=True):
         'id': task.id,
         'name': task.name,
         'template_id': task.template_id,
+        'template_source': task.template_source,
         'creator': task.creator,
         'cron': task.cron,
         'enabled': task.enabled,
@@ -509,20 +512,7 @@ def get_periodic_task_info(request, task_id, project_id):
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(task_template_resource,
-                  [task_template_resource.actions.create_periodic_task],
-                  get_kwargs={'template_id': 'id', 'project_id': 'project_id'})
 def create_periodic_task(request, template_id, project_id):
-    project = request.project
-
-    try:
-        template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
-    except TaskTemplate.DoesNotExist:
-        return JsonResponse({
-            'result': False,
-            'message': 'template(%s) does not exist' % template_id
-        })
-
     try:
         params = json.loads(request.body)
     except Exception:
@@ -530,12 +520,56 @@ def create_periodic_task(request, template_id, project_id):
             'result': False,
             'message': 'invalid json format'
         })
-
+    project = request.project
+    template_source = params.get('template_source', PROJECT)
     logger.info(
         'apigw create_periodic_task info, '
         'template_id: {template_id}, project_id: {project_id}, params: {params}'.format(template_id=template_id,
                                                                                         project_id=project.id,
                                                                                         params=params))
+
+    if template_source in {BUSINESS, PROJECT}:
+        template_source = PROJECT
+        try:
+            template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
+        except TaskTemplate.DoesNotExist:
+            result = {
+                'result': False,
+                'message': 'template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] '
+                           'does not exist'.format(template_id=template_id,
+                                                   project_id=project.id,
+                                                   biz_id=project.bk_biz_id)}
+            return JsonResponse(result)
+
+        if not request.is_trust:
+            verify_or_raise_auth_failed(principal_type='user',
+                                        principal_id=request.user.username,
+                                        resource=task_template_resource,
+                                        action_ids=[task_template_resource.actions.create_periodic_task.id],
+                                        instance=template,
+                                        status=200)
+    else:
+        try:
+            template = CommonTemplate.objects.get(id=template_id, is_deleted=False)
+        except CommonTemplate.DoesNotExist:
+            result = {
+                'result': False,
+                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+            }
+            return JsonResponse(result)
+
+        if not request.is_trust:
+            perms_tuples = [(project_resource,
+                             [project_resource.actions.use_common_template.id],
+                             project),
+                            (common_template_resource,
+                             [common_template_resource.actions.create_periodic_task.id],
+                             template)
+                            ]
+            batch_verify_or_raise_auth_failed(principal_type='user',
+                                              principal_id=request.user.username,
+                                              perms_tuples=perms_tuples,
+                                              status=200)
 
     try:
         params.setdefault('constants', {})
@@ -571,6 +605,7 @@ def create_periodic_task(request, template_id, project_id):
         task = PeriodicTask.objects.create(
             project=project,
             template=template,
+            template_source=template_source,
             name=name,
             cron=cron,
             pipeline_tree=pipeline_tree,

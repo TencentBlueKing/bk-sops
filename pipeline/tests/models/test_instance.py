@@ -129,12 +129,18 @@ class TestPipelineInstance(TestCase):
         Status.objects.create(id=self.data[u'start_event']['id'], state=states.FINISHED)
         NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data[u'end_event']['id'])
         Status.objects.create(id=self.data[u'end_event']['id'], state=states.FINISHED)
-        print '###############################'
-        print NodeRelationship.objects.filter(ancestor_id=self.instance.instance_id, distance__lte=99)
         PipelineInstance.objects.set_finished(self.instance.instance_id)
 
         self.instance.refresh_from_db()
         self.assertTrue(self.instance.is_finished)
+
+    def test_set_revoked(self):
+        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.instance.instance_id)
+        Status.objects.create(id=self.instance.instance_id, state=states.REVOKED)
+        PipelineInstance.objects.set_revoked(self.instance.instance_id)
+
+        self.instance.refresh_from_db()
+        self.assertTrue(self.instance.is_revoked)
 
     def test_delete_instance(self):
         PipelineInstance.objects.delete_model(self.instance.instance_id)

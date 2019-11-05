@@ -42,7 +42,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - textarea
 - tree
 - upload
-
+- memberSelector
 # Tag 组件属性、方法
 
 标准插件中定义的配置项在页面渲染时，会作为属性传入到 Tag 组件中。Tag 组件根据不同的属性值，可以灵活的扩展多种表单配置，例如 `TagSelect` 组件可以通过 `multiple` 属性来区分下拉框为单选还是多选，`TagUpload` 组件可以通过 `remote_data_init` 属性来自定义加载数据后的处理逻辑。
@@ -339,6 +339,25 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 **方法**
   - `onSubmit`：手动上传按钮点击时间回调，默认开始执行上传，若配置项传入 `submit` 属性，则执行该方法
+  - `beforeUpload`: 上传之前钩子函数，若返回 false 或者返回 Promise 且被 reject，则取消上传，参数 file
+  - `beforeRemove`: 删除文件之前的钩子函数，若返回 false 或者返回 Promise 且被 reject，则取消删除，参数 file， fileList
+  - `onSuccess`: 文件上传成功时的钩子函数，参数 file， fileList
+  - `onRemove`: 文件列表移除文件时的钩子函数，参数 file， fileList
+  - `fileChange`: 上传文件变更时的钩子函数，添加文件、上传成功和上传失败时都会被调用，参数 file， fileList
+  - `onError`: 文件上传失败时的钩子函数，参数 err, file， fileList
+
+**15. TagMemberSelector**
+
+人员选择组件
+
+**属性**
+
+  - `placeholder`：占位文本
+  - `value`：选择人员名字，名字间以 ',' 隔开。eg:"xiaoming,xiaozhang,xiaoli"
+
+**方法**
+
+*none*
 
 
 # 标准插件中定义的方法
