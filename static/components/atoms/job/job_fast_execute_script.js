@@ -225,6 +225,9 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
+                        if (value === '') {
+                            return;
+                        }
                         this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=public';
                         this.remoteMethod();
                     }
@@ -301,8 +304,13 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
+                        if ($.context.canSelectBiz()) {
+                            this._set_value('');
+                        }
+                        if (value === '') {
+                            return;
+                        }
                         this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=general';
-                        this._set_value('');
                         this.remoteMethod();
                     }
                 },
