@@ -710,7 +710,7 @@
                     branches.push({
                         id: item,
                         node_id: id,
-                        name: nodeGateway.conditions[item].evaluate
+                        name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate
                     })
                 }
                 this.gatewayBranches = branches
