@@ -88,6 +88,7 @@
             :is-show-hot-key="isShowHotKey"
             @onZoomIn="onZoomIn"
             @onZoomOut="onZoomOut"
+            @onMovePosition="onMovePosition"
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
@@ -846,6 +847,54 @@
                 } else {
                     node && node.classList.remove('selected')
                 }
+            },
+            // 移动微调节点位置
+            onMovePosition (data) {
+                if (!this.selectedNodes.length) {
+                    return false
+                }
+                const type = data.type
+                this.onMoveNodesByHand(this.selectedNodes, type)
+            },
+            /**
+             * 手动移动节点
+             * @param {Array} selectedIds 移动节点信息，数组
+             * @param {String} direction 移动方向
+             * @param {Number} length 移动距离，默认 5px
+             */
+            onMoveNodesByHand (selectedIds, direction, length = 5) {
+                const ins = this.$refs.jsFlow.instance
+                let bx = 0
+                let by = 0
+                switch (direction) {
+                    case 'left':
+                        bx = -length
+                        break
+                    case 'right':
+                        bx = length
+                        break
+                    case 'top':
+                        by = -length
+                        break
+                    case 'bottom':
+                        by = length
+                        break
+                }
+                this.$emit('variableDataChanged')
+                selectedIds.forEach((node, index) => {
+                    const el = document.getElementById(node.id)
+                    const newX = node.x + bx
+                    const newY = node.y + by
+                    const newLoc = { id: node.id, x: newX, y: newY }
+                    node.x = newX
+                    node.y = newY
+                    this.$emit('onLocationMoveDone', newLoc)
+                    window.requestAnimationFrame(() => {
+                        el.style.top = newY + 'px'
+                        el.style.left = newX + 'px'
+                        ins.revalidate(el)
+                    })
+                })
             }
         }
     }
