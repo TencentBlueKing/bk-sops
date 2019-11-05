@@ -16,10 +16,10 @@ from __future__ import absolute_import, unicode_literals
 import logging
 
 import six
-from blueapps.utils.cache import with_cache
 from builtins import str
 
 from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
+from blueapps.utils.cache import with_cache
 
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')
