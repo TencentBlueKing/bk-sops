@@ -16,6 +16,7 @@ from __future__ import absolute_import, unicode_literals
 from bkiam import bkiam_client
 from builtins import str  # noqa
 
+from auth_backend.backends import signals
 from auth_backend.backends.base import AuthBackend
 from auth_backend.backends.utils import resource_actions_for, resource_id_for
 
@@ -30,7 +31,7 @@ class BKIAMBackend(AuthBackend):
         return scope_id or resource.real_scope_id(instance, scope_id)
 
     def register_instance(self, resource, instance, scope_id=None):
-        return self.client.register_resource(
+        result = self.client.register_resource(
             creator_type=resource.creator_type(instance),
             creator_id=resource.creator_id(instance),
             scope_type=resource.scope_type,
@@ -40,6 +41,14 @@ class BKIAMBackend(AuthBackend):
             resource_id=resource_id_for(resource, instance),
             properties=resource.resource_properties(instance) or {}
         )
+        if not result['result']:
+            signals.instance_register_fail_signal.send(
+                sender=self,
+                resource=resource,
+                instance=instance,
+                scope_id=scope_id
+            )
+        return result
 
     def batch_register_instance(self, resource, instances, scope_id=None):
         if not instances:
@@ -56,11 +65,19 @@ class BKIAMBackend(AuthBackend):
             } for instance in instances
         ]
 
-        return self.client.batch_register_resource(
+        result = self.client.batch_register_resource(
             creator_type=resource.creator_type(instances[0]),
             creator_id=resource.creator_id(instances[0]),
             resources=iam_resources
         )
+        if not result['result']:
+            signals.instance_batch_register_fail_signal.send(
+                sender=self,
+                resource=resource,
+                instances=instances,
+                scope_id=scope_id
+            )
+        return result
 
     def update_instance(self, resource, instance, scope_id=None):
         return self.client.update_resource(

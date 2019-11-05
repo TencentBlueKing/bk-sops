@@ -11,6 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-default_app_config = 'auth_backend.contrib.consistency.apps.ConsistencyConfig'
+from django.apps import AppConfig
+
+
+class ConsistencyConfig(AppConfig):
+
+    name = 'auth_backend.contrib.consistency'
+
+    def ready(self):
+        from auth_backend.contrib.consistency.signals.handlers import instance_register_fail_handler  # noqa
+        from auth_backend.contrib.consistency.signals.handlers import instance_batch_register_fail_handler  # noqa

@@ -16,3 +16,5 @@ from __future__ import unicode_literals
 LEGACY_RESOURCE_TYPE_LIB = 'auth_backend.contrib.consistency.legacy.resource_type_lib'
 
 CONSISTENCY_LEGACY_CONF = 'auth_backend.contrib.consistency.legacy.conf'
+
+CONSISTENCY_MODELS_RESOURCE_TYPE_LIB = 'auth_backend.contrib.consistency.models.resource_type_lib'

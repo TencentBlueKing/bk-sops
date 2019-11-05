@@ -17,6 +17,7 @@ from django.test import TestCase
 from mock import MagicMock, call, patch
 from six.moves import range
 
+from auth_backend.backends import bkiam
 from auth_backend.backends.bkiam import BKIAMBackend
 from auth_backend.tests.mock_path import *  # noqa
 
@@ -136,6 +137,21 @@ class BKIAMBackendTestCase(TestCase):
             properties={}
         )
 
+    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BACKEND_BKIAM_SIGNALS, MagicMock())
+    def test_register_instance__fail(self):
+        self.resource.resource_properties = MagicMock(return_value=None)
+        self.backend.client.register_resource = MagicMock(return_value={'result': False})
+        result = self.backend.register_instance(resource=self.resource, instance=self.instance)
+        self.assertFalse(result['result'])
+        bkiam.signals.instance_register_fail_signal.send.assert_called_once_with(
+            sender=self.backend,
+            resource=self.resource,
+            instance=self.instance,
+            scope_id=None
+        )
+
     def test_batch_register_instance__with_empty_instances(self):
         self.assertRaises(ValueError, self.backend.batch_register_instance, self.resource, None)
         self.assertRaises(ValueError, self.backend.batch_register_instance, self.resource, [])
@@ -181,6 +197,20 @@ class BKIAMBackendTestCase(TestCase):
                                                                                 'resource_name': self.resource_name,
                                                                                 'properties': self.properties
                                                                             } for _ in self.instances])
+
+    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BACKEND_BKIAM_SIGNALS, MagicMock())
+    def test_batch_register_instance__fail(self):
+        self.backend.client.batch_register_resource = MagicMock(return_value={'result': False})
+        result = self.backend.batch_register_instance(resource=self.resource, instances=self.instances)
+        self.assertFalse(result['result'])
+        bkiam.signals.instance_batch_register_fail_signal.send.assert_called_once_with(
+            sender=self.backend,
+            resource=self.resource,
+            instances=self.instances,
+            scope_id=None
+        )
 
     @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))

@@ -11,6 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-default_app_config = 'auth_backend.contrib.consistency.apps.ConsistencyConfig'
+from django.contrib import admin
+
+from auth_backend.contrib.consistency import models
+
+
+@admin.register(models.RegisterFailInstanceArchive)
+class RegisterFailInstanceArchiveAdmin(admin.ModelAdmin):
+    list_display = ['id', 'resource_type', 'instances', 'scope_id']
+    actions = ['register']
+
+    def register(self, request, queryset):
+        for archive in queryset:
+            archive.register()
+
+    register.short_description = 'Register'
