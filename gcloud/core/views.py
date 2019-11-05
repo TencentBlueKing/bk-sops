@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import json
 import logging
 
+import ujson as json
 from django.http import (
     HttpResponse,
     HttpResponseRedirect,
