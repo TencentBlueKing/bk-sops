@@ -13,39 +13,13 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import, unicode_literals
 
-from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+from django.apps import AppConfig
 
 
-class AuthBaseException(Exception):
-    pass
+class ConsistencyConfig(AppConfig):
 
+    name = 'auth_backend.contrib.consistency'
 
-class AuthLookupError(AuthBaseException):
-    pass
-
-
-class AuthKeyError(AuthBaseException):
-    pass
-
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthBackendError(AuthBaseException):
-    pass
-
-
-class AuthOperationFailedError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
-        self.status = status
+    def ready(self):
+        from auth_backend.contrib.consistency.signals.handlers import instance_register_fail_handler  # noqa
+        from auth_backend.contrib.consistency.signals.handlers import instance_batch_register_fail_handler  # noqa

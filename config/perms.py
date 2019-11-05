@@ -206,6 +206,15 @@ bk_iam_perm_templates = [
                     task_template_resource.actions.view,
                 ]
             },
+            {
+                'resource': taskflow_resource,
+                'actions': [
+                    taskflow_resource.actions.view,
+                    taskflow_resource.actions.edit,
+                    taskflow_resource.actions.operate,
+                    taskflow_resource.actions.claim,
+                ]
+            }
         ]
     }
 ]

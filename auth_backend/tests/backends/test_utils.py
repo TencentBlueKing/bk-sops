@@ -11,9 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock
+from __future__ import absolute_import, unicode_literals
 
 from django.test import TestCase
+from mock import MagicMock
 
 from auth_backend.backends import utils
 
@@ -28,8 +29,12 @@ class BackendUtilsTestCase(TestCase):
 
         instance = MagicMock()
 
-        self.assertEqual(utils.resource_id_for(resource, instance),
-                         [{'resource_type': 'child', 'resource_id': 'child_id'}])
+        self.assertEqual(
+            utils.resource_id_for(resource, instance),
+            [
+                {'resource_type': 'child', 'resource_id': 'child_id'}
+            ]
+        )
 
     def test_resource_id_for__with_parent(self):
         parent_resource = MagicMock()
@@ -44,6 +49,10 @@ class BackendUtilsTestCase(TestCase):
 
         instance = MagicMock()
 
-        self.assertEqual(utils.resource_id_for(child_resource, instance),
-                         [{'resource_type': 'parent', 'resource_id': 'parent_id'},
-                          {'resource_type': 'child', 'resource_id': 'child_id'}])
+        self.assertEqual(
+            utils.resource_id_for(child_resource, instance),
+            [
+                {'resource_type': 'parent', 'resource_id': 'parent_id'},
+                {'resource_type': 'child', 'resource_id': 'child_id'}
+            ]
+        )

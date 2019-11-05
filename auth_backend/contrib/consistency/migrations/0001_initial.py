@@ -10,42 +10,26 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 from __future__ import absolute_import, unicode_literals
 
-from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+from django.db import migrations, models
 
 
-class AuthBaseException(Exception):
-    pass
+class Migration(migrations.Migration):
 
+    initial = True
 
-class AuthLookupError(AuthBaseException):
-    pass
+    dependencies = [
+    ]
 
-
-class AuthKeyError(AuthBaseException):
-    pass
-
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthBackendError(AuthBaseException):
-    pass
-
-
-class AuthOperationFailedError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
-        self.status = status
+    operations = [
+        migrations.CreateModel(
+            name='RegisterFailInstanceArchive',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('resource_type', models.CharField(max_length=128, verbose_name='\u8d44\u6e90\u7c7b\u578b')),
+                ('instances', models.TextField(verbose_name='\u8d44\u6e90\u4fe1\u606f')),
+                ('scope_id', models.CharField(max_length=128, verbose_name='\u4f5c\u7528\u57df ID')),
+            ],
+        ),
+    ]
