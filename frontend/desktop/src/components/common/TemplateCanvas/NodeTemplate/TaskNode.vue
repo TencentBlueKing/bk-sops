@@ -23,7 +23,7 @@
                 <i v-else :class="['node-icon-font', getIconCls(node.group)]"></i>
             </div>
             <div class="node-name">
-                <p>{{ node.name }}</p>
+                {{ node.name }}
             </div>
             <div class="node-options-icon">
                 <template v-if="node.optional">

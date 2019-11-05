@@ -161,24 +161,25 @@
     }
 </script>
 <style lang="scss">
-    $blueDark: #53699d;
-    $redDark: #ff5757;
-    $yellowDark: #f8b53f;
-    $greenDark: #30d878;
+    $blueDark: #3a84ff;
+    $redDark: #ea3636;
+    $yellowDark: #ff9C01;
+    $greenDark: #2dcb56;
+    $whiteColor: #ffffff;
     $defaultShadow: rgba(0, 0, 0, 0.15);
     $activeShadow: rgba(0, 0, 0, 0.3);
     $redShadow: rgba(255, 87, 87, 0.15);
     $yellowShadow: rgba(248, 181, 63, 0.15);
     $greenShadow: rgba(48, 216, 120, 0.15);
+    $blueShadow: rgba(58, 132, 255, 0.15);
 
     @mixin circleStatusStyle ($color, $shadow) {
-        border-color: $color;
-        color: $color;
+        background-color: $color;
         &:hover {
             box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
         }
-        .node-type-icon {
-            color: $color;
+        .circle-node-text {
+            color: $whiteColor;
         }
     }
 
@@ -186,10 +187,18 @@
         .node-status-block {
             background-color: $color;
         }
+        .task-status-icon {
+            background: $color;
+        }
        .sub-body {
             .t-left .triangle, .blue-bar{
                 background-color: $color;
             }
+        }
+    }
+    @mixin gatewayStyle ($color) {
+        .node-type-icon {
+            color: $color;
         }
     }
     .jsflow-node.selected {
@@ -249,6 +258,12 @@
             height: 32px;
             width: 32px;
             text-align: center;
+            &.failed {
+                @include gatewayStyle($redDark);
+            }
+            &.finished {
+                @include gatewayStyle($greenDark);
+            }
             &:before {
                 content: '';
                 position: absolute;
@@ -295,7 +310,7 @@
             }
             .node-name {
                 margin-left: 32px;
-                width: 116px;
+                width: 118px;
                 font-size: 12px;
                 white-space: nowrap;
                 text-overflow: ellipsis;
