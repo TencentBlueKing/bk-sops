@@ -9,36 +9,25 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import template from './template.js'
-import templateList from './templateList.js'
-import task from './task.js'
-import taskList from './taskList.js'
-import atomList from './atomList.js'
-import atomForm from './atomForm.js'
-import config from './config'
-import appmaker from './appmaker'
-import project from './project'
-import functionTask from './function.js'
-import auditTask from './audit.js'
-import periodic from './periodic.js'
-import manage from './manage.js'
-import member from './member.js'
+import api from '@/api/index.js'
 
-const modules = {
-    template,
-    templateList,
-    task,
-    taskList,
-    atomList,
-    atomForm,
-    config,
-    appmaker,
-    functionTask,
-    auditTask,
-    periodic,
-    manage,
-    project,
-    member
+const member = {
+    namespaced: true,
+    state: {
+        memberlist: []
+    },
+    mutations: {
+        setMemberList (state, data) {
+            state.memberlist = data
+        }
+    },
+    actions: {
+        loadMemberList () {
+            return api.getMemberList().then(
+                response => response.data
+            )
+        }
+    }
 }
 
-export default modules
+export default member
