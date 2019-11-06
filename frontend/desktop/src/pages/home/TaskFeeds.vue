@@ -143,12 +143,12 @@
                                 status.text = gettext('执行中')
                                 break
                             case 'SUSPENDED':
-                                status.cls = 'execute'
+                                status.cls = 'pause'
                                 status.icon = 'common-icon-dark-circle-pause'
                                 status.text = gettext('暂停')
                                 break
                             case 'NODE_SUSPENDED':
-                                status.cls = 'execute'
+                                status.cls = 'pause'
                                 status.icon = 'common-icon-dark-circle-pause'
                                 status.text = gettext('节点暂停')
                                 break
@@ -270,6 +270,9 @@
         }
         &.revoke {
             color: $blueDisable;
+        }
+        &.pause {
+            color: $yellowDefault;
         }
         .status-icon {
             display: inline-block;

@@ -723,6 +723,7 @@
 .common-icon-dark-circle-pause {
     color: #ff9c01;
     font-size: 14px;
+    vertical-align: middle;
 }
 .operation-area {
     .bk-button {

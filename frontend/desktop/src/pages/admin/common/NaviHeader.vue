@@ -13,11 +13,25 @@
                     {{router.text}}
                 </router-link>
             </div>
+            <div class="date-picker" v-if="showDatePicker">
+                <bk-form form-type="inline">
+                    <bk-form-item :label="i18n.dateRange">
+                        <bk-date-picker
+                            v-model="date"
+                            type="daterange"
+                            placement="top-end"
+                            :clearable="false"
+                            @change="onChangeDateRange">
+                        </bk-date-picker>
+                    </bk-form-item>
+                </bk-form>
+            </div>
         </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
+
     export default {
         name: 'NaviHeader',
         props: {
@@ -30,6 +44,34 @@
                 default () {
                     return []
                 }
+            },
+            showDatePicker: {
+                type: Boolean,
+                default: false
+            },
+            dateRange: {
+                type: Array,
+                default () {
+                    return ['', '']
+                }
+            }
+        },
+        data () {
+            return {
+                date: this.dateRange.slice(),
+                i18n: {
+                    dateRange: gettext('时间范围')
+                }
+            }
+        },
+        watch: {
+            dateRange (value) {
+                this.date = value.slice()
+            }
+        },
+        methods: {
+            onChangeDateRange (dateRange) {
+                this.$emit('changeDateRange', dateRange)
             }
         }
     }
@@ -85,6 +127,10 @@
                     border-bottom: 2px solid #3a84ff;
                 }
             }
+        }
+        .date-picker {
+            float: right;
+            margin-top: 14px;
         }
     }
 </style>

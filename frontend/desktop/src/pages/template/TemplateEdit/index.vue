@@ -686,7 +686,10 @@
             /**
              * 任务节点点击
              */
-            onNodeClick (id) {
+            onNodeClick (id, type) {
+                if (['tasknode', 'subflow'].indexOf(type) === -1) {
+                    return false
+                }
                 this.toggleSettingPanel(false)
                 const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
@@ -752,23 +755,22 @@
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
-                        if (changeType === 'add' && location.atomId) { // drag new single node
-                            this.setActivities({ type: 'add', location })
-                            this.getSingleAtomConfig(location)
-                            return
-                        }
-                        if (changeType === 'delete') {
-                            this.hideConfigPanel()
-                        }
-                        this.setActivities({ type: changeType, location })
-                        break
                     case 'subflow':
-                        if (changeType === 'add' && location.atomId) { // drag new subflow node
+                        // 添加任务节点
+                        if (changeType === 'add' && location.atomId) {
                             this.setActivities({ type: 'add', location })
-                            this.getSubflowConfig(location)
+                            if (location.type === 'tasknode') {
+                                this.getSingleAtomConfig(location)
+                            } else {
+                                this.getSubflowConfig(location)
+                            }
                             return
                         }
+                        // 删除任务节点
                         if (changeType === 'delete') {
+                            if (this.idOfNodeInConfigPanel === location.id) {
+                                this.idOfNodeInConfigPanel = ''
+                            }
                             this.hideConfigPanel()
                         }
                         this.setActivities({ type: changeType, location })

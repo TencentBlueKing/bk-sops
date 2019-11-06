@@ -74,7 +74,9 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        this._set_value('');
+                        if ($.context.canSelectBiz()) {
+                            this._set_value('');
+                        }
                         this.items = [];
                         if (value !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/prev/' + value + '/';
@@ -122,7 +124,9 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        this._set_value('');
+                        if ($.context.canSelectBiz()) {
+                            this._set_value('');
+                        }
                         this.columns = [];
                         if (value !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + value + '/';
