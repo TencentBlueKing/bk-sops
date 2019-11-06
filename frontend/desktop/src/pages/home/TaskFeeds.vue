@@ -111,6 +111,10 @@
                             status.cls = 'finished'
                             status.icon = 'bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
+                        } else if (item.is_revoked) {
+                            status.cls = 'revoke'
+                            status.icon = 'common-icon-dark-circle-shape'
+                            status.text = gettext('撤销')
                         } else if (item.is_started) {
                             status.cls = 'execute'
                             status.icon = 'common-icon-loading'
@@ -156,11 +160,6 @@
                                 status.cls = 'failed'
                                 status.icon = 'common-icon-dark-circle-close'
                                 status.text = gettext('失败')
-                                break
-                            case 'REVOKED':
-                                status.cls = 'revoke'
-                                status.icon = 'common-icon-dark-circle-shape'
-                                status.text = gettext('撤销')
                                 break
                             default:
                                 status.text = gettext('未知')
