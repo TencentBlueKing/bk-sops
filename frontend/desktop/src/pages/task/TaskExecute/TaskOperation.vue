@@ -255,10 +255,8 @@
                     checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
-                isloadCacheStatus: false,
                 isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
-                cacheNodeId: '',
                 nodeInfoType: '',
                 state: '',
                 selectedFlowPath: path, // 选择面包屑路径
@@ -406,9 +404,15 @@
                         data.instance_id = this.instance_id
                         data.subprocess_id = this.taskId
                     }
-                    const instanceStatus = !this.isloadCacheStatus
-                        ? await this.getInstanceStatus(data)
-                        : await this.getCacheStatusData()
+                    let instanceStatus = {}
+                    if (['FINISHED', 'FAILED'].includes(this.state)
+                        && this.instanceStatus.children
+                        && this.instanceStatus.children[this.taskId]
+                    ) {
+                        instanceStatus = await this.getCacheStatusData()
+                    } else {
+                        instanceStatus = await this.getInstanceStatus(data)
+                    }
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
@@ -435,11 +439,10 @@
              */
             getCacheStatusData () {
                 return new Promise((resolve) => {
-                    this.isloadCacheStatus = false
                     const cacheStatus = this.instanceStatus.children
                     setTimeout(() => {
                         resolve({
-                            data: cacheStatus[this.cacheNodeId],
+                            data: cacheStatus[this.taskId],
                             result: true
                         })
                     }, 0)
@@ -859,11 +862,10 @@
                 const actionType = 'task' + action.charAt(0).toUpperCase() + action.slice(1)
                 this[actionType]()
             },
-            onNodeClick (id) {
-                const node = this.canvasData.locations.filter(item => item.id === id)[0]
-                if (node.type === 'tasknode') {
+            onNodeClick (id, type) {
+                if (type === 'tasknode') {
                     this.handleSingleNodeClick(id, 'singleAtom')
-                } else if (node.type === 'subflow') {
+                } else if (type === 'subflow') {
                     this.handleSubflowAtomClick(id)
                 } else {
                     this.handleSingleNodeClick(id, 'controlNode')
@@ -913,11 +915,6 @@
                     type: 'SubProcess'
                 })
                 this.pipelineData = this.pipelineData.activities[id].pipeline
-                // 子流程完成或失败时，点击获取接口缓存的数据
-                if (['FINISHED', 'FAILED'].includes(this.state)) {
-                    this.isloadCacheStatus = true
-                    this.cacheNodeId = id
-                }
                 this.updateTaskStatus(id)
             },
             // 面包屑点击

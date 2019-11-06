@@ -89,10 +89,8 @@
                     Math.abs(x - this.moveFlag.x) < moveBuffer
                     && Math.abs(y - this.moveFlag.y) < moveBuffer
                 ) {
-                    if (['tasknode', 'subflow'].indexOf(this.node.type) > -1) {
-                        this.$emit('onNodeClick', this.node.id)
-                        e.stopPropagation()
-                    }
+                    this.$emit('onNodeClick', this.node.id, this.node.type)
+                    e.stopPropagation()
                 }
             },
             onNodeCheckClick (id, val) {

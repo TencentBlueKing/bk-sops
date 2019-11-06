@@ -11,8 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock
+from __future__ import absolute_import, unicode_literals
+
 from django.test import TestCase
+from mock import MagicMock
 
 from auth_backend.resources.inspect import FieldInspect
 
@@ -32,7 +34,12 @@ class FieldInspectTestCase(TestCase):
                                     resource_id_f='resource_id',
                                     resource_name_f='resource_name',
                                     parent_f='parent',
-                                    scope_id_f='scope_id')
+                                    scope_id_f='scope_id',
+                                    properties_map={
+                                        'creator_id': 'creator',
+                                        'scope_id': 'scope_id'
+                                    }
+                                    )
 
     def test_field_inspect(self):
         fields = [
@@ -45,6 +52,16 @@ class FieldInspectTestCase(TestCase):
         ]
         for f in fields:
             self.assertEqual(getattr(self.instance, f), getattr(self.inspect, f)(self.instance))
+
+    def test_properties(self):
+        properties = self.inspect.properties(self.instance)
+        self.assertEqual(
+            properties,
+            {
+                'creator': 'creator_id_token',
+                'scope_id': 'scope_id_token'
+            }
+        )
 
     def test__get_none_field(self):
         self.inspect.creator_type_f = None
