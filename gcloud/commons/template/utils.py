@@ -67,7 +67,8 @@ def read_encoded_template_data(content):
 
     # check the validation of file
     templates_data = data['template_data']
-    digest = hashlib.md5(json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).hexdigest()
+    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode('utf-8')
+    digest = hashlib.md5(data_string).hexdigest()
 
     is_data_valid = (digest == data['digest'])
     if not is_data_valid:

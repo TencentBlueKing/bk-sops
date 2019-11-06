@@ -163,12 +163,13 @@ def export_templates(request, project_id):
             'message': str(e)
         })
 
-    digest = hashlib.md5(json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).hexdigest()
+    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode('utf-8')
+    digest = hashlib.md5(data_string).hexdigest()
 
     file_data = base64.b64encode(json.dumps({
         'template_data': templates_data,
         'digest': digest
-    }, sort_keys=True))
+    }, sort_keys=True).encode('utf-8'))
     filename = 'bk_sops_%s_%s.dat' % (project_id, time_now_str())
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename=%s' % filename
