@@ -390,8 +390,6 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         TaskFlowInstanceManager._remove_useless_constants(exclude_task_nodes_id=exclude_task_nodes_id,
                                                           pipeline_tree=pipeline_tree)
 
-        return True
-
     def extend_classified_count(self, group_by, filters=None, page=None, limit=None):
         """
         @summary: 兼容按照任务状态分类的扩展
@@ -956,8 +954,7 @@ class TaskFlowInstance(models.Model):
                 inputs = {}
                 result = False
                 logger.exception(traceback.format_exc())
-                message = "parser pipeline tree error: %s" % e
-                outputs = {'ex_data': message}
+                outputs = {'ex_data': "parser pipeline tree error: %s" % e}
 
         if not isinstance(inputs, dict):
             inputs = {}
@@ -1016,7 +1013,7 @@ class TaskFlowInstance(models.Model):
         }
         return {'result': result, 'data': data, 'message': '' if result else data['ex_data']}
 
-    def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None):
+    def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -1030,7 +1027,10 @@ class TaskFlowInstance(models.Model):
         except exceptions.InvalidOperationException as e:
             return {'result': False, 'message': str(e), 'data': {}}
         TaskFlowInstance.format_pipeline_status(detail)
-        detail['histories'] = pipeline_api.get_activity_histories(node_id)
+        # 默认只请求最后一次循环结果
+        if loop is None:
+            loop = detail['loop']
+        detail['histories'] = pipeline_api.get_activity_histories(node_id, loop)
         for his in detail['histories']:
             his.setdefault('state', 'FAILED')
             TaskFlowInstance.format_pipeline_status(his)

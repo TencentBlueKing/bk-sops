@@ -14,6 +14,27 @@ specific language governing permissions and limitations under the License.
 KEY_PATTERN = r"^((\$\{[a-zA-Z0-9_]+\})|([a-zA-Z0-9_]+))$"
 ACT_MAX_LENGTH = 50
 CONSTANT_MAX_LENGTH = 30
+ONE_FLOW = {
+    "anyOf": [
+        {"type": "string"},
+        {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+            "minItems": 1,
+            "maxItems": 1
+        }
+    ]
+}
+MULTIPLE_FLOW = {
+    "anyOf": [
+        {"type": "string"},
+        {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1},
+            "minItems": 1
+        }
+    ]
+}
 
 WEB_PIPELINE_SCHEMA = {
     "definitions": {},
@@ -27,7 +48,7 @@ WEB_PIPELINE_SCHEMA = {
                 "id": {"type": "string"},
                 "name": {"type": "string"},
                 "type": {"type": "string", "enum": ["EmptyStartEvent"]},
-                "outgoing": {"type": "string"}
+                "outgoing": ONE_FLOW
             },
             "required": [
                 "id",
@@ -42,7 +63,7 @@ WEB_PIPELINE_SCHEMA = {
                 "id": {"type": "string"},
                 "name": {"type": "string"},
                 "type": {"type": "string", "enum": ["EmptyEndEvent"]},
-                "incoming": {"type": "string"},
+                "incoming": MULTIPLE_FLOW,
             },
             "required": [
                 "id",
@@ -79,24 +100,8 @@ WEB_PIPELINE_SCHEMA = {
                                 "id": {"type": "string"},
                                 "type": {"type": "string", "enum": ["ConvergeGateway"]},
                                 "name": {"type": "string", "maxLength": ACT_MAX_LENGTH},
-                                "incoming": {
-                                    "anyOf": [
-                                        {"type": "string"},
-                                        {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        }
-                                    ]
-                                },
-                                "outgoing": {
-                                    "anyOf": [
-                                        {"type": "string"},
-                                        {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        }
-                                    ]
-                                }
+                                "incoming": MULTIPLE_FLOW,
+                                "outgoing": ONE_FLOW
                             },
                             "required": [
                                 "id", "type", "name", "incoming", "outgoing"
@@ -108,24 +113,8 @@ WEB_PIPELINE_SCHEMA = {
                                 "id": {"type": "string"},
                                 "type": {"type": "string", "enum": ["ParallelGateway"]},
                                 "name": {"type": "string", "maxLength": ACT_MAX_LENGTH},
-                                "incoming": {
-                                    "anyOf": [
-                                        {"type": "string"},
-                                        {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        }
-                                    ]
-                                },
-                                "outgoing": {
-                                    "anyOf": [
-                                        {"type": "string"},
-                                        {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        }
-                                    ]
-                                }
+                                "incoming": MULTIPLE_FLOW,
+                                "outgoing": MULTIPLE_FLOW
                             },
                             "required": [
                                 "id", "type", "name", "incoming", "outgoing",
@@ -151,24 +140,8 @@ WEB_PIPELINE_SCHEMA = {
                                         }
                                     }
                                 },
-                                "incoming": {
-                                    "anyOf": [
-                                        {"type": "string"},
-                                        {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        }
-                                    ]
-                                },
-                                "outgoing": {
-                                    "anyOf": [
-                                        {"type": "string"},
-                                        {
-                                            "type": "array",
-                                            "items": {"type": "string"}
-                                        }
-                                    ]
-                                }
+                                "incoming": MULTIPLE_FLOW,
+                                "outgoing": MULTIPLE_FLOW
                             },
                             "required": [
                                 "id", "type", "name", "incoming", "outgoing", "conditions"
@@ -188,9 +161,8 @@ WEB_PIPELINE_SCHEMA = {
                         "id": {"type": "string"},
                         "type": {"type": "string", "enum": ["ServiceActivity", "SubProcess"]},
                         "name": {"type": "string", "minLength": 1, "maxLength": ACT_MAX_LENGTH},
-                        # "error_ignorable": {"type": "boolean"},
-                        "incoming": {"type": "string"},
-                        "outgoing": {"type": "string"},
+                        "incoming": MULTIPLE_FLOW,
+                        "outgoing": ONE_FLOW,
                         "component": {
                             "type": "object",
                             "properties": {
