@@ -82,6 +82,7 @@
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :the-key-of-editing="theKeyOfEditing"
+                        :is-hide-system-var="isHideSystemVar"
                         @onChangeEdit="onChangeEdit"
                         @onEditVariable="onEditVariable"
                         @onChangeVariableOutput="onChangeVariableOutput"
@@ -268,7 +269,7 @@
                 }
 
                 this.$emit('variableDataChanged')
-                const sysVarLen = this.systemConstantsList.length
+                const sysVarLen = !this.isHideSystemVar ? this.systemConstantsList.length : 0
                 this.scrollPanelToView(sysVarLen + index)
             },
             /**
@@ -293,7 +294,7 @@
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
                 // 滚到到底部
-                const allVarLen = this.systemConstantsList.length + this.constantsArray.length
+                const allVarLen = (!this.isHideSystemVar ? this.systemConstantsList.length : 0) + this.constantsArray.length
                 this.scrollPanelToView(allVarLen)
             },
             /**
