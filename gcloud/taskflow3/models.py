@@ -916,7 +916,7 @@ class TaskFlowInstance(models.Model):
         TaskFlowInstance.format_pipeline_status(status_tree)
         return status_tree
 
-    def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None):
+    def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None, loop=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -929,10 +929,19 @@ class TaskFlowInstance(models.Model):
         inputs = {}
         outputs = {}
         try:
-            inputs = pipeline_api.get_inputs(node_id)
-            outputs = pipeline_api.get_outputs(node_id)
-        except Data.DoesNotExist:
+            detail = pipeline_api.get_status_tree(node_id)
+        except exceptions.InvalidOperationException:
             act_started = False
+        else:
+            # 最新 loop 执行记录，直接通过接口获取
+            if loop == detail['loop']:
+                inputs = pipeline_api.get_inputs(node_id)
+                outputs = pipeline_api.get_outputs(node_id)
+            # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）
+            else:
+                his_data = detail['histories'] = pipeline_api.get_activity_histories(node_id, loop)
+                inputs = his_data[-1]['inputs']
+                outputs = his_data[-1]['outputs']
 
         instance_data = self.pipeline_instance.execution_data
         if not act_started:
@@ -1021,7 +1030,8 @@ class TaskFlowInstance(models.Model):
             )
             return {'result': False, 'message': message, 'data': {}}
 
-        ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack)
+        ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack, loop)
+        # 注意：状态数据只返回最新的记录，无视 loop 参数
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:
