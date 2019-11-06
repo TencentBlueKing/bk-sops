@@ -169,7 +169,7 @@
             RenderForm,
             VariableEditDialog
         },
-        props: ['variableData', 'isNewVariable', 'variableTypeList', 'systemConstants'],
+        props: ['variableData', 'isNewVariable', 'variableTypeList', 'systemConstants', 'isHideSystemVar'],
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
@@ -492,7 +492,8 @@
             saveVariable () {
                 return this.$validator.validateAll().then(result => {
                     let formValid = true
-                    const constantsLength = Object.keys(this.constants).length + Object.keys(this.systemConstants).length
+                    const constantsLength = Object.keys(this.constants).length
+                        + (!this.isHideSystemVar ? Object.keys(this.systemConstants).length : 0)
             
                     // 名称、key等校验，renderform表单校验
                     if (this.$refs.renderForm) {
