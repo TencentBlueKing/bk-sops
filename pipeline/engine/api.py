@@ -428,13 +428,14 @@ def get_outputs(node_id):
     }
 
 
-def get_activity_histories(node_id):
+def get_activity_histories(node_id, loop=None):
     """
     get get_activity_histories data for a node
-    :param node_id:
+    :param node_id: 节点 ID
+    :param loop: 循环序号
     :return:
     """
-    return History.objects.get_histories(node_id)
+    return History.objects.get_histories(node_id, loop)
 
 
 @_frozen_check

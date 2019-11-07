@@ -27,7 +27,7 @@ from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_re
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
-from pipeline_web.parser.validator import validate_web_pipeline_tree
+from pipeline_web.parser import WebPipelineAdapter
 
 from gcloud.core.utils import name_handler
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
@@ -166,7 +166,7 @@ class TaskTemplateResource(GCloudModelResource):
         self.handle_template_name_attr(pipeline_template_kwargs)
         # validate pipeline tree
         try:
-            validate_web_pipeline_tree(pipeline_template_kwargs['pipeline_tree'])
+            WebPipelineAdapter(pipeline_template_kwargs['pipeline_tree'])
         except PipelineException as e:
             raise BadRequest(str(e))
         # Note: tastypie won't use model's create method
@@ -192,6 +192,11 @@ class TaskTemplateResource(GCloudModelResource):
                 if 'description' in bundle.data:
                     pipeline_template_kwargs['description'] = bundle.data.pop('description')
             except (KeyError, ValueError) as e:
+                raise BadRequest(str(e))
+            # validate pipeline tree
+            try:
+                WebPipelineAdapter(pipeline_template_kwargs['pipeline_tree'])
+            except PipelineException as e:
                 raise BadRequest(str(e))
             # XSS handle
             self.handle_template_name_attr(pipeline_template_kwargs)
