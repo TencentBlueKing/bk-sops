@@ -23,7 +23,7 @@
                 <i v-else :class="['node-icon-font', getIconCls(node.group)]"></i>
             </div>
             <div class="node-name">
-                <p>{{ node.name }}</p>
+                {{ node.name }}
             </div>
             <div class="node-options-icon">
                 <template v-if="node.optional">
@@ -172,25 +172,31 @@
     }
     .node-options-icon {
         position: absolute;
-        top: -30px;
+        top: -45px;
         left: 0;
+        .bk-form-checkbox,
+        &>[class*="common-icon"] {
+            display: inline-block;
+            vertical-align: bottom;
+        }
     }
     .optional-icon {
         display: inline-block;
         position: relative;
-        width: 11px;
-        height: 11px;
-        line-height: 11px;
-        font-size: 12px;
+        width: 12px;
+        height: 12px;
+        line-height: 12px;
+        font-size: 13px;
         color: #ffffff;
         text-align: center;
         border-radius: 100%;
         background: #979ba5;
+        vertical-align: bottom;
         &::after {
             content: "";
             position: absolute;
             left: 3px;
-            top: 3px;
+            top: 4px;
             height: 2px;
             width: 5px;
             border-left: 1px solid;

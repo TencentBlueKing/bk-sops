@@ -411,8 +411,10 @@ const template = {
                         gatewayNode.outgoing.push(id)
                         if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
                             const conditions = gatewayNode.conditions
+                            const key = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             const conditionItem = {
-                                evaluate: Object.keys(conditions).length ? '1 == 0' : '1 == 1',
+                                evaluate: key,
+                                name: key,
                                 tag: `branch_${sourceNode}_${targetNode}`
                             }
                             Vue.set(conditions, id, conditionItem)
