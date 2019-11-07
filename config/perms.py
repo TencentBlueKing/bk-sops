@@ -32,6 +32,7 @@ bk_iam_perm_templates = [
                     project_resource.actions.edit,
                     project_resource.actions.create_template,
                     project_resource.actions.use_common_template,
+                    project_resource.actions.fast_create_task
                 ]
             },
             {
@@ -39,6 +40,7 @@ bk_iam_perm_templates = [
                 'actions': [
                     common_template_resource.actions.view,
                     common_template_resource.actions.create_task,
+                    common_template_resource.actions.create_periodic_task
                 ]
             },
             {
@@ -204,6 +206,15 @@ bk_iam_perm_templates = [
                     task_template_resource.actions.view,
                 ]
             },
+            {
+                'resource': taskflow_resource,
+                'actions': [
+                    taskflow_resource.actions.view,
+                    taskflow_resource.actions.edit,
+                    taskflow_resource.actions.operate,
+                    taskflow_resource.actions.claim,
+                ]
+            }
         ]
     }
 ]

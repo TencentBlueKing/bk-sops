@@ -236,16 +236,21 @@ def job_get_script_list(request, biz_cc_id):
     source_type = request.GET.get('type')
     script_type = request.GET.get('script_type')
 
-    kwargs = {
-        'bk_biz_id': biz_cc_id,
-        'is_public': True if source_type == 'public' else False,
-        'script_type': script_type or 0,
-    }
-
-    script_result = client.job.get_script_list(kwargs)
+    if source_type == 'public':
+        kwargs = None
+        script_result = client.job.get_public_script_list()
+        api_name = 'job.get_public_script_list'
+    else:
+        kwargs = {
+            'bk_biz_id': biz_cc_id,
+            'is_public': False,
+            'script_type': script_type or 0,
+        }
+        script_result = client.job.get_script_list(kwargs)
+        api_name = 'job.get_script_list'
 
     if not script_result['result']:
-        message = handle_api_error('job', 'job.get_script_list', kwargs, script_result)
+        message = handle_api_error('job', api_name, kwargs, script_result)
         logger.error(message)
         result = {
             'result': False,

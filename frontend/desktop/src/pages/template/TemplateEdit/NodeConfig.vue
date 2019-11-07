@@ -26,6 +26,7 @@
                                 class="node-select"
                                 :searchable="true"
                                 :clearable="false"
+                                :disabled="atomConfigLoading"
                                 @selected="onAtomSelect">
                                 <bk-option
                                     v-for="(option, index) in atomList"
@@ -47,7 +48,14 @@
                                     placements: ['bottom-end'] }">
                             </i>
                             <!-- 子流程版本更新 -->
-                            <i class="common-icon-clock-inversion update-tooltip"
+                            <i
+                                :class="[
+                                    'common-icon-clock-inversion',
+                                    'update-tooltip',
+                                    {
+                                        'disabled': atomConfigLoading
+                                    }
+                                ]"
                                 v-if="subflowHasUpdate"
                                 v-bk-tooltips="{
                                     content: i18n.update,
@@ -430,6 +438,7 @@
             idOfNodeInConfigPanel (val) {
                 this.nodeId = val
                 this.taskTypeEmpty = false
+                this.subflowHasUpdate = false
                 this.errors.clear()
                 this.initData()
             },
@@ -507,6 +516,11 @@
                 }
                 try {
                     await this.loadAtomConfig({ atomType })
+
+                    // 节点配置面板收起后，不执行后续回调逻辑
+                    if (!this.isNodeConfigPanelShow) {
+                        return
+                    }
                     this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
                     this.setNodeConfigData(atomType)
                 } catch (e) {
@@ -525,6 +539,10 @@
                 this.nodeConfigData.template_id = id
                 try {
                     this.subAtomConfigData = await this.loadSubflowConfig({ templateId: id, version, common: this.common })
+                    // 节点配置面板收起后，不执行后续回调逻辑
+                    if (!this.isNodeConfigPanelShow) {
+                        return
+                    }
                     const constants = {}
                     const inputConfig = []
                     const outputConfig = []
@@ -742,6 +760,7 @@
                     if ((!dom.nodeContains(settingPanel, e.target)
                         && !dom.nodeContains(nodeConfig, e.target))
                     ) {
+                        this.subflowHasUpdate = false
                         this.syncNodeDataToActivities()
                     }
                 }
@@ -754,6 +773,9 @@
                 return this.updateNodeInfo()
             },
             updateActivities () {
+                if (this.atomConfigLoading) {
+                    return
+                }
                 const nodeData = tools.deepClone(this.nodeConfigData)
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
@@ -882,6 +904,9 @@
              * 更新 store 数据状态
              */
             onUpdateSubflowVersion () {
+                if (this.atomConfigLoading) {
+                    return
+                }
                 const oldInputAtomHook = this.inputAtomHook
                 const oldInputAtomData = this.inputAtomData
 
@@ -1172,8 +1197,12 @@
             top: 8px;
             color: #c4c6cc;
             cursor: pointer;
-            &:hover {
+            &:not(.disabled):hover {
                 color: #f4aa1a;
+            }
+            &.disabled {
+                color: #c4c6cc;
+                cursor: not-allowed;
             }
         }
         .error-ingored-tootip {

@@ -11,20 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 import abc
 import sys
 
+from builtins import object
 from django.conf import settings
 from django.utils.module_loading import import_string
-
-from bkiam.client import BKIAMClient
+from future.utils import with_metaclass
 
 from auth_backend.resources.migrations import exceptions
+from bkiam.client import BKIAMClient
 
 
-class ResourceMigration(object):
-    __metaclass__ = abc.ABCMeta
-
+class ResourceMigration(with_metaclass(abc.ABCMeta, object)):
     def __init__(self, diff_operations):
         self.diff_operations = diff_operations
 
@@ -58,7 +59,7 @@ class BKIAMResourceMigration(ResourceMigration):
         for operation in self.diff_operations:
             op = operation['operation']
             data = operation['data']
-            sys.stdout.write('\nPerform [%s] with data: %s' % (op, data))
+            sys.stdout.write('\nPerform [{}] with data: {}'.format(op, data))
             getattr(self, op)(data)
 
     def register_system(self, data):

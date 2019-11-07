@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import requests
-import json
 import time
 import random
 import logging
 import urlparse
+
+import ujson as json
+import requests
 
 from . import conf
 from . import collections

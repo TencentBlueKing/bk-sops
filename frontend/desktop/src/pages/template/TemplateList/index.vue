@@ -604,7 +604,7 @@
                 try {
                     const data = {
                         common: this.common,
-                        list: JSON.stringify(list)
+                        list: list
                     }
                     const resp = await this.templateExport(data)
                     if (resp.result) {

@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch
+from __future__ import absolute_import, unicode_literals
+
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from auth_backend.resources import base
 from auth_backend.resources.base import Action, ActionCollection, Resource
-
 from auth_backend.tests.mock_path import *  # noqa
 
 
@@ -54,7 +55,8 @@ class ResourceTestCase(TestCase):
                                         scope_id=self.scope_id,
                                         parent=self.parent,
                                         operations=self.operations,
-                                        backend=self.backend)
+                                        backend=self.backend,
+                                        properties=['p1', 'p2'])
 
     def tearDown(self):
         base.resource_type_lib = {}
@@ -72,18 +74,34 @@ class ResourceTestCase(TestCase):
     @patch(RESOURCE_BASE_CONF_SYSTEM_NAME, 'system_name_token')
     @patch(CONF_SCOPE_TYPE_NAMES, {'scope_type_token': 'system_type_name_token'})
     def test_base_info(self):
-        self.assertEqual(self.resource.base_info(), {'system_id': 'system_id_token',
-                                                     'system_name': 'system_name_token',
-                                                     'scope_type': self.scope_type,
-                                                     'scope_type_name': 'system_type_name_token',
-                                                     'scope_id': self.scope_id,
-                                                     'scope_name': self.scope_name,
-                                                     'resource': {
-                                                         'resource_type': self.rtype,
-                                                         'resource_type_name': self.name
-                                                     }})
+        self.assertEqual(
+            self.resource.base_info(), {
+                'system_id': 'system_id_token',
+                'system_name': 'system_name_token',
+                'scope_type': self.scope_type,
+                'scope_type_name': 'system_type_name_token',
+                'scope_id': self.scope_id,
+                'scope_name': self.scope_name,
+                'resource': {
+                    'resource_type': self.rtype,
+                    'resource_type_name': self.name
+                }
+            }
+        )
 
     def test_snapshot(self):
+        self.assertEqual(self.resource.snapshot(), {'resource_type': self.rtype,
+                                                    'resource_type_name': self.name,
+                                                    'parent_resource_type': self.parent.rtype,
+                                                    'actions': [{
+                                                        'action_id': action.id,
+                                                        'action_name': action.name,
+                                                        'is_related_resource': action.is_instance_related
+                                                    } for action in self.actions],
+                                                    'properties': ['p1', 'p2']})
+
+    def test_snapshot__properties_is_empty(self):
+        self.resource.properties = None
         self.assertEqual(self.resource.snapshot(), {'resource_type': self.rtype,
                                                     'resource_type_name': self.name,
                                                     'parent_resource_type': self.parent.rtype,
@@ -121,13 +139,13 @@ class ResourceTestCase(TestCase):
         clean_str_instance_return = 'clean_str_instance_return'
         clean_list_instance_return = 'clean_list_instance_return'
         self.resource.clean_str_instances = MagicMock(return_value=clean_str_instance_return)
+        self.resource.clean_unicode_instances = MagicMock(return_value=clean_str_instance_return)
         self.resource.clean_list_instances = MagicMock(return_value=clean_list_instance_return)
 
         str_instances = 'str_instances'
         list_instances = ['instance']
 
         self.assertEqual(self.resource.clean_instances(str_instances), clean_str_instance_return)
-        self.resource.clean_str_instances.assert_called_once_with(str_instances)
         self.assertEqual(self.resource.clean_instances(list_instances), clean_list_instance_return)
         self.resource.clean_list_instances.assert_called_once_with(list_instances)
 
@@ -167,6 +185,12 @@ class ResourceTestCase(TestCase):
         child = 'child'
         self.assertIsNotNone(self.resource.parent_instance(child))
         self.resource.inspect.parent.assert_called_once_with('child')
+
+    @patch(RESOURCE_CLEAN_INSTANCE, MagicMock(return_value='clean_instance_token'))
+    def test_properties(self):
+        instance = 'instance'
+        self.assertIsNotNone(self.resource.resource_properties(instance))
+        self.resource.inspect.properties.assert_called_once_with('instance')
 
     def test_is_instance_related_action(self):
         view_action = 0

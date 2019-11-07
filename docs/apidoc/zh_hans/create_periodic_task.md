@@ -18,6 +18,7 @@
 | 字段          |  类型       | 必选   |  描述             |
 |---------------|------------|--------|------------------|
 |   template_id    |   string     |   是   |  用于创建任务的模板ID |
+| template_source | string   | 否     | 流程模板来源，business:默认值，业务流程，common：公共流程 |
 |   bk_biz_id    |   string     |   是   |  任务所属业务ID |
 |   name    |   string     |   是   |  要创建的周期任务名称 |
 |   cron    |   dict     |   是   |  要创建的周期任务调度策略 |
@@ -244,6 +245,7 @@
 |  enabled      |    bool    |    是否激活   |
 |  id      |    int    |    周期任务 ID   |
 |  template_id      |    string    |    用于创建该任务的模板 ID   |
+| template_source | string    | 流程模板来源，business:默认值，业务流程，common：公共流程 |
 |  form      |    dict    |    该周期任务的参数表单对象   |
 |  pipeline_tree      |    dict    |    该周期任务的实例树   |
 
