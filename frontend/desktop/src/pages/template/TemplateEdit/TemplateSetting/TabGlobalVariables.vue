@@ -87,6 +87,7 @@
                         :variable-type-list="variableTypeList"
                         :the-key-of-editing="theKeyOfEditing"
                         :is-hide-system-var="isHideSystemVar"
+                        :system-constants="systemConstants"
                         @onChangeEdit="onChangeEdit"
                         @onEditVariable="onEditVariable"
                         @onChangeVariableOutput="onChangeVariableOutput"
