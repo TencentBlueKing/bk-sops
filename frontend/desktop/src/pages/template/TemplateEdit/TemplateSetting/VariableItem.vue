@@ -16,7 +16,7 @@
             'variable-item',
             { 'variable-editing': isVariableEditing && theKeyOfEditing === constant.key }
         ]">
-        <div class="variable-content" @click="onEditVariable(constant.key)">
+        <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
             <i v-if="!isSystemVar" class="col-item-drag bk-icon icon-sort"></i>
             <i v-else class="common-icon-lock-disable"></i>
             <span class="col-item col-name">
@@ -98,6 +98,7 @@
                 :variable-data="variableData"
                 :variable-type-list="variableTypeList"
                 :is-new-variable="false"
+                :is-hide-system-var="isHideSystemVar"
                 @scrollPanelToView="scrollPanelToView"
                 @onChangeEdit="onChangeEdit">
             </VariableEdit>
@@ -112,7 +113,7 @@
         components: {
             VariableEdit
         },
-        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList'],
+        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList', 'isHideSystemVar'],
         data () {
             return {
                 i18n: {
@@ -156,9 +157,9 @@
             onDeleteVariable (key, index) {
                 this.$emit('onDeleteVariable', { key, index })
             },
-            onEditVariable (key) {
+            onEditVariable (key, index) {
                 if (this.isSystemVar) return
-                this.$emit('onEditVariable', key)
+                this.$emit('onEditVariable', key, index)
             },
             scrollPanelToView (index) {
                 this.$emit('scrollPanelToView', index)

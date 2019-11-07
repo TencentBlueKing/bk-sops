@@ -82,6 +82,7 @@
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :the-key-of-editing="theKeyOfEditing"
+                        :is-hide-system-var="isHideSystemVar"
                         @onChangeEdit="onChangeEdit"
                         @onEditVariable="onEditVariable"
                         @onChangeVariableOutput="onChangeVariableOutput"
@@ -91,6 +92,7 @@
                 <li v-if="isVariableEditing && theKeyOfEditing === ''">
                     <VariableEdit
                         ref="addVariablePanel"
+                        :system-constants="systemConstants"
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :is-new-variable="true"
@@ -248,15 +250,17 @@
             },
             scrollPanelToView (index) {
                 if (index > 0) {
-                    const itemHeight = document.querySelector('.variable-content').offsetHeight
-                    this.$refs.variableList.scrollTop = itemHeight * index
+                    this.$nextTick(() => {
+                        const itemHeight = document.querySelector('.variable-content').offsetHeight
+                        this.$refs.variableList.scrollTop = itemHeight * index
+                    })
                 }
             },
             /**
              * 编辑变量
              * @param {String} key 变量key值
              */
-            onEditVariable (key) {
+            onEditVariable (key, index) {
                 if (key === this.theKeyOfEditing && this.isVariableEditing) {
                     this.onChangeEdit(false)
                 } else {
@@ -265,6 +269,8 @@
                 }
 
                 this.$emit('variableDataChanged')
+                const sysVarLen = !this.isHideSystemVar ? this.systemConstantsList.length : 0
+                this.scrollPanelToView(sysVarLen + index)
             },
             /**
              * 变量顺序拖拽
@@ -287,6 +293,9 @@
                 this.onChangeEdit(true)
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
+                // 滚到到底部
+                const allVarLen = (!this.isHideSystemVar ? this.systemConstantsList.length : 0) + this.constantsArray.length
+                this.scrollPanelToView(allVarLen)
             },
             /**
              * 变量输出勾选
