@@ -16,8 +16,8 @@ from pipeline.core.constants import PE
 CANVAS_WIDTH = 1300
 POSITION = {
     'activity_size': (150, 42),
-    'event_size': (40, 40),
-    'gateway_size': (36, 36),
+    'event_size': (42, 42),
+    'gateway_size': (32, 32),
     'start': (60, 100)
 }
 
@@ -95,7 +95,7 @@ def draw_branch_group(start_x, start_y, start_gateway, shift_x, shift_y, gateway
                     'id': next_node[PE.id],
                     'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
                     'name': next_node[PE.name],
-                    'stage_name': next_node[PE.stage_name],
+                    'stage_name': next_node.get(PE.stage_name),
                     'status': '',
                     'x': next_x,
                     'y': next_y,
@@ -229,7 +229,7 @@ def draw_pipeline(pipeline, activity_size=POSITION['activity_size'], event_size=
                 'id': next_node[PE.id],
                 'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
                 'name': next_node[PE.name],
-                'stage_name': next_node[PE.stage_name],
+                'stage_name': next_node.get(PE.stage_name),
                 'status': '',
                 'x': next_x,
                 'y': next_y,
