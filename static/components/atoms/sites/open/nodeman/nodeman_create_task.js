@@ -56,7 +56,7 @@
             tag_code: "nodeman_node_type",
             type: "radio",
             attrs: {
-                name: gettext("主机节点类型"),
+                name: gettext("节点类型"),
                 hookable: true,
                 items: [
                     {value: "AGENT", name: gettext("直连区域AGENT")},
@@ -104,7 +104,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("通信IP"),
-                            placeholder: gettext("多个用英文逗号隔开"),
+                            placeholder: gettext("多个用,隔开"),
                             width: '100px',
                             editable: true,
                             validation: [
@@ -119,7 +119,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("登录IP"),
-                            placeholder: gettext("适配复杂网络时填写"),
+                            placeholder: gettext("可为空，适配复杂网络时填写"),
                             width: '100px',
                             editable: true
                         }
@@ -129,7 +129,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("数据IP"),
-                            placeholder: gettext("适配复杂网络时填写"),
+                            placeholder: gettext("可为空，适配复杂网络时填写"),
                             width: '100px',
                             editable: true,
 
@@ -140,7 +140,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("级联IP"),
-                            placeholder: gettext("安装Proxy时必填"),
+                            placeholder: gettext("可为空，节点类型是 PROXY 时必填"),
                             width: '100px',
                             editable: true
                         }
