@@ -77,7 +77,9 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        this._set_value('');
+                        if ($.context.canSelectBiz()) {
+                            this._set_value('');
+                        }
                         if (value === '') {
                             return;
                         }

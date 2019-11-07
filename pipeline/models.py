@@ -588,6 +588,22 @@ class InstanceManager(models.Manager):
             instance.save()
         return instance
 
+    def set_revoked(self, instance_id):
+        """
+        将实例的状态设置为已撤销
+        @param instance_id: 实例 ID
+        @return:
+        """
+        with transaction.atomic():
+            try:
+                instance = self.select_for_update().get(instance_id=instance_id)
+            except PipelineInstance.DoesNotExist:
+                return None
+            instance.finish_time = timezone.now()
+            instance.is_revoked = True
+            instance.save()
+        return instance
+
 
 class PipelineInstance(models.Model):
     """
@@ -605,6 +621,7 @@ class PipelineInstance(models.Model):
     description = models.TextField(_(u"描述"), blank=True)
     is_started = models.BooleanField(_(u"是否已经启动"), default=False)
     is_finished = models.BooleanField(_(u"是否已经完成"), default=False)
+    is_revoked = models.BooleanField(_(u"是否已经撤销"), default=False)
     is_deleted = models.BooleanField(
         _(u"是否已经删除"),
         default=False,

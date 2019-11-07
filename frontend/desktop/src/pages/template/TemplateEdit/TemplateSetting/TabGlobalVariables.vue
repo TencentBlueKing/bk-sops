@@ -46,6 +46,9 @@
         </div>
         <div class="add-variable">
             <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
+            <div class="toggle-system-var">
+                <bk-checkbox v-model="isHideSystemVar">{{ i18n.hideSystemVar }}</bk-checkbox>
+            </div>
         </div>
         <div class="global-variable-content">
             <div class="variable-header clearfix">
@@ -56,20 +59,22 @@
                 <span class="col-delete t-head"></span>
             </div>
             <ul class="variable-list" ref="variableList">
-                <VariableItem
-                    v-for="(constant, index) in systemConstantsList"
-                    class="system-constants-item"
-                    :key="index"
-                    :outputs="outputs"
-                    :is-variable-editing="isVariableEditing"
-                    :constant="constant"
-                    :variable-data="variableData"
-                    :variable-type-list="variableTypeList"
-                    :the-key-of-editing="theKeyOfEditing"
-                    :is-system-var="true"
-                    @onEditVariable="onEditVariable"
-                    @onChangeVariableOutput="onChangeVariableOutput"
-                    @onDeleteVariable="onDeleteVariable" />
+                <template v-if="!isHideSystemVar">
+                    <VariableItem
+                        v-for="(constant, index) in systemConstantsList"
+                        class="system-constants-item"
+                        :key="index"
+                        :outputs="outputs"
+                        :is-variable-editing="isVariableEditing"
+                        :constant="constant"
+                        :variable-data="variableData"
+                        :variable-type-list="variableTypeList"
+                        :the-key-of-editing="theKeyOfEditing"
+                        :is-system-var="true"
+                        @onEditVariable="onEditVariable"
+                        @onChangeVariableOutput="onChangeVariableOutput"
+                        @onDeleteVariable="onDeleteVariable" />
+                </template>
                 <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
                     <VariableItem
                         v-for="(constant, index) in constantsArray"
@@ -81,10 +86,13 @@
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :the-key-of-editing="theKeyOfEditing"
+                        :is-hide-system-var="isHideSystemVar"
+                        @onChangeEdit="onChangeEdit"
                         @onEditVariable="onEditVariable"
                         @onChangeVariableOutput="onChangeVariableOutput"
                         @onDeleteVariable="onDeleteVariable" />
                 </draggable>
+                <!-- 新建变量 -->
                 <li v-if="isVariableEditing && theKeyOfEditing === ''">
                     <VariableEdit
                         ref="addVariablePanel"
@@ -137,9 +145,11 @@
         props: ['isVariableEditing', 'variableTypeList'],
         data () {
             return {
+                isHideSystemVar: false,
                 i18n: {
                     global_varibles: gettext('全局变量'),
                     new: gettext('新建'),
+                    hideSystemVar: gettext('隐藏系统变量'),
                     name: gettext('名称'),
                     attributes: gettext('属性'),
                     outputs: gettext('输出'),
@@ -189,7 +199,10 @@
                 }
             },
             isShowNodata () {
-                return !this.isVariableEditing && !this.constantsArray.length && !this.systemConstants
+                if (this.isVariableEditing) {
+                    return false
+                }
+                return this.constantsArray.length === 0 ? (this.isHideSystemVar || this.systemConstants.length === 0) : false
             },
             systemConstantsList () {
                 const list = []
@@ -243,8 +256,10 @@
             },
             scrollPanelToView (index) {
                 if (index > 0) {
-                    const itemHeight = document.querySelector('.variable-content').offsetHeight
-                    this.$refs.variableList.scrollTop = itemHeight * index
+                    this.$nextTick(() => {
+                        const itemHeight = document.querySelector('.variable-content').offsetHeight
+                        this.$refs.variableList.scrollTop = itemHeight * index
+                    })
                 }
             },
             /**
@@ -260,7 +275,7 @@
                 }
 
                 this.$emit('variableDataChanged')
-                const sysVarLen = this.systemConstantsList.length
+                const sysVarLen = !this.isHideSystemVar ? this.systemConstantsList.length : 0
                 this.scrollPanelToView(sysVarLen + index)
             },
             /**
@@ -285,8 +300,8 @@
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
                 // 滚到到底部
-                const allvarLen = this.systemConstantsList.length + this.constantsArray.length
-                this.scrollPanelToView(allvarLen)
+                const allVarLen = (!this.isHideSystemVar ? this.systemConstantsList.length : 0) + this.constantsArray.length
+                this.scrollPanelToView(allVarLen)
             },
             /**
              * 变量输出勾选
@@ -363,11 +378,9 @@ $localBorderColor: #d8e2e7;
         .add-variable-btn {
             width: 90px;
         }
-        .draft-form {
-            display: inline-block;
-            input {
-                width: 200px;
-            }
+        .toggle-system-var {
+            float: right;
+            margin-top: 4px;
         }
     }
     .global-variable-tootip {

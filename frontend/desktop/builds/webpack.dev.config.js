@@ -74,6 +74,10 @@ module.exports = merge( webpackBaseConfig, {
             chunks: false,
             entrypoints: false,
             modules: false
+        },
+        // 数据 mock
+        before: function (app) {
+            mocker(app)
         }
     }
 })

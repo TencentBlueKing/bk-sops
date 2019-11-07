@@ -364,8 +364,8 @@
             removeAllConnector () {
                 this.$refs.jsFlow.removeAllConnector()
             },
-            onShowNodeConfig (id) {
-                this.$emit('onShowNodeConfig', id)
+            onNodeClick (id, type) {
+                this.$emit('onNodeClick', id, type)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)

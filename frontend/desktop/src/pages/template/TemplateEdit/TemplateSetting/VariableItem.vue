@@ -98,6 +98,7 @@
                 :variable-data="variableData"
                 :variable-type-list="variableTypeList"
                 :is-new-variable="false"
+                :is-hide-system-var="isHideSystemVar"
                 @scrollPanelToView="scrollPanelToView"
                 @onChangeEdit="onChangeEdit">
             </VariableEdit>
@@ -112,7 +113,7 @@
         components: {
             VariableEdit
         },
-        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList'],
+        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList', 'isHideSystemVar'],
         data () {
             return {
                 i18n: {

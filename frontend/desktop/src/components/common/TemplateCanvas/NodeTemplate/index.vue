@@ -111,18 +111,15 @@
                 this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
-                clearTimeout(this.clickTimer)
-                this.clickTimer = setTimeout(() => {
-                    const moveBuffer = 2
-                    const { pageX: x, pageY: y } = e
-                    if (
-                        Math.abs(x - this.moveFlag.x) < moveBuffer
-                        && Math.abs(y - this.moveFlag.y) < moveBuffer
-                        && this.node.type !== 'endpoint'
-                    ) {
-                        this.$emit('onNodeClick', this.node.id, e)
-                    }
-                }, 200)
+                const moveBuffer = 2
+                const { pageX: x, pageY: y } = e
+                if (
+                    Math.abs(x - this.moveFlag.x) < moveBuffer
+                    && Math.abs(y - this.moveFlag.y) < moveBuffer
+                ) {
+                    this.$emit('onNodeClick', this.node.id, this.node.type)
+                    e.stopPropagation()
+                }
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -331,7 +328,7 @@
             &.finished {
                 @include taskNodeStyle ($greenDark)
             }
-            
+
         }
         .subflow-node {
             &:hover > .ui-node-shadow {

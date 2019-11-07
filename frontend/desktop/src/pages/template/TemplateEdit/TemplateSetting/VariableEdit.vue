@@ -169,7 +169,7 @@
             RenderForm,
             VariableEditDialog
         },
-        props: ['variableData', 'isNewVariable', 'variableTypeList', 'systemConstants'],
+        props: ['variableData', 'isNewVariable', 'variableTypeList', 'systemConstants', 'isHideSystemVar'],
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
@@ -379,7 +379,7 @@
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-                
+
                 const atomConfig = this.atomFormConfig[atom]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
@@ -492,8 +492,9 @@
             saveVariable () {
                 return this.$validator.validateAll().then(result => {
                     let formValid = true
-                    const constantsLength = Object.keys(this.constants).length + Object.keys(this.systemConstants).length
-            
+                    const constantsLength = Object.keys(this.constants).length
+                        + (!this.isHideSystemVar ? Object.keys(this.systemConstants).length : 0)
+
                     // 名称、key等校验，renderform表单校验
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
@@ -514,14 +515,14 @@
                     } else {
                         varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
                     }
-                    
+
                     // 变量key值格式统一
                     if (!/^\$\{\w+\}$/.test(variable.key)) {
                         variable.key = '${' + variable.key + '}'
                     }
 
                     this.theEditingData.value = varValue['customVariable']
-                    
+
                     this.$emit('onChangeEdit', false)
 
                     if (this.isNewVariable) { // 新增变量
