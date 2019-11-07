@@ -144,7 +144,7 @@
         name: 'AppEditDialog',
         mixins: [permission],
         props: {
-            'project_id': String,
+            'project_id': [String, Number],
             'isCreateNewApp': Boolean,
             'isEditDialogShow': Boolean,
             'currentAppData': {
