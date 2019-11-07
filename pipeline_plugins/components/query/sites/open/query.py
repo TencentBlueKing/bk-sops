@@ -237,6 +237,7 @@ def job_get_script_list(request, biz_cc_id):
     if source_type == 'public':
         kwargs = None
         script_result = client.job.get_public_script_list()
+        api_name = 'job.get_public_script_list'
     else:
         kwargs = {
             'bk_biz_id': biz_cc_id,
@@ -244,9 +245,10 @@ def job_get_script_list(request, biz_cc_id):
             'script_type': script_type or 0,
         }
         script_result = client.job.get_script_list(kwargs)
+        api_name = 'job.get_script_list'
 
     if not script_result['result']:
-        message = handle_api_error('job', 'job.get_script_list', kwargs, script_result)
+        message = handle_api_error('job', api_name, kwargs, script_result)
         logger.error(message)
         result = {
             'result': False,
@@ -493,9 +495,6 @@ def cc_get_business(request):
     try:
         business = get_user_business_list(username=request.user.username)
     except APIError as e:
-        return JsonResponse({
-
-        })
         message = 'an error occurred when fetch user business: %s' % traceback.format_exc()
 
         if e.result and e.result.get('code', 0) == AUTH_FORBIDDEN_CODE:
