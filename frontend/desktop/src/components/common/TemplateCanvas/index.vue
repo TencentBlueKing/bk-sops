@@ -589,8 +589,10 @@
                     this.isDisableEndPoint = false
                 }
             },
-            onBeforeDrag () {
-                this.handleReferenceLineHide()
+            onBeforeDrag (data) {
+                if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
+                    this.handleReferenceLineHide()
+                }
             },
             // 节点拖动回调
             onNodeMoving (node) {
@@ -645,7 +647,7 @@
                 const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
                 window.requestAnimationFrame(() => {
                     line.style.display = 'block'
-                    line.style.width = len + 'px'
+                    line.style.width = len - 2 + 'px'
                     line.style.transformOrigin = `top left`
                     line.style.transform = 'rotate(' + r + 'deg)'
                     if (!this.referenceLine.id) {
@@ -655,7 +657,7 @@
                 document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 移出参考线
-            handleReferenceLineHide () {
+            handleReferenceLineHide (e) {
                 const line = this.$refs.dragReferenceLine
                 if (line) {
                     line.style.display = 'none'
@@ -922,7 +924,7 @@
             user-select: none;
         }
         .jtk-endpoint {
-            z-index: 2;
+            z-index: 3;
             cursor: pointer;
         }
         .jsflow-node {
