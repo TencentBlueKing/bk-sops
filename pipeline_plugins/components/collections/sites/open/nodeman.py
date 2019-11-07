@@ -170,12 +170,12 @@ class NodemanCreateTaskService(Service):
                 fail_hosts.append(job_result['host']['inner_ip'])
 
         if success_num + fail_num == host_count:
+            data.set_outputs('success_num', success_num)
+            data.set_outputs('fail_num', fail_num)
             if success_num == host_count:
                 self.finish_schedule()
                 return True
             else:
-                data.set_outputs('success_num', success_num)
-                data.set_outputs('fail_num', fail_num)
                 error_log = u"<br>%s</br>" % _(u'日志信息为：')
                 for i in range(len(fail_ids)):
                     log_kwargs = {
@@ -196,14 +196,13 @@ class NodemanCreateTaskService(Service):
                 self.finish_schedule()
                 return False
         # 未完成
-        return False
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'任务ID'),
+            self.OutputItem(name=_(u'任务 ID'),
                             key='job_id',
                             type='int',
-                            schema=IntItemSchema(description=_(u'提交的任务的job_id'))),
+                            schema=IntItemSchema(description=_(u'提交的任务的 job_id'))),
             self.OutputItem(name=_(u'安装成功个数'),
                             key='success_num',
                             type='int',
@@ -223,15 +222,15 @@ class NodemanCreateTaskService(Service):
             self.InputItem(name=_(u'云区域 ID'),
                            key='nodeman_bk_cloud_id',
                            type='string',
-                           schema=StringItemSchema(description=_(u'主机所在云区域 ID'))),
-            self.InputItem(name=_(u'主机节点类型'),
+                           schema=StringItemSchema(description=_(u'节点所在云区域 ID'))),
+            self.InputItem(name=_(u'节点类型'),
                            key='nodeman_node_type',
                            type='string',
-                           schema=StringItemSchema(description=_(u'主机的节点类型，可以是AGENT, PROXY或PAGENT'))),
+                           schema=StringItemSchema(description=_(u'节点类型，可以是（直连区域） AGENT, PROXY 或（非直连区域） PAGENT'))),  # noqa
             self.InputItem(name=_(u'操作类型'),
                            key='nodeman_op_type',
                            type='string',
-                           schema=StringItemSchema(description=_(u'任务操作类型'))),
+                           schema=StringItemSchema(description=_(u'任务操作类型（安装） INSTALL, （重装） REINSTALL, （卸载） UNINSTALL, （移除） REMOVE 或（升级） UPGRADE'))),  # noqa
             self.InputItem(name=_(u'主机'),
                            key='nodeman_hosts',
                            type='array',
@@ -240,18 +239,18 @@ class NodemanCreateTaskService(Service):
                                item_schema=ObjectItemSchema(
                                    description=_(u'主机相关信息'),
                                    property_schemas={
-                                       'conn_ips': StringItemSchema(description=_(u'主机通信IP')),
-                                       'login_ip': StringItemSchema(description=_(u'主机登录IP，适配复杂网络时填写')),
-                                       'data_ip': StringItemSchema(description=_(u'主机数据IP，适配复杂网络时填写')),
-                                       'cascade_ip': StringItemSchema(description=_(u'级联IP, 安装PROXY时必填')),
-                                       'os_type': StringItemSchema(description=_(u'操作系统类型，可以是LINUX, WINDOWS,或AIX')),
-                                       'has_cygwin': StringItemSchema(description=_(u'是否安装了cygwin, windows操作系统时选填')),
+                                       'conn_ips': StringItemSchema(description=_(u'主机通信 IP')),
+                                       'login_ip': StringItemSchema(description=_(u'主机登录 IP，适配复杂网络时填写')),
+                                       'data_ip': StringItemSchema(description=_(u'主机数据 IP，适配复杂网络时填写')),
+                                       'cascade_ip': StringItemSchema(description=_(u'级联 IP, 安装 PROXY 时必填')),
+                                       'os_type': StringItemSchema(description=_(u'操作系统类型，可以是 LINUX, WINDOWS, 或 AIX')),
+                                       'has_cygwin': StringItemSchema(description=_(u'是否安装了 cygwin, windows 操作系统时选填')),
                                        'port': StringItemSchema(description=_(u'端口号')),
                                        'account': StringItemSchema(description=_(u'登录帐号')),
-                                       'auth_type': StringItemSchema(description=_(u'认证方式，可以是PASSWORD或KEY')),
-                                       'auth_key': StringItemSchema(description=_(u'根据认证方式，是登录密码或者登陆密钥，需要经过RSA方式加密')),
+                                       'auth_type': StringItemSchema(description=_(u'认证方式，可以是 PASSWORD 或 KEY')),
+                                       'auth_key': StringItemSchema(description=_(u'根据认证方式，是登录密码或者登陆密钥，需要经过 RSA 方式加密')),
                                    }
-                               ))),
+                               ))),  # noqa
         ]
 
 
