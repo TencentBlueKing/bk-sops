@@ -491,7 +491,7 @@
 
                         const atomConfig = this.atomFormConfig[atom]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        
+
                         if (currentFormConfig) {
                             if (form.is_meta || currentFormConfig.meta_transform) {
                                 currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
@@ -705,8 +705,10 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
-                this.isShowConditionEdit = false
+            onNodeClick (id, type) {
+                if (['tasknode', 'subflow'].indexOf(type) === -1) {
+                    return false
+                }
                 this.toggleSettingPanel(false)
                 const nodeType = this.locations.filter(item => {
                     return item.id === id

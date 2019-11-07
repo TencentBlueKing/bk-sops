@@ -381,10 +381,10 @@ const api = {
             prefixUrl = this.getPrefix('templateExport')
         }
         const opts = {
-            method: 'GET',
+            method: 'POST',
             url: `${prefixUrl}`,
             responseType: 'arraybuffer',
-            params: {
+            data: {
                 template_id_list: list
             }
         }
@@ -1087,45 +1087,37 @@ const api = {
     },
     queryTemplate (data) {
         const prefixUrl = this.getPrefix('analysisTemplate')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
     queryAtom (data) {
         const prefixUrl = this.getPrefix('analysisAtom')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
     queryInstance (data) {
         const prefixUrl = this.getPrefix('analysisInstance')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
     queryAppmaker (data) {
         const prefixUrl = this.getPrefix('analysisAppmaker')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
@@ -1553,6 +1545,17 @@ const api = {
             url: prefixUrl,
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 获取人员列表
+     */
+    getMemberList () {
+        const prefixUrl = this.getPrefix('userList')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
         }
         return request(opts)
     }

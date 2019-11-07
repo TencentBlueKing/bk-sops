@@ -17,9 +17,9 @@ import hmac
 import random
 import urlparse
 import time
-import json
 import logging
 
+import ujson as json
 import httplib2
 from django.conf import settings
 from django.utils.http import urlencode

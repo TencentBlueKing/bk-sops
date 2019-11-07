@@ -11,13 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
+from builtins import object
+
 from auth_backend.resources.base import resource_type_lib
 
 
 class ResourceStateSnapper(object):
     def take_snapshot(self):
         snapshot = {}
-        for resource in resource_type_lib.values():
+        for resource in list(resource_type_lib.values()):
             resource_snapshot = resource.snapshot()
             snapshot.setdefault(resource.scope_type, []).append(resource_snapshot)
 
