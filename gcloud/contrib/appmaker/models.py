@@ -176,7 +176,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
         # upload app logo
         if not fake and app_params['logo_content']:
-            logo = base64.b64encode(app_params['logo_content'])
+            logo = base64.b64encode(app_params['logo_content'].encode('utf-8'))
             app_logo_result = modify_app_logo(app_maker_obj.creator, app_code, logo)
             if not app_logo_result['result']:
                 logger.warning("AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,
