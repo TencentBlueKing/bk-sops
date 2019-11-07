@@ -33,7 +33,7 @@ class TestPipelineTemplate(TestCase):
                                    'value': '${loop_i}'}},
                         u'code': u'loop_test_comp'},
                     u'optional': False,
-                    u'type': u'LoopServiceActivity',
+                    u'type': u'ServiceActivity',
                     u'loop_times': 4,
                     u'id': u'act_1',
                     u'loop': {}
