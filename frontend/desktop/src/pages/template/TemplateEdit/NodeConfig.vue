@@ -399,8 +399,12 @@
              * 标准插件节点描述
              */
             atomDesc () {
-                if (this.singleAtom) {
-                    return this.atomForm[this.currentAtom] && this.atomForm[this.currentAtom].desc
+                if (
+                    this.singleAtom
+                    && this.atomForm[this.currentAtom]
+                    && this.atomForm[this.currentAtom][this.currentVersion]
+                ) {
+                    return this.atomForm[this.currentAtom][this.currentVersion].desc
                 }
                 return ''
             },

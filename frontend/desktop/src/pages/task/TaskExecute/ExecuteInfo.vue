@@ -47,6 +47,10 @@
                     <th class="manually-retry">{{i18n.manuallyRetry}}</th>
                     <td>{{nodeInfo.retry}}</td>
                 </tr>
+                <tr>
+                    <th class="manually-retry">{{i18n.executeVersion}}</th>
+                    <td>{{nodeDetailConfig.version}}</td>
+                </tr>
             </table>
         </section>
         <section class="info-section" v-show="isSingleAtom">
@@ -183,7 +187,8 @@
                     running: gettext('执行中'),
                     suspended: gettext('暂停'),
                     failed: gettext('失败'),
-                    finished: gettext('完成')
+                    finished: gettext('完成'),
+                    executeVersion: gettext('执行版本')
                 },
                 loading: true,
                 bkMessageInstance: null,
