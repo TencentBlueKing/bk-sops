@@ -379,7 +379,7 @@
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-
+                
                 const atomConfig = this.atomFormConfig[atom]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
@@ -494,7 +494,7 @@
                     let formValid = true
                     const constantsLength = Object.keys(this.constants).length
                         + (!this.isHideSystemVar ? Object.keys(this.systemConstants).length : 0)
-
+            
                     // 名称、key等校验，renderform表单校验
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
@@ -515,14 +515,14 @@
                     } else {
                         varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
                     }
-
+                    
                     // 变量key值格式统一
                     if (!/^\$\{\w+\}$/.test(variable.key)) {
                         variable.key = '${' + variable.key + '}'
                     }
 
                     this.theEditingData.value = varValue['customVariable']
-
+                    
                     this.$emit('onChangeEdit', false)
 
                     if (this.isNewVariable) { // 新增变量

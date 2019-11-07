@@ -364,8 +364,8 @@
             removeAllConnector () {
                 this.$refs.jsFlow.removeAllConnector()
             },
-            onShowNodeConfig (id, type) {
-                this.$emit('onShowNodeConfig', id, type)
+            onShowNodeConfig (id) {
+                this.$emit('onShowNodeConfig', id)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -728,8 +728,8 @@
                 })
             },
             // 点击节点
-            onNodeClick (id, event) {
-                this.$emit('onNodeClick', id)
+            onNodeClick (id, type, event) {
+                this.$emit('onNodeClick', id, type)
                 // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
                 if (!this.editable) {
                     this.onShowNodeConfig(id)
