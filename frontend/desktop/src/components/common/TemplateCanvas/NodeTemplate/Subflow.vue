@@ -201,9 +201,13 @@
     }
     .node-options-icon {
         position: absolute;
-        top: -23px;
+        top: -24px;
         left: 23px;
         z-index: 1;
+        height: 16px;
+        .bk-form-checkbox, .optional-icon {
+            vertical-align: bottom;
+        }
     }
     .optional-icon {
         display: inline-block;
