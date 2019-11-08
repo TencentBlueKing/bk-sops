@@ -211,6 +211,9 @@
                 if (this.view_mode !== 'app') {
                     return false
                 }
+                if (this.$route.name === 'home') {
+                    return this.reload()
+                }
                 this.$router.push('/')
             },
             async initNavgator () {
@@ -228,9 +231,11 @@
              * @param {String} routerName
              */
             async checkRouterPerm (routerName) {
+                const functionRouterMap = ['functionHome', 'functionTemplateStep', 'functionTaskExecute']
+                const auditRouterMap = ['auditHome', 'auditTaskExecute']
                 const name = routerName || this.$route.name
                 const { function: hasFunction, audit: hasAudit } = this.userRights
-                if (name === 'functionHome' && !hasFunction) {
+                if (functionRouterMap.includes(name) && !hasFunction) {
                     const result = await this.getActionPerm('function_center', ['view'])
                     this.setUserRights({ type: 'function', val: result })
                     if (!result) {
@@ -245,7 +250,7 @@
                             }
                         )
                     }
-                } else if (name === 'auditHome' && !hasAudit) {
+                } else if (auditRouterMap.includes(name) && !hasAudit) {
                     const result = await this.getActionPerm('audit_center', ['view'])
                     this.setUserRights({ type: 'audit', val: result })
                     if (!result) {

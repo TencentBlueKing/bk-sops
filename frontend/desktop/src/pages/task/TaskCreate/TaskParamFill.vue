@@ -11,7 +11,7 @@
 */
 <template>
     <div class="param-fill-wrapper">
-        <div :class="['task-info', { 'functor-task-info': userType === 'functor' }]">
+        <div :class="['task-info', { 'functor-task-info': userRights.function }]">
             <div class="task-info-title">
                 <span>{{ i18n.taskInfo }}</span>
             </div>
@@ -181,7 +181,7 @@
         computed: {
             ...mapState({
                 'templateName': state => state.template.name,
-                'userType': state => state.userType,
+                'userRights': state => state.userRights,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id
             }),
@@ -192,10 +192,10 @@
                 'appmakerDetail': state => state.appmakerDetail
             }),
             isTaskTypeShow () {
-                return this.userType !== 'functor' && this.isStartNow
+                return !this.userRights.function && this.isStartNow
             },
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
+                return !this.common && this.viewMode === 'app' && !this.userRights.function && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
             },
             nextStepPerm () {
                 return this.isStartNow ? ['create_task'] : ['create_periodic_task']
@@ -217,7 +217,7 @@
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
-                return this.common || this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
+                return this.common || this.viewMode === 'appmaker' || this.userRights.function || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -358,7 +358,7 @@
 
                     this.isSubmit = true
                     let flowType
-                    if (this.userType === 'functor') {
+                    if (this.userRights.function) {
                         flowType = 'common_func'
                     } else {
                         flowType = this.isSelectFunctionalType ? 'common_func' : 'common'

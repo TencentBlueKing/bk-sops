@@ -203,7 +203,7 @@
     import moment from 'moment-timezone'
 
     export default {
-        name: 'auditTaskHome',
+        name: 'auditHome',
         components: {
             CopyrightFooter,
             BaseTitle,

@@ -289,7 +289,7 @@
         },
         computed: {
             ...mapState({
-                userType: state => state.userType,
+                userRights: state => state.userRights,
                 view_mode: state => state.view_mode
             }),
             completePipelineData () {
@@ -361,7 +361,7 @@
             },
             // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return this.userType !== 'functor' && this.userType !== 'auditor' && this.view_mode !== 'appmaker'
+                return !this.userRights.function && !this.userRights.audit && this.view_mode !== 'appmaker'
             }
         },
         watch: {

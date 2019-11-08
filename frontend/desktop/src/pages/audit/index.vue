@@ -18,7 +18,7 @@
     import '@/utils/i18n.js'
     import { mapState } from 'vuex'
     export default {
-        name: 'layoutContent',
+        name: 'audit',
         computed: {
             ...mapState({
                 userRights: state => state.userRights

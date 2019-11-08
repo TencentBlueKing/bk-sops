@@ -20,19 +20,6 @@ function getAppLang () {
     return getCookie('blueking_language')
 }
 
-// 用户类型
-function getUserType () {
-    let userType = ''
-    if (window.IS_FUNCTOR === 1) {
-        userType = 'functor'
-    } else if (window.IS_AUDITOR === 1) {
-        userType = 'auditor'
-    } else {
-        userType = 'maintainer'
-    }
-    return userType
-}
-
 const store = new Vuex.Store({
     strict: process.env.NODE_ENV !== 'production',
     state: {
@@ -41,7 +28,6 @@ const store = new Vuex.Store({
             function: false,
             audit: false
         },
-        userType: getUserType(),
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id

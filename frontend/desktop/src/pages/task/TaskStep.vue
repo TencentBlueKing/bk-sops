@@ -68,7 +68,7 @@
         computed: {
             ...mapState({
                 'lang': state => state.lang,
-                userType: state => state.userType,
+                userRights: state => state.userRights,
                 view_mode: state => state.view_mode
             }),
             currentStepIndex () {
@@ -130,11 +130,13 @@
                     'common': `/template/common/${this.project_id}/`,
                     'adminCommon': '/admin/common/template/',
                     'templateEdit': `/template/edit/${this.project_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
-                    'functor': `/function/home/`,
-                    'auditor': `/audit/home/`,
+                    'function': `/function/home/`,
+                    'audit': `/audit/home/`,
                     'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.project_id}/`
                 }
-                const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
+                const pathMap = ['function', 'audit']
+                const type = this.$route.path.split('/')[1]
+                const currentUser = this.view_mode === 'app' ? (pathMap.includes(type) ? type : 'maintainer') : 'appmaker'
                 const entrance = this.$route.query.entrance || ''
                 let url = '/'
                 switch (currentUser) {
@@ -165,8 +167,8 @@
                             url = backObj['taskflow']
                         }
                         break
-                    case 'functor':
-                    case 'auditor':
+                    case 'function':
+                    case 'audit':
                     case 'appmaker':
                         url = backObj[currentUser]
                         break

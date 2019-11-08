@@ -269,7 +269,7 @@
     import permission from '@/mixins/permission.js'
 
     export default {
-        name: 'functorTaskHome',
+        name: 'functionHome',
         components: {
             CopyrightFooter,
             AdvanceSearch,
@@ -590,9 +590,20 @@
                 }
 
                 if (this.isCommonTemplate) {
-                    this.$router.push({ path: `/function/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id, common: 1 } })
+                    this.$router.push({
+                        name: 'functionTemplateStep',
+                        params: { project_id: this.business.id, step: 'selectnode' },
+                        query: { template_id: this.template.id, common: 1 }
+                    })
+                    // this.$router.push({ path: `/function/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id, common: 1 } })
                 } else {
-                    this.$router.push({ path: `/function/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id } })
+                    console.log('aaaa')
+                    this.$router.push({
+                        name: 'functionTemplateStep',
+                        params: { project_id: this.business.id, step: 'selectnode' },
+                        query: { template_id: this.template.id }
+                    })
+                    // this.$router.push({ path: `/function/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id } })
                 }
             },
             onCancelNewTask () {

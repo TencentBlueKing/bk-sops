@@ -244,7 +244,7 @@ const routers = new VueRouter({
             component: ProjectHome
         },
         {
-            path: '/function/',
+            path: '/function',
             name: 'function',
             component: Functor,
             children: [
@@ -260,7 +260,7 @@ const routers = new VueRouter({
                 {
                     path: 'newtask/:project_id/:step/',
                     component: TaskCreate,
-                    name: 'templateStep',
+                    name: 'functionTemplateStep',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         step: route.params.step,
@@ -273,7 +273,7 @@ const routers = new VueRouter({
                 {
                     path: 'execute/:project_id/',
                     component: TaskExecute,
-                    name: 'taskExecute',
+                    name: 'functionTaskExecute',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
@@ -284,7 +284,7 @@ const routers = new VueRouter({
             ]
         },
         {
-            path: '/audit/',
+            path: '/audit',
             name: 'audit',
             component: Audit,
             children: [
@@ -300,7 +300,7 @@ const routers = new VueRouter({
                 {
                     path: 'execute/:project_id/',
                     component: TaskExecute,
-                    name: 'taskExecute',
+                    name: 'auditTaskExecute',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
