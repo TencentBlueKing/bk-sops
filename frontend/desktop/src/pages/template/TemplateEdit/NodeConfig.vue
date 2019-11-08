@@ -836,8 +836,8 @@
                 }
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
-                this.updateActivities()
                 this.getConfig()
+                this.updateActivities()
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
