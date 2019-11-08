@@ -226,11 +226,13 @@ class NodemanCreateTaskService(Service):
             self.InputItem(name=_(u'节点类型'),
                            key='nodeman_node_type',
                            type='string',
-                           schema=StringItemSchema(description=_(u'节点类型，可以是（直连区域） AGENT, PROXY 或（非直连区域） PAGENT'))),  # noqa
+                           schema=StringItemSchema(description=_(u'节点类型，可以是 AGENT（表示直连区域安装 Agent）、 '
+                                                                 u'PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）'))),
             self.InputItem(name=_(u'操作类型'),
                            key='nodeman_op_type',
                            type='string',
-                           schema=StringItemSchema(description=_(u'任务操作类型（安装） INSTALL, （重装） REINSTALL, （卸载） UNINSTALL, （移除） REMOVE 或（升级） UPGRADE'))),  # noqa
+                           schema=StringItemSchema(description=_(u'任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、'
+                                                                 u' UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）'))),
             self.InputItem(name=_(u'主机'),
                            key='nodeman_hosts',
                            type='array',
@@ -240,17 +242,18 @@ class NodemanCreateTaskService(Service):
                                    description=_(u'主机相关信息'),
                                    property_schemas={
                                        'conn_ips': StringItemSchema(description=_(u'主机通信 IP')),
-                                       'login_ip': StringItemSchema(description=_(u'主机登录 IP，适配复杂网络时填写')),
-                                       'data_ip': StringItemSchema(description=_(u'主机数据 IP，适配复杂网络时填写')),
-                                       'cascade_ip': StringItemSchema(description=_(u'级联 IP, 安装 PROXY 时必填')),
+                                       'login_ip': StringItemSchema(description=_(u'主机登录 IP，可以为空，适配复杂网络时填写')),
+                                       'data_ip': StringItemSchema(description=_(u'主机数据 IP，可以为空，适配复杂网络时填写')),
+                                       'cascade_ip': StringItemSchema(description=_(u'级联 IP, 可以为空，安装 PROXY 时必填')),
                                        'os_type': StringItemSchema(description=_(u'操作系统类型，可以是 LINUX, WINDOWS, 或 AIX')),
-                                       'has_cygwin': StringItemSchema(description=_(u'是否安装了 cygwin, windows 操作系统时选填')),
+                                       'has_cygwin': StringItemSchema(description=_(u'是否安装了 cygwin，True：表示已安装，'
+                                                                                    u'False：表示未安装, windows 操作系统时选填')),
                                        'port': StringItemSchema(description=_(u'端口号')),
                                        'account': StringItemSchema(description=_(u'登录帐号')),
                                        'auth_type': StringItemSchema(description=_(u'认证方式，可以是 PASSWORD 或 KEY')),
-                                       'auth_key': StringItemSchema(description=_(u'根据认证方式，是登录密码或者登陆密钥，需要经过 RSA 方式加密')),
+                                       'auth_key': StringItemSchema(description=_(u'认证密钥,根据认证方式，是登录密码或者登陆密钥')),
                                    }
-                               ))),  # noqa
+                               ))),
         ]
 
 
