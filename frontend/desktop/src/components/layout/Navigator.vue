@@ -65,8 +65,9 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
-    import ProjectSelector from './ProjectSelector.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import ProjectSelector from './ProjectSelector.vue'
+    import bus from '@/utils/bus.js'
 
     const ROUTE_LIST = [
         {
@@ -94,12 +95,12 @@
         },
         {
             routerName: 'functionHome',
-            path: '/function',
+            path: '/function/',
             name: gettext('职能化')
         },
         {
             routerName: 'auditHome',
-            path: '/audit',
+            path: '/audit/',
             name: gettext('操作中心')
         },
         {
@@ -151,7 +152,7 @@
                 },
                 routerList: ROUTE_LIST,
                 appmakerRouterList: APPMAKER_ROUTER_LIST,
-                hasAdminPerm: false // 是否拥有管理员入口查看权限
+                hasAdminPerm: false // 管理员入口权限
             }
         },
         computed: {
@@ -159,7 +160,8 @@
                 view_mode: state => state.view_mode,
                 username: state => state.username,
                 app_id: state => state.app_id,
-                notFoundPage: state => state.notFoundPage
+                notFoundPage: state => state.notFoundPage,
+                userRights: state => state.userRights
             }),
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
@@ -168,7 +170,8 @@
                 appmakerTemplateId: state => state.appmakerTemplateId
             }),
             ...mapState('project', {
-                project_id: state => state.project_id
+                project_id: state => state.project_id,
+                authResource: state => state.authResource
             }),
             showProjectSelect () {
                 return this.view_mode !== 'appmaker' && this.projectList.length > 0
@@ -201,6 +204,9 @@
             ...mapMutations('project', [
                 'setProjectPerm'
             ]),
+            ...mapMutations([
+                'setUserRights'
+            ]),
             onLogoClick () {
                 if (this.view_mode !== 'app') {
                     return false
@@ -209,24 +215,93 @@
             },
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
-                    this.getAdminPerm()
                     const res = await this.loadProjectList({ limit: 0 })
                     this.setProjectPerm(res.meta)
+                    // 是否展示管理员入口
+                    const hasAdminPerm = await this.getActionPerm('admin_operate', ['view'])
+                    this.hasAdminPerm = hasAdminPerm
+                    this.checkRouterPerm()
                 }
             },
-            async getAdminPerm () {
+            /**
+             * 校验路由权限
+             * @param {String} routerName
+             */
+            async checkRouterPerm (routerName) {
+                const name = routerName || this.$route.name
+                const { function: hasFunction, audit: hasAudit } = this.userRights
+                if (name === 'functionHome' && !hasFunction) {
+                    const result = await this.getActionPerm('function_center', ['view'])
+                    this.setUserRights({ type: 'function', val: result })
+                    if (!result) {
+                        this.togglePermissionApplyPage(
+                            {
+                                type: 'function_center',
+                                name: '职能化中心'
+                            },
+                            {
+                                id: 'view',
+                                name: '查看'
+                            }
+                        )
+                    }
+                } else if (name === 'auditHome' && !hasAudit) {
+                    const result = await this.getActionPerm('audit_center', ['view'])
+                    this.setUserRights({ type: 'audit', val: result })
+                    if (!result) {
+                        this.togglePermissionApplyPage(
+                            {
+                                type: 'audit_center',
+                                name: '审计中心'
+                            },
+                            {
+                                id: 'view',
+                                name: '查看'
+                            }
+                        )
+                    }
+                }
+            },
+            /**
+             * 切换到权限申请页
+             */
+            togglePermissionApplyPage (resource, action) {
+                const permissions = []
+                const res = []
+                const { scope_id, scope_name, scope_type, scope_type_name, system_id, system_name } = this.authResource
+                res.push([{
+                    resource_type: resource.type,
+                    resource_type_name: resource.name
+                }])
+                permissions.push({
+                    scope_id,
+                    scope_name,
+                    scope_type_name,
+                    resource_type: resource.type,
+                    resource_type_name: resource.name,
+                    scope_type,
+                    system_id,
+                    system_name,
+                    resources: res,
+                    action_id: action.id,
+                    action_name: action.name
+                })
+                bus.$emit('togglePermissionApplyPage', true, 'function_center', permissions)
+            },
+            /**
+             * 获取单个类型的权限
+             * @param {String} type 类型
+             * @param {Array} actions 具体操作类型
+             */
+            async getActionPerm (type, actions) {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: 'admin_operate',
-                        action_ids: JSON.stringify(['view'])
+                        resource_type: type,
+                        action_ids: JSON.stringify(actions)
                     })
-    
-                    const hasCreatePerm = !!res.data.details.find(item => {
-                        return item.action_id === 'view' && item.is_pass
+                    return actions.every(action => {
+                        return res.data.details.some(m => m.action_id === action && m.is_pass)
                     })
-                    if (hasCreatePerm) {
-                        this.hasAdminPerm = true
-                    }
                 } catch (err) {
                     errorHandler(err, this)
                 }
@@ -236,7 +311,6 @@
              * @param {Object} route 路由信息
              */
             onGoToPath (route) {
-                /** 点击同一路由刷新当前页面 */
                 if (this.$route.name === route.routerName) {
                     return this.reload()
                 }
@@ -244,6 +318,7 @@
                 if (this.notFoundPage && this.view_mode === 'app') {
                     return this.$router.push('/')
                 }
+                this.checkRouterPerm(route.routerName)
                 const params = {}
                 const query = {}
                 route.params && route.params.forEach(m => {

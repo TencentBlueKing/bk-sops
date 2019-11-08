@@ -37,6 +37,10 @@ const store = new Vuex.Store({
     strict: process.env.NODE_ENV !== 'production',
     state: {
         username: window.USERNAME,
+        userRights: {
+            function: false,
+            audit: false
+        },
         userType: getUserType(),
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
@@ -65,6 +69,10 @@ const store = new Vuex.Store({
         },
         setSingleAtomList (state, data) {
             state.components = data
+        },
+        setUserRights (state, data) {
+            const { type, val } = data
+            state.userRights[type] = val
         }
     },
     actions: {
