@@ -48,34 +48,22 @@ const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vu
 const CacheEdit = () => import('@/pages/admin/manage/SourceEdit/CacheEdit.vue')
 const SourceSync = () => import('@/pages/admin/manage/SourceSync/index.vue')
 
-const FunctionHome = () => import('@/pages/functor/index.vue')
+const FunctionHome = () => import('@/pages/functor/FunctionList.vue')
+const Functor = () => import('@/pages/functor/index.vue')
 
-const AuditHome = () => import('@/pages/audit/index.vue')
+const AuditHome = () => import('@/pages/audit/AuditList.vue')
+const Audit = () => import('@/pages/audit/index.vue')
 
 const periodic = () => import('@/pages/periodic/index.vue')
 const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.vue')
 
 Vue.use(VueRouter)
 
-const PAGE_MAP = {
-    functor: {
-        getIndex () {
-            return '/function/home/'
-        },
-        routes: ['functionHome', 'templateStep', 'taskExecute']
+const APPMAKER = {
+    getIndex () {
+        return `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
     },
-    auditor: {
-        getIndex () {
-            return '/audit/home/'
-        },
-        routes: ['auditHome', 'taskExecute']
-    },
-    appmaker: {
-        getIndex () {
-            return `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
-        },
-        routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
-    }
+    routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
 }
 
 const routers = new VueRouter({
@@ -85,19 +73,14 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: function () {
-                const { userType, viewMode, project } = store.state
-                const { project_id } = project
-                const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
-                
-                if (PAGE_MAP[pageType]) {
-                    return PAGE_MAP[pageType].getIndex()
-                } else {
-                    return (project_id || project_id === 0) ? `/home/${project_id}/` : '/home/'
-                }
+                const viewMode = store.state.viewMode
+                return viewMode === 'appmaker'
+                    ? `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
+                    : '/home/'
             }
         },
         {
-            path: '/home/:project_id?/',
+            path: '/home/',
             name: 'home',
             component: Home,
             props: (route) => ({
@@ -115,6 +98,7 @@ const routers = new VueRouter({
                 },
                 {
                     path: 'home/:project_id?/',
+                    name: 'process',
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
@@ -124,7 +108,8 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: 'common/:project_id?/',
+                    path: 'common',
+                    name: 'commonProcess',
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
@@ -216,6 +201,7 @@ const routers = new VueRouter({
         {
             path: '/appmaker/home/:project_id?/',
             component: AppMaker,
+            name: 'appMakerList',
             props: (route) => ({
                 project_id: route.params.project_id
             }),
@@ -258,14 +244,71 @@ const routers = new VueRouter({
             component: ProjectHome
         },
         {
-            path: '/function/home/',
-            name: 'functionHome',
-            component: FunctionHome
+            path: '/function/',
+            name: 'function',
+            component: Functor,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home',
+                    name: 'functionHome',
+                    component: FunctionHome
+                },
+                {
+                    path: 'newtask/:project_id/:step/',
+                    component: TaskCreate,
+                    name: 'templateStep',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        step: route.params.step,
+                        template_id: route.query.template_id,
+                        common: route.query.common,
+                        entrance: route.query.entrance
+                    }),
+                    meta: { project: true }
+                },
+                {
+                    path: 'execute/:project_id/',
+                    component: TaskExecute,
+                    name: 'taskExecute',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        common: route.query.common,
+                        instance_id: route.query.instance_id
+                    }),
+                    meta: { project: true }
+                }
+            ]
         },
         {
-            path: '/audit/home/',
-            name: 'auditHome',
-            component: AuditHome
+            path: '/audit/',
+            name: 'audit',
+            component: Audit,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home',
+                    name: 'auditHome',
+                    component: AuditHome
+                },
+                {
+                    path: 'execute/:project_id/',
+                    component: TaskExecute,
+                    name: 'taskExecute',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        common: route.query.common,
+                        instance_id: route.query.instance_id
+                    }),
+                    meta: { project: true }
+                }
+            ]
         },
         {
             path: '/periodic',
@@ -418,12 +461,8 @@ routers.beforeEach((to, from, next) => {
     if (to.params.project_id) {
         store.commit('project/setProjectId', to.params.project_id)
     }
-
-    const { userType, viewMode } = store.state
-    const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
-    const page = PAGE_MAP[pageType]
-    if (page && !page.routes.includes(to.name)) {
-        next(page.getIndex())
+    if (store.state.viewMode === 'appmaker' && !APPMAKER.routes.includes(to.name)) {
+        next(APPMAKER.getIndex())
     } else {
         next()
     }
