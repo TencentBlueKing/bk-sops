@@ -364,8 +364,8 @@
             removeAllConnector () {
                 this.$refs.jsFlow.removeAllConnector()
             },
-            onShowNodeConfig (id, type) {
-                this.$emit('onShowNodeConfig', id, type)
+            onShowNodeConfig (id) {
+                this.$emit('onShowNodeConfig', id)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -589,8 +589,10 @@
                     this.isDisableEndPoint = false
                 }
             },
-            onBeforeDrag () {
-                this.handleReferenceLineHide()
+            onBeforeDrag (data) {
+                if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
+                    this.handleReferenceLineHide()
+                }
             },
             // 节点拖动回调
             onNodeMoving (node) {
@@ -645,7 +647,7 @@
                 const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
                 window.requestAnimationFrame(() => {
                     line.style.display = 'block'
-                    line.style.width = len + 'px'
+                    line.style.width = len - 2 + 'px'
                     line.style.transformOrigin = `top left`
                     line.style.transform = 'rotate(' + r + 'deg)'
                     if (!this.referenceLine.id) {
@@ -655,7 +657,7 @@
                 document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 移出参考线
-            handleReferenceLineHide () {
+            handleReferenceLineHide (e) {
                 const line = this.$refs.dragReferenceLine
                 if (line) {
                     line.style.display = 'none'
@@ -728,8 +730,8 @@
                 })
             },
             // 点击节点
-            onNodeClick (id, event) {
-                this.$emit('onNodeClick', id)
+            onNodeClick (id, type, event) {
+                this.$emit('onNodeClick', id, type)
                 // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
                 if (!this.editable) {
                     this.onShowNodeConfig(id)
@@ -922,7 +924,7 @@
             user-select: none;
         }
         .jtk-endpoint {
-            z-index: 2;
+            z-index: 3;
             cursor: pointer;
         }
         .jsflow-node {
