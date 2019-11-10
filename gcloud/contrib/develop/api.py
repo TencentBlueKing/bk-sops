@@ -13,15 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+import ujson as json
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from gcloud.contrib.develop.constants import INITIAL_CODE
 
 logger = logging.getLogger('root')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -58,5 +56,28 @@ def esb_get_components(request):
     result = {
         'result': True,
         'data': esb_data['data']
+    }
+    return JsonResponse(result)
+
+
+@require_GET
+def get_plugin_initial_code(request):
+    """
+    @summary: 获取初始化的插件后台代码
+    @param request:
+    @return:
+    """
+    esb_system = request.GET.get('esb_system')
+    esb_component = request.GET.get('esb_component')
+    result = {
+        'result': True,
+        'data': INITIAL_CODE.format(
+            esb_system_title=''.join([part.title() for part in esb_system.split('_')]),
+            esb_system_upper=esb_system.upper(),
+            esb_system_lower=esb_system.lower(),
+            esb_component_title=''.join([part.title() for part in esb_component.split('_')]),
+            esb_component_upper=esb_component.upper(),
+            esb_component_lower=esb_component.lower()
+        )
     }
     return JsonResponse(result)

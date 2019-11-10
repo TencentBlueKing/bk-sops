@@ -18,4 +18,5 @@ from gcloud.contrib.develop import api
 urlpatterns = [
     url(r'^api/esb_get_systems/$', api.esb_get_systems),
     url(r'^api/esb_get_components/$', api.esb_get_components),
+    url(r'^api/get_plugin_initial_code/$', api.get_plugin_initial_code),
 ]
