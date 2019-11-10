@@ -65,7 +65,7 @@
             },
             // 是否显示节点配置 icon
             isShowConfigIcon () {
-                return ['startpoint', 'endpoint'].indexOf(this.currentLocation.type) === -1
+                return ['tasknode', 'subflow'].indexOf(this.currentLocation.type) !== -1
             }
         },
         methods: {

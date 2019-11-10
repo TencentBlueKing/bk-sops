@@ -21,7 +21,7 @@
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text">{{ i18n.moveNode }}</p>
+                        <p class="text">{{i18n.afterSelect}} Ctrl +{{ i18n.moveNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                     <template v-else>
@@ -29,7 +29,7 @@
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text">{{ i18n.moveNode }}</p>
+                        <p class="text">{{i18n.afterSelect}} Ctrl + {{ i18n.moveNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                 </div>
@@ -44,10 +44,10 @@
         { emit: 'onZoomIn', keyCodes: [107, 187], ctrl: true },
         { emit: 'onZoomOut', keyCodes: [109, 189], ctrl: true },
         { emit: 'onResetPosition', keyCodes: [96, 48], ctrl: true },
-        { emit: 'onMovePosition', keyCodes: [38], ctrl: false, params: { type: 'top' } },
-        { emit: 'onMovePosition', keyCodes: [37], ctrl: false, params: { type: 'left' } },
-        { emit: 'onMovePosition', keyCodes: [40], ctrl: false, params: { type: 'bottom' } },
-        { emit: 'onMovePosition', keyCodes: [39], ctrl: false, params: { type: 'right' } }
+        { emit: 'onMovePosition', keyCodes: [38], ctrl: true, params: { type: 'top' } },
+        { emit: 'onMovePosition', keyCodes: [37], ctrl: true, params: { type: 'left' } },
+        { emit: 'onMovePosition', keyCodes: [40], ctrl: true, params: { type: 'bottom' } },
+        { emit: 'onMovePosition', keyCodes: [39], ctrl: true, params: { type: 'right' } }
     ]
     export default {
         name: 'HelpInfo',
@@ -73,7 +73,7 @@
                     selectAll: gettext('选中所有节点'),
                     afterSelect: gettext('选中后'),
                     delNode: gettext('：删除节点'),
-                    moveNode: gettext('[选中后] 箭头（上下左右）：移动流程元素'),
+                    moveNode: gettext('箭头（上下左右）：移动流程元素'),
                     cancel: gettext('：取消选中')
                 },
                 isMac,
