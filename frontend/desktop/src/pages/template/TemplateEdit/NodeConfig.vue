@@ -335,7 +335,8 @@
                     }).map(item => {
                         return {
                             id: item.template_id,
-                            name: item.name
+                            name: item.name,
+                            templateSource: item.template_source
                         }
                     })
                 }
@@ -864,8 +865,9 @@
                 })
             },
             onJumpToProcess (index) {
-                const item = this.atomList[index].id
-                const { href } = this.$router.resolve({ path: `/template/edit/${this.project_id}/?template_id=${item}` })
+                const { id, templateSource } = this.atomList[index].id
+                const path = templateSource === 'common' ? '/common/edit/?template_id=${id}' : `/template/edit/${this.project_id}/?template_id=${id}`
+                const { href } = this.$router.resolve({ path })
                 window.open(href, '_blank')
             },
             /**
