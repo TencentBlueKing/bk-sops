@@ -26,6 +26,7 @@
     </bk-tag-input>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     export default {
         name: 'MemberSelect',
