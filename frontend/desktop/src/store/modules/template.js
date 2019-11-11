@@ -35,7 +35,7 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 300,
-            y: 135,
+            y: 150,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
@@ -342,8 +342,9 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const { id, nodeId, name } = condition
-            state.gateways[nodeId]['conditions'][id].evaluate = name
+            const { id, nodeId, name, value } = condition
+            state.gateways[nodeId]['conditions'][id].name = name
+            state.gateways[nodeId]['conditions'][id].evaluate = value
         },
         // 节点增加、删除、编辑操作，数据更新
         setLocation (state, payload) {
@@ -410,8 +411,10 @@ const template = {
                         gatewayNode.outgoing.push(id)
                         if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
                             const conditions = gatewayNode.conditions
+                            const key = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             const conditionItem = {
-                                evaluate: Object.keys(conditions).length ? '1 == 0' : '1 == 1',
+                                evaluate: key,
+                                name: key,
                                 tag: `branch_${sourceNode}_${targetNode}`
                             }
                             Vue.set(conditions, id, conditionItem)
@@ -584,7 +587,7 @@ const template = {
                     state.gateways[location.id] = {
                         id: location.id,
                         incoming: location.type === 'convergegateway' ? [] : '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: location.type === 'convergegateway' ? '' : [],
                         type: ATOM_TYPE_DICT[location.type]
                     }
@@ -641,7 +644,7 @@ const template = {
                     state.start_event = {
                         id: location.id,
                         incoming: '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: '',
                         type: 'EmptyStartEvent'
                     }
@@ -679,7 +682,7 @@ const template = {
                     state.end_event = {
                         id: location.id,
                         incoming: '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: '',
                         type: 'EmptyEndEvent'
                     }
@@ -768,7 +771,9 @@ const template = {
                     stage_name: item.stage_name,
                     status: item.status,
                     x: item.x,
-                    y: item.y
+                    y: item.y,
+                    group: item.group,
+                    icon: item.icon
                 }
             })
             // 完整的画布数据

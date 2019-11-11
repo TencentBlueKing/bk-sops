@@ -29,12 +29,6 @@
     }
 }
 
-.common-icon-node-subflow:before {
-  content: "\e937";
-}
-.common-icon-node-tasknode:before {
-  content: "\e938";
-}
 .common-icon-add:before {
   content: "\e900";
 }
@@ -155,96 +149,117 @@
 .common-icon-four-square:before {
   content: "\e927";
 }
-.common-icon-gray-edit:before {
+.common-icon-gear:before {
   content: "\e928";
 }
-.common-icon-hide-right:before {
+.common-icon-gray-edit:before {
   content: "\e929";
 }
-.common-icon-info:before {
+.common-icon-hide-right:before {
   content: "\e92a";
 }
-.common-icon-link:before {
+.common-icon-info:before {
   content: "\e92b";
 }
-.common-icon-loading:before {
+.common-icon-link:before {
   content: "\e92c";
 }
-.common-icon-lock-closed:before {
+.common-icon-loading:before {
   content: "\e92d";
 }
-.common-icon-lock-disable:before {
+.common-icon-lock-closed:before {
   content: "\e92e";
 }
-.common-icon-lock-opened:before {
+.common-icon-lock-disable:before {
   content: "\e92f";
 }
-.common-icon-lock-opening:before {
+.common-icon-lock-opened:before {
   content: "\e930";
 }
-.common-icon-lock:before {
+.common-icon-lock-opening:before {
   content: "\e931";
 }
-.common-icon-marquee:before {
+.common-icon-lock:before {
   content: "\e932";
 }
-.common-icon-no-data:before {
+.common-icon-marquee:before {
   content: "\e933";
 }
-.common-icon-node-branchgateway:before {
+.common-icon-no-data:before {
   content: "\e934";
 }
-.common-icon-node-convergegateway:before {
+.common-icon-node-branchgateway:before {
   content: "\e935";
 }
-.common-icon-node-parallelgateway:before {
+.common-icon-node-convergegateway:before {
   content: "\e936";
 }
-.common-icon-paper:before {
+.common-icon-node-parallelgateway:before {
+  content: "\e937";
+}
+.common-icon-node-subflow:before {
+  content: "\e938";
+}
+.common-icon-node-tasknode:before {
   content: "\e939";
 }
-.common-icon-pin:before {
+.common-icon-paper:before {
   content: "\e93a";
 }
-.common-icon-reduction:before {
+.common-icon-pin:before {
   content: "\e93b";
 }
-.common-icon-return-arrow:before {
+.common-icon-reduction:before {
   content: "\e93c";
 }
-.common-icon-right-triangle:before {
+.common-icon-return-arrow:before {
   content: "\e93d";
 }
-.common-icon-search:before {
+.common-icon-right-triangle:before {
   content: "\e93e";
 }
-.common-icon-show-left:before {
+.common-icon-search:before {
   content: "\e93f";
 }
-.common-icon-solid-eye:before {
+.common-icon-show-left:before {
   content: "\e940";
 }
-.common-icon-source-in:before {
+.common-icon-solid-eye:before {
   content: "\e941";
 }
-.common-icon-source-out:before {
+.common-icon-source-in:before {
   content: "\e942";
 }
-.common-icon-square-attribute:before {
+.common-icon-source-out:before {
   content: "\e943";
 }
-.common-icon-square-code:before {
+.common-icon-square-attribute:before {
   content: "\e944";
 }
-.common-icon-subflow-mark:before {
+.common-icon-square-code:before {
   content: "\e945";
 }
-.common-icon-tooltips:before {
+.common-icon-subflow-mark:before {
   content: "\e946";
 }
-.common-icon-zoom-in:before {
+.common-icon-sys-bk:before {
   content: "\e947";
 }
-.common-icon-zoom-out:before {
+.common-icon-sys-cmdb:before {
   content: "\e948";
+}
+.common-icon-sys-default:before {
+  content: "\e949";
+}
+.common-icon-sys-job:before {
+  content: "\e94a";
+}
+.common-icon-tooltips:before {
+  content: "\e94b";
+}
+.common-icon-zoom-in:before {
+  content: "\e94c";
+}
+.common-icon-zoom-out:before {
+  content: "\e94d";
 }

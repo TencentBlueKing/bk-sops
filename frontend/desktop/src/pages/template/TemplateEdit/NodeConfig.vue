@@ -426,6 +426,12 @@
                     hook: this.inputAtomHook,
                     value: this.inputAtomData
                 }
+            },
+            groupInfo () {
+                if (this.isSingleAtom && this.currentAtom) {
+                    return this.singleAtom.find(item => item.code === this.currentAtom)
+                }
+                return {}
             }
         },
         watch: {
@@ -819,7 +825,9 @@
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
                         can_retry: this.isRetry,
-                        isSkipped: this.isSkip
+                        isSkipped: this.isSkip,
+                        group: this.groupInfo.group_name,
+                        icon: this.groupInfo.group_icon
                     })
                     this.$emit('hideConfigPanel')
                     return isValid
@@ -1151,7 +1159,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .node-config-panel {
     position: absolute;
-    top: 60px;
+    top: 59px;
     right: 476px;
     padding: 20px;
     width: 694px;
