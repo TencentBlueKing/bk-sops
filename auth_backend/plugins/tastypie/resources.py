@@ -15,7 +15,9 @@ from __future__ import absolute_import, unicode_literals
 
 from builtins import object, str
 
-from auth_backend.plugins.utils import search_all_resources_authorized_actions
+from auth_backend.plugins.utils import (
+    search_all_resources_authorized_actions,
+    search_instance_authorized_actions)
 
 
 class BkSaaSLabeledDataResourceMixin(object):
@@ -28,8 +30,12 @@ class BkSaaSLabeledDataResourceMixin(object):
         inspect = getattr(self._meta, 'inspect', None)
         scope_id = inspect.scope_id(bundle) if inspect else None
 
-        resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource,
-                                                                  scope_id=scope_id)
+        resources_perms = search_all_resources_authorized_actions(
+            username=username,
+            resource_type=auth_resource.rtype,
+            auth_resource=auth_resource,
+            scope_id=scope_id
+        )
         obj_id = str(inspect.resource_id(bundle)) if inspect else str(bundle.obj.pk)
         auth_actions = resources_perms.get(obj_id, [])
         bundle.data['auth_actions'] = auth_actions
@@ -44,14 +50,27 @@ class BkSaaSLabeledDataResourceMixin(object):
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
+        bundle = data
         auth_resource = getattr(self._meta, 'auth_resource', None)
         if auth_resource is None:
             return data
 
         resource_info = auth_resource.base_info()
+        inspect = getattr(self._meta, 'inspect', None)
         if not resource_info['scope_id']:
-            inspect = getattr(self._meta, 'inspect', None)
             resource_info['scope_id'] = inspect.scope_id(data) if inspect else None
+
+        # 防止 dehydrate 中过期缓存导致实例 detail 数据请求时没有权限
+        if not data.data['auth_actions']:
+            obj_id = str(inspect.resource_id(bundle)) if inspect else str(bundle.obj.pk)
+            data.data['auth_actions'] = search_instance_authorized_actions(
+                username=request.user.username,
+                resource_type=auth_resource.rtype,
+                auth_resource=auth_resource,
+                instance_id=obj_id,
+                instance=bundle.obj,
+                scope_id=resource_info['scope_id']
+            )
 
         data.data['auth_operations'] = auth_resource.operations
         data.data['auth_resource'] = resource_info
