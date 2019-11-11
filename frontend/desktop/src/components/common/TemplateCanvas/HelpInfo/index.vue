@@ -21,8 +21,8 @@
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text">Command + {{i18n.multiple}}</p>
-                        <p class="text">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
+                        <p class="text" v-show="editable">Command + {{i18n.multiple}}</p>
+                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                     <template v-else>
@@ -30,8 +30,8 @@
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text">Ctrl + {{i18n.multiple}}</p>
-                        <p class="text">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
+                        <p class="text" v-show="editable">Ctrl + {{i18n.multiple}}</p>
+                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                 </div>
