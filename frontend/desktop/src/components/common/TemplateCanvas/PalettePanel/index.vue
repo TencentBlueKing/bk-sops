@@ -176,7 +176,7 @@
     .palette-container{
         position: relative;
         height: 100%;
-        background: #f2f2f2;
+        background: #ffffff;
         border-right: 1px solid #dddddd;
         z-index: 3;
         .palette-item {
