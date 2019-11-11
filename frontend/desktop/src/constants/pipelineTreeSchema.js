@@ -102,8 +102,7 @@ const subProcess = {
             type: 'object',
             properties: {
                 template_id: {
-                    type: 'string',
-                    minLenth: 1
+                    type: ['string', 'number']
                 },
                 name: {
                     type: 'string',
