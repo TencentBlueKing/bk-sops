@@ -726,7 +726,7 @@
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
@@ -903,7 +903,7 @@
             // 校验节点配置
             checkNodeAndSaveTemplate () {
                 // 校验节点数目
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
@@ -916,6 +916,7 @@
                     errorHandler({ message: i18n.error }, this)
                     return
                 }
+
                 const isAllNodeValid = this.validateAtomNode()
                 const isAllConditionValid = this.checkConditionData(true)
                 if (isAllNodeValid && isAllConditionValid) {
