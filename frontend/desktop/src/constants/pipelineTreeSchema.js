@@ -62,8 +62,11 @@ const serviceActivity = {
                     },
                     required: ['code', 'data']
                 },
-                // error_ignorable 为旧数据字段，retryable 为新规范字段
                 error_ignorable: {
+                    type: 'boolean'
+                },
+                // can_retry 为旧数据字段，retryable 为新规范字段
+                can_retry: {
                     type: 'boolean'
                 },
                 retryable: {
@@ -80,10 +83,10 @@ const serviceActivity = {
             required: ['name', 'type', 'component'],
             oneOf: [ // 这两个旧字段统一替换，不存在交叉存在的情况
                 {
-                    required: ['error_ignorable', 'isSkipped']
+                    required: ['error_ignorable', 'can_retry', 'isSkipped']
                 },
                 {
-                    required: ['retryable', 'skippable']
+                    required: ['error_ignorable', 'retryable', 'skippable']
                 }
             ]
         }
