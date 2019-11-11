@@ -284,6 +284,14 @@
                         })
                     })
                     this.$refs.jsFlow.clearNodesDragSelection()
+                } else if ([37, 38, 39, 40].includes(e.keyCode)) { // 选中后支持上下左右移动节点
+                    const typeMap = {
+                        '37': 'left',
+                        '38': 'top',
+                        '39': 'right',
+                        '40': 'bottom'
+                    }
+                    this.onMovePosition(typeMap[e.keyCode])
                 }
             },
             nodeLineDeletehandler (e) {
@@ -851,11 +859,10 @@
                 }
             },
             // 移动微调节点位置
-            onMovePosition (data) {
+            onMovePosition (type) {
                 if (!this.selectedNodes.length) {
                     return false
                 }
-                const type = data.type
                 this.onMoveNodesByHand(this.selectedNodes, type)
             },
             /**
