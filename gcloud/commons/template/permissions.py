@@ -31,7 +31,7 @@ common_template_resource = DjangoModelResource(
         Action(id='view', name=_("查看"), is_instance_related=True),
         Action(id='edit', name=_("编辑"), is_instance_related=True),
         Action(id='delete', name=_("删除"), is_instance_related=True),
-        Action(id='create_task', name=_("新建任务"), is_instance_related=True)
+        Action(id='create_task', name=_("新建任务"), is_instance_related=True),
         Action(id='create_periodic_task', name=_("新建周期任务"), is_instance_related=True)
     ],
     operations=[
