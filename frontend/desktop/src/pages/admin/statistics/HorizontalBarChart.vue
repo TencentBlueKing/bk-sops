@@ -93,6 +93,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import NoData from '@/components/common/base/NoData.vue'
 
     const SORT_LIST = [
