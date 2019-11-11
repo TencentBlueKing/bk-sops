@@ -14,11 +14,12 @@ specific language governing permissions and limitations under the License.
 from pipeline.core.constants import PE
 
 CANVAS_WIDTH = 1300
-START_X = 60
-START_Y = 100
-EVENT_OR_GATEWAY_SHIFT_Y = 15
-SHIFT_X = 180
-SHIFT_Y = 120
+POSITION = {
+    'activity_size': (150, 42),
+    'event_size': (42, 42),
+    'gateway_size': (32, 32),
+    'start': (60, 100)
+}
 
 PIPELINE_ELEMENT_TO_WEB = {
     PE.ServiceActivity: 'tasknode',
@@ -31,9 +32,15 @@ PIPELINE_ELEMENT_TO_WEB = {
 }
 
 
-def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
+def draw_branch_group(start_x, start_y, start_gateway, shift_x, shift_y, gateway_shift_y, pipeline, all_nodes):
     """
     @summary: 绘制一个以分支/并行网关开始、以配对汇聚网关结束的多分支流程
+    @param start_x: 起始网关绝对定位X轴坐标
+    @param start_y: 起始网关绝对定位轴坐标
+    @param start_gateway: 起始网关数据
+    @param shift_x: 节点之间的平均X轴距离
+    @param shift_y: 节点之间的平均Y轴距离
+    @param gateway_shift_y: 网关节点相对任务节点的轴偏移
     @return:
     """
     flows = pipeline['flows']
@@ -43,7 +50,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
         'name': start_gateway[PE.name],
         'status': '',
         'x': start_x,
-        'y': start_y + EVENT_OR_GATEWAY_SHIFT_Y,
+        'y': start_y + gateway_shift_y,
     }]
     next_y = start_y
     line = []
@@ -52,7 +59,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
     for flow_index, flow_id in enumerate(start_gateway[PE.outgoing]):
         current_flow = flows[flow_id]
         next_node = all_nodes[current_flow[PE.target]]
-        next_x = start_x + SHIFT_X
+        next_x = start_x + shift_x
         # 第一个分支，和分支/并行网关横向排列
         if flow_index == 0:
             line.append({
@@ -88,7 +95,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
                     'id': next_node[PE.id],
                     'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
                     'name': next_node[PE.name],
-                    'stage_name': next_node[PE.stage_name],
+                    'stage_name': next_node.get(PE.stage_name),
                     'status': '',
                     'x': next_x,
                     'y': next_y,
@@ -105,13 +112,13 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
                         'id': current_flow[PE.target]
                     }
                 })
-                next_x += SHIFT_X
+                next_x += shift_x
                 next_node = all_nodes[current_flow[PE.target]]
             elif next_node[PE.type] in PE.BranchGateways:
                 # 把并行/分支网关和配对的汇聚网关之间的节点加入 location（包含网关）、line（包含汇聚网关下一个节点）
                 # 然后把 next_node 设置为汇聚网关下一个节点
                 branch_location, branch_line, next_node, next_x, next_y = draw_branch_group(
-                    next_x, next_y, next_node, pipeline, all_nodes)
+                    next_x, next_y, next_node, shift_x, shift_y, gateway_shift_y, pipeline, all_nodes)
                 location += branch_location
                 line += branch_line
 
@@ -119,7 +126,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
         if flow_index != 0:
             line[-1]['target']['arrow'] = 'Bottom'
 
-        next_y += SHIFT_Y
+        next_y += shift_y
         branch_next_x.append(next_x)
 
     # 最后加入汇聚网关节点和汇聚网关出度顺序流
@@ -130,7 +137,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
         'name': next_node[PE.name],
         'status': '',
         'x': next_x,
-        'y': start_y + EVENT_OR_GATEWAY_SHIFT_Y,
+        'y': start_y + gateway_shift_y,
     })
     current_flow = flows[next_node[PE.outgoing]]
     line.append({
@@ -145,18 +152,21 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
         }
     })
     next_node = all_nodes[current_flow[PE.target]]
-    next_x += SHIFT_X
+    next_x += shift_x
 
-    branch_max_y = next_y - SHIFT_Y
+    branch_max_y = next_y - shift_y
     return location, line, next_node, next_x, branch_max_y
 
 
-def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVAS_WIDTH):
+def draw_pipeline(pipeline, activity_size=POSITION['activity_size'], event_size=POSITION['event_size'],
+                  gateway_size=POSITION['gateway_size'], start=POSITION['start'], canvas_width=CANVAS_WIDTH):
     """
     @summary：将后台 pipeline tree 转换成带前端 location、line 画布信息的数据
     @param pipeline: 后台流程树
-    @param start_x: 开始节点绝对定位X轴坐标
-    @param start_y: 开始节点绝对定位轴坐标
+    @param activity_size: 任务节点长宽，如 (150, 42)
+    @param event_size: 事件节点长宽，如 (40, 40)
+    @param gateway_size: 网关节点长宽，如 (36, 36)
+    @param start: 开始节点绝对定位X、Y轴坐标
     @param canvas_width: 画布最大宽度
     @return:
     """
@@ -165,12 +175,20 @@ def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVA
     all_nodes.update(pipeline['gateways'])
     all_nodes.update({pipeline['start_event']['id']: pipeline['start_event']})
     all_nodes.update({pipeline['end_event']['id']: pipeline['end_event']})
+    start_x, start_y = start
+
+    # 节点之间的平均距离
+    shift_x = max(activity_size[0], event_size[0], gateway_size[0]) * 1.2
+    shift_y = max(activity_size[1], event_size[1], gateway_size[1]) * 2
+    # 开始/结束事件节点纵坐标偏差
+    event_shift_y = (activity_size[1] - event_size[1]) * 0.5
+    gateway_shift_y = (activity_size[1] - gateway_size[1]) * 0.5
 
     flows = pipeline['flows']
     start_node = pipeline['start_event']
     current_flow = flows[start_node['outgoing']]
     next_node = all_nodes[current_flow[PE.target]]
-    next_x = start_x + SHIFT_X
+    next_x = start_x + shift_x
     next_y = start_y
 
     location = [{
@@ -179,7 +197,7 @@ def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVA
         'name': start_node[PE.name],
         'status': '',
         'x': start_x,
-        'y': start_y + EVENT_OR_GATEWAY_SHIFT_Y,
+        'y': start_y + event_shift_y,
     }]
     line = [{
         'id': current_flow[PE.id],
@@ -196,11 +214,11 @@ def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVA
     branch_max_height = [next_y]
     while next_node[PE.type] != PE.EmptyEndEvent:
         # 宽度超出画布，换行处理
-        if next_x > canvas_width - SHIFT_X:
+        if next_x > canvas_width - shift_x:
             next_x = start_x
-            next_y = max(branch_max_height) + SHIFT_Y
-            # 换行的 line 设置最优折线比例，也就是下折线高度为 0.5 * SHIFT_Y
-            line[-1]['midpoint'] = 1 - SHIFT_Y * 0.5 / (next_y - branch_max_height[0])
+            next_y = max(branch_max_height) + shift_y
+            # 换行的 line 设置最优折线比例，也就是下折线高度为 0.5 * shift_y
+            line[-1]['midpoint'] = 1 - shift_y * 0.5 / (next_y - branch_max_height[0])
             branch_max_height = [next_y]
         # 重置为当前行第一个节点的 y 轴
         else:
@@ -211,7 +229,7 @@ def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVA
                 'id': next_node[PE.id],
                 'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
                 'name': next_node[PE.name],
-                'stage_name': next_node[PE.stage_name],
+                'stage_name': next_node.get(PE.stage_name),
                 'status': '',
                 'x': next_x,
                 'y': next_y,
@@ -228,13 +246,13 @@ def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVA
                     'id': current_flow[PE.target]
                 }
             })
-            next_x += SHIFT_X
+            next_x += shift_x
             next_node = all_nodes[current_flow[PE.target]]
         elif next_node[PE.type] in PE.BranchGateways:
             # 把并行/分支网关和配对的汇聚网关之间的节点加入 location（包含网关）、line（包含汇聚网关下一个节点）
             # 然后把 next_node 设置为汇聚网关下一个节点
             branch_location, branch_line, next_node, next_x, next_y = draw_branch_group(
-                next_x, next_y, next_node, pipeline, all_nodes)
+                next_x, next_y, next_node, shift_x, shift_y, gateway_shift_y, pipeline, all_nodes)
             location += branch_location
             line += branch_line
             branch_max_height.append(next_y)
@@ -246,7 +264,7 @@ def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVA
         'name': next_node[PE.name],
         'status': '',
         'x': next_x,
-        'y': branch_max_height[0] + EVENT_OR_GATEWAY_SHIFT_Y,
+        'y': branch_max_height[0] + event_shift_y,
     })
 
     pipeline.update({

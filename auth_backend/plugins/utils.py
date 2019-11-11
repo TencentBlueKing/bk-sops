@@ -16,10 +16,10 @@ from __future__ import absolute_import, unicode_literals
 import logging
 
 import six
-from blueapps.utils.cache import with_cache
 from builtins import str
 
 from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
+from blueapps.utils.cache import with_cache
 
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')
@@ -50,7 +50,7 @@ def build_need_permission(auth_resource, action_id, instance=None, scope_id=None
 
 @with_cache(seconds=10,
             prefix='{}_search_all_resources_authorized_actions'.format(CACHE_PREFIX),
-            ex=[0, 1, "action_ids"])
+            ex=['username', 'resource_type', 'action_ids'])
 def search_all_resources_authorized_actions(username, resource_type, auth_resource, action_ids=None, scope_id=None):
     """
     @summary: 获取所有用户对某个资源类型的所有资源实例的权限
@@ -84,3 +84,40 @@ def search_all_resources_authorized_actions(username, resource_type, auth_resour
                     resource_id = str(relative_resource['resource_id'])
                     resources_perms.setdefault(resource_id, []).append(action_resource['action_id'])
     return resources_perms
+
+
+@with_cache(seconds=10,
+            prefix='{}_search_instance_authorized_actions'.format(CACHE_PREFIX),
+            ex=['username', 'resource_type', 'instance_id', 'action_ids'])
+def search_instance_authorized_actions(
+    username,
+    resource_type,
+    auth_resource,
+    instance_id,
+    instance,
+    action_ids=None,
+    scope_id=None
+):
+    if action_ids is None:
+        action_ids = list(auth_resource.actions_map.keys())
+    verify_result = auth_resource.backend.verify_perms(
+        resource=auth_resource,
+        principal_type=PRINCIPAL_TYPE_USER,
+        principal_id=username,
+        action_ids=action_ids,
+        instance=instance,
+        scope_id=scope_id
+    )
+    if not verify_result['result']:
+        logger.error("Search authorized actions of Resource[{resource}] return error: {error}".format(
+            resource=auth_resource.name,
+            error=verify_result['message']
+        ))
+        return []
+
+    authorized_actions = []
+    for action_info in verify_result['data']:
+        if action_info['is_pass']:
+            authorized_actions.append(action_info['action_id'])
+
+    return authorized_actions

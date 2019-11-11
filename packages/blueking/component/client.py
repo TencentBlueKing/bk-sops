@@ -19,6 +19,9 @@ import urllib
 import ujson as json
 import requests
 
+import ujson as json
+import requests
+
 from . import conf
 from . import collections
 from .utils import get_signature

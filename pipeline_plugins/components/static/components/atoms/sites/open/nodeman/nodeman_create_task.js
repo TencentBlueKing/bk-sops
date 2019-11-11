@@ -14,15 +14,29 @@
     $.atoms.nodeman_create_task = [
         {
             tag_code: "biz_cc_id",
-            type: "input",
+            type: "select",
             attrs: {
-                name: gettext("业务ID"),
+                name: gettext("业务"),
                 hookable: true,
+                remote: true,
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: !$.context.canSelectBiz(),
                 validation: [
                     {
                         type: "required"
                     }
                 ]
+            },
+            methods: {
+                _tag_init: function () {
+                    if (this.value) {
+                        return
+                    }
+                    this._set_value($.context.getBkBizId())
+                }
             }
         },
         {
@@ -42,12 +56,12 @@
             tag_code: "nodeman_node_type",
             type: "radio",
             attrs: {
-                name: gettext("主机节点类型"),
+                name: gettext("节点类型"),
                 hookable: true,
                 items: [
-                    {value: "AGENT", name: gettext("AGENT")},
+                    {value: "AGENT", name: gettext("直连区域AGENT")},
                     {value: "PROXY", name: gettext("PROXY")},
-                    {value: "PAGENT", name: gettext("PAGENT")}
+                    {value: "PAGENT", name: gettext("非直连区域AGENT")}
                 ],
                 default: "AGENT",
                 validation: [
@@ -87,10 +101,10 @@
                 columns: [
                     {
                         tag_code: "conn_ips",
-                        type: "input",
+                        type: "textarea",
                         attrs: {
                             name: gettext("通信IP"),
-                            placeholder: gettext("多个用英文逗号隔开"),
+                            placeholder: gettext("多个用,隔开"),
                             width: '100px',
                             editable: true,
                             validation: [
@@ -102,20 +116,20 @@
                     },
                     {
                         tag_code: "login_ip",
-                        type: "input",
+                        type: "textarea",
                         attrs: {
                             name: gettext("登录IP"),
-                            placeholder: gettext("适配复杂网络时填写"),
+                            placeholder: gettext("可为空，适配复杂网络时填写"),
                             width: '100px',
                             editable: true
                         }
                     },
                     {
                         tag_code: "data_ip",
-                        type: "input",
+                        type: "textarea",
                         attrs: {
                             name: gettext("数据IP"),
-                            placeholder: gettext("适配复杂网络时填写"),
+                            placeholder: gettext("可为空，适配复杂网络时填写"),
                             width: '100px',
                             editable: true,
 
@@ -123,10 +137,10 @@
                     },
                     {
                         tag_code: "cascade_ip",
-                        type: "input",
+                        type: "textarea",
                         attrs: {
                             name: gettext("级联IP"),
-                            placeholder: gettext("安装Proxy时必填"),
+                            placeholder: gettext("可为空，节点类型是 PROXY 时必填"),
                             width: '100px',
                             editable: true
                         }
@@ -210,21 +224,17 @@
                         }
                     },
                     {
-                        tag_code: "password",
+                        tag_code: "auth_key",
                         type: "input",
                         attrs: {
-                            name: gettext("登录密码"),
+                            name: gettext("认证密钥"),
                             width: '100px',
-                            editable: true
-                        }
-                    },
-                    {
-                        tag_code: "key",
-                        type: "input",
-                        attrs: {
-                            name: gettext("登录秘钥"),
-                            width: '100px',
-                            editable: true
+                            editable: true,
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     }
                 ],

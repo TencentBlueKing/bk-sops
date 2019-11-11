@@ -18,6 +18,7 @@ Create a periodic task
 | Field          |  Type       | Required   |  Description             |
 |---------------|------------|--------|------------------|
 |   template_id    |   string     |   YES   |  ID of template which used to create task |
+| template_source | string   |   NO    | source of flow，default value is business. business: from business, common: from common flow |
 |   bk_biz_id    |   string     |   YES   |  business ID |
 |   name    |   string     |   YES   |  name of task |
 |   cron    |   dict     |   YES   |  crontab dict |
@@ -284,6 +285,7 @@ constant value
 |  enabled      |    bool    |   is the task enabled   |
 |  id      |    int    |    task id   |
 |  template_id      |    string    |    template id for the task   |
+| template_source | string  | source of flow，default value is business. business: from business, common: from common flow |
 |  form      |    dict    |    form dict for the task   |
 |  pipeline_tree      |    dict    |    flow tree for the task   |
 

@@ -21,6 +21,18 @@ from auth_backend.backends import get_backend_from_config
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.core.permissions import project_resource
 
+
+class TaskFlowInstanceInspect(FixedCreatorTypeFieldInspect):
+
+    def __init__(self, *args, **kwargs):
+        super(TaskFlowInstanceInspect, self).__init__(*args, **kwargs)
+
+    def properties(self, instance):
+        return {
+            'is_function_task': 'true' if instance.flow_type == 'common_func' else 'false'
+        }
+
+
 taskflow_resource = DjangoModelResource(
     rtype='task',
     name=_("任务实例"),
@@ -66,9 +78,17 @@ taskflow_resource = DjangoModelResource(
     id_field='id',
     tomb_field='is_deleted',
     backend=get_backend_from_config(),
-    inspect=FixedCreatorTypeFieldInspect(creator_type='user',
-                                         creator_id_f='creator',
-                                         resource_id_f='id',
-                                         resource_name_f='name',
-                                         parent_f='project',
-                                         scope_id_f=None))
+    inspect=TaskFlowInstanceInspect(
+        creator_type='user',
+        creator_id_f='creator',
+        resource_id_f='id',
+        resource_name_f='name',
+        parent_f='project',
+        scope_id_f=None),
+    properties=[
+        {
+            'key': 'is_function_task',
+            'name': u"是否为职能化任务"
+        }
+    ]
+)

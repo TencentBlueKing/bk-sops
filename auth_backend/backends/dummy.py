@@ -13,12 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import, unicode_literals
 
-try:
-    from UserDict import UserDict
-except ImportError:
-    from collections import UserDict
-
 from django.contrib.auth import get_user_model
+from six.moves import UserDict
 
 from auth_backend.backends import utils
 from auth_backend.backends.base import AuthBackend

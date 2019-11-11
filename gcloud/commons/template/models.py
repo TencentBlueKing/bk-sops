@@ -114,7 +114,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         }
         return result
 
-    def _perform_import(self, template_data, check_info, override, defaults_getter, resource):
+    def _perform_import(self, template_data, check_info, override, defaults_getter, resource, operator):
         template = template_data['template']
         tid_to_reuse = {}
 
@@ -151,7 +151,11 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
                 new_objects.append(self.model(**defaults))
                 new_objects_template_ids.add(template_dict['pipeline_template_id'])
 
-        self.model.objects.bulk_create(new_objects)
+        # update creator when templates are created
+        PipelineTemplate.objects.filter(template_id__in=new_objects_template_ids).update(creator=operator)
+
+        if not override:
+            self.model.objects.bulk_create(new_objects)
 
         create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
         if create_templates:
@@ -338,7 +342,7 @@ class CommonTemplateManager(BaseTemplateManager):
             data['override_template'] = []
         return data
 
-    def import_templates(self, template_data, override):
+    def import_templates(self, template_data, override, operator=None):
         check_info = self.import_operation_check(template_data)
 
         # operation validation check
@@ -363,7 +367,8 @@ class CommonTemplateManager(BaseTemplateManager):
                                                                   check_info=check_info,
                                                                   override=override,
                                                                   defaults_getter=defaults_getter,
-                                                                  resource=resource_type_lib['common_flow'])
+                                                                  resource=resource_type_lib['common_flow'],
+                                                                  operator=operator)
 
 
 class CommonTemplate(BaseTemplate):

@@ -113,6 +113,7 @@
                     :editable="false"
                     :show-palette="false"
                     :canvas-data="canvasData"
+                    @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onRetryClick="onRetryClick"
                     @onSkipClick="onSkipClick"
@@ -255,12 +256,11 @@
                     checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
-                isloadCacheStatus: false,
                 isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
-                cacheNodeId: '',
                 nodeInfoType: '',
                 state: '',
+                selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
                 instanceStatus: {},
                 taskParamsType: '',
@@ -271,6 +271,7 @@
                 nodeSwitching: false,
                 isGatewaySelectDialogShow: false,
                 gatewayBranches: [],
+                canvasMountedQueues: [], // canvas pending queues
                 pending: {
                     skip: false,
                     selectGateway: false,
@@ -402,13 +403,19 @@
                         instance_id: this.taskId,
                         project_id: this.project_id
                     }
-                    if (this.selectedFlowPath.length > 1) {
+                    if (this.selectedFlowPath.length > 1 && this.selectedFlowPath[1].type !== 'ServiceActivity') {
                         data.instance_id = this.instance_id
                         data.subprocess_id = this.taskId
                     }
-                    const instanceStatus = !this.isloadCacheStatus
-                        ? await this.getInstanceStatus(data)
-                        : await this.getCacheStatusData()
+                    let instanceStatus = {}
+                    if (['FINISHED', 'FAILED'].includes(this.state)
+                        && this.instanceStatus.children
+                        && this.instanceStatus.children[this.taskId]
+                    ) {
+                        instanceStatus = await this.getCacheStatusData()
+                    } else {
+                        instanceStatus = await this.getInstanceStatus(data)
+                    }
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
@@ -435,11 +442,10 @@
              */
             getCacheStatusData () {
                 return new Promise((resolve) => {
-                    this.isloadCacheStatus = false
                     const cacheStatus = this.instanceStatus.children
                     setTimeout(() => {
                         resolve({
-                            data: cacheStatus[this.cacheNodeId],
+                            data: cacheStatus[this.taskId],
                             result: true
                         })
                     }, 0)
@@ -523,7 +529,7 @@
                 try {
                     const res = await this.instanceRevoke(this.instance_id)
                     if (res.result) {
-                        this.state = 'REVOKE'
+                        this.state = 'REVOKED'
                         this.$bkMessage({
                             message: gettext('任务撤销成功'),
                             theme: 'success'
@@ -660,10 +666,17 @@
                 }
             },
             handleNodeInfoPanelHide (e) {
+                if (dom.parentClsContains('canvas-node', e.target)) {
+                    return false
+                }
                 const classList = e.target.classList
                 const isParamsBtn = classList.contains('params-btn')
                 const isTooltipBtn = classList.contains('tooltip-btn')
-                if (!this.isNodeInfoPanelShow || isParamsBtn || isTooltipBtn) {
+                if (!this.isNodeInfoPanelShow
+                    || isParamsBtn
+                    || isTooltipBtn
+                    || e.target.className.indexOf('bk-option') > -1
+                ) {
                     return
                 }
                 const NodeInfoPanel = document.querySelector('.node-info-panel')
@@ -700,7 +713,7 @@
                     branches.push({
                         id: item,
                         node_id: id,
-                        name: nodeGateway.conditions[item].evaluate
+                        name: nodeGateway.conditions[item].name || nodeGateway.conditions[item].evaluate
                     })
                 }
                 this.gatewayBranches = branches
@@ -855,11 +868,10 @@
                 const actionType = 'task' + action.charAt(0).toUpperCase() + action.slice(1)
                 this[actionType]()
             },
-            onNodeClick (id) {
-                const node = this.canvasData.locations.filter(item => item.id === id)[0]
-                if (node.type === 'tasknode') {
+            onNodeClick (id, type) {
+                if (type === 'tasknode') {
                     this.handleSingleNodeClick(id, 'singleAtom')
-                } else if (node.type === 'subflow') {
+                } else if (type === 'subflow') {
                     this.handleSubflowAtomClick(id)
                 } else {
                     this.handleSingleNodeClick(id, 'controlNode')
@@ -909,11 +921,6 @@
                     type: 'SubProcess'
                 })
                 this.pipelineData = this.pipelineData.activities[id].pipeline
-                // 子流程完成或失败时，点击获取接口缓存的数据
-                if (['FINISHED', 'FAILED'].includes(this.state)) {
-                    this.isloadCacheStatus = true
-                    this.cacheNodeId = id
-                }
                 this.updateTaskStatus(id)
             },
             // 面包屑点击
@@ -945,6 +952,7 @@
             },
             onClickTreeNode (nodeHeirarchy, nodeType) {
                 let nodeActivities
+                let parentNodeActivities
                 const nodePath = [{
                     id: this.instance_id,
                     name: this.instanceName,
@@ -961,35 +969,84 @@
                             nodeId: nodeActivities.id,
                             type: nodeActivities.type
                         })
+                        if (nodeActivities.type === 'SubProcess') {
+                            parentNodeActivities = nodeActivities
+                        }
                     })
+
                     this.selectedFlowPath = nodePath
-                    if (nodeActivities.type === 'SubProcess') { // click subprocess node
-                        this.nodeSwitching = true
-                        this.pipelineData = nodeActivities.pipeline
-                        this.cancelTaskStatusTimer()
-                        this.updateTaskStatus(nodeActivities.id)
+                    if (nodeActivities.type === 'SubProcess') {
+                        this.switchCanvasView(nodeActivities)
                         this.treeNodeConfig = {}
-                    } else { // click single task node
-                        let subprocessStack = []
-                        if (this.selectedFlowPath.length > 1) {
-                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                    } else {
+                        if (parentNodeActivities && parentNodeActivities.id !== this.taskId) { // 不在当前 taskId 的任务中
+                            this.switchCanvasView(parentNodeActivities)
+                        } else if (!parentNodeActivities && this.taskId !== this.instance_id) { // 属于第二级任务
+                            this.switchCanvasView(this.completePipelineData, true)
                         }
-                        this.treeNodeConfig = {
-                            component_code: nodeActivities.component.code,
-                            node_id: nodeActivities.id,
-                            instance_id: this.instance_id,
-                            subprocess_stack: JSON.stringify(subprocessStack)
-                        }
+                        this.updataNodeParamsInfo(nodeActivities)
                     }
                 } else {
-                    nodeActivities = this.completePipelineData
-                    this.nodeSwitching = true
-                    this.pipelineData = nodeActivities
                     this.selectedFlowPath = nodePath
-                    this.cancelTaskStatusTimer()
-                    this.updateTaskStatus(this.instance_id)
+                    this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
+            },
+            // 切换画布视图
+            switchCanvasView (nodeActivities, isRootNode = false) {
+                const id = isRootNode ? this.instance_id : nodeActivities.id
+                this.nodeSwitching = true
+                this.pipelineData = isRootNode ? nodeActivities : nodeActivities.pipeline
+                this.cancelTaskStatusTimer()
+                this.updateTaskStatus(id)
+            },
+            // 更新节点的参数面板信息
+            updataNodeParamsInfo (nodeActivities) {
+                let subprocessStack = []
+                if (this.selectedFlowPath.length > 1) {
+                    subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                }
+                this.treeNodeConfig = {
+                    component_code: nodeActivities.component.code,
+                    node_id: nodeActivities.id,
+                    instance_id: this.instance_id,
+                    subprocess_stack: JSON.stringify(subprocessStack)
+                }
+                this.cancelSelectedNode(this.selectedNodeId)
+                this.addSelectedNode(nodeActivities.id)
+            },
+            // 添加选中节点
+            addSelectedNode (nodeId) {
+                this.selectedNodeId = nodeId
+                if (this.$refs.templateCanvas && this.nodeSwitching === false) {
+                    this.$refs.templateCanvas.toggleSelectedNode(nodeId, true)
+                    return
+                }
+                this.addToCanvasQueues(() => {
+                    this.$refs.templateCanvas.toggleSelectedNode(nodeId, true)
+                }, [nodeId])
+            },
+            cancelSelectedNode (nodeId) {
+                const canvasTempalte = this.$refs.templateCanvas
+                canvasTempalte && canvasTempalte.toggleSelectedNode(nodeId, false)
+            },
+            /**
+             * 往画布组件队列中添加待执行事件
+             * @param {Function} func -事件
+             * @param {Array} params -事件参数
+             */
+            addToCanvasQueues (func, params) {
+                this.canvasMountedQueues.push({
+                    params: params,
+                    func
+                })
+            },
+            // 下次画布组件更新后执行队列
+            onTemplateCanvasMounted () {
+                this.canvasMountedQueues.forEach(action => {
+                    action.func.apply(this, action.params)
+                })
+                this.canvasMountedQueues = []
             },
             onRetrySuccess (id) {
                 this.isNodeInfoPanelShow = false

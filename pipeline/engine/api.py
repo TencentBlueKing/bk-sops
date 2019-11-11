@@ -33,7 +33,8 @@ from pipeline.engine.models import (
     ProcessCeleryTask,
     History,
     FunctionSwitch,
-)
+    Pipeline)
+from pipeline.engine.signals import pipeline_revoke
 from pipeline.engine.utils import calculate_elapsed_time, ActionResult
 from pipeline.utils import uniqid
 
@@ -160,6 +161,8 @@ def revoke_pipeline(pipeline_id):
         PipelineProcess.objects.select_for_update().get(id=process.id)
         process.revoke_subprocess()
         process.destroy_all()
+
+    pipeline_revoke.send(sender=Pipeline, root_pipeline_id=pipeline_id)
 
     return action_result
 

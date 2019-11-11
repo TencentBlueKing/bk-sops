@@ -173,7 +173,6 @@ class PipelineTemplateWebWrapper(object):
             'name': template_dict['name'],
             'create_time': datetime.datetime.strptime(template_dict['create_time'],
                                                       cls.SERIALIZE_DATE_FORMAT),
-            'creator': template_dict['creator'],
             'description': template_dict['description'],
             'editor': template_dict['editor'],
             'edit_time': datetime.datetime.strptime(template_dict['edit_time'],

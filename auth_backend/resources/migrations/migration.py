@@ -16,13 +16,13 @@ from __future__ import absolute_import, unicode_literals
 import abc
 import sys
 
-from bkiam.client import BKIAMClient
 from builtins import object
 from django.conf import settings
 from django.utils.module_loading import import_string
 from future.utils import with_metaclass
 
 from auth_backend.resources.migrations import exceptions
+from bkiam.client import BKIAMClient
 
 
 class ResourceMigration(with_metaclass(abc.ABCMeta, object)):

@@ -12,20 +12,20 @@ specific language governing permissions and limitations under the License.
 
 # 作业平台任务状态参照表
 TASK_RESULT = [
-    (0, u'状态未知'),
-    (1, u'未执行'),
-    (2, u'正在执行'),
-    (3, u'执行成功'),
-    (4, u'执行失败'),
-    (5, u'跳过'),
-    (6, u'忽略错误'),
-    (7, u'等待用户'),
-    (8, u'手动结束'),
-    (9, u'状态异常'),
-    (10, u'步骤强制终止中'),
-    (11, u'步骤强制终止成功'),
-    (12, u'步骤强制终止失败'),
-    (-1, u'接口调用失败'),
+    (0, '状态未知'),
+    (1, '未执行'),
+    (2, '正在执行'),
+    (3, '执行成功'),
+    (4, '执行失败'),
+    (5, '跳过'),
+    (6, '忽略错误'),
+    (7, '等待用户'),
+    (8, '手动结束'),
+    (9, '状态异常'),
+    (10, '步骤强制终止中'),
+    (11, '步骤强制终止成功'),
+    (12, '步骤强制终止失败'),
+    (-1, '接口调用失败'),
 ]
 """
 
@@ -59,7 +59,6 @@ JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
 
 __group_name__ = _("作业平台(JOB)")
-__group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -609,7 +608,7 @@ class JobPushLocalFilesService(JobService):
 
 
 class JobPushLocalFilesComponent(Component):
-    name = _(u'分发本地文件')
+    name = _('分发本地文件')
     code = 'job_push_local_files'
     bound_service = JobPushLocalFilesService
     form = '%scomponents/atoms/job/job_push_local_files.js' % settings.STATIC_URL

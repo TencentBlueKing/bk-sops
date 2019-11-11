@@ -15,10 +15,10 @@
         :data-config-atom-id="type === 'tasknode' ? node.code : node.template_id"
         :data-config-version="type === 'tasknode' ? '' : node.version"
         :data-config-name="node.name.replace(/\s/g, '')"
+        :data-config-group="node.group_name"
+        :data-config-icon="node.group_icon"
         :data-type="type">
-        <div class="name-wrapper">
-            <p>{{node.name}}</p>
-        </div>
+        <div class="name-wrapper">{{node.name}}</div>
     </div>
 </template>
 <script>
@@ -43,45 +43,26 @@
 <style lang="scss" scoped>
     @import '@/scss/config.scss';
     @import '@/scss/mixins/scrollbar.scss';
-    @import '@/scss/mixins/multiLineEllipsis.scss';
 
     .node-item {
-        float: left;
-        margin-right: 8px;
-        margin-bottom: 10px;
-        background: $whiteNodeBg;
-        border: 1px solid $commonBorderColor;
+        background: #f0f1f5;
+        border-top: 1px solid #e2e4ed;
+        border-radius: 2px;
         overflow: hidden;
         cursor: move;
         user-select: none;
-        &:nth-child(2n) {
-            margin-right: 0;
+        &:first-child {
+            border-top: none;
         }
         &:hover {
-            background: $blueDashBg;
-            border-color: $blueDefault;
-            .name-wrapper p{
-                &:after {
-                    background: $blueDashBg;
-                }
-            }
+            background: #fafbfd;
         }
         .name-wrapper {
-            display: table-cell;
-            padding: 0 10px;
-            width: 130px;
-            height: 58px;
-            vertical-align: middle;
-            p {
-                @include multiLineEllipsis($lineHeight: 1.2em, $lineCount: 2, $bgColor: #fafafa);
-                font-size: 12px;
-                color: $greyDefault;
-                text-align: center;
-                word-break: break-all;
-                &:before {
-                    right: 3px;
-                }
-            }
+            padding: 0 14px;
+            height: 40px;
+            line-height: 40px;
+            color: #63656e;
+            font-size: 12px;
         }
     }
 </style>

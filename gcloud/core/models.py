@@ -102,11 +102,11 @@ class BusinessGroupMembership(models.Model):
 
 class EnvVarManager(models.Manager):
 
-    def get_var(self, key):
+    def get_var(self, key, default=None):
         objs = self.filter(key=key)
         if objs.exists():
             return objs[0].value
-        return environ.get(key, None)
+        return environ.get(key, default)
 
 
 class EnvironmentVariables(models.Model):

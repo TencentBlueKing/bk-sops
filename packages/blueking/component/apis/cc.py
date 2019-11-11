@@ -601,3 +601,8 @@ class CollectionsCC(object):
             path='/api/c/compapi{bk_api_ver}/cc/get_mainline_object_topo/',
             description='获取主线模型的业务拓扑'
         )
+        self.batch_update_host = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/cc/batch_update_host/',
+            description=u'批量更新主机属性'
+        )

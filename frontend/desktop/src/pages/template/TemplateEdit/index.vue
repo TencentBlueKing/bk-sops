@@ -41,7 +41,9 @@
                 :common="common"
                 :template_id="template_id"
                 :canvas-data="canvasData"
-                @onNodeClick="onNodeClick"
+                @onConditionClick="onOpenConditionEdit"
+                @variableDataChanged="variableDataChanged"
+                @onShowNodeConfig="onShowNodeConfig"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
@@ -49,9 +51,6 @@
                 @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
-            <div class="atom-node">
-                <span class="atom-number">{{i18n.added}} {{Object.keys(activities).length}} {{i18n.node}}</span>
-            </div>
             <NodeConfig
                 ref="nodeConfig"
                 :project_id="project_id"
@@ -67,6 +66,14 @@
                 @globalVariableUpdate="globalVariableUpdate"
                 @onUpdateNodeInfo="onUpdateNodeInfo">
             </NodeConfig>
+            <ConditionEdit
+                ref="conditionEdit"
+                :condition-data="conditionData"
+                :is-setting-panel-show="isSettingPanelShow"
+                :is-show-condition-edit="isShowConditionEdit"
+                v-show="isShowConditionEdit"
+                @onCloseConditionEdit="onCloseConditionEdit">
+            </ConditionEdit>
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
@@ -86,7 +93,8 @@
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
                 @updateLocalTemplateData="updateLocalTemplateData"
-                @hideConfigPanel="hideConfigPanel">
+                @hideConfigPanel="hideConfigPanel"
+                @updataConditionData="updataConditionData">
             </TemplateSetting>
             <bk-dialog
                 width="400"
@@ -117,6 +125,7 @@
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
     import NodeConfig from './NodeConfig.vue'
+    import ConditionEdit from './ConditionEdit.vue'
     import draft from '@/utils/draft.js'
     import { STRING_LENGTH } from '@/constants/index.js'
 
@@ -126,13 +135,12 @@
         tips: gettext('系统不会保存您所做的更改，确认离开？'),
         saved: gettext('保存成功'),
         error: gettext('任务节点参数错误，请点击错误节点查看详情'),
-        delete_success: gettext('删除本地缓存成功'),
-        delete_fail: gettext('该本地缓存不存在，删除失败'),
-        replace_success: gettext('替换流程成功'),
-        add_cache: gettext('新增流程本地缓存成功'),
-        replace_save: gettext('替换流程自动保存'),
-        added: gettext('已添加'),
-        node: gettext('个任务节点')
+        conditionError: gettext('分支节点参数错误，请点击错误节点查看详情'),
+        deleteSuccess: gettext('删除本地缓存成功'),
+        deleteFail: gettext('该本地缓存不存在，删除失败'),
+        replaceSuccess: gettext('替换流程成功'),
+        addCache: gettext('新增流程本地缓存成功'),
+        replaceSave: gettext('替换流程自动保存')
     }
 
     export default {
@@ -141,6 +149,7 @@
             TemplateHeader,
             TemplateCanvas,
             NodeConfig,
+            ConditionEdit,
             TemplateSetting
         },
         props: ['project_id', 'template_id', 'type', 'common'],
@@ -165,8 +174,10 @@
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
+                isShowConditionEdit: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
+                idOfNodeShortcutPanel: '',
                 subAtomGrouped: [],
                 draftArray: [],
                 intervalSaveTemplate: null,
@@ -176,7 +187,8 @@
                 isClickDraft: false,
                 tplOperations: [],
                 tplActions: [],
-                tplResource: {}
+                tplResource: {},
+                conditionData: {}
             }
         },
         computed: {
@@ -237,15 +249,25 @@
                 return {
                     activities: this.activities,
                     lines: this.lines,
-                    locations: this.locations.map(item => {
-                        const data = { ...item, mode: 'edit' }
+                    locations: this.locations.map(location => {
+                        let icon, group
+                        const atom = this.singleAtom.find(item => {
+                            if (location.type === 'tasknode') {
+                                return this.activities[location.id].component.code === item.code
+                            }
+                        })
+                        if (atom) {
+                            icon = atom.group_icon
+                            group = atom.group_name
+                        }
+                        const data = { ...location, mode: 'edit', icon, group }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
-                            && item.type === 'subflow'
+                            && location.type === 'subflow'
                         ) {
                             this.subprocess_info.details.some(subflow => {
-                                if (subflow.subprocess_node_id === item.id && subflow.expired) {
+                                if (subflow.subprocess_node_id === location.id && subflow.expired) {
                                     data.hasUpdated = true
                                     return true
                                 }
@@ -568,9 +590,6 @@
                 this.idOfNodeInConfigPanel = id
             },
             hideConfigPanel () {
-                if (this.idOfNodeInConfigPanel) {
-                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, { isActived: false })
-                }
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
             },
@@ -684,21 +703,15 @@
                 this.searchAtom(payload)
             },
             /**
-             * 任务节点点击
+             * 打开节点配置面板
              */
-            onNodeClick (id) {
+            onShowNodeConfig (id) {
+                this.isShowConditionEdit = false
                 this.toggleSettingPanel(false)
-                const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
                 })[0].type
                 if (nodeType === 'tasknode' || nodeType === 'subflow') {
-                    // 清除当前节点选中态
-                    if (currentId) {
-                        this.onUpdateNodeInfo(currentId, { isActived: false })
-                    }
-                    this.onUpdateNodeInfo(id, { isActived: true })
-
                     if (this.isNodeConfigPanelShow) {
                         this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
                             this.showConfigPanel(id)
@@ -710,11 +723,10 @@
             },
             // 分支网关失焦
             onLabelBlur (labelData) {
-                this.variableDataChanged()
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
@@ -734,6 +746,7 @@
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
+                            this.variableDataChanged()
                             this.$bkMessage({
                                 message: gettext('排版完成，原内容在本地缓存中'),
                                 theme: 'success'
@@ -752,23 +765,22 @@
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
-                        if (changeType === 'add' && location.atomId) { // drag new single node
-                            this.setActivities({ type: 'add', location })
-                            this.getSingleAtomConfig(location)
-                            return
-                        }
-                        if (changeType === 'delete') {
-                            this.hideConfigPanel()
-                        }
-                        this.setActivities({ type: changeType, location })
-                        break
                     case 'subflow':
-                        if (changeType === 'add' && location.atomId) { // drag new subflow node
+                        // 添加任务节点
+                        if (changeType === 'add' && location.atomId) {
                             this.setActivities({ type: 'add', location })
-                            this.getSubflowConfig(location)
+                            if (location.type === 'tasknode') {
+                                this.getSingleAtomConfig(location)
+                            } else {
+                                this.getSubflowConfig(location)
+                            }
                             return
                         }
+                        // 删除任务节点
                         if (changeType === 'delete') {
+                            if (this.idOfNodeInConfigPanel === location.id) {
+                                this.idOfNodeInConfigPanel = ''
+                            }
                             this.hideConfigPanel()
                         }
                         this.setActivities({ type: changeType, location })
@@ -790,7 +802,6 @@
                 this.setLine({ type: changeType, line })
             },
             onLocationMoveDone (location) {
-                this.variableDataChanged()
                 this.setLocationXY(location)
             },
             globalVariableUpdate (val) {
@@ -870,7 +881,18 @@
             // 同步节点配置面板数据
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
-                    this.$refs.nodeConfig.syncNodeDataToActivities().then((isValid) => {
+                    this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
+                        if (!isValid) return
+                        this.asyncConditionData()
+                    })
+                } else {
+                    this.asyncConditionData()
+                }
+            },
+            // 同步分支条件面板数据
+            asyncConditionData () {
+                if (this.isShowConditionEdit) {
+                    this.onSaveConditionData().then(isValid => {
                         if (!isValid) return
                         this.checkNodeAndSaveTemplate()
                     })
@@ -881,7 +903,7 @@
             // 校验节点配置
             checkNodeAndSaveTemplate () {
                 // 校验节点数目
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
@@ -894,9 +916,10 @@
                     errorHandler({ message: i18n.error }, this)
                     return
                 }
-                const isAllNodeValid = this.validateAtomNode()
 
-                if (isAllNodeValid) {
+                const isAllNodeValid = this.validateAtomNode()
+                const isAllConditionValid = this.checkConditionData(true)
+                if (isAllNodeValid && isAllConditionValid) {
                     this.saveTemplate()
                 }
             },
@@ -916,12 +939,12 @@
             onDeleteDraft (key) {
                 if (draft.deleteDraft(key)) {
                     this.$bkMessage({
-                        'message': i18n.delete_success,
+                        'message': i18n.deleteSuccess,
                         'theme': 'success'
                     })
                 } else {
                     this.$bkMessage({
-                        'message': i18n.delete_fail,
+                        'message': i18n.deleteFail,
                         'theme': 'error'
                     })
                 }
@@ -938,10 +961,10 @@
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replace_save)
+                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
                     }
                     this.$bkMessage({
-                        'message': i18n.replace_success,
+                        'message': i18n.replaceSuccess,
                         'theme': 'success'
                     })
                 }
@@ -972,7 +995,7 @@
                 }
                 if (isMessage) {
                     this.$bkMessage({
-                        'message': i18n.add_cache,
+                        'message': i18n.addCache,
                         'theme': 'success'
                     })
                 }
@@ -1004,6 +1027,56 @@
                         isSkipped: nodes[node].isSkipped
                     })
                 })
+            },
+            // 打开分支条件编辑
+            onOpenConditionEdit (data) {
+                this.toggleSettingPanel(false)
+                this.isNodeConfigPanelShow = false
+                this.isShowConditionEdit = true
+                this.$refs.conditionEdit.updateConditionData(data)
+            },
+            // 更新分支数据
+            updataConditionData (data) {
+                // 更新 store 数据
+                this.onLabelBlur(data)
+                // 更新 cavans 页面数据
+                this.$refs.templateCanvas.updataConditionCanvasData(data)
+                this.$nextTick(() => {
+                    this.checkConditionData()
+                })
+            },
+            // 校验分支数据
+            checkConditionData (isShowError = false) {
+                let checkResult = true
+                const branchConditionDoms = document.querySelectorAll('.jtk-overlay .branch-condition')
+                branchConditionDoms.forEach(dom => {
+                    const name = dom.textContent
+                    const value = dom.dataset.value
+                    if (!name || !value) {
+                        dom.classList.add('failed')
+                        checkResult = false
+                    }
+                })
+                if (!checkResult && isShowError) {
+                    this.$bkMessage({
+                        'message': i18n.conditionError,
+                        'theme': 'error'
+                    })
+                }
+                return checkResult
+            },
+            onCloseConditionEdit (data) {
+                if (this.isShowConditionEdit) {
+                    this.isShowConditionEdit = false
+                    this.updataConditionData(data)
+                    // 删除分支条件节点选中样式
+                    document.querySelectorAll('.branch-condition.editing').forEach(dom => {
+                        dom.classList.remove('editing')
+                    })
+                }
+            },
+            onSaveConditionData () {
+                return this.$refs.conditionEdit.checkCurrentConditionData()
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1031,20 +1104,6 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-    }
-    .atom-node {
-        position: absolute;
-        top: 86px;
-        left: 50%;
-        padding: 2px 9px;
-        border-radius: 1px;
-        transform: translateX(-50%);
-        background: rgba(225, 228, 232, 0.95);
-        z-index: 4;
-        .atom-number {
-            color: #a9b2bd;
-            font-size: 14px;
-        }
     }
     .pipeline-canvas-wrapper {
         height: 100%;

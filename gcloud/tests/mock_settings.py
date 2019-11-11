@@ -21,6 +21,7 @@ TASKTEMPLATE_GET = 'gcloud.tasktmpl3.models.TaskTemplate.objects.get'
 TASKTEMPLATE_CREATE_PIPELINE_TEMPLATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.create_pipeline_template'
 TASKTEMPLATE_MODEL = 'gcloud.tasktmpl3.models.TaskTemplate.objects.model'
 
+COMMONTEMPLATE_GET = 'gcloud.commons.template.models.CommonTemplate.objects.get'
 COMMONTEMPLATE_SELECT_RELATE = 'gcloud.commons.template.models.CommonTemplate.objects.select_related'
 COMMONTEMPLATE_IMPORT_TEMPLATES = 'gcloud.commons.template.models.CommonTemplate.objects.import_templates'
 
@@ -29,7 +30,7 @@ TASKINSTANCE_CREATE_PIPELINE = \
 TASKINSTANCE_CREATE = 'gcloud.taskflow3.models.TaskFlowInstance.objects.create'
 TASKINSTANCE_GET = 'gcloud.taskflow3.models.TaskFlowInstance.objects.get'
 TASKINSTANCE_FORMAT_STATUS = 'gcloud.taskflow3.models.TaskFlowInstance.format_pipeline_status'
-TASKINSTANCE_EXTEN_CLASSIFIED_COUNT = 'gcloud.taskflow3.models.TaskFlowInstance.objects.extend_classified_count'
+TASKINSTANCE_EXTEN_CLASSIFIED_COUNT = 'gcloud.contrib.analysis.analyse_items.task_flow_instance.dispatch'
 TASKINSTANCE_PREVIEW_TREE = 'gcloud.taskflow3.models.TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes'
 TASKINSTANCE_OBJECTS_CALLBACK = 'gcloud.taskflow3.models.TaskFlowInstance.objects.callback'
 TASKINSTANCE_CALLBACK = 'gcloud.taskflow3.models.TaskFlowInstance.callback'
