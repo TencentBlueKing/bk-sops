@@ -79,6 +79,7 @@
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @addNodesToDragSelection="addNodesToDragSelection"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </node-template>
             </template>
@@ -562,7 +563,18 @@
             },
             onNodeMoveStop (loc) {
                 this.$emit('variableDataChanged')
-                this.$emit('onLocationMoveDone', loc)
+                if (this.selectedNodes.length) {
+                    const { x, y } = this.selectedNodes.find(m => m.id === loc.id)
+                    const bX = loc.x - x
+                    const bY = loc.y - y
+                    this.selectedNodes.forEach(node => {
+                        node.x += bX
+                        node.y += bY
+                        this.$emit('onLocationMoveDone', node)
+                    })
+                } else {
+                    this.$emit('onLocationMoveDone', loc)
+                }
             },
             onOverlayClick (overlay, e) {
                 // 点击 overlay 类型
@@ -716,6 +728,19 @@
             },
             onCloseHotkeyInfo () {
                 this.isShowHotKey = false
+            },
+            addNodesToDragSelection (selectedNode) {
+                this.selectedNodes.push(selectedNode)
+                const ids = this.selectedNodes.map(m => m.id)
+                this.$refs.jsFlow.addNodesToDragSelection(ids)
+                document.addEventListener('keydown', this.nodeLinePastehandler)
+                document.addEventListener('mousedown', this.handleClearDragSelection, { once: true })
+            },
+            handleClearDragSelection () {
+                this.selectedNodes = []
+                this.$refs.jsFlow.clearNodesDragSelection()
+                document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
+                document.removeEventListener('keydown', this.nodeLinePastehandler)
             },
             // 更新分支条件数据
             updataConditionCanvasData (data) {

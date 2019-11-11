@@ -111,6 +111,10 @@
                 this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
+                if (e.ctrlKey || e.metaKey) {
+                    this.$emit('addNodesToDragSelection', this.node)
+                    return
+                }
                 clearTimeout(this.clickTimer)
                 this.clickTimer = setTimeout(() => {
                     const moveBuffer = 2
