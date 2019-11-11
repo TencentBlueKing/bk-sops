@@ -932,6 +932,14 @@
             &.adding-node {
                 z-index: 6;
             }
+            &.jtk-drag {
+                .process-node,
+                .subflow-node,
+                .gateway-node,
+                .circle-node {
+                    cursor: move;
+                }
+            }
         }
         .jtk-connector {
             z-index: 2;
