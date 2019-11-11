@@ -33,7 +33,7 @@ export const endpointOptions = {
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
     ],
-    paintStyle: { fill: 'transparent', radius: 8 },
+    paintStyle: { fill: 'transparent', radius: 6 },
     hoverPaintStyle: { fill: '#3a84ff' },
     cssClass: 'template-canvas-endpoint',
     hoverClass: 'template-canvas-endpoint-hover',
