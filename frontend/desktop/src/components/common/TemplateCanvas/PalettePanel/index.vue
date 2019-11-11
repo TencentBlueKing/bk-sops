@@ -32,15 +32,6 @@
                 data-type="endpoint">
                 <div class="node-type-text end-point">{{ i18n.end }}</div>
             </div>
-            <div class="palette-item entry-item" data-config-name="" data-type="parallelgateway">
-                <div class="node-type-icon common-icon-node-parallelgateway"></div>
-            </div>
-            <div class="palette-item entry-item" data-config-name="" data-type="branchgateway">
-                <div class="node-type-icon common-icon-node-branchgateway"></div>
-            </div>
-            <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
-                <div class="node-type-icon common-icon-node-convergegateway"></div>
-            </div>
             <div
                 :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
                 data-type="tasknode"
@@ -53,6 +44,15 @@
                 data-type="subflow"
                 @mousedown="onNodeMouseDown('subflow', $event)">
                 <div class="node-type-icon common-icon-node-subflow"></div>
+            </div>
+            <div class="palette-item entry-item" data-config-name="" data-type="parallelgateway">
+                <div class="node-type-icon common-icon-node-parallelgateway"></div>
+            </div>
+            <div class="palette-item entry-item" data-config-name="" data-type="branchgateway">
+                <div class="node-type-icon common-icon-node-branchgateway"></div>
+            </div>
+            <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
+                <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
         </div>
         <node-menu
@@ -197,18 +197,15 @@
                 opacity: 0.3;
                 pointer-events: none;
             }
-            .start-point,
-            .end-point {
-                transform: scale(0.8);
-            }
-
         }
         .palette-with-menu {
             position: relative;
             cursor: pointer;
             &.actived,
             &:hover {
-                background: #ffffff;
+                .node-type-icon {
+                    color: #3a84ff;
+                }
             }
             &::after {
                 position: absolute;
@@ -234,7 +231,7 @@
         }
         .node-type-icon {
             font-size: 32px;
-            color: #52699d;
+            color: #546a9e;
         }
     }
 </style>
