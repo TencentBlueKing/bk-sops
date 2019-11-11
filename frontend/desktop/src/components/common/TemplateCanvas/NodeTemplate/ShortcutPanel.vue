@@ -29,6 +29,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { uuid } from '@/utils/uuid.js'
     export default {
         name: 'ShortcutPanel',
