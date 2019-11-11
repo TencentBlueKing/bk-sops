@@ -36,7 +36,6 @@
                 :sub-atom-list-loading="subAtomListLoading"
                 :atom-type-list="atomTypeList"
                 :name="name"
-                :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"

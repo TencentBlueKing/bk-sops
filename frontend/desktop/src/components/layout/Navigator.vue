@@ -71,9 +71,9 @@
 
     const ROUTE_LIST = [
         {
-            routerName: 'commonProcess',
+            routerName: 'commonProcessList',
             name: gettext('公共流程'),
-            path: '/template/common'
+            path: '/common'
         },
         {
             routerName: 'process',

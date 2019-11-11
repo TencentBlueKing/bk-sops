@@ -19,8 +19,11 @@ const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vu
 const Home = () => import('@/pages/home/index.vue')
 
 const Template = () => import('@/pages/template/index.vue')
-const TemplateEdit = () => import('@/pages/template/TemplateEdit/index.vue')
 const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
+
+const CommonTemplate = () => import('@/pages/template/common/index.vue')
+const TemplatePanel = () => import('@/pages/template/TemplatePanel.vue')
+const CommonTemplateList = () => import('@/pages/template/common/CommonTemplateList.vue')
 
 const Task = () => import('@/pages/task/index.vue')
 const TaskList = () => import('@/pages/task/TaskList/index.vue')
@@ -40,7 +43,6 @@ const StatisticsTemplate = () => import('@/pages/admin/statistics/Template/index
 const StatisticsInstance = () => import('@/pages/admin/statistics/Instance/index.vue')
 const StatisticsAtom = () => import('@/pages/admin/statistics/Atom/index.vue')
 const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker/index.vue')
-const CommonTemplate = () => import('@/pages/admin/common/template.vue')
 const Manage = () => import('@/pages/admin/manage/index.vue')
 const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
 const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
@@ -89,6 +91,34 @@ const routers = new VueRouter({
             meta: { project: true }
         },
         {
+            path: '/common',
+            name: 'commonProcess',
+            component: CommonTemplate,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home',
+                    name: 'commonProcessList',
+                    component: CommonTemplateList
+                },
+                {
+                    path: ':type/',
+                    component: TemplatePanel,
+                    name: 'templatePanel',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        template_id: route.query.template_id,
+                        type: route.params.type,
+                        common: route.query.common
+                    }),
+                    meta: { project: false }
+                }
+            ]
+        },
+        {
             path: '/template',
             component: Template,
             children: [
@@ -108,47 +138,13 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: 'common',
-                    name: 'commonProcess',
-                    component: TemplateList,
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        common: 1,
-                        common_template: 'common'
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'edit/:project_id/',
-                    component: TemplateEdit,
-                    name: 'templateEdit',
+                    path: ':type/:project_id/',
+                    component: TemplatePanel,
+                    name: 'templatePanel',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
-                        type: 'edit',
-                        common: route.query.common
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'new/:project_id/',
-                    component: TemplateEdit,
-                    name: 'templateEdit',
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        type: 'new',
-                        common: route.query.common
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'clone/:project_id/',
-                    component: TemplateEdit,
-                    name: 'templateEdit',
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        template_id: route.query.template_id,
-                        type: 'clone',
+                        type: route.params.type,
                         common: route.query.common
                     }),
                     meta: { project: true }
@@ -356,49 +352,6 @@ const routers = new VueRouter({
                             component: StatisticsAppmaker
                         }
                     ]
-                },
-                {
-                    path: 'common/template',
-                    name: 'commonTemplateHome',
-                    component: CommonTemplate
-                },
-                {
-                    path: 'template/',
-                    component: Template,
-                    children: [
-                        {
-                            path: '',
-                            component: NotFoundComponent
-                        },
-                        {
-                            path: 'edit/:cc_id?/',
-                            component: TemplateEdit,
-                            props: (route) => ({
-                                cc_id: route.params.cc_id,
-                                template_id: route.query.template_id,
-                                type: 'edit',
-                                common: '1'
-                            })
-                        },
-                        {
-                            path: 'new/:cc_id/',
-                            component: TemplateEdit,
-                            props: (route) => ({
-                                cc_id: route.params.cc_id,
-                                type: 'new',
-                                common: '1'
-                            })
-                        },
-                        {
-                            path: 'clone/:cc_id/',
-                            component: TemplateEdit,
-                            props: (route) => ({
-                                cc_id: route.params.cc_id,
-                                template_id: route.query.template_id,
-                                type: 'clone',
-                                common: '1'
-                            })
-                        }]
                 },
                 {
                     path: 'manage/',
