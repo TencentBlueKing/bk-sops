@@ -56,6 +56,7 @@ CREATE_TASK_FAIL_CLIENT = MockClient(
         'code': "500",
         'message': 'fail',
         'data': {
+            'id': '1',
             'hosts': [{
                 'job_id': "1"
             }]
@@ -65,7 +66,9 @@ CREATE_TASK_FAIL_CLIENT = MockClient(
         'result': False,
         'code': "500",
         'message': 'fail',
-        'data': {}
+        'data': {
+            'job_type': 'INSTALL',
+        }
     },
     get_log_return={
         'result': False,
@@ -81,6 +84,7 @@ CREATE_TASK_SUCCESS_CLIENT = MockClient(
         'code': "00",
         'message': 'success',
         'data': {
+            'id': '1',
             'hosts': [{
                 'job_id': "1"
             }]
@@ -91,9 +95,10 @@ CREATE_TASK_SUCCESS_CLIENT = MockClient(
         'code': "00",
         'message': 'success',
         'data': {
+            'job_type': 'INSTALL',
             'host_count': 1,
             'hosts': [{
-                'status': "SUCCEEDED"
+                'status': "SUCCESS"
             }]
         }
     },
@@ -114,6 +119,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
         'code': "00",
         'message': 'success',
         'data': {
+            'id': '1',
             'hosts': [{
                 'job_id': "1"
             }]
@@ -124,6 +130,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
         'code': "00",
         'message': 'success',
         'data': {
+            'job_type': 'INSTALL',
             'host_count': 1,
             'hosts': [{
                 'status': "FAILED",
@@ -151,6 +158,7 @@ TASK_RUNNING_CLIENT = MockClient(
         'code': "00",
         'message': 'success',
         'data': {
+            'id': '1',
             'hosts': [{
                 'job_id': "1"
             }]
@@ -161,9 +169,10 @@ TASK_RUNNING_CLIENT = MockClient(
         'code': "00",
         'message': 'success',
         'data': {
+            'job_type': 'INSTALL',
             'host_count': 2,
             'hosts': [{
-                'status': 'SUCCEEDED'
+                'status': 'SUCCESS'
             }, {
                 'status': 'RUNNING'
             }]
@@ -207,7 +216,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={'job_id': '1'}
+        outputs={'fail_num': 0, 'job_id': '1', 'success_num': 1}
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -431,7 +440,7 @@ TASK_RUNNING_CASE = ComponentTestCase(
 
     ),
     schedule_assertion=ScheduleAssertion(
-        success=False,
+        success=True,
         callback_data=None,
         outputs={
             'job_id': '1',
@@ -512,7 +521,7 @@ CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={'job_id': '1'}
+        outputs={'fail_num': 0, 'job_id': '1', 'success_num': 1}
     ),
     execute_call_assertion=[
         CallAssertion(
