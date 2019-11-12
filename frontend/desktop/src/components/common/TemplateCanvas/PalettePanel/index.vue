@@ -176,8 +176,8 @@
     .palette-container{
         position: relative;
         height: 100%;
-        background: #f2f2f2;
         border-right: 1px solid #cacedb;
+        background: #ffffff;
         z-index: 3;
         .palette-item {
             padding: 15px 0;
@@ -209,11 +209,13 @@
             }
         }
         .node-type-text {
+            display: flex;
             margin: 0 auto;
             font-size: 12px;
             width: 32px;
             height: 32px;
-            line-height: 32px;
+            justify-content: center;
+            align-items: center;
             color: #52699d;
             border: 1px solid #546a9e;
             border-radius: 50%;

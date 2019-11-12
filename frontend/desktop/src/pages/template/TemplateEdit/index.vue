@@ -141,7 +141,8 @@
         deleteFail: gettext('该本地缓存不存在，删除失败'),
         replaceSuccess: gettext('替换流程成功'),
         addCache: gettext('新增流程本地缓存成功'),
-        replaceSave: gettext('替换流程自动保存')
+        replaceSave: gettext('替换流程自动保存'),
+        layoutSave: gettext('排版完成，原内容在本地缓存中')
     }
 
     export default {
@@ -601,7 +602,7 @@
                 this.isTemplateDataChanged = true
             },
             /**
-             * 普通标准插件节点校验，不包括子流程节点
+             * 任务节点校验
              * 校验项包含：标准插件类型，节点名称，输入参数
              * @return isAllValid {Boolean} 节点是否合法
              */
@@ -620,6 +621,10 @@
                             }
                         } else {
                             isNodeValid = false // 节点标准插件类型为空
+                        }
+                    } else {
+                        if (!node.name || node.template_id === undefined) {
+                            isNodeValid = false
                         }
                     }
                     if (!isNodeValid) {
@@ -732,7 +737,7 @@
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
@@ -744,7 +749,7 @@
                 try {
                     const pipelineTree = this.getPipelineTree()
                     const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
-                    const width = canvasEl.offsetWidth
+                    const width = canvasEl.offsetWidth - 200
                     const res = await this.getLayoutedPipeline({ width, pipelineTree })
                     if (res.result) {
                         this.onNewDraft(undefined, false)
@@ -754,7 +759,7 @@
                             this.$refs.templateCanvas.updateCanvas()
                             this.variableDataChanged()
                             this.$bkMessage({
-                                message: gettext('排版完成，原内容在本地缓存中'),
+                                message: i18n.layoutSave,
                                 theme: 'success'
                             })
                         })
@@ -909,19 +914,20 @@
             // 校验节点配置
             checkNodeAndSaveTemplate () {
                 // 校验节点数目
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
                 }
                 // 节点配置是否错误
-                const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
+                const nodeWithErrors = document.querySelectorAll('.canvas-node-item .failed')
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
                     errorHandler({ message: i18n.error }, this)
                     return
                 }
+
                 const isAllNodeValid = this.validateAtomNode()
                 const isAllConditionValid = this.checkConditionData(true)
                 if (isAllNodeValid && isAllConditionValid) {

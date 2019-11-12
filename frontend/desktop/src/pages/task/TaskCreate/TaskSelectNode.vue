@@ -143,7 +143,6 @@
         methods: {
             ...mapActions('template/', [
                 'loadTemplateData',
-                'saveTemplateData',
                 'getLayoutedPipeline'
             ]),
             ...mapActions('task/', [

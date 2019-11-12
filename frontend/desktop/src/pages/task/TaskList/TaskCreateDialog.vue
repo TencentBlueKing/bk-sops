@@ -16,7 +16,6 @@
                 <div class="filtrate-wrapper">
                     <div class="task-search flow-types">
                         <bk-select
-                            v-if="type === 'normal'"
                             v-model="selectedTplType"
                             class="bk-select-inline"
                             :popover-width="260"
@@ -118,7 +117,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'type', 'dialogTitle', 'entrance'],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'dialogTitle', 'entrance'],
         data () {
             return {
                 i18n: {
@@ -180,19 +179,13 @@
                 return this.selectedTplType === 'businessProcess' ? this.tplResource : this.commonTplResource
             },
             action () {
-                return this.type === 'normal' ? ['create_task'] : ['create_periodic_task']
+                return this.entrance === 'taskflow' ? ['create_task'] : ['create_periodic_task']
             }
         },
-        watch: {
-            isNewTaskDialogShow (val) {
-                if (val) {
-                    this.getTaskData()
-                }
-            }
-        },
-        created () {
-            this.getTaskData()
+        async created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            await this.getBusinessData()
+            this.onFiltrationTemplate()
         },
         methods: {
             ...mapActions('templateList/', [
@@ -201,61 +194,36 @@
             ...mapActions([
                 'getCategorys'
             ]),
-            async getTaskData () {
+            async getBusinessData () {
                 this.taskListPending = true
                 try {
-                    if (this.type === 'normal') {
-                        Promise.all([
-                            this.getBusinessData(),
-                            this.getcommonData()
-                        ]).then(values => {
-                            const businessList = values[0].objects
-                            const commonList = values[1].objects
-                            this.tplOperations = values[0].meta.auth_operations
-                            this.tplResource = values[0].meta.auth_resource
-                            this.commonTplOperations = values[1].meta.auth_operations
-                            this.commonTplResource = values[1].meta.auth_resource
-                            this.businessTplList = this.getGroupedList(businessList)
-                            this.commonTplList = this.getGroupedList(commonList)
-                            this.templateList = this.businessTplList
-                            this.taskListPending = false
-                        }).catch(e => {
-                            errorHandler(e, this)
-                        })
-                    } else {
-                        const data = {
-                            common: this.common
-                        }
-                        const respData = await this.loadTemplateList(data)
-                        const list = respData.objects
-                        this.tplOperations = respData.meta.auth_operations
-                        this.tplResource = respData.meta.auth_resource
-                        this.businessTplList = this.getGroupedList(list)
-                        this.templateList = this.businessTplList
-                        this.taskListPending = false
-                    }
-                    this.onFiltrationTemplate()
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            async getBusinessData () {
-                try {
                     const respData = await this.loadTemplateList()
-                    return respData
+                    const businessList = respData.objects
+                    this.tplOperations = respData.meta.auth_operations
+                    this.tplResource = respData.meta.auth_resource
+                    this.businessTplList = this.getGroupedList(businessList)
+                    this.templateList = this.businessTplList
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.taskListPending = false
                 }
             },
             async getcommonData () {
+                this.taskListPending = true
                 const data = {
                     common: 1
                 }
                 try {
                     const respData = await this.loadTemplateList(data)
-                    return respData
+                    const commonList = respData.objects
+                    this.commonTplOperations = respData.meta.auth_operations
+                    this.commonTplResource = respData.meta.auth_resource
+                    this.commonTplList = this.getGroupedList(commonList)
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.taskListPending = false
                 }
             },
             getGroupedList (list) {
@@ -319,8 +287,13 @@
                     return group.children.length
                 })
             },
-            onChooseTplType (value) {
+            async onChooseTplType (value) {
                 this.selectedTplType = value
+                if (value === 'businessProcess') {
+                    await this.getBusinessData()
+                } else {
+                    await this.getcommonData()
+                }
                 this.onFiltrationTemplate()
             },
             onChooseTplCategory (value) {

@@ -30,7 +30,7 @@
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
             <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>
-            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validate.message}}</span>
+            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
     </div>
