@@ -140,7 +140,8 @@
         deleteFail: gettext('该本地缓存不存在，删除失败'),
         replaceSuccess: gettext('替换流程成功'),
         addCache: gettext('新增流程本地缓存成功'),
-        replaceSave: gettext('替换流程自动保存')
+        replaceSave: gettext('替换流程自动保存'),
+        layoutSave: gettext('排版完成，原内容在本地缓存中')
     }
 
     export default {
@@ -748,7 +749,7 @@
                             this.$refs.templateCanvas.updateCanvas()
                             this.variableDataChanged()
                             this.$bkMessage({
-                                message: gettext('排版完成，原内容在本地缓存中'),
+                                message: i18n.layoutSave,
                                 theme: 'success'
                             })
                         })
