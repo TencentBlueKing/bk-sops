@@ -177,7 +177,7 @@
         position: relative;
         height: 100%;
         background: #f2f2f2;
-        border-right: 1px solid #dddddd;
+        border-right: 1px solid #cacedb;
         z-index: 3;
         .palette-item {
             padding: 15px 0;
