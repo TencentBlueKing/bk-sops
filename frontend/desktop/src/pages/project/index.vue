@@ -29,9 +29,10 @@
                         <bk-input
                             v-model="searchStr"
                             class="search-input"
+                            clearable
                             :right-icon="'bk-icon icon-search'"
                             :placeholder="i18n.placeholder"
-                            @input="onSearchInput">
+                            @change="onSearchInput">
                         </bk-input>
                     </div>
                 </div>

@@ -270,7 +270,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: this.searchStr,
+                        q: this.searchStr || undefined,
                         category: this.taskSync || undefined,
                         pipeline_instance__creator__contains: this.creator || undefined,
                         pipeline_instance__executor__contains: this.executor || undefined,

@@ -1254,6 +1254,9 @@
                 &.btn-permission-disable {
                     border: 1px solid #e6e6e6;
                 }
+                /deep/ .bk-button-loading div {
+                    background: #ffffff;
+                }
             }
             .revoke-btn {
                 padding: 0;
