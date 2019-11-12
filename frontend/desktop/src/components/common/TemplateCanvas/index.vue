@@ -631,7 +631,7 @@
                 }
                 const { clientX, clientY, offsetX, offsetY } = event
                 const bX = clientX - offsetX + 6
-                const BY = clientY - 50 - offsetY + 6
+                const bY = clientY - 50 - offsetY + 6
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
@@ -644,8 +644,8 @@
                 }
                 const line = this.$refs.dragReferenceLine
                 line.style.left = bX + 'px'
-                line.style.top = BY + 'px'
-                this.referenceLine = { x: bX, y: BY, id: endpoint.elementId, arrow: type }
+                line.style.top = bY + 'px'
+                this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
                 document.getElementById('canvas-flow').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 生成参考线
