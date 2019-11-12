@@ -588,10 +588,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         fail_percent = {}
         for component in component_data:
             component_code = component['component_code']
-            execute_times = component['execute_times']
-            fail_percent[component_code] = '%.2f' % (
-                (failed_dict.get(component_code, 0) * 1.00 / execute_times) * 100
-            )
+            if component_code in failed_dict:
+                execute_times = component['execute_times']
+                fail_percent[component_code] = '%.2f' % (
+                    (failed_dict[component_code] * 1.00 / execute_times) * 100
+                )
 
         groups = []
         for data in component_list:
