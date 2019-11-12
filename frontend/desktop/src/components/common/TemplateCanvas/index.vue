@@ -682,7 +682,7 @@
                 const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
                 window.requestAnimationFrame(() => {
                     line.style.display = 'block'
-                    line.style.width = len - 2 + 'px'
+                    line.style.width = len - 8 + 'px'
                     line.style.transformOrigin = `top left`
                     line.style.transform = 'rotate(' + r + 'deg)'
                     if (!this.referenceLine.id) {
