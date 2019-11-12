@@ -53,6 +53,7 @@ function generateInitActivities (location, line) {
     return {
         [location[1].id]: {
             component: {
+                version: undefined,
                 code: undefined,
                 data: undefined
             },
@@ -480,7 +481,8 @@ const template = {
                         state.activities[location.id] = {
                             component: {
                                 code: location.atomId,
-                                data: location.data
+                                data: location.data,
+                                version: location.version
                             },
                             error_ignorable: false,
                             id: location.id,
@@ -564,7 +566,6 @@ const template = {
                 for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
-
                     if (sourceInfo && sourceInfo[location.id]) {
                         if (Object.keys(sourceInfo).length > 1) {
                             Vue.delete(sourceInfo, location.id)

@@ -972,8 +972,9 @@ class TaskFlowInstance(models.Model):
 
         if component_code:
             outputs_table = []
+            version = self.pipeline_tree[PE.activities][node_id].get('version', None)
             try:
-                component = library.ComponentLibrary.get_component_class(component_code)
+                component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
             except Exception as e:
                 result = False

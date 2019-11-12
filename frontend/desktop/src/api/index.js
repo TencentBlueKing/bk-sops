@@ -186,13 +186,16 @@ const api = {
      * @param {String} type 标准插件code
      * @param {String} classify 标准插件分类
      */
-    getAtomFormURL (type, classify, isMeta) {
+    getAtomFormURL (type, classify, version = '', isMeta) {
         const prefixUrl = this.getPrefix(classify)
         let url = ''
-        if (isMeta) {
-            url = `${prefixUrl}${type}/?meta=1`
+        // 变量暂时没有版本系统
+        if (classify === 'variable') {
+            url = isMeta ? `${prefixUrl}${type}/?meta=1` : `${prefixUrl}${type}/`
         } else {
-            url = `${prefixUrl}${type}/`
+            url = isMeta
+                ? `${prefixUrl}${type}/?meta=1&version=${version}`
+                : `${prefixUrl}${type}/?version=${version}`
         }
         const opts = {
             method: 'GET',
@@ -205,19 +208,21 @@ const api = {
      * @param {String} type 标准插件code
      * @param {String} classify 标准插件分类
      */
-    $getAtomForm (type, classify, isMeta) {
-        return this.getAtomFormURL(type, classify, isMeta).then(response => {
+    $getAtomForm (type, classify, isMeta, version) {
+        return this.getAtomFormURL(type, classify, version, isMeta).then(response => {
             const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
-
-            store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
-            store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
-
+            if (classify === 'variable') {
+                version = 'legacy'
+            }
+            store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta, version })
+            store.commit('atomForm/setAtomOutput', { atomType: type, outputData, version })
             // 标准插件配置项内嵌到 form 字段
             if (embedded) {
+                /*eslint-disable */
                 eval(formResource)
+                /*eslint-disable */
                 return Promise.resolve({ data: $.atoms[type] })
             }
-
             return $.getScript(formResource)
         }).catch(e => {
             return Promise.reject(e)

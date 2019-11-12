@@ -57,6 +57,25 @@
                             <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
                         </div>
                     </div>
+                    <div v-show="isSingleAtom" class="form-item">
+                        <label class="required">{{ i18n.version_name }}</label>
+                        <div class="form-content">
+                            <bk-select
+                                v-model="currentVersion"
+                                class="node-select"
+                                :searchable="true"
+                                :clearable="false"
+                                @selected="onVersionSelect">
+                                <bk-option
+                                    v-for="(option, index) in currentVersionList"
+                                    :key="index"
+                                    :id="option.version"
+                                    :name="option.version">
+                                </bk-option>
+                            </bk-select>
+                            <span v-show="taskVersionEmpty" class="common-error-tip error-msg">{{ i18n.version_name + i18n.typeEmptyTip}}</span>
+                        </div>
+                    </div>
                     <div class="form-item">
                         <label class="required">{{ i18n.node_name }}</label>
                         <div class="form-content">
@@ -196,6 +215,7 @@
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
     import atomFilter from '@/utils/atomFilter.js'
+    import formSchema from '@/utils/formSchema.js'
     import { random4 } from '@/utils/uuid.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -235,6 +255,8 @@
                     baseInfo: gettext('基础信息'),
                     flow: gettext('流程模板'),
                     node_name: gettext('节点名称'),
+                    version_name: gettext('插件版本'),
+                    version: gettext('版本'),
                     stage_tag: gettext('步骤名称'),
                     ignore: gettext('自动忽略'),
                     optional: gettext('是否可选'),
@@ -276,11 +298,13 @@
                 reuseVariable: {},
                 isReuseVarDialogShow: false,
                 taskTypeEmpty: false,
+                taskVersionEmpty: false,
                 reuseableVarList: [],
                 nodeId: this.idOfNodeInConfigPanel,
                 nodeName: '',
                 stageName: gettext('步骤1'),
                 currentAtom: '',
+                currentVersion: '',
                 subAtomInput: [],
                 subAtomOutput: [],
                 renderInputOption: {
@@ -316,19 +340,37 @@
                 'atomForm': state => state.atomForm.form,
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormOutput': state => state.atomForm.output,
-                'subprocessInfo': state => state.template.subprocess_info
+                'subprocessInfo': state => state.template.subprocess_info,
+                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             /**
              * 标准插件节点、子节点列表
              */
             atomList () {
                 if (this.isSingleAtom) {
-                    return this.singleAtom.map(item => {
-                        return {
-                            id: item.code,
-                            name: item.group_name + '-' + item.name
+                    const setGroup = []
+                    const atomVersionGroup = []
+                    this.singleAtom.forEach(atom => {
+                        const code = atom.code
+                        const index = setGroup.indexOf(code)
+                        if (index > -1) {
+                            const group = atomVersionGroup[index]
+                            if (group.version < atom.version || group.version === 'legacy') {
+                                group.version = atom.version
+                            }
+                            group.list.push(atom)
+                        } else {
+                            const item = {
+                                id: code,
+                                name: atom.group_name + '-' + atom.name,
+                                list: [atom],
+                                version: atom.version
+                            }
+                            setGroup.push(code)
+                            atomVersionGroup.push(item)
                         }
                     })
+                    return atomVersionGroup
                 } else {
                     return this.subAtom.filter(item => {
                         return item.template_id !== Number(this.template_id)
@@ -341,11 +383,28 @@
                 }
             },
             /**
+             * 当前插件版本列表
+             */
+            currentVersionList () {
+                let list = []
+                this.atomList.some(atoms => {
+                    if (atoms.id === this.currentAtom) {
+                        list = atoms.list
+                        return true
+                    }
+                })
+                return list
+            },
+            /**
              * 标准插件节点描述
              */
             atomDesc () {
-                if (this.singleAtom) {
-                    return this.atomForm[this.currentAtom] && this.atomForm[this.currentAtom].desc
+                if (
+                    this.singleAtom
+                    && this.atomForm[this.currentAtom]
+                    && this.atomForm[this.currentAtom][this.currentVersion]
+                ) {
+                    return this.atomForm[this.currentAtom][this.currentVersion].desc
                 }
                 return ''
             },
@@ -360,8 +419,14 @@
              */
             renderOutputData () {
                 const outputData = []
-                const outputConfig = this.getOutputConfig()
-
+                let outputConfig = []
+                if (!this.currentAtom
+                    || JSON.stringify(this.atomFormConfig) === '{}'
+                    || !this.atomFormConfig[this.currentAtom]) {
+                    outputConfig = []
+                } else {
+                    outputConfig = this.getOutputConfig()
+                }
                 outputConfig && outputConfig.forEach(item => {
                     let hook = false
                     let key = item.key
@@ -399,33 +464,58 @@
                         }
                     }
                 }
-
                 return outputData
             },
             /**
              * 输入参数表单配置项
              */
             renderInputConfig () {
-                return this.isSingleAtom
-                    ? this.getSingleAtomConfig()
-                    : this.subAtomInput
+                if (this.isSingleAtom) {
+                    if (!this.currentAtom
+                        || JSON.stringify(this.atomFormConfig) === '{}'
+                        || !this.atomFormConfig[this.currentAtom]) {
+                        return []
+                    }
+                    return this.getSingleAtomConfig()
+                } else {
+                    return this.subAtomInput
+                }
             },
             /**
              * 输入参数数据
              */
             renderInputData () {
+                const hook = this.inputAtomHook
+                const value = this.inputAtomData
                 return {
-                    hook: this.inputAtomHook,
-                    value: this.inputAtomData
+                    hook,
+                    value
                 }
             }
         },
         watch: {
+            // 打开节点或切换节点
             idOfNodeInConfigPanel (val) {
+                if (!val) return
                 this.nodeId = val
+                // 清空验证
+                this.currentVersion = ''
                 this.taskTypeEmpty = false
+                this.taskVersionEmpty = false
                 this.errors.clear()
+
                 this.initData()
+                this.$nextTick(() => {
+                    // 只验证错误节点（正确节点关闭时会验证）
+                    if (
+                        document.querySelector(`#${val} .task-node.failed`)
+                        || document.querySelector(`#${val} .subflow-node.failed`)
+                    ) {
+                        this.$validator.validateAll()
+                        this.taskTypeEmpty = !this.currentAtom
+                        this.taskVersionEmpty = !this.currentVersion
+                    }
+                })
             },
             isRetry (val) {
                 this.manuallyEmpty = !val && !this.isSkip && !this.errorCouldBeIgnored
@@ -465,18 +555,27 @@
                 this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
-                    this.getConfig(this.nodeConfigData.version) // load node config data
+                    if (this.isSingleAtom) {
+                        const component = this.nodeConfigData.component
+                        const version = component.version || this.SingleAtomVersionMap[component.code]
+                        if (version) {
+                            this.getConfig(this.nodeConfigData.component.version)
+                            this.currentVersion = version
+                        }
+                    } else {
+                        this.getConfig(this.nodeConfigData.version) // load node config data
+                    }
                 }
             },
             /**
              * 加载标准插件配置文件或子流程表单配置
-             * @param {String} version 子流程版本
+             * @param {String} version 子流程版本/标准插件配置文件版本
              */
             async getConfig (version) {
                 if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
                     || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
-                        await this.getAtomConfig(this.currentAtom)
+                        await this.getAtomConfig(this.currentAtom, version)
                     } else {
                         await this.getSubflowConfig(this.currentAtom, version)
                     }
@@ -490,9 +589,9 @@
             /**
              * 加载标准插件节点数据
              */
-            async getAtomConfig (atomType) {
+            async getAtomConfig (atomType, version) {
                 this.atomConfigLoading = true
-                if ($.atoms[atomType]) {
+                if (atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                     this.setNodeConfigData(atomType)
                     this.$nextTick(() => {
                         this.atomConfigLoading = false
@@ -500,9 +599,8 @@
                     return
                 }
                 try {
-                    await this.loadAtomConfig({ atomType })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
-                    this.setNodeConfigData(atomType)
+                    await this.loadAtomConfig({ atomType, version })
+                    this.setNodeConfigData(atomType, version)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -553,13 +651,12 @@
                     for (const form of variableArray) {
                         const { key } = form
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-
-                        if (!this.atomFormConfig[atomType]) {
-                            await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        // 全局变量版本
+                        const version = form.version || 'legacy'
+                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
+                            await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
-
-                        const atomConfig = this.atomFormConfig[atom]
+                        const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                         if (currentFormConfig) {
@@ -613,9 +710,9 @@
             /**
              * normal task node render form value
              */
-            setNodeConfigData (atomType) {
+            setNodeConfigData (atomType, version) {
                 const data = {}
-                const config = this.atomFormConfig[atomType]
+                const config = this.atomFormConfig[atomType][version]
                 if (atomType === this.activities[this.nodeId].component.code) {
                     this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 } else {
@@ -629,7 +726,8 @@
                         data
                     })
                 }
-                this.getNodeFormData()
+                // 暂时注释
+                // this.getNodeFormData()
                 this.$nextTick(() => {
                     this.updateActivities()
                 })
@@ -672,7 +770,8 @@
                 this.inputAtomData = inputFormData
             },
             getSingleAtomConfig () {
-                const config = this.atomFormConfig[this.currentAtom]
+                // 当前版本或最新版本
+                const config = this.atomFormConfig[this.currentAtom][this.currentVersion]
                 if (!config) {
                     return {}
                 }
@@ -684,7 +783,8 @@
                 })
             },
             getOutputConfig () {
-                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom] : this.subAtomOutput
+                const version = this.currentVersion
+                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
             },
             getHookedInputVariables () {
                 const variables = []
@@ -695,7 +795,8 @@
                             variableKey,
                             formKey: key,
                             id: this.nodeId,
-                            tagCode: varKeyReg.test(key) ? key.match(varKeyReg)[1] : key
+                            tagCode: varKeyReg.test(key) ? key.match(varKeyReg)[1] : key,
+                            version: this.getVariableVersion(variableKey)
                         })
                     }
                 }
@@ -707,8 +808,7 @@
             iskeyInSourceInfo (key, tagCode) {
                 for (const cKey in this.constants) {
                     const constant = this.constants[cKey]
-                    const sourceInfo = constant.source_info[this.nodeId]
-
+                    const sourceInfo = JSON.stringify(constant.source_info)
                     if (
                         constant.source_type === 'component_inputs'
                         && sourceInfo
@@ -756,6 +856,7 @@
                 nodeData.can_retry = this.isRetry
                 if (this.isSingleAtom) {
                     nodeData.error_ignorable = this.errorCouldBeIgnored
+                    nodeData.component.version = this.currentVersion
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
@@ -781,6 +882,9 @@
                     let formValid = true
                     if (!this.currentAtom) {
                         this.taskTypeEmpty = true
+                    }
+                    if (!this.currentVersion) {
+                        this.taskVersionEmpty = true
                     }
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
@@ -813,6 +917,9 @@
                         if (!this.currentAtom) {
                             this.taskTypeEmpty = true
                         }
+                        if (!this.currentVersion) {
+                            this.taskVersionEmpty = true
+                        }
                     }
                 }
             },
@@ -829,6 +936,7 @@
                     }
                 })
                 this.taskTypeEmpty = false
+                this.taskVersionEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
                         this.removeFromGlobal(item.key)
@@ -837,11 +945,13 @@
             },
             onAtomSelect (id, data) {
                 this.isAtomChanged = true
+                const currentAtomlastVeriosn = this.SingleAtomVersionMap[id]
                 let nodeName
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.currentAtom = id
                 if (this.isSingleAtom) {
                     nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
+                    this.currentVersion = currentAtomlastVeriosn
                 } else {
                     // 切换子流程时，去掉节点小红点、刷新按钮、节点过期设为 false
                     this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
@@ -852,13 +962,29 @@
                     })
                     nodeName = data.name.replace(/\s/g, '')
                     this.subAtomConfigData.form = {}
-                    this.inputAtomHook = {}
-                    this.inputAtomData = {}
                 }
+                this.inputAtomHook = {}
+                this.inputAtomData = {}
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
                 this.updateActivities()
-                this.getConfig()
+                // 如果是单原子，这里取最新版本配置
+                this.getConfig(currentAtomlastVeriosn)
+                this.$nextTick(() => {
+                    this.isAtomChanged = false
+                })
+            },
+            /**
+             * 版本选择
+             * @param {String} id version
+             */
+            onVersionSelect (id) {
+                this.isAtomChanged = true
+                this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
+                this.inputAtomHook = {}
+                this.inputAtomData = {}
+                this.updateActivities()
+                this.getConfig(id)
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
@@ -893,7 +1019,8 @@
                                     variableKey: key,
                                     formKey: key,
                                     id: this.nodeId,
-                                    tagCode: key
+                                    tagCode: key,
+                                    version: this.getVariableVersion(oldInputAtomHook[key])
                                 }
                             ]
                             this.clearHookedVaribles(variable, [])
@@ -918,20 +1045,38 @@
             onInputDataChange (val) {
                 this.inputAtomData = val
             },
+            /**
+             * 获取勾选 tag 的版本
+             * @description
+             * 1. [标准插件]勾选 取当前插件版本
+             * 2.[子流程]勾选对应 tag 版本取原始 tag 版本 || 没有设置为 legacy
+             * @param {String} variableKey key
+             */
+            getVariableVersion (variableKey) {
+                if (this.isSingleAtom) {
+                    return this.currentVersion
+                }
+                return (this.subAtomConfigData.form[variableKey]
+                    ? this.subAtomConfigData.form[variableKey].version
+                    : this.subAtomConfigData.outputs[variableKey].version)
+                    || 'legacy'
+            },
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
-                let key, source_tag, source_info, custom_type, value, validation
+                let key, source_tag, source_info, custom_type, value
+                let validation = ''
                 // 变量 key 值，统一格式为 ${xxx}
                 let variableKey = varKeyReg.test(tagCode) ? tagCode : '${' + tagCode + '}'
                 const formConfig = this.renderInputConfig.filter(item => {
                     return item.tag_code === tagCode
                 })[0]
-
                 const name = formConfig.attrs.name.replace(/\s/g, '')
-                
+                const variableVersion = this.getVariableVersion(variableKey)
                 if (this.isSingleAtom) {
                     key = tagCode
-                    source_tag = this.nodeConfigData.component.code + '.' + tagCode
+                    source_tag = this.nodeConfigData.component.code
+                        + '.'
+                        + tagCode
                     source_info = { [this.nodeId]: [tagCode] }
                     custom_type = ''
                     value = tools.deepClone(this.inputAtomData[tagCode])
@@ -953,37 +1098,49 @@
                     const variableList = []
                     if (!source_tag) { // custom variable not include ip selector
                         const variableOpts = {
-                            name, key: variableKey, source_info, custom_type, value, validation
+                            name, key: variableKey, source_info, custom_type, value, validation, version: variableVersion
                         }
                         this.$set(this.inputAtomData, key, variableKey)
                         this.hookToGlobal(variableOpts)
                         return
                     }
+                    // 获取全局变量中已有的 key + version 相同项列表
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
+                        const sVersion = constant.version
                         const sTag = constant.source_tag
                         if (sTag) {
                             const tCode = sTag.split('.')[1]
-                            tCode === tagCode && variableList.push({
+                            tCode === tagCode && sVersion === variableVersion && variableList.push({
                                 name: `${constant.name}(${constant.key})`,
                                 id: constant.key
                             })
                         }
                     }
                     const isKeyUsedInConstants = variableKey in this.constants
-
+                    /**
+                     * 复用变量（全局变量中有key + version 都相同的项）
+                     * 新建变量（全局变量中有key相同version不同的项）
+                     */
                     if (variableList.length) { // input arguments include ip selector have same soure_tag
-                        this.reuseVariable = { name, key, source_tag, source_info, value, useNewKey: false }
+                        this.reuseVariable = { name, key, source_tag, source_info, value, validation, useNewKey: false }
                         this.reuseableVarList = variableList
                         this.isReuseVarDialogShow = true
                     } else if (isKeyUsedInConstants) { // the variable's key is used in other global variable
-                        this.reuseVariable = { name, key, source_tag, source_info, value, useNewKey: true }
+                        this.reuseVariable = { name, key, source_tag, source_info, value, validation, useNewKey: true }
                         this.reuseableVarList = variableList
                         this.isReuseVarDialogShow = true
                     } else {
                         const variableOpts = {
-                            name, key: variableKey, source_tag, source_info, custom_type, value, validation
+                            name, key: variableKey, source_tag, source_info, custom_type, value, validation, version: variableVersion
                         }
+                        // 全局变量添加 form_schema
+                        const atomType = source_tag.split('.')[0]
+                        variableOpts.form_schema = formSchema.getSchema(
+                            tagCode,
+                            this.atomFormConfig[atomType][variableVersion]
+                        )
+
                         this.$set(this.inputAtomData, key, variableKey)
                         this.hookToGlobal(variableOpts) // input arguments hook
                     }
@@ -993,7 +1150,6 @@
                     if (!variable) {
                         return
                     }
-
                     const formKey = this.isSingleAtom ? tagCode : key // input arguments form item key
                     this.inputAtomHook[formKey] = val
                     this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)
@@ -1006,7 +1162,6 @@
             onOutputHookChange (name, key, checked) {
                 if (checked) {
                     const variableKey = this.generateRandomKey(key)
-
                     const variableOpts = {
                         name,
                         key: variableKey,
@@ -1016,7 +1171,8 @@
                         },
                         source_tag: '',
                         custom_type: '',
-                        show_type: 'hide'
+                        show_type: 'hide',
+                        version: this.getVariableVersion(variableKey)
                     }
                     this.renderOutputData.some(item => {
                         if (item.key === key) {
@@ -1048,7 +1204,8 @@
                     show_type: 'show',
                     source_type: 'component_inputs',
                     validation: '',
-                    index: len
+                    index: len,
+                    version: 'legacy'
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))
@@ -1080,6 +1237,15 @@
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
                     const variableOpts = { name, key: varKey, source_tag, source_info, value }
+                    // 全局变量添加 form_schema
+                    const atomType = source_tag.split('.')[0]
+                    const version = this.getVariableVersion(key)
+                    variableOpts.form_schema = formSchema.getSchema(
+                        key,
+                        this.atomFormConfig[atomType][version]
+                    )
+                    
+                    this.createVariable(variableOpts)
                     this.hookToGlobal(variableOpts)
                 } else {
                     this.$set(this.inputAtomHook, varKey, true)

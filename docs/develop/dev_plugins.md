@@ -8,7 +8,6 @@
 标准插件架构包含插件定义Component、后台执行逻辑Service、以及前端表单配置Forms。
 ![](../resource/img/plugins_framework.png)
 
-
 ## 标准插件开发步骤
 
 ### 1. 初始化插件模块
@@ -144,6 +143,7 @@ class TestCustomComponent(Component):
     code = 'test_custom'
     bound_service = TestCustomService
     form = '%scustom_plugins/plugin.js' % settings.STATIC_URL
+    version = '1.1.0'
 
 ```
 
@@ -186,9 +186,20 @@ schedule 函数详解：
 
 TestCustomComponent 类详解：
 - `name`：标准插件名称。
-- `code`：标准插件唯一编码，请保持全局唯一。
+- `code`：标准插件唯一编码，请保持 `code` 和 `version` 全局联合唯一。
 - `bound_service`：绑定后台服务 `TestCustomService`。
 - `form`：前端表单文件路径，请加上 `settings.STATIC_URL` 前缀。
+- `version`：插件版本号字符串，用于对 `code` 相同的插件进行版本管理，
+
+#### 插件版本管理
+
+有时候我们需要对某个插件进行升级操作，例如为表单添加新的字段，为后台逻辑添加新的功能，那么这个时候就需要修改现有插件的逻辑；但是用户存量流程和任务使用到了这个插件，直接修改插件的代码可能会导致存量流程和任务不可用，所以正确的做法应该是为这个插件增加一个新的版本。
+
+通过设置 Component 的 `version` 类属性，我们能够将 `code` 相同的插件设置成不同版本，以保证插件的功能升级不会影响用户的正常使用，用户只需要在合适的时候将旧的插件升级到新版本即可。
+
+**重要：对于没有声明 `version` 参数的插件，请不要擅自为其添加 `version` 字段，否则系统会将其视为新的插件，可能会导致现有模板和任务不可用。**
+
+> version 字段的命名没有强制的限制，但最好采用人类可读的方式以及可管理的方式进行命名。
 
 
 ### 5. 标准插件前端开发

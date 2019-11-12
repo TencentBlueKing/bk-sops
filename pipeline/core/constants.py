@@ -71,6 +71,7 @@ class PipelineElement(object):
     plain = 'plain'
     splice = 'splice'
     lazy = 'lazy'
+    version = 'version'
 
 
 PE = PipelineElement()
