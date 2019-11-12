@@ -208,7 +208,8 @@
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
-                'atomFormConfig': state => state.atomForm.config
+                'atomFormConfig': state => state.atomForm.config,
+                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
@@ -364,7 +365,8 @@
             ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig',
-                'clearAtomForm'
+                'clearAtomForm',
+                'setVersionMap'
             ]),
             ...mapGetters('template/', [
                 'getLocalTemplateData',
@@ -375,6 +377,7 @@
                 try {
                     const data = await this.loadSingleAtomList()
                     this.setSingleAtom(data)
+                    this.updateStoreVersionMap(data)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -460,14 +463,15 @@
             },
             async getSingleAtomConfig (location) {
                 const atomType = location.atomId
-                if ($.atoms[atomType]) {
-                    this.addSingleAtomActivities(location, $.atoms[atomType])
+                const version = this.SingleAtomVersionMap[atomType]
+                if (this.atomConfig[atomType] && this.atomConfig[atomType][version]) {
+                    this.addSingleAtomActivities(location, this.atomConfig[atomType][version])
                     return
                 }
+                // 接口获取最新配置信息
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                    await this.loadAtomConfig({ atomType, version })
                     this.addSingleAtomActivities(location, $.atoms[atomType])
                 } catch (e) {
                     errorHandler(e, this)
@@ -483,15 +487,14 @@
                     for (const key in constants) {
                         const form = constants[key]
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-
-                        if (!this.atomFormConfig[atomType]) {
-                            await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        // 全局变量版本
+                        const version = form.version || 'legacy'
+                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
+                            await this.loadAtomConfig({ atomType, classify, saveName: atom })
                         }
-
-                        const atomConfig = this.atomFormConfig[atom]
+                        const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        
+
                         if (currentFormConfig) {
                             if (form.is_meta || currentFormConfig.meta_transform) {
                                 currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
@@ -636,10 +639,10 @@
             },
             // 校验输入参数是否满足标准插件配置文件正则校验
             validateAtomInputForm (component) {
-                const { code, data } = component
-                const config = this.atomConfig[code]
+                const { code, data, version } = component
                 if (!data) return false
-                if (config) {
+                if (this.atomConfig[code] && this.atomConfig[code][version]) {
+                    const config = this.atomConfig[code][version]
                     const formData = {}
                     Object.keys(data).forEach(key => {
                         formData[key] = data[key].value
@@ -916,7 +919,6 @@
                     errorHandler({ message: i18n.error }, this)
                     return
                 }
-
                 const isAllNodeValid = this.validateAtomNode()
                 const isAllConditionValid = this.checkConditionData(true)
                 if (isAllNodeValid && isAllConditionValid) {
@@ -1077,6 +1079,20 @@
             },
             onSaveConditionData () {
                 return this.$refs.conditionEdit.checkCurrentConditionData()
+            },
+            // 更新标准插件最新版本列表
+            updateStoreVersionMap (data) {
+                const actions = {}
+                data.forEach(atom => {
+                    const value = actions[atom.code]
+                    if (value) {
+                        if (value < atom.version || value === 'legacy') actions[atom.code] = atom.version
+                    } else {
+                        actions[atom.code] = atom.version
+                    }
+                    // actions[atom.code] = atom.version
+                })
+                this.setVersionMap(actions)
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

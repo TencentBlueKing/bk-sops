@@ -153,6 +153,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
+    import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import VariableEditDialog from './VariableEditDialog.vue'
 
@@ -218,7 +219,8 @@
                 // 正则校验规则
                 validationRule: {
                     validReg: true
-                }
+                },
+                atomTypeKey: ''
             }
         },
         computed: {
@@ -259,6 +261,9 @@
                 } else {
                     return custom_type
                 }
+            },
+            version () {
+                return this.isNewVariable ? 'legacy' : this.variableData.version
             }
         },
         watch: {
@@ -346,22 +351,28 @@
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 const atom = tagStr.split('.')[0] || custom_type
-
                 const isMeta = this.varType === 'meta' ? 1 : 0
-                if ($.atoms[atom]) {
-                    this.getRenderConfig()
-                    return
-                }
-                this.atomConfigLoading = true
                 let classify = ''
+                this.atomTypeKey = atom
                 if (this.theEditingData.custom_type) {
                     classify = 'variable'
                 } else {
                     classify = 'component'
                 }
+                if (atomFilter.isConfigExists(atom, this.version, this.atomFormConfig)) {
+                    this.getRenderConfig()
+                    return
+                }
+                this.atomConfigLoading = true
+                
                 try {
-                    await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta })
-                    this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                    await this.loadAtomConfig({
+                        classify,
+                        isMeta: isMeta,
+                        atomType: this.atomType,
+                        version: this.version,
+                        saveName: atom
+                    })
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)
@@ -373,14 +384,13 @@
                 const { source_tag, custom_type } = this.theEditingData
                 const tagStr = this.metaTag || source_tag
                 let [atom, tag] = tagStr.split('.')
-
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 if (custom_type) {
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-                
-                const atomConfig = this.atomFormConfig[atom]
+
+                const atomConfig = this.atomFormConfig[atom][this.version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
                 if (custom_type === 'input' && this.theEditingData.validation !== '') {
@@ -524,9 +534,13 @@
                     this.theEditingData.value = varValue['customVariable']
                     
                     this.$emit('onChangeEdit', false)
-
                     if (this.isNewVariable) { // 新增变量
                         variable.index = constantsLength
+                        variable.version = 'legacy'
+                        variable.form_schema = formSchema.getSchema(
+                            variable.custom_type,
+                            this.atomFormConfig[this.atomTypeKey][variable.version]
+                        )
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })

@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.apps import AppConfig
-from django.db.utils import ProgrammingError, OperationalError
+from django.db.utils import ProgrammingError, OperationalError, InternalError
 
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
@@ -38,7 +38,13 @@ class ComponentFrameworkConfig(AppConfig):
         from pipeline.component_framework.models import ComponentModel
         from pipeline.component_framework.library import ComponentLibrary
         try:
-            ComponentModel.objects.exclude(code__in=list(ComponentLibrary.components.keys())).update(status=False)
+            ComponentModel.objects.all().update(status=False)
+            for code in ComponentLibrary.codes():
+                ComponentModel.objects.filter(code=code,
+                                              version__in=ComponentLibrary.versions(code)).update(status=True)
+        except InternalError as e:
+            # version field migration
+            logger.exception(e)
         except (ProgrammingError, OperationalError) as e:
             # first migrate
             logger.exception(e)

@@ -132,6 +132,7 @@
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
+                    :pipeline-data="pipelineData"
                     @onClickTreeNode="onClickTreeNode">
                 </ViewParams>
                 <ModifyParams
@@ -344,7 +345,7 @@
                 if (this.state && operationType) {
                     const executePauseBtn = Object.assign({}, TASK_OPERATIONS[operationType])
                     const revokeBtn = Object.assign({}, TASK_OPERATIONS['revoke'])
-                    
+
                     if (this.pending.task) {
                         executePauseBtn.loading = this.activeOperation === executePauseBtn.action
                         revokeBtn.loading = this.activeOperation === revokeBtn.action
@@ -633,7 +634,7 @@
                     let code, canSkipped, canRetry
                     let isSkipped = false
                     const nodeActivities = this.pipelineData.activities[id]
-                    
+
                     if (nodes[id].state === 'FINISHED') {
                         isSkipped = nodes[id].skip || nodes[id].error_ignorable
                     }
@@ -643,7 +644,7 @@
                         canSkipped = nodeActivities.isSkipped
                         canRetry = nodeActivities.can_retry
                     }
-                    
+
                     const data = { status: nodes[id].state, isSkipped, code, canSkipped, canRetry }
 
                     this.setTaskNodeStatus(id, data)
@@ -660,6 +661,7 @@
                 }
                 this.nodeDetailConfig = {
                     component_code: nodeActivities.component.code,
+                    version: nodeActivities.component.version,
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
@@ -881,6 +883,7 @@
                 const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
                 const nodeActivities = this.pipelineData.activities[id]
                 const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
+                const version = type === 'singleAtom' ? nodeActivities.component.version : undefined
                 let isPanelShow = false
                 if (nodeState) {
                     if (type === 'singleAtom') {
@@ -903,6 +906,7 @@
                     }
                     this.nodeDetailConfig = {
                         component_code: componentCode,
+                        version,
                         node_id: id,
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
@@ -983,6 +987,17 @@
                             this.switchCanvasView(parentNodeActivities)
                         } else if (!parentNodeActivities && this.taskId !== this.instance_id) { // 属于第二级任务
                             this.switchCanvasView(this.completePipelineData, true)
+                        }
+                        let subprocessStack = []
+                        if (this.selectedFlowPath.length > 1) {
+                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                        }
+                        this.treeNodeConfig = {
+                            component_code: nodeActivities.component.code,
+                            version: nodeActivities.component.version,
+                            node_id: nodeActivities.id,
+                            instance_id: this.instance_id,
+                            subprocess_stack: JSON.stringify(subprocessStack)
                         }
                         this.updataNodeParamsInfo(nodeActivities)
                     }

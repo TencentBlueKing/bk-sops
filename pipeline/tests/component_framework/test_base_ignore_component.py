@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from pipeline.core.flow.activity import Service
+from pipeline.exceptions import ComponentNotExistException
 from pipeline.component_framework.component import Component
 from pipeline.component_framework.models import ComponentModel
 from pipeline.component_framework.library import ComponentLibrary
@@ -47,4 +48,4 @@ class TestBaseIgnoreComponent(TestCase):
             def clean_execute_data(self, context):
                 return {}
 
-        self.assertIsNone(ComponentLibrary.get_component_class('ignore_component'))
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, 'ignore_component')

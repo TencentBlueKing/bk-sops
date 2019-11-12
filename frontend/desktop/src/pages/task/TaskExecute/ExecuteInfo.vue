@@ -47,6 +47,10 @@
                     <th class="manually-retry">{{i18n.manuallyRetry}}</th>
                     <td>{{nodeInfo.retry}}</td>
                 </tr>
+                <tr>
+                    <th class="manually-retry">{{i18n.executeVersion}}</th>
+                    <td>{{nodeDetailConfig.version}}</td>
+                </tr>
             </table>
         </section>
         <section class="info-section" v-show="isSingleAtom">
@@ -146,6 +150,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
+    import atomFilter from '@/utils/atomFilter.js'
     import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -182,7 +187,8 @@
                     running: gettext('执行中'),
                     suspended: gettext('暂停'),
                     failed: gettext('失败'),
-                    finished: gettext('完成')
+                    finished: gettext('完成'),
+                    executeVersion: gettext('执行版本')
                 },
                 loading: true,
                 bkMessageInstance: null,
@@ -251,7 +257,8 @@
                 try {
                     const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
                     if (this.isSingleAtom) {
-                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                        const version = this.nodeDetailConfig.version
+                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     }
                     if (nodeDetailRes.result) {
                         this.nodeInfo = nodeDetailRes.data
@@ -288,14 +295,13 @@
                     this.loading = false
                 }
             },
-            async getNodeConfig (type) {
-                if (this.atomFormConfig[type]) {
-                    return this.atomFormConfig[type]
+            async getNodeConfig (type, version) {
+                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
+                    return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type })
-                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
-                        return this.atomFormConfig[type]
+                        await this.loadAtomConfig({ atomType: type, version })
+                        return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({
                             message: e,
