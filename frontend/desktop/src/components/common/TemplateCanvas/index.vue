@@ -629,12 +629,9 @@
                 if (!this.editable) {
                     return false
                 }
-                const deviationMap = {
-                    'Left': { x: 2, y: 0 },
-                    'Right': { x: -2, y: 0 },
-                    'Top': { x: 0, y: 2 },
-                    'Bottom': { x: 0, y: -2 }
-                }
+                const { clientX, clientY, offsetX, offsetY } = event
+                const bX = clientX - offsetX + 6
+                const BY = clientY - 50 - offsetY + 6
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
@@ -646,10 +643,9 @@
                     return false
                 }
                 const line = this.$refs.dragReferenceLine
-                const { clientX, clientY } = event
-                line.style.left = clientX + deviationMap[type].x + 'px'
-                line.style.top = clientY - 50 + deviationMap[type].y + 'px'
-                this.referenceLine = { x: clientX, y: clientY, id: endpoint.elementId, arrow: type }
+                line.style.left = bX + 'px'
+                line.style.top = BY + 'px'
+                this.referenceLine = { x: bX, y: BY, id: endpoint.elementId, arrow: type }
                 document.getElementById('canvas-flow').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 生成参考线
@@ -658,7 +654,7 @@
                 const { x: startX, y: startY } = this.referenceLine
                 const { clientX, clientY } = e
                 const pX = clientX - startX
-                const pY = clientY - startY
+                const pY = clientY - startY - 56
                 let r = Math.atan2(Math.abs(pY), Math.abs(pX)) / (Math.PI / 180)
                 if (pX < 0 && pY > 0) r = 180 - r
                 if (pX < 0 && pY < 0) r = r + 180
