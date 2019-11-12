@@ -275,7 +275,7 @@
                         this.$refs.jsFlow.createNode(location)
                         this.$emit('onLocationChange', 'add', location)
                     })
-                    this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+
                     // 需要先生成节点 DOM，才能连线
                     lines.forEach(line => {
                         this.$emit('onLineChange', 'add', line)
@@ -283,7 +283,10 @@
                             this.$refs.jsFlow.createConnector(line)
                         })
                     })
-                    this.$refs.jsFlow.clearNodesDragSelection()
+                    this.$nextTick(() => {
+                        this.$refs.jsFlow.clearNodesDragSelection()
+                        this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                    })
                 }
             },
             nodeLineDeletehandler (e) {
