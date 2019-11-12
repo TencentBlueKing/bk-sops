@@ -759,7 +759,6 @@
             },
             onSelectedSubprocessUpdate (val) {
                 this.subprocessUpdate = val
-                debugger
                 if (val === 0) {
                     this.isHasSubprocess = false
                     this.isSubprocessUpdated = undefined
