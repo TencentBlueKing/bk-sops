@@ -72,6 +72,7 @@
                     @onAppendNode="onAppendNode"
                     @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
+                    @onNodeMousedown="onNodeMousedown"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
                     @onRetryClick="onRetryClick"
@@ -778,6 +779,10 @@
                     }
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
                 })
+            },
+            // node mousedown
+            onNodeMousedown (id) {
+                this.$emit('onNodeMousedown', id)
             },
             // 点击节点
             onNodeClick (id, type, event) {
