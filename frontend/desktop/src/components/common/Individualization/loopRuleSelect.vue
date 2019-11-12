@@ -100,7 +100,7 @@
         <i class="common-icon-info rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
-            <img class="ui-img" :src="periodicCronImg">
+            <img style="width:100%" class="ui-img" :src="periodicCronImg">
         </div>
         <!-- 手动输入错误提示 -->
         <span v-show="errors.has('periodicCron') && currentWay === 'manualInput'"

@@ -79,6 +79,7 @@
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @addNodesToDragSelection="addNodesToDragSelection"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </node-template>
             </template>
@@ -193,6 +194,7 @@
                 isShowHotKey: false,
                 isCanCreateline: false,
                 selectedNodes: [],
+                copyNodes: [],
                 selectionOriginPos: {
                     x: 0,
                     y: 0
@@ -228,7 +230,7 @@
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
-            document.removeEventListener('keydown', this.nodeLinePastehandler)
+            document.removeEventListener('keydown', this.nodeSelectedhandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
             document.body.removeEventListener('click', this.handleReferenceLineHide, false)
@@ -252,17 +254,19 @@
             },
             onFrameSelectEnd (nodes, x, y) {
                 this.selectedNodes = nodes
+                this.copyNodes = tools.deepClone(nodes)
                 this.isSelectionOpen = false
                 this.selectionOriginPos = { x, y }
                 this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
-                document.addEventListener('keydown', this.nodeLinePastehandler)
+                document.addEventListener('keydown', this.nodeSelectedhandler)
                 document.addEventListener('keydown', this.nodeLineDeletehandler, { once: true })
             },
             onCloseFrameSelect () {
                 this.selectedNodes = []
+                this.copyNodes = []
                 this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
                 document.removeEventListener('keydown', this.pasteMousePosHandler)
-                document.removeEventListener('keydown', this.nodeLinePastehandler)
+                document.removeEventListener('keydown', this.nodeSelectedhandler)
             },
             pasteMousePosHandler (e) {
                 this.pasteMousePos = {
@@ -270,13 +274,12 @@
                     y: e.offsetY
                 }
             },
-            nodeLinePastehandler (e) {
-                if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) {
-                    const { locations, lines } = this.createCopyOfSelectedNodes(this.selectedNodes)
+            nodeSelectedhandler (e) {
+                if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) { // ctrl + v
+                    const { locations, lines } = this.createCopyOfSelectedNodes(this.copyNodes)
                     const selectedIds = []
                     const { x: originX, y: originY } = this.selectionOriginPos
                     const { x, y } = this.pasteMousePos
-
                     locations.forEach(location => {
                         location.x += (x - originX)
                         location.y += (y - originY)
@@ -284,7 +287,6 @@
                         this.$refs.jsFlow.createNode(location)
                         this.$emit('onLocationChange', 'add', location)
                     })
-
                     // 需要先生成节点 DOM，才能连线
                     lines.forEach(line => {
                         this.$emit('onLineChange', 'add', line)
@@ -295,7 +297,16 @@
                     this.$nextTick(() => {
                         this.$refs.jsFlow.clearNodesDragSelection()
                         this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                        this.selectedNodes = locations
                     })
+                } else if ([37, 38, 39, 40].includes(e.keyCode)) { // 选中后支持上下左右移动节点
+                    const typeMap = {
+                        '37': 'left',
+                        '38': 'top',
+                        '39': 'right',
+                        '40': 'bottom'
+                    }
+                    this.onMovePosition(typeMap[e.keyCode])
                 }
             },
             nodeLineDeletehandler (e) {
@@ -541,7 +552,7 @@
                         const labelData = {
                             type: 'Label',
                             name: `<div class="branch-condition"
-                                    title="${labelValue}"
+                                    title="${labelName}(${labelValue})"
                                     data-value="${labelValue}"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
@@ -567,7 +578,22 @@
             },
             onNodeMoveStop (loc) {
                 this.$emit('variableDataChanged')
-                this.$emit('onLocationMoveDone', loc)
+                if (this.selectedNodes.length) {
+                    const item = this.selectedNodes.find(m => m.id === loc.id)
+                    if (!item) {
+                        return false
+                    }
+                    const { x, y } = item
+                    const bX = loc.x - x
+                    const bY = loc.y - y
+                    this.selectedNodes.forEach(node => {
+                        node.x += bX
+                        node.y += bY
+                        this.$emit('onLocationMoveDone', node)
+                    })
+                } else {
+                    this.$emit('onLocationMoveDone', loc)
+                }
             },
             onOverlayClick (overlay, e) {
                 // 点击 overlay 类型
@@ -622,12 +648,9 @@
                 if (!this.editable) {
                     return false
                 }
-                const deviationMap = {
-                    'Left': { x: 2, y: 0 },
-                    'Right': { x: -2, y: 0 },
-                    'Top': { x: 0, y: 2 },
-                    'Bottom': { x: 0, y: -2 }
-                }
+                const { clientX, clientY, offsetX, offsetY } = event
+                const bX = clientX - offsetX + 5
+                const bY = clientY - 50 - offsetY + 5
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
@@ -639,10 +662,9 @@
                     return false
                 }
                 const line = this.$refs.dragReferenceLine
-                const { clientX, clientY } = event
-                line.style.left = clientX + deviationMap[type].x + 'px'
-                line.style.top = clientY - 50 + deviationMap[type].y + 'px'
-                this.referenceLine = { x: clientX, y: clientY, id: endpoint.elementId, arrow: type }
+                line.style.left = bX + 'px'
+                line.style.top = bY + 'px'
+                this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
                 document.getElementById('canvas-flow').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 生成参考线
@@ -651,7 +673,7 @@
                 const { x: startX, y: startY } = this.referenceLine
                 const { clientX, clientY } = e
                 const pX = clientX - startX
-                const pY = clientY - startY
+                const pY = clientY - startY - 56
                 let r = Math.atan2(Math.abs(pY), Math.abs(pX)) / (Math.PI / 180)
                 if (pX < 0 && pY > 0) r = 180 - r
                 if (pX < 0 && pY < 0) r = r + 180
@@ -722,6 +744,21 @@
             onCloseHotkeyInfo () {
                 this.isShowHotKey = false
             },
+            addNodesToDragSelection (selectedNode) {
+                this.selectedNodes.push(selectedNode)
+                this.copyNodes.push(selectedNode)
+                const ids = this.selectedNodes.map(m => m.id)
+                this.$refs.jsFlow.addNodesToDragSelection(ids)
+                document.addEventListener('keydown', this.nodeSelectedhandler)
+                document.addEventListener('mousedown', this.handleClearDragSelection, { once: true })
+            },
+            handleClearDragSelection () {
+                this.selectedNodes = []
+                this.copyNodes = []
+                this.$refs.jsFlow.clearNodesDragSelection()
+                document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
+                document.removeEventListener('keydown', this.nodeSelectedhandler)
+            },
             // 更新分支条件数据
             updataConditionCanvasData (data) {
                 const { name, overlayId, id: lineId, value } = data
@@ -731,7 +768,7 @@
                     const labelData = {
                         type: 'Label',
                         name: `<div class="branch-condition"
-                                title="${value}"
+                                title="${name}(${value})"
                                 data-value="${value}"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
@@ -757,7 +794,9 @@
                     this.handleReferenceLineHide()
                     return
                 }
-                this.showShortcutPane(id)
+                if (type !== 'endpoint') {
+                    this.showShortcutPane(id)
+                }
             },
             onNodeDblclick (id) {
                 this.onShowNodeConfig(id)
@@ -864,11 +903,10 @@
                 }
             },
             // 移动微调节点位置
-            onMovePosition (data) {
+            onMovePosition (type) {
                 if (!this.selectedNodes.length) {
                     return false
                 }
-                const type = data.type
                 this.onMoveNodesByHand(this.selectedNodes, type)
             },
             /**

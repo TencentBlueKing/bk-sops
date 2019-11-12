@@ -43,6 +43,7 @@
                 :canvas-data="canvasData"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
+                @onNodeClick="onNodeClick"
                 @onShowNodeConfig="onShowNodeConfig"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
@@ -707,11 +708,16 @@
                 }
                 this.searchAtom(payload)
             },
+            onNodeClick () {
+                this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+            },
             /**
              * 打开节点配置面板
              */
             onShowNodeConfig (id) {
-                this.isShowConditionEdit = false
+                if (this.isShowConditionEdit) {
+                    this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+                }
                 this.toggleSettingPanel(false)
                 const nodeType = this.locations.filter(item => {
                     return item.id === id

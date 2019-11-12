@@ -176,8 +176,8 @@
     .palette-container{
         position: relative;
         height: 100%;
+        border-right: 1px solid #cacedb;
         background: #ffffff;
-        border-right: 1px solid #dddddd;
         z-index: 3;
         .palette-item {
             padding: 15px 0;
@@ -206,17 +206,6 @@
                 .node-type-icon {
                     color: #3a84ff;
                 }
-            }
-            &::after {
-                position: absolute;
-                bottom: 0;
-                right: 0;
-                content: '';
-                width: 0;
-                height: 0;
-                border-style: solid;
-                border-width: 0 0 8px 8px;
-                border-color: transparent transparent #546a9e transparent;
             }
         }
         .node-type-text {
