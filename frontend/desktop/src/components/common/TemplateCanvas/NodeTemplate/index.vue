@@ -111,7 +111,7 @@
                 this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
-                if (e.ctrlKey || e.metaKey) {
+                if ((e.ctrlKey || e.metaKey) && this.editable) {
                     this.$emit('addNodesToDragSelection', this.node)
                     return
                 }
