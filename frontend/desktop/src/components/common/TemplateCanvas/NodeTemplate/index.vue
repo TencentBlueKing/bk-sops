@@ -165,7 +165,7 @@
     }
 </script>
 <style lang="scss">
-    $blueDark: #3a84ff;
+    $blueDark: #52699D;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
     $greenDark: #2dcb56;
