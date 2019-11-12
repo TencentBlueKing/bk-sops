@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-11 17:30+0800\n"
+"POT-Creation-Date: 2019-11-12 10:58+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1722,7 +1722,7 @@ msgstr "Choose category please"
 #: frontend/desktop/src/pages/admin/statistics/Template.vue:213
 #: frontend/desktop/src/pages/admin/statistics/Template.vue:235
 msgid "请选择项目"
-msgstr "Project"
+msgstr "Choose project please"
 
 #: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:197
 #: frontend/desktop/src/pages/admin/statistics/Instance.vue:283
@@ -1818,8 +1818,8 @@ msgid "执行失败率(%)"
 msgstr "Failure rate(%)"
 
 #: frontend/desktop/src/pages/admin/statistics/Atom.vue:286
-msgid "排序统计"
-msgstr "Sort"
+msgid "插件统计"
+msgstr "Standard Plugins"
 
 #: frontend/desktop/src/pages/admin/statistics/Atom.vue:287
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:364
@@ -1870,7 +1870,7 @@ msgstr "Number of Gateways"
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:82
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:169
 msgid "耗时"
-msgstr "time-consuming"
+msgstr "Time-consuming"
 
 #: frontend/desktop/src/pages/admin/statistics/Instance.vue:285
 msgid "分时间统计"
@@ -2921,7 +2921,7 @@ msgstr "Global Variable"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:153
 msgid "隐藏系统变量"
-msgstr "Hide sys-vars"
+msgstr "Hide SYS-VARS"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:155
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:158
@@ -3120,11 +3120,15 @@ msgstr "Local Cache added successfully"
 msgid "替换流程自动保存"
 msgstr "Replacement saved"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:419
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:144
+msgid "排版完成，原内容在本地缓存中"
+msgstr "Layout completed, origin layout has been stored in cache"
+
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:420
 msgid "普通变量"
 msgstr "Common Variables"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:423
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:424
 msgid "元变量"
 msgstr "Meta Variables"
 
@@ -3932,6 +3936,9 @@ msgstr "Server API error:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
+
+#~ msgid "排序统计"
+#~ msgstr "Sort"
 
 #~ msgid "你可以申请已有项目的权限，或新建项目"
 #~ msgstr "You can apply for permission for an existing project, or create a new project"
