@@ -67,6 +67,10 @@ CREATE_TASK_FAIL_CLIENT = MockClient(
         'code': "500",
         'message': 'fail',
         'data': {
+            'status_count': {
+                'success_count': 0,
+                'failed_count': 1,
+            },
             'job_type': 'INSTALL',
         }
     },
@@ -97,6 +101,10 @@ CREATE_TASK_SUCCESS_CLIENT = MockClient(
         'data': {
             'job_type': 'INSTALL',
             'host_count': 1,
+            'status_count': {
+                'success_count': 1,
+                'failed_count': 0,
+            },
             'hosts': [{
                 'status': "SUCCESS"
             }]
@@ -132,6 +140,10 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
         'data': {
             'job_type': 'INSTALL',
             'host_count': 1,
+            'status_count': {
+                'success_count': 0,
+                'failed_count': 1,
+            },
             'hosts': [{
                 'status': "FAILED",
                 'host': {
@@ -171,6 +183,10 @@ TASK_RUNNING_CLIENT = MockClient(
         'data': {
             'job_type': 'INSTALL',
             'host_count': 2,
+            'status_count': {
+                'success_count': 1,
+                'failed_count': 0,
+            },
             'hosts': [{
                 'status': 'SUCCESS'
             }, {
