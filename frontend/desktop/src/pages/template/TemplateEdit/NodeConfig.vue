@@ -797,6 +797,10 @@
                     }
                     nodeData.constants = constants
                 }
+                // 任务节点参数编辑时，可能会修改输入输出连线，取最新的连线数据，防止被节点参数编辑时保存的旧数据覆盖
+                const { incoming, outgoing } = this.activities[this.nodeId]
+                Object.assign(nodeData, { incoming, outgoing })
+                
                 this.setActivities({ type: 'edit', location: nodeData })
             },
             /**
