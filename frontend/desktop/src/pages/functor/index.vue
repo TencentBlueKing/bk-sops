@@ -34,7 +34,8 @@
                                 :searchable="true"
                                 :placeholder="i18n.choice"
                                 :clearable="true"
-                                @selected="onSelectProject">
+                                @selected="onSelectProject"
+                                @clear="projectId = undefined">
                                 <bk-option
                                     v-for="(option, index) in business.list"
                                     :key="index"
@@ -244,8 +245,9 @@
                     <bk-button
                         theme="primary"
                         :class="{
-                            'btn-permission-disable': !hasConfirmPerm
+                            'btn-permission-disable': template.id !== '' && !hasConfirmPerm
                         }"
+                        :disabled="template.id === ''"
                         v-cursor="{ active: !hasConfirmPerm }"
                         @click="onConfirmlNewTask">
                         {{i18n.confirm}}
@@ -355,8 +357,6 @@
                 creator: undefined,
                 executeStartTime: undefined,
                 executeEndTime: undefined,
-                isStarted: undefined,
-                isFinished: undefined,
                 isCommonTemplate: false,
                 isAdvancedSerachShow: false,
                 status: undefined,
@@ -417,10 +417,8 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        task__pipeline_instance__name__contains: this.searchStr,
-                        creator: this.creator || undefined,
-                        pipeline_instance__is_started: this.isStarted,
-                        pipeline_instance__is_finished: this.isFinished,
+                        task__pipeline_instance__name__contains: this.searchStr || undefined,
+                        creator: this.creator,
                         project__id: this.projectId,
                         status: this.status
                     }
@@ -524,9 +522,6 @@
                 }
             },
             onSelectProject (id) {
-                if (this.projectId === id) {
-                    return
-                }
                 this.projectId = id
             },
             onSelectedBusiness (id, data) {
@@ -620,15 +615,15 @@
                 this.executeEndTime = Value[1]
             },
             onClearStatus () {
-                this.isStarted = undefined
-                this.isFinished = undefined
+                this.statusSync = ''
+                this.status = undefined
             },
             onResetForm () {
-                this.status = undefined
                 this.creator = undefined
                 this.statusSync = ''
-                this.selectedProject = 0
-                this.funtorSync = 0
+                this.status = undefined
+                this.selectedProject = undefined
+                this.projectId = undefined
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
                 this.searchInputhandler()
@@ -810,6 +805,10 @@
                 position: absolute;
                 right: -20px;
                 top: 9px;
+                color: #c4c6cc;
+                &:hover {
+                    color: #f4aa1a;
+                }
             }
         }
     }

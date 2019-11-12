@@ -89,7 +89,8 @@
                                 v-model="creator"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
+                                :placeholder="i18n.creatorPlaceholder"
+                                @clear="creator = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -98,7 +99,8 @@
                                 v-model="executor"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.executorPlaceholder">
+                                :placeholder="i18n.executorPlaceholder"
+                                @clear="executor = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -419,7 +421,7 @@
                         template_id: this.templateId,
                         pipeline_instance__creator__contains: this.creator,
                         pipeline_instance__executor__contains: this.executor,
-                        pipeline_instance__name__contains: this.flowName,
+                        pipeline_instance__name__contains: this.flowName || undefined,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
                         create_method: this.createMethod || undefined
@@ -631,7 +633,7 @@
                 this.TimeRange = ['', '']
                 this.isStarted = undefined
                 this.isFinished = undefined
-                this.createMethod = ''
+                this.createMethod = undefined
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined
