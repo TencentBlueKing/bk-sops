@@ -510,6 +510,21 @@
                         return item.source.id === line.sourceId && item.target.id === line.targetId
                     })[0]
                     const lineId = lineInCanvasData.id
+                    // 调整连线配置
+                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
+                        const config = [
+                            'Flowchart',
+                            {
+                                stub: [10, 10],
+                                alwaysRespectStub: true,
+                                gap: 0,
+                                cornerRadius: 10,
+                                midpoint: lineInCanvasData.midpoint
+                            }
+                        ]
+                        
+                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
+                    }
                     // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
@@ -535,20 +550,6 @@
                             id: `condition${lineId}`
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
-                    }
-                    // 调整连线配置
-                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
-                        const config = [
-                            'Flowchart',
-                            {
-                                stub: [6, 6],
-                                alwaysRespectStub: true,
-                                gap: 8,
-                                cornerRadius: 2,
-                                midpoint: lineInCanvasData.midpoint
-                            }
-                        ]
-                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                 })
             },
