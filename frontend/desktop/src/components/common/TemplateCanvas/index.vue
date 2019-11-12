@@ -773,7 +773,9 @@
                     this.handleReferenceLineHide()
                     return
                 }
-                this.showShortcutPane(id)
+                if (type !== 'endpoint') {
+                    this.showShortcutPane(id)
+                }
             },
             onNodeDblclick (id) {
                 this.onShowNodeConfig(id)
