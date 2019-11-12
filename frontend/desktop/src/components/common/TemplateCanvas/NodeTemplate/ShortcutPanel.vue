@@ -23,7 +23,7 @@
             <li
                 v-for="(name, index) in nodeTypeList"
                 :key="index"
-                :class="['shortcut-item', `common-icon-node-${name}`]"
+                :class="['shortcut-item', `common-icon-node-${name}-shortcut`]"
                 @click.stop="onAppendNode(name)"></li>
         </ul>
     </div>
