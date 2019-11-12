@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+import ujson as json
 from mock import MagicMock
 
 from pipeline.component_framework.test import (
@@ -123,11 +124,34 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': ('调用作业平台(JOB)接口job.execute_job返回失败, '
-                             'params={"bk_biz_id": 1, "global_vars": [{"name": "key_1", "value": "value_1"}, '
-                             '{"name": "key_2", "value": "value_2"}, {"name": "key_3", "ip_list": '
-                             '[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]}], '
-                             '"bk_job_id": 12345, "bk_callback_url": "url_token"}, error=message token')}),
+        outputs={'ex_data': ('调用作业平台(JOB)接口job.execute_job返回失败, params={params}, '
+                             'error=message token').format(params=json.dumps({"bk_biz_id": 1,
+                                                                              'bk_job_id': 12345,
+                                                                              'global_vars': [
+                                                                                  {
+                                                                                      'name': 'key_1',
+                                                                                      'value': 'value_1'
+                                                                                  },
+                                                                                  {
+                                                                                      'name': 'key_2',
+                                                                                      'value': 'value_2'},
+                                                                                  {
+                                                                                      'name': 'key_3',
+                                                                                      'ip_list': [
+                                                                                          {
+                                                                                              'ip': '1.1.1.1',
+                                                                                              'bk_cloud_id': 1
+                                                                                          },
+                                                                                          {
+                                                                                              'ip': '2.2.2.2',
+                                                                                              'bk_cloud_id': 1
+                                                                                          }
+                                                                                      ]
+                                                                                  }
+                                                                              ],
+                                                                              'bk_callback_url': 'url_token'}
+                                                                             ))
+                 }),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(username='executor_token',
@@ -329,7 +353,9 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             'job_inst_id': 56789,
             'job_inst_name': 'job_name_token',
             'client': GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
-            'ex_data': ''
+            'ex_data': ('调用作业平台(JOB)接口job.get_job_instance_global_var_value'
+                        '返回失败, params={params}, error=global var message token').format(
+                params=json.dumps({'bk_biz_id': 1, 'job_instance_id': 56789}))
         },
         callback_data={
             'job_instance_id': 56789,
@@ -483,5 +509,6 @@ INVALID_IP_CASE = ComponentTestCase(
             use_cache=False)]),
     ],
     patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={'ip_result': []}),
     ])

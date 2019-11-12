@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+import ujson as json
 from mock import MagicMock
 
 from pipeline.component_framework.test import (
@@ -113,8 +114,10 @@ TRANSFER_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': '调用配置平台(CMDB)接口cc.transfer_host_to_resource_module返回失败, '
-                            'params={"bk_biz_id": 2, "bk_host_id": [2, 3]}, error=message token'}),
+        outputs={'ex_data': ('调用配置平台(CMDB)接口cc.transfer_host_to_resource_module返回失败, '
+                             'params={params}, error=message token').format(params=json.dumps({'bk_biz_id': 2,
+                                                                                               'bk_host_id': [2, 3]}))
+                 }),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call('executor_token', 2, ['1.1.1.1', '2.2.2.2'], 0)]),

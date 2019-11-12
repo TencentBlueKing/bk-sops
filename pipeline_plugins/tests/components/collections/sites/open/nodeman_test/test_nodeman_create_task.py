@@ -207,7 +207,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={'job_id': '1'}
+        outputs={'job_id': '1', 'success_num': 1, 'fail_num': 0}
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -278,9 +278,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=True,
-        outputs={
-            'job_id': '1'
-        }
+        outputs={'job_id': '1'}
 
     ),
     schedule_assertion=ScheduleAssertion(
@@ -425,17 +423,13 @@ TASK_RUNNING_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=True,
-        outputs={
-            'job_id': '1'
-        }
+        outputs={'job_id': '1'}
 
     ),
     schedule_assertion=ScheduleAssertion(
-        success=False,
+        success=True,
         callback_data=None,
-        outputs={
-            'job_id': '1',
-        }
+        outputs={'job_id': '1'}
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -512,7 +506,7 @@ CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={'job_id': '1'}
+        outputs={'job_id': '1', 'success_num': 1, 'fail_num': 0}
     ),
     execute_call_assertion=[
         CallAssertion(
