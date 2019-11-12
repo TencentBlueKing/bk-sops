@@ -141,7 +141,7 @@
                 if (systemType) {
                     return `common-icon-sys-${systemType.toLowerCase()}`
                 }
-                return 'common-icon-sys-default'
+                return 'common-icon-subflow-mark'
             },
             onClickPin () {
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
