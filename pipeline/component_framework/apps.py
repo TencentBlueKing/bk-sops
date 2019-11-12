@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.apps import AppConfig
-from django.db.utils import ProgrammingError, OperationalError, InternalError
+from django.db.utils import InternalError, OperationalError, ProgrammingError
 
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections

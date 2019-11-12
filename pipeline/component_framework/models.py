@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+from pipeline.component_framework.library import ComponentLibrary
 
 
 class ComponentManager(models.Manager):
@@ -30,7 +30,7 @@ class ComponentManager(models.Manager):
             name = bundle.name.split('-')
             group_name = _(name[0])
             name = _(name[1])
-            component_dict[bundle.code] = '%s-%s' % (group_name, name)
+            component_dict[bundle.code] = '{}-{}'.format(group_name, name)
         return component_dict
 
 
@@ -38,10 +38,10 @@ class ComponentModel(models.Model):
     """
     注册的组件
     """
-    code = models.CharField(_(u"组件编码"), max_length=255)
-    version = models.CharField(_(u"组件版本"), max_length=64, default=LEGACY_PLUGINS_VERSION)
-    name = models.CharField(_(u"组件名称"), max_length=255)
-    status = models.BooleanField(_(u"组件是否可用"), default=True)
+    code = models.CharField(_("组件编码"), max_length=255)
+    version = models.CharField(_("组件版本"), max_length=64, default=LEGACY_PLUGINS_VERSION)
+    name = models.CharField(_("组件名称"), max_length=255)
+    status = models.BooleanField(_("组件是否可用"), default=True)
 
     objects = ComponentManager()
 

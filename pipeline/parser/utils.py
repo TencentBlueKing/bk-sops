@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from pipeline.utils.uniqid import node_uniqid, line_uniqid
 from pipeline.core.constants import PE
 from pipeline.exceptions import NodeNotExistException
+from pipeline.utils.uniqid import line_uniqid, node_uniqid
 
 logger = logging.getLogger('root')
 
@@ -91,9 +91,13 @@ def replace_all_id(pipeline_data):
 
 
 def _replace_id_in_data(pipeline_data, node_map):
-    for var_key, var_info in list(pipeline_data.get(PE.data, {}).get(PE.inputs, {}).items()):
+    for _, var_info in list(pipeline_data.get(PE.data, {}).get(PE.inputs, {}).items()):
         if PE.source_act in var_info:
-            var_info[PE.source_act] = node_map[var_info[PE.source_act]]
+            if isinstance(var_info[PE.source_act], str):
+                var_info[PE.source_act] = node_map[var_info[PE.source_act]]
+            else:
+                for source_info in var_info[PE.source_act]:
+                    source_info[PE.source_act] = node_map[var_info[PE.source_act]]
 
 
 def _replace_front_end_data_id(pipeline_data, node_map, flow_map):
@@ -133,28 +137,33 @@ def _replace_flow_id(flows, flow_id, substituted_id, pipeline_data):
 
 def _replace_flow_in_node(node_id, pipeline_data, substituted_id, flow_id, field):
     if node_id in pipeline_data[PE.activities]:
-        node = pipeline_data[PE.activities][node_id]
+        sequence = pipeline_data[PE.activities][node_id][field]
+        if isinstance(sequence, list):
+            i = sequence.index(flow_id)
+            sequence.pop(i)
+            sequence.insert(i, substituted_id)
+        else:
+            pipeline_data[PE.activities][node_id][field] = substituted_id
     elif node_id in pipeline_data[PE.gateways]:
-        node = pipeline_data[PE.gateways][node_id]
-        if node[PE.type] == PE.ExclusiveGateway and field == PE.outgoing:
-            _replace_flow_in_exclusive_gateway_conditions(node, substituted_id, flow_id)
+        gateway = pipeline_data[PE.gateways][node_id]
+        _replace_flow_in_gateway(gateway, substituted_id, flow_id, field)
     elif node_id == pipeline_data[PE.start_event][PE.id]:
-        node = pipeline_data[PE.start_event]
+        pipeline_data[PE.start_event][PE.outgoing] = substituted_id
     elif node_id == pipeline_data[PE.end_event][PE.id]:
-        node = pipeline_data[PE.end_event]
-    sequence = node[field]
-    if isinstance(sequence, list):
-        i = sequence.index(flow_id)
-        sequence.pop(i)
-        sequence.insert(i, substituted_id)
+        pipeline_data[PE.end_event][PE.incoming] = substituted_id
+
+
+def _replace_flow_in_gateway(gateway, substituted_id, flow_id, field):
+    if isinstance(gateway[field], list):
+        gateway[field].remove(flow_id)
+        gateway[field].append(substituted_id)
+
+        if gateway[PE.type] == PE.ExclusiveGateway and field == PE.outgoing:
+            conditions = gateway[PE.conditions]
+            conditions[substituted_id] = conditions[flow_id]
+            conditions.pop(flow_id)
     else:
-        node[field] = substituted_id
-
-
-def _replace_flow_in_exclusive_gateway_conditions(gateway, substituted_id, flow_id):
-    conditions = gateway[PE.conditions]
-    conditions[substituted_id] = conditions[flow_id]
-    conditions.pop(flow_id)
+        gateway[field] = substituted_id
 
 
 def _replace_gateway_id(flows, gateways, gateway_id, substituted_id):

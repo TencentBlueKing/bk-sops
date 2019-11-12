@@ -128,3 +128,11 @@ UTILS_IMPORTER_GIT__FILE_URL = 'pipeline.utils.importer.git.GitRepoModuleImporte
 UTILS_IMPORTER_GIT_GET_SOURCE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_source'
 UTILS_IMPORTER_GIT_GET_FILE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_file'
 UTILS_IMPORTER_GIT_IS_PACKAGE = 'pipeline.utils.importer.git.GitRepoModuleImporter.is_package'
+
+APPS_SETTINGS = 'pipeline.apps.settings'
+APPS_SENTINEL = 'pipeline.apps.Sentinel'
+
+ENGINE_DATA_API_SETTINGS = 'pipeline.engine.core.data.api.settings'
+ENGINE_DATA_API_IMPORT_BACKEND = 'pipeline.engine.core.data.api._import_backend'
+ENGINE_DATA_API_BACKEND = 'pipeline.engine.core.data.api._backend'
+ENGINE_DATA_API_CANDIDATE_BACKEND = 'pipeline.engine.core.data.api._candidate_backend'
