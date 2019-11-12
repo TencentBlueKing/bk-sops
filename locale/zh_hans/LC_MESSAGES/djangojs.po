@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-11 17:30+0800\n"
+"POT-Creation-Date: 2019-11-12 10:58+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1819,8 +1819,8 @@ msgid "执行失败率(%)"
 msgstr "执行失败率(%)"
 
 #: frontend/desktop/src/pages/admin/statistics/Atom.vue:286
-msgid "排序统计"
-msgstr "排序统计"
+msgid "插件统计"
+msgstr "插件统计"
 
 #: frontend/desktop/src/pages/admin/statistics/Atom.vue:287
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:364
@@ -3121,11 +3121,15 @@ msgstr "新增流程本地缓存成功"
 msgid "替换流程自动保存"
 msgstr "替换流程自动保存"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:419
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:144
+msgid "排版完成，原内容在本地缓存中"
+msgstr "排版完成，原内容在本地缓存中"
+
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:420
 msgid "普通变量"
 msgstr "普通变量"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:423
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:424
 msgid "元变量"
 msgstr "元变量"
 
@@ -3933,6 +3937,9 @@ msgstr "请求后台接口异常:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "文本框"
+
+#~ msgid "排序统计"
+#~ msgstr "排序统计"
 
 #~ msgid "你可以申请已有项目的权限，或新建项目"
 #~ msgstr "你可以申请已有项目的权限，或新建项目"
