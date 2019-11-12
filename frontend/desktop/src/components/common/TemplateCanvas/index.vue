@@ -212,6 +212,15 @@
                 connectorOptions
             }
         },
+        watch: {
+            canvasData (val) {
+                const { lines, locations: nodes } = val
+                this.flowData = {
+                    lines,
+                    nodes
+                }
+            }
+        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
