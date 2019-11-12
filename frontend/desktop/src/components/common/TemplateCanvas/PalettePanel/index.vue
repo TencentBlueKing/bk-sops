@@ -20,7 +20,7 @@
                 ]"
                 data-config-name=""
                 data-type="startpoint">
-                <div class="node-type-text start-point">{{ i18n.start }}</div>
+                <div :class="`node-type-icon common-icon-node-startpoint-${langSuffix}`"></div>
             </div>
             <div
                 :class="[
@@ -30,7 +30,7 @@
                 ]"
                 data-config-name=""
                 data-type="endpoint">
-                <div class="node-type-text end-point">{{ i18n.end }}</div>
+                <div :class="`node-type-icon common-icon-node-endpoint-${langSuffix}`"></div>
             </div>
             <div
                 :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
@@ -68,7 +68,7 @@
 <script>
     import '@/utils/i18n.js'
     import NodeMenu from './NodeMenu.vue'
-
+    import { mapState } from 'vuex'
     export default {
         name: 'PalattePanel',
         components: {
@@ -111,6 +111,12 @@
             }
         },
         computed: {
+            ...mapState({
+                lang: state => state.lang
+            }),
+            langSuffix () {
+                return this.lang === 'zh-cn' ? 'zh' : 'en'
+            },
             nodes () {
                 const data = this.atomTypeList[this.activeNodeListType]
                 return data || []
@@ -185,12 +191,8 @@
             cursor: move;
             user-select: none;
             &:hover {
-                .node-type-icon,
-                .node-type-text {
+                .node-type-icon{
                     color: #3a84ff;
-                }
-                .node-type-text {
-                    border-color: #3a84ff;
                 }
             }
             &.disabled {
@@ -208,20 +210,8 @@
                 }
             }
         }
-        .node-type-text {
-            display: flex;
-            margin: 0 auto;
-            font-size: 12px;
-            width: 32px;
-            height: 32px;
-            justify-content: center;
-            align-items: center;
-            color: #52699d;
-            border: 1px solid #546a9e;
-            border-radius: 50%;
-        }
         .node-type-icon {
-            font-size: 32px;
+            font-size: 28px;
             color: #546a9e;
         }
     }
