@@ -122,7 +122,6 @@
                     if (
                         Math.abs(x - this.moveFlag.x) < moveBuffer
                         && Math.abs(y - this.moveFlag.y) < moveBuffer
-                        && this.node.type !== 'endpoint'
                     ) {
                         this.$emit('onNodeClick', this.node.id, this.node.type, e)
                     }
