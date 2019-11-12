@@ -272,12 +272,11 @@
                 }
             },
             nodeSelectedhandler (e) {
-                if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) {
+                if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) { // ctrl + v
                     const { locations, lines } = this.createCopyOfSelectedNodes(this.selectedNodes)
                     const selectedIds = []
                     const { x: originX, y: originY } = this.selectionOriginPos
                     const { x, y } = this.pasteMousePos
-
                     locations.forEach(location => {
                         location.x += (x - originX)
                         location.y += (y - originY)
@@ -285,7 +284,6 @@
                         this.$refs.jsFlow.createNode(location)
                         this.$emit('onLocationChange', 'add', location)
                     })
-
                     // 需要先生成节点 DOM，才能连线
                     lines.forEach(line => {
                         this.$emit('onLineChange', 'add', line)
@@ -296,6 +294,7 @@
                     this.$nextTick(() => {
                         this.$refs.jsFlow.clearNodesDragSelection()
                         this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                        this.selectedNodes = locations
                     })
                 } else if ([37, 38, 39, 40].includes(e.keyCode)) { // 选中后支持上下左右移动节点
                     const typeMap = {
