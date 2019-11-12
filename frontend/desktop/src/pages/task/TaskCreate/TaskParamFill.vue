@@ -287,7 +287,7 @@
              */
             async getLayoutedPosition (data) {
                 try {
-                    const width = document.body.getScrollWidth
+                    const width = document.body.getScrollWidth - 200
                     const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
                     if (res.result) {
                         return res.data.pipeline_tree

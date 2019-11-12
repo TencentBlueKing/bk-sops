@@ -742,7 +742,7 @@
                 try {
                     const pipelineTree = this.getPipelineTree()
                     const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
-                    const width = canvasEl.offsetWidth
+                    const width = canvasEl.offsetWidth - 200
                     const res = await this.getLayoutedPipeline({ width, pipelineTree })
                     if (res.result) {
                         this.onNewDraft(undefined, false)
