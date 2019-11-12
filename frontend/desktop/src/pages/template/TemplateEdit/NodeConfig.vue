@@ -751,7 +751,7 @@
             handleNodeConfigPanelShow (e) {
                 if (!this.isNodeConfigPanelShow
                     || this.isReuseVarDialogShow
-                    || e.target.className.indexOf('bk-option') > -1) {
+                    || dom.parentClsContains('bk-option', e.target)) {
                     return
                 }
                 const settingPanel = document.querySelector('.setting-area-wrap')
