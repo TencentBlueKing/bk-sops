@@ -125,7 +125,7 @@ class NodemanCreateTaskService(Service):
         LOGGER.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
             result=agent_result, kwargs=agent_kwargs))
         if agent_result['result']:
-            data.set_outputs('job_id', agent_result['data']['hosts'][0]['job_id'])
+            data.set_outputs('job_id', agent_result['data']['id'])
             return True
         else:
             message = u"create agent install task failed: %s" % agent_result['message']
@@ -148,26 +148,37 @@ class NodemanCreateTaskService(Service):
             'job_id': job_id
         }
         job_result = client.nodeman.get_task_info(job_kwargs)
-        host_count = job_result['data']['host_count']
-        result_data = job_result['data']
+
+        LOGGER.info('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+            result=job_result, kwargs=job_kwargs))
 
         # 任务执行失败
-        if job_result['message'] != 'success':
+        if not job_result['result']:
+            LOGGER.error('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+                result=job_result, kwargs=job_kwargs))
             data.set_outputs('ex_data', _(u'查询失败，未能获得任务执行结果'))
             self.finish_schedule()
             return False
 
-        for i in range(host_count):
-            job_result = result_data['hosts'][i]
+        host_count = job_result['data']['host_count']
+        result_data = job_result['data']
 
-            # 安装成功
-            if job_result['status'] == 'SUCCEEDED':
-                success_num += 1
-            # 安装失败
-            elif job_result['status'] == 'FAILED':
-                fail_num += 1
-                fail_ids.append(job_result['host']['id'])
-                fail_hosts.append(job_result['host']['inner_ip'])
+        if job_result['data']['job_type'] == 'REMOVE_AGENT':
+            success_num = job_result['data']['status_count']['success_count']
+            fail_num = job_result['data']['status_count']['failed_count']
+        else:
+            # 移除agent返回的hosts为空数组，无法进行遍历
+            for i in range(host_count):
+                job_result = result_data['hosts'][i]
+
+                # 安装成功
+                if job_result['status'] == 'SUCCESS':
+                    success_num += 1
+                # 安装失败
+                elif job_result['status'] == 'FAILED':
+                    fail_num += 1
+                    fail_ids.append(job_result['host']['id'])
+                    fail_hosts.append(job_result['host']['inner_ip'])
 
         if success_num + fail_num == host_count:
             data.set_outputs('success_num', success_num)
