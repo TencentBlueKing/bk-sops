@@ -138,10 +138,13 @@
         methods: {
             getIconCls (type) {
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(type))
+                if (this.activeNodeListType === 'subflow') {
+                    return 'common-icon-subflow-mark'
+                }
                 if (systemType) {
                     return `common-icon-sys-${systemType.toLowerCase()}`
                 }
-                return 'common-icon-subflow-mark'
+                return 'common-icon-sys-default'
             },
             onClickPin () {
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
@@ -234,6 +237,9 @@
             margin-top: 13px;
             font-size: 16px;
             color: #52699d;
+            &.common-icon-subflow-mark {
+                font-size: 18px;
+            }
         }
         .group-icon-img {
             float: left;
