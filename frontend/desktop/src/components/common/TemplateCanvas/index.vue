@@ -630,8 +630,8 @@
                     return false
                 }
                 const { clientX, clientY, offsetX, offsetY } = event
-                const bX = clientX - offsetX + 6
-                const bY = clientY - 50 - offsetY + 6
+                const bX = clientX - offsetX + 5
+                const bY = clientY - 50 - offsetY + 5
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
