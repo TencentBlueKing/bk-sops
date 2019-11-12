@@ -523,7 +523,7 @@
                         const labelData = {
                             type: 'Label',
                             name: `<div class="branch-condition"
-                                    title="${labelValue}"
+                                    title="${labelName}(${labelValue})"
                                     data-value="${labelValue}"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
@@ -751,7 +751,7 @@
                     const labelData = {
                         type: 'Label',
                         name: `<div class="branch-condition"
-                                title="${value}"
+                                title="${name}(${value})"
                                 data-value="${value}"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
