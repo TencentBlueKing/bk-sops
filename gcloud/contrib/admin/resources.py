@@ -11,10 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from tastypie import fields
+from tastypie.constants import ALL
+from tastypie.resources import ModelResource
+from tastypie.authorization import ReadOnlyAuthorization
+
+from gcloud.webservice3.resources import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.resources import TaskTemplateResource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
+from gcloud.periodictask.models import PeriodicTaskHistory, PeriodicTask
 from gcloud.periodictask.resources import PeriodicTaskResource
 
 
@@ -22,16 +29,49 @@ class AdminTaskTemplateResource(TaskTemplateResource):
 
     class Meta(TaskTemplateResource.Meta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False)
-        resource_name = 'admin-template'
+        resource_name = 'template'
 
 
 class AdminTaskFlowInstanceResource(TaskFlowInstanceResource):
 
     class Meta(TaskFlowInstanceResource.Meta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False)
-        resource_name = 'admin-taskflow'
+        resource_name = 'taskflow'
 
 
 class AdminPeriodicTaskResource(PeriodicTaskResource):
     class Meta(PeriodicTaskResource.Meta):
-        resource_name = 'admin-periodic_task'
+        resource_name = 'periodic_task'
+
+
+class AdminPeriodicTaskHistoryResource(GCloudModelResource):
+
+    id = fields.IntegerField(
+        attribute='id',
+        readonly=True
+    )
+    task_id = fields.IntegerField(
+        attribute='task_id',
+        readonly=True
+    )
+    start_at = fields.DateTimeField(
+        attribute='start_at',
+        readonly=True
+    )
+    start_success = fields.BooleanField(
+        attribute='start_success',
+        readonly=True
+    )
+    ex_data = fields.CharField(
+        attribute='ex_data',
+        readonly=True
+    )
+
+    class Meta(GCloudModelResource.Meta):
+        queryset = PeriodicTaskHistory.objects.all().order_by('-id')
+        resource_name = 'periodic_task_history'
+        authorization = ReadOnlyAuthorization()
+
+        filtering = {
+            'task_id': ALL
+        }
