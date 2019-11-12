@@ -194,6 +194,7 @@
                 isShowHotKey: false,
                 isCanCreateline: false,
                 selectedNodes: [],
+                copyNodes: [],
                 selectionOriginPos: {
                     x: 0,
                     y: 0
@@ -253,6 +254,7 @@
             },
             onFrameSelectEnd (nodes, x, y) {
                 this.selectedNodes = nodes
+                this.copyNodes = tools.deepClone(nodes)
                 this.isSelectionOpen = false
                 this.selectionOriginPos = { x, y }
                 this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
@@ -261,6 +263,7 @@
             },
             onCloseFrameSelect () {
                 this.selectedNodes = []
+                this.copyNodes = []
                 this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
                 document.removeEventListener('keydown', this.pasteMousePosHandler)
                 document.removeEventListener('keydown', this.nodeSelectedhandler)
@@ -273,7 +276,7 @@
             },
             nodeSelectedhandler (e) {
                 if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) { // ctrl + v
-                    const { locations, lines } = this.createCopyOfSelectedNodes(this.selectedNodes)
+                    const { locations, lines } = this.createCopyOfSelectedNodes(this.copyNodes)
                     const selectedIds = []
                     const { x: originX, y: originY } = this.selectionOriginPos
                     const { x, y } = this.pasteMousePos
@@ -576,7 +579,11 @@
             onNodeMoveStop (loc) {
                 this.$emit('variableDataChanged')
                 if (this.selectedNodes.length) {
-                    const { x, y } = this.selectedNodes.find(m => m.id === loc.id)
+                    const item = this.selectedNodes.find(m => m.id === loc.id)
+                    if (!item) {
+                        return false
+                    }
+                    const { x, y } = item
                     const bX = loc.x - x
                     const bY = loc.y - y
                     this.selectedNodes.forEach(node => {
@@ -739,6 +746,7 @@
             },
             addNodesToDragSelection (selectedNode) {
                 this.selectedNodes.push(selectedNode)
+                this.copyNodes.push(selectedNode)
                 const ids = this.selectedNodes.map(m => m.id)
                 this.$refs.jsFlow.addNodesToDragSelection(ids)
                 document.addEventListener('keydown', this.nodeSelectedhandler)
@@ -746,6 +754,7 @@
             },
             handleClearDragSelection () {
                 this.selectedNodes = []
+                this.copyNodes = []
                 this.$refs.jsFlow.clearNodesDragSelection()
                 document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
                 document.removeEventListener('keydown', this.nodeSelectedhandler)
