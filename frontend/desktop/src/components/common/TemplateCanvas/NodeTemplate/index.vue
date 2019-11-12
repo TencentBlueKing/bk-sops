@@ -105,6 +105,7 @@
             onMousedown (e) {
                 const { pageX: x, pageY: y } = e
                 this.moveFlag = { x, y }
+                this.$emit('onNodeMousedown', this.node.id)
             },
             onNodeDblclick () {
                 clearTimeout(this.clickTimer)
