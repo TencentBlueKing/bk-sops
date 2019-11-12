@@ -16,21 +16,12 @@
             :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
-                    <template v-if="isMac">
-                        <p class="text title">Mac</p>
-                        <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
-                        <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                        <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text" v-show="editable">Command + {{i18n.multiple}}</p>
-                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
-                        <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
-                    </template>
-                    <template v-else>
+                    <template>
                         <p class="text title">Windows</p>
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text" v-show="editable">Ctrl + {{i18n.multiple}}</p>
+                        <p class="text" v-show="editable">{{commonCtrl}} + {{i18n.multiple}}</p>
                         <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
@@ -75,6 +66,7 @@
                     cancel: gettext('：取消选中')
                 },
                 isMac,
+                commonCtrl: isMac ? 'Command' : 'Ctrl',
                 hotKeyTriggeringConditions
             }
         },
