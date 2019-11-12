@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import base64
-import logging
-
 import rsa
 
 from django.utils.translation import ugettext_lazy as _
@@ -34,7 +32,6 @@ from gcloud.conf import settings
 
 __group_name__ = _(u"节点管理(Nodeman)")
 
-LOGGER = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDYvKQ/dAh499dXGDoQ2NWgwlev
@@ -122,7 +119,7 @@ class NodemanCreateTaskService(Service):
         }
 
         agent_result = client.nodeman.create_task(agent_kwargs)
-        LOGGER.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
+        self.logger.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
             result=agent_result, kwargs=agent_kwargs))
         if agent_result['result']:
             data.set_outputs('job_id', agent_result['data']['id'])
@@ -149,12 +146,12 @@ class NodemanCreateTaskService(Service):
         }
         job_result = client.nodeman.get_task_info(job_kwargs)
 
-        LOGGER.info('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+        self.logger.info('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
             result=job_result, kwargs=job_kwargs))
 
         # 任务执行失败
         if not job_result['result']:
-            LOGGER.error('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+            self.logger.error('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
                 result=job_result, kwargs=job_kwargs))
             data.set_outputs('ex_data', _(u'查询失败，未能获得任务执行结果'))
             self.finish_schedule()
@@ -163,20 +160,16 @@ class NodemanCreateTaskService(Service):
         host_count = job_result['data']['host_count']
         result_data = job_result['data']
 
-        if job_result['data']['job_type'] == 'REMOVE_AGENT':
-            success_num = job_result['data']['status_count']['success_count']
-            fail_num = job_result['data']['status_count']['failed_count']
-        else:
-            # 移除agent返回的hosts为空数组，无法进行遍历
+        success_num = job_result['data']['status_count']['success_count']
+        fail_num = job_result['data']['status_count']['failed_count']
+
+        if not job_result['data']['job_type'] == 'REMOVE_AGENT':
+            # 操作类型不为“移除”时，hosts才不为空数组
             for i in range(host_count):
                 job_result = result_data['hosts'][i]
 
-                # 安装成功
-                if job_result['status'] == 'SUCCESS':
-                    success_num += 1
                 # 安装失败
-                elif job_result['status'] == 'FAILED':
-                    fail_num += 1
+                if job_result['status'] == 'FAILED':
                     fail_ids.append(job_result['host']['id'])
                     fail_hosts.append(job_result['host']['inner_ip'])
 
