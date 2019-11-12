@@ -111,6 +111,10 @@
                 this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
+                if ((e.ctrlKey || e.metaKey) && this.editable) {
+                    this.$emit('addNodesToDragSelection', this.node)
+                    return
+                }
                 clearTimeout(this.clickTimer)
                 this.clickTimer = setTimeout(() => {
                     const moveBuffer = 2
@@ -118,7 +122,6 @@
                     if (
                         Math.abs(x - this.moveFlag.x) < moveBuffer
                         && Math.abs(y - this.moveFlag.y) < moveBuffer
-                        && this.node.type !== 'endpoint'
                     ) {
                         this.$emit('onNodeClick', this.node.id, this.node.type, e)
                     }
@@ -161,7 +164,7 @@
     }
 </script>
 <style lang="scss">
-    $blueDark: #3a84ff;
+    $blueDark: #52699D;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
     $greenDark: #2dcb56;

@@ -35,9 +35,10 @@
         <div class="button-area">
             <bk-button
                 theme="primary"
-                :class="['save-canvas', {
-                    'btn-permission-disable': !isSaveBtnEnable
-                }]"
+                :class="[
+                    'save-canvas',
+                    'task-btn',
+                    { 'btn-permission-disable': !isSaveBtnEnable }]"
                 :loading="templateSaving"
                 v-cursor="{ active: !isSaveBtnEnable }"
                 @click="onSaveTemplate(false)">
@@ -343,6 +344,9 @@
             top: 6px;
             font-size: 12px;
             white-space: nowrap;
+        }
+        .task-btn {
+            margin-right: 5px;
         }
     }
 </style>

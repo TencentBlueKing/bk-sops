@@ -127,6 +127,9 @@
                 }
             },
             async getNodeConfig (type) {
+                if (!type) {
+                    return []
+                }
                 if (this.atomFormConfig[type]) {
                     return this.atomFormConfig[type]
                 } else {
@@ -141,7 +144,8 @@
             },
             upDataParamsData (config) {
                 if (config.component_code) {
-                    this.loadNodeInfo()
+                    const loadStartTime = new Date().getTime()
+                    this.loadNodeInfo(loadStartTime)
                 } else {
                     this.$nextTick(() => {
                         this.loading = false
