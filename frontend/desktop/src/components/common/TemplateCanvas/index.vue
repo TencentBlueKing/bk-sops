@@ -213,6 +213,15 @@
                 connectorOptions
             }
         },
+        watch: {
+            canvasData (val) {
+                const { lines, locations: nodes } = val
+                this.flowData = {
+                    lines,
+                    nodes
+                }
+            }
+        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
@@ -220,7 +229,7 @@
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
-            document.removeEventListener('keydown', this.nodeLinePastehandler)
+            document.removeEventListener('keydown', this.nodeSelectedhandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
             document.body.removeEventListener('click', this.handleReferenceLineHide, false)
@@ -247,14 +256,14 @@
                 this.isSelectionOpen = false
                 this.selectionOriginPos = { x, y }
                 this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
-                document.addEventListener('keydown', this.nodeLinePastehandler)
+                document.addEventListener('keydown', this.nodeSelectedhandler)
                 document.addEventListener('keydown', this.nodeLineDeletehandler, { once: true })
             },
             onCloseFrameSelect () {
                 this.selectedNodes = []
                 this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
                 document.removeEventListener('keydown', this.pasteMousePosHandler)
-                document.removeEventListener('keydown', this.nodeLinePastehandler)
+                document.removeEventListener('keydown', this.nodeSelectedhandler)
             },
             pasteMousePosHandler (e) {
                 this.pasteMousePos = {
@@ -262,7 +271,7 @@
                     y: e.offsetY
                 }
             },
-            nodeLinePastehandler (e) {
+            nodeSelectedhandler (e) {
                 if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) {
                     const { locations, lines } = this.createCopyOfSelectedNodes(this.selectedNodes)
                     const selectedIds = []
@@ -276,7 +285,7 @@
                         this.$refs.jsFlow.createNode(location)
                         this.$emit('onLocationChange', 'add', location)
                     })
-                    this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+
                     // 需要先生成节点 DOM，才能连线
                     lines.forEach(line => {
                         this.$emit('onLineChange', 'add', line)
@@ -284,7 +293,10 @@
                             this.$refs.jsFlow.createConnector(line)
                         })
                     })
-                    this.$refs.jsFlow.clearNodesDragSelection()
+                    this.$nextTick(() => {
+                        this.$refs.jsFlow.clearNodesDragSelection()
+                        this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                    })
                 } else if ([37, 38, 39, 40].includes(e.keyCode)) { // 选中后支持上下左右移动节点
                     const typeMap = {
                         '37': 'left',
@@ -507,6 +519,21 @@
                         return item.source.id === line.sourceId && item.target.id === line.targetId
                     })[0]
                     const lineId = lineInCanvasData.id
+                    // 调整连线配置
+                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
+                        const config = [
+                            'Flowchart',
+                            {
+                                stub: [10, 10],
+                                alwaysRespectStub: true,
+                                gap: 0,
+                                cornerRadius: 10,
+                                midpoint: lineInCanvasData.midpoint
+                            }
+                        ]
+                        
+                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
+                    }
                     // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
@@ -532,20 +559,6 @@
                             id: `condition${lineId}`
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
-                    }
-                    // 调整连线配置
-                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
-                        const config = [
-                            'Flowchart',
-                            {
-                                stub: [6, 6],
-                                alwaysRespectStub: true,
-                                gap: 8,
-                                cornerRadius: 2,
-                                midpoint: lineInCanvasData.midpoint
-                            }
-                        ]
-                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                 })
             },
@@ -729,14 +742,14 @@
                 this.selectedNodes.push(selectedNode)
                 const ids = this.selectedNodes.map(m => m.id)
                 this.$refs.jsFlow.addNodesToDragSelection(ids)
-                document.addEventListener('keydown', this.nodeLinePastehandler)
+                document.addEventListener('keydown', this.nodeSelectedhandler)
                 document.addEventListener('mousedown', this.handleClearDragSelection, { once: true })
             },
             handleClearDragSelection () {
                 this.selectedNodes = []
                 this.$refs.jsFlow.clearNodesDragSelection()
                 document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
-                document.removeEventListener('keydown', this.nodeLinePastehandler)
+                document.removeEventListener('keydown', this.nodeSelectedhandler)
             },
             // 更新分支条件数据
             updataConditionCanvasData (data) {
@@ -961,6 +974,14 @@
             z-index: 3;
             &.adding-node {
                 z-index: 6;
+            }
+            &.jtk-drag {
+                .process-node,
+                .subflow-node,
+                .gateway-node,
+                .circle-node {
+                    cursor: move;
+                }
             }
         }
         .jtk-connector {

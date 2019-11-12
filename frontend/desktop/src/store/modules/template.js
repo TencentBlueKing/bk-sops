@@ -14,6 +14,8 @@ import api from '@/api/index.js'
 import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
+import validatePipeline from '@/utils/validatePipeline.js'
+
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
     endpoint: 'EmptyEndEvent',
@@ -769,7 +771,6 @@ const template = {
                     type: item.type,
                     name: item.name,
                     stage_name: item.stage_name,
-                    status: item.status,
                     x: item.x,
                     y: item.y,
                     group: item.group,
@@ -777,7 +778,7 @@ const template = {
                 }
             })
             // 完整的画布数据
-            const fullCanvasData = JSON.stringify({
+            const fullCanvasData = {
                 activities,
                 constants,
                 end_event,
@@ -787,7 +788,7 @@ const template = {
                 location: pureLocation,
                 outputs,
                 start_event
-            })
+            }
             const data = {
                 projectId,
                 templateId,
@@ -796,8 +797,18 @@ const template = {
                 notifyReceivers: JSON.stringify(notify_receivers),
                 notifyType: JSON.stringify(notify_type),
                 name: state.name,
-                pipelineTree: fullCanvasData,
+                pipelineTree: JSON.stringify(fullCanvasData),
                 common
+            }
+            const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
+            if (!validateResult.valid) {
+                return new Promise((resolve, reject) => {
+                    const info = {
+                        message: gettext('画布数据字段错误，请检查节点连线')
+                    }
+                    console.error('pipeline_tree_data_error:', validateResult.errors)
+                    reject(info)
+                })
             }
             return api.saveTemplate(data).then(response => {
                 return response.data
