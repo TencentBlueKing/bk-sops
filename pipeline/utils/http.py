@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json as module_json
 import logging
 
+import ujson as module_json
 import requests
 
 logger = logging.getLogger('root')

@@ -944,7 +944,7 @@ class TaskFlowInstance(models.Model):
             act_started = False
         else:
             # 最新 loop 执行记录，直接通过接口获取
-            if loop == detail['loop']:
+            if loop is None or loop == detail['loop']:
                 inputs = pipeline_api.get_inputs(node_id)
                 outputs = pipeline_api.get_outputs(node_id)
             # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）

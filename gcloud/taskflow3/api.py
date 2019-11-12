@@ -97,10 +97,11 @@ def status(request, project_id):
 def data(request, project_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
+    loop = request.GET.get('loop')
     component_code = request.GET.get('component_code')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_data(node_id, request.user.username, component_code, subprocess_stack)
+    ctx = task.get_node_data(node_id, request.user.username, component_code, subprocess_stack, loop)
     return JsonResponse(ctx)
 
 

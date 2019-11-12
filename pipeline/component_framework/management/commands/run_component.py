@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import sys
 
+import ujson as json
 from django.core.management import BaseCommand
 
 from pipeline.component_framework.library import ComponentLibrary
