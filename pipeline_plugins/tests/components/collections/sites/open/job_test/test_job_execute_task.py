@@ -126,8 +126,10 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
         outputs={'ex_data': u'\u8c03\u7528\u4f5c\u4e1a\u5e73\u53f0(JOB)'
                             u'\u63a5\u53e3job.execute_job\u8fd4\u56de\u5931\u8d25, '
                             u'params={"bk_biz_id":1,"global_vars":[{"name":"key_1","value":"value_1"},'
-                            u'{"name":"key_2","value":"value_2"},{"name":"key_3","ip_list":[{"ip":"1.1.1.1","bk_cloud_id":1},'
-                            u'{"ip":"2.2.2.2","bk_cloud_id":1}]}],"bk_job_id":12345,"bk_callback_url":"url_token"}, error=message token'}),
+                            u'{"name":"key_2","value":"value_2"},{"name":"key_3",'
+                            u'"ip_list":[{"ip":"1.1.1.1","bk_cloud_id":1},'
+                            u'{"ip":"2.2.2.2","bk_cloud_id":1}]}],"bk_job_id":12345,'
+                            u'"bk_callback_url":"url_token"}, error=message token'}),  # noqa
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(username='executor_token',
