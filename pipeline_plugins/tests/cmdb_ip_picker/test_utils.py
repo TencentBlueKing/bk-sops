@@ -121,9 +121,9 @@ class TestGetObjects(TestCase):
         }
 
     def test_format_condition_value(self):
-        self.assertEqual(format_condition_value(['111', '222']), ['111', '222'])
-        self.assertEqual(format_condition_value(['111', '222\n333']), ['111', '222', '333'])
-        self.assertEqual(format_condition_value(['', '222\n', ' 333  ']), ['222', '333'])
+        self.assertEqual(format_condition_value(['111', '222']), list({'111', '222'}))
+        self.assertEqual(format_condition_value(['111', '222\n333']), list({'111', '222', '333'}))
+        self.assertEqual(format_condition_value(['', '222\n', ' 333  ']), list({'222', '333'}))
 
     def test_get_modules_id(self):
         modules = [

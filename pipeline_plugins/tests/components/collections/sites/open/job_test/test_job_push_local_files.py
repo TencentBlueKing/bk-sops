@@ -341,8 +341,8 @@ def CALLBACK_FAIL_CASE():
                 'job_inst_id': CALLBACK_FAIL_RESULT['data']['job_id'],
                 'job_inst_url': 'url_token',
                 'ex_data': {
-                    'exception_msg': u"任务执行失败，<a href='{}' target='_blank'>"
-                    u"前往作业平台(JOB)查看详情</a>".format('url_token'),
+                    'exception_msg': ("任务执行失败，<a href='{}' target='_blank'>"
+                                      "前往作业平台(JOB)查看详情</a>").format('url_token'),
                     'show_ip_log': True,
                     'task_inst_id': 12345
                 }

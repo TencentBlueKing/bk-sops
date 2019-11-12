@@ -142,7 +142,7 @@ class DrawingTest(TestCase):
                     'source_info': {
                         'nodedd50630d1029bca78ad6efaf89d4': ['bk_timing']
                     },
-                    'name': '\u5b9a\u65f6\u65f6\u95f4',
+                    'name': '定时时间',
                     'index': 0,
                     'custom_type': '',
                     'value': '3',
@@ -275,8 +275,8 @@ class DrawingTest(TestCase):
             }
         ]
         draw_pipeline(pipeline_tree, start=POSITION['start'])
-        self.assertEquals(pipeline_tree['location'], location)
-        self.assertEquals(pipeline_tree['line'], line)
+        self.assertEqual(pipeline_tree['location'], location)
+        self.assertEqual(pipeline_tree['line'], line)
 
     def test_draw_gateways(self):
         pipeline_tree = {
@@ -733,5 +733,5 @@ class DrawingTest(TestCase):
             }
         ]
         draw_pipeline(pipeline_tree, start=POSITION['start'])
-        self.assertEquals(pipeline_tree['location'], location)
-        self.assertEquals(pipeline_tree['line'], line)
+        self.assertEqual(pipeline_tree['location'], location)
+        self.assertEqual(pipeline_tree['line'], line)

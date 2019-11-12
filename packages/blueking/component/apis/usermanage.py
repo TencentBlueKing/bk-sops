@@ -23,5 +23,5 @@ class CollectionsUserManage(object):
         self.retrieve_user = ComponentAPI(
             client=self.client, method='GET',
             path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
-            description=u'查询用户具体详情'
+            description='查询用户具体详情'
         )

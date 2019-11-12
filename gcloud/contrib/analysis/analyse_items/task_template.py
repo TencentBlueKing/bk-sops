@@ -46,7 +46,7 @@ def produce_filter(filters):
     @return:
     """
     orm_filters = {}
-    for cond, value in filters.items():
+    for cond, value in list(filters.items()):
         # component_code不加入查询条件中
         if value in ['None', ''] or cond in ['component_code', 'order_by', 'type']:
             continue

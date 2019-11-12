@@ -269,7 +269,7 @@ class TaskTemplateManager(BaseTemplateManager):
         template_id_map = {template['pipeline_template__id']: template['pipeline_template__template_id']
                            for template in id_list}
         # 查询所有的任务，并统计每个template创建了多少个任务
-        taskflow_list = PipelineInstance.objects.filter(template_id__in=template_id_map.keys()).values(
+        taskflow_list = PipelineInstance.objects.filter(template_id__in=list(template_id_map.keys())).values(
             'template_id').annotate(instance_total=Count('template_id')).order_by()
         # 查询所有归档的周期任务，并统计每个template创建了多少个周期任务
         periodic_list = PeriodicTask.objects.filter(template__template_id__in=template_id_list).values(

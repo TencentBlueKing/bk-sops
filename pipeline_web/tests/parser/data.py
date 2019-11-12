@@ -794,147 +794,147 @@ WEB_PIPELINE_WITH_SUB_PROCESS2 = {
 # 子流程 全局输入部分show，部分引用到父流程 全部输出无引用到父流程
 WEB_PIPELINE_WITH_SUB_PROCESS3 = {
     'id': node_uniqid(),
-    u'activities': {
-        u'a69a41785c7b30afbd46c532a6f466a7': {
-            u'outgoing': u'ca1aab540d4c35f5a2f60a05ed80181d',
-            u'incoming': u'199fda538c9e39d3876465f8925774f2',
-            u'name': u'\u8282\u70b9_1',
-            u'optional': False,
-            u'pipeline': {
-                u'activities': {
-                    u'8f7428b073963641bcf8ce01b447e17d': {
-                        u'outgoing': u'd5bafd9b95d739a892ded011e70708ac',
-                        u'incoming': u'fd2c65c4b4e7313abf8fb26ddb6b406b',
-                        u'name': u'\u8282\u70b9_1',
-                        u'type': u'ServiceActivity',
-                        u'component': {
-                            u'code': u'test',
-                            u'data': {
-                                u'input_test': {
-                                    u'hook': True,
-                                    u'is_valid': True,
-                                    u'value': u'${input_test}'
+    'activities': {
+        'a69a41785c7b30afbd46c532a6f466a7': {
+            'outgoing': 'ca1aab540d4c35f5a2f60a05ed80181d',
+            'incoming': '199fda538c9e39d3876465f8925774f2',
+            'name': '\u8282\u70b9_1',
+            'optional': False,
+            'pipeline': {
+                'activities': {
+                    '8f7428b073963641bcf8ce01b447e17d': {
+                        'outgoing': 'd5bafd9b95d739a892ded011e70708ac',
+                        'incoming': 'fd2c65c4b4e7313abf8fb26ddb6b406b',
+                        'name': '\u8282\u70b9_1',
+                        'type': 'ServiceActivity',
+                        'component': {
+                            'code': 'test',
+                            'data': {
+                                'input_test': {
+                                    'hook': True,
+                                    'is_valid': True,
+                                    'value': '${input_test}'
                                 },
-                                u'radio_test': {
-                                    u'hook': False,
-                                    u'is_valid': True,
-                                    u'value': u'1'
+                                'radio_test': {
+                                    'hook': False,
+                                    'is_valid': True,
+                                    'value': '1'
                                 }
                             }
                         },
-                        u'ignore': False,
-                        u'optional': False,
-                        u'id': u'8f7428b073963641bcf8ce01b447e17d',
-                        u'loop': None
+                        'ignore': False,
+                        'optional': False,
+                        'id': '8f7428b073963641bcf8ce01b447e17d',
+                        'loop': None
                     }
                 },
-                u'end_event': {
-                    u'incoming': u'd5bafd9b95d739a892ded011e70708ac',
-                    u'outgoing': u'',
-                    u'type': u'EmptyEndEvent',
-                    u'id': u'4a93549e80c83bd293d4c4be658cb99f',
-                    u'name': u''
+                'end_event': {
+                    'incoming': 'd5bafd9b95d739a892ded011e70708ac',
+                    'outgoing': '',
+                    'type': 'EmptyEndEvent',
+                    'id': '4a93549e80c83bd293d4c4be658cb99f',
+                    'name': ''
                 },
-                u'outputs': [],
-                u'flows': {
-                    u'fd2c65c4b4e7313abf8fb26ddb6b406b': {
-                        u'is_default': False,
-                        u'source': u'b3a6c3e168c83d6a951b962935ebc10e',
-                        u'id': u'fd2c65c4b4e7313abf8fb26ddb6b406b',
-                        u'target': u'8f7428b073963641bcf8ce01b447e17d'
+                'outputs': [],
+                'flows': {
+                    'fd2c65c4b4e7313abf8fb26ddb6b406b': {
+                        'is_default': False,
+                        'source': 'b3a6c3e168c83d6a951b962935ebc10e',
+                        'id': 'fd2c65c4b4e7313abf8fb26ddb6b406b',
+                        'target': '8f7428b073963641bcf8ce01b447e17d'
                     },
-                    u'd5bafd9b95d739a892ded011e70708ac': {
-                        u'is_default': False,
-                        u'source': u'8f7428b073963641bcf8ce01b447e17d',
-                        u'id': u'd5bafd9b95d739a892ded011e70708ac',
-                        u'target': u'4a93549e80c83bd293d4c4be658cb99f'
+                    'd5bafd9b95d739a892ded011e70708ac': {
+                        'is_default': False,
+                        'source': '8f7428b073963641bcf8ce01b447e17d',
+                        'id': 'd5bafd9b95d739a892ded011e70708ac',
+                        'target': '4a93549e80c83bd293d4c4be658cb99f'
                     }
                 },
-                u'start_event': {
-                    u'incoming': u'',
-                    u'outgoing': u'fd2c65c4b4e7313abf8fb26ddb6b406b',
-                    u'type': u'EmptyStartEvent',
-                    u'id': u'b3a6c3e168c83d6a951b962935ebc10e',
-                    u'name': u''
+                'start_event': {
+                    'incoming': '',
+                    'outgoing': 'fd2c65c4b4e7313abf8fb26ddb6b406b',
+                    'type': 'EmptyStartEvent',
+                    'id': 'b3a6c3e168c83d6a951b962935ebc10e',
+                    'name': ''
                 },
-                u'id': u'a69a41785c7b30afbd46c532a6f466a7',
-                u'constants': {
-                    u'${input_test}': {
-                        u'source_tag': u'demo.input_test',
-                        u'name': u'\u8f93\u5165\u6846',
-                        u'custom_type': u'input',
+                'id': 'a69a41785c7b30afbd46c532a6f466a7',
+                'constants': {
+                    '${input_test}': {
+                        'source_tag': 'demo.input_test',
+                        'name': '\u8f93\u5165\u6846',
+                        'custom_type': 'input',
                         # u'source_key': u'',
-                        u'value': u'${input_test}',
-                        u'show_type': u'show',
-                        u'source_type': u'component_inputs',
-                        u'is_valid': True,
-                        u'key': u'${input_test}',
-                        u'desc': u'',
-                        u'validation': u'^.*$',
+                        'value': '${input_test}',
+                        'show_type': 'show',
+                        'source_type': 'component_inputs',
+                        'is_valid': True,
+                        'key': '${input_test}',
+                        'desc': '',
+                        'validation': '^.*$',
                         # u'source_step': [u'8f7428b073963641bcf8ce01b447e17d'],
                         'source_info': {
                             '8f7428b073963641bcf8ce01b447e17d': ['input_test'],
                         },
                     }
                 },
-                u'gateways': {},
+                'gateways': {},
             },
-            u'id': u'a69a41785c7b30afbd46c532a6f466a7',
-            u'ignore': False,
-            u'type': u'SubProcess',
-            u'template_id': u'dd210a6ecf0e374985ed87bcc087d447',
-            u'loop': None,
+            'id': 'a69a41785c7b30afbd46c532a6f466a7',
+            'ignore': False,
+            'type': 'SubProcess',
+            'template_id': 'dd210a6ecf0e374985ed87bcc087d447',
+            'loop': None,
             'hooked_constants': ['${input_test}'],
         }
     },
-    u'end_event': {
-        u'type': u'EmptyEndEvent',
-        u'outgoing': u'',
-        u'incoming': u'ca1aab540d4c35f5a2f60a05ed80181d',
-        u'id': u'e02925dc56c7354faf5b55c4b8afe691',
-        u'name': u''
+    'end_event': {
+        'type': 'EmptyEndEvent',
+        'outgoing': '',
+        'incoming': 'ca1aab540d4c35f5a2f60a05ed80181d',
+        'id': 'e02925dc56c7354faf5b55c4b8afe691',
+        'name': ''
     },
-    u'outputs': [],
-    u'flows': {
-        u'ca1aab540d4c35f5a2f60a05ed80181d': {
-            u'is_default': False,
-            u'source': u'a69a41785c7b30afbd46c532a6f466a7',
-            u'id': u'ca1aab540d4c35f5a2f60a05ed80181d',
-            u'target': u'e02925dc56c7354faf5b55c4b8afe691'
+    'outputs': [],
+    'flows': {
+        'ca1aab540d4c35f5a2f60a05ed80181d': {
+            'is_default': False,
+            'source': 'a69a41785c7b30afbd46c532a6f466a7',
+            'id': 'ca1aab540d4c35f5a2f60a05ed80181d',
+            'target': 'e02925dc56c7354faf5b55c4b8afe691'
         },
-        u'199fda538c9e39d3876465f8925774f2': {
-            u'is_default': False,
-            u'source': u'48a815abbadf3845ac5283036c064a9a',
-            u'id': u'199fda538c9e39d3876465f8925774f2',
-            u'target': u'a69a41785c7b30afbd46c532a6f466a7'
+        '199fda538c9e39d3876465f8925774f2': {
+            'is_default': False,
+            'source': '48a815abbadf3845ac5283036c064a9a',
+            'id': '199fda538c9e39d3876465f8925774f2',
+            'target': 'a69a41785c7b30afbd46c532a6f466a7'
         }
     },
-    u'start_event': {
-        u'type': u'EmptyStartEvent',
-        u'outgoing': u'199fda538c9e39d3876465f8925774f2',
-        u'incoming': u'',
-        u'id': u'48a815abbadf3845ac5283036c064a9a',
-        u'name': u''
+    'start_event': {
+        'type': 'EmptyStartEvent',
+        'outgoing': '199fda538c9e39d3876465f8925774f2',
+        'incoming': '',
+        'id': '48a815abbadf3845ac5283036c064a9a',
+        'name': ''
     },
-    u'constants': {
-        u'${input_test}': {
-            u'source_tag': u'demo.input_test',
-            u'name': u'\u8f93\u5165\u6846',
-            u'custom_type': u'input',
+    'constants': {
+        '${input_test}': {
+            'source_tag': 'demo.input_test',
+            'name': '\u8f93\u5165\u6846',
+            'custom_type': 'input',
             # u'source_key': u'',
-            u'value': u'1',
-            u'show_type': u'show',
-            u'source_type': u'component_inputs',
-            u'key': u'${input_test}',
-            u'desc': u'',
-            u'validation': u'^.*$',
+            'value': '1',
+            'show_type': 'show',
+            'source_type': 'component_inputs',
+            'key': '${input_test}',
+            'desc': '',
+            'validation': '^.*$',
             # u'source_step': [u'a69a41785c7b30afbd46c532a6f466a7'],
             'source_info': {
                 '8f7428b073963641bcf8ce01b447e17d': ['input_test'],
             },
         }
     },
-    u'gateways': {},
+    'gateways': {},
 }
 
 # 子流程 全局输入部分show，并且引用了父流程的全局变量，无引用到父流程 输出全部无引用到父流程

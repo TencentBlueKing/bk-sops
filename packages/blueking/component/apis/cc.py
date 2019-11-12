@@ -604,5 +604,5 @@ class CollectionsCC(object):
         self.batch_update_host = ComponentAPI(
             client=self.client, method='POST',
             path='/api/c/compapi{bk_api_ver}/cc/batch_update_host/',
-            description=u'批量更新主机属性'
+            description='批量更新主机属性'
         )

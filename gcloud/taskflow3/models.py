@@ -740,7 +740,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         try:
             total, groups = self.classified_count(prefix_filters, group_by)
         except Exception as e:
-            message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (prefix_filters, e)
+            message = "query_task_list params conditions[%s] have invalid key or value: %s" % (prefix_filters, e)
             return False, message, None, None
         return True, None, total, groups
 

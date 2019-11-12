@@ -14,6 +14,8 @@ gcloud.utils.collections
 An extension of built-in collections module.
 """
 
+from __future__ import absolute_import
+
 from collections import *  # noqa
 
 

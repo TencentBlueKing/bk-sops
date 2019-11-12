@@ -123,12 +123,11 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': '\u8c03\u7528\u4f5c\u4e1a\u5e73\u53f0(JOB)'
-                            '\u63a5\u53e3job.execute_job\u8fd4\u56de\u5931\u8d25, '
-                            'params={"bk_biz_id": 1, "global_vars": [{"name": "key_1", "value": "value_1"}, '
-                            '{"name": "key_2", "value": "value_2"}, {"name": "key_3", "ip_list": '
-                            '[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]}], '
-                            '"bk_job_id": 12345, "bk_callback_url": "url_token"}, error=message token'}),
+        outputs={'ex_data': ('调用作业平台(JOB)接口job.execute_job返回失败, '
+                             'params={"bk_biz_id": 1, "global_vars": [{"name": "key_1", "value": "value_1"}, '
+                             '{"name": "key_2", "value": "value_2"}, {"name": "key_3", "ip_list": '
+                             '[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]}], '
+                             '"bk_job_id": 12345, "bk_callback_url": "url_token"}, error=message token')}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(username='executor_token',
@@ -258,8 +257,8 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             'job_inst_name': 'job_name_token',
             'client': JOB_EXECUTE_NOT_SUCCESS_CLIENT,
             'ex_data': {
-                'exception_msg': "任务执行失败，<a href='%s' target='_blank'>"
-                                 "前往作业平台(JOB)查看详情</a>" % 'instance_url_token',
+                'exception_msg': ("任务执行失败，<a href='%s' target='_blank'>"
+                                  "前往作业平台(JOB)查看详情</a>") % 'instance_url_token',
                 'task_inst_id': 56789,
                 'show_ip_log': True
             }
@@ -330,9 +329,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             'job_inst_id': 56789,
             'job_inst_name': 'job_name_token',
             'client': GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
-            'ex_data': '\u8c03\u7528\u4f5c\u4e1a\u5e73\u53f0(JOB)\u63a5\u53e3job.get_job_instance_global_var_value'
-                       '\u8fd4\u56de\u5931\u8d25, params={"bk_biz_id": 1, "job_instance_id": 56789}, '
-                       'error=global var message token'
+            'ex_data': ''
         },
         callback_data={
             'job_instance_id': 56789,

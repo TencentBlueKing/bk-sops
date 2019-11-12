@@ -41,7 +41,7 @@ class PipelineTemplateWebWrapper(object):
         data = self.template.data_for_version(version)
 
         form = {}
-        for key, var_info in data['constants'].items():
+        for key, var_info in list(data['constants'].items()):
             if var_info['show_type'] == 'show':
                 form[key] = var_info
         return form
@@ -73,7 +73,7 @@ class PipelineTemplateWebWrapper(object):
         """
         replace_all_id(pipeline_data)
         activities = pipeline_data[PE.activities]
-        for act_id, act in activities.items():
+        for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
                 subproc_data = PipelineTemplate.objects.get(template_id=act['template_id']) \
                     .data_for_version(act.get('version'))
@@ -81,7 +81,7 @@ class PipelineTemplateWebWrapper(object):
                 if 'constants' in pipeline_data:
                     constants_inputs = act.pop('constants')
                     # replace show constants with inputs
-                    for key, info in constants_inputs.items():
+                    for key, info in list(constants_inputs.items()):
                         if 'form' in info:
                             info.pop('form')
                         subproc_data['constants'][key] = info
@@ -117,7 +117,7 @@ class PipelineTemplateWebWrapper(object):
         }
         tree = template_obj.data
 
-        for act_id, act in tree[PE.activities].items():
+        for act_id, act in list(tree[PE.activities].items()):
             if act[PE.type] == PE.SubProcess:
                 # record referencer id
                 # referenced template -> referencer -> reference act
@@ -148,13 +148,13 @@ class PipelineTemplateWebWrapper(object):
             template, subprocess, refs = cls._export_template(template_id, {}, {})
             data['template'][template['template_id']] = template
             data['template'].update(subprocess)
-            for be_ref, ref_info in refs.items():
-                for tmp_key, nodes in ref_info.items():
+            for be_ref, ref_info in list(refs.items()):
+                for tmp_key, nodes in list(ref_info.items()):
                     data['refs'].setdefault(be_ref, ref_info) \
                         .setdefault(tmp_key, nodes) \
                         .update(nodes)
         # convert set to list
-        for be_ref, ref_info in data['refs'].items():
+        for be_ref, ref_info in list(data['refs'].items()):
             for tmp_key in ref_info:
                 data['refs'][be_ref][tmp_key] = list(data['refs'][be_ref][tmp_key])
 
@@ -194,12 +194,12 @@ class PipelineTemplateWebWrapper(object):
         """
         id_maps = id_maps or {}
         forward_refs = {}
-        for be_referenced, referencers in refs.items():
+        for be_referenced, referencers in list(refs.items()):
             for r in referencers:
                 forward_refs.setdefault(id_maps.get(r, r), []).append(id_maps.get(be_referenced, be_referenced))
 
         referenced_weight = {}
-        for referencer, be_referenced in forward_refs.items():
+        for referencer, be_referenced in list(forward_refs.items()):
             referenced_weight.setdefault(referencer, 0)
             # 引用者权重 -1
             referenced_weight[referencer] -= 1
@@ -208,7 +208,7 @@ class PipelineTemplateWebWrapper(object):
                 # 被引用者权重 +1
                 referenced_weight[ref] += 1
 
-        return [i[0] for i in sorted(referenced_weight.items(), key=cmp_to_key(lambda x, y: y[1] - x[1]))]
+        return [i[0] for i in sorted(list(referenced_weight.items()), key=cmp_to_key(lambda x, y: y[1] - x[1]))]
 
     @classmethod
     def _update_or_create_version(cls, template, order):
@@ -219,7 +219,7 @@ class PipelineTemplateWebWrapper(object):
         @return:
         """
         for tid in order:
-            for act_id, act in template[tid]['tree'][PE.activities].items():
+            for act_id, act in list(template[tid]['tree'][PE.activities].items()):
                 if act[PE.type] == PE.SubProcess:
                     subprocess_data = template[act['template_id']]['tree']
                     h = hashlib.md5()
@@ -260,7 +260,7 @@ class PipelineTemplateWebWrapper(object):
                     temp_id_old_to_new[old_template_id] = new_template_id
 
                     # update subprocess template id
-                    for referencer_id, act_ids in refs.get(tid, {}).items():
+                    for referencer_id, act_ids in list(refs.get(tid, {}).items()):
                         for act_id in act_ids:
                             template[referencer_id]['tree'][PE.activities][act_id]['template_id'] = new_template_id
 
@@ -272,7 +272,7 @@ class PipelineTemplateWebWrapper(object):
                     node_id_maps = replace_all_id(temp['tree'])
                     template_node_id_old_to_new[new_id] = node_id_maps
                     # replace subprocess constants field
-                    for referencer_id, act_ids in refs.get(tid, {}).items():
+                    for referencer_id, act_ids in list(refs.get(tid, {}).items()):
                         # can not sure parent id is replaced or not
                         new_referencer_id = temp_id_old_to_new[referencer_id]
                         referencer_id = new_referencer_id if referencer_id not in template else referencer_id
@@ -283,7 +283,7 @@ class PipelineTemplateWebWrapper(object):
                                 act_id)
                             constant_dict = template[referencer_id]['tree'][PE.activities][act_id].get('constants',
                                                                                                        {})
-                            for key, constant in constant_dict.items():
+                            for key, constant in list(constant_dict.items()):
                                 source_info = constant['source_info']
                                 source_id_list = list(source_info.keys())
                                 for old_source_id in source_id_list:
@@ -299,24 +299,24 @@ class PipelineTemplateWebWrapper(object):
             cls._update_or_create_version(template, cls._update_order_from_refs(refs, temp_id_old_to_new))
 
             # import template
-            for tid, template_dict in template.items():
+            for tid, template_dict in list(template.items()):
                 defaults = cls._kwargs_for_template_dict(template_dict, include_str_id=True)
                 PipelineTemplate.objects.create(**defaults)
         else:
 
             # 1. replace subprocess template id
             tid_to_reuse = tid_to_reuse or {}
-            for import_id, reuse_id in tid_to_reuse.items():
+            for import_id, reuse_id in list(tid_to_reuse.items()):
                 # referenced template -> referencer -> reference act
                 referencer_info_dict = refs.get(import_id, {})
-                for referencer, nodes in referencer_info_dict.items():
+                for referencer, nodes in list(referencer_info_dict.items()):
                     for node_id in nodes:
                         template[referencer]['tree'][PE.activities][node_id]['template_id'] = reuse_id
 
             # 2. replace template id
             # use new dict to prevent override in template_id exchange
             new_template = {}
-            for import_id, reuse_id in tid_to_reuse.items():
+            for import_id, reuse_id in list(tid_to_reuse.items()):
                 temp = template.pop(import_id)
                 temp['template_id'] = reuse_id
                 temp['old_id'] = import_id
@@ -328,7 +328,7 @@ class PipelineTemplateWebWrapper(object):
             cls._update_or_create_version(template, cls._update_order_from_refs(refs, tid_to_reuse))
 
             # override
-            for tid, template_dict in template.items():
+            for tid, template_dict in list(template.items()):
                 defaults = cls._kwargs_for_template_dict(template_dict, include_str_id=False)
 
                 PipelineTemplate.objects.update_or_create(template_id=tid,

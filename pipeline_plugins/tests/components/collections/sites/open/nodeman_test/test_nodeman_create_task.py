@@ -289,7 +289,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             'fail_num': 1,
-            'ex_data': u'<br>日志信息为：</br><br><b>主机：1.1.1.1</b></br><br>日志：</br>install failed',
+            'ex_data': '<br>日志信息为：</br><br><b>主机：1.1.1.1</b></br><br>日志：</br>install failed',
             'job_id': '1', 'success_num': 0
         }
     ),
@@ -362,7 +362,7 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': u'create agent install task failed: fail'}
+        outputs={'ex_data': 'create agent install task failed: fail'}
     ),
     schedule_assertion=None,
     execute_call_assertion=[

@@ -33,7 +33,7 @@ from blueapps.conf.default_settings import *  # noqa
 #     'blueapps.account',
 # )
 
-APP_NAME = _(u"标准运维")
+APP_NAME = _("标准运维")
 DEFAULT_OPEN_VER = 'community'
 OPEN_VER = os.environ.get('RUN_VER', 'open')
 
@@ -182,8 +182,8 @@ LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
 _ = lambda s: s  # noqa
 LANGUAGES = (
-    ('en', _(u'English')),
-    ('zh-hans', _(u'简体中文')),
+    ('en', _('English')),
+    ('zh-hans', _('简体中文')),
 )
 USE_I18N = True
 USE_L10N = True
@@ -271,7 +271,7 @@ DEFAULT_BK_API_VER = 'v2'
 
 # IAM权限中心配置
 BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
-BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', u"标准运维")
+BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', "标准运维")
 BK_IAM_SYSTEM_DESC = ''
 BK_IAM_QUERY_INTERFACE = ''
 BK_IAM_RELATED_SCOPE_TYPES = 'system'

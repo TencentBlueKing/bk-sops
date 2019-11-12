@@ -133,7 +133,7 @@ class CollectionsJOB(object):
         self.get_public_script_list = ComponentAPI(
             client=self.client, method='GET',
             path='/api/c/compapi{bk_api_ver}/job/get_public_script_list/',
-            description=u'查询公共脚本列表'
+            description='查询公共脚本列表'
         )
         self.get_script_detail = ComponentAPI(
             client=self.client, method='GET',

@@ -15,4 +15,4 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
-EE_RUN_VER_NAME = _(u"蓝鲸智云企业版")
+EE_RUN_VER_NAME = _("蓝鲸智云企业版")

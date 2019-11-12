@@ -76,13 +76,13 @@ def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
     """
     result_dict = {'success': False, 'content': None, "conditions": conditions, "group_by": None}
     if not isinstance(conditions, dict):
-        message = u"params conditions[%s] are invalid dict data" % conditions
+        message = "params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
         result_dict['content'] = message
         return result_dict
     # 检查传递分组是否有误
     if group_by not in group_by_check:
-        message = u"params group_by[%s] is invalid" % group_by
+        message = "params group_by[%s] is invalid" % group_by
         logger.error(message)
         result_dict['content'] = message
         return result_dict

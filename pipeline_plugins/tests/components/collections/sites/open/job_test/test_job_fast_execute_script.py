@@ -130,7 +130,7 @@ MANUAL_KWARGS = {
 
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
-    'ex_data': u"调用作业平台(JOB)接口job.fast_execute_script返回失败, params={params}, error={error}".format(
+    'ex_data': "调用作业平台(JOB)接口job.fast_execute_script返回失败, params={params}, error={error}".format(
         params='{"bk_biz_id": 1, "bk_callback_url": "callback_url", "account": "root", "script_param": "MQ==", '
                '"ip_list": [], "script_type": "1", "script_timeout": "100", "script_content": "ZWNobw=="}',
         error=FAIL_RESULT['message']
@@ -141,7 +141,7 @@ MANUAL_FAIL_OUTPUTS = {
 MANUAL_SUCCESS_OUTPUTS = {
     'job_inst_id': SUCCESS_RESULT['data']['job_instance_id'],
     'job_inst_name': 'API Quick execution script1521100521303',
-    'job_inst_url': u'?taskInstanceList&appId=1#taskInstanceId=10000',
+    'job_inst_url': '?taskInstanceList&appId=1#taskInstanceId=10000',
     'client': FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
 }
 # 异步回调函数参数错误返回
@@ -165,7 +165,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
     ),
     schedule_assertion=ScheduleAssertion(
         success=False,
-        outputs=dict(MANUAL_SUCCESS_OUTPUTS.items() + SCHEDULE_CALLBACK_DATA_ERROR_OUTPUTS.items()),
+        outputs=dict(list(MANUAL_SUCCESS_OUTPUTS.items()) + list(SCHEDULE_CALLBACK_DATA_ERROR_OUTPUTS.items())),
         callback_data={}
     ),
     execute_call_assertion=[
@@ -191,7 +191,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     ),
     schedule_assertion=ScheduleAssertion(
         success=True,
-        outputs=dict(MANUAL_SUCCESS_OUTPUTS.items() + SCHEDULE_SUCCESS_OUTPUTS.items()),
+        outputs=dict(list(MANUAL_SUCCESS_OUTPUTS.items()) + list(SCHEDULE_SUCCESS_OUTPUTS.items())),
         callback_data={
             'job_instance_id': 10000,
             'status': 3

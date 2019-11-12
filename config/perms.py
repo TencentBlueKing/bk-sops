@@ -20,7 +20,7 @@ from gcloud.periodictask.permissions import periodic_task_resource
 
 bk_iam_perm_templates = [
     {
-        'name': u"运维",
+        'name': "运维",
         'id': 'operation',
         'desc': '',
         'resource_actions': [
@@ -85,7 +85,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u"产品",
+        'name': "产品",
         'id': 'product_manager',
         'desc': '',
         'resource_actions': [
@@ -120,7 +120,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u"测试",
+        'name': "测试",
         'id': 'tester',
         'desc': '',
         'resource_actions': [
@@ -155,7 +155,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u"开发",
+        'name': "开发",
         'id': 'developer',
         'desc': '',
         'resource_actions': [
@@ -190,7 +190,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u'职能化',
+        'name': '职能化',
         'id': 'functor',
         'desc': '',
         'resource_actions': [

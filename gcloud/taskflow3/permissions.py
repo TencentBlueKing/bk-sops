@@ -88,7 +88,7 @@ taskflow_resource = DjangoModelResource(
     properties=[
         {
             'key': 'is_function_task',
-            'name': u"是否为职能化任务"
+            'name': "是否为职能化任务"
         }
     ]
 )

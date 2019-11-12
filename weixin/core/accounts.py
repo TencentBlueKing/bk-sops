@@ -15,7 +15,9 @@ specific language governing permissions and limitations under the License.
 
 import time
 import random
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 import logging
 
 from django.http import HttpResponseRedirect, HttpResponse

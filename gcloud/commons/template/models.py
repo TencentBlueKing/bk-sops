@@ -71,8 +71,8 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         all_template_ids = set(pipeline_temp_data['template'].keys())
         additional_template_id = all_template_ids - set(pipeline_template_id_list)
-        subprocess_temp_list = self.filter(pipeline_template_id__in=additional_template_id)\
-            .select_related('pipeline_template').values()
+        subprocess_temp_list = list(self.filter(pipeline_template_id__in=additional_template_id
+                                                ).select_related('pipeline_template').values())
         for sub_temp in subprocess_temp_list:
             sub_temp['pipeline_template_str_id'] = sub_temp['pipeline_template_id']
             template[sub_temp['id']] = sub_temp

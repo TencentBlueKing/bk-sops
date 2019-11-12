@@ -32,7 +32,7 @@ def produce_filter(filters):
     @return:
     """
     orm_filters = {}
-    for cond, value in filters.items():
+    for cond, value in list(filters.items()):
         if value in ['None', ''] or cond == 'type':
             continue
         if cond == 'create_time':

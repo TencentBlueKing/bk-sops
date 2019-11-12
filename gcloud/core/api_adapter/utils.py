@@ -15,7 +15,9 @@ import base64
 import hashlib
 import hmac
 import random
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 import time
 import logging
 

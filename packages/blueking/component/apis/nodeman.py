@@ -23,17 +23,17 @@ class CollectionsNodeMan(object):
         self.create_task = ComponentAPI(
             client=self.client, method='POST',
             path='/api/c/compapi/v2/nodeman/create_task/',
-            description=u'安装作业'
+            description='安装作业'
         )
 
         self.get_task_info = ComponentAPI(
             client=self.client, method='GET',
             path='/api/c/compapi/v2/nodeman/get_task_info/',
-            description=u'获取任务信息'
+            description='获取任务信息'
         )
 
         self.get_log = ComponentAPI(
             client=self.client, method='GET',
             path='/api/c/compapi/v2/nodeman/get_log/',
-            description=u'获取任务执行日志'
+            description='获取任务执行日志'
         )

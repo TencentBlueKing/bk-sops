@@ -34,7 +34,7 @@ def variable_select_source_data_proxy(request):
         )
     except Exception as e:
         logger.exception('variable select get data from url[url={url}] raise error: {error}'.format(url=url, error=e))
-        text = _(u'请求数据异常: {error}').format(error=e)
+        text = _('请求数据异常: {error}').format(error=e)
         data = [{'text': text, 'value': ''}]
         return JsonResponse(data, safe=False)
 
@@ -48,7 +48,7 @@ def variable_select_source_data_proxy(request):
             )
         except Exception:
             logger.exception('variable select get data from url[url={url}] data is not a valid JSON'.format(url=url))
-        text = _(u'返回数据格式错误，不是合法 JSON 格式')
+        text = _('返回数据格式错误，不是合法 JSON 格式')
         data = [{'text': text, 'value': ''}]
 
     return JsonResponse(data, safe=False)
