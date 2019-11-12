@@ -771,7 +771,6 @@ const template = {
                     type: item.type,
                     name: item.name,
                     stage_name: item.stage_name,
-                    status: item.status,
                     x: item.x,
                     y: item.y,
                     group: item.group,

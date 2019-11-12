@@ -94,13 +94,13 @@
                                     <span class="checkbox-text">{{i18n.ignore}}</span>
                                 </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isSkip" :disabled="isDisable">
+                            <bk-checkbox v-model="isSkip" :disabled="isManulHandleErrrorDisable">
                                 <div class="checkbox-text-wrapper">
                                     <i class="common-icon-dark-circle-s"></i>
                                     <span class="checkbox-text">{{i18n.manuallySkip}}</span>
                                 </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isRetry" :disabled="isDisable">
+                            <bk-checkbox v-model="isRetry" :disabled="isManulHandleErrrorDisable">
                                 <div class="checkbox-text-wrapper">
                                     <i class="common-icon-dark-circle-r"></i>
                                     <span class="checkbox-text">{{i18n.manuallyRetry}}</span>
@@ -310,7 +310,6 @@
                 },
                 isAtomChanged: false, // 用于切换标准插件
                 failureHandling: [], // 失败处理
-                isDisable: false, // 是否禁用手动选项
                 isSkip: true, // 是否手动跳过
                 isRetry: true, // 是否手动重试
                 manuallyEmpty: false // 手动选项为空
@@ -432,6 +431,10 @@
                     return this.singleAtom.find(item => item.code === this.currentAtom)
                 }
                 return {}
+            },
+            // 任务节点执行失败手动处理选项禁用
+            isManulHandleErrrorDisable () {
+                return this.errorCouldBeIgnored
             }
         },
         watch: {
@@ -454,9 +457,6 @@
         },
         mounted () {
             document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
-            if (this.errorCouldBeIgnored) {
-                this.isDisable = true
-            }
         },
         beforeDestroy () {
             document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
@@ -872,6 +872,9 @@
                 this.currentAtom = id
                 if (this.isSingleAtom) {
                     nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
+                    this.nodeConfigData.isSkipped = true
+                    this.nodeConfigData.can_retry = true
+                    this.nodeConfigData.error_ignorable = false
                 } else {
                     // 切换子流程时，去掉节点小红点、刷新按钮、节点过期设为 false
                     this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
@@ -941,9 +944,6 @@
                         version: this.subAtomConfigData.version
                     })
                 })
-            },
-            onErrorIngoredChange (selected) {
-                this.errorCouldBeIgnored = selected
             },
             /**
              * 输入参数值更新
@@ -1144,7 +1144,6 @@
                 }
             },
             onIgnoredChange (updatedValue) {
-                this.isDisable = updatedValue
                 this.manuallyEmpty = !updatedValue
                 this.isSkip = false
                 this.isRetry = false

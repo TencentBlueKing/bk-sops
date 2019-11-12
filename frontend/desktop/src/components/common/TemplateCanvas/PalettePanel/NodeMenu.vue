@@ -182,7 +182,7 @@
         margin-left: 60px;
         width: 293px;
         height: 100%;
-        background: #fefcfc;
+        background: #ffffff;
         border-right: 1px solid #dddddd;
         z-index: 2;
     }
@@ -201,7 +201,7 @@
         cursor: pointer;
         z-index: 1;
         &:hover {
-            color: #727272;
+            color: #707379;
         }
         &.actived {
             color: #52699d;
@@ -210,6 +210,7 @@
     .search-wrap {
         padding: 16px 56px 16px 14px;
         border-bottom: 1px solid #ccd0dd;
+        background: #ffffff;
     }
     .node-list-wrap {
         height: calc(100% - 71px);
@@ -220,6 +221,9 @@
         border-bottom: 1px solid #e2e4ed;
         /deep/ .bk-collapse-item-header {
             background: #ffffff;
+            &:hover {
+                background: #fafbfd;
+            }
         }
         /deep/ .bk-collapse-item-content {
             padding: 0;

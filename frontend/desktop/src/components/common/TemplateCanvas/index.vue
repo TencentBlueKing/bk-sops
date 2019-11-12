@@ -212,6 +212,15 @@
                 connectorOptions
             }
         },
+        watch: {
+            canvasData (val) {
+                const { lines, locations: nodes } = val
+                this.flowData = {
+                    lines,
+                    nodes
+                }
+            }
+        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
@@ -275,7 +284,7 @@
                         this.$refs.jsFlow.createNode(location)
                         this.$emit('onLocationChange', 'add', location)
                     })
-                    this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+
                     // 需要先生成节点 DOM，才能连线
                     lines.forEach(line => {
                         this.$emit('onLineChange', 'add', line)
@@ -283,7 +292,10 @@
                             this.$refs.jsFlow.createConnector(line)
                         })
                     })
-                    this.$refs.jsFlow.clearNodesDragSelection()
+                    this.$nextTick(() => {
+                        this.$refs.jsFlow.clearNodesDragSelection()
+                        this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                    })
                 }
             },
             nodeLineDeletehandler (e) {
@@ -498,6 +510,21 @@
                         return item.source.id === line.sourceId && item.target.id === line.targetId
                     })[0]
                     const lineId = lineInCanvasData.id
+                    // 调整连线配置
+                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
+                        const config = [
+                            'Flowchart',
+                            {
+                                stub: [10, 10],
+                                alwaysRespectStub: true,
+                                gap: 0,
+                                cornerRadius: 10,
+                                midpoint: lineInCanvasData.midpoint
+                            }
+                        ]
+                        
+                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
+                    }
                     // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
@@ -523,20 +550,6 @@
                             id: `condition${lineId}`
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
-                    }
-                    // 调整连线配置
-                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
-                        const config = [
-                            'Flowchart',
-                            {
-                                stub: [6, 6],
-                                alwaysRespectStub: true,
-                                gap: 8,
-                                cornerRadius: 2,
-                                midpoint: lineInCanvasData.midpoint
-                            }
-                        ]
-                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                 })
             },
@@ -931,6 +944,14 @@
             z-index: 3;
             &.adding-node {
                 z-index: 6;
+            }
+            &.jtk-drag {
+                .process-node,
+                .subflow-node,
+                .gateway-node,
+                .circle-node {
+                    cursor: move;
+                }
             }
         }
         .jtk-connector {
