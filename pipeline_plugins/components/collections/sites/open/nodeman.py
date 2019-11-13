@@ -135,10 +135,6 @@ class NodemanCreateTaskService(Service):
         client = get_client_by_user(executor)
 
         job_id = data.get_one_of_outputs('job_id')
-        success_num = 0
-        fail_num = 0
-        fail_ids = []
-        fail_hosts = []
 
         job_kwargs = {
             'bk_biz_id': bk_biz_id,
@@ -157,21 +153,19 @@ class NodemanCreateTaskService(Service):
             self.finish_schedule()
             return False
 
-        host_count = job_result['data']['host_count']
         result_data = job_result['data']
+        host_count = result_data['host_count']
+        success_num = result_data['status_count']['success_count']
+        fail_num = result_data['status_count']['failed_count']
+        fail_infos = []
 
-        success_num = job_result['data']['status_count']['success_count']
-        fail_num = job_result['data']['status_count']['failed_count']
-
-        if not job_result['data']['job_type'] == 'REMOVE_AGENT':
-            # 操作类型不为“移除”时，hosts才不为空数组
-            for i in range(host_count):
-                job_result = result_data['hosts'][i]
-
-                # 安装失败
-                if job_result['status'] == 'FAILED':
-                    fail_ids.append(job_result['host']['id'])
-                    fail_hosts.append(job_result['host']['inner_ip'])
+        for host in result_data['hosts']:
+            # 安装失败
+            if host['status'] == 'FAILED':
+                fail_infos.append({
+                    'host_id': host['host']['id'],
+                    'inner_ip': host['host']['inner_ip']
+                })
 
         if success_num + fail_num == host_count:
             data.set_outputs('success_num', success_num)
@@ -181,9 +175,9 @@ class NodemanCreateTaskService(Service):
                 return True
             else:
                 error_log = u"<br>%s</br>" % _(u'日志信息为：')
-                for i in range(len(fail_ids)):
+                for fail_info in fail_infos:
                     log_kwargs = {
-                        'host_id': fail_ids[i],
+                        'host_id': fail_info['host_id'],
                         'bk_biz_id': bk_biz_id
                     }
                     result = client.nodeman.get_log(log_kwargs)
@@ -191,7 +185,7 @@ class NodemanCreateTaskService(Service):
                     error_log = u'{error_log}<br><b>{host}{fail_host}</b></br><br>{log}</br>{log_info}'.format(
                         error_log=error_log,
                         host=_(u'主机：'),
-                        fail_host=fail_hosts[i],
+                        fail_host=fail_info['inner_ip'],
                         log=_(u'日志：'),
                         log_info=log_info
                     )
