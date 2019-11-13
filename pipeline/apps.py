@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import logging
 import traceback
 
@@ -28,7 +27,10 @@ def get_client_through_sentinel():
     kwargs = {}
     if 'password' in settings.REDIS:
         kwargs['password'] = settings.REDIS['password']
-    rs = Sentinel([(settings.REDIS['host'], settings.REDIS['port'])], **kwargs)
+    host = settings.REDIS['host']
+    port = settings.REDIS['port']
+    sentinels = list(zip([h.strip() for h in host.split(',')], [p.strip() for p in str(port).split(',')]))
+    rs = Sentinel(sentinels, **kwargs)
     # avoid None value in settings.REDIS
     r = rs.master_for(settings.REDIS.get('service_name') or 'mymaster')
     # try to connect master

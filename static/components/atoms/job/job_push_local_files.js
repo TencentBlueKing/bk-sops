@@ -36,6 +36,11 @@
                 auto_upload: true,
                 url: $.context.get('site_url') + 'pipeline/file_upload/' + $.context.get('project').id + '/',
                 placeholder: gettext("文件名不能包含中文和特殊字符且大小不能超过2G"),
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
             },
             methods: {
                 beforeUpload(file, fileList) {

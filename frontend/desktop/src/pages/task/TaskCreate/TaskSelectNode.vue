@@ -20,7 +20,7 @@
                 :editable="false"
                 :is-node-check-open="isSchemeShow"
                 :is-all-selected="isAllSelected"
-                :is-show-select-all-tool="viewMode !== 'appmaker'"
+                :is-show-select-all-tool="isSelectAllShow"
                 :canvas-data="canvasData"
                 @onNodeCheckClick="onNodeCheckClick"
                 @onToggleAllNode="onToggleAllNode">
@@ -118,6 +118,9 @@
                 const mode = 'select'
                 return this.formatCanvasData(mode, this)
             },
+            isSelectAllShow () {
+                return this.viewMode === 'app' && this.location.some(item => item.optional)
+            },
             isSchemeShow () {
                 if (this.location.some(item => item.optional)) {
                     return this.viewMode === 'appmaker' ? !this.isAppmakerHasScheme : true
@@ -140,7 +143,6 @@
         methods: {
             ...mapActions('template/', [
                 'loadTemplateData',
-                'saveTemplateData',
                 'getLayoutedPipeline'
             ]),
             ...mapActions('task/', [

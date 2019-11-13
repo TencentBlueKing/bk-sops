@@ -84,7 +84,7 @@
                 let items = [];
                 let placeholder = '';
                 if (metaConfig.datasource === "1") {
-                    remote_url = metaConfig.items_text;
+                    remote_url = $.context.get('site_url') + 'pipeline/variable_select_source_data_proxy/?url=' + metaConfig.items_text;
                     remote = true;
                 } else {
                     try {

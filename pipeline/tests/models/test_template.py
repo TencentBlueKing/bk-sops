@@ -30,10 +30,11 @@ class TestPipelineTemplate(TestCase):
                         'global_outputs': {},
                         'inputs': {
                             'i': {'type': 'splice',
-                                  'value': '${loop_i}'}},
+                                  'value': '${loop_i}'}
+                        },
                         'code': 'loop_test_comp'},
                     'optional': False,
-                    'type': 'LoopServiceActivity',
+                    'type': 'ServiceActivity',
                     'loop_times': 4,
                     'id': 'act_1',
                     'loop': {}

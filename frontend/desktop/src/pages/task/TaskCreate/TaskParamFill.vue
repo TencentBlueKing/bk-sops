@@ -220,7 +220,7 @@
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
-                return this.common || this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
+                return this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -416,7 +416,8 @@
                             'name': this.taskName,
                             'cron': cron,
                             'templateId': this.template_id,
-                            'execData': JSON.stringify(pipelineData)
+                            'execData': JSON.stringify(pipelineData),
+                            'templateSource': this.common ? 'common' : undefined
                         }
                         try {
                             await this.createPeriodic(data)

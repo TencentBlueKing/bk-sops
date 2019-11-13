@@ -11,19 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import itertools
 
 from django.test import TestCase
 
 from pipeline.core.flow.activity import ServiceActivity
-from pipeline.engine.models import Status, ScheduleService, Data
+from pipeline.django_signal_valve import valve
 from pipeline.engine import signals
 from pipeline.engine.core import handlers
 from pipeline.engine.core.handlers import service_activity as service_act_h
-
-from pipeline.django_signal_valve import valve
-
+from pipeline.engine.models import Data, ScheduleService, Status
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -68,7 +65,7 @@ class ServiceActivityHandlerTestCase(TestCase):
                 self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
                 self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
 
-                top_context.extract_output.assert_called_once_with(service_act)
+                top_context.extract_output.assert_called_once_with(service_act, set_miss=False)
 
                 service_act_h.hydrate_node_data.assert_called_once()
 
@@ -178,7 +175,8 @@ class ServiceActivityHandlerTestCase(TestCase):
 
                     ScheduleService.objects.set_schedule.assert_not_called()
 
-                    top_context.extract_output.assert_has_calls([mock.call(service_act)] * 2)
+                    top_context.extract_output.assert_has_calls([mock.call(service_act, set_miss=False),
+                                                                 mock.call(service_act)])
 
                     if timeout:
                         signals.service_activity_timeout_monitor_end.send.assert_called_once_with(
@@ -240,7 +238,7 @@ class ServiceActivityHandlerTestCase(TestCase):
                 self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
                 self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
 
-                top_context.extract_output.assert_called_once_with(service_act)
+                top_context.extract_output.assert_called_once_with(service_act, set_miss=False)
 
                 service_act_h.hydrate_node_data.assert_called_once()
 
@@ -348,7 +346,8 @@ class ServiceActivityHandlerTestCase(TestCase):
 
                     ScheduleService.objects.set_schedule.assert_not_called()
 
-                    top_context.extract_output.assert_has_calls([mock.call(service_act)] * 2)
+                    top_context.extract_output.assert_has_calls([mock.call(service_act, set_miss=False),
+                                                                 mock.call(service_act)])
 
                     if timeout:
                         signals.service_activity_timeout_monitor_end.send.assert_called_once_with(
@@ -441,7 +440,7 @@ class ServiceActivityHandlerTestCase(TestCase):
                                                                              version=status.version,
                                                                              parent_data=process.top_pipeline.data)
 
-                top_context.extract_output.assert_called_once_with(service_act)
+                top_context.extract_output.assert_called_once_with(service_act, set_miss=False)
 
                 signals.service_activity_timeout_monitor_end.send.assert_not_called()
 
@@ -526,7 +525,8 @@ class ServiceActivityHandlerTestCase(TestCase):
 
                     ScheduleService.objects.set_schedule.assert_not_called()
 
-                    top_context.extract_output.assert_has_calls([mock.call(service_act)] * 2)
+                    top_context.extract_output.assert_has_calls([mock.call(service_act, set_miss=False),
+                                                                 mock.call(service_act)])
 
                     if timeout:
                         signals.service_activity_timeout_monitor_end.send.assert_called_once_with(

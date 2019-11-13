@@ -12,8 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import base64
-import datetime
-import re
 import logging
 
 from django.db import models
@@ -38,15 +36,11 @@ from gcloud.core.utils import (
     convert_readable_username,
     name_handler,
     time_now_str,
-    timestamp_to_datetime
 )
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 
 logger = logging.getLogger("root")
-
-APPMAKER_REGEX = re.compile(r'^category|create_time|creator_name|editor_name|'
-                            r'template_schema_id|finish_time|task_template_id|task_template_name')
 
 
 class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -225,70 +219,37 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         app_maker_obj.save()
         return True, app_maker_obj.code
 
-    def extend_classified_count(self, group_by, filters=None):
-        """
-        @summary: 兼容按照任务状态分类的扩展
-        @param group_by:
-        @param filters:
-        @return:
-        """
-        if filters is None:
-            filters = {}
-        prefix_filters = {}
-        for cond, value in list(filters.items()):
-            if value in ['None', ''] or cond == 'type':
-                continue
-            if cond == 'create_time':
-                filter_cond = '%s__gte' % cond
-                prefix_filters.update({filter_cond: timestamp_to_datetime(value)})
-                continue
-            elif cond == 'finish_time':
-                filter_cond = 'create_time__lt'
-                prefix_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
-                continue
-            if APPMAKER_REGEX.match(cond):
-                filter_cond = 'task_template__%s' % cond
-            else:
-                filter_cond = cond
-            prefix_filters.update({filter_cond: value})
+    def group_by_project_id(self, appmaker, group_by):
+        # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
+        total = appmaker.count()
+        appmaker_list = appmaker.values(AE.project_id, AE.project__name).annotate(
+            value=Count(group_by)).order_by()
+        groups = []
+        for data in appmaker_list:
+            groups.append({
+                'code': data.get(AE.project_id),
+                'name': data.get(AE.project__name),
+                'value': data.get('value', 0)
+            })
+        return total, groups
 
-        try:
-            appmaker = self.filter(**prefix_filters)
-        except Exception as e:
-            message = "query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
-            return False, message
-        if group_by == AE.project_id:
-            # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
-            total = appmaker.count()
-            appmaker_list = appmaker.values(AE.project_id, AE.project__name).annotate(
-                value=Count(group_by)).order_by()
-            groups = []
-            for data in appmaker_list:
-                groups.append({
-                    'code': data.get(AE.project_id),
-                    'name': data.get(AE.project__name),
-                    'value': data.get('value', 0)
-                })
-        elif group_by == AE.category:
-            # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
-            # field 用于外键查询对应的类型内容
-            field = "task_template__%s" % group_by
-            total = appmaker.count()
-            # 获取choices字段
-            choices = TaskTemplate.objects.get_choices(group_by)
-            appmaker_list = appmaker.values(field).annotate(value=Count(field)).order_by()
-            values = {item[field]: item['value'] for item in appmaker_list}
-            groups = []
-            for code, name in choices:
-                groups.append({
-                    'code': code,
-                    'name': name,
-                    'value': values.get(code, 0)
-                })
-        else:
-            total, groups = 0, []
-        data = {'total': total, 'groups': groups}
-        return True, data
+    def group_by_category(self, appmaker, group_by):
+        # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
+        # field 用于外键查询对应的类型内容
+        field = "task_template__%s" % group_by
+        total = appmaker.count()
+        # 获取choices字段
+        choices = TaskTemplate.objects.get_choices(group_by)
+        appmaker_list = appmaker.values(field).annotate(value=Count(field)).order_by()
+        values = {item[field]: item['value'] for item in appmaker_list}
+        groups = []
+        for code, name in choices:
+            groups.append({
+                'code': code,
+                'name': name,
+                'value': values.get(code, 0)
+            })
+        return total, groups
 
 
 class AppMaker(models.Model):

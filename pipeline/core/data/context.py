@@ -14,7 +14,8 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 from pprint import pformat
 
-from pipeline.exceptions import ReferenceNotExistError, InvalidOperationException
+from pipeline.exceptions import (InvalidOperationException,
+                                 ReferenceNotExistError)
 
 
 class Context(object):
@@ -25,10 +26,10 @@ class Context(object):
         self._change_keys = set()
         self._raw_variables = None
 
-    def extract_output(self, activity):
-        self.extract_output_from_data(activity.id, activity.data)
+    def extract_output(self, activity, set_miss=True):
+        self.extract_output_from_data(activity.id, activity.data, set_miss=set_miss)
 
-    def extract_output_from_data(self, activity_id, data):
+    def extract_output_from_data(self, activity_id, data, set_miss=True):
         if activity_id in self.act_outputs:
             global_outputs = self.act_outputs[activity_id]
             output = data.get_outputs()
@@ -36,6 +37,9 @@ class Context(object):
                 # set value to key if can not find
                 # e.g. key: result
                 # e.g. global_outputs[key]: result_5hoi2
+                if key not in output and not set_miss:
+                    continue
+
                 self.variables[global_outputs[key]] = output.get(key, global_outputs[key])
                 self.change_keys.add(global_outputs[key])
 

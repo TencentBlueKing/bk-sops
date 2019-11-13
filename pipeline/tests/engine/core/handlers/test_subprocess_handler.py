@@ -11,15 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import itertools
 
 from django.test import TestCase
 
-from pipeline.engine.core import handlers
 from pipeline.core.flow.activity import SubProcess
+from pipeline.engine.core import handlers
 from pipeline.engine.core.handlers import subprocess as subprocess_h
-
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -54,7 +52,7 @@ class SubprocessHandlerTestCase(TestCase):
                     context.recover_variable.assert_not_called()
                     top_context.recover_variable.assert_not_called()
 
-                top_context.extract_output.assert_called_once_with(subprocess_act)
+                top_context.extract_output.assert_called_once_with(subprocess_act, set_miss=False)
 
                 subprocess_h.hydrate_node_data.assert_called_once_with(subprocess_act)
 

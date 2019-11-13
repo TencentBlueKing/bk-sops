@@ -91,9 +91,13 @@ def replace_all_id(pipeline_data):
 
 
 def _replace_id_in_data(pipeline_data, node_map):
-    for var_key, var_info in list(pipeline_data.get(PE.data, {}).get(PE.inputs, {}).items()):
+    for _, var_info in list(pipeline_data.get(PE.data, {}).get(PE.inputs, {}).items()):
         if PE.source_act in var_info:
-            var_info[PE.source_act] = node_map[var_info[PE.source_act]]
+            if isinstance(var_info[PE.source_act], str):
+                var_info[PE.source_act] = node_map[var_info[PE.source_act]]
+            else:
+                for source_info in var_info[PE.source_act]:
+                    source_info[PE.source_act] = node_map[var_info[PE.source_act]]
 
 
 def _replace_front_end_data_id(pipeline_data, node_map, flow_map):

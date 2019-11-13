@@ -192,21 +192,20 @@
                 if (atom.tag_code === 'job_task') {
                     this.value[atom.tag_code] = this.reloadValue(atom, this.value)
                 }
-
                 return this.formData[atom.tag_code]
             },
             updateForm (fieldArr, val) {
-                const field = fieldArr.slice(-1)[0]
-                let fieldDataObj = tools.deepClone(this.formData)
-                fieldArr.slice(0, -1).forEach(item => {
-                    if (item in fieldDataObj) {
-                        fieldDataObj = fieldDataObj[item]
-                    } else {
-                        this.$set(fieldDataObj, item, {})
+                const fieldDataObj = tools.deepClone(this.formData)
+                fieldArr.reduce((acc, cur, index, arr) => {
+                    if (index === arr.length - 1) {
+                        acc[cur] = val
+                        return
                     }
-                })
-
-                this.$set(fieldDataObj, field, val)
+                    if (!acc.hasOwnProperty(cur)) {
+                        acc[cur] = {}
+                    }
+                    return acc[cur]
+                }, fieldDataObj)
                 this.$emit('change', fieldDataObj)
             },
             updateHook (field, val) {

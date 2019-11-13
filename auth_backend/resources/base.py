@@ -48,8 +48,20 @@ class ActionCollection(object):
 
 
 class Resource(with_metaclass(abc.ABCMeta, object)):
-    def __init__(self, rtype, name, scope_type, scope_name, actions, inspect, scope_id=None, parent=None,
-                 operations=None, backend=None):
+    def __init__(
+        self,
+        rtype,
+        name,
+        scope_type,
+        scope_name,
+        actions,
+        inspect,
+        scope_id=None,
+        parent=None,
+        operations=None,
+        backend=None,
+        properties=None
+    ):
         self.rtype = rtype
         self.name = name
         self.actions = ActionCollection(actions)
@@ -60,6 +72,7 @@ class Resource(with_metaclass(abc.ABCMeta, object)):
         self.backend = backend or get_backend_from_config()
         self.parent = parent
         self.actions_map = {act.id: act for act in actions}
+        self.properties = properties
 
         if rtype in resource_type_lib:
             raise exceptions.AuthKeyError('Resource with rtype: {rtype} already exist.'.format(rtype=rtype))
@@ -89,7 +102,7 @@ class Resource(with_metaclass(abc.ABCMeta, object)):
         }
 
     def snapshot(self):
-        return {
+        snapshot = {
             'resource_type': self.rtype,
             'resource_type_name': self.name,
             'parent_resource_type': self.parent.rtype if self.parent else '',
@@ -97,8 +110,12 @@ class Resource(with_metaclass(abc.ABCMeta, object)):
                 'action_id': action.id,
                 'action_name': action.name,
                 'is_related_resource': action.is_instance_related
-            } for action in self.actions]
+            } for action in self.actions],
         }
+        if self.properties:
+            snapshot['properties'] = self.properties
+
+        return snapshot
 
     def clean_instances(self, instances):
         t = type(instances).__name__
@@ -135,14 +152,19 @@ class Resource(with_metaclass(abc.ABCMeta, object)):
     def parent_instance(self, child):
         return self.inspect.parent(child)
 
+    def resource_properties(self, instance):
+        return self.inspect.properties(instance)
+
     def is_instance_related_action(self, action_id):
         return self.actions_map[action_id].is_instance_related
 
     def register_instance(self, instance, scope_id=None):
         clean_instance = self.clean_instances(instance)
-        return self.backend.register_instance(resource=self,
-                                              instance=clean_instance,
-                                              scope_id=self.real_scope_id(clean_instance, scope_id))
+        return self.backend.register_instance(
+            resource=self,
+            instance=clean_instance,
+            scope_id=self.real_scope_id(clean_instance, scope_id)
+        )
 
     def batch_register_instance(self, instances, scope_id=None):
         clean_instances = self.clean_instances(instances)
@@ -168,34 +190,42 @@ class Resource(with_metaclass(abc.ABCMeta, object)):
         clean_instances = self.clean_instances(instances)
         if clean_instances:
             scope_id = self.real_scope_id(clean_instances[0], scope_id)
-        return self.backend.batch_delete_instance(resource=self,
-                                                  instances=clean_instances,
-                                                  scope_id=scope_id)
+        return self.backend.batch_delete_instance(
+            resource=self,
+            instances=clean_instances,
+            scope_id=scope_id
+        )
 
     def verify_perms(self, principal_type, principal_id, action_ids, instance=None, scope_id=None):
         clean_instances = self.clean_instances(instance)
-        return self.backend.verify_perms(principal_type=principal_type,
-                                         principal_id=principal_id,
-                                         resource=self,
-                                         instance=clean_instances,
-                                         action_ids=action_ids,
-                                         scope_id=self.real_scope_id(clean_instances, scope_id))
+        return self.backend.verify_perms(
+            principal_type=principal_type,
+            principal_id=principal_id,
+            resource=self,
+            instance=clean_instances,
+            action_ids=action_ids,
+            scope_id=self.real_scope_id(clean_instances, scope_id)
+        )
 
     def batch_verify_perms(self, principal_type, principal_id, action_ids, instances=None, scope_id=None):
         clean_instances = self.clean_instances(instances)
         if clean_instances:
             scope_id = self.real_scope_id(clean_instances[0], scope_id)
-        return self.backend.batch_verify_perms(principal_type=principal_type,
-                                               principal_id=principal_id,
-                                               resource=self,
-                                               instances=clean_instances,
-                                               action_ids=action_ids,
-                                               scope_id=scope_id)
+        return self.backend.batch_verify_perms(
+            principal_type=principal_type,
+            principal_id=principal_id,
+            resource=self,
+            instances=clean_instances,
+            action_ids=action_ids,
+            scope_id=scope_id
+        )
 
     def search_resources_perms_principals(self, resources_actions, scope_id=None):
-        return self.backend.search_resources_perms_principals(resource=self,
-                                                              scope_id=self.real_scope_id(None, scope_id),
-                                                              resources_actions=resources_actions)
+        return self.backend.search_resources_perms_principals(
+            resource=self,
+            scope_id=self.real_scope_id(None, scope_id),
+            resources_actions=resources_actions
+        )
 
 
 class NeverInitiateResource(Resource):

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+from __future__ import absolute_import
 
 import mock  # noqa
 from mock import MagicMock, patch, call  # noqa
@@ -99,6 +99,7 @@ class MockPeriodicTask(object):
         self.id = kwargs.get('id', 'id')
         self.name = kwargs.get('name', 'name')
         self.template_id = kwargs.get('template_id', 'template_id')
+        self.template_source = kwargs.get('template_source', 'project')
         self.creator = kwargs.get('creator', 'creator')
         self.cron = kwargs.get('cron', 'cron')
         self.enabled = kwargs.get('enabled', False)

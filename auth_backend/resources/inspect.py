@@ -44,6 +44,10 @@ class InstanceInspect(with_metaclass(abc.ABCMeta, object)):
     def scope_id(self, instance):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def properties(self, instance):
+        raise NotImplementedError()
+
 
 class DummyInspect(InstanceInspect):
 
@@ -65,15 +69,28 @@ class DummyInspect(InstanceInspect):
     def scope_id(self, instance):
         return None
 
+    def properties(self, instance):
+        return {}
+
 
 class FieldInspect(InstanceInspect):
-    def __init__(self, creator_type_f, creator_id_f, resource_id_f, resource_name_f, parent_f, scope_id_f):
+    def __init__(
+        self,
+        creator_type_f,
+        creator_id_f,
+        resource_id_f,
+        resource_name_f,
+        parent_f,
+        scope_id_f,
+        properties_map=None
+    ):
         self.creator_type_f = creator_type_f
         self.creator_id_f = creator_id_f
         self.resource_id_f = resource_id_f
         self.resource_name_f = resource_name_f
         self.parent_f = parent_f
         self.scope_id_f = scope_id_f
+        self.properties_map = properties_map or {}
 
     @classmethod
     def _getattr_if_field_is_not_none(cls, instance, f):
@@ -97,15 +114,34 @@ class FieldInspect(InstanceInspect):
     def scope_id(self, instance):
         return self._getattr_if_field_is_not_none(instance, self.scope_id_f)
 
+    def properties(self, instance):
+        return {
+            property: getattr(instance, attr)
+            for
+            attr, property in self.properties_map.items()
+        }
+
 
 class FixedCreatorTypeFieldInspect(FieldInspect):
-    def __init__(self, creator_type, creator_id_f, resource_id_f, resource_name_f, parent_f, scope_id_f):
-        super(FixedCreatorTypeFieldInspect, self).__init__(creator_type_f='',
-                                                           creator_id_f=creator_id_f,
-                                                           resource_id_f=resource_id_f,
-                                                           resource_name_f=resource_name_f,
-                                                           parent_f=parent_f,
-                                                           scope_id_f=scope_id_f)
+    def __init__(
+            self,
+            creator_type,
+            creator_id_f,
+            resource_id_f,
+            resource_name_f,
+            parent_f,
+            scope_id_f,
+            properties_map=None
+    ):
+        super(FixedCreatorTypeFieldInspect, self).__init__(
+            creator_type_f='',
+            creator_id_f=creator_id_f,
+            resource_id_f=resource_id_f,
+            resource_name_f=resource_name_f,
+            parent_f=parent_f,
+            scope_id_f=scope_id_f,
+            properties_map=properties_map
+        )
         self._creator_type = creator_type
 
     def creator_type(self, instance):
