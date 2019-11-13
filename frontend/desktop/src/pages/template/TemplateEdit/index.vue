@@ -43,7 +43,7 @@
                 :canvas-data="canvasData"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
-                @onNodeClick="onNodeClick"
+                @onNodeMousedown="onNodeMousedown"
                 @onShowNodeConfig="onShowNodeConfig"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
@@ -708,7 +708,10 @@
                 }
                 this.searchAtom(payload)
             },
-            onNodeClick () {
+            /**
+             * 节点 Mousedown 回调
+             */
+            onNodeMousedown (id) {
                 this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
             },
             /**

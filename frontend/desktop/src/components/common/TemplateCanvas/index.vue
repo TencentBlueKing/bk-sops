@@ -72,6 +72,7 @@
                     @onAppendNode="onAppendNode"
                     @onNodeDblclick="onNodeDblclick"
                     @onNodeClick="onNodeClick"
+                    @onNodeMousedown="onNodeMousedown"
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
                     @onRetryClick="onRetryClick"
@@ -682,7 +683,7 @@
                 const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
                 window.requestAnimationFrame(() => {
                     line.style.display = 'block'
-                    line.style.width = len - 2 + 'px'
+                    line.style.width = len - 8 + 'px'
                     line.style.transformOrigin = `top left`
                     line.style.transform = 'rotate(' + r + 'deg)'
                     if (!this.referenceLine.id) {
@@ -744,20 +745,42 @@
             onCloseHotkeyInfo () {
                 this.isShowHotKey = false
             },
+            /**
+             * 单个添加选中节点
+             */
             addNodesToDragSelection (selectedNode) {
                 this.selectedNodes.push(selectedNode)
                 this.copyNodes.push(selectedNode)
                 const ids = this.selectedNodes.map(m => m.id)
                 this.$refs.jsFlow.addNodesToDragSelection(ids)
+                // 重新计算粘贴相对位置
+                this.selectionOriginPos = this.getNodesLocationOnLeftTop(this.selectedNodes)
                 document.addEventListener('keydown', this.nodeSelectedhandler)
                 document.addEventListener('mousedown', this.handleClearDragSelection, { once: true })
+                this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
             },
+            /**
+             * 失焦时移出选中节点
+             */
             handleClearDragSelection () {
                 this.selectedNodes = []
                 this.copyNodes = []
                 this.$refs.jsFlow.clearNodesDragSelection()
                 document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
                 document.removeEventListener('keydown', this.nodeSelectedhandler)
+                this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
+            },
+            /**
+             * 获取节点组里，相对画布靠左上角的点位置
+             */
+            getNodesLocationOnLeftTop (nodes) {
+                let x = 0
+                let y = 0
+                nodes.forEach((node, index) => {
+                    x = index === 0 ? node.x : Math.min(x, node.x)
+                    y = index === 0 ? node.y : Math.min(y, node.y)
+                })
+                return { x, y }
             },
             // 更新分支条件数据
             updataConditionCanvasData (data) {
@@ -778,6 +801,10 @@
                     }
                     this.$refs.jsFlow.addLineOverlay(line, labelData)
                 })
+            },
+            // node mousedown
+            onNodeMousedown (id) {
+                this.$emit('onNodeMousedown', id)
             },
             // 点击节点
             onNodeClick (id, type, event) {
