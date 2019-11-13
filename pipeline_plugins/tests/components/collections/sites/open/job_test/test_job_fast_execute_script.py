@@ -40,7 +40,7 @@ class MockClient(object):
 GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.job.get_client_by_user'
 GET_NODE_CALLBACK_URL = 'pipeline_plugins.components.collections.sites.open.job.get_node_callback_url'
 JOB_HANDLE_API_ERROR = 'pipeline_plugins.components.collections.sites.open.job.job_handle_api_error'
-
+GET_JOB_INSTANCE_URL = 'pipeline_plugins.components.collections.sites.open.job.get_job_instance_url'
 
 # success result
 SUCCESS_RESULT = {
@@ -90,6 +90,8 @@ FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
 # mock GET_NODE_CALLBACK_URL
 GET_NODE_CALLBACK_URL_MOCK = MagicMock(return_value='callback_url')
 
+# mock GET_JOB_INSTANCE_URL
+GET_JOB_INSTANCE_URL_MOCK = MagicMock(return_value='?taskInstanceList&appId=1#taskInstanceId=10000')
 
 # parent_data
 PARENT_DATA = {
@@ -131,8 +133,8 @@ MANUAL_KWARGS = {
 # 手动输入脚本失败样例输出
 MANUAL_FAIL_OUTPUTS = {
     'ex_data': u"调用作业平台(JOB)接口job.fast_execute_script返回失败, params={params}, error={error}".format(
-        params='{"bk_biz_id": 1, "bk_callback_url": "callback_url", "account": "root", "script_param": "MQ==", '
-               '"ip_list": [], "script_type": "1", "script_timeout": "100", "script_content": "ZWNobw=="}',
+        params='{"bk_biz_id":1,"bk_callback_url":"callback_url","account":"root","script_param":"MQ==","ip_list":[],'
+               '"script_type":"1","script_timeout":"100","script_content":"ZWNobw=="}',
         error=FAIL_RESULT['message']
     )
 }
@@ -175,8 +177,9 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         ),
     ],
     patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT)
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value=GET_JOB_INSTANCE_URL_MOCK()),
     ]
 )
 
@@ -204,8 +207,9 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT)
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value=GET_JOB_INSTANCE_URL_MOCK()),
     ]
 )
 
@@ -226,7 +230,8 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT)
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value=GET_JOB_INSTANCE_URL_MOCK()),
     ]
 )
