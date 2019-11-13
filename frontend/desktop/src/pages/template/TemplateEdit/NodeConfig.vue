@@ -26,6 +26,7 @@
                                 class="node-select"
                                 :searchable="true"
                                 :clearable="false"
+                                :disabled="atomConfigLoading"
                                 @selected="onAtomSelect">
                                 <bk-option
                                     v-for="(option, index) in atomList"
@@ -44,14 +45,21 @@
                                 v-bk-tooltips="{
                                     content: atomDesc,
                                     width: '400',
-                                    placements: ['left'] }">
+                                    placements: ['bottom-end'] }">
                             </i>
                             <!-- 子流程版本更新 -->
-                            <i class="common-icon-clock-inversion update-tooltip"
+                            <i
+                                :class="[
+                                    'common-icon-clock-inversion',
+                                    'update-tooltip',
+                                    {
+                                        'disabled': atomConfigLoading
+                                    }
+                                ]"
                                 v-if="subflowHasUpdate"
                                 v-bk-tooltips="{
                                     content: i18n.update,
-                                    placements: ['left'] }"
+                                    placements: ['bottom-end'] }"
                                 @click="onUpdateSubflowVersion">
                             </i>
                             <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
@@ -187,7 +195,7 @@
                                             placements: ['left'] }">
                                         <bk-checkbox :value="item.hook" @change="onOutputHookChange(item.name, item.key, $event)"></bk-checkbox>
                                     </span>
-                                    
+
                                 </td>
                             </tr>
                         </tbody>
@@ -283,7 +291,7 @@
                     trigger: 'mouseenter',
                     theme: 'dark',
                     content: '#html-error-ingored-tootip',
-                    placement: 'left'
+                    placement: 'bottom-end'
                 },
                 atomConfigLoading: false,
                 errorCouldBeIgnored: false,
@@ -491,6 +499,12 @@
                     hook,
                     value
                 }
+            },
+            groupInfo () {
+                if (this.isSingleAtom && this.currentAtom) {
+                    return this.singleAtom.find(item => item.code === this.currentAtom)
+                }
+                return {}
             }
         },
         watch: {
@@ -501,6 +515,7 @@
                 // 清空验证
                 this.currentVersion = ''
                 this.taskTypeEmpty = false
+                this.subflowHasUpdate = false
                 this.taskVersionEmpty = false
                 this.errors.clear()
 
@@ -600,6 +615,12 @@
                 }
                 try {
                     await this.loadAtomConfig({ atomType, version })
+
+                    // 节点配置面板收起后，不执行后续回调逻辑
+                    if (!this.isNodeConfigPanelShow) {
+                        return
+                    }
+                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
                     this.setNodeConfigData(atomType, version)
                 } catch (e) {
                     errorHandler(e, this)
@@ -617,6 +638,10 @@
                 this.nodeConfigData.template_id = id
                 try {
                     this.subAtomConfigData = await this.loadSubflowConfig({ templateId: id, version, common: this.common })
+                    // 节点配置面板收起后，不执行后续回调逻辑
+                    if (!this.isNodeConfigPanelShow) {
+                        return
+                    }
                     const constants = {}
                     const inputConfig = []
                     const outputConfig = []
@@ -836,6 +861,7 @@
                     if ((!dom.nodeContains(settingPanel, e.target)
                         && !dom.nodeContains(nodeConfig, e.target))
                     ) {
+                        this.subflowHasUpdate = false
                         this.syncNodeDataToActivities()
                     }
                 }
@@ -848,6 +874,9 @@
                 return this.updateNodeInfo()
             },
             updateActivities () {
+                if (this.atomConfigLoading) {
+                    return
+                }
                 const nodeData = tools.deepClone(this.nodeConfigData)
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
@@ -901,7 +930,9 @@
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
                         can_retry: this.isRetry,
-                        isSkipped: this.isSkip
+                        isSkipped: this.isSkip,
+                        group: this.groupInfo.group_name,
+                        icon: this.groupInfo.group_icon
                     })
                     this.$emit('hideConfigPanel')
                     return isValid
@@ -1000,6 +1031,9 @@
              * 更新 store 数据状态
              */
             onUpdateSubflowVersion () {
+                if (this.atomConfigLoading) {
+                    return
+                }
                 const oldInputAtomHook = this.inputAtomHook
                 const oldInputAtomData = this.inputAtomData
 
@@ -1244,7 +1278,7 @@
                         key,
                         this.atomFormConfig[atomType][version]
                     )
-                    
+
                     this.createVariable(variableOpts)
                     this.hookToGlobal(variableOpts)
                 } else {
@@ -1292,7 +1326,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .node-config-panel {
     position: absolute;
-    top: 60px;
+    top: 59px;
     right: 476px;
     padding: 20px;
     width: 694px;
@@ -1330,8 +1364,12 @@
             top: 8px;
             color: #c4c6cc;
             cursor: pointer;
-            &:hover {
+            &:not(.disabled):hover {
                 color: #f4aa1a;
+            }
+            &.disabled {
+                color: #c4c6cc;
+                cursor: not-allowed;
             }
         }
         .error-ingored-tootip {

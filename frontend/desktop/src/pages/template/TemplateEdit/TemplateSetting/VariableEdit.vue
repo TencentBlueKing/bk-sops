@@ -170,7 +170,7 @@
             RenderForm,
             VariableEditDialog
         },
-        props: ['variableData', 'isNewVariable', 'variableTypeList'],
+        props: ['variableData', 'isNewVariable', 'variableTypeList', 'systemConstants', 'isHideSystemVar'],
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
@@ -503,14 +503,15 @@
                 return this.$validator.validateAll().then(result => {
                     let formValid = true
                     const constantsLength = Object.keys(this.constants).length
-                    
+                        + (!this.isHideSystemVar ? Object.keys(this.systemConstants).length : 0)
+            
                     // 名称、key等校验，renderform表单校验
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
                     }
                     if (this.atomConfigLoading || !result || !formValid) {
                         const index = this.isNewVariable ? constantsLength : this.theEditingData.index
-                        this.$emit('scrollPanelToView', index)
+                        this.$emit('scrollPanelToView', index + 1)
                         return false
                     }
 

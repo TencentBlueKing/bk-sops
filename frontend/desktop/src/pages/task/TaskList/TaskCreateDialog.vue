@@ -118,7 +118,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'type', 'dialogTitle'],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'type', 'dialogTitle', 'entrance'],
         data () {
             return {
                 i18n: {
@@ -292,9 +292,9 @@
                 if (this.selectedTplType === 'publicProcess') {
                     url += '&common=1'
                 }
-                if (this.createEntrance === false) {
+                if (this.entrance === 'periodicTask') {
                     url += '&entrance=periodicTask'
-                } else if (this.createEntrance === true) {
+                } else if (this.entrance === 'taskflow') {
                     url += '&entrance=taskflow'
                 }
                 this.$router.push(url)

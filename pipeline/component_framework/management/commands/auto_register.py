@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.core.management import BaseCommand
 
-from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.component import Component
+from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 
 

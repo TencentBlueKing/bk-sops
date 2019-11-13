@@ -32,7 +32,7 @@ def create_maker_app(creator, app_name, app_url, developer='', app_tag='', intro
     @param add_user: 冗余字段，多版本兼容
     @param company_code: 冗余字段，多版本兼容
     @return: {'result': True, 'message':'', 'data': {'bk_light_app_code': 'xxxxx'}}
-    {'result': False, 'message':u"APP Maker 创建出错", 'app_code':''}
+    {'result': False, 'message':"APP Maker 创建出错", 'app_code':''}
     """
     client = get_client_by_user(creator)
     kwargs = {
@@ -62,8 +62,8 @@ def edit_maker_app(operator, app_maker_code, app_name='', app_url='', developer=
     @param introduction: 可选	String	轻应用描述
     @param add_user: 冗余字段，多版本兼容
     @param company_code: 冗余字段，多版本兼容
-    @return: {'result': True, 'message':u"APP Maker 修改成功"}
-    {'result': False, 'message':u"APP Maker 修改出错"}
+    @return: {'result': True, 'message':"APP Maker 修改成功"}
+    {'result': False, 'message':"APP Maker 修改出错"}
     """
     client = get_client_by_user(operator)
     kwargs = {
@@ -84,8 +84,8 @@ def del_maker_app(operator, app_maker_code):
     @summary: 删除 maker app
     @param operator：操作者英文id
     @param app_maker_code: maker app编码
-    @return: {'result': True, 'message':u"APP Maker 删除成功"}
-    {'result': False, 'message':u"APP Maker 删除失败"}
+    @return: {'result': True, 'message':"APP Maker 删除成功"}
+    {'result': False, 'message':"APP Maker 删除失败"}
     """
     client = get_client_by_user(operator)
     kwargs = {
@@ -102,8 +102,8 @@ def modify_app_logo(operator, app_maker_code, logo):
     @param operator：操作者英文id
     @param app_maker_code: maker app编码
     @param logo: maker app编码
-    @return: {'result': True, 'message':u"APP LOGO 修改成功"}
-    {'result': False, 'message':u"APP LOGO 修改失败"}
+    @return: {'result': True, 'message':"APP LOGO 修改成功"}
+    {'result': False, 'message':"APP LOGO 修改失败"}
     """
     client = get_client_by_user(operator)
     kwargs = {

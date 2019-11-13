@@ -12,17 +12,23 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import ujson as json
 import traceback
 
+import ujson as json
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest
+from tastypie.exceptions import BadRequest, NotFound
 from tastypie.authorization import ReadOnlyAuthorization
 from djcelery.models import PeriodicTask as CeleryTask
 
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
-from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
+from auth_backend.plugins.tastypie.shortcuts import (
+    verify_or_raise_immediate_response,
+    batch_verify_or_raise_immediate_response
+)
+from gcloud.commons.template.permissions import common_template_resource
+from gcloud.constants import PROJECT, COMMON
+from gcloud.core.permissions import project_resource
 
 from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
@@ -32,14 +38,13 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.periodictask.permissions import periodic_task_resource
-from gcloud.core.models import Project
 from gcloud.core.utils import name_handler
 from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.webservice3.resources import (
     ProjectResource,
     GCloudModelResource,
 )
-from gcloud.commons.template.models import replace_template_id
+from gcloud.commons.template.models import replace_template_id, CommonTemplate
 
 logger = logging.getLogger('root')
 
@@ -155,6 +160,7 @@ class PeriodicTaskResource(GCloudModelResource):
         filtering = {
             'id': ALL,
             'template_id': ALL,
+            'template_source': ALL,
             'project': ALL_WITH_RELATIONS,
             'name': ALL,
             'enabled': ALL,
@@ -165,12 +171,17 @@ class PeriodicTaskResource(GCloudModelResource):
     def obj_create(self, bundle, **kwargs):
         try:
             template_id = bundle.data.pop('template_id')
+            template_source = bundle.data.get('template_source', PROJECT)
             name = bundle.data.pop('name')
             cron = json.loads(bundle.data.pop('cron'))
             pipeline_tree = json.loads(bundle.data.pop('pipeline_tree'))
-            project_path = bundle.data['project']
         except (KeyError, ValueError) as e:
-            raise BadRequest(str(e))
+            message = 'create periodic_task params error: %s' % e.message
+            logger.error(message)
+            raise BadRequest(message)
+
+        if not isinstance(cron, dict):
+            raise BadRequest('cron must be a object json string')
 
         # XSS handle
         name = name_handler(name, PERIOD_TASK_NAME_MAX_LENGTH)
@@ -183,30 +194,48 @@ class PeriodicTaskResource(GCloudModelResource):
             raise BadRequest(str(e))
 
         try:
-            template = TaskTemplate.objects.get(id=template_id)
-            kwargs['template_id'] = template.id
-        except TaskTemplate.DoesNotExist:
-            raise BadRequest('template[id=%s] does not exist' % template_id)
+            project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
+        except NotFound:
+            raise BadRequest('project [uri=%s] does not exist' % bundle.data.get('project'))
 
-        verify_or_raise_immediate_response(principal_type='user',
-                                           principal_id=creator,
-                                           resource=task_template_resource,
-                                           action_ids=[task_template_resource.actions.create_periodic_task.id],
-                                           instance=template)
+        if template_source == PROJECT:
+            try:
+                template = TaskTemplate.objects.get(id=template_id, project=project, is_deleted=False)
+            except TaskTemplate.DoesNotExist:
+                raise BadRequest('template[id={template_id}] of project[project_id] does not exist'.format(
+                    template_id=template_id,
+                    project_id=project.id
+                ))
 
-        try:
-            replace_template_id(TaskTemplate, pipeline_tree)
-        except TaskTemplate.DoesNotExist:
-            raise BadRequest('invalid subprocess, check subprocess node please')
+            verify_or_raise_immediate_response(principal_type='user',
+                                               principal_id=creator,
+                                               resource=task_template_resource,
+                                               action_ids=[task_template_resource.actions.create_periodic_task.id],
+                                               instance=template)
 
-        if not isinstance(cron, dict):
-            raise BadRequest('cron must be a object json string')
+            try:
+                replace_template_id(TaskTemplate, pipeline_tree)
+            except TaskTemplate.DoesNotExist:
+                raise BadRequest('invalid subprocess, check subprocess node please')
 
-        try:
-            project = Project.objects.get(id=int(project_path.split('/')[-2]))
-        except Exception as e:
-            raise BadRequest(str(e))
+        elif template_source == COMMON:
+            try:
+                template = CommonTemplate.objects.get(id=template_id, is_deleted=False)
+            except CommonTemplate.DoesNotExist:
+                raise BadRequest('common template[id=%s] does not exist' % template_id)
+            perms_tuples = [
+                (project_resource, [project_resource.actions.use_common_template.id], project),
+                (common_template_resource, [common_template_resource.actions.create_periodic_task.id], template)
+            ]
+            batch_verify_or_raise_immediate_response(principal_type='user',
+                                                     principal_id=creator,
+                                                     perms_tuples=perms_tuples)
 
+        else:
+            raise BadRequest('invalid template_source[%s]' % template_source)
+
+        kwargs['template_id'] = template_id
+        kwargs['template_source'] = template_source
         try:
             kwargs['task'] = PeriodicTask.objects.create_pipeline_task(
                 project=project,
@@ -214,7 +243,8 @@ class PeriodicTaskResource(GCloudModelResource):
                 name=name,
                 cron=cron,
                 pipeline_tree=pipeline_tree,
-                creator=creator
+                creator=creator,
+                template_source=template_source
             )
         except Exception as e:
             logger.warning(traceback.format_exc())

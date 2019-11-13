@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
-from pipeline.component_framework.models import ComponentModel
-from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+from pipeline.component_framework.library import ComponentLibrary
+from pipeline.component_framework.models import ComponentModel
+from pipeline.core.flow.activity import Service
 
 __group_name__ = 'gn'
 __group_icon__ = 'gi'

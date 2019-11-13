@@ -87,3 +87,15 @@ class NodeOutput(Var):
         base['source_act'] = self.source_act
         base['source_key'] = self.source_key
         return base
+
+
+class RewritableNodeOutput(Var):
+    def __init__(self, source_act, *args, **kwargs):
+        self.source_act = source_act
+        kwargs['value'] = None
+        super(RewritableNodeOutput, self).__init__(*args, **kwargs)
+
+    def to_dict(self):
+        base = super(RewritableNodeOutput, self).to_dict()
+        base['source_act'] = self.source_act
+        return base

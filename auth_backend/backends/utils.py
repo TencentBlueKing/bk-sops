@@ -25,7 +25,7 @@ def get_backend_from_config():
     try:
         backend_cls = import_string(backend_path)
     except ImportError:
-        return ImportError('can not import backend class from path: {path}'.format(path=backend_path))
+        raise ImportError('can not import backend class from path: {path}'.format(path=backend_path))
 
     return backend_cls()
 

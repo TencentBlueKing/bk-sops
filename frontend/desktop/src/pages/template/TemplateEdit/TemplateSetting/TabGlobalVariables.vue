@@ -29,9 +29,13 @@
                     <p>
                         {{ i18n.attrDesc1 }}
                         <i class="common-icon-show-left" style="color: #219f42"></i>
-                        {{i18n.attrDesc2}}
+                        {{ i18n.attrDesc2 }}
                         <i class="common-icon-hide-right" style="color: #de9524"></i>
-                        {{i18n.attrDesc3}}
+                        {{ i18n.attrDesc3 }}
+                        <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
+                        {{ i18n.attrDesc4 }}
+                        <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
+                        {{ i18n.attrDesc5 }}
                     </p>
                 </div>
                 <div class="tips-item">
@@ -42,6 +46,9 @@
         </div>
         <div class="add-variable">
             <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
+            <div class="toggle-system-var">
+                <bk-checkbox v-model="isHideSystemVar">{{ i18n.hideSystemVar }}</bk-checkbox>
+            </div>
         </div>
         <div class="global-variable-content">
             <div class="variable-header clearfix">
@@ -52,20 +59,22 @@
                 <span class="col-delete t-head"></span>
             </div>
             <ul class="variable-list" ref="variableList">
-                <VariableItem
-                    v-for="(constant, index) in systemConstantsList"
-                    class="system-constants-item"
-                    :key="index"
-                    :outputs="outputs"
-                    :is-variable-editing="isVariableEditing"
-                    :constant="constant"
-                    :variable-data="variableData"
-                    :variable-type-list="variableTypeList"
-                    :the-key-of-editing="theKeyOfEditing"
-                    :is-system-var="true"
-                    @onEditVariable="onEditVariable"
-                    @onChangeVariableOutput="onChangeVariableOutput"
-                    @onDeleteVariable="onDeleteVariable" />
+                <template v-if="!isHideSystemVar">
+                    <VariableItem
+                        v-for="(constant, index) in systemConstantsList"
+                        class="system-constants-item"
+                        :key="index"
+                        :outputs="outputs"
+                        :is-variable-editing="isVariableEditing"
+                        :constant="constant"
+                        :variable-data="variableData"
+                        :variable-type-list="variableTypeList"
+                        :the-key-of-editing="theKeyOfEditing"
+                        :is-system-var="true"
+                        @onEditVariable="onEditVariable"
+                        @onChangeVariableOutput="onChangeVariableOutput"
+                        @onDeleteVariable="onDeleteVariable" />
+                </template>
                 <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
                     <VariableItem
                         v-for="(constant, index) in constantsArray"
@@ -77,13 +86,18 @@
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :the-key-of-editing="theKeyOfEditing"
+                        :is-hide-system-var="isHideSystemVar"
+                        :system-constants="systemConstants"
+                        @onChangeEdit="onChangeEdit"
                         @onEditVariable="onEditVariable"
                         @onChangeVariableOutput="onChangeVariableOutput"
                         @onDeleteVariable="onDeleteVariable" />
                 </draggable>
+                <!-- 新建变量 -->
                 <li v-if="isVariableEditing && theKeyOfEditing === ''">
                     <VariableEdit
                         ref="addVariablePanel"
+                        :system-constants="systemConstants"
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :is-new-variable="true"
@@ -132,9 +146,11 @@
         props: ['isVariableEditing', 'variableTypeList'],
         data () {
             return {
+                isHideSystemVar: false,
                 i18n: {
                     global_varibles: gettext('全局变量'),
                     new: gettext('新建'),
+                    hideSystemVar: gettext('隐藏系统变量'),
                     name: gettext('名称'),
                     attributes: gettext('属性'),
                     outputs: gettext('输出'),
@@ -143,7 +159,9 @@
                     attrTitle: gettext('属性：'),
                     attrDesc1: gettext('"来源/是否显示"格式，来源是输入类型'),
                     attrDesc2: gettext('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型'),
-                    attrDesc3: gettext('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，输出类型的变量一定是隐藏的。'),
+                    attrDesc3: gettext('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，'),
+                    attrDesc4: gettext('表示显示，'),
+                    attrDesc5: gettext('表示隐藏，输出类型的变量一定是隐藏的。'),
                     outputsDesc: gettext('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。'),
                     emptyVariableTip: gettext('无数据，请手动新增变量或者勾选标准插件参数自动生成'),
                     tips: gettext('删除变量'),
@@ -182,7 +200,10 @@
                 }
             },
             isShowNodata () {
-                return !this.isVariableEditing && !this.constantsArray.length && !this.systemConstants
+                if (this.isVariableEditing) {
+                    return false
+                }
+                return this.constantsArray.length === 0 ? (this.isHideSystemVar || this.systemConstants.length === 0) : false
             },
             systemConstantsList () {
                 const list = []
@@ -236,8 +257,10 @@
             },
             scrollPanelToView (index) {
                 if (index > 0) {
-                    const itemHeight = document.querySelector('.variable-content').offsetHeight
-                    this.$refs.variableList.scrollTop = itemHeight * index
+                    this.$nextTick(() => {
+                        const itemHeight = document.querySelector('.variable-content').offsetHeight
+                        this.$refs.variableList.scrollTop = itemHeight * index
+                    })
                 }
             },
             /**
@@ -245,7 +268,7 @@
              * @param {String} key 变量key值
              * @param {String} version 变量版本
              */
-            onEditVariable (key, version) {
+            onEditVariable (key, index, version) {
                 if (key === this.theKeyOfEditing && this.isVariableEditing) {
                     this.onChangeEdit(false)
                 } else {
@@ -255,6 +278,8 @@
                 }
 
                 this.$emit('variableDataChanged')
+                const sysVarLen = !this.isHideSystemVar ? this.systemConstantsList.length : 0
+                this.scrollPanelToView(sysVarLen + index)
             },
             /**
              * 变量顺序拖拽
@@ -277,6 +302,9 @@
                 this.onChangeEdit(true)
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
+                // 滚到到底部
+                const allVarLen = (!this.isHideSystemVar ? this.systemConstantsList.length : 0) + this.constantsArray.length
+                this.scrollPanelToView(allVarLen)
             },
             /**
              * 变量输出勾选
@@ -353,11 +381,9 @@ $localBorderColor: #d8e2e7;
         .add-variable-btn {
             width: 90px;
         }
-        .draft-form {
-            display: inline-block;
-            input {
-                width: 200px;
-            }
+        .toggle-system-var {
+            float: right;
+            margin-top: 4px;
         }
     }
     .global-variable-tootip {
@@ -404,9 +430,6 @@ $localBorderColor: #d8e2e7;
                 .common-icon-eye-hide {
                     margin-left: 8px;
                     font-size: 15px;
-                }
-                .color-org{
-                    color: #de9524;
                 }
             }
         }

@@ -14,9 +14,7 @@ specific language governing permissions and limitations under the License.
 from abc import ABCMeta, abstractmethod
 
 
-class Manager(object):
-
-    __metaclass__ = ABCMeta
+class Manager(object, metaclass=ABCMeta):
 
     def __init__(self, storage):
         self.storage = storage

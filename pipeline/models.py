@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import copy
 import hashlib
 import logging
@@ -590,6 +589,22 @@ class InstanceManager(models.Manager):
             instance.save()
         return instance
 
+    def set_revoked(self, instance_id):
+        """
+        将实例的状态设置为已撤销
+        @param instance_id: 实例 ID
+        @return:
+        """
+        with transaction.atomic():
+            try:
+                instance = self.select_for_update().get(instance_id=instance_id)
+            except PipelineInstance.DoesNotExist:
+                return None
+            instance.finish_time = timezone.now()
+            instance.is_revoked = True
+            instance.save()
+        return instance
+
 
 class PipelineInstance(models.Model):
     """
@@ -607,6 +622,7 @@ class PipelineInstance(models.Model):
     description = models.TextField(_("描述"), blank=True)
     is_started = models.BooleanField(_("是否已经启动"), default=False)
     is_finished = models.BooleanField(_("是否已经完成"), default=False)
+    is_revoked = models.BooleanField(_("是否已经撤销"), default=False)
     is_deleted = models.BooleanField(
         _("是否已经删除"),
         default=False,

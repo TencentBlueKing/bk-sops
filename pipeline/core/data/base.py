@@ -81,3 +81,9 @@ class DataObject(object):
     def __setstate__(self, state):
         self.inputs = FancyDict(state['inputs'])
         self.outputs = FancyDict(state['outputs'])
+
+    def __str__(self):
+        return '<inputs: {} | outputs: {}>'.format(
+            self.inputs,
+            self.outputs
+        )
