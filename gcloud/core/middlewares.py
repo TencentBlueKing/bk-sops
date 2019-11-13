@@ -91,5 +91,5 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
             logger.error(traceback.format_exc())
             return JsonResponse({
                 'result': False,
-                'message': 'Object not found: %s' % exception.message
+                'message': 'Object not found: %s' % exception
             })
