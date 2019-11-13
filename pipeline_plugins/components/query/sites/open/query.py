@@ -236,16 +236,21 @@ def job_get_script_list(request, biz_cc_id):
     source_type = request.GET.get('type')
     script_type = request.GET.get('script_type')
 
-    kwargs = {
-        'bk_biz_id': biz_cc_id,
-        'is_public': True if source_type == 'public' else False,
-        'script_type': script_type or 0,
-    }
-
-    script_result = client.job.get_script_list(kwargs)
+    if source_type == 'public':
+        kwargs = None
+        script_result = client.job.get_public_script_list()
+        api_name = 'job.get_public_script_list'
+    else:
+        kwargs = {
+            'bk_biz_id': biz_cc_id,
+            'is_public': False,
+            'script_type': script_type or 0,
+        }
+        script_result = client.job.get_script_list(kwargs)
+        api_name = 'job.get_script_list'
 
     if not script_result['result']:
-        message = handle_api_error('job', 'job.get_script_list', kwargs, script_result)
+        message = handle_api_error('job', api_name, kwargs, script_result)
         logger.error(message)
         result = {
             'result': False,
@@ -352,11 +357,13 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     steps = []
     for var in task_detail.get('global_vars', []):
         # 1-字符串, 2-IP, 3-索引数组, 4-关联数组
-        if var['type'] in [JOB_VAR_TYPE_STR, JOB_VAR_TYPE_IP, JOB_VAR_TYPE_ARRAY]:
+        if var['type'] in [JOB_VAR_TYPE_STR, JOB_VAR_TYPE_INDEX_ARRAY, JOB_VAR_TYPE_ARRAY]:
             value = var.get('value', '')
         else:
-            value = ['{plat_id}:{ip}'.format(plat_id=ip_item['bk_cloud_id'], ip=ip_item['ip'])
-                     for ip_item in var.get('ip_list', [])]
+            value = ','.join(
+                ['{plat_id}:{ip}'.format(plat_id=ip_item['bk_cloud_id'], ip=ip_item['ip'])
+                 for ip_item in var.get('ip_list', [])]
+            )
         global_var.append({
             'id': var['id'],
             # 全局变量类型：1:云参, 2:上下文参数，3:IP

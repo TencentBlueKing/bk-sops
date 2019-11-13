@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import logging
 import traceback
 import contextlib
@@ -909,8 +908,13 @@ class HistoryManager(models.Manager):
                            loop=status.loop,
                            skip=status.skip)
 
-    def get_histories(self, identifier):
-        histories = self.filter(identifier=identifier).order_by('started_time')
+    def get_histories(self, identifier, loop=None):
+        filters = {
+            'identifier': identifier
+        }
+        if loop is not None:
+            filters['loop'] = loop
+        histories = self.filter(**filters).order_by('started_time')
         data = [{
             'history_id': item.id,
             'started_time': item.started_time,

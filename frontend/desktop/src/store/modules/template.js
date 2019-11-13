@@ -14,6 +14,8 @@ import api from '@/api/index.js'
 import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
+import validatePipeline from '@/utils/validatePipeline.js'
+
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
     endpoint: 'EmptyEndEvent',
@@ -35,7 +37,7 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 300,
-            y: 135,
+            y: 150,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
@@ -53,6 +55,7 @@ function generateInitActivities (location, line) {
     return {
         [location[1].id]: {
             component: {
+                version: undefined,
                 code: undefined,
                 data: undefined
             },
@@ -342,8 +345,9 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const { id, nodeId, name } = condition
-            state.gateways[nodeId]['conditions'][id].evaluate = name
+            const { id, nodeId, name, value } = condition
+            state.gateways[nodeId]['conditions'][id].name = name
+            state.gateways[nodeId]['conditions'][id].evaluate = value
         },
         // 节点增加、删除、编辑操作，数据更新
         setLocation (state, payload) {
@@ -410,8 +414,10 @@ const template = {
                         gatewayNode.outgoing.push(id)
                         if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
                             const conditions = gatewayNode.conditions
+                            const key = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             const conditionItem = {
-                                evaluate: Object.keys(conditions).length ? '1 == 0' : '1 == 1',
+                                evaluate: key,
+                                name: key,
                                 tag: `branch_${sourceNode}_${targetNode}`
                             }
                             Vue.set(conditions, id, conditionItem)
@@ -480,7 +486,8 @@ const template = {
                         state.activities[location.id] = {
                             component: {
                                 code: location.atomId,
-                                data: location.data
+                                data: location.data,
+                                version: location.version
                             },
                             error_ignorable: false,
                             id: location.id,
@@ -564,7 +571,6 @@ const template = {
                 for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
-
                     if (sourceInfo && sourceInfo[location.id]) {
                         if (Object.keys(sourceInfo).length > 1) {
                             Vue.delete(sourceInfo, location.id)
@@ -584,7 +590,7 @@ const template = {
                     state.gateways[location.id] = {
                         id: location.id,
                         incoming: location.type === 'convergegateway' ? [] : '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: location.type === 'convergegateway' ? '' : [],
                         type: ATOM_TYPE_DICT[location.type]
                     }
@@ -641,7 +647,7 @@ const template = {
                     state.start_event = {
                         id: location.id,
                         incoming: '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: '',
                         type: 'EmptyStartEvent'
                     }
@@ -679,7 +685,7 @@ const template = {
                     state.end_event = {
                         id: location.id,
                         incoming: '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: '',
                         type: 'EmptyEndEvent'
                     }
@@ -768,11 +774,13 @@ const template = {
                     stage_name: item.stage_name,
                     status: item.status,
                     x: item.x,
-                    y: item.y
+                    y: item.y,
+                    group: item.group,
+                    icon: item.icon
                 }
             })
             // 完整的画布数据
-            const fullCanvasData = JSON.stringify({
+            const fullCanvasData = {
                 activities,
                 constants,
                 end_event,
@@ -782,7 +790,7 @@ const template = {
                 location: pureLocation,
                 outputs,
                 start_event
-            })
+            }
             const data = {
                 projectId,
                 templateId,
@@ -791,8 +799,18 @@ const template = {
                 notifyReceivers: JSON.stringify(notify_receivers),
                 notifyType: JSON.stringify(notify_type),
                 name: state.name,
-                pipelineTree: fullCanvasData,
+                pipelineTree: JSON.stringify(fullCanvasData),
                 common
+            }
+            const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
+            if (!validateResult.valid) {
+                return new Promise((resolve, reject) => {
+                    const info = {
+                        message: gettext('画布数据字段错误，请检查节点连线')
+                    }
+                    console.error('pipeline_tree_data_error:', validateResult.errors)
+                    reject(info)
+                })
             }
             return api.saveTemplate(data).then(response => {
                 return response.data

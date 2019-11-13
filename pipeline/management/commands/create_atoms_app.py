@@ -76,7 +76,7 @@ class Command(base.BaseCommand):
         os.makedirs(static_collection_path)
         for p, tmpl in list(init_file_info.items()):
             with open(p, 'w+') as f:
-                f.write(render_to_string(tmpl, {}).encode('utf-8'))
+                f.write(render_to_string(tmpl, {}))
 
         for p in exist_file_path:
             with open(p, 'r') as f:

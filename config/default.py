@@ -33,7 +33,7 @@ from blueapps.conf.default_settings import *  # noqa
 #     'blueapps.account',
 # )
 
-APP_NAME = _(u"标准运维")
+APP_NAME = _("标准运维")
 DEFAULT_OPEN_VER = 'community'
 OPEN_VER = os.environ.get('RUN_VER', 'open')
 
@@ -128,7 +128,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.17'
+STATIC_VERSION = '3.4.12'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -182,8 +182,8 @@ LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
 _ = lambda s: s  # noqa
 LANGUAGES = (
-    ('en', _(u'English')),
-    ('zh-hans', _(u'简体中文')),
+    ('en', _('English')),
+    ('zh-hans', _('简体中文')),
 )
 USE_I18N = True
 USE_L10N = True
@@ -271,7 +271,7 @@ DEFAULT_BK_API_VER = 'v2'
 
 # IAM权限中心配置
 BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
-BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', u"标准运维")
+BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', "标准运维")
 BK_IAM_SYSTEM_DESC = ''
 BK_IAM_QUERY_INTERFACE = ''
 BK_IAM_RELATED_SCOPE_TYPES = 'system'
@@ -309,7 +309,9 @@ STATIC_VER = {
 PIPELINE_TEMPLATE_CONTEXT = 'gcloud.tasktmpl3.utils.get_template_context'
 PIPELINE_INSTANCE_CONTEXT = 'gcloud.taskflow3.utils.get_instance_context'
 
-COMPONENT_PATH = ['components.collections.sites.%s' % RUN_VER]
+COMPONENT_PATH = [
+    'components.collections.http',
+    'components.collections.sites.%s' % RUN_VER]
 VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
 
 PIPELINE_PARSER_CLASS = 'pipeline_web.parser.WebPipelineAdapter'

@@ -11,17 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import sys
 import logging
-from copy import deepcopy
+import sys
 from abc import abstractmethod
+from copy import deepcopy
 
-from django.db import models, IntegrityError
+from django.db import IntegrityError, models
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.component_framework.library import ComponentLibrary
 from pipeline.contrib.external_plugins import exceptions
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
-from pipeline.component_framework.library import ComponentLibrary
 
 GIT = 'git'
 S3 = 's3'
@@ -106,13 +106,13 @@ class ExternalPackageSource(models.Model):
         try:
             importer = self.importer()
         except ValueError as e:
-            logger.exception("ExternalPackageSource[name=%s] call importer error: %s" % (self.name, e))
+            logger.exception("ExternalPackageSource[name={}] call importer error: {}".format(self.name, e))
             return plugins
-        for code, component in list(ComponentLibrary.components.items()):
+        for component in ComponentLibrary.component_list():
             component_importer = getattr(sys.modules[component.__module__], '__loader__', None)
             if isinstance(component_importer, type(importer)) and component_importer.name == self.name:
                 plugins.append({
-                    'code': code,
+                    'code': component.code,
                     'name': component.name,
                     'group_name': component.group_name,
                     'class_name': component.__name__,

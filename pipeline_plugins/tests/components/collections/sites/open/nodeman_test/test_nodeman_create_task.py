@@ -27,7 +27,9 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
         return [
             CREATE_TASK_FAIL_CASE,
             CREATE_TASK_SUCCESS_CASE,
-            CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE
+            CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE,
+            TASK_RUNNING_CASE,
+            CREATE_TASK_WITH_KEY_SUCCESS_CASE,
         ]
 
     def component_cls(self):
@@ -143,6 +145,34 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
     }
 )
 
+TASK_RUNNING_CLIENT = MockClient(
+    create_task_return={
+        'result': True,
+        'code': "00",
+        'message': 'success',
+        'data': {
+            'hosts': [{
+                'job_id': "1"
+            }]
+        }
+    },
+    get_task_info_return={
+        'result': True,
+        'code': "00",
+        'message': 'success',
+        'data': {
+            'host_count': 2,
+            'hosts': [{
+                'status': 'SUCCEEDED'
+            }, {
+                'status': 'RUNNING'
+            }]
+        }
+    },
+    get_log_return={}
+)
+
+
 CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
     name='nodeman create task success case',
     inputs={
@@ -161,8 +191,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
                 'port': '22',
                 'account': 'test',
                 'auth_type': 'PASSWORD',
-                'password': '123',
-                'key': ''
+                'auth_key': '123',
             }
         ]
     },
@@ -178,7 +207,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={'job_id': '1'}
+        outputs={'job_id': '1', 'success_num': 1, 'fail_num': 0}
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -201,7 +230,6 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
                         'account': 'test',
                         'auth_type': 'PASSWORD',
                         'password': '123',
-                        'key': ''
                     }
                 ]
             })]
@@ -240,8 +268,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
                 'port': '22',
                 'account': 'test',
                 'auth_type': 'PASSWORD',
-                'password': '123',
-                'key': ''
+                'auth_key': '123',
             }
         ]
     },
@@ -251,9 +278,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=True,
-        outputs={
-            'job_id': '1'
-        }
+        outputs={'job_id': '1'}
 
     ),
     schedule_assertion=ScheduleAssertion(
@@ -262,7 +287,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             'fail_num': 1,
-            'ex_data': u'<br>日志信息为：</br><br><b>主机：1.1.1.1</b></br><br>日志：</br>install failed',
+            'ex_data': '<br>日志信息为：</br><br><b>主机：1.1.1.1</b></br><br>日志：</br>install failed',
             'job_id': '1', 'success_num': 0
         }
     ),
@@ -287,7 +312,6 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
                         'account': 'test',
                         'auth_type': 'PASSWORD',
                         'password': '123',
-                        'key': ''
                     }
                 ]
             })]
@@ -326,8 +350,7 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
                 'port': '22',
                 'account': 'test',
                 'auth_type': 'PASSWORD',
-                'password': '123',
-                'key': ''
+                'auth_key': '123',
             }
         ]
     },
@@ -337,7 +360,7 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': u'create agent install task failed: fail'}
+        outputs={'ex_data': 'create agent install task failed: fail'}
     ),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -361,7 +384,6 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
                         'account': 'test',
                         'auth_type': 'PASSWORD',
                         'password': '123',
-                        'key': ''
                     }
                 ]
             })]
@@ -370,5 +392,159 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_FAIL_CLIENT),
         Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123")
+    ]
+)
+
+TASK_RUNNING_CASE = ComponentTestCase(
+    name='nodeman create task running case',
+    inputs={
+        'biz_cc_id': '1',
+        'nodeman_bk_cloud_id': '1',
+        'nodeman_node_type': 'AGENT',
+        'nodeman_op_type': 'INSTALL',
+        'nodeman_hosts': [
+            {
+                'conn_ips': '1.1.1.1',
+                'login_ip': '1.1.1.1',
+                'data_ip': '1.1.1.1',
+                'cascade_ip': '1.1.1.1',
+                'os_type': 'LINUX',
+                'has_cygwin': False,
+                'port': '22',
+                'account': 'test',
+                'auth_type': 'PASSWORD',
+                'auth_key': '123',
+            }
+        ]
+    },
+    parent_data={
+        'executor': 'tester',
+        'biz_cc_id': "1"
+    },
+    execute_assertion=ExecuteAssertion(
+        success=True,
+        outputs={'job_id': '1'}
+
+    ),
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        callback_data=None,
+        outputs={'job_id': '1'}
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=TASK_RUNNING_CLIENT.nodeman.create_task,
+            calls=[Call({
+                'bk_biz_id': '1',
+                'bk_cloud_id': '1',
+                'node_type': 'AGENT',
+                'op_type': 'INSTALL',
+                'creator': 'tester',
+                'hosts': [
+                    {
+                        'conn_ips': '1.1.1.1',
+                        'login_ip': '1.1.1.1',
+                        'data_ip': '1.1.1.1',
+                        'cascade_ip': '1.1.1.1',
+                        'os_type': 'LINUX',
+                        'has_cygwin': False,
+                        'port': '22',
+                        'account': 'test',
+                        'auth_type': 'PASSWORD',
+                        'password': '123',
+                    }
+                ]
+            })]
+        ),
+    ],
+    schedule_call_assertion=[
+        CallAssertion(
+            func=TASK_RUNNING_CLIENT.nodeman.get_task_info,
+            calls=[Call({
+                'bk_biz_id': '1',
+                'job_id': '1'
+            })]
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=TASK_RUNNING_CLIENT),
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
+    ]
+)
+
+CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
+    name='nodeman create task with key success case',
+    inputs={
+        'biz_cc_id': '1',
+        'nodeman_bk_cloud_id': '1',
+        'nodeman_node_type': 'AGENT',
+        'nodeman_op_type': 'INSTALL',
+        'nodeman_hosts': [
+            {
+                'conn_ips': '1.1.1.1',
+                'login_ip': '1.1.1.1',
+                'data_ip': '1.1.1.1',
+                'cascade_ip': '1.1.1.1',
+                'os_type': 'LINUX',
+                'has_cygwin': False,
+                'port': '22',
+                'account': 'test',
+                'auth_type': 'KEY',
+                'auth_key': '123',
+            }
+        ]
+    },
+    parent_data={
+        'executor': 'tester',
+        'biz_cc_id': "1"
+    },
+    execute_assertion=ExecuteAssertion(
+        success=True,
+        outputs={'job_id': '1'}
+    ),
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        callback_data=None,
+        schedule_finished=True,
+        outputs={'job_id': '1', 'success_num': 1, 'fail_num': 0}
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=CREATE_TASK_SUCCESS_CLIENT.nodeman.create_task,
+            calls=[Call({
+                'bk_biz_id': '1',
+                'bk_cloud_id': '1',
+                'node_type': 'AGENT',
+                'op_type': 'INSTALL',
+                'creator': 'tester',
+                'hosts': [
+                    {
+                        'conn_ips': '1.1.1.1',
+                        'login_ip': '1.1.1.1',
+                        'data_ip': '1.1.1.1',
+                        'cascade_ip': '1.1.1.1',
+                        'os_type': 'LINUX',
+                        'has_cygwin': False,
+                        'port': '22',
+                        'account': 'test',
+                        'auth_type': 'KEY',
+                        'key': '123',
+                    }
+                ]
+            })]
+        ),
+    ],
+    schedule_call_assertion=[
+        CallAssertion(
+            func=CREATE_TASK_SUCCESS_CLIENT.nodeman.get_task_info,
+            calls=[Call({
+                'bk_biz_id': '1',
+                'job_id': '1'
+            })]
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_SUCCESS_CLIENT),
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
     ]
 )

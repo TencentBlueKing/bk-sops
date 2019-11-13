@@ -489,7 +489,7 @@
                 try {
                     const data = {
                         common: '0',
-                        list: JSON.stringify(list)
+                        list: list
                     }
                     const resp = await this.templateExport(data)
                     if (resp.result) {

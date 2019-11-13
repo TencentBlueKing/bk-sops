@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import contextlib
+import logging
 import traceback
 
 from django.utils.module_loading import import_string
@@ -18,55 +20,105 @@ from django.utils.module_loading import import_string
 from pipeline.conf import settings
 from pipeline.engine.exceptions import InvalidDataBackendError
 
-__all__ = [
-    'set_object',
-    'get_object',
-    'del_object',
-    'expire_cache',
-    'cache_for',
-    'set_schedule_data',
-    'get_schedule_parent_data',
-    'delete_parent_data',
-]
+logger = logging.getLogger('celery')
 
-__backend = None
+_backend = None
+_candidate_backend = None
 
-if not __backend:
+
+def _import_backend(backend_cls_path):
     try:
-        backend_cls = import_string(settings.PIPELINE_DATA_BACKEND)
-        __backend = backend_cls()
+        backend_cls = import_string(backend_cls_path)
+        return backend_cls()
     except ImportError:
         raise InvalidDataBackendError('data backend({}) import error with exception: {}'.format(
             settings.PIPELINE_DATA_BACKEND, traceback.format_exc()))
 
 
+@contextlib.contextmanager
+def _candidate_exc_ensure(propagate):
+    try:
+        yield
+    except Exception:
+        logger.error('candidate data backend operate error: {}'.format(traceback.format_exc()))
+
+        if propagate:
+            raise
+
+
+if not _backend:
+    _backend = _import_backend(settings.PIPELINE_DATA_BACKEND)
+
+if not _candidate_backend and settings.PIPELINE_DATA_CANDIDATE_BACKEND:
+    _candidate_backend = _import_backend(settings.PIPELINE_DATA_CANDIDATE_BACKEND)
+
+
+def _write_operation(method, *args, **kwargs):
+    propagate = False
+
+    try:
+        getattr(_backend, method)(*args, **kwargs)
+    except Exception:
+        logger.error('data backend operate error: {}'.format(traceback.format_exc()))
+
+        if not _candidate_backend:
+            raise
+
+        propagate = True
+
+    if _candidate_backend:
+        with _candidate_exc_ensure(propagate):
+            getattr(_candidate_backend, method)(*args, **kwargs)
+
+
+def _read_operation(method, *args, **kwargs):
+    result = None
+    propagate = False
+
+    try:
+        result = getattr(_backend, method)(*args, **kwargs)
+    except Exception:
+        logger.error('data backend operate error: {}'.format(traceback.format_exc()))
+
+        if not _candidate_backend:
+            raise
+
+        propagate = True
+
+    if result is None and _candidate_backend:
+        with _candidate_exc_ensure(propagate):
+            result = getattr(_candidate_backend, method)(*args, **kwargs)
+
+    return result
+
+
 def set_object(key, obj):
-    return __backend.set_object(key, obj)
-
-
-def get_object(key):
-    return __backend.get_object(key)
+    _write_operation('set_object', key, obj)
 
 
 def del_object(key):
-    return __backend.del_object(key)
+    _write_operation('del_object', key)
 
 
-def expire_cache(key, value, expires):
-    return __backend.expire_cache(key, value, expires)
+def expire_cache(key, obj, expires):
+    _write_operation('expire_cache', key, obj, expires)
+
+
+def get_object(key):
+    return _read_operation('get_object', key)
 
 
 def cache_for(key):
-    return __backend.cache_for(key)
+    return _read_operation('cache_for', key)
 
 
 def set_schedule_data(schedule_id, parent_data):
-    return __backend.set_object('%s_schedule_parent_data' % schedule_id, parent_data)
+    return set_object('%s_schedule_parent_data' % schedule_id, parent_data)
 
 
 def get_schedule_parent_data(schedule_id):
-    return __backend.get_object('%s_schedule_parent_data' % schedule_id)
+    return get_object('%s_schedule_parent_data' % schedule_id)
 
 
 def delete_parent_data(schedule_id):
-    return __backend.del_object('%s_schedule_parent_data' % schedule_id)
+    return del_object('%s_schedule_parent_data' % schedule_id)

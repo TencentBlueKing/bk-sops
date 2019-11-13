@@ -214,6 +214,7 @@
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             type="normal"
+            :entrance="'taskflow'"
             :common="common"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
@@ -452,6 +453,9 @@
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
+                        } else if (item.is_revoked) {
+                            status.cls = 'revoke common-icon-dark-circle-shape'
+                            status.text = gettext('撤销')
                         } else if (item.is_started) {
                             status.cls = 'loading common-icon-loading'
                             this.getExecuteDetail(item, index)
@@ -495,10 +499,6 @@
                             case 'FAILED':
                                 status.cls = 'failed common-icon-dark-circle-close'
                                 status.text = gettext('失败')
-                                break
-                            case 'REVOKED':
-                                status.cls = 'revoke common-icon-dark-circle-shape'
-                                status.text = gettext('撤销')
                                 break
                             default:
                                 status.text = gettext('未知')
@@ -723,6 +723,7 @@
 .common-icon-dark-circle-pause {
     color: #ff9c01;
     font-size: 14px;
+    vertical-align: middle;
 }
 .operation-area {
     .bk-button {

@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 from django.test import TestCase
 
 from pipeline.tests.mock import *  # noqa
@@ -132,6 +131,14 @@ class TestPipelineInstance(TestCase):
 
         self.instance.refresh_from_db()
         self.assertTrue(self.instance.is_finished)
+
+    def test_set_revoked(self):
+        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.instance.instance_id)
+        Status.objects.create(id=self.instance.instance_id, state=states.REVOKED)
+        PipelineInstance.objects.set_revoked(self.instance.instance_id)
+
+        self.instance.refresh_from_db()
+        self.assertTrue(self.instance.is_revoked)
 
     def test_delete_instance(self):
         PipelineInstance.objects.delete_model(self.instance.instance_id)

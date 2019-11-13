@@ -16,23 +16,19 @@ from copy import deepcopy
 from django.utils.module_loading import import_string
 
 from pipeline import exceptions
-from pipeline.core.flow import (
-    FlowNodeClsFactory,
-    SequenceFlow,
-    ExclusiveGateway,
-    ConditionalParallelGateway,
-    ParallelGateway,
-    ConvergeGateway,
-    Condition
-)
-from pipeline.core.pipeline import PipelineSpec, Pipeline
+from pipeline.component_framework.library import ComponentLibrary
+from pipeline.core.constants import PE
 from pipeline.core.data.base import DataObject
 from pipeline.core.data.context import Context
 from pipeline.core.data.converter import get_variable
-from pipeline.core.data.hydration import hydrate_subprocess_context, hydrate_node_data
-from pipeline.component_framework.library import ComponentLibrary
+from pipeline.core.data.hydration import (hydrate_node_data,
+                                          hydrate_subprocess_context)
+from pipeline.core.flow import (Condition, ConditionalParallelGateway,
+                                ConvergeGateway, ExclusiveGateway,
+                                FlowNodeClsFactory, ParallelGateway,
+                                SequenceFlow)
+from pipeline.core.pipeline import Pipeline, PipelineSpec
 from pipeline.validators.base import validate_pipeline_tree
-from pipeline.core.constants import PE
 
 
 def classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params=None):
@@ -51,9 +47,13 @@ def classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params
     # context scope to resolving inputs
     scope_info = deepcopy(root_pipeline_params)
     for key, info in list(pipeline_inputs.items()):
-        if info.get(PE.source_act):
+        source_act = info.get(PE.source_act)
+        if isinstance(source_act, str):
             act_outputs.setdefault(info[PE.source_act], {}).update({info[PE.source_key]: key})
             continue
+        elif isinstance(source_act, list):
+            for source_info in source_act:
+                act_outputs.setdefault(source_info[PE.source_act], {}).update({source_info[PE.source_key]: key})
 
         is_param = info.get(PE.is_param, False)
         info = params.get(key, info) if is_param else info
@@ -136,7 +136,11 @@ class PipelineParser(object):
         for act in list(acts.values()):
             act_cls = FlowNodeClsFactory.get_node_cls(act[PE.type])
             if act[PE.type] == PE.ServiceActivity:
-                component = ComponentLibrary.get_component(act[PE.component][PE.code], act[PE.component][PE.inputs])
+                component = ComponentLibrary.get_component(
+                    component_code=act[PE.component][PE.code],
+                    data_dict=act[PE.component][PE.inputs],
+                    version=act[PE.component].get(PE.version)
+                )
                 service = component.service()
                 data = component.data_for_execution(context, pipeline_data)
                 handler_path = act.get('failure_handler')

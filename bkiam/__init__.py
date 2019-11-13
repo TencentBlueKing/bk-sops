@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 
 from .client import BKIAMClient
 
-VERSION = '1.0.0rc1'
+VERSION = '1.1.0rc1'
 
 __version__ = VERSION
 

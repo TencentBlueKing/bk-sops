@@ -39,6 +39,7 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import atomFilter from '@/utils/atomFilter.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import NodeTree from './NodeTree.vue'
@@ -52,7 +53,8 @@
         props: [
             'nodeData',
             'selectedFlowPath',
-            'treeNodeConfig'
+            'treeNodeConfig',
+            'pipelineData'
         ],
         data () {
             return {
@@ -111,8 +113,9 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
+                    const version = this.treeNodeConfig.version
                     this.nodeInfo = await this.getNodeActInfo(this.treeNodeConfig)
-                    this.renderConfig = await this.getNodeConfig(this.treeNodeConfig.component_code)
+                    this.renderConfig = await this.getNodeConfig(this.treeNodeConfig.component_code, version)
                     if (this.nodeInfo.result) {
                         for (const key in this.nodeInfo.data.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
@@ -126,14 +129,13 @@
                     this.loading = false
                 }
             },
-            async getNodeConfig (type) {
-                if (this.atomFormConfig[type]) {
-                    return this.atomFormConfig[type]
+            async getNodeConfig (type, version) {
+                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
+                    return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type })
-                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
-                        return this.atomFormConfig[type]
+                        await this.loadAtomConfig({ atomType: type, version })
+                        return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)
                     }

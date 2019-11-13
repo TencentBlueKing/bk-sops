@@ -11,14 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import logging
 
+from pipeline.core.data.hydration import hydrate_data, hydrate_node_data
 from pipeline.core.flow.activity import SubProcess
-from pipeline.core.data.hydration import (
-    hydrate_node_data,
-    hydrate_data
-)
 
 from .base import FlowElementHandler
 
@@ -44,7 +40,7 @@ class SubprocessHandler(FlowElementHandler):
         element.data.outputs._loop = status.loop - 1
 
         # pre output extract
-        process.top_pipeline.context.extract_output(element)
+        process.top_pipeline.context.extract_output(element, set_miss=False)
 
         # hydrate data
         hydrate_node_data(element)

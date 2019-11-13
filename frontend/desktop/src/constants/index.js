@@ -31,6 +31,8 @@ const NODE_DICT = {
     'subflow': gettext('子流程节点')
 }
 
+const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK']
+
 // 最大长度常量
 const TEMPLATE_NAME_MAX_LENGTH = 50
 const TEMPLATE_NODE_NAME_MAX_LENGTH = 50
@@ -72,4 +74,4 @@ const PERIODIC_REG = /^((\*\/)?(([0-5]?\d[,-/])*([0-5]?\d))|\*)[ ]((\*\/)?(([0]?
 const URL_REG= new RegExp('^(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]$')
 /* eslint-enable */
 
-export { TASK_STATE_DICT, NODE_DICT, NAME_REG, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }
+export { TASK_STATE_DICT, NODE_DICT, SYSTEM_GROUP_ICON, NAME_REG, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }

@@ -13,15 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from django.core.management import BaseCommand
 
-from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.component import Component
+from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
 
-        for component_code, component_cls in list(ComponentLibrary.components.items()):
+        for component_cls in ComponentLibrary.component_list():
 
             if isinstance(component_cls, type) and issubclass(component_cls, Component):
 

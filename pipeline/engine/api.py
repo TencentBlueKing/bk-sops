@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import functools
 import time
 
@@ -33,7 +32,8 @@ from pipeline.engine.models import (
     ProcessCeleryTask,
     History,
     FunctionSwitch,
-)
+    Pipeline)
+from pipeline.engine.signals import pipeline_revoke
 from pipeline.engine.utils import calculate_elapsed_time, ActionResult
 from pipeline.utils import uniqid
 
@@ -160,6 +160,8 @@ def revoke_pipeline(pipeline_id):
         PipelineProcess.objects.select_for_update().get(id=process.id)
         process.revoke_subprocess()
         process.destroy_all()
+
+    pipeline_revoke.send(sender=Pipeline, root_pipeline_id=pipeline_id)
 
     return action_result
 
@@ -428,13 +430,14 @@ def get_outputs(node_id):
     }
 
 
-def get_activity_histories(node_id):
+def get_activity_histories(node_id, loop=None):
     """
     get get_activity_histories data for a node
-    :param node_id:
+    :param node_id: 节点 ID
+    :param loop: 循环序号
     :return:
     """
-    return History.objects.get_histories(node_id)
+    return History.objects.get_histories(node_id, loop)
 
 
 @_frozen_check

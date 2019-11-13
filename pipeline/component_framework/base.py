@@ -16,9 +16,10 @@ import logging
 
 from django.db.utils import ProgrammingError
 
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.component_framework.library import ComponentLibrary
-from pipeline.core.flow.activity import Service
 from pipeline.component_framework.models import ComponentModel
+from pipeline.core.flow.activity import Service
 
 logger = logging.getLogger(__name__)
 
@@ -59,13 +60,16 @@ class ComponentMeta(type):
         if not getattr(new_class, 'form', None):
             setattr(new_class, 'form', None)
 
+        if not getattr(new_class, 'version', None):
+            setattr(new_class, 'version', LEGACY_PLUGINS_VERSION)
+
         # category/group name
         group_name = getattr(
             module, "__group_name__",
             new_class.__module__.split(".")[-1].title()
         )
         setattr(new_class, 'group_name', group_name)
-        new_name = "%s-%s" % (group_name, new_class.name)
+        new_name = "{}-{}".format(group_name, new_class.name)
 
         # category/group name
         group_icon = getattr(
@@ -75,10 +79,13 @@ class ComponentMeta(type):
         setattr(new_class, 'group_icon', group_icon)
 
         if not getattr(module, '__register_ignore__', False):
-            ComponentLibrary.components[new_class.code] = new_class
+            ComponentLibrary.register_component(component_code=new_class.code,
+                                                version=new_class.version,
+                                                component_cls=new_class)
             try:
                 ComponentModel.objects.update_or_create(
                     code=new_class.code,
+                    version=new_class.version,
                     defaults={
                         'name': new_name,
                         'status': __debug__,

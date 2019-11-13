@@ -51,21 +51,24 @@ def form(request):
     return JsonResponse(ctx)
 
 
-@require_GET
+@require_POST
 def export_templates(request):
-    try:
-        template_id_list = json.loads(request.GET.get('template_id_list'))
-    except Exception:
-        return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+    data = json.loads(request.body)
+    template_id_list = data['template_id_list']
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
 
+    if not template_id_list:
+        return JsonResponse({'result': False, 'message': 'template_id_list can not be empty'})
+
     templates = CommonTemplate.objects.filter(id__in=template_id_list, is_deleted=False)
     perms_tuples = [(common_template_resource, [common_template_resource.actions.view.id], t) for t in templates]
-    batch_verify_or_raise_auth_failed(principal_type='user',
-                                      principal_id=request.user.username,
-                                      perms_tuples=perms_tuples)
+    batch_verify_or_raise_auth_failed(
+        principal_type='user',
+        principal_id=request.user.username,
+        perms_tuples=perms_tuples
+    )
 
     # wash
     try:
@@ -83,12 +86,13 @@ def export_templates(request):
             'message': str(e)
         })
 
-    digest = hashlib.md5(json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).hexdigest()
+    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode('utf-8')
+    digest = hashlib.md5(data_string).hexdigest()
 
     file_data = base64.b64encode(json.dumps({
         'template_data': templates_data,
         'digest': digest
-    }, sort_keys=True))
+    }, sort_keys=True).encode('utf-8'))
     filename = 'bk_sops_%s_%s.dat' % ('common', time_now_str())
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename=%s' % filename
@@ -135,7 +139,7 @@ def import_templates(request):
                                       perms_tuples=perms_tuples)
 
     try:
-        result = CommonTemplate.objects.import_templates(templates_data, override)
+        result = CommonTemplate.objects.import_templates(templates_data, override, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({

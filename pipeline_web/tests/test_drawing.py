@@ -17,12 +17,16 @@ from django.test import TestCase
 
 from pipeline_web.drawing import (
     draw_pipeline,
-    START_X,
-    START_Y,
-    EVENT_OR_GATEWAY_SHIFT_Y,
-    SHIFT_X,
-    SHIFT_Y
+    POSITION
 )
+
+START_X, START_Y = POSITION['start']
+# 节点之间的平均距离
+SHIFT_X = max(POSITION['activity_size'][0], POSITION['event_size'][0], POSITION['gateway_size'][0]) * 1.2
+SHIFT_Y = max(POSITION['activity_size'][1], POSITION['event_size'][1], POSITION['gateway_size'][1]) * 2
+# 开始/结束事件节点纵坐标偏差
+EVENT_SHIFT_Y = (POSITION['activity_size'][1] - POSITION['event_size'][1]) * 0.5
+GATEWAY_SHIFT_Y = (POSITION['activity_size'][1] - POSITION['gateway_size'][1]) * 0.5
 
 
 class DrawingTest(TestCase):
@@ -138,7 +142,7 @@ class DrawingTest(TestCase):
                     'source_info': {
                         'nodedd50630d1029bca78ad6efaf89d4': ['bk_timing']
                     },
-                    'name': '\u5b9a\u65f6\u65f6\u95f4',
+                    'name': '定时时间',
                     'index': 0,
                     'custom_type': '',
                     'value': '3',
@@ -183,8 +187,8 @@ class DrawingTest(TestCase):
             {
                 'status': '',
                 'name': '',
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y,
-                'x': START_X,
+                'y': POSITION['start'][1] + EVENT_SHIFT_Y,
+                'x': POSITION['start'][0],
                 'type': 'startpoint',
                 'id': 'nodeb200c52ea911f7a74cd478e5a7dd'
             },
@@ -218,7 +222,7 @@ class DrawingTest(TestCase):
             {
                 'status': '',
                 'name': '',
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y,
+                'y': START_Y + EVENT_SHIFT_Y,
                 'x': START_X + SHIFT_X * 4,
                 'type': 'endpoint',
                 'id': 'nodecf7ef57aef3cb6a412ae2ac10516'
@@ -270,9 +274,9 @@ class DrawingTest(TestCase):
                 }
             }
         ]
-        draw_pipeline(pipeline_tree, START_X, START_Y)
-        self.assertEquals(pipeline_tree['location'], location)
-        self.assertEquals(pipeline_tree['line'], line)
+        draw_pipeline(pipeline_tree, start=POSITION['start'])
+        self.assertEqual(pipeline_tree['location'], location)
+        self.assertEqual(pipeline_tree['line'], line)
 
     def test_draw_gateways(self):
         pipeline_tree = {
@@ -524,7 +528,7 @@ class DrawingTest(TestCase):
                 'status': '',
                 'name': '',
                 'x': START_X,
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y,
+                'y': START_Y + EVENT_SHIFT_Y,
                 'type': 'startpoint',
                 'id': 'n7c985a50a8435b89e5daf3c618df732'
             },
@@ -541,7 +545,7 @@ class DrawingTest(TestCase):
                 'status': '',
                 'name': '',
                 'x': START_X + SHIFT_X * 2,
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y,
+                'y': START_Y + GATEWAY_SHIFT_Y,
                 'type': 'branchgateway',
                 'id': 'n0244a7271a235219364f1377d230d04'
             },
@@ -558,7 +562,7 @@ class DrawingTest(TestCase):
                 'status': '',
                 'name': '',
                 'x': START_X + SHIFT_X * 3,
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y + SHIFT_Y,
+                'y': START_Y + GATEWAY_SHIFT_Y + SHIFT_Y,
                 'type': 'parallelgateway',
                 'id': 'nd97fecb12ed3c7a9047197e84c58549'
             },
@@ -584,7 +588,7 @@ class DrawingTest(TestCase):
                 'status': '',
                 'name': '',
                 'x': START_X + SHIFT_X * 5,
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y + SHIFT_Y,
+                'y': START_Y + GATEWAY_SHIFT_Y + SHIFT_Y,
                 'type': 'convergegateway',
                 'id': 'nbb53904ad35364f97ccaa37328d92d9'
             },
@@ -592,7 +596,7 @@ class DrawingTest(TestCase):
                 'status': '',
                 'name': '',
                 'x': START_X + SHIFT_X * 6,
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y,
+                'y': START_Y + GATEWAY_SHIFT_Y,
                 'type': 'convergegateway',
                 'id': 'nfc24efd8fd13301a800f1040d492a8e'
             },
@@ -600,7 +604,7 @@ class DrawingTest(TestCase):
                 'status': '',
                 'name': '',
                 'x': START_X + SHIFT_X * 7,
-                'y': START_Y + EVENT_OR_GATEWAY_SHIFT_Y,
+                'y': START_Y + EVENT_SHIFT_Y,
                 'type': 'endpoint',
                 'id': 'n5b5605fe8293882915fdaa0f17ce8c6'
             }
@@ -728,6 +732,6 @@ class DrawingTest(TestCase):
                 }
             }
         ]
-        draw_pipeline(pipeline_tree, START_X, START_Y)
-        self.assertEquals(pipeline_tree['location'], location)
-        self.assertEquals(pipeline_tree['line'], line)
+        draw_pipeline(pipeline_tree, start=POSITION['start'])
+        self.assertEqual(pipeline_tree['location'], location)
+        self.assertEqual(pipeline_tree['line'], line)

@@ -15,10 +15,11 @@ from __future__ import absolute_import, unicode_literals
 
 import sys
 
-from bkiam import shortcuts
-from bkiam.exceptions import PermTemplateUpsertFailedError
 from django.conf import settings
 from django.utils.module_loading import import_string
+
+from bkiam import shortcuts
+from bkiam.exceptions import PermTemplateUpsertFailedError
 
 
 def upsert_perm_templates():

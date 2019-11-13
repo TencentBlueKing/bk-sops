@@ -197,6 +197,9 @@
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && !this.userRights.function && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
             },
+            isPeriodicSelectShow () {
+                return this.entrance.indexOf('periodicTask') > -1
+            },
             nextStepPerm () {
                 return this.isStartNow ? ['create_task'] : ['create_periodic_task']
             },
@@ -413,7 +416,8 @@
                             'name': this.taskName,
                             'cron': cron,
                             'templateId': this.template_id,
-                            'execData': JSON.stringify(pipelineData)
+                            'execData': JSON.stringify(pipelineData),
+                            'templateSource': this.common ? 'common' : undefined
                         }
                         try {
                             await this.createPeriodic(data)
