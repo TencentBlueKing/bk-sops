@@ -13,6 +13,7 @@
     <div
         ref="shortcutWrap"
         v-if="idOfNodeShortcutPanel === node.id"
+        :style="{ top: isGatewayNode(node.type) ? '46px' : '56px' }"
         class="shortcut-panel"
         @mouseover.stop>
         <ul class="shortcut-wrap">
