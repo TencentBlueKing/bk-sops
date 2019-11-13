@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import base64
-import logging
-
 import rsa
 
 from django.utils.translation import ugettext_lazy as _
@@ -34,7 +32,6 @@ from gcloud.conf import settings
 
 __group_name__ = _(u"节点管理(Nodeman)")
 
-LOGGER = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDYvKQ/dAh499dXGDoQ2NWgwlev
@@ -122,10 +119,10 @@ class NodemanCreateTaskService(Service):
         }
 
         agent_result = client.nodeman.create_task(agent_kwargs)
-        LOGGER.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
+        self.logger.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
             result=agent_result, kwargs=agent_kwargs))
         if agent_result['result']:
-            data.set_outputs('job_id', agent_result['data']['hosts'][0]['job_id'])
+            data.set_outputs('job_id', agent_result['data']['id'])
             return True
         else:
             message = u"create agent install task failed: %s" % agent_result['message']
@@ -138,36 +135,37 @@ class NodemanCreateTaskService(Service):
         client = get_client_by_user(executor)
 
         job_id = data.get_one_of_outputs('job_id')
-        success_num = 0
-        fail_num = 0
-        fail_ids = []
-        fail_hosts = []
 
         job_kwargs = {
             'bk_biz_id': bk_biz_id,
             'job_id': job_id
         }
         job_result = client.nodeman.get_task_info(job_kwargs)
-        host_count = job_result['data']['host_count']
-        result_data = job_result['data']
+
+        self.logger.info('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+            result=job_result, kwargs=job_kwargs))
 
         # 任务执行失败
-        if job_result['message'] != 'success':
+        if not job_result['result']:
+            self.logger.error('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+                result=job_result, kwargs=job_kwargs))
             data.set_outputs('ex_data', _(u'查询失败，未能获得任务执行结果'))
             self.finish_schedule()
             return False
 
-        for i in range(host_count):
-            job_result = result_data['hosts'][i]
+        result_data = job_result['data']
+        host_count = result_data['host_count']
+        success_num = result_data['status_count']['success_count']
+        fail_num = result_data['status_count']['failed_count']
+        fail_infos = []
 
-            # 安装成功
-            if job_result['status'] == 'SUCCEEDED':
-                success_num += 1
+        for host in result_data['hosts']:
             # 安装失败
-            elif job_result['status'] == 'FAILED':
-                fail_num += 1
-                fail_ids.append(job_result['host']['id'])
-                fail_hosts.append(job_result['host']['inner_ip'])
+            if host['status'] == 'FAILED':
+                fail_infos.append({
+                    'host_id': host['host']['id'],
+                    'inner_ip': host['host']['inner_ip']
+                })
 
         if success_num + fail_num == host_count:
             data.set_outputs('success_num', success_num)
@@ -177,9 +175,9 @@ class NodemanCreateTaskService(Service):
                 return True
             else:
                 error_log = u"<br>%s</br>" % _(u'日志信息为：')
-                for i in range(len(fail_ids)):
+                for fail_info in fail_infos:
                     log_kwargs = {
-                        'host_id': fail_ids[i],
+                        'host_id': fail_info['host_id'],
                         'bk_biz_id': bk_biz_id
                     }
                     result = client.nodeman.get_log(log_kwargs)
@@ -187,7 +185,7 @@ class NodemanCreateTaskService(Service):
                     error_log = u'{error_log}<br><b>{host}{fail_host}</b></br><br>{log}</br>{log_info}'.format(
                         error_log=error_log,
                         host=_(u'主机：'),
-                        fail_host=fail_hosts[i],
+                        fail_host=fail_info['inner_ip'],
                         log=_(u'日志：'),
                         log_info=log_info
                     )
