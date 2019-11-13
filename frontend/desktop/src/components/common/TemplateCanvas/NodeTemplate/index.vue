@@ -208,15 +208,17 @@
     .jsflow-node.selected {
         outline: 1px dashed #348af3;
     }
-    .canvas-node-item {
-        position: relative;
-        user-select: none;
-        z-index: 3;
+    .jsflow-node:not(.adding-node) {
         &:hover {
             .close-icon {
                 display: inline-block;
             }
         }
+    }
+    .canvas-node-item {
+        position: relative;
+        user-select: none;
+        z-index: 3;
         &>.subflow-node + .close-icon{
             right: 14px;
         }
@@ -240,9 +242,6 @@
             height: 42px;
             background: #96a1b9;
             border-radius: 50%;
-            &:hover {
-                box-shadow: -1px 1px 8px $activeShadow, 1px -1px 8px $activeShadow;
-            }
             &.finished {
                 @include circleStatusStyle($greenDark, $greenShadow)
             }
