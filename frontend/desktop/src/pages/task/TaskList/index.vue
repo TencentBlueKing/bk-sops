@@ -12,7 +12,6 @@
 <template>
     <div class="task-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.task_list"></BaseTitle>
             <div class="operation-area">
                 <div class="operation-area clearfix">
                     <bk-button
@@ -251,7 +250,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -263,7 +261,6 @@
         name: 'TaskList',
         components: {
             CopyrightFooter,
-            BaseTitle,
             AdvanceSearch,
             NoData,
             TaskCreateDialog,
@@ -313,7 +310,6 @@
                 i18n: {
                     allCategory: gettext('全部'),
                     placeholder: gettext('请输入ID或任务名称'),
-                    task_list: gettext('任务记录'),
                     task_name: gettext('任务名称'),
                     start_time: gettext('执行开始'),
                     finish_time: gettext('执行结束'),
@@ -693,8 +689,7 @@
     word-break: break-all;
 }
 .list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
+    min-height: calc(100vh - 300px);
     .advanced-search {
         margin: 20px 0px;
     }

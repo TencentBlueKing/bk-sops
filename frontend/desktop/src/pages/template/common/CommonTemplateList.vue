@@ -12,7 +12,7 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.commonFlow"></BaseTitle>
+            <base-title :title="i18n.commonFlow"></base-title>
             <div class="operation-area clearfix">
                 <bk-button
                     v-cursor="{ active: !hasPermission(createTplRequired, createCommonTplAction, tplOperations) }"
@@ -113,7 +113,20 @@
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
-                            <p class="template-name">{{props.row.name}}</p>
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                @click="onTemplatePermissonCheck(['view'], props.row, $event)">
+                                {{props.row.name}}
+                            </a>
+                            <router-link
+                                v-else
+                                class="template-name"
+                                :title="props.row.name"
+                                :to="getJumpUrl('edit', props.row.id)">
+                                {{props.row.name}}
+                            </router-link>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.type" prop="category_name"></bk-table-column>

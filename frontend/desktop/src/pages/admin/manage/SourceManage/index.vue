@@ -123,8 +123,8 @@
 </script>
 <style lang="scss" scoped>
     .source-manage {
-        padding: 20px 60px 60px;
-        min-height: calc(100% - 80px);
+        padding-top: 20px;
+        min-height: calc(100% - 140px);
         background: #f4f7fa;
     }
     .section-title {

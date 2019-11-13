@@ -12,7 +12,6 @@
 <template>
     <div class="periodic-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.periodicTask"></BaseTitle>
             <div class="operation-area">
                 <bk-button
                     ref="childComponent"
@@ -205,7 +204,6 @@
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
@@ -216,7 +214,6 @@
         name: 'PeriodicList',
         components: {
             CopyrightFooter,
-            BaseTitle,
             AdvanceSearch,
             NoData,
             TaskCreateDialog,
@@ -491,8 +488,7 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
+    min-height: calc(100vh - 300px);
     .advanced-search {
         margin: 0px;
     }

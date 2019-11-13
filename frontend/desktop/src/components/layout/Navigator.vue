@@ -78,7 +78,7 @@
         {
             routerName: 'process',
             name: gettext('业务流程'),
-            path: '/template/process',
+            path: '/template/',
             params: ['project_id']
         },
         {
@@ -102,6 +102,11 @@
             routerName: 'auditHome',
             path: '/audit/',
             name: gettext('操作中心')
+        },
+        {
+            routerName: 'projectHome',
+            path: '/project/',
+            name: gettext('项目管理')
         },
         {
             routerName: 'sourceManage',

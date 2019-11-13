@@ -12,7 +12,7 @@
 <template>
     <div class="appmaker-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.taskRecord"></BaseTitle>
+            <base-title :title="i18n.taskRecord"></base-title>
             <div class="operation-area clearfix">
                 <div class="appmaker-search">
                     <AdvanceSearch

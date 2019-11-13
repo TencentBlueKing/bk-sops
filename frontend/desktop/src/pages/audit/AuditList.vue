@@ -12,7 +12,7 @@
 <template>
     <div class="audit-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.auditList"></BaseTitle>
+            <base-title :title="i18n.auditList"></base-title>
             <div class="operation-area clearfix">
                 <AdvanceSearch
                     v-model="searchStr"

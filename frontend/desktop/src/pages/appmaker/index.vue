@@ -13,7 +13,7 @@
     <div class="appmaker-page">
         <div class="page-content">
             <div class="appmaker-table-content">
-                <BaseTitle :title="i18n.title"></BaseTitle>
+                <base-title :title="i18n.title"></base-title>
                 <div class="operation-wrapper">
                     <bk-button theme="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
                     <AdvanceSearch

@@ -12,7 +12,7 @@
 <template>
     <div class="project-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.projectManage"></BaseTitle>
+            <base-title :title="i18n.projectManage"></base-title>
             <div class="list-header">
                 <!-- <bk-button
                     v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"

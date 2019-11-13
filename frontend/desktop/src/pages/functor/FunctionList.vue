@@ -12,7 +12,7 @@
 <template>
     <div class="functor-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.functorList"></BaseTitle>
+            <base-title :title="i18n.functorList"></base-title>
             <div class="operation-area clearfix">
                 <bk-button theme="primary" class="task-create-btn" @click="onCreateTask">{{i18n.new}}</bk-button>
                 <AdvanceSearch

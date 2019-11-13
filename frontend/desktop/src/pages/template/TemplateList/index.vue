@@ -12,7 +12,7 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.projectFlow"></BaseTitle>
+            <base-title :title="i18n.projectFlow"></base-title>
             <div class="operation-area clearfix">
                 <bk-button
                     v-cursor="{ active: !hasPermission(createTplRequired, authActions, authOperations) }"

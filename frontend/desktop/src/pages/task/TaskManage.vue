@@ -10,11 +10,36 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <router-view></router-view>
+    <div class="task-manage">
+        <base-title
+            type="router"
+            :title="title"
+            :tab-list="titleTabList">
+        </base-title>
+        <router-view></router-view>
+    </div>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     export default {
-        name: 'layoutContent'
+        name: 'TaskManage',
+        components: {
+            BaseTitle
+        },
+        data () {
+            return {
+                titleTabList: [
+                    { name: gettext('任务记录'), routerName: 'taskList' },
+                    { name: gettext('周期任务'), routerName: 'periodicTemplate' }
+                ],
+                title: gettext('任务管理')
+            }
+        }
     }
 </script>
+<style lang="scss" scoped>
+.task-manage {
+    padding: 0 60px;
+}
+</style>

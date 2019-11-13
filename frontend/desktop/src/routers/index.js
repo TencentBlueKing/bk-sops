@@ -26,6 +26,7 @@ const TemplatePanel = () => import('@/pages/template/TemplatePanel.vue')
 const CommonTemplateList = () => import('@/pages/template/common/CommonTemplateList.vue')
 
 const Task = () => import('@/pages/task/index.vue')
+const TaskManage = () => import('@/pages/task/TaskManage.vue')
 const TaskList = () => import('@/pages/task/TaskList/index.vue')
 const TaskCreate = () => import('@/pages/task/TaskCreate/index.vue')
 const TaskExecute = () => import('@/pages/task/TaskExecute/index.vue')
@@ -56,8 +57,7 @@ const Functor = () => import('@/pages/functor/index.vue')
 const AuditHome = () => import('@/pages/audit/AuditList.vue')
 const Audit = () => import('@/pages/audit/index.vue')
 
-const periodic = () => import('@/pages/periodic/index.vue')
-const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.vue')
+const periodicTemplateList = () => import('@/pages/task/PeriodicList/index.vue')
 
 Vue.use(VueRouter)
 
@@ -172,14 +172,31 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:project_id?/',
-                    component: TaskList,
-                    name: 'taskList',
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        common: route.query.common,
-                        create_method: route.query.create_method
-                    }),
+                    path: 'manage/',
+                    component: TaskManage,
+                    name: 'TaskManage',
+                    children: [
+                        {
+                            path: 'list/:project_id?/',
+                            component: TaskList,
+                            name: 'taskList',
+                            props: (route) => ({
+                                project_id: route.params.project_id,
+                                common: route.query.common,
+                                create_method: route.query.create_method
+                            }),
+                            meta: { project: true }
+                        },
+                        {
+                            path: 'periodic/:project_id?/',
+                            component: periodicTemplateList,
+                            name: 'periodicTemplate',
+                            props: (route) => ({
+                                project_id: route.params.project_id
+                            }),
+                            meta: { project: true }
+                        }
+                    ],
                     meta: { project: true }
                 },
                 {
@@ -305,19 +322,6 @@ const routers = new VueRouter({
                     meta: { project: true }
                 }
             ]
-        },
-        {
-            path: '/periodic',
-            component: periodic,
-            children: [{
-                path: 'home/:project_id?/',
-                component: periodicTemplateList,
-                name: 'periodicTemplate',
-                props: (route) => ({
-                    project_id: route.params.project_id
-                }),
-                meta: { project: true }
-            }]
         },
         {
             path: '/admin',
