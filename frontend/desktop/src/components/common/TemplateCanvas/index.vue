@@ -1010,7 +1010,9 @@
             &.adding-node {
                 z-index: 6;
             }
-            &.jtk-drag {
+            &.jtk-drag,
+            &.adding-node
+             {
                 .process-node,
                 .subflow-node,
                 .gateway-node,
