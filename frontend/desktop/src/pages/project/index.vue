@@ -499,14 +499,10 @@
              * @param {String} name
              */
             isShowOptBtn (isDisable, name) {
-                if (name === 'view' || name === 'edit') {
-                    return true
-                }
-                if (name === 'start' && isDisable) {
-                    return true
-                }
-                if (name === 'stop' && !isDisable) {
-                    return true
+                if (isDisable) {
+                    return name === 'start'
+                } else {
+                    return ['view', 'edit', 'stop'].includes(name)
                 }
             },
             /**
