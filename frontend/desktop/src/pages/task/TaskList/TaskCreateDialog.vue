@@ -9,6 +9,7 @@
         :title="i18n.title"
         :value="isNewTaskDialogShow"
         :auto-close="false"
+        @value-change="toggleShow"
         @confirm="onCreateTask"
         @cancel="onCancel">
         <div class="task-container">
@@ -182,10 +183,8 @@
                 return this.entrance === 'taskflow' ? ['create_task'] : ['create_periodic_task']
             }
         },
-        async created () {
+        created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            await this.getBusinessData()
-            this.onFiltrationTemplate()
         },
         methods: {
             ...mapActions('templateList/', [
@@ -251,6 +250,12 @@
                 const listGroup = atomGrouped.filter(item => item.children.length)
                 return listGroup
             },
+            async toggleShow (val) {
+                if (val) {
+                    await this.getBusinessData()
+                    this.onFiltrationTemplate()
+                }
+            },
             onCreateTask () {
                 if (this.selectedId === '') {
                     this.selectError = true
@@ -268,6 +273,8 @@
                 this.$router.push(url)
             },
             onCancel () {
+                this.selectedTplType = 'businessProcess'
+                this.selectedTplCategory = 'all'
                 this.selectedId = ''
                 this.selectError = false
                 this.$emit('onCreateTaskCancel')
