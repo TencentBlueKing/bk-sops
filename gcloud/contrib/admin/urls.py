@@ -32,4 +32,5 @@ v3_api.register(AdminPeriodicTaskHistoryResource())
 urlpatterns = [
     url(r'^api/', include(v3_api.urls)),
     url(r'^template/restore', views.restore_template),
+    url(r'^search', views.search),
 ]
