@@ -807,7 +807,7 @@ const template = {
             if (!validateResult.valid) {
                 return new Promise((resolve, reject) => {
                     const info = {
-                        message: gettext('画布数据字段错误，请检查节点、连线或者配置参数')
+                        message: gettext('流程数据格式错误，请检查节点、连线或者全局变量')
                     }
                     console.error('pipeline_tree_data_error:', validateResult.errors)
                     reject(info)
