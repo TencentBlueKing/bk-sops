@@ -79,7 +79,7 @@
                 <div @click.stop>
                     <bk-switcher
                         size="small"
-                        :selected="outputs.indexOf(constant.key) > -1"
+                        :value="outputs.indexOf(constant.key) > -1"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
                 </div>
