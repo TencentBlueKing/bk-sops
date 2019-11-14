@@ -39,7 +39,8 @@
                                 v-model="creator"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
+                                :placeholder="i18n.creatorPlaceholder"
+                                @clear="creator = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -171,7 +172,6 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            type="normal"
             :entrance="'periodicTask'"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
