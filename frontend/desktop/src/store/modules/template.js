@@ -68,8 +68,8 @@ function generateInitActivities (location, line) {
             outgoing: line[1].id,
             stage_name: gettext('步骤1'),
             type: 'ServiceActivity',
-            can_retry: true,
-            isSkipped: true
+            retryable: true,
+            skippable: true
         }
     }
 }
@@ -208,8 +208,8 @@ const template = {
                                 stage_name: node.stage_name,
                                 optional: node.optional,
                                 error_ignorable: node.error_ignorable,
-                                can_retry: node.can_retry,
-                                isSkipped: node.isSkipped
+                                retryable: node.can_retry || node.retryable,
+                                skippable: node.isSkipped || node.skippable
                             })
                             return loc
                         }
@@ -417,8 +417,7 @@ const template = {
                             const key = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             const conditionItem = {
                                 evaluate: key,
-                                name: key,
-                                tag: `branch_${sourceNode}_${targetNode}`
+                                name: key
                             }
                             Vue.set(conditions, id, conditionItem)
                         }
@@ -498,8 +497,8 @@ const template = {
                             outgoing: '',
                             stage_name: gettext('步骤1'),
                             type: 'ServiceActivity',
-                            can_retry: true,
-                            isSkipped: true
+                            retryable: true,
+                            skippable: true
                         }
                     } else if (location.type === 'subflow') {
                         state.activities[location.id] = {

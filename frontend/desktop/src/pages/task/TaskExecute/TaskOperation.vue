@@ -642,7 +642,7 @@
                     if (nodeActivities) {
                         code = nodeActivities.component ? nodeActivities.component.code : ''
                         canSkipped = nodeActivities.isSkipped
-                        canRetry = nodeActivities.can_retry
+                        canRetry = nodeActivities.can_retry || nodeActivities.retryable
                     }
 
                     const data = { status: nodes[id].state, isSkipped, code, canSkipped, canRetry }
