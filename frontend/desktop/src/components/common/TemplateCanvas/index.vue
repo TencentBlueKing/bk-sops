@@ -649,9 +649,9 @@
                 if (!this.editable) {
                     return false
                 }
-                const { clientX, clientY, offsetX, offsetY } = event
-                const bX = clientX - offsetX + 5
-                const bY = clientY - 50 - offsetY + 5
+                const { pageX, pageY, offsetX, offsetY } = event
+                const bX = pageX - offsetX + 5
+                const bY = pageY - 50 - offsetY + 5
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
@@ -672,9 +672,9 @@
             handleReferenceLine (e) {
                 const line = this.$refs.dragReferenceLine
                 const { x: startX, y: startY } = this.referenceLine
-                const { clientX, clientY } = e
-                const pX = clientX - startX
-                const pY = clientY - startY - 56
+                const { pageX, pageY } = e
+                const pX = pageX - startX
+                const pY = pageY - startY - 56
                 let r = Math.atan2(Math.abs(pY), Math.abs(pX)) / (Math.PI / 180)
                 if (pX < 0 && pY > 0) r = 180 - r
                 if (pX < 0 && pY < 0) r = r + 180
