@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import ujson as json
 
+import ujson as json
 from django.utils.translation import ugettext_lazy as _
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
@@ -27,6 +27,7 @@ from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
+from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.core.utils import name_handler, pipeline_node_name_handle
@@ -184,9 +185,11 @@ class TaskFlowInstanceResource(GCloudModelResource):
             raise BadRequest(str(e))
         # XSS handle
         self.handle_task_name_attr(pipeline_instance_kwargs)
+
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'])
+            validate_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'], cycle_tolerate=True)
         except PipelineException as e:
             raise BadRequest(str(e))
 

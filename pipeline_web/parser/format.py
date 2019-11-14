@@ -17,6 +17,7 @@ from pipeline import exceptions
 from pipeline.core.data import library, var
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.core.data.expression import ConstantTemplate, format_constant_key
+from pipeline.validators.utils import format_node_io_to_list
 
 
 def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
@@ -155,11 +156,3 @@ def calculate_constants_type(to_calculate, calculated):
         })
 
     return data
-
-
-def format_node_io_to_list(node, i=True, o=True):
-    if i:
-        node['incoming'] = node['incoming'] if isinstance(node['incoming'], list) else [node['incoming']]
-
-    if o:
-        node['outgoing'] = node['outgoing'] if isinstance(node['outgoing'], list) else [node['outgoing']]
