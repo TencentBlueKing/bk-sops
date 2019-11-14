@@ -32,5 +32,9 @@ v3_api.register(AdminPeriodicTaskHistoryResource())
 urlpatterns = [
     url(r'^api/', include(v3_api.urls)),
     url(r'^template/restore', views.restore_template),
+    url(r'^taskflow/detail', views.get_taskflow_detail),
+    url(r'^taskflow/node/detail', views.get_taskflow_node_detail),
+    url(r'^taskflow/node/history/log', views.get_node_history_log),
+    url(r'^taskflow/node/force_fail', views.force_fail_node),
     url(r'^search', views.search),
 ]

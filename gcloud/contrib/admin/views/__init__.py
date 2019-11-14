@@ -12,4 +12,5 @@ specific language governing permissions and limitations under the License.
 """
 
 from .templates import *  # noqa
+from .taskflow import *  # noqa
 from .search import search  # noqa

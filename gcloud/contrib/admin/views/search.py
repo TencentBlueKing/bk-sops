@@ -102,7 +102,7 @@ def search(request):
                                 instance=None)
 
     data = json.loads(request.body)
-    keyword = data['keyword']
+    keyword = data.get('keyword', '')
 
     match_result = AdminSearchMatcher(keyword=keyword).match()
 
