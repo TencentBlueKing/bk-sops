@@ -29,11 +29,11 @@
  */
 export const endpointOptions = {
     endpoint: 'Dot',
-    connector: ['Flowchart', { stub: [6, 10], alwaysRespectStub: true, gap: 0, cornerRadius: 2 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
+    connector: ['Flowchart', { stub: [10, 10], alwaysRespectStub: true, gap: 0, cornerRadius: 10 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
     ],
-    paintStyle: { fill: 'transparent', radius: 8 },
+    paintStyle: { fill: 'transparent', radius: 6 },
     hoverPaintStyle: { fill: '#3a84ff' },
     cssClass: 'template-canvas-endpoint',
     hoverClass: 'template-canvas-endpoint-hover',

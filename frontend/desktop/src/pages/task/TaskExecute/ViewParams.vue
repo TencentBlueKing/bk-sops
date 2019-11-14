@@ -130,6 +130,9 @@
                 }
             },
             async getNodeConfig (type, version) {
+                if (!type) {
+                    return []
+                }
                 if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
                     return this.atomFormConfig[type][version]
                 } else {
@@ -143,7 +146,8 @@
             },
             upDataParamsData (config) {
                 if (config.component_code) {
-                    this.loadNodeInfo()
+                    const loadStartTime = new Date().getTime()
+                    this.loadNodeInfo(loadStartTime)
                 } else {
                     this.$nextTick(() => {
                         this.loading = false

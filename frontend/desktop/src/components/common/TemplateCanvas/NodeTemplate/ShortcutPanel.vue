@@ -13,6 +13,7 @@
     <div
         ref="shortcutWrap"
         v-if="idOfNodeShortcutPanel === node.id"
+        :style="{ top: isGatewayNode(node.type) ? '46px' : '56px' }"
         class="shortcut-panel"
         @mouseover.stop>
         <ul class="shortcut-wrap">
@@ -23,12 +24,13 @@
             <li
                 v-for="(name, index) in nodeTypeList"
                 :key="index"
-                :class="['shortcut-item', `common-icon-node-${name}`]"
+                :class="['shortcut-item', `common-icon-node-${name}-shortcut`]"
                 @click.stop="onAppendNode(name)"></li>
         </ul>
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { uuid } from '@/utils/uuid.js'
     export default {
         name: 'ShortcutPanel',
@@ -186,6 +188,7 @@
         padding: 9px 12px 0px 14px;
         width: 120px;
         overflow: hidden;
+        border-radius: 4px;
         background: rgba(255, 255, 255, .9);
         .shortcut-item {
             font-size: 27px;
