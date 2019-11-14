@@ -269,7 +269,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['project_id', 'common', 'common_template'],
+        props: ['project_id'],
         data () {
             return {
                 i18n: {
@@ -344,7 +344,6 @@
                 isSubprocessUpdated: undefined,
                 isHasSubprocess: undefined,
                 creator: undefined,
-                templateType: this.common_template,
                 deleteTemplateName: '',
                 pagination: {
                     current: 1,
@@ -363,7 +362,6 @@
             ...mapState({
                 'site_url': state => state.site_url,
                 'templateList': state => state.templateList.templateListData,
-                'commonTemplateData': state => state.templateList.commonTemplateData,
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'v1_import_flag': state => state.v1_import_flag
             }),
