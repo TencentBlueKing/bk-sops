@@ -15,7 +15,7 @@ const flowNode = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         outgoing: {
@@ -102,7 +102,7 @@ const subProcess = {
             type: 'object',
             properties: {
                 template_id: {
-                    type: 'string',
+                    type: ['string', 'number'],
                     minLenth: 1
                 },
                 name: {
@@ -213,7 +213,7 @@ const exclusiveGateway = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         name: {
@@ -244,7 +244,7 @@ const parallelGateway = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         name: {
@@ -432,7 +432,7 @@ const endEventSchema = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         name: {
