@@ -39,7 +39,10 @@
         </ul>
         <ul class="nav-right">
             <li v-if="showProjectSelect" class="project-select">
-                <ProjectSelector :disabled="isProjectDisabled"></ProjectSelector>
+                <ProjectSelector
+                    :disabled="isProjectDisabled"
+                    @reloadHome="reloadHome">
+                </ProjectSelector>
             </li>
             <li class="help-doc">
                 <a
@@ -350,6 +353,9 @@
                     return this.$route.name === route.path
                 }
                 return this.$route.path.indexOf(route.path) > -1
+            },
+            reloadHome () {
+                this.reload()
             }
         }
     }
