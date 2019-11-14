@@ -28,7 +28,6 @@ from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_re
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
 from pipeline.validators.base import validate_pipeline_tree
-from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.core.utils import name_handler
