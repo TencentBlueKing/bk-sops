@@ -276,6 +276,10 @@
                     }),
                     branchConditions
                 }
+            },
+            // draftProjectId
+            draftProjectId () {
+                return this.common ? 'common' : this.project_id
             }
         },
         async created () {
@@ -293,22 +297,22 @@
             }
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.project_id, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
+                draft.copyAndReplaceDraft(this.username, this.draftProjectId, this.template_id, this.templateUUID)
+                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.templateUUID)
             } else {
                 // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
             }
             // 五分钟进行存储本地缓存
             const fiveMinutes = 1000 * 60 * 5
             this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
+                draft.addDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
             }, fiveMinutes)
 
             // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
             const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
             this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
             }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
@@ -523,7 +527,7 @@
                     this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.project_id, data.template_id, this.templateUUID)
+                        draft.draftReplace(this.username, this.draftProjectId, data.template_id, this.templateUUID)
                     }
                     this.$bkMessage({
                         message: i18n.saved,
@@ -950,19 +954,19 @@
                     })
                 }
                 // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
             },
             // 模板替换
             onReplaceTemplate (data) {
                 const { templateData, type } = data
                 if (type === 'replace') {
                     const nowTemplateSerializable = JSON.stringify(this.getLocalTemplateData())
-                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID()))
+                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID()))
                     const lastTemplate = lastDraft['template']
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
+                        draft.addDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
                     }
                     this.$bkMessage({
                         'message': i18n.replaceSuccess,
@@ -972,7 +976,7 @@
                 this.templateDataLoading = true
                 this.replaceTemplate(templateData)
                 // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                     this.$nextTick(() => {
@@ -986,13 +990,13 @@
             onNewDraft (message, isMessage = true) {
                 // 创建本地缓存
                 if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.project_id, this.templateUUID, this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.draftProjectId, this.templateUUID, this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
+                    this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.templateUUID)
                 } else {
-                    draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                    this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
                 }
                 if (isMessage) {
                     this.$bkMessage({
@@ -1102,7 +1106,7 @@
                 const template_id = this.getTemplateIdOrTemplateUUID()
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
+                    draft.deleteAllDraftByUUID(this.username, this.draftProjectId, this.templateUUID)
                 }
                 this.clearAtomForm()
                 next()

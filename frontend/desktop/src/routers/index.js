@@ -115,7 +115,7 @@ const routers = new VueRouter({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: route.params.type,
-                        common: route.query.common
+                        common: '1'
                     }),
                     meta: { project: false }
                 }
