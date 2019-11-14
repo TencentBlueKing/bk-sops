@@ -1022,9 +1022,16 @@
                 })
             },
             onJumpToProcess (index) {
-                const { id, templateSource } = this.atomList[index].id
-                const path = templateSource === 'common' ? '/common/edit/?template_id=${id}' : `/template/edit/${this.project_id}/?template_id=${id}`
-                const { href } = this.$router.resolve({ path })
+                const { id, templateSource } = this.atomList[index]
+                const url = {
+                    name: 'templatePanel',
+                    params: { type: 'edit', project_id: this.project_id },
+                    query: { template_id: id }
+                }
+                if (templateSource === 'common') {
+                    url.name = 'commonTemplatePanel'
+                }
+                const { href } = this.$router.resolve(url)
                 window.open(href, '_blank')
             },
             /**

@@ -590,7 +590,11 @@
                 return url
             },
             getExecuteHistoryUrl (id) {
-                return `/taskflow/home/${this.project_id}/?template_id=${id}`
+                return {
+                    name: 'taskList',
+                    params: { project_id: this.project_id },
+                    query: { template_id: id }
+                }
             },
             // 清除查询的分类选择
             onClearCategory () {
