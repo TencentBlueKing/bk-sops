@@ -368,7 +368,8 @@
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
                 'authResource': state => state.authResource,
-                'projectName': state => state.projectName
+                'projectName': state => state.projectName,
+                'project_id': state => state.project_id
             })
         },
         created () {
@@ -472,8 +473,10 @@
                     }
                     this.applyForPermission(this.createTplRequired, resourceData, this.tplOperations, this.tplResource)
                 } else {
-                    const url = `/common/new/?&common=1`
-                    this.$router.push(url)
+                    this.$router.push({
+                        name: 'commonTemplatePanel',
+                        params: { type: 'new' }
+                    })
                 }
             },
             searchInputhandler () {
@@ -592,19 +595,17 @@
              * @param {Number} template_id -模版id(可选)
              */
             getJumpUrl (name, template_id) {
-                let url
                 const urlMap = {
-                    // 编辑按钮的跳转链接
-                    'edit': `/common/edit/?template_id=${template_id}`,
-                    // 新建模板的跳转链接
-                    'newTemplate': `/common/new/`,
-                    // 新建任务的跳转链接
-                    'newTask': `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`,
-                    // 克隆
-                    'clone': `/common/clone/?template_id=${template_id}`
+                    'edit': { name: 'commonTemplatePanel', params: { type: 'edit' } },
+                    'newTemplate': { name: 'commonTemplatePanel', params: { type: 'new' } },
+                    'newTask': { name: 'taskStep', params: { project_id: this.project_id, step: 'selectnode' } },
+                    'clone': { name: 'commonTemplatePanel', params: { type: 'clone' } }
                 }
-                url = urlMap[name]
-                url += url.indexOf('?') > -1 ? '&common=1' : '?common=1'
+                const url = urlMap[name]
+                url.query = {
+                    template_id,
+                    common: '1'
+                }
                 return url
             },
             getExecuteHistoryUrl (id) {

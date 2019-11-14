@@ -217,13 +217,11 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
-            :common="0"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
         </ImportTemplateDialog>
         <ExportTemplateDialog
-            :common="0"
             :is-export-dialog-show="isExportDialogShow"
             :project-info-loading="projectInfoLoading"
             :pending="pending.export"
@@ -408,7 +406,6 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        common: '0',
                         pipeline_template__name__contains: this.flowName,
                         pipeline_template__creator__contains: this.creator,
                         category: this.category,
@@ -462,8 +459,10 @@
                     }
                     this.applyForPermission(this.createTplRequired, resourceData, this.authOperations, this.authResource)
                 } else {
-                    const url = `/template/new/${this.project_id}/`
-                    this.$router.push(url)
+                    this.$router.push({
+                        name: 'templatePanel',
+                        params: { type: 'new', project_id: this.project_id }
+                    })
                 }
             },
             searchInputhandler () {
@@ -488,7 +487,6 @@
                 this.pending.export = true
                 try {
                     const data = {
-                        common: '0',
                         list: list
                     }
                     const resp = await this.templateExport(data)
@@ -534,8 +532,7 @@
                 this.pending.delete = true
                 try {
                     const data = {
-                        templateId: this.theDeleteTemplateId,
-                        common: '0'
+                        templateId: this.theDeleteTemplateId
                     }
                     await this.deleteTemplate(data)
                     this.theDeleteTemplateId = undefined
@@ -583,16 +580,16 @@
              */
             getJumpUrl (name, template_id) {
                 const urlMap = {
-                    // 编辑按钮的跳转链接
-                    'edit': `/template/edit/${this.project_id}/?template_id=${template_id}`,
-                    // 新建模板的跳转链接
-                    'newTemplate': `/template/new/${this.project_id}/`,
-                    // 新建任务的跳转链接
-                    'newTask': `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`,
-                    // 克隆
-                    'clone': `/template/clone/${this.project_id}/?template_id=${template_id}`
+                    'edit': { name: 'templatePanel', params: { type: 'edit' } },
+                    'newTemplate': { name: 'templatePanel', params: { type: 'new' } },
+                    'newTask': { name: 'taskStep', params: { project_id: this.project_id, step: 'selectnode' } },
+                    'clone': { name: 'templatePanel', params: { type: 'clone' } }
                 }
-                return urlMap[name]
+                const url = urlMap[name]
+                url.query = {
+                    template_id
+                }
+                return url
             },
             getExecuteHistoryUrl (id) {
                 return `/taskflow/home/${this.project_id}/?template_id=${id}`

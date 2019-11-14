@@ -30,7 +30,11 @@
                     <router-link
                         v-else
                         class="task-name"
-                        :to="`/template/newtask/${project_id}/selectnode/?template_id=${item.id}`">
+                        :to="{
+                            name: 'taskStep',
+                            params: { project_id: project_id, step: 'selectnode' },
+                            query: { template_id: item.id }
+                        }">
                         {{item.name}}
                     </router-link>
                     <i
@@ -198,7 +202,10 @@
                         'message': gettext('项目下无流程模板，为您跳转至新建流程'),
                         'theme': 'success'
                     })
-                    this.$router.push(`/template/new/${this.project_id}`)
+                    this.$router.push({
+                        name: 'templatePanel',
+                        params: { project_id: this.project_id, type: 'new' }
+                    })
                     return
                 }
                 this.selectTemplateLoading = true
@@ -243,7 +250,11 @@
                 if (!this.getTemplateCreateTaskPerm(template)) {
                     this.applyForPermission(['create_task'], template, this.tplOperations, this.tplResource)
                 } else {
-                    this.$router.push(`/template/newtask/${this.project_id}/selectnode/?template_id=${template.id}`)
+                    this.$router.push({
+                        name: 'taskStep',
+                        params: { project_id: this.project_id, step: 'selectnode' },
+                        query: { template_id: template.id }
+                    })
                 }
             }
         }

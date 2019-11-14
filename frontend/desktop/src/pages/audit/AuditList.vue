@@ -136,7 +136,11 @@
                                 v-else
                                 class="task-name"
                                 :title="props.row.name"
-                                :to="`/audit/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                :to="{
+                                    name: 'auditTaskExecute',
+                                    params: { project_id: props.row.project.id },
+                                    query: { instance_id: props.row.id }
+                                }">
                                 {{props.row.name}}
                             </router-link>
                         </template>
@@ -178,7 +182,11 @@
                             <router-link
                                 v-else
                                 class="audit-operation-btn"
-                                :to="`/audit/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                :to="{
+                                    name: 'auditTaskExecute',
+                                    params: { project_id: props.row.project.id },
+                                    query: { instance_id: props.row.id }
+                                }">
                                 {{ i18n.view }}
                             </router-link>
                         </template>
@@ -500,26 +508,6 @@
 }
 .operation-area {
     margin: 20px 0;
-    .search-input {
-        padding: 0 40px 0 10px;
-        width: 360px;
-        height: 32px;
-        line-height: 32px;
-        font-size: 14px;
-        background: $whiteDefault;
-        border: 1px solid $commonBorderColor;
-        border-radius: 4px;
-        outline: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: $blueDefault;
-            & + i {
-                color: $blueDefault;
-            }
-        }
-    }
     .common-icon-search {
         position: absolute;
         right: 15px;
@@ -552,44 +540,6 @@
                 text-align: right;
                 @media screen and (max-width: 1420px){
                     min-width: 100px;
-                }
-            }
-            input {
-                max-width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            input::-webkit-input-placeholder{
-                color: $formBorderColor;
-            }
-            input:-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input::-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input:-ms-input-placeholder {
-                color: $formBorderColor;
-            }
-            input{
-                min-width: 260px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 10px 0 10px;
-                font-size: 14px;
-                border: 1px solid $commonBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                    & + i {
-                        color: $blueDefault;
-                    }
                 }
             }
             .bk-selector-search-item > input {

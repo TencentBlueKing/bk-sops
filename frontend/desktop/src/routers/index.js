@@ -100,14 +100,17 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home',
+                    path: 'home/',
                     name: 'commonProcessList',
-                    component: CommonTemplateList
+                    component: CommonTemplateList,
+                    props: () => ({
+                        common: '1'
+                    })
                 },
                 {
                     path: ':type/',
                     component: TemplatePanel,
-                    name: 'templatePanel',
+                    name: 'commonTemplatePanel',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
@@ -148,19 +151,6 @@ const routers = new VueRouter({
                         common: route.query.common
                     }),
                     meta: { project: true }
-                },
-                {
-                    path: 'newtask/:project_id/:step/',
-                    component: TaskCreate,
-                    name: 'templateStep',
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        step: route.params.step,
-                        template_id: route.query.template_id,
-                        common: route.query.common,
-                        entrance: route.query.entrance
-                    }),
-                    meta: { project: true }
                 }]
         },
         {
@@ -197,6 +187,19 @@ const routers = new VueRouter({
                             meta: { project: true }
                         }
                     ],
+                    meta: { project: true }
+                },
+                {
+                    path: 'newtask/:project_id/:step/',
+                    component: TaskCreate,
+                    name: 'taskStep',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        step: route.params.step,
+                        template_id: route.query.template_id,
+                        common: route.query.common,
+                        entrance: route.query.entrance
+                    }),
                     meta: { project: true }
                 },
                 {

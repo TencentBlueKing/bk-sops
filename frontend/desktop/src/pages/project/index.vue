@@ -438,7 +438,7 @@
                     this.applyForPermission(['view'], project, this.projectOperations, this.projectResource)
                     return
                 }
-                this.$router.push(`/home/${project.id}/`)
+                this.$router.push({ name: 'home' })
             },
             onEditProject (project) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {

@@ -26,8 +26,7 @@
                 :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
                 @onNewDraft="onNewDraft"
-                @onSaveTemplate="onSaveTemplate"
-                @onBackToList="onBackToList">
+                @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <TemplateCanvas
                 ref="templateCanvas"
@@ -533,7 +532,10 @@
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
+                        const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
+                        if (this.common) {
+                            url.name = 'commonTemplatePanel'
+                        }
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -836,10 +838,11 @@
             // 跳转到节点选择页面
             goToTaskUrl (template_id) {
                 this.$router.push({
-                    path: `/template/newtask/${this.project_id}/selectnode/`,
+                    name: 'taskStep',
+                    params: { step: 'selectnode', project_id: this.project_id },
                     query: {
                         template_id,
-                        common: this.common ? '1' : undefined,
+                        common: this.common,
                         entrance: 'templateEdit'
                     }
                 })
@@ -923,9 +926,6 @@
                 if (isAllNodeValid && isAllConditionValid) {
                     this.saveTemplate()
                 }
-            },
-            onBackToList () {
-                this.$router.push({ path: `/template/home/${this.project_id}/` })
             },
             onLeaveConfirm () {
                 this.allowLeave = true

@@ -109,7 +109,11 @@
                                 v-else
                                 class="task-name"
                                 :title="props.row.task.name"
-                                :to="`/function/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
+                                :to="{
+                                    name: 'functionTaskExecute',
+                                    params: { project_id: props.row.task.project.id },
+                                    query: { instance_id: props.row.task.id }
+                                }">
                                 {{props.row.task.name}}
                             </router-link>
                         </template>
@@ -145,7 +149,11 @@
                                 <router-link
                                     v-else
                                     class="functor-operation-btn"
-                                    :to="`/function/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
+                                    :to="{
+                                        name: 'functionTaskExecute',
+                                        params: { project_id: props.row.task.project.id },
+                                        query: { instance_id: props.row.task.id }
+                                    }">
                                     {{ i18n.claim }}
                                 </router-link>
                             </template>
@@ -160,7 +168,11 @@
                                 <router-link
                                     v-else
                                     class="functor-operation-btn"
-                                    :to="`/function/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
+                                    :to="{
+                                        name: 'functionTaskExecute',
+                                        params: { project_id: props.row.task.project.id },
+                                        query: { instance_id: props.row.task.id }
+                                    }">
                                     {{ i18n.view }}
                                 </router-link>
                             </template>
@@ -595,15 +607,12 @@
                         params: { project_id: this.business.id, step: 'selectnode' },
                         query: { template_id: this.template.id, common: 1 }
                     })
-                    // this.$router.push({ path: `/function/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id, common: 1 } })
                 } else {
-                    console.log('aaaa')
                     this.$router.push({
                         name: 'functionTemplateStep',
                         params: { project_id: this.business.id, step: 'selectnode' },
                         query: { template_id: this.template.id }
                     })
-                    // this.$router.push({ path: `/function/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id } })
                 }
             },
             onCancelNewTask () {

@@ -103,7 +103,14 @@
                 <NoData>
                     <div>
                         {{i18n.noTemplate}}
-                        <router-link class="create-template" :to="`/template/new/${project_id}`">{{i18n.createTemplate}}</router-link>
+                        <router-link
+                            class="create-template"
+                            :to="{
+                                name: 'templatePanel',
+                                params: { project_id: project_id, type: 'new' }
+                            }">
+                            {{i18n.createTemplate}}
+                        </router-link>
                     </div>
                 </NoData>
             </div>

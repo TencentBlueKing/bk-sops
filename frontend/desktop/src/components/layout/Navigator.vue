@@ -101,7 +101,7 @@
         {
             routerName: 'auditHome',
             path: '/audit/',
-            name: gettext('操作中心')
+            name: gettext('操作审计')
         },
         {
             routerName: 'projectHome',
@@ -219,7 +219,7 @@
                 if (this.$route.name === 'home') {
                     return this.reload()
                 }
-                this.$router.push('/')
+                this.$router.push({ name: 'home' })
             },
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
@@ -326,7 +326,7 @@
                 }
                 /** 404 页面时，导航统一跳转到首页 */
                 if (this.notFoundPage && this.view_mode === 'app') {
-                    return this.$router.push('/')
+                    return this.$router.push({ name: 'home' })
                 }
                 this.checkRouterPerm(route.routerName)
                 const params = {}

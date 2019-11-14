@@ -12,7 +12,14 @@
 <template>
     <div class="task-feeds-content">
         <h3 class="title">{{i18n.feeds}}</h3>
-        <router-link class="view-more-task" :to="`/taskflow/home/${project_id}/`">{{i18n.viewMore}}</router-link>
+        <router-link
+            class="view-more-task"
+            :to="{
+                name: 'taskList',
+                params: { project_id: project_id }
+            }">
+            {{i18n.viewMore}}
+        </router-link>
         <div v-if="topThreeTaskFeeds.length" class="feed-container">
             <ul class="feed-list">
                 <li v-for="(item, index) in topThreeTaskFeeds" :key="item.id" class="feed-item">
@@ -41,7 +48,11 @@
                     <router-link
                         v-else
                         class="goto-task-detail"
-                        :to="`/taskflow/execute/${project_id}/?instance_id=${item.id}`">
+                        :to="{
+                            name: 'taskExecute',
+                            params: { project_id: project_id },
+                            query: { instance_id: item.id }
+                        }">
                         {{i18n.detail}}
                     </router-link>
                 </li>

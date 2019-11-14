@@ -81,7 +81,7 @@
         methods: {
             tabChange (tabTtem) {
                 if (tabTtem.routerName) {
-                    this.$router.push({ name: tabTtem.routerName })
+                    this.$router.push({ name: tabTtem.routerName, params: tabTtem.params, query: tabTtem.query })
                 }
                 this.$emit('tabChange', tabTtem.key)
             },

@@ -117,7 +117,7 @@
                     this.setTimeZone(timeZone)
                     
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
-                    this.$router.push({ path: `/home/` })
+                    this.$router.push({ name: 'home' })
                 } catch (err) {
                     errorHandler(err, this)
                 }

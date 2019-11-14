@@ -258,28 +258,15 @@
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
-                if (this.viewMode === 'appmaker') {
-                    if (this.common) {
-                        this.$router.push({
-                            path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`,
-                            query: { 'template_id': this.template_id, common: this.common }
-                        })
-                    } else {
-                        this.$router.push({
-                            path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`,
-                            query: { 'template_id': this.template_id }
-                        })
-                    }
-                } else {
-                    this.$router.push({
-                        path: `/template/newtask/${this.project_id}/paramfill/`,
-                        query: {
-                            template_id: this.template_id,
-                            common: this.common || undefined,
-                            entrance: this.entrance
-                        }
-                    })
+                const url = {
+                    name: 'taskStep',
+                    params: { project_id: this.project_id, step: 'paramfill' },
+                    query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
                 }
+                if (this.viewMode === 'appmaker') {
+                    url.name = 'appmakerTaskCreate'
+                }
+                this.$router.push(url)
             },
             /**
              * 格式化pipelineTree的数据，只输出一部分数据

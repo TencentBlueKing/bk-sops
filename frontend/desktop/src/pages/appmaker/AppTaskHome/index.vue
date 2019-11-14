@@ -118,7 +118,11 @@
                                 v-else
                                 class="task-name"
                                 :title="props.row.name"
-                                :to="`/appmaker/${props.row.create_info}/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                :to="{
+                                    name: 'appmakerTaskExecute',
+                                    params: { app_id: props.row.create_info, project_id: props.row.project.id },
+                                    query: { instance_id: props.row.id }
+                                }">
                                 {{props.row.name}}
                             </router-link>
                         </template>

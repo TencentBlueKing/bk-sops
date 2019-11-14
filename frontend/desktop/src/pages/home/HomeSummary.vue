@@ -16,7 +16,10 @@
                 <div>
                     <router-link
                         class="summary-module"
-                        :to="`/taskflow/home/${project_id}`">
+                        :to="{
+                            name: 'taskList',
+                            params: { project_id: project_id }
+                        }">
                         <i class="common-icon-clock-inversion module-icon"></i>
                         <span class="module-entry">{{i18n.enter}}</span>
                     </router-link>
@@ -39,7 +42,10 @@
             <div class="count-title">
                 <router-link
                     class="summary-module"
-                    :to="`/template/new/${project_id}`">
+                    :to="{
+                        name: 'templatePanel',
+                        params: { project_id: project_id, type: 'new' }
+                    }">
                     <i class="common-icon-circulation module-icon"></i>
                     <span class="module-entry">{{i18n.enter}}</span>
                 </router-link>
@@ -61,7 +67,10 @@
             <div class="count-title">
                 <router-link
                     class="summary-module"
-                    :to="`/appmaker/home/${project_id}`">
+                    :to="{
+                        name: 'appMakerList',
+                        params: { project_id: project_id, type: 'new' }
+                    }">
                     <i class="common-icon-box module-icon"></i>
                     <span class="module-entry">{{i18n.enter}}</span>
                 </router-link>

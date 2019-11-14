@@ -147,7 +147,11 @@
                                 v-else
                                 class="template-operate-btn"
                                 :title="props.row.name"
-                                :to="`/taskflow/execute/${project_id}/?instance_id=${props.row.id}`">
+                                :to="{
+                                    name: 'taskExecute',
+                                    params: { project_id: project_id },
+                                    query: { instance_id: props.row.id }
+                                }">
                                 {{props.row.name}}
                             </router-link>
                         </template>
@@ -591,7 +595,11 @@
                 }
                 try {
                     const data = await this.cloneTask(config)
-                    this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: data.data.new_instance_id } })
+                    this.$router.push({
+                        name: 'taskExecute',
+                        params: { project_id: this.project_id },
+                        query: { instance_id: data.data.new_instance_id }
+                    })
                 } catch (e) {
                     errorHandler(e, this)
                 }
