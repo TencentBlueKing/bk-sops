@@ -296,8 +296,8 @@ def validate_gateways(tree):
     # data preparation
     for i, item in list(tree[PE.gateways].items()):
         node = {
-            PE.incoming: item[PE.incoming],
-            PE.outgoing: item[PE.outgoing],
+            PE.incoming: item[PE.incoming] if isinstance(item[PE.incoming], list) else [item[PE.incoming]],
+            PE.outgoing: item[PE.outgoing] if isinstance(item[PE.outgoing], list) else [item[PE.outgoing]],
             PE.type: item[PE.type],
             PE.target: [],
             PE.source: [],
