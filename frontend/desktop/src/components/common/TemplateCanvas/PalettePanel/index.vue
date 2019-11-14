@@ -20,7 +20,7 @@
                 ]"
                 data-config-name=""
                 data-type="startpoint">
-                <div class="node-type-text start-point">{{ i18n.start }}</div>
+                <div :class="`node-type-icon common-icon-node-startpoint-${langSuffix}`"></div>
             </div>
             <div
                 :class="[
@@ -30,7 +30,7 @@
                 ]"
                 data-config-name=""
                 data-type="endpoint">
-                <div class="node-type-text end-point">{{ i18n.end }}</div>
+                <div :class="`node-type-icon common-icon-node-endpoint-${langSuffix}`"></div>
             </div>
             <div
                 :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
@@ -68,7 +68,7 @@
 <script>
     import '@/utils/i18n.js'
     import NodeMenu from './NodeMenu.vue'
-
+    import { mapState } from 'vuex'
     export default {
         name: 'PalattePanel',
         components: {
@@ -111,6 +111,12 @@
             }
         },
         computed: {
+            ...mapState({
+                lang: state => state.lang
+            }),
+            langSuffix () {
+                return this.lang === 'zh-cn' ? 'zh' : 'en'
+            },
             nodes () {
                 const data = this.atomTypeList[this.activeNodeListType]
                 return data || []
@@ -176,8 +182,8 @@
     .palette-container{
         position: relative;
         height: 100%;
-        background: #f2f2f2;
-        border-right: 1px solid #dddddd;
+        border-right: 1px solid #cacedb;
+        background: #ffffff;
         z-index: 3;
         .palette-item {
             padding: 15px 0;
@@ -185,12 +191,8 @@
             cursor: move;
             user-select: none;
             &:hover {
-                .node-type-icon,
-                .node-type-text {
+                .node-type-icon{
                     color: #3a84ff;
-                }
-                .node-type-text {
-                    border-color: #3a84ff;
                 }
             }
             &.disabled {
@@ -207,30 +209,9 @@
                     color: #3a84ff;
                 }
             }
-            &::after {
-                position: absolute;
-                bottom: 0;
-                right: 0;
-                content: '';
-                width: 0;
-                height: 0;
-                border-style: solid;
-                border-width: 0 0 8px 8px;
-                border-color: transparent transparent #546a9e transparent;
-            }
-        }
-        .node-type-text {
-            margin: 0 auto;
-            font-size: 12px;
-            width: 32px;
-            height: 32px;
-            line-height: 32px;
-            color: #52699d;
-            border: 1px solid #546a9e;
-            border-radius: 50%;
         }
         .node-type-icon {
-            font-size: 32px;
+            font-size: 28px;
             color: #546a9e;
         }
     }

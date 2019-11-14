@@ -24,7 +24,8 @@
             :clearable="true"
             :placeholder="inputPlaceholader"
             :right-icon="'bk-icon icon-search'"
-            @change="onInput"></bk-input>
+            @change="onInput">
+        </bk-input>
     </div>
 </template>
 
