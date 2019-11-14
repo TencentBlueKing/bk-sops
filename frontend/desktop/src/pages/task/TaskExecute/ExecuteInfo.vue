@@ -18,7 +18,7 @@
                 v-model="theExecuteTime"
                 @change="onSelectExecuteTime">
                 <bk-option
-                    v-for="index in 10"
+                    v-for="index in nodeInfo.loop"
                     :key="index"
                     :id="index"
                     :name="index">
