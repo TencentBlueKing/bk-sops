@@ -29,6 +29,6 @@
 <style lang="scss" scoped>
 .loading-page {
     width: 100%;
-    height: 500px;
+    height: 100%;
 }
 </style>
