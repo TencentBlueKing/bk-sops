@@ -666,7 +666,7 @@
                 line.style.left = bX + 'px'
                 line.style.top = bY + 'px'
                 this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
-                document.getElementById('canvas-flow').addEventListener('mousemove', this.handleReferenceLine, false)
+                document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 生成参考线
             handleReferenceLine (e) {
@@ -699,7 +699,7 @@
                     line.style.display = 'none'
                 }
                 this.referenceLine.id = ''
-                document.getElementById('canvas-flow').removeEventListener('mousemove', this.handleReferenceLine, false)
+                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
                 document.body.removeEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 创建连线
