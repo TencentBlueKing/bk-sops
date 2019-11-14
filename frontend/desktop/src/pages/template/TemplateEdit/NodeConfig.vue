@@ -113,13 +113,13 @@
                                     <span class="checkbox-text">{{i18n.ignore}}</span>
                                 </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isSkip" :disabled="isDisable">
+                            <bk-checkbox v-model="isSkip" :disabled="isManulHandleErrrorDisable">
                                 <div class="checkbox-text-wrapper">
                                     <i class="common-icon-dark-circle-s"></i>
                                     <span class="checkbox-text">{{i18n.manuallySkip}}</span>
                                 </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isRetry" :disabled="isDisable">
+                            <bk-checkbox v-model="isRetry" :disabled="isManulHandleErrrorDisable">
                                 <div class="checkbox-text-wrapper">
                                     <i class="common-icon-dark-circle-r"></i>
                                     <span class="checkbox-text">{{i18n.manuallyRetry}}</span>
@@ -334,7 +334,6 @@
                 },
                 isAtomChanged: false, // 用于切换标准插件
                 failureHandling: [], // 失败处理
-                isDisable: false, // 是否禁用手动选项
                 isSkip: true, // 是否手动跳过
                 isRetry: true, // 是否手动重试
                 manuallyEmpty: false // 手动选项为空
@@ -505,6 +504,10 @@
                     return this.singleAtom.find(item => item.code === this.currentAtom)
                 }
                 return {}
+            },
+            // 任务节点执行失败手动处理选项禁用
+            isManulHandleErrrorDisable () {
+                return this.errorCouldBeIgnored
             }
         },
         watch: {
@@ -544,9 +547,6 @@
         },
         mounted () {
             document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
-            if (this.errorCouldBeIgnored) {
-                this.isDisable = true
-            }
         },
         beforeDestroy () {
             document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
@@ -852,7 +852,7 @@
             handleNodeConfigPanelShow (e) {
                 if (!this.isNodeConfigPanelShow
                     || this.isReuseVarDialogShow
-                    || e.target.className.indexOf('bk-option') > -1) {
+                    || dom.parentClsContains('bk-option', e.target)) {
                     return
                 }
                 const settingPanel = document.querySelector('.setting-area-wrap')
@@ -899,6 +899,10 @@
                     }
                     nodeData.constants = constants
                 }
+                // 任务节点参数编辑时，可能会修改输入输出连线，取最新的连线数据，防止被节点参数编辑时保存的旧数据覆盖
+                const { incoming, outgoing } = this.activities[this.nodeId]
+                Object.assign(nodeData, { incoming, outgoing })
+
                 this.setActivities({ type: 'edit', location: nodeData })
             },
             /**
@@ -983,6 +987,9 @@
                 if (this.isSingleAtom) {
                     nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
                     this.currentVersion = currentAtomlastVeriosn
+                    this.nodeConfigData.isSkipped = true
+                    this.nodeConfigData.can_retry = true
+                    this.nodeConfigData.error_ignorable = false
                 } else {
                     // 切换子流程时，去掉节点小红点、刷新按钮、节点过期设为 false
                     this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
@@ -1069,9 +1076,6 @@
                         version: this.subAtomConfigData.version
                     })
                 })
-            },
-            onErrorIngoredChange (selected) {
-                this.errorCouldBeIgnored = selected
             },
             /**
              * 输入参数值更新
@@ -1311,7 +1315,6 @@
                 }
             },
             onIgnoredChange (updatedValue) {
-                this.isDisable = updatedValue
                 this.manuallyEmpty = !updatedValue
                 this.isSkip = false
                 this.isRetry = false

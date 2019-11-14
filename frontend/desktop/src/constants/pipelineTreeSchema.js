@@ -2,8 +2,8 @@ import { STRING_LENGTH } from './index.js'
 import { Validator } from 'jsonschema'
 
 const NODE_ID_REG = '^n[0-9a-z]+'
-const LINE_ID_REG = '^l[0-9a-z]+$'
-const VAR_KEY_REG = '^\\$\\{(\\w+)\\}$'
+const LINE_ID_REG = '^l[0-9a-z]+'
+const VAR_KEY_REG = '^\\${[\\.\\w]+}$'
 
 const flowNode = {
     id: '/FlowNode',
@@ -102,8 +102,7 @@ const subProcess = {
             type: 'object',
             properties: {
                 template_id: {
-                    type: ['string', 'number'],
-                    minLenth: 1
+                    type: ['string', 'number']
                 },
                 name: {
                     type: 'string',

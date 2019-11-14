@@ -283,7 +283,7 @@
                     limit: 15
                 },
                 i18n: {
-                    rankTitle: gettext('排序统计'),
+                    rankTitle: gettext('插件统计'),
                     atom: gettext('标准插件'),
                     projectBeLongTo: gettext('所属项目'),
                     rankBeLongTo: gettext('所属分类'),

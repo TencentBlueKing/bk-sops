@@ -588,10 +588,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         fail_percent = {}
         for component in component_data:
             component_code = component['component_code']
-            execute_times = component['execute_times']
-            fail_percent[component_code] = '%.2f' % (
-                (failed_dict.get(component_code, 0) * 1.00 / execute_times) * 100
-            )
+            if component_code in failed_dict:
+                execute_times = component['execute_times']
+                fail_percent[component_code] = '%.2f' % (
+                    (failed_dict[component_code] * 1.00 / execute_times) * 100
+                )
 
         groups = []
         for data in component_list:
@@ -982,7 +983,7 @@ class TaskFlowInstance(models.Model):
 
         if component_code:
             outputs_table = []
-            version = self.pipeline_tree[PE.activities][node_id].get('version', None)
+            version = self.get_act_web_info(node_id).get('version', None)
             try:
                 component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()

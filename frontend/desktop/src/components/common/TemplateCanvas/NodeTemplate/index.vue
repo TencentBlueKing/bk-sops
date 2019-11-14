@@ -105,12 +105,17 @@
             onMousedown (e) {
                 const { pageX: x, pageY: y } = e
                 this.moveFlag = { x, y }
+                this.$emit('onNodeMousedown', this.node.id)
             },
             onNodeDblclick () {
                 clearTimeout(this.clickTimer)
                 this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
+                if ((e.ctrlKey || e.metaKey) && this.editable) {
+                    this.$emit('addNodesToDragSelection', this.node)
+                    return
+                }
                 clearTimeout(this.clickTimer)
                 this.clickTimer = setTimeout(() => {
                     const moveBuffer = 2
@@ -118,7 +123,6 @@
                     if (
                         Math.abs(x - this.moveFlag.x) < moveBuffer
                         && Math.abs(y - this.moveFlag.y) < moveBuffer
-                        && this.node.type !== 'endpoint'
                     ) {
                         this.$emit('onNodeClick', this.node.id, this.node.type, e)
                     }
@@ -161,7 +165,7 @@
     }
 </script>
 <style lang="scss">
-    $blueDark: #3a84ff;
+    $blueDark: #52699D;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
     $greenDark: #2dcb56;
@@ -204,15 +208,17 @@
     .jsflow-node.selected {
         outline: 1px dashed #348af3;
     }
-    .canvas-node-item {
-        position: relative;
-        user-select: none;
-        z-index: 3;
+    .jsflow-node:not(.adding-node) {
         &:hover {
             .close-icon {
                 display: inline-block;
             }
         }
+    }
+    .canvas-node-item {
+        position: relative;
+        user-select: none;
+        z-index: 3;
         &>.subflow-node + .close-icon{
             right: 14px;
         }
@@ -236,9 +242,6 @@
             height: 42px;
             background: #96a1b9;
             border-radius: 50%;
-            &:hover {
-                box-shadow: -1px 1px 8px $activeShadow, 1px -1px 8px $activeShadow;
-            }
             &.finished {
                 @include circleStatusStyle($greenDark, $greenShadow)
             }

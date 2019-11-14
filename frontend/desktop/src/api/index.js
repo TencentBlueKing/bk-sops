@@ -1173,7 +1173,7 @@ const api = {
     createPeriodic (data) {
         const prefixUrl = this.getPrefix('periodic')
         const { project_id } = store.state.project
-        const { name, cron, templateId, execData } = data
+        const { name, cron, templateId, execData, templateSource } = data
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -1182,7 +1182,8 @@ const api = {
                 cron: cron,
                 name: name,
                 template_id: templateId,
-                pipeline_tree: execData
+                pipeline_tree: execData,
+                template_source: templateSource
             }
         }
         return request(opts)

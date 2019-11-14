@@ -53,23 +53,30 @@ NODEMAN_RSA_ENCRYPT = 'pipeline_plugins.components.collections.sites.open.nodema
 CREATE_TASK_FAIL_CLIENT = MockClient(
     create_task_return={
         'result': False,
-        'code': "500",
+        'code': '500',
         'message': 'fail',
         'data': {
+            'id': '1',
             'hosts': [{
-                'job_id': "1"
+                'job_id': '1'
             }]
         }
     },
     get_task_info_return={
         'result': False,
-        'code': "500",
+        'code': '500',
         'message': 'fail',
-        'data': {}
+        'data': {
+            'status_count': {
+                'success_count': 0,
+                'failed_count': 1,
+            },
+            'job_type': 'INSTALL',
+        }
     },
     get_log_return={
         'result': False,
-        'code': "500",
+        'code': '500',
         'message': 'fail',
         'data': {}
     }
@@ -78,28 +85,34 @@ CREATE_TASK_FAIL_CLIENT = MockClient(
 CREATE_TASK_SUCCESS_CLIENT = MockClient(
     create_task_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
+            'id': '1',
             'hosts': [{
-                'job_id': "1"
+                'job_id': '1'
             }]
         }
     },
     get_task_info_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
+            'job_type': 'INSTALL',
             'host_count': 1,
+            'status_count': {
+                'success_count': 1,
+                'failed_count': 0,
+            },
             'hosts': [{
-                'status': "SUCCEEDED"
+                'status': 'SUCCESS'
             }]
         }
     },
     get_log_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
             'host_count': 1,
@@ -111,22 +124,28 @@ CREATE_TASK_SUCCESS_CLIENT = MockClient(
 CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
     create_task_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
+            'id': '1',
             'hosts': [{
-                'job_id': "1"
+                'job_id': '1'
             }]
         }
     },
     get_task_info_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
+            'job_type': 'INSTALL',
             'host_count': 1,
+            'status_count': {
+                'success_count': 0,
+                'failed_count': 1,
+            },
             'hosts': [{
-                'status': "FAILED",
+                'status': 'FAILED',
                 'host': {
                     'id': '1',
                     'inner_ip': '1.1.1.1'
@@ -136,7 +155,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
     },
     get_log_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
             'host_count': 1,
@@ -148,22 +167,28 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
 TASK_RUNNING_CLIENT = MockClient(
     create_task_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
+            'id': '1',
             'hosts': [{
-                'job_id': "1"
+                'job_id': '1'
             }]
         }
     },
     get_task_info_return={
         'result': True,
-        'code': "00",
+        'code': '00',
         'message': 'success',
         'data': {
+            'job_type': 'INSTALL',
             'host_count': 2,
+            'status_count': {
+                'success_count': 1,
+                'failed_count': 0,
+            },
             'hosts': [{
-                'status': 'SUCCEEDED'
+                'status': 'SUCCESS'
             }, {
                 'status': 'RUNNING'
             }]
@@ -197,7 +222,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'tester',
-        'biz_cc_id': "1"
+        'biz_cc_id': '1'
     },
     execute_assertion=ExecuteAssertion(
         success=True,
@@ -207,7 +232,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={'job_id': '1', 'success_num': 1, 'fail_num': 0}
+        outputs={'fail_num': 0, 'job_id': '1', 'success_num': 1}
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -246,7 +271,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_SUCCESS_CLIENT),
-        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value='123'),
     ]
 )
 
@@ -274,11 +299,13 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'tester',
-        'biz_cc_id': "1"
+        'biz_cc_id': '1'
     },
     execute_assertion=ExecuteAssertion(
         success=True,
-        outputs={'job_id': '1'}
+        outputs={
+            'job_id': '1'
+        }
 
     ),
     schedule_assertion=ScheduleAssertion(
@@ -287,7 +314,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             'fail_num': 1,
-            'ex_data': '<br>日志信息为：</br><br><b>主机：1.1.1.1</b></br><br>日志：</br>install failed',
+            'ex_data': u'<br>日志信息为：</br><br><b>主机：1.1.1.1</b></br><br>日志：</br>install failed',
             'job_id': '1', 'success_num': 0
         }
     ),
@@ -328,7 +355,7 @@ CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT),
-        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value='123'),
     ]
 )
 
@@ -356,11 +383,11 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'tester',
-        'biz_cc_id': "1"
+        'biz_cc_id': '1'
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': 'create agent install task failed: fail'}
+        outputs={'ex_data': u'create agent install task failed: fail'}
     ),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -391,7 +418,7 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_FAIL_CLIENT),
-        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123")
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value='123')
     ]
 )
 
@@ -419,17 +446,21 @@ TASK_RUNNING_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'tester',
-        'biz_cc_id': "1"
+        'biz_cc_id': '1'
     },
     execute_assertion=ExecuteAssertion(
         success=True,
-        outputs={'job_id': '1'}
+        outputs={
+            'job_id': '1'
+        }
 
     ),
     schedule_assertion=ScheduleAssertion(
         success=True,
         callback_data=None,
-        outputs={'job_id': '1'}
+        outputs={
+            'job_id': '1',
+        }
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -468,7 +499,7 @@ TASK_RUNNING_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=TASK_RUNNING_CLIENT),
-        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value='123'),
     ]
 )
 
@@ -496,7 +527,7 @@ CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'tester',
-        'biz_cc_id': "1"
+        'biz_cc_id': '1'
     },
     execute_assertion=ExecuteAssertion(
         success=True,
@@ -506,7 +537,7 @@ CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
         success=True,
         callback_data=None,
         schedule_finished=True,
-        outputs={'job_id': '1', 'success_num': 1, 'fail_num': 0}
+        outputs={'fail_num': 0, 'job_id': '1', 'success_num': 1}
     ),
     execute_call_assertion=[
         CallAssertion(
@@ -545,6 +576,6 @@ CREATE_TASK_WITH_KEY_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_SUCCESS_CLIENT),
-        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value='123'),
     ]
 )
