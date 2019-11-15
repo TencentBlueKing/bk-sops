@@ -22,7 +22,7 @@ const Template = () => import('@/pages/template/index.vue')
 const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
 
 const CommonTemplate = () => import('@/pages/template/common/index.vue')
-const TemplatePanel = () => import('@/pages/template/TemplatePanel.vue')
+const TemplatePanel = () => import('@/pages/template/TemplateEdit/index.vue')
 const CommonTemplateList = () => import('@/pages/template/common/CommonTemplateList.vue')
 
 const Task = () => import('@/pages/task/index.vue')
@@ -108,7 +108,7 @@ const routers = new VueRouter({
                     })
                 },
                 {
-                    path: ':type/',
+                    path: ':type(new|edit|clone)/',
                     component: TemplatePanel,
                     name: 'commonTemplatePanel',
                     props: (route) => ({
@@ -141,7 +141,7 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: ':type/:project_id/',
+                    path: ':type(new|edit|clone)/:project_id/',
                     component: TemplatePanel,
                     name: 'templatePanel',
                     props: (route) => ({
