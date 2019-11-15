@@ -5,8 +5,15 @@ const task = {
         ...mapActions('task/', [
             'getInstanceStatus'
         ]),
-        getExecuteStatus (list) {
-            const statusList = list.map((item, index) => {
+        /**
+         * getExecuteStatus
+         * @description
+         * acceptVarName 为了可以异步改变数据源
+         * @param {String} acceptVarName 已定义的状态变量
+         * @param {Array} list 源 task 数据
+         */
+        getExecuteStatus (acceptVarName, list) {
+            this[acceptVarName] = list.map((item, index) => {
                 const status = {}
                 if (item.is_finished) {
                     status.cls = 'finished bk-icon icon-check-circle-shape'
@@ -16,19 +23,18 @@ const task = {
                     status.text = gettext('撤销')
                 } else if (item.is_started) {
                     status.cls = 'loading common-icon-loading'
-                    this.getExecuteDetail(statusList, item, index)
+                    this.getExecuteDetail(acceptVarName, item, index)
                 } else {
                     status.cls = 'created common-icon-dark-circle-shape'
                     status.text = gettext('未执行')
                 }
                 return status
             })
-            return statusList
         },
-        async getExecuteDetail (statusList, item, index) {
+        async getExecuteDetail (acceptVarName, item, index) {
             const data = {
-                instance_id: task.id,
-                project_id: task.project.id
+                instance_id: item.id,
+                project_id: item.project.id
             }
             try {
                 const detailInfo = await this.getInstanceStatus(data)
@@ -56,7 +62,7 @@ const task = {
                         default:
                             status.text = gettext('未知')
                     }
-                    statusList.splice(index, 1, status)
+                    this[acceptVarName].splice(index, 1, status)
                 } else {
                     errorHandler(detailInfo, this)
                 }

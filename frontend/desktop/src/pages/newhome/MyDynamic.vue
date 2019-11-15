@@ -47,8 +47,8 @@
                 <template slot-scope="props">
                     <template v-if="item.prop === 'status'">
                         <div class="ui-task-status">
-                            <span :class="statusList[props.$index].cls"></span>
-                            <span>{{ statusList[props.$index].text }}</span>
+                            <span :class="executeStatus[props.$index].cls"></span>
+                            <span>{{ executeStatus[props.$index].text }}</span>
                         </div>
                     </template>
                     <template v-else-if="item.prop === 'project'">
@@ -116,11 +116,11 @@
                     value: 'all'
                 }],
                 dynamicData: [],
-                statusList: [],
+                executeStatus: [],
                 pagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15],
+                    'limit-list': [10],
                     'show-limit': false,
                     limit: 10
                 },
@@ -155,10 +155,12 @@
                         limit: this.pagination.limit,
                         offset: 0,
                         pipeline_instance__creator: this.username,
+                        pipeline_instance__is_started: true,
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
                     }
                     const res = await this.loadTaskList(data)
-                    this.statusList = await this.getExecuteStatus(res.objects)
+                    // mixins getExecuteStatus
+                    this.getExecuteStatus('executeStatus', res.objects)
                     this.dynamicData = res.objects
                     this.isTableLoading = false
                 } catch (e) {
@@ -205,6 +207,9 @@
             color: #313238;
             font-weight: normal;
         }
+    }
+    .ui-task-status {
+        @include ui-task-status;
     }
 }
 </style>

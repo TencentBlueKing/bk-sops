@@ -1,32 +1,33 @@
-.ui-task-status {
+@mixin status-icon-style($color) {
+    display: inline-block;
+    font-size: 12px;
+    color: $color;
+    vertical-align: middle;
+}
+@mixin ui-task-status {
     width: 105px;
     text-align: left;
     .common-icon-dark-circle-shape {
-        display: inline-block;
-        font-size: 12px;
-        color: #979BA5;
-        vertical-align: middle;
+        @include status-icon-style(#979BA5);
     }
     .common-icon-dark-circle-ellipsis {
-        color: #3c96ff;
-        font-size: 12px;
-        vertical-align: middle;
+        @include status-icon-style(#3c96ff);
     }
     .icon-check-circle-shape {
-        font-size: 12px;
-        color: $greenDefault;
-        vertical-align: middle;
+        @include status-icon-style(#30d878);
     }
     .common-icon-dark-circle-close {
-        color: $redDefault;
-        font-size: 12px;
-        vertical-align: middle;
+        @include status-icon-style(#ff5757);
+    }
+    .common-icon-dark-circle-pause {
+        @include status-icon-style(#ff9C01);
     }
     &.revoke {
-        color: $blueDisable;
+        color: #878c9c;
     }
     .common-icon-loading {
         display: inline-block;
+        vertical-align: middle;
         animation: bk-button-loading 1.4s infinite linear;
     }
     @keyframes bk-button-loading {

@@ -146,9 +146,9 @@
                     </bk-table-column>
                     <bk-table-column :label="i18n.status" width="100">
                         <template slot-scope="props">
-                            <div class="appmaker-status">
+                            <div class="ui-task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
                             </div>
                         </template>
                     </bk-table-column>
@@ -170,6 +170,7 @@
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
+    import task from '@/mixins/task.js'
 
     export default {
         name: 'appmakerTaskHome',
@@ -179,7 +180,7 @@
             AdvanceSearch,
             NoData
         },
-        mixins: [permission],
+        mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -293,66 +294,12 @@
                     this.taskOperations = appmakerListData.meta.auth_operations
                     this.taskResource = appmakerListData.meta.auth_resource
                     this.pagination.count = appmakerListData.meta.total_count
-                    this.executeStatus = list.map((item, index) => {
-                        const status = {}
-                        if (item.is_finished) {
-                            status.cls = 'finished bk-icon icon-check-circle-shape'
-                            status.text = gettext('完成')
-                        } else if (item.is_revoked) {
-                            status.cls = 'revoke common-icon-dark-circle-shape'
-                            status.text = gettext('撤销')
-                        } else if (item.is_started) {
-                            status.cls = 'loading common-icon-loading'
-                            this.getExecuteDetail(item, index)
-                        } else {
-                            status.cls = 'created common-icon-dark-circle-shape'
-                            status.text = gettext('未执行')
-                        }
-                        return status
-                    })
+                    // mixins getExecuteStatus
+                    this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.listLoading = false
-                }
-            },
-            async getExecuteDetail (task, index) {
-                const data = {
-                    instance_id: task.id,
-                    project_id: task.project.id
-                }
-                try {
-                    const detailInfo = await this.getInstanceStatus(data)
-                    if (detailInfo.result) {
-                        const state = detailInfo.data.state
-                        const status = {}
-                        switch (state) {
-                            case 'RUNNING':
-                            case 'BLOCKED':
-                                status.cls = 'running common-icon-dark-circle-ellipsis'
-                                status.text = gettext('执行中')
-                                break
-                            case 'SUSPENDED':
-                                status.cls = 'execute common-icon-dark-circle-pause'
-                                status.text = gettext('暂停')
-                                break
-                            case 'NODE_SUSPENDED':
-                                status.cls = 'execute'
-                                status.text = gettext('节点暂停')
-                                break
-                            case 'FAILED':
-                                status.cls = 'failed common-icon-dark-circle-close'
-                                status.text = gettext('失败')
-                                break
-                            default:
-                                status.text = gettext('未知')
-                        }
-                        this.executeStatus.splice(index, 1, status)
-                    } else {
-                        errorHandler(detailInfo, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
                 }
             },
             async getBizBaseInfo () {
@@ -429,6 +376,7 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/advancedSearch.scss';
+@import '@/scss/task.scss';
 .bk-select-inline,.bk-input-inline {
    display: inline-block;
     width: 260px;
@@ -482,42 +430,11 @@
     a.task-name {
         color: $blueDefault;
     }
-    .appmaker-status {
-        .common-icon-dark-circle-shape {
-            display: inline-block;
-            transform: scale(0.9);
-            font-size: 12px;
-            color: #979BA5;
-        }
-            .common-icon-dark-circle-ellipsis {
-            color: #3c96ff;
-            font-size: 12px;
-        }
-        .icon-check-circle-shape {
-            color: $greenDefault;
-        }
-        .common-icon-dark-circle-close {
-            color: $redDefault;
-        }
-        &.revoke {
-            color: $blueDisable;
-        }
-        .common-icon-loading {
-            display: inline-block;
-            animation: bk-button-loading 1.4s infinite linear;
-        }
-        @keyframes bk-button-loading {
-            from {
-                -webkit-transform: rotate(0);
-                transform: rotate(0); }
-            to {
-                -webkit-transform: rotate(360deg);
-                transform: rotate(360deg);
-            }
-        }
-    }
     .empty-data {
         padding: 120px 0;
+    }
+    .ui-task-status {
+        @include ui-task-status;
     }
 }
 .success {
