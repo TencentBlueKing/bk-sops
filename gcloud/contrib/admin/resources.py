@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from tastypie import fields
 from tastypie.constants import ALL
-from tastypie.resources import ModelResource
 from tastypie.authorization import ReadOnlyAuthorization
 
 from gcloud.webservice3.resources import GCloudModelResource
@@ -21,7 +20,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.resources import TaskTemplateResource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
-from gcloud.periodictask.models import PeriodicTaskHistory, PeriodicTask
+from gcloud.periodictask.models import PeriodicTaskHistory
 from gcloud.periodictask.resources import PeriodicTaskResource
 
 
