@@ -24,7 +24,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 
 
-class AdminSearchMatcher:
+class AdminSearchMatcher(object):
 
     def __init__(self, keyword):
         self.keyword = keyword
@@ -39,7 +39,6 @@ class AdminSearchMatcher:
 
         if self.id_keyword:
             matched.extend(self._match_id())
-
         else:
             matched.extend(self._match_str())
 

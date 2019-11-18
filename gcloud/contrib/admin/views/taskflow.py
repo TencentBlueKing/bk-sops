@@ -16,7 +16,7 @@ import ujson as json
 from django.views.decorators.http import require_GET, require_POST
 from django.http.response import JsonResponse
 
-from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
+from auth_backend.plugins.decorators import verify_perms
 from pipeline.engine.models import (
     PipelineModel,
     PipelineProcess,
@@ -98,14 +98,8 @@ def serialize_process_data(process):
 
 
 @require_GET
+@verify_perms(auth_resource=admin_operate_resource, resource_get=None, actions=[admin_operate_resource.actions.view])
 def get_taskflow_detail(request):
-
-    verify_or_raise_auth_failed(principal_type='user',
-                                principal_id=request.user.username,
-                                resource=admin_operate_resource,
-                                action_ids=[admin_operate_resource.actions.view.id],
-                                instance=None)
-
     task_id = request.GET.get('task_id')
 
     try:
@@ -143,13 +137,8 @@ def hydrate_inputs(inputs):
 
 
 @require_GET
+@verify_perms(auth_resource=admin_operate_resource, resource_get=None, actions=[admin_operate_resource.actions.view])
 def get_taskflow_node_detail(request):
-    verify_or_raise_auth_failed(principal_type='user',
-                                principal_id=request.user.username,
-                                resource=admin_operate_resource,
-                                action_ids=[admin_operate_resource.actions.view.id],
-                                instance=None)
-
     task_id = request.GET.get('task_id')
     node_id = request.GET.get('node_id')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
@@ -235,7 +224,7 @@ def get_taskflow_node_detail(request):
     elif taskflow.pipeline_instance.is_finished or taskflow.pipeline_instance.is_revoked:
         data['inputs'] = data['outputs'] = 'pipeline had finished or had been revoked'
 
-        # collect history
+    # collect history
     data['history'] = task_service.get_activity_histories(node_id)
 
     # collect log
@@ -248,14 +237,8 @@ def get_taskflow_node_detail(request):
 
 
 @require_GET
+@verify_perms(auth_resource=admin_operate_resource, resource_get=None, actions=[admin_operate_resource.actions.view])
 def get_node_history_log(request):
-
-    verify_or_raise_auth_failed(principal_type='user',
-                                principal_id=request.user.username,
-                                resource=admin_operate_resource,
-                                action_ids=[admin_operate_resource.actions.view.id],
-                                instance=None)
-
     node_id = request.GET.get('node_id')
     history_id = request.GET.get('history_id')
 
@@ -270,14 +253,8 @@ def get_node_history_log(request):
 
 
 @require_POST
+@verify_perms(auth_resource=admin_operate_resource, resource_get=None, actions=[admin_operate_resource.actions.edit])
 def force_fail_node(request):
-
-    verify_or_raise_auth_failed(principal_type='user',
-                                principal_id=request.user.username,
-                                resource=admin_operate_resource,
-                                action_ids=[admin_operate_resource.actions.edit.id],
-                                instance=None)
-
     data = json.loads(request.body)
 
     task_id = data.get('task_id')
