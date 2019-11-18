@@ -13,33 +13,34 @@
     <div class="my-collection">
         <h3 class="panel-title">{{ i18n.title }}</h3>
         <ul v-if="collectionList.length" class="card-list">
-            <li
+            <task-card
                 v-for="(item, index) in collectionList"
                 :key="index"
-                class="card-item">
-                <div class="card-icon">
-                    {{ item.name.trim().substr(0,1).toUpperCase() }}
-                </div>
-                <div class="card-content">
-                    <p class="text">
-                        {{ item.name }}
-                    </p>
-                </div>
-            </li>
+                :data="item">
+            </task-card>
+            <li class="add-collection" @click="onAddCollection">+</li>
         </ul>
         <panel-nodata v-else>
             <span class="link-text">{{ i18n.add }}</span>
             <span>{{ i18n.noDataDesc }}</span>
         </panel-nodata>
+        <add-collection-dialog
+            :is-add-collection-dialog-show="isShowAdd"
+            @onCloseDialog="onCloseDialog">
+        </add-collection-dialog>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import PanelNodata from './PanelNodata.vue'
+    import TaskCard from '@/components/common/base/TaskCard.vue'
+    import AddCollectionDialog from './AddCollectionDialog.vue'
     export default {
         name: 'MyCollection',
         components: {
-            PanelNodata
+            TaskCard,
+            PanelNodata,
+            AddCollectionDialog
         },
         data () {
             return {
@@ -48,10 +49,26 @@
                     add: gettext('添加'),
                     noDataDesc: gettext('常用流程到收藏夹，可作为你的流程管理快捷入口')
                 },
-                collectionList: []
+                collectionList: [
+                    {
+                        name: 'sssssssssssss'
+                    }
+                ],
+                isShowAdd: false
             }
         },
         created () {
+        },
+        methods: {
+            onAddCollection () {
+                this.isShowAdd = true
+            },
+            onCloseDialog () {
+                this.isShowAdd = false
+            },
+            onDeleteCard () {
+                this.$emit('')
+            }
         }
     }
 </script>
@@ -72,39 +89,21 @@
         flex-wrap: wrap;
         overflow: hidden;
         margin-top: -20px;
-        .card-item {
-            margin-top: 20px;
-            margin-right: 16px;
-            width: 278px;
-            height: 60px;
-            background: #f0f1f5;
-            overflow: hidden;
-            .card-icon {
-                float: left;
-                width: 60px;
-                height: 60px;
-                line-height: 60px;
-                text-align: center;
-                font-size: 32px;
-                color: #ffffff;
-                background: #c4c6cc;
-            }
-            .card-content {
-                display: table-cell;
-                padding: 12px 33px 12px 12px;
-                height: 60px;
-                .text {
-                    font-size: 12px;
-                    color: #313238;
-                    word-break: break-all;
-                    @include multiLineEllipsis(12px, 2);
-                    line-height: 1.5em;
-                    max-height: 3em;
-                    &:after {
-                        background: #f0f1f5;
-                    }
-                }
-            }
+    }
+    .add-collection {
+        margin-top: 20px;
+        width: 278px;
+        height: 60px;
+        line-height: 60px;
+        font-size: 18px;
+        color: #c4c6cc;
+        text-align: center;
+        background: #fcfcfc;
+        cursor: pointer;
+        border: 1px solid #f0f1f5;
+        &:hover {
+            background: #e1ecff;
+            color: #3a84ff;
         }
     }
     .link-text {
