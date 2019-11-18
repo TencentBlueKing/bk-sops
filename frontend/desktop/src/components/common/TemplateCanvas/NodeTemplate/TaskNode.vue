@@ -36,8 +36,8 @@
                     </bk-checkbox>
                 </template>
                 <span v-if="node.error_ignorable && node.mode === 'edit'" class="dark-circle common-icon-dark-circle-i"></span>
-                <span v-if="node.isSkipped" class="dark-circle common-icon-dark-circle-s"></span>
-                <span v-if="node.can_retry" class="dark-circle common-icon-dark-circle-r"></span>
+                <span v-if="node.isSkipped || node.skippable" class="dark-circle common-icon-dark-circle-s"></span>
+                <span v-if="node.can_retry || node.retryable" class="dark-circle common-icon-dark-circle-r"></span>
             </div>
             <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon">
                 <i v-if="node.status === 'RUNNING' && node.code === 'sleep_timer'" class="common-icon-clock"></i>

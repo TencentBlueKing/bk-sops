@@ -1039,8 +1039,8 @@
                         stage_name: nodes[node].stage_name,
                         optional: nodes[node].optional,
                         error_ignorable: nodes[node].error_ignorable,
-                        can_retry: nodes[node].can_retry,
-                        isSkipped: nodes[node].isSkipped
+                        retryable: nodes[node].can_retry || nodes[node].retryable,
+                        skippable: nodes[node].isSkipped || nodes[node].skippable
                     })
                 })
             },
