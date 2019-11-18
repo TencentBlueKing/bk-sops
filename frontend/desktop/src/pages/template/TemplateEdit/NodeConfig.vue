@@ -765,8 +765,8 @@
                 this.nodeName = formData.name
                 this.stageName = formData.stage_name
                 this.nodeCouldBeSkipped = formData.optional
-                this.isSkip = formData.isSkipped
-                this.isRetry = formData.can_retry
+                this.isSkip = formData.isSkipped || formData.skippable
+                this.isRetry = formData.can_retry || formData.retryable
                 const inputFormHooks = {}
                 const inputFormData = {}
                 if (this.isSingleAtom) {
@@ -881,11 +881,16 @@
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
-                nodeData.isSkipped = this.isSkip
-                nodeData.can_retry = this.isRetry
+                
                 if (this.isSingleAtom) {
+                    nodeData.skippable = this.isSkip
+                    nodeData.retryable = this.isRetry
                     nodeData.error_ignorable = this.errorCouldBeIgnored
                     nodeData.component.version = this.currentVersion
+                    // can_retry、isSkipped 为就数据字段，点开编辑保存时删除
+                    delete nodeData.can_retry
+                    delete nodeData.isSkipped
+
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
@@ -933,8 +938,8 @@
                         stage_name: this.stageName,
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
-                        can_retry: this.isRetry,
-                        isSkipped: this.isSkip,
+                        retryable: this.isRetry,
+                        skippable: this.isSkip,
                         group: this.groupInfo.group_name,
                         icon: this.groupInfo.group_icon
                     })
@@ -987,8 +992,8 @@
                 if (this.isSingleAtom) {
                     nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
                     this.currentVersion = currentAtomlastVeriosn
-                    this.nodeConfigData.isSkipped = true
-                    this.nodeConfigData.can_retry = true
+                    this.nodeConfigData.skippable = true
+                    this.nodeConfigData.retryable = true
                     this.nodeConfigData.error_ignorable = false
                 } else {
                     // 切换子流程时，去掉节点小红点、刷新按钮、节点过期设为 false

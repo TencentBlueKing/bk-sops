@@ -827,7 +827,7 @@ const api = {
      */
     getNodeActDetail (data) {
         const prefixUrl = this.getPrefix('nodeActDetails')
-        const { instance_id, node_id, component_code, subprocess_stack } = data
+        const { instance_id, node_id, component_code, subprocess_stack, loop } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -835,7 +835,8 @@ const api = {
                 instance_id,
                 node_id,
                 component_code,
-                subprocess_stack
+                subprocess_stack,
+                loop
             }
         }
 

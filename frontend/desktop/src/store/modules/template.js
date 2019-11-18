@@ -61,15 +61,15 @@ function generateInitActivities (location, line) {
             },
             error_ignorable: false,
             id: location[1].id,
-            incoming: line[0].id,
+            incoming: [line[0].id],
             loop: null,
             name: '',
             optional: false,
             outgoing: line[1].id,
             stage_name: gettext('步骤1'),
             type: 'ServiceActivity',
-            can_retry: true,
-            isSkipped: true
+            retryable: true,
+            skippable: true
         }
     }
 }
@@ -87,7 +87,7 @@ function generateStartNode (location, line) {
 function generateEndNode (location, line) {
     return {
         id: location.id,
-        incoming: line.id,
+        incoming: [line.id],
         name: '',
         outgoing: '',
         type: 'EmptyEndEvent'
@@ -131,6 +131,30 @@ function generateInitFlow (line) {
         }
     })
     return flow
+}
+
+/**
+ * 更新数据的 incoming 字段，兼容旧数据 string => array
+ * @param {String、Array} data 原始数据
+ * @param {String} id 待新增或删除数据
+ * @param {String} type 操作类型，新增(add)或删除(delete)
+ */
+function updateIncoming (incoming, id, type) {
+    let data = Array.isArray(incoming) ? incoming.slice(0) : incoming
+    if (type === 'add') {
+        if (Array.isArray(data)) {
+            data.push(id)
+        } else {
+            data = data === '' ? [id] : [data, id]
+        }
+    } else {
+        if (Array.isArray(data)) {
+            data = data.filter(line => line !== id)
+        } else {
+            data = []
+        }
+    }
+    return data
 }
 
 const template = {
@@ -208,8 +232,8 @@ const template = {
                                 stage_name: node.stage_name,
                                 optional: node.optional,
                                 error_ignorable: node.error_ignorable,
-                                can_retry: node.can_retry,
-                                isSkipped: node.isSkipped
+                                retryable: node.can_retry || node.retryable,
+                                skippable: node.isSkipped || node.skippable
                             })
                             return loc
                         }
@@ -393,21 +417,36 @@ const template = {
                     return true
                 }
             })
-            if (type === 'add' && !isLineExist) {
+            
+            if (type === 'add' && !isLineExist) { // 添加连线(手动拖拽连接的情况)
                 const id = 'line' + uuid()
                 const newLine = Object.assign({}, line, { id })
                 const sourceNode = newLine.source.id
                 const targetNode = newLine.target.id
-                state.activities[sourceNode] && (state.activities[sourceNode].outgoing = id)
-                state.activities[targetNode] && (state.activities[targetNode].incoming = id)
-                state.flows[id] = {
+
+                Vue.set(state.flows, id, {
                     id,
                     is_default: false,
                     source: sourceNode,
                     target: targetNode
+                })
+
+                if (state.activities[sourceNode]) {
+                    state.activities[sourceNode].outgoing = id
                 }
-                state.start_event.id === sourceNode && (state.start_event.outgoing = id)
-                state.end_event.id === targetNode && (state.end_event.incoming = id)
+
+                if (state.activities[targetNode]) {
+                    state.activities[targetNode].incoming = updateIncoming(state.activities[targetNode].incoming, id, 'add')
+                }
+
+                if (state.start_event.id === sourceNode) {
+                    state.start_event.outgoing = id
+                }
+
+                if (state.end_event.id === targetNode) {
+                    state.end_event.incoming = updateIncoming(state.end_event.incoming, id, 'add')
+                }
+
                 if (state.gateways[sourceNode]) {
                     const gatewayNode = state.gateways[sourceNode]
                     if (Array.isArray(gatewayNode.outgoing)) {
@@ -417,8 +456,7 @@ const template = {
                             const key = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
                             const conditionItem = {
                                 evaluate: key,
-                                name: key,
-                                tag: `branch_${sourceNode}_${targetNode}`
+                                name: key
                             }
                             Vue.set(conditions, id, conditionItem)
                         }
@@ -428,11 +466,7 @@ const template = {
                 }
                 if (state.gateways[targetNode]) {
                     const gatewayNode = state.gateways[targetNode]
-                    if (Array.isArray(gatewayNode.incoming)) {
-                        gatewayNode.incoming.push(id)
-                    } else {
-                        gatewayNode.incoming = id
-                    }
+                    gatewayNode.incoming = updateIncoming(gatewayNode.incoming, id, 'add')
                 }
                 state.line.push(newLine)
             } else if (type === 'delete') { // async activities、flows、gateways、start_event、end_event
@@ -445,10 +479,23 @@ const template = {
                 }
                 const sourceNode = state.flows[deletedLine.id].source
                 const targetNode = state.flows[deletedLine.id].target
-                state.activities[sourceNode] && (state.activities[sourceNode].outgoing = '')
-                state.activities[targetNode] && (state.activities[targetNode].incoming = '')
-                state.start_event.id === sourceNode && (state.start_event.outgoing = '')
-                state.end_event.id === sourceNode && (state.end_event.incoming = '')
+                
+                if (state.activities[sourceNode]) {
+                    state.activities[sourceNode].outgoing = ''
+                }
+
+                if (state.activities[targetNode]) {
+                    state.activities[targetNode].incoming = updateIncoming(state.activities[targetNode].incoming, deletedLine.id, 'delete')
+                }
+
+                if (state.start_event.id === sourceNode) {
+                    state.start_event.outgoing = ''
+                }
+
+                if (state.end_event.id === targetNode) {
+                    state.end_event.incoming = updateIncoming(state.end_event.incoming, deletedLine.id, 'delete')
+                }
+
                 state.line = state.line.filter(ln => ln.id !== deletedLine.id)
                 if (state.gateways[sourceNode]) {
                     const gatewayNode = state.gateways[sourceNode]
@@ -466,13 +513,7 @@ const template = {
                 }
                 if (state.gateways[targetNode]) {
                     const gatewayNode = state.gateways[targetNode]
-                    if (Array.isArray(gatewayNode.incoming)) {
-                        gatewayNode.incoming = gatewayNode.incoming.filter(item => {
-                            return item !== deletedLine.id
-                        })
-                    } else {
-                        gatewayNode.incoming = ''
-                    }
+                    gatewayNode.incoming = updateIncoming(gatewayNode.incoming, deletedLine.id, 'delete')
                 }
                 Vue.delete(state.flows, deletedLine.id)
             }
@@ -491,22 +532,22 @@ const template = {
                             },
                             error_ignorable: false,
                             id: location.id,
-                            incoming: '',
+                            incoming: [],
                             loop: null,
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
                             stage_name: gettext('步骤1'),
                             type: 'ServiceActivity',
-                            can_retry: true,
-                            isSkipped: true
+                            retryable: true,
+                            skippable: true
                         }
                     } else if (location.type === 'subflow') {
                         state.activities[location.id] = {
                             constants: {},
                             hooked_constants: [],
                             id: location.id,
-                            incoming: '',
+                            incoming: [],
                             loop: null,
                             name: location.name || '',
                             optional: false,
@@ -527,58 +568,6 @@ const template = {
                     }
                 })
             } else if (type === 'delete') {
-                const { incoming, outgoing } = state.activities[location.id]
-                const deletedlines = [incoming, outgoing]
-                deletedlines.forEach(line => {
-                    const flow = state.flows[line]
-                    if (flow) {
-                        const targetNode = flow.target
-                        const sourceNode = flow.source
-                        state.activities[targetNode] && (state.activities[targetNode].incoming = '')
-                        state.activities[sourceNode] && (state.activities[sourceNode].outgoing = '')
-                        state.start_event.id === sourceNode && (state.start_event.outgoing = '')
-                        state.end_event.id === sourceNode && (state.end_event.incoming = '')
-                        state.line = state.line.filter(item => {
-                            return item.id !== line
-                        })
-                        if (state.gateways[sourceNode]) {
-                            const gatewayNode = state.gateways[sourceNode]
-                            if (Array.isArray(gatewayNode.outgoing)) {
-                                gatewayNode.outgoing = gatewayNode.outgoing.filter(item => {
-                                    return item !== line
-                                })
-                                if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
-                                    const conditions = gatewayNode.conditions
-                                    conditions[line] && Vue.delete(conditions, line)
-                                }
-                            } else {
-                                gatewayNode.outgoing = ''
-                            }
-                        }
-                        if (state.gateways[targetNode]) {
-                            const gatewayNode = state.gateways[targetNode]
-                            if (Array.isArray(gatewayNode.incoming)) {
-                                gatewayNode.incoming = gatewayNode.incoming.filter(item => {
-                                    return item !== line
-                                })
-                            } else {
-                                gatewayNode.incoming = ''
-                            }
-                        }
-                        Vue.delete(state.flows, line)
-                    }
-                })
-                for (const cKey in state.constants) {
-                    const constant = state.constants[cKey]
-                    const sourceInfo = constant.source_info
-                    if (sourceInfo && sourceInfo[location.id]) {
-                        if (Object.keys(sourceInfo).length > 1) {
-                            Vue.delete(sourceInfo, location.id)
-                        } else {
-                            Vue.delete(state.constants, constant.key)
-                        }
-                    }
-                }
                 Vue.delete(state.activities, location.id)
             }
         },
@@ -589,7 +578,7 @@ const template = {
                 if (!state.gateways[location.id]) {
                     state.gateways[location.id] = {
                         id: location.id,
-                        incoming: location.type === 'convergegateway' ? [] : '',
+                        incoming: [],
                         name: location.name || '',
                         outgoing: location.type === 'convergegateway' ? '' : [],
                         type: ATOM_TYPE_DICT[location.type]
@@ -599,43 +588,6 @@ const template = {
                     }
                 }
             } else if (type === 'delete') {
-                const { incoming, outgoing } = state.gateways[location.id]
-                const deletedlines = Array.isArray(incoming) ? incoming.concat(outgoing) : outgoing.concat(incoming)
-                deletedlines.forEach(line => {
-                    const flow = state.flows[line]
-                    if (flow) {
-                        const targetNode = flow.target
-                        const sourceNode = flow.source
-                        const targetGateway = state.gateways[targetNode]
-                        const sourceGateway = state.gateways[sourceNode]
-                        state.activities[targetNode] && (state.activities[targetNode].incoming = '')
-                        state.activities[sourceNode] && (state.activities[sourceNode].outgoing = '')
-                        state.start_event.id === sourceNode && (state.start_event.outgoing = '')
-                        state.end_event.id === sourceNode && (state.end_event.incoming = '')
-                        if (targetGateway && targetNode !== location.id) {
-                            if (typeof targetGateway.incoming === 'string') {
-                                targetGateway.incoming = ''
-                            } else {
-                                targetGateway.incoming = targetGateway.incoming.filter(item => {
-                                    return item !== line
-                                })
-                            }
-                        }
-                        if (sourceGateway && sourceNode !== location.id) {
-                            if (typeof sourceGateway.outgoing === 'string') {
-                                sourceGateway.outgoing = ''
-                            } else {
-                                sourceGateway.outgoing = sourceGateway.outgoing.filter(item => {
-                                    return item !== line
-                                })
-                            }
-                        }
-                        Vue.delete(state.flows, line)
-                    }
-                    state.line = state.line.filter(item => {
-                        return item.id !== line
-                    })
-                })
                 Vue.delete(state.gateways, location.id)
             }
         },
@@ -653,27 +605,6 @@ const template = {
                     }
                 }
             } else if (type === 'delete') {
-                let targetNode
-                let lineId
-                for (const item in state.flows) {
-                    if (state.flows[item].source === location.id) {
-                        targetNode = state.flows[item].target
-                        lineId = state.flows[item].id
-                    }
-                }
-                state.activities[targetNode] && (state.activities[targetNode].incoming = '')
-                const gatewayNode = state.gateways[targetNode]
-                if (gatewayNode) {
-                    if (typeof gatewayNode.incoming === 'string') {
-                        gatewayNode.incoming = ''
-                    } else {
-                        gatewayNode.incoming = gatewayNode.incoming.filter(item => item !== lineId)
-                    }
-                }
-                state.line = state.line.filter(item => {
-                    return item.id !== lineId
-                })
-                Vue.delete(state.flows, lineId)
                 Vue.set(state, 'start_event', {})
             }
         },
@@ -686,36 +617,11 @@ const template = {
                         id: location.id,
                         incoming: '',
                         name: location.name || '',
-                        outgoing: '',
+                        outgoing: [],
                         type: 'EmptyEndEvent'
                     }
                 }
             } else if (type === 'delete') {
-                let sourceNode
-                let lineId
-                for (const item in state.flows) {
-                    if (state.flows[item].target === location.id) {
-                        sourceNode = state.flows[item].source
-                        lineId = state.flows[item].id
-                    }
-                }
-                state.activities[sourceNode] && (state.activities[sourceNode].outgoing = '')
-                const gatewayNode = state.gateways[sourceNode]
-                if (gatewayNode) {
-                    if (typeof gatewayNode.outgoing === 'string') {
-                        gatewayNode.outgoing = ''
-                    } else {
-                        gatewayNode.outgoing = gatewayNode.outgoing.filter(item => item !== lineId)
-                        if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
-                            const conditions = gatewayNode.conditions
-                            conditions[lineId] && Vue.delete(conditions, lineId)
-                        }
-                    }
-                }
-                state.line = state.line.filter(item => {
-                    return item.id !== lineId
-                })
-                Vue.delete(state.flows, lineId)
                 Vue.set(state, 'end_event', {})
             }
         },
