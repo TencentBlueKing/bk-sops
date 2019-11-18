@@ -59,6 +59,7 @@ INSTALLED_APPS += (
     'gcloud.commons.template',
     'gcloud.periodictask',
     'gcloud.external_plugins',
+    'gcloud.contrib.admin',
     'pipeline',
     'pipeline.component_framework',
     'pipeline.variable_framework',
@@ -180,7 +181,11 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 # 程序会自动分析访客使用的语言，来显示相应的翻译结果
 LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
-_ = lambda s: s  # noqa
+
+
+def _(s): return s  # noqa
+
+
 LANGUAGES = (
     ('en', _('English')),
     ('zh-hans', _('简体中文')),
