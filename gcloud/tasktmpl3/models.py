@@ -87,7 +87,7 @@ class TaskTemplateManager(BaseTemplateManager):
         if override and (not check_info['can_override']):
             return {
                 'result': False,
-                'message': 'Unable to override flows across project',
+                'message': 'Unable to override flows across project or keep ID when importing common flows data',
                 'data': 0
             }
 
