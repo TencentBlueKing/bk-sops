@@ -590,7 +590,7 @@
                     }
                     this.applyForPermission(this.createTplRequired, resourceData, this.createTplOperations, this.createTplResource)
                 } else {
-                    const url = this.getNewTemplateUrl()
+                    const url = this.getJumpUrl('new')
                     this.$router.push(url)
                 }
             },
@@ -687,14 +687,6 @@
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
             },
-            // 获取新建模板的跳转链接
-            getNewTemplateUrl () {
-                let url = `/template/new/${this.project_id}`
-                if (this.common) {
-                    url += '/?&common=1'
-                }
-                return url
-            },
             async onAuthorityConfirm (data) {
                 if (this.pending.authority) return
                 this.pending.authority = true
@@ -721,6 +713,7 @@
                 const routerHead = this.common ? '/admin' : ''
                 let url
                 const urlMap = {
+                    'new': `${routerHead}/template/new/${this.project_id}/`,
                     // 编辑按钮的跳转链接
                     'edit': `${routerHead}/template/edit/${this.project_id}/?template_id=${template_id}`,
                     // 新建模板的跳转链接
