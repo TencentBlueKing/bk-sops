@@ -14,105 +14,12 @@
         <div class="list-wrapper">
             <base-title :title="i18n.auditList"></base-title>
             <div class="operation-area clearfix">
-                <AdvanceSearch
-                    v-model="searchStr"
-                    :input-placeholader="i18n.placeholder"
-                    @onShow="onAdvanceShow"
-                    @input="onSearchInput">
-                </AdvanceSearch>
-            </div>
-            <div class="audit-search" v-show="isAdvancedSerachShow">
-                <fieldset class="audit-fieldset">
-                    <div class="audit-query-content">
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.business}}</span>
-                            <bk-select
-                                v-model="selectedProject"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.choice"
-                                :clearable="true"
-                                @selected="onSelectProject">
-                                <bk-option
-                                    v-for="(option, index) in business.list"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.startedTime}}</span>
-                            <bk-date-picker
-                                ref="bkRanger"
-                                :placeholder="i18n.dateRange"
-                                :type="'daterange'"
-                                @change="onChangeExecuteTime">
-                            </bk-date-picker>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.taskType}}</span>
-                            <bk-select
-                                v-model="taskSync"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.taskTypePlaceholder"
-                                :clearable="true"
-                                @clear="onClearCategory"
-                                @selected="onSelectedCategory">
-                                <bk-option
-                                    v-for="(option, index) in taskCategory"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.creator}}</span>
-                            <bk-input
-                                v-model="creator"
-                                class="bk-input-inline"
-                                :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
-                            </bk-input>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.operator}}</span>
-                            <bk-input
-                                v-model="executor"
-                                class="bk-input-inline"
-                                :clearable="true"
-                                :placeholder="i18n.executorPlaceholder">
-                            </bk-input>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.status}}</span>
-                            <bk-select
-                                v-model="statusSync"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.statusPlaceholder"
-                                :clearable="true"
-                                @clear="onClearStatus"
-                                @selected="onSelectedStatus">
-                                <bk-option
-                                    v-for="(option, index) in statusList"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-button">
-                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
-                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
-                        </div>
-                    </div>
-                </fieldset>
+                <advance-search-form
+                    :search-config="{ placeholder: i18n.taskNamePlaceholder }"
+                    :search-form="searchForm"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                </advance-search-form>
             </div>
             <div class="audit-table-content">
                 <bk-table
@@ -206,17 +113,67 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
+    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import task from '@/mixins/task.js'
-
+    const searchForm = [
+        {
+            type: 'select',
+            label: gettext('所属项目'),
+            key: 'selectedProject',
+            loading: false,
+            placeholder: gettext('请选择所属项目'),
+            list: []
+        },
+        {
+            type: 'dateRange',
+            key: 'executeTime',
+            placeholder: gettext('选择日期时间范围'),
+            label: gettext('执行开始'),
+            value: []
+        },
+        {
+            type: 'select',
+            label: gettext('任务分类'),
+            key: 'category',
+            loading: false,
+            placeholder: gettext('请选择分类'),
+            list: []
+        },
+        {
+            type: 'input',
+            key: 'creator',
+            label: gettext('创建人'),
+            placeholder: gettext('请输入创建人'),
+            value: ''
+        },
+        {
+            type: 'input',
+            key: 'executor',
+            label: gettext('执行人'),
+            placeholder: gettext('请输入执行人'),
+            value: ''
+        },
+        {
+            type: 'select',
+            label: gettext('状态'),
+            key: 'statusSync',
+            loading: false,
+            placeholder: gettext('请选择状态'),
+            list: [
+                { 'value': 'nonExecution', 'name': gettext('未执行') },
+                { 'value': 'runing', 'name': gettext('未完成') },
+                { 'value': 'finished', 'name': gettext('完成') }
+            ]
+        }
+    ]
     export default {
         name: 'auditHome',
         components: {
+            AdvanceSearchForm,
             CopyrightFooter,
             BaseTitle,
-            AdvanceSearch,
             NoData
         },
         mixins: [permission, task],
@@ -245,27 +202,11 @@
                     taskType: gettext('任务分类'),
                     query: gettext('搜索'),
                     reset: gettext('清空'),
-                    taskTypePlaceholder: gettext('请选择分类'),
-                    creatorPlaceholder: gettext('请输入创建人'),
-                    executorPlaceholder: gettext('请输入执行人'),
-                    statusPlaceholder: gettext('请选择状态'),
                     dateRange: gettext('选择日期时间范围')
                 },
                 taskBasicInfoLoading: true,
                 listLoading: true,
-                isAdvancedSerachShow: false,
-                selectedProject: '',
-                taskSync: '',
-                statusSync: '',
-                searchStr: '',
-                projectId: undefined,
-                creator: undefined,
-                executor: undefined,
                 activeTaskCategory: undefined,
-                executeStartTime: undefined,
-                executeEndTime: undefined,
-                isStarted: undefined,
-                isFinished: undefined,
                 business: {
                     list: [],
                     loading: false,
@@ -275,12 +216,16 @@
                 },
                 auditList: [],
                 taskCategory: [],
-                statusList: [
-                    { 'id': 'nonExecution', 'name': gettext('未执行') },
-                    { 'id': 'runing', 'name': gettext('未完成') },
-                    { 'id': 'finished', 'name': gettext('完成') }
-                ],
                 executeStatus: [], // 任务执行态
+                requestData: {
+                    selectedProject: '',
+                    executeTime: [],
+                    category: '',
+                    creator: '',
+                    executor: '',
+                    statusSync: '',
+                    flowName: ''
+                },
                 pagination: {
                     current: 1,
                     count: 0,
@@ -295,7 +240,13 @@
         computed: {
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            })
+            }),
+            searchForm () {
+                const value = searchForm
+                value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
+                value[2].list = this.taskCategory
+                return searchForm
+            }
         },
         created () {
             this.loadAuditTask()
@@ -319,24 +270,31 @@
             async loadAuditTask () {
                 this.listLoading = true
                 try {
+                    const { selectedProject, executeTime, category, creator, executor, statusSync, flowName } = this.requestData
+                    let pipeline_instance__is_started
+                    let pipeline_instance__is_finished
+                    if (statusSync) {
+                        pipeline_instance__is_started = statusSync !== 'nonExecution'
+                        pipeline_instance__is_finished = statusSync === 'finished'
+                    }
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        project__id: this.projectId,
-                        category: this.activeTaskCategory,
-                        audit__pipeline_instance__name__contains: this.searchStr,
-                        pipeline_instance__is_started: this.isStarted,
-                        pipeline_instance__is_finished: this.isFinished,
-                        pipeline_instance__creator__contains: this.creator,
-                        pipeline_instance__executor__contains: this.executor
+                        project__id: selectedProject || undefined,
+                        category: category || undefined,
+                        audit__pipeline_instance__name__contains: flowName || undefined,
+                        pipeline_instance__is_started,
+                        pipeline_instance__is_finished,
+                        pipeline_instance__creator__contains: creator || undefined,
+                        pipeline_instance__executor__contains: executor || undefined
                     }
-                    if (this.executeEndTime) {
+                    if (executeTime[0] && executeTime[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
@@ -358,7 +316,8 @@
                 this.pagination.current = page
                 this.loadAuditTask()
             },
-            searchInputhandler () {
+            searchInputhandler (data) {
+                this.requestData.flowName = data
                 this.pagination.current = 1
                 this.loadAuditTask()
             },
@@ -377,19 +336,12 @@
                 this.taskBasicInfoLoading = true
                 try {
                     const data = await this.loadProjectBaseInfo()
-                    this.taskCategory = data.task_categories.map(m => ({ name: m.name, id: m.value }))
+                    this.taskCategory = data.task_categories.map(m => ({ name: m.name, value: m.value }))
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.taskBasicInfoLoading = false
                 }
-            },
-            onAdvanceShow () {
-                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-            },
-            onChangeExecuteTime (Value) {
-                this.executeStartTime = Value[0]
-                this.executeEndTime = Value[1]
             },
             onClearCategory () {
                 this.activeTaskCategory = undefined
@@ -397,38 +349,14 @@
             onSelectedCategory (id) {
                 this.activeTaskCategory = id
             },
-            onResetForm () {
-                this.isStarted = undefined
-                this.isFinished = undefined
-                this.creator = undefined
-                this.executor = undefined
-                this.searchStr = undefined
-                this.statusSync = ''
-                this.selectedProject = ''
-                this.taskSync = ''
-                this.activeTaskCategory = undefined
-                this.executeStartTime = undefined
-                this.executeEndTime = undefined
-                this.searchInputhandler()
-            },
-            onSelectedStatus (id, name) {
-                this.isStarted = id !== 'nonExecution'
-                this.isFinished = id === 'finished'
-            },
-            onClearStatus () {
-                this.isStarted = undefined
-                this.isFinished = undefined
-            },
-            onSelectProject (name, value) {
-                if (this.projectId === name) {
-                    return
-                }
-                this.projectId = name
-            },
             onTemplatePermissonCheck (task) {
                 if (!this.hasPermission(['view'], task.auth_actions, this.taskOperations)) {
                     this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
                 }
+            },
+            onSearchFormSubmit (data) {
+                this.requestData = data
+                this.loadAuditTask()
             }
         }
     }
@@ -459,54 +387,6 @@
         right: 15px;
         top: 8px;
         color: $commonBorderColor;
-    }
-}
-.audit-fieldset {
-    width: 100%;
-    margin-bottom: 15px;
-    padding: 8px;
-    border: 1px solid $commonBorderColor;
-    background: #fff;
-    .audit-query-content {
-        display: flex;
-        flex-wrap: wrap;
-        .query-content {
-            min-width: 420px;
-            padding: 10px;
-            @media screen and (max-width: 1420px){
-                min-width: 380px;
-            }
-            .query-span {
-                float: left;
-                min-width: 130px;
-                margin-right: 12px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                text-align: right;
-                @media screen and (max-width: 1420px){
-                    min-width: 100px;
-                }
-            }
-            .bk-selector-search-item > input {
-                min-width: 249px;
-            }
-        }
-        .query-button {
-            padding: 10px;
-            min-width: 450px;
-            @media screen and (max-width: 1420px) {
-                min-width: 390px;
-            }
-            text-align: center;
-            .query-cancel {
-                margin-left: 5px;
-            }
-            .bk-button {
-                height: 32px;
-                line-height: 32px;
-            }
-        }
     }
 }
 .common-icon-dark-circle-pause {
