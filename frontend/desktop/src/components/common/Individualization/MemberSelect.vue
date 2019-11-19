@@ -12,14 +12,15 @@
 <template>
     <bk-tag-input
         v-model="setValue"
-        :list="memberlist"
+        v-bkloading="{ isLoading: loading, opacity: 0.8 }"
+        :list="displayList"
         :placeholder="placeholder"
         :has-delete-icon="hasDeleteIcon"
         :max-data="maxData"
         :max-result="maxResult"
         save-key="username"
         search-key="username"
-        display-key="username"
+        display-key="showName"
         @change="change"
         @select="select"
         @remove="remove">
@@ -71,6 +72,11 @@
                 default: 5
             }
         },
+        data () {
+            return {
+                loading: false
+            }
+        },
         computed: {
             ...mapState({
                 'memberlist': state => state.member.memberlist
@@ -82,6 +88,12 @@
                 set (val) {
                     this.$emit('change', val)
                 }
+            },
+            displayList () {
+                return this.memberlist.map(m => {
+                    m.showName = `${m.username}(${m.display_name})`
+                    return m
+                })
             }
         },
         created () {
@@ -117,7 +129,9 @@
             },
             async getUserData () {
                 if (this.memberlist && this.memberlist.length === 0) {
+                    this.loading = true
                     const result = await this.loadMemberList()
+                    this.loading = false
                     this.setMemberList(result.data)
                 }
             },
