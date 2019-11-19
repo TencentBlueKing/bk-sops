@@ -17,9 +17,11 @@ from pipeline.validators.connection import (
     find_graph_circle,
 )
 from pipeline.validators.gateway import validate_gateways, validate_stream
+from pipeline.validators.utils import format_pipeline_tree_io_to_list
 
 
 def validate_pipeline_tree(pipeline_tree, cycle_tolerate=False):
+    format_pipeline_tree_io_to_list(pipeline_tree)
     # 1. connection validation
     try:
         validate_graph_connection(pipeline_tree)

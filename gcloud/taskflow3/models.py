@@ -45,9 +45,9 @@ from pipeline.exceptions import (
     StreamValidateError
 )
 from pipeline.validators.gateway import validate_gateways
+from pipeline.validators.utils import format_node_io_to_list
 from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
-from pipeline_web.parser.format import format_node_io_to_list
 
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
