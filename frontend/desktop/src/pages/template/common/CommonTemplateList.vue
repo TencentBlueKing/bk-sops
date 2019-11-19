@@ -14,7 +14,7 @@
         <div class="list-wrapper">
             <base-title :title="i18n.commonFlow"></base-title>
             <div class="operation-area clearfix">
-                <table-header
+                <advance-search-form
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -41,7 +41,7 @@
                             {{ i18n.import }}
                         </bk-button>
                     </template>
-                </table-header>
+                </advance-search-form>
             </div>
             <div class="template-table-content">
                 <bk-table
@@ -189,7 +189,7 @@
     import ImportTemplateDialog from '../TemplateList/ImportTemplateDialog.vue'
     import ExportTemplateDialog from '../TemplateList/ExportTemplateDialog.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import TableHeader from '@/components/common/tableheader/index.vue'
+    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     // moment用于时区使用
@@ -236,7 +236,7 @@
             ImportTemplateDialog,
             ExportTemplateDialog,
             BaseTitle,
-            TableHeader,
+            AdvanceSearchForm,
             NoData
         },
         mixins: [permission],

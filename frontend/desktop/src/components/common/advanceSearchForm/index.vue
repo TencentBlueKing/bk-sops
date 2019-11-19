@@ -78,7 +78,7 @@
     import '@/utils/i18n.js'
     import AdvanceSearch from './AdvanceSearch.vue'
     export default {
-        name: 'TableHeader',
+        name: 'AdvanceSearchForm',
         components: {
             AdvanceSearch
         },
