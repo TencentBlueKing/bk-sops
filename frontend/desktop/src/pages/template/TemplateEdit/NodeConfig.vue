@@ -12,7 +12,13 @@
 <template>
     <div class="node-config" @click="e => e.stopPropagation()">
         <div
-            :class="['node-config-panel',{ 'position-right-side': !isSettingPanelShow }]">
+            :class="[
+                'node-config-panel',
+                {
+                    'position-right-side': !isSettingPanelShow
+                }
+            ]"
+            ref="nodeConfigPanel">
             <div class="node-title">
                 <span>{{ i18n.baseInfo }}</span>
             </div>
@@ -197,7 +203,6 @@
     </div>
 </template>
 <script>
-
     import '@/utils/i18n.js'
     import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -743,17 +748,26 @@
                 }
                 return false
             },
-            stopClickPropagation (e) {
-            },
             /**
              * 处理节点配置面板和全局变量面板之外的点击事件
              */
             handleNodeConfigPanelShow (e) {
-                if (!this.isNodeConfigPanelShow
-                    || this.isReuseVarDialogShow
-                    || dom.parentClsContains('bk-option', e.target)) {
+                // 节点参数面板未展开、有变量复用弹窗遮罩
+                if (!this.isNodeConfigPanelShow || this.isReuseVarDialogShow) {
                     return
                 }
+
+                // 处理在面板区域里的 popup 上的点击，eg: select、tooltip
+                const { left, right, top, bottom } = this.$refs.nodeConfigPanel.getBoundingClientRect()
+                if (
+                    e.clientX > left
+                    && e.clientX < right
+                    && e.clientY > top
+                    && e.clientX < bottom
+                ) {
+                    return
+                }
+
                 const settingPanel = document.querySelector('.setting-area-wrap')
                 const nodeConfig = document.querySelector('.node-config')
                 if (settingPanel && this.isNodeConfigPanelShow) {
