@@ -713,11 +713,10 @@
                 const routerHead = this.common ? '/admin' : ''
                 let url
                 const urlMap = {
+                    // 新建模板的跳转链接
                     'new': `${routerHead}/template/new/${this.project_id}/`,
                     // 编辑按钮的跳转链接
                     'edit': `${routerHead}/template/edit/${this.project_id}/?template_id=${template_id}`,
-                    // 新建模板的跳转链接
-                    'newTemplate': `${routerHead}/template/new/${this.project_id}/`,
                     // 新建任务的跳转链接
                     'newTask': `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`,
                     // 克隆
