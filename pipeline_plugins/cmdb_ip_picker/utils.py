@@ -15,11 +15,10 @@ import copy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.components.utils import (
-    handle_api_error,
-    format_sundry_ip
-)
+from pipeline_plugins.components.utils import format_sundry_ip
+
 from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 
 from .constants import NO_ERROR, ERROR_CODES
 

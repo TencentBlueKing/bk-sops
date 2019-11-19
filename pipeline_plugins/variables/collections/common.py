@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.conf import settings
 from pipeline.core.data.var import (
     SpliceVariable,
     LazyVariable,

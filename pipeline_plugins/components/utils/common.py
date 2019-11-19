@@ -11,18 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
 import re
 import os
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
-
-from auth_backend.constants import AUTH_FORBIDDEN_CODE
 
 from gcloud.core.models import Business, Project
-from gcloud.core.utils import apply_permission_url
 
 logger = logging.getLogger('root')
 
@@ -76,40 +71,7 @@ def supplier_id_inject(func):
     return wrapper
 
 
-def handle_api_error(system, api_name, params, result):
-    if result.get('code') == AUTH_FORBIDDEN_CODE:
-        permission = result.get('permission', [])
-        apply_result = apply_permission_url(permission)
-        if not apply_result['result']:
-            logger.error(u"获取申请权限链接失败: {msg}".format(msg=apply_result['message']))
-
-        url = apply_result.get('data', {}).get('url', '')
-
-        message = _(u"调用{system}接口{api_name}无权限: "
-                    u"<a href='{url}' target='_blank'>申请权限</a>。\n details:"
-                    u"params={params}, error={error}").format(
-            system=system,
-            api_name=api_name,
-            url=url,
-            params=json.dumps(params),
-            error=result.get('message', '')
-        )
-
-    else:
-        message = _(u"调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
-            system=system,
-            api_name=api_name,
-            params=json.dumps(params),
-            error=result.get('message', '')
-        )
-
-    logger.error(message)
-
-    return message
-
-
 def get_ip_by_regex(ip_str):
-    ip_str = "%s" % ip_str
     ret = []
     for match in ip_pattern.finditer(ip_str):
         ret.append(match.group())

@@ -55,6 +55,7 @@ INSTALLED_APPS += (
     'gcloud.contrib.appmaker',
     'gcloud.contrib.function',
     'gcloud.contrib.audit',
+    'gcloud.contrib.develop',
     'gcloud.apigw',
     'gcloud.commons.template',
     'gcloud.periodictask',

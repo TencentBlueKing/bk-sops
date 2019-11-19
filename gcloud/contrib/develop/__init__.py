@@ -11,10 +11,4 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
-
-from django.conf import settings
-
-
-query_module = importlib.import_module('pipeline_plugins.components.query.sites.%s.query' % settings.RUN_VER)
-urlpatterns = query_module.urlpatterns
+default_app_config = 'gcloud.contrib.develop.apps.DevelopConfig'

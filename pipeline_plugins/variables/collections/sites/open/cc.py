@@ -14,9 +14,9 @@ specific language governing permissions and limitations under the License.
 import logging
 import re
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.conf import settings
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,

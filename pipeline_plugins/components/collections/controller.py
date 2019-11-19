@@ -15,11 +15,10 @@ import datetime
 import re
 import logging
 
-from django.utils import translation
+from django.conf import settings
+from django.utils import translation, timezone
 from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 
-from pipeline.conf import settings
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
