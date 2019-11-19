@@ -21,6 +21,6 @@ def validate_web_pipeline_tree(web_pipeline_tree):
     valid = Draft4Validator(WEB_PIPELINE_SCHEMA)
     errors = []
     for error in sorted(valid.iter_errors(web_pipeline_tree), key=str):
-        errors.append(u'%s: %s' % (u'→'.join(error.absolute_path), error.message))
+        errors.append('%s: %s' % ('→'.join(error.absolute_path), error.message))
     if errors:
         raise exceptions.ParserWebTreeException(','.join(errors))

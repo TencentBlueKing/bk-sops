@@ -11,10 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import copy
-import json
 import logging
 import traceback
 
+import ujson as json
 from cryptography.fernet import Fernet
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
@@ -38,6 +38,7 @@ from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.context import TaskContext
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -96,10 +97,11 @@ def status(request, project_id):
 def data(request, project_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
+    loop = request.GET.get('loop')
     component_code = request.GET.get('component_code')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_data(node_id, request.user.username, component_code, subprocess_stack)
+    ctx = task.get_node_data(node_id, request.user.username, component_code, subprocess_stack, loop)
     return JsonResponse(ctx)
 
 
@@ -110,10 +112,11 @@ def data(request, project_id):
 def detail(request, project_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
+    loop = request.GET.get('loop')
     component_code = request.GET.get('component_code')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
+    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack, loop)
     return JsonResponse(ctx)
 
 
@@ -127,7 +130,7 @@ def get_job_instance_log(request, biz_cc_id):
     }
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result['result']:
-        message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
             biz_cc_id, job_result['message'])
 
         if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
@@ -273,8 +276,8 @@ def preview_task_tree(request, project_id):
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': e.message})
-    constants_not_referred = {key: value for key, value in template_constants.items()
+        return JsonResponse({'result': False, 'message': str(e)})
+    constants_not_referred = {key: value for key, value in list(template_constants.items())
                               if key not in pipeline_tree['constants']}
     return JsonResponse({
         'result': True,
@@ -293,17 +296,17 @@ def query_task_count(request, project_id):
     conditions = request.POST.get('conditions', {})
     group_by = request.POST.get('group_by')
     if not isinstance(conditions, dict):
-        message = u"query_task_list params conditions[%s] are invalid dict data" % conditions
+        message = "query_task_list params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
     if group_by not in ['category', 'create_method', 'flow_type', 'status']:
-        message = u"query_task_list params group_by[%s] is invalid" % group_by
+        message = "query_task_list params group_by[%s] is invalid" % group_by
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
 
     filters = {'project_id': project_id, 'is_deleted': False}
     filters.update(conditions)
-    success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
+    success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})
@@ -346,7 +349,7 @@ def get_task_create_method(request):
 def node_callback(request, token):
     try:
         f = Fernet(settings.CALLBACK_KEY)
-        node_id = f.decrypt(bytes(token))
+        node_id = f.decrypt(bytes(token, encoding='utf8')).decode()
     except Exception:
         logger.warning('invalid token %s' % token)
         return JsonResponse({

@@ -61,48 +61,48 @@ class TaskContext(object):
         details = {
             cls.to_flat_key('language'): {
                 'key': cls.to_flat_key('language'),
-                'name': _(u"执行环境语言CODE"),
+                'name': _("执行环境语言CODE"),
                 'index': -7,
-                'desc': _(u"中文对应 zh-hans，英文对应 en")
+                'desc': _("中文对应 zh-hans，英文对应 en")
             },
             cls.to_flat_key('bk_biz_id'): {
                 'key': cls.to_flat_key('bk_biz_id'),
-                'name': _(u"任务所属的CMDB业务ID"),
+                'name': _("任务所属的CMDB业务ID"),
                 'index': -6,
                 'desc': ''
             },
             cls.to_flat_key('bk_biz_name'): {
                 'key': cls.to_flat_key('bk_biz_name'),
-                'name': _(u"任务所属的CMDB业务名称"),
+                'name': _("任务所属的CMDB业务名称"),
                 'index': -5,
                 'desc': ''
             },
             cls.to_flat_key('operator'): {
                 'key': cls.to_flat_key('operator'),
-                'name': _(u"任务的操作员（点击开始执行的人员）"),
+                'name': _("任务的操作员（点击开始执行的人员）"),
                 'index': -4,
                 'desc': ''
             },
             cls.to_flat_key('executor'): {
                 'key': cls.to_flat_key('executor'),
-                'name': _(u"任务的执行者（调用API网关接口的人员）"),
+                'name': _("任务的执行者（调用API网关接口的人员）"),
                 'index': -3,
                 'desc': ''
             },
             cls.to_flat_key('task_id'): {
                 'key': cls.to_flat_key('task_id'),
                 'index': -2,
-                'name': _(u"任务ID"),
+                'name': _("任务ID"),
                 'desc': ''
             },
             cls.to_flat_key('task_name'): {
                 'key': cls.to_flat_key('task_name'),
-                'name': _(u"任务名称"),
+                'name': _("任务名称"),
                 'index': -1,
                 'desc': ''
             }
         }
-        for item in details.values():
+        for item in list(details.values()):
             item.update({
                 'show_type': 'hide',
                 'source_type': 'system',

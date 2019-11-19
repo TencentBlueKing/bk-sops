@@ -14,7 +14,8 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 from pprint import pformat
 
-from pipeline.exceptions import ReferenceNotExistError, InvalidOperationException
+from pipeline.exceptions import (InvalidOperationException,
+                                 ReferenceNotExistError)
 
 
 class Context(object):
@@ -25,10 +26,10 @@ class Context(object):
         self._change_keys = set()
         self._raw_variables = None
 
-    def extract_output(self, activity):
-        self.extract_output_from_data(activity.id, activity.data)
+    def extract_output(self, activity, set_miss=True):
+        self.extract_output_from_data(activity.id, activity.data, set_miss=set_miss)
 
-    def extract_output_from_data(self, activity_id, data):
+    def extract_output_from_data(self, activity_id, data, set_miss=True):
         if activity_id in self.act_outputs:
             global_outputs = self.act_outputs[activity_id]
             output = data.get_outputs()
@@ -36,6 +37,9 @@ class Context(object):
                 # set value to key if can not find
                 # e.g. key: result
                 # e.g. global_outputs[key]: result_5hoi2
+                if key not in output and not set_miss:
+                    continue
+
                 self.variables[global_outputs[key]] = output.get(key, global_outputs[key])
                 self.change_keys.add(global_outputs[key])
 
@@ -51,7 +55,7 @@ class Context(object):
 
     def update_global_var(self, var_dict):
         self.variables.update(var_dict)
-        self.change_keys.update(var_dict.keys())
+        self.change_keys.update(list(var_dict.keys()))
 
     def mark_as_output(self, key):
         self._output_key.add(key)
@@ -81,12 +85,12 @@ class Context(object):
 
         # collect all act output key
         act_outputs_keys = set()
-        for global_outputs in self.act_outputs.values():
-            for output_key in global_outputs.values():
+        for global_outputs in list(self.act_outputs.values()):
+            for output_key in list(global_outputs.values()):
                 act_outputs_keys.add(output_key)
 
         # recover to Variable for which key not in act output
-        for key, var in self.raw_variables.items():
+        for key, var in list(self.raw_variables.items()):
             if key not in act_outputs_keys:
                 self.variables[key] = deepcopy(var)
 

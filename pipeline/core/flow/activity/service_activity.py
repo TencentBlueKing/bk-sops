@@ -20,18 +20,16 @@ from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema
 from pipeline.core.flow.activity.base import Activity
 
 
-class Service(object):
-    __metaclass__ = ABCMeta
-
+class Service(object, metaclass=ABCMeta):
     schedule_result_attr = '__schedule_finish__'
     schedule_determine_attr = '__need_schedule__'
     InputItem = InputItem
     OutputItem = OutputItem
     interval = None
-    _result_output = OutputItem(name=_(u"执行结果"),
+    _result_output = OutputItem(name=_("执行结果"),
                                 key='_result',
                                 type='bool',
-                                schema=BooleanItemSchema(description=_(u"是否执行成功")))
+                                schema=BooleanItemSchema(description=_("是否执行成功")))
 
     def __init__(self, name=None):
         self.name = name
@@ -174,16 +172,14 @@ class ServiceActivity(Activity):
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
     def __setstate__(self, state):
-        for attr, obj in state.items():
+        for attr, obj in list(state.items()):
             setattr(self, attr, obj)
 
         if 'timeout' not in state:
             self.timeout = None
 
 
-class AbstractIntervalGenerator(object):
-    __metaclass__ = ABCMeta
-
+class AbstractIntervalGenerator(object, metaclass=ABCMeta):
     def __init__(self):
         self.count = 0
 

@@ -111,7 +111,7 @@
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                @click="onTaskPermissonCheck(props.row, $event)">
                                 {{props.row.name}}
                             </a>
                             <router-link
@@ -260,7 +260,7 @@
                 'loadProjectBaseInfo'
             ]),
             ...mapMutations('template/', [
-                'setBusinessBaseInfo'
+                'setProjectBaseInfo'
             ]),
             async getAppmakerList () {
                 this.listLoading = true
@@ -270,7 +270,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: this.searchStr,
+                        q: this.searchStr || undefined,
                         category: this.taskSync || undefined,
                         pipeline_instance__creator__contains: this.creator || undefined,
                         pipeline_instance__executor__contains: this.executor || undefined,
@@ -294,6 +294,9 @@
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
+                        } else if (item.is_revoked) {
+                            status.cls = 'revoke common-icon-dark-circle-shape'
+                            status.text = gettext('撤销')
                         } else if (item.is_started) {
                             status.cls = 'loading common-icon-loading'
                             this.getExecuteDetail(item, index)
@@ -337,10 +340,6 @@
                                 status.cls = 'failed common-icon-dark-circle-close'
                                 status.text = gettext('失败')
                                 break
-                            case 'REVOKED':
-                                status.cls = 'revoke common-icon-dark-circle-shape'
-                                status.text = gettext('撤销')
-                                break
                             default:
                                 status.text = gettext('未知')
                         }
@@ -356,7 +355,7 @@
                 try {
                     const projectBasicInfo = await this.loadProjectBaseInfo()
                     this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
-                    this.setBusinessBaseInfo(projectBasicInfo)
+                    this.setProjectBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)

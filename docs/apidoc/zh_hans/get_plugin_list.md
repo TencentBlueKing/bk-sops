@@ -97,7 +97,7 @@
                     "schema": {
                         "enum": [],
                         "type": "int",
-                        "description": "成功创建的定时作业 Id"
+                        "description": "成功创建的定时作业 ID"
                     }
                 },
                 {

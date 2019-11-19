@@ -14,7 +14,7 @@
         <div class="list-wrapper">
             <BaseTitle :title="i18n.projectManage"></BaseTitle>
             <div class="list-header">
-                <bk-button
+                <!-- <bk-button
                     v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"
                     theme="primary"
                     :class="['create-project-btn', {
@@ -22,16 +22,17 @@
                     }]"
                     @click="onCreateProject">
                     {{i18n.createProject}}
-                </bk-button>
+                </bk-button> -->
                 <div class="filter-area">
                     <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{i18n.showClosedProject}}</bk-checkbox>
                     <div class="search-input">
                         <bk-input
                             v-model="searchStr"
                             class="search-input"
+                            clearable
                             :right-icon="'bk-icon icon-search'"
                             :placeholder="i18n.placeholder"
-                            @input="onSearchInput">
+                            @change="onSearchInput">
                         </bk-input>
                     </div>
                 </div>
@@ -64,7 +65,11 @@
                                     }]"
                                     theme="default"
                                     @click="onClickOptBtn(props.row, item.name)">
-                                    {{item.text}}
+                                    {{
+                                        item.name === 'view'
+                                            ? (!hasPermission([item.power], props.row.auth_actions, projectOperations) ? item.text : item.enter )
+                                            : item.text
+                                    }}
                                 </bk-button>
                             </template>
                         </template>
@@ -104,8 +109,6 @@
                     <div class="common-form-content">
                         <bk-select
                             v-model="projectDetail.timeZone"
-                            class="bk-select-inline"
-                            :popover-width="260"
                             :searchable="true"
                             :disabled="dialogType === 'edit'"
                             :placeholder="i18n.statusPlaceholder"
@@ -166,7 +169,8 @@
         {
             name: 'view',
             power: 'view',
-            text: gettext('查看')
+            text: gettext('查看'),
+            enter: gettext('进入')
         },
         {
             name: 'edit',
@@ -495,14 +499,10 @@
              * @param {String} name
              */
             isShowOptBtn (isDisable, name) {
-                if (name === 'view' || name === 'edit') {
-                    return true
-                }
-                if (name === 'start' && isDisable) {
-                    return true
-                }
-                if (name === 'stop' && !isDisable) {
-                    return true
+                if (isDisable) {
+                    return name === 'start'
+                } else {
+                    return ['view', 'edit', 'stop'].includes(name)
                 }
             },
             /**
@@ -542,6 +542,7 @@
     }
     .list-header {
         padding: 20px 0;
+        overflow: hidden;
         .create-project-btn {
             width: 120px;
             height: 32px;
@@ -552,9 +553,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 520px;
             .switch-status {
                 display: inline-block;
+            }
+            .bk-form-checkbox {
+                margin-right: 30px;
             }
         }
         .search-input {

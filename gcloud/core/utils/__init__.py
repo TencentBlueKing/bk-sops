@@ -25,6 +25,7 @@ common_exports = [
     'gen_day_dates',
     'get_month_dates',
     'time_now_str',
+    'check_and_rename_params',
     'apply_permission_url'
 ]
 for func in common_exports:
@@ -34,7 +35,6 @@ ver_utils = importlib.import_module('gcloud.core.utils.sites.%s.utils' % setting
 ver_exports = [
     'convert_group_name',
     'convert_readable_username',
-    'check_and_rename_params',
     'get_user_business_list',
     'get_all_business_list'
 ]

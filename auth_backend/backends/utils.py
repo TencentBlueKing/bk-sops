@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 from django.conf import settings
 from django.utils.module_loading import import_string
 
@@ -23,7 +25,7 @@ def get_backend_from_config():
     try:
         backend_cls = import_string(backend_path)
     except ImportError:
-        return ImportError('can not import backend class from path: {path}'.format(path=backend_path))
+        raise ImportError('can not import backend class from path: {path}'.format(path=backend_path))
 
     return backend_cls()
 

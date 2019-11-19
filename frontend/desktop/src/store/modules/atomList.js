@@ -56,8 +56,14 @@ const atomList = {
             primaryData.forEach(item => {
                 const type = item.group_name
                 const index = groups.indexOf(type)
+                // 分组存在
                 if (index > -1) {
-                    atomGrouped[index].list.push(item)
+                    const list = atomGrouped[index].list
+                    const isCodeExisted = list.some(m => m.code === item.code)
+                    // 相同 code 的只显示一个
+                    if (!isCodeExisted) {
+                        list.push(item)
+                    }
                 } else {
                     const newGroup = {
                         type,
@@ -69,7 +75,6 @@ const atomList = {
                     atomGrouped.push(newGroup)
                 }
             })
-
             return [...atomGrouped]
         }
     }

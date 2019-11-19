@@ -678,9 +678,9 @@ def gateway_valid_case():
     stack = Stack()
     converge_in = {}
     distances = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -709,9 +709,9 @@ def gateway_valid_edge_case_1():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -764,9 +764,9 @@ def gateway_valid_edge_case_2():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -810,9 +810,9 @@ def gateway_invalid_case_1():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -856,9 +856,9 @@ def gateway_invalid_case_2():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -903,9 +903,9 @@ def gateway_invalid_case_3():
 
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -931,9 +931,9 @@ def gateway_invalid_case_4():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -978,9 +978,9 @@ def gateway_invalid_case_5():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -1025,9 +1025,9 @@ def gateway_invalid_case_6():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -1081,9 +1081,9 @@ def gateway_invalid_case_7():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 
@@ -1118,9 +1118,9 @@ def gateway_invalid_case_8():
     stack = Stack()
     distances = {}
     converge_in = {}
-    for gid, g in gateway.items():
+    for gid, g in list(gateway.items()):
         distances[gid] = g['distance']
-    for cid, c in converge.items():
+    for cid, c in list(converge.items()):
         distances[cid] = c['distance']
         converge_in[cid] = c['in_len']
 

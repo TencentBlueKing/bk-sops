@@ -22,17 +22,17 @@ from gcloud.core.models import Project
 
 project_resource = DjangoModelResource(
     rtype='project',
-    name=_(u"项目"),
+    name=_("项目"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
+    scope_name=_("标准运维"),
     actions=[
-        Action(id='create', name=_(u"新建"), is_instance_related=False),
-        Action(id='view', name=_(u"查看"), is_instance_related=True),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='create_template', name=_(u"新建流程"), is_instance_related=True),
-        Action(id='use_common_template', name=_(u"使用公共流程"), is_instance_related=True),
-        Action(id='fast_create_task', name=_(u"快速新建一次性任务"), is_instance_related=True),
+        Action(id='create', name=_("新建"), is_instance_related=False),
+        Action(id='view', name=_("查看"), is_instance_related=True),
+        Action(id='edit', name=_("编辑"), is_instance_related=True),
+        Action(id='create_template', name=_("新建流程"), is_instance_related=True),
+        Action(id='use_common_template', name=_("使用公共流程"), is_instance_related=True),
+        Action(id='fast_create_task', name=_("快速新建一次性任务"), is_instance_related=True),
     ],
     operations=[
         {
@@ -72,12 +72,12 @@ project_resource = DjangoModelResource(
 
 admin_operate_resource = NeverInitiateResource(
     rtype='admin_operate',
-    name=_(u"后台管理"),
+    name=_("后台管理"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
+    scope_name=_("标准运维"),
     actions=[
-        Action(id='view', name=_(u"查看"), is_instance_related=False),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=False)
+        Action(id='view', name=_("查看"), is_instance_related=False),
+        Action(id='edit', name=_("编辑"), is_instance_related=False)
     ],
     backend=get_backend_from_config())

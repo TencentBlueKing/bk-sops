@@ -17,16 +17,16 @@ from gcloud.constants import *  # noqa
 
 # 任务流程创建方式
 TASK_CREATE_METHOD = [
-    ('app', _(u"手动")),
-    ('api', _(u"API网关")),
-    ('app_maker', _(u"轻应用")),
-    ('periodic', _(u"周期任务")),
-    ('mobile', _(u"移动端")),
+    ('app', _("手动")),
+    ('api', _("API网关")),
+    ('app_maker', _("轻应用")),
+    ('periodic', _("周期任务")),
+    ('mobile', _("移动端")),
 ]
 
 # 任务引用的流程模板来源
 TEMPLATE_SOURCE = [
-    (PROJECT, _(u"项目流程")),
-    (COMMON, _(u"公共流程")),
-    (ONETIME, _(u"一次性任务")),
+    (PROJECT, _("项目流程")),
+    (COMMON, _("公共流程")),
+    (ONETIME, _("一次性任务")),
 ]

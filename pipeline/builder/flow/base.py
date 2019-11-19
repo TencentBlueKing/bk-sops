@@ -79,6 +79,6 @@ class Element(object):
         return self.id == other.id
 
     def __repr__(self):
-        return u"<{cls} {name}:{id}>".format(cls=type(self).__name__,
-                                             name=self.name,
-                                             id=self.id)
+        return "<{cls} {name}:{id}>".format(cls=type(self).__name__,
+                                            name=self.name,
+                                            id=self.id)

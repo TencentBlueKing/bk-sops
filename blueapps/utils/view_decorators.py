@@ -44,7 +44,7 @@ def model_instance_inject(model_cls, inject_attr, field_maps):
         def wrapper(request, *args, **kwargs):
             get_kwargs = {}
 
-            for field, arg in field_maps.items():
+            for field, arg in list(field_maps.items()):
                 field_value = kwargs.get(arg, None)
                 if field_value is None:
                     return JsonResponse({
@@ -59,7 +59,7 @@ def model_instance_inject(model_cls, inject_attr, field_maps):
                 logger.error(traceback.format_exc())
                 return JsonResponse({
                     'result': False,
-                    'message': 'get {model_name} error: {exc}'.format(model_name=model_cls.__name__, exc=e.message)
+                    'message': 'get {model_name} error: {exc}'.format(model_name=model_cls.__name__, exc=str(e))
                 })
 
             setattr(request, inject_attr, instance)

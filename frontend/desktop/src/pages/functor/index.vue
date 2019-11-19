@@ -34,12 +34,13 @@
                                 :searchable="true"
                                 :placeholder="i18n.choice"
                                 :clearable="true"
-                                @selected="onSelectProject">
+                                @selected="onSelectProject"
+                                @clear="projectId = undefined">
                                 <bk-option
                                     v-for="(option, index) in business.list"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -93,7 +94,7 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange">
-                    <bk-table-column :label="i18n.business" prop="task.business.cc_name" width="160"></bk-table-column>
+                    <bk-table-column :label="i18n.business" prop="task.project.name" width="160"></bk-table-column>
                     <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
@@ -106,6 +107,7 @@
                                 {{props.row.task.name}}
                             </a>
                             <router-link
+                                v-else
                                 class="task-name"
                                 :title="props.row.task.name"
                                 :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
@@ -197,8 +199,8 @@
                             <bk-option
                                 v-for="(option, index) in business.list"
                                 :key="index"
-                                :id="option.cc_id"
-                                :name="option.cc_name">
+                                :id="option.id"
+                                :name="option.name">
                             </bk-option>
                         </bk-select>
                         <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
@@ -243,8 +245,9 @@
                     <bk-button
                         theme="primary"
                         :class="{
-                            'btn-permission-disable': !hasConfirmPerm
+                            'btn-permission-disable': template.id !== '' && !hasConfirmPerm
                         }"
+                        :disabled="template.id === ''"
                         v-cursor="{ active: !hasConfirmPerm }"
                         @click="onConfirmlNewTask">
                         {{i18n.confirm}}
@@ -354,8 +357,6 @@
                 creator: undefined,
                 executeStartTime: undefined,
                 executeEndTime: undefined,
-                isStarted: undefined,
-                isFinished: undefined,
                 isCommonTemplate: false,
                 isAdvancedSerachShow: false,
                 status: undefined,
@@ -416,11 +417,9 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        task__pipeline_instance__name__contains: this.searchStr,
-                        creator: this.creator || undefined,
-                        pipeline_instance__is_started: this.isStarted,
-                        pipeline_instance__is_finished: this.isFinished,
-                        project_id: this.projectId,
+                        task__pipeline_instance__name__contains: this.searchStr || undefined,
+                        creator: this.creator,
+                        project__id: this.projectId,
                         status: this.status
                     }
                     if (this.executeEndTime) {
@@ -523,9 +522,6 @@
                 }
             },
             onSelectProject (id) {
-                if (this.projectId === id) {
-                    return
-                }
                 this.projectId = id
             },
             onSelectedBusiness (id, data) {
@@ -619,15 +615,15 @@
                 this.executeEndTime = Value[1]
             },
             onClearStatus () {
-                this.isStarted = undefined
-                this.isFinished = undefined
+                this.statusSync = ''
+                this.status = undefined
             },
             onResetForm () {
-                this.status = undefined
                 this.creator = undefined
                 this.statusSync = ''
-                this.selectedProject = 0
-                this.funtorSync = 0
+                this.status = undefined
+                this.selectedProject = undefined
+                this.projectId = undefined
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
                 this.searchInputhandler()
@@ -809,6 +805,10 @@
                 position: absolute;
                 right: -20px;
                 top: 9px;
+                color: #c4c6cc;
+                &:hover {
+                    color: #f4aa1a;
+                }
             }
         }
     }

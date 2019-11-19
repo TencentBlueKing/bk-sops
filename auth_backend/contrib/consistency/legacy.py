@@ -11,14 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import sys
+from __future__ import absolute_import, unicode_literals
+
 import logging
+import sys
 import traceback
 
+from auth_backend.contrib.consistency import conf
 from auth_backend.exceptions import AuthInvalidOperationError, AuthLookupError
 from auth_backend.resources import resource_type_lib
 from auth_backend.resources.interfaces import InstanceIterableResource
-from auth_backend.contrib.consistency import conf
 
 logger = logging.getLogger('root')
 

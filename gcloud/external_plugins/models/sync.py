@@ -22,28 +22,28 @@ SUCCEEDED = 'SUCCEEDED'
 FAILED = 'FAILED'
 
 SYNC_TASK_STATUS = [
-    (RUNNING, _(u"执行中")),
-    (SUCCEEDED, _(u"成功")),
-    (FAILED, _(u"失败"))
+    (RUNNING, _("执行中")),
+    (SUCCEEDED, _("成功")),
+    (FAILED, _("失败"))
 ]
 
 SYNC_TASK_CREATED = [
-    ('manual', _(u"手动触发")),
-    ('auto', _(u"部署自动触发"))
+    ('manual', _("手动触发")),
+    ('auto', _("部署自动触发"))
 ]
 
 
 class SyncTask(models.Model):
-    creator = models.CharField(_(u"执行者"), max_length=32, blank=True)
-    create_method = models.CharField(_(u"创建方式"), max_length=32, default='manual', choices=SYNC_TASK_CREATED)
-    start_time = models.DateTimeField(_(u"启动时间"), auto_now_add=True)
-    finish_time = models.DateTimeField(_(u"结束时间"), null=True, blank=True)
-    status = models.CharField(_(u"同步状态"), max_length=32, default=RUNNING, choices=SYNC_TASK_STATUS)
-    details = models.TextField(_(u"同步详情信息"), blank=True)
+    creator = models.CharField(_("执行者"), max_length=32, blank=True)
+    create_method = models.CharField(_("创建方式"), max_length=32, default='manual', choices=SYNC_TASK_CREATED)
+    start_time = models.DateTimeField(_("启动时间"), auto_now_add=True)
+    finish_time = models.DateTimeField(_("结束时间"), null=True, blank=True)
+    status = models.CharField(_("同步状态"), max_length=32, default=RUNNING, choices=SYNC_TASK_STATUS)
+    details = models.TextField(_("同步详情信息"), blank=True)
 
     class Meta:
-        verbose_name = _(u"远程包源同步任务 SyncTask")
-        verbose_name_plural = _(u"远程包源同步任务 SyncTask")
+        verbose_name = _("远程包源同步任务 SyncTask")
+        verbose_name_plural = _("远程包源同步任务 SyncTask")
         ordering = ['-id']
 
     @property

@@ -11,12 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 from abc import ABCMeta, abstractmethod
 
+from builtins import object
+from future.utils import with_metaclass
 
-class AuthDelegation(object):
-    __metaclass__ = ABCMeta
 
+class AuthDelegation(with_metaclass(ABCMeta, object)):
     def __init__(self, delegate_resource, action_ids):
         self.delegate_resource = delegate_resource
         self.action_ids = action_ids

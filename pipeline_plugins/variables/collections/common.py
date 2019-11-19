@@ -26,53 +26,53 @@ from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 logger = logging.getLogger('root')
 
 
-class CommonPlainVariable(SpliceVariable):
-    __metaclass__ = RegisterVariableMeta
+class CommonPlainVariable(SpliceVariable, metaclass=RegisterVariableMeta):
+    pass
 
 
 class Input(CommonPlainVariable):
     code = 'input'
-    name = _(u"输入框")
+    name = _("输入框")
     type = 'general'
     tag = 'input.input'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
-    schema = StringItemSchema(description=_(u'输入框变量'))
+    schema = StringItemSchema(description=_('输入框变量'))
 
 
 class Textarea(CommonPlainVariable):
     code = 'textarea'
-    name = _(u"文本框")
+    name = _("文本框")
     type = 'general'
     tag = 'textarea.textarea'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
-    schema = StringItemSchema(description=_(u'文本框变量'))
+    schema = StringItemSchema(description=_('文本框变量'))
 
 
 class Datetime(CommonPlainVariable):
     code = 'datetime'
-    name = _(u"日期时间")
+    name = _("日期时间")
     type = 'general'
     tag = 'datetime.datetime'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
-    schema = StringItemSchema(description=_(u'日期时间变量'))
+    schema = StringItemSchema(description=_('日期时间变量'))
 
 
 class Int(CommonPlainVariable):
     code = 'int'
-    name = _(u"整数")
+    name = _("整数")
     type = 'general'
     tag = 'int.int'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
-    schema = IntItemSchema(description=_(u'整数变量'))
+    schema = IntItemSchema(description=_('整数变量'))
 
 
 class Password(LazyVariable):
     code = 'password'
-    name = _(u"密码")
+    name = _("密码")
     type = 'general'
     tag = 'password.password'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
-    schema = StringItemSchema(description=_(u'密码变量'))
+    schema = StringItemSchema(description=_('密码变量'))
 
     def get_value(self):
         return self.value
@@ -80,12 +80,12 @@ class Password(LazyVariable):
 
 class Select(LazyVariable):
     code = 'select'
-    name = _(u"下拉框")
+    name = _("下拉框")
     type = 'meta'
     tag = 'select.select'
     meta_tag = 'select.select_meta'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
-    schema = StringItemSchema(description=_(u'下拉框变量'))
+    schema = StringItemSchema(description=_('下拉框变量'))
 
     def get_value(self):
         # multiple select

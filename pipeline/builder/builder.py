@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import copy
-import Queue
+import queue
 
 from pipeline.utils.uniqid import uniqid
 from pipeline.core.constants import PE
@@ -71,7 +71,7 @@ __incoming = '__incoming'
 
 def build_tree(start_elem, id=None, data=None, replace_id=False):
     tree = copy.deepcopy(__skeleton)
-    elem_queue = Queue.Queue()
+    elem_queue = queue.Queue()
     processed_elem = set()
 
     tree[__incoming] = {}
@@ -185,7 +185,7 @@ def __grow(tree, elem):
         __grow_flow(tree, outgoing, elem, next_elem)
 
     elif elem.type() == PE.ParallelGateway:
-        outgoing = [uniqid() for _ in xrange(len(elem.outgoing))]
+        outgoing = [uniqid() for _ in range(len(elem.outgoing))]
 
         tree[PE.gateways][elem.id] = {
             PE.id: elem.id,
@@ -199,7 +199,7 @@ def __grow(tree, elem):
             __grow_flow(tree, outgoing[i], elem, next_elem)
 
     elif elem.type() in {PE.ExclusiveGateway, PE.ConditionalParallelGateway}:
-        outgoing = [uniqid() for _ in xrange(len(elem.outgoing))]
+        outgoing = [uniqid() for _ in range(len(elem.outgoing))]
 
         tree[PE.gateways][elem.id] = {
             PE.id: elem.id,

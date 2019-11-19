@@ -38,11 +38,11 @@ def validate_graph_connection(data):
         message = ""
         for j in nodes[i][PE.target]:
             if nodes[j][PE.type] not in rule['allowed_out']:
-                message += _(u"不能连接%s类型节点\n") % nodes[i][PE.type]
+                message += _("不能连接%s类型节点\n") % nodes[i][PE.type]
             if rule["min_in"] > len(nodes[i][PE.source]) or len(nodes[i][PE.source]) > rule['max_in']:
-                message += _(u"节点的入度最大为%s，最小为%s\n") % (rule['max_in'], rule['min_in'])
+                message += _("节点的入度最大为%s，最小为%s\n") % (rule['max_in'], rule['min_in'])
             if rule["min_out"] > len(nodes[i][PE.target]) or len(nodes[i][PE.target]) > rule['max_out']:
-                message += _(u"节点的出度最大为%s，最小为%s\n") % (rule['max_out'], rule['min_out'])
+                message += _("节点的出度最大为%s，最小为%s\n") % (rule['max_out'], rule['min_out'])
         if message:
             result['failed_nodes'].append(i)
             result["message"][i] = message
@@ -64,8 +64,8 @@ def find_graph_circle(data):
     """
 
     nodes = [data[PE.start_event][PE.id], data[PE.end_event][PE.id]]
-    nodes += data[PE.gateways].keys() + data[PE.activities].keys()
-    flows = [[flow[PE.source], flow[PE.target]] for _, flow in data[PE.flows].items()]
+    nodes += list(data[PE.gateways].keys()) + list(data[PE.activities].keys())
+    flows = [[flow[PE.source], flow[PE.target]] for _, flow in list(data[PE.flows].items())]
     cycle = Graph(nodes, flows).get_cycle()
     if cycle:
         return {

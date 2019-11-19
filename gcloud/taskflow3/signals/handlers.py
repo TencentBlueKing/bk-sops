@@ -30,7 +30,7 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
         try:
             taskflow = TaskFlowInstance.objects.get(pipeline_instance=instance)
         except TaskFlowInstance.DoesNotExist:
-            logger.error(u"pipeline finished handler get taskflow error, pipeline_instance_id=%s" % instance.id)
+            logger.error("pipeline finished handler get taskflow error, pipeline_instance_id=%s" % instance.id)
             return
         if taskflow.current_flow != 'finished':
             taskflow.current_flow = 'finished'
@@ -42,7 +42,7 @@ def taskflow_node_failed_handler(sender, pipeline_id, pipeline_activity_id, **kw
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=pipeline_id)
     except TaskFlowInstance.DoesNotExist:
-        logger.error(u"pipeline finished handler get taskflow error, pipeline_instance_id=%s" % pipeline_id)
+        logger.error("pipeline finished handler get taskflow error, pipeline_instance_id=%s" % pipeline_id)
         return
 
     try:

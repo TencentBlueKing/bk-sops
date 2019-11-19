@@ -76,11 +76,11 @@ class TestCachePackageSource(TestCase):
 
     def test_base_source(self):
         base_source = S3Source.objects.get(id=self.cache_source.base_source_id)
-        self.assertEquals(self.cache_source.base_source, base_source)
-        self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
+        self.assertEqual(self.cache_source.base_source, base_source)
+        self.assertEqual(base_source.packages, self.SOURCE_PACKAGES)
 
     def test_get_base_source(self):
-        self.assertEquals(CachePackageSource.objects.get_base_source(), self.cache_source.base_source)
+        self.assertEqual(CachePackageSource.objects.get_base_source(), self.cache_source.base_source)
 
     def test_add_cache_source__exception(self):
         self.assertRaises(exceptions.CacheSourceTypeError,
@@ -99,13 +99,13 @@ class TestCachePackageSource(TestCase):
                           )
 
     def test_name(self):
-        self.assertEquals(self.cache_source.name, self.CACHE_SOURCE_NAME)
+        self.assertEqual(self.cache_source.name, self.CACHE_SOURCE_NAME)
 
     def test_packages(self):
-        self.assertEquals(self.cache_source.packages, self.SOURCE_PACKAGES)
+        self.assertEqual(self.cache_source.packages, self.SOURCE_PACKAGES)
 
     def test_details(self):
-        self.assertEquals(self.cache_source.details, self.SOURCE_KWARGS)
+        self.assertEqual(self.cache_source.details, self.SOURCE_KWARGS)
 
     def test_write__type_error(self):
         self.cache_source.type = 'error_type'
@@ -123,10 +123,10 @@ class TestCachePackageSource(TestCase):
             **self.UPDATED_SOURCE_KWARGS
         )
         self.cache_source = CachePackageSource.objects.get(id=self.cache_source.id)
-        self.assertEquals(self.cache_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
+        self.assertEqual(self.cache_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
         base_source = FileSystemSource.objects.get(id=self.cache_source.base_source_id)
-        self.assertEquals(self.cache_source.base_source, base_source)
+        self.assertEqual(self.cache_source.base_source, base_source)
 
     def test_get_base_source__none(self):
         CachePackageSource.objects.get(id=self.cache_source.id).delete()
-        self.assertEquals(CachePackageSource.objects.get_base_source(), None)
+        self.assertEqual(CachePackageSource.objects.get_base_source(), None)

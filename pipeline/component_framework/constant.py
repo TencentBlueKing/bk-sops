@@ -33,7 +33,7 @@ class ConstantPool(object):
 
         refs = self.get_reference_info()
 
-        nodes = refs.keys()
+        nodes = list(refs.keys())
         flows = []
         for node in nodes:
             for ref in refs[node]:
@@ -55,7 +55,7 @@ class ConstantPool(object):
                 value = temp_pool[ref]['value']
 
                 # resolve those constants which reference the 'ref'
-                for key, info in temp_pool.items():
+                for key, info in list(temp_pool.items()):
                     maps = {deformat_constant_key(ref): value}
                     temp_pool[key]['value'] = ConstantTemplate(info['value']).resolve_data(maps)
 
@@ -68,7 +68,7 @@ class ConstantPool(object):
     @staticmethod
     def _get_referenced_only(pool):
         referenced_only = []
-        for key, info in pool.items():
+        for key, info in list(pool.items()):
             reference = ConstantTemplate(info['value']).get_reference()
             formatted_reference = ['${%s}' % ref for ref in reference]
             reference = [c for c in formatted_reference if c in pool]
@@ -78,7 +78,7 @@ class ConstantPool(object):
 
     def get_reference_info(self, strict=True):
         refs = {}
-        for key, info in self.raw_pool.items():
+        for key, info in list(self.raw_pool.items()):
             reference = ConstantTemplate(info['value']).get_reference()
             formatted_reference = ['${%s}' % ref for ref in reference]
             ref = [c for c in formatted_reference if not strict or c in self.raw_pool]

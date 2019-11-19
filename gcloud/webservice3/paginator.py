@@ -49,7 +49,7 @@ class PropertyFilterPaginator(Paginator):
 
         # do property filter work before page
         filter_items = []
-        for prop, field in self.properties().items():
+        for prop, field in list(self.properties().items()):
             if prop in self.request_data:
                 filter_items.append({'p': prop,
                                      'v': field.to_python(self.request_data[prop])})

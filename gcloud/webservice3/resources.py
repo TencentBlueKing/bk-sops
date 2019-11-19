@@ -32,9 +32,10 @@ from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMix
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from gcloud.core.models import Business, Project
-from gcloud.webservice3.serializers import AppSerializer
 from gcloud.core.permissions import project_resource
+from gcloud.webservice3.serializers import AppSerializer
 
 logger = logging.getLogger('root')
 
@@ -128,7 +129,7 @@ class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
 class BusinessResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = Business.objects.exclude(status='disabled') \
-                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")])
         authorization = ReadOnlyAuthorization()
         resource_name = 'business'
         detail_uri_name = 'cc_id'
@@ -200,9 +201,21 @@ class ComponentModelResource(GCloudModelResource):
         detail_uri_name = 'code'
         authorization = ReadOnlyAuthorization()
 
+    def build_filters(self, filters=None, ignore_bad_filters=False):
+        orm_filters = super(ComponentModelResource, self).build_filters(filters=filters,
+                                                                        ignore_bad_filters=ignore_bad_filters)
+        if filters and 'version' in filters:
+            orm_filters['version'] = filters.get('version') or LEGACY_PLUGINS_VERSION
+
+        return orm_filters
+
+    def get_detail(self, request, **kwargs):
+        kwargs['version'] = request.GET.get('version', None)
+        return super(ComponentModelResource, self).get_detail(request, **kwargs)
+
     def alter_list_data_to_serialize(self, request, data):
         for bundle in data['objects']:
-            component = ComponentLibrary.get_component_class(bundle.data['code'])
+            component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
             bundle.data['output'] = component.outputs_format()
             bundle.data['form'] = component.form
             bundle.data['desc'] = component.desc
@@ -217,7 +230,7 @@ class ComponentModelResource(GCloudModelResource):
     def alter_detail_data_to_serialize(self, request, data):
         data = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
         bundle = data
-        component = ComponentLibrary.get_component_class(bundle.data['code'])
+        component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
         bundle.data['output'] = component.outputs_format()
         bundle.data['form'] = component.form
         bundle.data['desc'] = component.desc

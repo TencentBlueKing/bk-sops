@@ -11,17 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
 import importlib
+import sys
 import traceback
 from contextlib import contextmanager
 
-from mock import patch, call, MagicMock
+from mock import MagicMock, call, patch
 
 from pipeline.core.data.base import DataObject
 from pipeline.utils.uniqid import uniqid
-
-logger = logging.getLogger('django.server')
 
 
 @contextmanager
@@ -54,6 +52,10 @@ class ComponentTestMixin(object):
     @property
     def _component_cls_name(self):
         return self._component_cls.__name__
+
+    @property
+    def _failed_cases(self):
+        return getattr(self, '__failed_cases', None)
 
     def _format_failure_message(self, no, name, msg):
         return '[{component_cls} case {no}] - [{name}] fail: {msg}'.format(
@@ -116,17 +118,25 @@ class ComponentTestMixin(object):
                 )
             ))
 
-    def case_pass(self, case):
-        logger.info(u"[√] <{component}> - [{case_name}]".format(
+    def _case_pass(self, case):
+        sys.stdout.write("\n[√] <{component}> - [{case_name}]\n".format(
             component=self._component_cls_name,
             case_name=case.name,
         ))
 
-    def case_fail(self, case):
-        logger.info(u"[×] <{component}> - [{case_name}]".format(
+    def _case_fail(self, case):
+        sys.stdout.write("\n[×] <{component}> - [{case_name}]\n".format(
             component=self._component_cls_name,
             case_name=case.name,
         ))
+
+        if not hasattr(self, '__failed_cases'):
+            setattr(self, '__failed_cases', [])
+
+        self._failed_cases.append(case)
+
+    def _test_fail(self):
+        raise AssertionError('{} cases fail'.format([case.name for case in self._failed_cases]))
 
     def test_component(self):
         component = self._component_cls({})
@@ -160,7 +170,7 @@ class ComponentTestMixin(object):
                                                 assertion=call_assertion)
 
                     if do_continue:
-                        self.case_pass(case)
+                        self._case_pass(case)
                         continue
 
                     if bound_service.need_schedule():
@@ -205,11 +215,14 @@ class ComponentTestMixin(object):
                                                     no=no,
                                                     assertion=call_assertion)
 
-                    self.case_pass(case)
+                    self._case_pass(case)
 
             except Exception:
-                self.case_fail(case)
-                logger.error(traceback.format_exc())
+                self._case_fail(case)
+                sys.stdout.write('{}\n'.format(traceback.format_exc()))
+
+        if self._failed_cases:
+            self._test_fail()
 
 
 class ComponentTestCase(object):

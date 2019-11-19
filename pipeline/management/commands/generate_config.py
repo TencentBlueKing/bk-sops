@@ -65,7 +65,7 @@ class Command(BaseCommand):
             if not os.path.exists(path):
                 os.makedirs(path)
 
-        for target_path, template_name in self.configs.items():
+        for target_path, template_name in list(self.configs.items()):
             dirname = os.path.dirname(target_path)
             if not os.path.exists(dirname):
                 try:

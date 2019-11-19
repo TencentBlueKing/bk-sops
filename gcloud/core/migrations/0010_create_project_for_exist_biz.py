@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from __future__ import unicode_literals
 
 from django.db import migrations
 
@@ -40,7 +39,7 @@ def forward_func(apps, schema_editor):
         biz_maintainers.setdefault(membership['business__cc_id'], []).append(membership['group__user__username'])
 
     # sort maintainer list
-    for cc_id in biz_maintainers.keys():
+    for cc_id in list(biz_maintainers.keys()):
         biz_maintainers[cc_id].sort()
 
     for business in active_business:

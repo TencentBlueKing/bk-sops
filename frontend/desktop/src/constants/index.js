@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import '@/utils/i18n.js'
 const TASK_STATE_DICT = {
     'CREATED': gettext('未执行'),
     'RUNNING': gettext('执行中'),
@@ -30,6 +31,8 @@ const NODE_DICT = {
     'tasknode': gettext('标准插件节点'),
     'subflow': gettext('子流程节点')
 }
+
+const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK']
 
 // 最大长度常量
 const TEMPLATE_NAME_MAX_LENGTH = 50
@@ -72,4 +75,4 @@ const PERIODIC_REG = /^((\*\/)?(([0-5]?\d[,-/])*([0-5]?\d))|\*)[ ]((\*\/)?(([0]?
 const URL_REG= new RegExp('^(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]$')
 /* eslint-enable */
 
-export { TASK_STATE_DICT, NODE_DICT, NAME_REG, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }
+export { TASK_STATE_DICT, NODE_DICT, SYSTEM_GROUP_ICON, NAME_REG, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }

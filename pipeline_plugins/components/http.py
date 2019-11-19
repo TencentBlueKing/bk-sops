@@ -29,7 +29,7 @@ def http_do(method, url, params, logger):
         resp = getattr(requests, method)(url, data=json.dumps(params))
     except Exception as e:
         logger.error(traceback.format_exc())
-        return False, {'result': False, 'message': e.message}
+        return False, {'result': False, 'message': str(e)}
 
     if not resp.ok:
         return False, {'result': False, 'message': 'request error, status code: {}'.format(resp.status_code)}
@@ -38,6 +38,6 @@ def http_do(method, url, params, logger):
         json_data = resp.json()
     except Exception as e:
         logger.error(traceback.format_exc())
-        return False, {'result': False, 'message': e.message}
+        return False, {'result': False, 'message': str(e)}
 
     return True, json_data

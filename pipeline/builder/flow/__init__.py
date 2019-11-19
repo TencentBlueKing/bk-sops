@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from activity import *  # noqa
-from event import *  # noqa
-from gateway import *  # noqa
-from data import *  # noqa
+from .activity import *  # noqa
+from .event import *  # noqa
+from .gateway import *  # noqa
+from .data import *  # noqa

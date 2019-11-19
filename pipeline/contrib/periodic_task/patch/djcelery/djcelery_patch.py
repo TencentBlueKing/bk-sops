@@ -36,7 +36,7 @@ def djcelry_upgrade():
 
     # djcelery upgrate compatible
     # if djcelery version > 3.1.x
-    if djcelery.__version__.split('.')[1] >= 2:
+    if int(djcelery.__version__.split('.')[1]) >= 2:
         with connection.cursor() as cursor:
             cursor.execute('show tables;')
             tables = {item[0] for item in cursor.fetchall()}
@@ -138,10 +138,11 @@ def delete_task(cls, name):
     DjCeleryPeriodicTask._default_manager.get(name=name).delete()
 
 
-DatabaseScheduler.Entry = TzAwareModelEntry
-DatabaseScheduler.Model = DjCeleryPeriodicTask
-DatabaseScheduler.Changes = DjCeleryPeriodicTasks
-DatabaseScheduler.create_or_update_task = create_or_update_task
-DatabaseScheduler.delete_task = delete_task
+def patch():
+    DatabaseScheduler.Entry = TzAwareModelEntry
+    DatabaseScheduler.Model = DjCeleryPeriodicTask
+    DatabaseScheduler.Changes = DjCeleryPeriodicTasks
+    DatabaseScheduler.create_or_update_task = create_or_update_task
+    DatabaseScheduler.delete_task = delete_task
 
-djcelry_upgrade()
+    djcelry_upgrade()

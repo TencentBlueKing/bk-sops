@@ -41,7 +41,7 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
         'outputs': [key for key in pipeline_tree.pop('outputs')],
     }
 
-    for act_id, act in pipeline_tree['activities'].items():
+    for act_id, act in list(pipeline_tree['activities'].items()):
         if act['type'] == 'ServiceActivity':
             act_data = act['component'].pop('data')
             # for key, info in act_data.items():
@@ -49,12 +49,12 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
 
             all_inputs = calculate_constants_type(act_data,
                                                   classification['data_inputs'])
-            act['component']['inputs'] = {key: value for key, value in all_inputs.items() if key in act_data}
+            act['component']['inputs'] = {key: value for key, value in list(all_inputs.items()) if key in act_data}
             act['component']['global_outputs'] = classification['acts_outputs'].get(act_id, {})
         elif act['type'] == 'SubProcess':
             parent_params = {}
             act_constants = {}
-            for key, info in act['pipeline']['constants'].items():
+            for key, info in list(act['pipeline']['constants'].items()):
                 act_constants[key] = info
                 if info['show_type'] == 'show':
                     references = ConstantTemplate(info['value']).get_reference()
@@ -65,13 +65,13 @@ def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
             act['params'] = parent_params
             act['pipeline'] = format_web_data_to_pipeline(act['pipeline'], is_subprocess=True)
         else:
-            raise exceptions.FlowTypeError(u"Unknown Activity type: %s" %
+            raise exceptions.FlowTypeError("Unknown Activity type: %s" %
                                            act['type'])
 
-    for act in pipeline_tree['activities'].values():
+    for act in list(pipeline_tree['activities'].values()):
         format_node_io_to_list(act, o=False)
 
-    for gateway in pipeline_tree['gateways'].values():
+    for gateway in list(pipeline_tree['gateways'].values()):
         format_node_io_to_list(gateway, o=False)
 
     format_node_io_to_list(pipeline_tree['end_event'], o=False)
@@ -88,7 +88,7 @@ def classify_constants(constants, is_subprocess):
     acts_outputs = {}
     # 需要在父流程中解析的变量
     params = {}
-    for key, info in constants.items():
+    for key, info in list(constants.items()):
         # 显示的变量可以引用父流程 context，通过 param 传参
         if info['show_type'] == 'show':
             info['is_param'] = True
@@ -100,8 +100,8 @@ def classify_constants(constants, is_subprocess):
 
         # 输出参数
         if info['source_type'] == 'component_outputs':
-            source_key = info['source_info'].values()[0][0]
-            source_step = info['source_info'].keys()[0]
+            source_key = list(info['source_info'].values())[0][0]
+            source_step = list(info['source_info'].keys())[0]
             data_inputs[key] = {
                 'type': 'splice',
                 'source_act': source_step,
@@ -140,7 +140,7 @@ def calculate_constants_type(to_calculate, calculated):
     @return:
     """
     data = copy.deepcopy(calculated)
-    for key, info in to_calculate.items():
+    for key, info in list(to_calculate.items()):
         ref = ConstantTemplate(info['value']).get_reference()
         if ref:
             constant_type = 'splice'

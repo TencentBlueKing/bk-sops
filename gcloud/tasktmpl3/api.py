@@ -28,7 +28,7 @@ from auth_backend.plugins.shortcuts import (
     verify_or_return_insufficient_perms
 )
 
-from pipeline_web.drawing import CANVAS_WIDTH
+from pipeline_web.drawing import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing import draw_pipeline as draw_pipeline_tree
 
 from gcloud.conf import settings
@@ -38,6 +38,7 @@ from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
@@ -96,7 +97,7 @@ def collect(request, project_id):
 
     if template_list:
         if len(template_list) > 10:
-            return JsonResponse({'result': False, 'message': u"template list must not larger than 10"})
+            return JsonResponse({'result': False, 'message': "template list must not larger than 10"})
         user_model = get_user_model()
         user = user_model.objects.get(username=request.user.username)
         try:
@@ -112,7 +113,7 @@ def collect(request, project_id):
             user.tasktemplate_set.remove(*collected_template)
             user.tasktemplate_set.add(*templates)
         except Exception as e:
-            message = u"collect template error: %s" % e
+            message = "collect template error: %s" % e
             ctx = {'result': False, 'message': message}
         else:
             ctx = {'result': True, 'data': ''}
@@ -124,28 +125,31 @@ def collect(request, project_id):
             collected_template = user.tasktemplate_set.filter(project_id=project_id)
             user.tasktemplate_set.remove(*collected_template)
         except Exception as e:
-            message = u"collect template error: %s" % e
+            message = "collect template error: %s" % e
             ctx = {'result': False, 'message': message}
         else:
             ctx = {'result': True, 'data': ''}
         return JsonResponse(ctx)
 
 
-@require_GET
+@require_POST
 def export_templates(request, project_id):
-    try:
-        template_id_list = json.loads(request.GET.get('template_id_list'))
-    except Exception:
-        return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+    data = json.loads(request.body)
+    template_id_list = data['template_id_list']
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
 
+    if not template_id_list:
+        return JsonResponse({'result': False, 'message': 'template_id_list can not be empty'})
+
     templates = TaskTemplate.objects.filter(id__in=template_id_list, project_id=project_id, is_deleted=False)
     perms_tuples = [(task_template_resource, [task_template_resource.actions.view.id], t) for t in templates]
-    batch_verify_or_raise_auth_failed(principal_type='user',
-                                      principal_id=request.user.username,
-                                      perms_tuples=perms_tuples)
+    batch_verify_or_raise_auth_failed(
+        principal_type='user',
+        principal_id=request.user.username,
+        perms_tuples=perms_tuples
+    )
 
     # wash
     try:
@@ -160,15 +164,16 @@ def export_templates(request, project_id):
     except FlowExportError as e:
         return JsonResponse({
             'result': False,
-            'message': e.message
+            'message': str(e)
         })
 
-    digest = hashlib.md5(json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).hexdigest()
+    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode('utf-8')
+    digest = hashlib.md5(data_string).hexdigest()
 
     file_data = base64.b64encode(json.dumps({
         'template_data': templates_data,
         'digest': digest
-    }, sort_keys=True))
+    }, sort_keys=True).encode('utf-8'))
     filename = 'bk_sops_%s_%s.dat' % (project_id, time_now_str())
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename=%s' % filename
@@ -217,7 +222,7 @@ def import_templates(request, project_id):
                                       perms_tuples=perms_tuples)
 
     try:
-        result = TaskTemplate.objects.import_templates(templates_data, override, project_id)
+        result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({
@@ -289,7 +294,7 @@ def import_preset_template_and_replace_job_id(request, project_id):
     replace_job_relate_id_in_templates_data(job_id_map, templates_data)
 
     try:
-        result = TaskTemplate.objects.import_templates(templates_data, False, project_id)
+        result = TaskTemplate.objects.import_templates(templates_data, False, project_id, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({
@@ -322,11 +327,11 @@ def replace_all_templates_tree_node_id(request):
 @require_GET
 def get_template_count(request, project_id):
     group_by = request.GET.get('group_by', 'category')
-    result_dict = check_and_rename_params('{}', group_by)
+    result_dict = check_and_rename_params({}, group_by)
     if not result_dict['success']:
         return JsonResponse({'result': False, 'message': result_dict['content']})
     filters = {'is_deleted': False, 'project_id': project_id}
-    success, content = TaskTemplate.objects.extend_classified_count(result_dict['group_by'], filters)
+    success, content = task_template.dispatch(result_dict['group_by'], filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})
@@ -356,10 +361,10 @@ def job_id_map_convert(origin_id_maps):
 
 
 def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
-    for template in templates_data['pipeline_template_data']['template'].values():
+    for template in list(templates_data['pipeline_template_data']['template'].values()):
 
         # for each act in template
-        for act in filter(lambda act: act['type'] == 'ServiceActivity', template['tree']['activities'].values()):
+        for act in [act for act in list(template['tree']['activities'].values()) if act['type'] == 'ServiceActivity']:
             act_comp = act['component']
             constants = template['tree']['constants']
 
@@ -398,8 +403,12 @@ def draw_pipeline(request):
         message = 'json loads pipeline_tree error: %s' % e
         logger.exception(e)
         return JsonResponse({'result': False, 'message': message})
+    kwargs = {'canvas_width': canvas_width}
+    for kw in list(POSITION.keys()):
+        if kw in params:
+            kwargs[kw] = params[kw]
     try:
-        draw_pipeline_tree(pipeline_tree, canvas_width=canvas_width)
+        draw_pipeline_tree(pipeline_tree, **kwargs)
     except Exception as e:
         message = 'draw pipeline_tree error: %s' % e
         logger.exception(e)

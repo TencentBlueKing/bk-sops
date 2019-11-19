@@ -15,9 +15,7 @@ import abc
 from collections import Mapping
 
 
-class DataItem(object):
-    __metaclass__ = abc.ABCMeta
-
+class DataItem(object, metaclass=abc.ABCMeta):
     def __init__(self, name, key, type, schema=None):
         self.name = name
         self.key = key
@@ -48,9 +46,7 @@ class OutputItem(DataItem):
     pass
 
 
-class ItemSchema(object):
-    __metaclass__ = abc.ABCMeta
-
+class ItemSchema(object, metaclass=abc.ABCMeta):
     def __init__(self, description, enum=None):
         self.type = self._type()
         self.description = description
@@ -68,8 +64,8 @@ class ItemSchema(object):
         raise NotImplementedError()
 
 
-class SimpleItemSchema(ItemSchema):
-    __metaclass__ = abc.ABCMeta
+class SimpleItemSchema(ItemSchema, metaclass=abc.ABCMeta):
+    pass
 
 
 class IntItemSchema(SimpleItemSchema):
@@ -118,7 +114,7 @@ class ObjectItemSchema(ItemSchema):
         if not isinstance(property_schemas, Mapping):
             raise TypeError('property_schemas of ObjectItemSchema must be Mapping type')
 
-        if not all([isinstance(value, ItemSchema) for value in property_schemas.values()]):
+        if not all([isinstance(value, ItemSchema) for value in list(property_schemas.values())]):
             raise TypeError('value in property_schemas of ObjectItemSchema must be subclass of ItemSchema')
 
         self.property_schemas = property_schemas
@@ -126,7 +122,7 @@ class ObjectItemSchema(ItemSchema):
 
     def as_dict(self):
         base = super(ObjectItemSchema, self).as_dict()
-        properties = {prop: schema.as_dict() for prop, schema in self.property_schemas.items()}
+        properties = {prop: schema.as_dict() for prop, schema in list(self.property_schemas.items())}
         base['properties'] = properties
         return base
 

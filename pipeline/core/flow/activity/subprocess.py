@@ -28,7 +28,7 @@ class SubProcess(Activity):
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
     def __setstate__(self, state):
-        for attr, obj in state.items():
+        for attr, obj in list(state.items()):
             setattr(self, attr, obj)
 
         if '_prepared_inputs' not in state:

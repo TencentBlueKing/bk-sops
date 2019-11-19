@@ -116,6 +116,10 @@ class TaskFlowInstanceResource(GCloudModelResource):
         attribute='is_finished',
         readonly=True,
         null=True)
+    is_revoked = fields.BooleanField(
+        attribute='is_revoked',
+        readonly=True,
+        null=True)
     creator_name = fields.CharField(
         attribute='creator_name',
         readonly=True,
@@ -177,18 +181,23 @@ class TaskFlowInstanceResource(GCloudModelResource):
             if 'description' in bundle.data:
                 pipeline_instance_kwargs['description'] = bundle.data.pop('description')
         except (KeyError, ValueError) as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         # XSS handle
         self.handle_task_name_attr(pipeline_instance_kwargs)
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'])
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
+
+        try:
+            project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
+        except NotFound:
+            raise BadRequest('project with uri(%s) does not exist' % bundle.data.get('project'))
 
         if template_source == PROJECT:
             try:
-                template = TaskTemplate.objects.get(pk=template_id)
+                template = TaskTemplate.objects.get(pk=template_id, project=project, is_deleted=False)
             except TaskTemplate.DoesNotExist:
                 raise BadRequest('template[pk=%s] does not exist' % template_id)
 
@@ -216,15 +225,9 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
         else:
             try:
-                template = CommonTemplate.objects.get(pk=str(template_id),
-                                                      is_deleted=False)
+                template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
             except CommonTemplate.DoesNotExist:
                 raise BadRequest('common template[pk=%s] does not exist' % template_id)
-
-            try:
-                project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
-            except NotFound:
-                raise BadRequest('project with uri(%s) does not exist' % bundle.data.get('project'))
 
             perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
                             (common_template_resource, [common_template_resource.actions.create_task.id], template)]
@@ -238,7 +241,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 **pipeline_instance_kwargs
             )
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         kwargs['category'] = template.category
         if bundle.data['flow_type'] == 'common_func':
             kwargs['current_flow'] = 'func_claim'
@@ -257,6 +260,6 @@ class TaskFlowInstanceResource(GCloudModelResource):
         raw_state = taskflow.raw_state
 
         if raw_state and raw_state not in states.ARCHIVED_STATES:
-            raise BadRequest(_(u"无法删除未进入完成或撤销状态的流程"))
+            raise BadRequest(_("无法删除未进入完成或撤销状态的流程"))
 
         return super(TaskFlowInstanceResource, self).obj_delete(bundle, **kwargs)

@@ -34,7 +34,7 @@ def sync_projects_from_cmdb(username, use_cache=True):
     active_biz_cc_ids = set()
 
     for biz in biz_list:
-        if biz['bk_biz_name'] == u"资源池":
+        if biz['bk_biz_name'] == "资源池":
             continue
 
         biz_cc_id = biz['bk_biz_id']
@@ -85,8 +85,12 @@ def get_default_project_for_user(username):
     try:
         project = UserDefaultProject.objects.get(username=username).default_project
     except UserDefaultProject.DoesNotExist:
-        resources_perms = search_all_resources_authorized_actions(username, project_resource.rtype, project_resource,
-                                                                  action_ids=[project_resource.actions.view.id])
+        resources_perms = search_all_resources_authorized_actions(
+            username=username,
+            resource_type=project_resource.rtype,
+            auth_resource=project_resource,
+            action_ids=[project_resource.actions.view.id]
+        )
         if resources_perms:
-            project = Project.objects.filter(id__in=resources_perms.keys()).first()
+            project = Project.objects.filter(id__in=list(resources_perms.keys())).first()
     return project
