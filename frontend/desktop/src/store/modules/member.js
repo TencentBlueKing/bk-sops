@@ -14,11 +14,15 @@ import api from '@/api/index.js'
 const member = {
     namespaced: true,
     state: {
-        memberlist: []
+        memberlist: [],
+        isLoading: false
     },
     mutations: {
         setMemberList (state, data) {
             state.memberlist = data
+        },
+        setLoading (state, data) {
+            state.isLoading = data
         }
     },
     actions: {

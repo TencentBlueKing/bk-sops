@@ -12,7 +12,7 @@
 <template>
     <bk-tag-input
         v-model="setValue"
-        v-bkloading="{ isLoading: loading, opacity: 0.8 }"
+        v-bkloading="{ isLoading: isLoading, opacity: 0.8 }"
         :list="displayList"
         :placeholder="placeholder"
         :has-delete-icon="hasDeleteIcon"
@@ -28,6 +28,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     export default {
         name: 'MemberSelect',
@@ -74,12 +75,12 @@
         },
         data () {
             return {
-                loading: false
             }
         },
         computed: {
             ...mapState({
-                'memberlist': state => state.member.memberlist
+                'memberlist': state => state.member.memberlist,
+                'isLoading': state => state.member.isLoading
             }),
             setValue: {
                 get () {
@@ -104,7 +105,8 @@
                 'loadMemberList'
             ]),
             ...mapMutations('member/', [
-                'setMemberList'
+                'setMemberList',
+                'setLoading'
             ]),
             initData () {
                 switch (this.type) {
@@ -128,11 +130,15 @@
                 this.$emit('remove', tag)
             },
             async getUserData () {
-                if (this.memberlist && this.memberlist.length === 0) {
-                    this.loading = true
-                    const result = await this.loadMemberList()
-                    this.loading = false
-                    this.setMemberList(result.data)
+                try {
+                    if (this.memberlist && this.memberlist.length === 0 && !this.isLoading) {
+                        this.setLoading(true)
+                        const result = await this.loadMemberList()
+                        this.setLoading(false)
+                        this.setMemberList(result.data)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
                 }
             },
             // 暂未支持邮件组
