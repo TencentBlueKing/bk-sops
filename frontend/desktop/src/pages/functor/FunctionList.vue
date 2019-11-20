@@ -14,78 +14,20 @@
         <div class="list-wrapper">
             <base-title :title="i18n.functorList"></base-title>
             <div class="operation-area clearfix">
-                <bk-button theme="primary" class="task-create-btn" @click="onCreateTask">{{i18n.new}}</bk-button>
-                <AdvanceSearch
-                    v-model="searchStr"
-                    :input-placeholader="i18n.placeholder"
-                    @onShow="onAdvanceShow"
-                    @input="onSearchInput">
-                </AdvanceSearch>
-            </div>
-            <div class="functor-search" v-show="isAdvancedSerachShow">
-                <fieldset class="functor-fieldset">
-                    <div class="functor-query-content">
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.ownBusiness}}</span>
-                            <bk-select
-                                v-model="selectedProject"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.choice"
-                                :clearable="true"
-                                @selected="onSelectProject">
-                                <bk-option
-                                    v-for="(option, index) in business.list"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.billTime}}</span>
-                            <bk-date-picker
-                                ref="bkRanger"
-                                :placeholder="i18n.dateRange"
-                                :type="'daterange'"
-                                @change="onChangeExecuteTime">
-                            </bk-date-picker>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.creator}}</span>
-                            <bk-input
-                                v-model="creator"
-                                class="bk-input-inline"
-                                :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
-                            </bk-input>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.status}}</span>
-                            <bk-select
-                                v-model="statusSync"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.statusPlaceholder"
-                                :clearable="true"
-                                @clear="onClearStatus"
-                                @selected="onSelectedStatus">
-                                <bk-option
-                                    v-for="(option, index) in statusList"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-button">
-                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
-                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
-                        </div>
-                    </div>
-                </fieldset>
+                <advance-search-form
+                    :search-config="{ placeholder: i18n.placeholder }"
+                    :search-form="searchForm"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                    <template v-slot:operation>
+                        <bk-button
+                            theme="primary"
+                            class="task-create-btn"
+                            @click="onCreateTask">
+                            {{i18n.new}}
+                        </bk-button>
+                    </template>
+                </advance-search-form>
             </div>
             <div class="functor-table-content">
                 <bk-table
@@ -275,16 +217,52 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
+    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
-
+    const searchForm = [
+        {
+            type: 'select',
+            label: gettext('所属项目'),
+            key: 'selectedProject',
+            loading: false,
+            placeholder: gettext('请选择项目'),
+            list: []
+        },
+        {
+            type: 'dateRange',
+            key: 'executeTime',
+            placeholder: gettext('选择日期时间范围'),
+            label: gettext('提单时间'),
+            value: []
+        },
+        {
+            type: 'input',
+            key: 'creator',
+            label: gettext('提单人'),
+            placeholder: gettext('请输入提单人'),
+            value: ''
+        },
+        {
+            type: 'select',
+            label: gettext('状态'),
+            key: 'statusSync',
+            loading: false,
+            placeholder: gettext('请选择状态'),
+            list: [
+                { 'value': 'submitted', 'name': gettext('未认领') },
+                { 'value': 'claimed', 'name': gettext('已认领') },
+                { 'value': 'executed', 'name': gettext('已执行') },
+                { 'value': 'finished', 'name': gettext('完成') }
+            ]
+        }
+    ]
     export default {
         name: 'functionHome',
         components: {
             CopyrightFooter,
-            AdvanceSearch,
+            AdvanceSearchForm,
             BaseTitle,
             NoData
         },
@@ -299,10 +277,8 @@
                     taskId: gettext('任务ID'),
                     createdTime: gettext('提单时间'),
                     claimedTime: gettext('认领时间'),
-                    ownBusiness: gettext('所属项目'),
                     finishedTime: gettext('执行结束'),
                     name: gettext('任务名称'),
-                    billTime: gettext('提单时间'),
                     billTimePlaceholder: gettext('请选择时间'),
                     creator: gettext('提单人'),
                     claimant: gettext('认领人'),
@@ -317,22 +293,17 @@
                     total: gettext('共'),
                     item: gettext('条记录'),
                     comma: gettext('，'),
-                    choice: gettext('请选择'),
                     currentPageTip: gettext('当前第'),
                     page: gettext('页'),
                     functorType: gettext('任务分类'),
                     functorTypePlaceholder: gettext('请选择分类'),
-                    creatorPlaceholder: gettext('请输入提单人'),
                     query: gettext('搜索'),
                     reset: gettext('清空'),
-                    dateRange: gettext('选择日期时间范围'),
                     confirm: gettext('确认'),
                     cancel: gettext('取消')
                 },
                 listLoading: true,
-                selectedProject: '',
                 functorSync: 0,
-                statusSync: '',
                 searchStr: undefined,
                 isShowNewTaskDialog: false,
                 functorBasicInfoLoading: true,
@@ -362,23 +333,16 @@
                     empty: false,
                     disabled: false
                 },
-                projectId: undefined,
-                billTime: undefined,
-                creator: undefined,
-                executeStartTime: undefined,
-                executeEndTime: undefined,
-                isStarted: undefined,
-                isFinished: undefined,
                 isCommonTemplate: false,
-                isAdvancedSerachShow: false,
                 status: undefined,
                 functorCategory: [],
-                statusList: [
-                    { 'id': 'submitted', 'name': gettext('未认领') },
-                    { 'id': 'claimed', 'name': gettext('已认领') },
-                    { 'id': 'executed', 'name': gettext('已执行') },
-                    { 'id': 'finished', 'name': gettext('完成') }
-                ],
+                requestData: {
+                    selectedProject: '',
+                    executeTime: [],
+                    creator: '',
+                    statusSync: '',
+                    flowName: ''
+                },
                 pagination: {
                     current: 1,
                     count: 0,
@@ -403,6 +367,11 @@
             hasConfirmPerm () {
                 const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
                 return this.hasPermission(['create_task'], this.tplAction, authOperations)
+            },
+            searchForm () {
+                const value = searchForm
+                value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
+                return value
             }
         },
         created () {
@@ -426,23 +395,22 @@
             async loadFunctionTask () {
                 this.listLoading = true
                 try {
+                    const { selectedProject, executeTime, creator, statusSync, flowName } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        task__pipeline_instance__name__contains: this.searchStr,
-                        creator: this.creator || undefined,
-                        pipeline_instance__is_started: this.isStarted,
-                        pipeline_instance__is_finished: this.isFinished,
-                        project__id: this.projectId,
-                        status: this.status
+                        task__pipeline_instance__name__contains: flowName || undefined,
+                        creator: creator || undefined,
+                        project__id: selectedProject || undefined,
+                        status: statusSync || undefined
                     }
-                    if (this.executeEndTime) {
+                    if (executeTime[0] && executeTime[1]) {
                         if (this.common) {
-                            data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
-                            data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['create_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
-                            data['create_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                            data['create_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
+                            data['create_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
@@ -461,7 +429,8 @@
                 this.pagination.current = page
                 this.loadFunctionTask()
             },
-            searchInputhandler () {
+            searchInputhandler (data) {
+                this.requestData.flowName = data
                 this.pagination.current = 1
                 this.loadFunctionTask()
             },
@@ -534,12 +503,6 @@
                 } finally {
                     this.template.loading = false
                 }
-            },
-            onSelectProject (id) {
-                if (this.projectId === id) {
-                    return
-                }
-                this.projectId = id
             },
             onSelectedBusiness (id, data) {
                 this.business.id = id
@@ -632,33 +595,13 @@
                 this.template.name = ''
                 this.template.disabled = true
             },
-            onAdvanceShow () {
-                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-            },
-            onChangeExecuteTime (Value) {
-                this.executeStartTime = Value[0]
-                this.executeEndTime = Value[1]
-            },
-            onClearStatus () {
-                this.isStarted = undefined
-                this.isFinished = undefined
-            },
-            onResetForm () {
-                this.status = undefined
-                this.creator = undefined
-                this.statusSync = ''
-                this.selectedProject = 0
-                this.funtorSync = 0
-                this.executeStartTime = undefined
-                this.executeEndTime = undefined
-                this.searchInputhandler()
-            },
-            onSelectedStatus (id, name) {
-                this.status = id
-            },
             onTaskPermissonCheck (required, template, event) {
                 this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
                 event.preventDefault()
+            },
+            onSearchFormSubmit (data) {
+                this.requestData = data
+                this.loadFunctionTask()
             }
         }
     }
@@ -687,92 +630,7 @@
 .advanced-search {
     margin: 0;
 }
-.functor-fieldset {
-    width: 100%;
-    margin-bottom: 20px;
-    padding: 8px;
-    border: 1px solid $commonBorderColor;
-    background: #fff;
-    .functor-query-content {
-        display: flex;
-        flex-wrap: wrap;
-        .query-content {
-            min-width: 420px;
-            padding: 10px;
-            @media screen and (max-width: 1420px){
-                min-width: 380px;
-            }
-            .query-span {
-                float: left;
-                min-width: 130px;
-                margin-right: 12px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                text-align: right;
-                @media screen and (max-width: 1420px){
-                    min-width: 100px;
-                }
-            }
-            input {
-                max-width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            input::-webkit-input-placeholder{
-                color: $formBorderColor;
-            }
-            input:-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input::-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input:-ms-input-placeholder {
-                color: $formBorderColor;
-            }
-            input{
-                min-width: 260px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 10px 0 10px;
-                font-size: 14px;
-                border: 1px solid $commonBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                    & + i {
-                        color: $blueDefault;
-                    }
-                }
-            }
-            .bk-selector-search-item > input {
-                min-width: 249px;
-            }
-        }
-        .query-button {
-            padding: 10px;
-            min-width: 450px;
-            @media screen and (max-width: 1420px) {
-                min-width: 390px;
-            }
-            text-align: center;
-            .query-cancel {
-                margin-left: 5px;
-            }
-            .bk-button {
-                height: 32px;
-                line-height: 32px;
-            }
-        }
-    }
-}
+
 .functor-table-content {
     background: #ffffff;
     a.task-name {
