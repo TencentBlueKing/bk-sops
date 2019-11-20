@@ -113,7 +113,7 @@ TRANSFER_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={'ex_data': u'调用配置平台(CMDB)接口cc.transfer_host_to_fault_module返回失败, '
-                            u'params={"bk_biz_id": 2, "bk_host_id": [2, 3]}, error=message token'}),
+                            u'params={"bk_biz_id":2,"bk_host_id":[2,3]}, error=message token'}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call('executor_token', 2, ['1.1.1.1', '2.2.2.2'], 0)]),
