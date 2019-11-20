@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-11-12 10:58+0800\n"
+"POT-Creation-Date: 2019-11-20 16:26+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -177,7 +177,7 @@ msgid "流程超时时间(分钟)"
 msgstr "流程超时时间(分钟)"
 
 #: gcloud/commons/template/models.py:199 gcloud/contrib/appmaker/models.py:272
-#: gcloud/taskflow3/models.py:790 pipeline/models.py:284
+#: gcloud/taskflow3/models.py:791 pipeline/models.py:284
 msgid "是否删除"
 msgstr "是否删除"
 
@@ -291,7 +291,7 @@ msgid "删除失败：%s"
 msgstr "删除失败：%s"
 
 #: gcloud/contrib/appmaker/models.py:259 gcloud/periodictask/models.py:83
-#: gcloud/taskflow3/models.py:765 gcloud/tasktmpl3/models.py:363
+#: gcloud/taskflow3/models.py:766 gcloud/tasktmpl3/models.py:363
 msgid "所属项目"
 msgstr "所属项目"
 
@@ -830,7 +830,7 @@ msgstr "部署自动触发"
 msgid "执行者"
 msgstr "执行者"
 
-#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:779
+#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:780
 msgid "创建方式"
 msgstr "创建方式"
 
@@ -860,11 +860,11 @@ msgstr "远程包源同步任务 SyncTask"
 msgid "pipeline 层周期任务"
 msgstr "pipeline 层周期任务"
 
-#: gcloud/periodictask/models.py:88 gcloud/taskflow3/models.py:775
+#: gcloud/periodictask/models.py:88 gcloud/taskflow3/models.py:776
 msgid "创建任务所用的模板ID"
 msgstr "创建任务所用的模板ID"
 
-#: gcloud/periodictask/models.py:89 gcloud/taskflow3/models.py:776
+#: gcloud/periodictask/models.py:89 gcloud/taskflow3/models.py:777
 msgid "流程模板来源"
 msgstr "流程模板来源"
 
@@ -978,23 +978,23 @@ msgstr "任务名称"
 msgid "未执行"
 msgstr "未执行"
 
-#: gcloud/taskflow3/models.py:773
+#: gcloud/taskflow3/models.py:774
 msgid "任务类型，继承自模板"
 msgstr "任务类型，继承自模板"
 
-#: gcloud/taskflow3/models.py:783
+#: gcloud/taskflow3/models.py:784
 msgid "创建任务额外信息（App maker ID或者APP CODE）"
 msgstr "创建任务额外信息（App maker ID或者APP CODE）"
 
-#: gcloud/taskflow3/models.py:785
+#: gcloud/taskflow3/models.py:786
 msgid "任务流程类型"
 msgstr "任务流程类型"
 
-#: gcloud/taskflow3/models.py:789
+#: gcloud/taskflow3/models.py:790
 msgid "当前任务流程阶段"
 msgstr "当前任务流程阶段"
 
-#: gcloud/taskflow3/models.py:798 gcloud/taskflow3/models.py:799
+#: gcloud/taskflow3/models.py:799 gcloud/taskflow3/models.py:800
 msgid "流程实例 TaskFlowInstance"
 msgstr "流程实例 TaskFlowInstance"
 
@@ -1922,7 +1922,7 @@ msgstr "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 #: pipeline_plugins/components/collections/sites/open/job.py:149
 #: pipeline_plugins/components/collections/sites/open/job.py:338
 #: pipeline_plugins/components/collections/sites/open/job.py:461
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:218
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:216
 msgid "业务 ID"
 msgstr "业务 ID"
 
@@ -2015,7 +2015,7 @@ msgstr "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当�
 #: pipeline_plugins/components/collections/sites/open/job.py:152
 #: pipeline_plugins/components/collections/sites/open/job.py:341
 #: pipeline_plugins/components/collections/sites/open/job.py:464
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:221
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:219
 msgid "当前操作所属的 CMDB 业务 ID"
 msgstr "当前操作所属的 CMDB 业务 ID"
 
@@ -2494,131 +2494,131 @@ msgstr "新建定时作业"
 msgid "分发本地文件"
 msgstr "分发本地文件"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:35
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:33
 msgid "节点管理(Nodeman)"
 msgstr "节点管理(Nodeman)"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:76
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:73
 msgid "conn_ips 为空或输入格式错误"
 msgstr "conn_ips 为空或输入格式错误"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:156
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:152
 msgid "查询失败，未能获得任务执行结果"
 msgstr "查询失败，未能获得任务执行结果"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:179
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:177
 msgid "日志信息为："
 msgstr "日志信息为："
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:189
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:187
 msgid "主机："
 msgstr "主机："
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:191
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:189
 msgid "日志："
 msgstr "日志："
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:202
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:200
 msgid "任务 ID"
 msgstr "任务 ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:205
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:203
 msgid "提交的任务的 job_id"
 msgstr "提交的任务的 job_id"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:206
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:204
 msgid "安装成功个数"
 msgstr "安装成功个数"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:209
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:207
 msgid "任务中安装成功的机器个数"
 msgstr "任务中安装成功的机器个数"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:210
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:208
 msgid "安装失败个数"
 msgstr "安装失败个数"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:213
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:211
 msgid "任务中安装失败的机器个数"
 msgstr "任务中安装失败的机器个数"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:222
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:220
 msgid "云区域 ID"
 msgstr "云区域 ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:225
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:223
 msgid "节点所在云区域 ID"
 msgstr "节点所在云区域 ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:226
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:224
 msgid "节点类型"
 msgstr "节点类型"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:229
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:227
 msgid "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
 msgstr "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:231
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:229
 msgid "操作类型"
 msgstr "操作类型"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:234
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:232
 msgid "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、 UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
 msgstr "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、 UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:236
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:234
 msgid "主机"
 msgstr "主机"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:240
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:238
 msgid "主机所在云区域 ID"
 msgstr "主机所在云区域 ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:242
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:240
 msgid "主机相关信息"
 msgstr "主机相关信息"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:244
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:242
 msgid "主机通信 IP"
 msgstr "主机通信 IP"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:245
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:243
 msgid "主机登录 IP，可以为空，适配复杂网络时填写"
 msgstr "主机登录 IP，可以为空，适配复杂网络时填写"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:246
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:244
 msgid "主机数据 IP，可以为空，适配复杂网络时填写"
 msgstr "主机数据 IP，可以为空，适配复杂网络时填写"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:247
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:245
 msgid "级联 IP, 可以为空，安装 PROXY 时必填"
 msgstr "级联 IP, 可以为空，安装 PROXY 时必填"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:248
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:246
 msgid "操作系统类型，可以是 LINUX, WINDOWS, 或 AIX"
 msgstr "操作系统类型，可以是 LINUX, WINDOWS, 或 AIX"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:249
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:247
 msgid "是否安装了 cygwin，True：表示已安装，False：表示未安装, windows 操作系统时选填"
 msgstr "是否安装了 cygwin，True：表示已安装，False：表示未安装, windows 操作系统时选填"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:251
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:249
 msgid "端口号"
 msgstr "端口号"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:252
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:250
 msgid "登录帐号"
 msgstr "登录帐号"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:253
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:251
 msgid "认证方式，可以是 PASSWORD 或 KEY"
 msgstr "认证方式，可以是 PASSWORD 或 KEY"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:254
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:252
 msgid "认证密钥,根据认证方式，是登录密码或者登陆密钥"
 msgstr "认证密钥,根据认证方式，是登录密码或者登陆密钥"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:261
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:259
 msgid "安装"
 msgstr "安装"
 
