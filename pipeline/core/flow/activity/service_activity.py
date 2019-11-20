@@ -16,7 +16,7 @@ from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema
+from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema, IntItemSchema
 from pipeline.core.flow.activity.base import Activity
 
 
@@ -26,10 +26,16 @@ class Service(object, metaclass=ABCMeta):
     InputItem = InputItem
     OutputItem = OutputItem
     interval = None
-    _result_output = OutputItem(name=_("执行结果"),
-                                key='_result',
-                                type='bool',
-                                schema=BooleanItemSchema(description=_("是否执行成功")))
+    default_outputs = [
+        OutputItem(name=_("执行结果"),
+                   key='_result',
+                   type='bool',
+                   schema=BooleanItemSchema(description=_("是否执行成功"))),
+        OutputItem(name=_("循环次数(起始为0)"),
+                   key='_loop',
+                   type='int',
+                   schema=IntItemSchema(description=_("循环执行次数")))
+    ]
 
     def __init__(self, name=None):
         self.name = name
@@ -52,7 +58,7 @@ class Service(object, metaclass=ABCMeta):
     def outputs(self):
         custom_format = self.outputs_format()
         assert isinstance(custom_format, list)
-        custom_format.append(self._result_output)
+        custom_format += self.default_outputs
         return custom_format
 
     def need_schedule(self):
