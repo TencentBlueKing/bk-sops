@@ -536,8 +536,9 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
+                        const path = this.common ? `/admin/template/edit/` : `/template/edit/${this.project_id}/`
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
+                        this.$router.push({ path, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)

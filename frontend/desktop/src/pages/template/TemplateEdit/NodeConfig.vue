@@ -763,7 +763,7 @@
                     e.clientX > left
                     && e.clientX < right
                     && e.clientY > top
-                    && e.clientX < bottom
+                    && e.clientY < bottom
                 ) {
                     return
                 }
@@ -916,7 +916,8 @@
             },
             onJumpToProcess (index) {
                 const item = this.atomList[index].id
-                const { href } = this.$router.resolve({ path: `/template/edit/${this.project_id}/?template_id=${item}` })
+                const path = this.common ? `/admin/template/edit/?template_id=${item}&common=1` : `/template/edit/${this.project_id}/?template_id=${item}`
+                const { href } = this.$router.resolve({ path })
                 window.open(href, '_blank')
             },
             /**
