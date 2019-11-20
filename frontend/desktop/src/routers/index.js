@@ -305,10 +305,9 @@ const routers = new VueRouter({
                             component: NotFoundComponent
                         },
                         {
-                            path: ':type(edit|new|clone)/:cc_id/',
+                            path: ':type(edit|new|clone)/:id?/',
                             component: TemplateEdit,
                             props: (route) => ({
-                                cc_id: route.params.cc_id,
                                 template_id: route.query.template_id,
                                 type: route.params.type,
                                 common: '1'
