@@ -299,11 +299,22 @@ const api = {
         return request(opts)
     },
     /**
-     * 模板收藏
-     * @param {String} list 模板列表
+     * 获取收藏列表
      */
-    templateCollectSelect (list) {
-        const prefixUrl = this.getPrefix('templateCollect')
+    getCollectList () {
+        const prefixUrl = this.getPrefix('collectList')
+        const opts = {
+            method: 'GET',
+            url: `${prefixUrl}`
+        }
+        return request(opts)
+    },
+    /**
+     * 添加收藏
+     * @param {String} list 列表
+     */
+    collectSelect (list) {
+        const prefixUrl = this.getPrefix('collectList')
         const data = qs.stringify({
             template_list: list
         })
@@ -316,20 +327,15 @@ const api = {
         return request(opts)
     },
     /**
-     * 删除收藏模板
-     * @param {String} template_id 模板id
+     * 删除收藏
+     * @param {String} collect_id 模板id
      */
-    templateCollectDelete (template_id) {
-        const prefixUrl = this.getPrefix('templateCollect')
-        const data = qs.stringify({
-            'method': 'remove',
-            template_id
-        })
+    collectDelete (collect_id) {
+        const prefixUrl = this.getPrefix('collectList') + `${collect_id}/`
         const opts = {
-            method: 'POST',
+            method: 'DELETE',
             url: `${prefixUrl}`,
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data
         }
         return request(opts)
     },
@@ -1209,8 +1215,8 @@ const api = {
         }
         return request(opts)
     },
-    loadTemplateCollectList () {
-        const prefixUrl = this.getPrefix('templateCollectList')
+    loadCollectList () {
+        const prefixUrl = this.getPrefix('loadCollectList')
         const opts = {
             method: 'GET',
             url: prefixUrl

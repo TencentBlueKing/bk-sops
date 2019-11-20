@@ -15,7 +15,7 @@
         :ext-cls="'common-dialog'"
         :title="i18n.title"
         :mask-close="false"
-        :value="isAddCollectionDialogShow"
+        :value="true"
         :header-position="'left'"
         :auto-close="false"
         @confirm="onConfirm"
@@ -120,7 +120,7 @@
                 },
                 {
                     name: gettext('周期任务'),
-                    id: 'per'
+                    id: 'periodic'
                 },
                 {
                     name: gettext('轻应用'),
@@ -153,7 +153,8 @@
                 },
                 selectError: false,
                 collectionPending: false,
-                panelList: [],
+                panelList: [
+                ],
                 selectedList: [],
                 dialogFooterData: [
                     {
@@ -201,15 +202,50 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateCollectList'
+                'loadCollectList'
+            ]),
+            ...mapActions('templateList/', [
+                'loadTemplateList'
             ]),
             async getData () {
                 try {
-                    const list = await this.loadTemplateCollectList()
-                    console.log('list', list)
+                    // const len = this.searchValue.length
+                    // if ( len === 0) {
+                    //     return
+                    // }
+                    // if (len === 1) {
+
+                    // }
+                    // if (this.searchValue.length === 0 && this.searchValue[0].values[0].id === 'common') {
+                    //     this.getTempalteList()
+                    // }
+                    let reqType = 'common'
+                    let projectId
+                    let searchStr
+                    this.searchValue.forEach(value => {
+                        if (value.id === 'type' && value.values[0].id === 'common') reqType = 'common'
+                        if (value.id === 'project') projectId = value.values[0].id
+                    })
+                    switch (reqType) {
+                        case 'common':
+                            this.getTemplateList(true)
+                            break
+                        case 'process':
+                            this.getTemplateList(true)
+                            break
+                        case ''
+                    }
                 } catch (e) {
                     errorHandler(e, this)
                 }
+            },
+            getGroupData (list) {
+                
+            },
+            getTempalteList (common) {
+                return this.loadTemplateList({
+                    common: common || undefined
+                })
             },
             onConfirm () {
                 
