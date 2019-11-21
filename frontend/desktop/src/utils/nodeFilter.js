@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import { uuid } from './uuid.js'
 const nodeFilter = {
     isNodeExisted (type, data) {
         if (type && data) {
@@ -27,11 +28,10 @@ const nodeFilter = {
         })
         return data[nodeIndex].type
     },
-    getNewValidId (id, prefix) {
-        prefix = prefix || '^node|^line'
-        const reg = new RegExp(prefix)
+    getNewValidId (id, prefix = 'temp') {
+        const reg = new RegExp('^[a-zA-Z]+')
         if (!reg.test(id)) {
-            return `${prefix}${id}`
+            return `${prefix}${uuid()}`
         }
         return id
     },
@@ -60,9 +60,6 @@ const nodeFilter = {
                                 for (const conditionId in val) {
                                     const newConditionId = this.getNewValidId(conditionId)
                                     newVal[newConditionId] = val[conditionId]
-                                    newVal[newConditionId].tag = newVal[newConditionId].tag.split('_').map((id, index) => {
-                                        return index > 0 ? this.getNewValidId(id) : id
-                                    }).join('_')
                                 }
                                 newData[newKey][item] = newVal
                             }

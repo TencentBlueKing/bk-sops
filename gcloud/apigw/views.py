@@ -11,10 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
 import sys
 
+import ujson as json
 import jsonschema
 from django.http import JsonResponse
 from django.forms.fields import BooleanField
@@ -243,6 +243,7 @@ def create_task(request, template_id, bk_biz_id):
         pipeline_instance=data,
         category=tmpl.category,
         template_id=template_id,
+        template_source=template_source,
         create_method='api',
         create_info=app_code,
         flow_type=params.get('flow_type', 'common'),

@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 
 import calendar
 import datetime
-import json
 import re
 import logging
 import time
 import pytz
 
+import ujson as json
 from django.core.cache import cache
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model

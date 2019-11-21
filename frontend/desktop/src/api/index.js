@@ -383,10 +383,10 @@ const api = {
             prefixUrl = this.getPrefix('templateExport')
         }
         const opts = {
-            method: 'GET',
+            method: 'POST',
             url: `${prefixUrl}`,
             responseType: 'arraybuffer',
-            params: {
+            data: {
                 template_id_list: list
             }
         }

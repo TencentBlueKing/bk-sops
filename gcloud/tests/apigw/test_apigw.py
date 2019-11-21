@@ -14,8 +14,9 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
 import copy
-import json
 import logging
+
+import ujson as json
 import jsonschema
 
 from django.test import TestCase, Client
@@ -335,6 +336,7 @@ class APITest(TestCase):
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
+                    template_source='business',
                     create_method='api',
                     create_info=TEST_APP_CODE,
                     flow_type='common',
@@ -379,6 +381,7 @@ class APITest(TestCase):
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
+                    template_source='common',
                     create_method='api',
                     create_info=TEST_APP_CODE,
                     flow_type='common',

@@ -368,11 +368,11 @@ class CCReplaceFaultMachineService(Service):
             new_host = host_dict.get(new_ip)
 
             if not fault_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % fault_ip)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
                 return False
 
             if not new_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % new_ip)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % new_ip
                 return False
 
             update_item = {

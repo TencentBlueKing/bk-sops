@@ -11,26 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import base64
-import hmac
-import hashlib
+import logging
 
-import ujson as json
+from celery import task
+
+from gcloud.commons.message import send_task_flow_message
 
 
-def get_signature(method, path, app_secret, params=None, data=None):
-    """generate signature
-    """
-    kwargs = {}
-    if params:
-        kwargs.update(params)
-    if data:
-        data = json.dumps(data) if isinstance(data, dict) else data
-        kwargs['data'] = data
-    kwargs = '&'.join([
-        '%s=%s' % (k, v)
-        for k, v in sorted(kwargs.iteritems(), key=lambda x: x[0])
-    ])
-    orignal = '%s%s?%s' % (method, path, kwargs)
-    signature = base64.b64encode(hmac.new(str(app_secret), orignal, hashlib.sha1).digest())
-    return signature
+logger = logging.getLogger('celery')
+
+
+@task
+def send_taskflow_message(taskflow, msg_type, atom_node_name=''):
+    try:
+        send_task_flow_message(taskflow, msg_type, atom_node_name)
+    except Exception as e:
+        logger.error('send_task_flow_message[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
+    else:
+        logger.info('send_taskflow_message[taskflow_id=%s] task finished' % taskflow.id)

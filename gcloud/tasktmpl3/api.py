@@ -177,16 +177,17 @@ def save_perms(request, biz_cc_id):
     return JsonResponse(ctx)
 
 
-@require_GET
+@require_POST
 @check_user_perm_of_business('manage_business')
 def export_templates(request, biz_cc_id):
-    try:
-        template_id_list = json.loads(request.GET.get('template_id_list'))
-    except Exception:
-        return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+    data = json.loads(request.body)
+    template_id_list = data['template_id_list']
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+
+    if not template_id_list:
+        return JsonResponse({'result': False, 'message': 'template_id_list can not be empty'})
 
     # wash
     try:

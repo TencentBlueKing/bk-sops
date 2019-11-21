@@ -327,10 +327,11 @@
                     })
                 }
                 for (const key in packages) {
+                    const pkg = packages[key]
                     values.push({
                         key: key,
-                        version: packages[key].version,
-                        modules: packages[key].modules.join(',')
+                        version: pkg.version,
+                        modules: Array.isArray(pkg.modules) ? pkg.modules.join(',') : pkg.modules
                     })
                 }
                 return values
@@ -344,7 +345,7 @@
                     if (item.key) {
                         packages[item.key] = {
                             version: item.version,
-                            modules: item.modules
+                            modules: Array.isArray(item.modules) ? item.modules : item.modules.split(',')
                         }
                     }
                 })
@@ -410,15 +411,7 @@
             },
             onPackageInputBlur (e, type, index) {
                 const val = e.target.value
-                if (type === 'key') {
-                    this.packageValues[index].key = val
-                } else if (type === 'version') {
-                    this.packageValues[index].version = val
-                } else {
-                    const modules = val.split(',')
-                    this.packageValues[index].modules = modules
-                }
-
+                this.packageValues[index][type] = val
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
             },
