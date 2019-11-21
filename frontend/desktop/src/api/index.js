@@ -315,9 +315,9 @@ const api = {
      */
     collectSelect (list) {
         const prefixUrl = this.getPrefix('collectList')
-        const data = qs.stringify({
-            template_list: list
-        })
+        const data = {
+            objects: list
+        }
         const opts = {
             method: 'POST',
             url: `${prefixUrl}`,
