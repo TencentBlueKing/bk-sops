@@ -15,12 +15,12 @@
         :ext-cls="'common-dialog'"
         :title="i18n.title"
         :mask-close="false"
-        :value="true"
+        :value="isAddCollectionDialogShow"
         :header-position="'left'"
         :auto-close="false"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
+        <div class="export-container">
             <div class="template-wrapper">
                 <div class="search-wrapper">
                     <bk-search-select
@@ -52,7 +52,7 @@
                                             'template-item',
                                             {
                                                 'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission(['export'], template.auth_actions, tplOperations)
+                                                'permission-disable': !hasPermission(['view'], template.auth_actions, tplOperations)
                                             }
                                         ]"
                                         @click="onSelectTemplate(template)">
@@ -140,7 +140,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['isAddCollectionDialogShow', 'businessInfoLoading', 'projectInfoLoading', 'common', 'pending'],
+        props: ['isAddCollectionDialogShow'],
         data () {
             return {
                 i18n: {
@@ -153,8 +153,8 @@
                 },
                 selectError: false,
                 collectionPending: false,
-                panelList: [
-                ],
+                tplOperations: [],
+                panelList: [],
                 selectedList: [],
                 dialogFooterData: [
                     {
@@ -195,63 +195,140 @@
                 }
             }
         },
-        created () {
-        },
-        mounted () {
-            this.getData()
+        watch: {
+            isAddCollectionDialogShow (val) {
+                if (val) {
+                    this.getData()
+                }
+            }
         },
         methods: {
             ...mapActions('template/', [
-                'loadCollectList'
+                'loadCollectList',
+                'collectSelect'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
+            ...mapActions('appmaker', [
+                'loadAppmaker'
+            ]),
+            ...mapActions('periodic/', [
+                'loadPeriodicList'
+            ]),
             async getData () {
+                this.panelList = []
                 try {
-                    // const len = this.searchValue.length
-                    // if ( len === 0) {
-                    //     return
-                    // }
-                    // if (len === 1) {
-
-                    // }
-                    // if (this.searchValue.length === 0 && this.searchValue[0].values[0].id === 'common') {
-                    //     this.getTempalteList()
-                    // }
-                    let reqType = 'common'
+                    let panelList = []
+                    let reqType = ''
+                    let searchStr = ''
                     let projectId
-                    let searchStr
                     this.searchValue.forEach(value => {
-                        if (value.id === 'type' && value.values[0].id === 'common') reqType = 'common'
-                        if (value.id === 'project') projectId = value.values[0].id
+                        if (value.id === 'type') {
+                            reqType = value.values[0].id
+                        } else if (value.id === 'project') {
+                            projectId = value.values[0].id
+                        } else {
+                            searchStr += value.id
+                        }
                     })
+                    if (reqType !== 'common' && !projectId) {
+                        return false
+                    }
+                    this.collectionPending = true
+                    console.log(reqType, 'reqType')
                     switch (reqType) {
                         case 'common':
-                            this.getTemplateList(true)
+                            panelList = await this.getTemplateList(1, searchStr)
                             break
                         case 'process':
-                            this.getTemplateList(true)
+                            panelList = await this.getTemplateList(false, searchStr, projectId)
                             break
-                        case ''
+                        case 'periodic':
+                            panelList = await this.getPeriodicList(projectId, searchStr)
+                            break
+                        case 'app_maker':
+                            panelList = await this.getAppMakerList(projectId, searchStr)
+                            break
+                        default:
+                            panelList = []
                     }
+                    this.panelList = this.getGroupData(panelList, reqType)
+                    this.collectionPending = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
             },
-            getGroupData (list) {
-                
-            },
-            getTempalteList (common) {
-                return this.loadTemplateList({
-                    common: common || undefined
+            /**
+             * 获取分组后的数组
+             * @param {Boolean}  common 公共流程
+             * @param {Number}  projectId 业务 Id
+             * @param {String}  searchStr 搜索值
+             */
+            async getTemplateList (common, searchStr, projectId) {
+                const data = await this.loadTemplateList({
+                    common: common || undefined,
+                    project__id: projectId || undefined,
+                    pipeline_template__name__contains: searchStr || undefined
                 })
+                this.tplOperations = data.meta.auth_operations
+                return data.objects || []
             },
-            onConfirm () {
-                
+            async getAppMakerList (projectId, searchStr) {
+                const data = await this.loadAppmaker({
+                    project_id: projectId,
+                    q: searchStr || undefined
+                })
+                return data.objects || []
             },
-            onCancel () {
-                this.$emit('onCloseDialog')
+            async getPeriodicList (projectId, searchStr) {
+                const data = await this.loadPeriodicList({
+                    project__id: projectId,
+                    task__name__contains: searchStr || undefined
+                })
+                return data.objects || []
+            },
+            // 分组
+            getGroupData (list, type) {
+                const categorys = []
+                const group = []
+                list.forEach(m => {
+                    m.collectType = type
+                    const index = categorys.indexOf(m.category)
+                    if (index !== -1) {
+                        group[index].children.push(m)
+                    } else {
+                        categorys.push(m.category)
+                        group.push({
+                            name: m.category,
+                            children: [m]
+                        })
+                    }
+                })
+                return group
+            },
+            // 获取 icon
+            getTemplateIcon (template) {
+                return template.name.trim().substr(0, 1).toUpperCase()
+            },
+            // 选择收藏
+            onSelectTemplate (template) {
+                if (this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
+                    this.selectError = false
+                    const tplIndex = this.getTplIndexInSelected(template)
+                    if (tplIndex > -1) {
+                        this.selectedList.splice(tplIndex, 1)
+                    } else {
+                        this.selectedList.push(template)
+                    }
+                } else {
+                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
+                }
+            },
+            // 取消选中
+            deleteTemplate (template) {
+                const tplIndex = this.getTplIndexInSelected(template)
+                this.selectedList.splice(tplIndex, 1)
             },
             /**
              *过滤已选项
@@ -285,9 +362,85 @@
             // 搜索值改变
             onSearchChange (list) {
                 this.filterSelectItem(list)
+                this.getData()
             },
-            getTplIndexInSelected () {
-
+            getTplIndexInSelected (template) {
+                return this.selectedList.findIndex(item => item.id === template.id)
+            },
+            async onConfirm () {
+                if (!this.selectedList.length) {
+                    this.selectError = true
+                    return false
+                }
+                this.dialogFooterData.loading = true
+                let projectId
+                const project = this.searchValue.find(m => m.id === 'project')
+                if (project) {
+                    projectId = project.values[0].id
+                }
+                const saveList = this.selectedList.map(template => {
+                    const extra_info = this.getExtraInfo(template, template.collectType, projectId)
+                    return {
+                        extra_info,
+                        category: template.collectType
+                    }
+                })
+                try {
+                    const res = await this.collectSelect(saveList)
+                    this.dialogFooterData.loading = false
+                    if (res.data) {
+                        this.$bkMessage({
+                            message: gettext('保存成功'),
+                            theme: 'success'
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            // 保存参数
+            getExtraInfo (template, type, projectId) {
+                let extraInfo = {}
+                switch (type) {
+                    case 'common':
+                        extraInfo = {
+                            template_id: template.template_id,
+                            id: template.id,
+                            name: template.name
+                        }
+                        break
+                    case 'process':
+                        extraInfo = {
+                            project_id: projectId,
+                            template_id: template.template_id,
+                            id: template.id,
+                            template_source: template.template_source,
+                            name: template.name
+                        }
+                        break
+                    case 'periodic':
+                        extraInfo = {
+                            project_id: projectId,
+                            template_id: template.template_id,
+                            id: template.id,
+                            name: template.name
+                        }
+                        break
+                    case 'app_maker':
+                        extraInfo = {
+                            app_id: template.id,
+                            project_id: projectId,
+                            template_id: template.template_id,
+                            id: template.id,
+                            name: template.name
+                        }
+                }
+                return extraInfo
+            },
+            onCancel () {
+                this.$emit('onCloseDialog')
             }
         }
     }
