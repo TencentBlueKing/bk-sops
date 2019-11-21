@@ -11,7 +11,9 @@
 */
 <template>
     <li
-        class="card-item permission-disable"
+        :class="['card-item', {
+            'permission-disable': isApplyPermission
+        }]"
         @click="onCardClick">
         <div class="card-icon">
             {{ data.name.trim().substr(0,1).toUpperCase() }}
@@ -48,7 +50,7 @@
         },
         methods: {
             onDeleteCard () {
-                this.$emit('onDeleteCard', this.data)
+                this.$emit('onDeleteCard', this.data.id)
             },
             onCardClick () {
                 this.$emit('onCardClick', this.data)

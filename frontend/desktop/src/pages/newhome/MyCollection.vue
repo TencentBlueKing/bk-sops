@@ -16,7 +16,9 @@
             <task-card
                 v-for="(item, index) in collectionList"
                 :key="index"
-                :data="item">
+                :data="item"
+                @onCardClick="onCardClick"
+                @onDeleteCard="onDeleteCard">
             </task-card>
             <li class="add-collection" @click="onAddCollection">+</li>
         </ul>
@@ -28,6 +30,20 @@
             :is-add-collection-dialog-show="isShowAdd"
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.delete"
+            :value="isDeleteDialogShow"
+            @confirm="onDeleteConfirm"
+            @cancel="onDeleteCancel">
+            <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1 }">
+                {{i18n.deleteTips}}
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -35,6 +51,7 @@
     import PanelNodata from './PanelNodata.vue'
     import TaskCard from '@/components/common/base/TaskCard.vue'
     import AddCollectionDialog from './AddCollectionDialog.vue'
+    import { mapActions } from 'vuex'
     export default {
         name: 'MyCollection',
         components: {
@@ -47,27 +64,53 @@
                 i18n: {
                     title: gettext('我的收藏'),
                     add: gettext('添加'),
+                    delete: gettext('删除'),
+                    deleteTips: gettext('确认删除收藏？'),
                     noDataDesc: gettext('常用流程到收藏夹，可作为你的流程管理快捷入口')
                 },
-                collectionList: [
-                    {
-                        name: 'sssssssssssss'
-                    }
-                ],
-                isShowAdd: false
+                collectionList: [],
+                isShowAdd: false, // 显示添加收藏
+                isDeleteDialogShow: false, // 显示确认删除
+                deleteCollectLoading: false // 确认删除按钮 loading
             }
         },
         created () {
         },
         methods: {
+            ...mapActions('template/', [
+                'collectDelete'
+            ]),
+            // 打开添加收藏
             onAddCollection () {
                 this.isShowAdd = true
             },
+            // 关闭添加收藏
             onCloseDialog () {
                 this.isShowAdd = false
             },
-            onDeleteCard () {
-                this.$emit('')
+            // card 点击删除
+            onDeleteCard (id) {
+                this.isDeleteDialogShow = true
+                this.deleteCollectId = id
+            },
+            // 确定删除
+            async onDeleteConfirm () {
+                this.deleteCollectLoading = true
+                await this.collectDelete(this.deleteCollectId)
+                this.deleteCollectLoading = false
+                this.isDeleteDialogShow = false
+            },
+            // 取消删除
+            onDeleteCancel () {
+                this.isDeleteDialogShow = false
+            },
+            // card 点击
+            onCardClick (template) {
+                // const type = template.type
+                // switch (type) {
+                //     case: 'common'
+                //         this.select
+                // }
             }
         }
     }
