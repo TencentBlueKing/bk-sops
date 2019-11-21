@@ -220,7 +220,7 @@
                 },
                 renderConfig: [],
                 renderData: {},
-                loop: 0,
+                loop: 1,
                 theExecuteTime: undefined
             }
         },
@@ -252,7 +252,7 @@
             },
             loopTimes () {
                 const times = []
-                for (let i = 0; i <= this.loop; i++) {
+                for (let i = 0; i < this.loop; i++) {
                     times.push(this.loop - i)
                 }
                 return times
