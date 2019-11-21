@@ -31,6 +31,7 @@ from gcloud.tasktmpl3.resources import (
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
 from gcloud.contrib.function.resources import FunctionTaskResource
+from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
 
@@ -44,6 +45,7 @@ v3_api.register(TemplateSchemeResource())
 v3_api.register(TaskFlowInstanceResource())
 v3_api.register(AppMakerResource())
 v3_api.register(FunctionTaskResource())
+v3_api.register(CollectionResources())
 v3_api.register(PeriodicTaskResource())
 v3_api.register(CommonTemplateResource())
 v3_api.register(CommonTemplateSchemeResource())
