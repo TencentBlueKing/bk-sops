@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import { NODE_DICT } from '@/constants/index.js'
-import validator, { pipelineTreeSchema } from '@/constants/pipelineTreeSchema.js'
+import validator from '@/constants/pipelineTreeSchema.js'
 
 const NODE_RULE = {
     'startpoint': {
@@ -221,7 +221,11 @@ const validatePipeline = {
      * 画布pipeline_tree数据校验
      */
     isPipelineDataValid (data) {
-        return validator.validate(data, pipelineTreeSchema)
+        const valid = validator(data)
+        if (!valid) {
+            console.log(validator.errors)
+        }
+        return valid
     },
     getMessage (result = true, message = '') {
         return { result, message }
