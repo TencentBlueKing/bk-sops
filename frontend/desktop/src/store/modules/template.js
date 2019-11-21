@@ -804,12 +804,11 @@ const template = {
                 common
             }
             const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
-            if (!validateResult.valid) {
+            if (!validateResult) {
                 return new Promise((resolve, reject) => {
                     const info = {
                         message: gettext('流程数据格式错误，请检查节点、连线或者全局变量')
                     }
-                    console.error('pipeline_tree_data_error:', validateResult.errors)
                     reject(info)
                 })
             }
