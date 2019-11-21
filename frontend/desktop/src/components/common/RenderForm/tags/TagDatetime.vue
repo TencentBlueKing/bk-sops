@@ -29,7 +29,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const datetimeAttrs = {
+    export const attrs = {
         placeholder: {
             type: String,
             required: false,
@@ -44,7 +44,7 @@
     }
     export default {
         name: 'TagDatetime',
-        mixins: [getFormMixins(datetimeAttrs)],
+        mixins: [getFormMixins(attrs)],
         computed: {
             dateValue: {
                 get () {

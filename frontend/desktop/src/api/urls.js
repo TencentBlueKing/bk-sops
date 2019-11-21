@@ -90,6 +90,9 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + PROJECT_ID + '/',
         cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + PROJECT_ID + '/',
         packageSource: SITE_URL + 'api/v3/package_source/',
-        syncTask: SITE_URL + 'api/v3/sync_task/'
+        syncTask: SITE_URL + 'api/v3/sync_task/',
+        esbGetSystems: SITE_URL + 'develop/api/esb_get_systems/',
+        esbGetComponents: SITE_URL + 'develop/api/esb_get_components/',
+        esbGetPluginInitialCode: SITE_URL + 'develop/api/esb_get_plugin_initial_code/'
     }
 }

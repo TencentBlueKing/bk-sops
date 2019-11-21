@@ -1565,6 +1565,41 @@ const api = {
             url: prefixUrl
         }
         return request(opts)
+    },
+    loadApiList () {
+        const prefixUrl = this.getPrefix('esbGetSystems')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    loadApiComponent (params) {
+        const { name } = params
+        const prefixUrl = this.getPrefix('esbGetComponents')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                system_names: name
+            }
+        }
+        return request(opts)
+    },
+    loadApiPluginCode (params) {
+        const { system, component } = params
+        const prefixUrl = this.getPrefix('esbGetPluginInitialCode')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                esb_system: system,
+                esb_component: component
+            }
+        }
+        return request(opts)
     }
 }
 

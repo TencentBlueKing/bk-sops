@@ -10,23 +10,23 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-text">
-        <span class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
-    </div>
+    <div class="form-not-found">{{ i18n.noComp }}</div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { getFormMixins } from '../formMixins.js'
-
-    export const attrs = {
-        value: {
-            type: String,
-            required: false,
-            default: ''
+    export default {
+        name: 'FormNotFound',
+        data () {
+            return {
+                i18n: {
+                    noComp: gettext('未找到对应组件')
+                }
+            }
         }
     }
-    export default {
-        name: 'TagText',
-        mixins: [getFormMixins(attrs)]
-    }
 </script>
+<style lang="scss" scoped>
+    .form-not-found {
+        border: 1px solid #eeeeee;
+    }
+</style>

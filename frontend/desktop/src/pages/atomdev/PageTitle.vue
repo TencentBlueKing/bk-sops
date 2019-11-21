@@ -10,23 +10,35 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-text">
-        <span class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
-    </div>
+    <div class="page-title">{{ title }}</div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { getFormMixins } from '../formMixins.js'
-
-    export const attrs = {
-        value: {
-            type: String,
-            required: false,
-            default: ''
+    export default {
+        name: 'PageTitle',
+        props: {
+            title: {
+                type: String,
+                default: '页面title'
+            }
         }
     }
-    export default {
-        name: 'TagText',
-        mixins: [getFormMixins(attrs)]
-    }
 </script>
+<style lang="scss" scoped>
+    .page-title {
+        position: relative;
+        margin-left: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #313238;
+        &:before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 0;
+            width: 0;
+            height: 20px;
+            border-left: 2px solid #a3c5fd;
+        }
+    }
+</style>

@@ -12,16 +12,21 @@
 import tools from '@/utils/tools.js'
 import { checkDataType } from '@/utils/checkDataType.js'
 
-const COMMON_ATTRS = {
+export const COMMON_ATTRS = {
     tagCode: {
         type: String,
-        required: true
+        required: true,
+        inner: true
     },
     name: {
-        type: String
+        type: String,
+        required: true,
+        default: ''
     },
     hookable: {
-        type: Boolean
+        type: Boolean,
+        required: false,
+        default: true
     },
     validation: {
         type: Array,
@@ -35,24 +40,29 @@ const COMMON_ATTRS = {
     },
     hidden: {
         type: Boolean,
+        required: false,
         default: false
     },
     formEdit: {
         type: Boolean,
-        default: true
+        default: true,
+        inner: true
     },
     formMode: {
         type: Boolean,
-        default: true
+        default: true,
+        inner: true
     },
     validateSet: {
         type: Array,
+        inner: true,
         default () {
             return []
         }
     },
     parentValue: {
-        type: [String, Number, Boolean, Array, Object]
+        type: [String, Number, Boolean, Array, Object],
+        inner: true
     }
 }
 

@@ -406,7 +406,8 @@
         font-weight: normal;
         color: #63656e;
     }
-    .el-tree-node__label {
+    .el-tree-node__label,
+    .el-tree__empty-block {
         font-size: 12px;
     }
 }

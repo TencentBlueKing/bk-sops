@@ -55,6 +55,8 @@ const AuditHome = () => import('@/pages/audit/index.vue')
 const periodic = () => import('@/pages/periodic/index.vue')
 const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.vue')
 
+const AtomDev = () => import('@/pages/atomdev/index.vue')
+
 Vue.use(VueRouter)
 
 const PAGE_MAP = {
@@ -390,6 +392,10 @@ const routers = new VueRouter({
                     ]
                 }
             ]
+        },
+        {
+            path: '/atomdev/',
+            component: AtomDev
         },
         {
             path: '/error/:code(401|403|405|406|500)/',
