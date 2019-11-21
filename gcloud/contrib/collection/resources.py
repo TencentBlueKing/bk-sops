@@ -26,6 +26,7 @@ class CollectionResources(ModelResource):
 
     class Meta:
         limit = 15
+        always_return_data = True
         queryset = Collection.objects.all()
         resource_name = 'collection'
         authorization = CollectionAuthorization()
