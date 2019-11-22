@@ -49,7 +49,7 @@
     "jsplumb": "^2.8.4",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
-    "vant": "^1.6.9",
+    "vant": "^2.2.14",
     "vee-validate": "^2.2.8",
     "vue": "^2.5.22",
     "vue-cookies": "^1.5.13",
