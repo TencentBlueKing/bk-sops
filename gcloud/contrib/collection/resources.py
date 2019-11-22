@@ -16,8 +16,12 @@ import logging
 
 from tastypie.resources import ModelResource, ALL
 
+from auth_backend.plugins.utils import search_all_resources_authorized_actions
+
 from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.collection.authorization import CollectionAuthorization
+from gcloud.tasktmpl3.permissions import task_template_resource
+from gcloud.commons.template.permissions import common_template_resource
 
 logger = logging.getLogger("root")
 
@@ -29,6 +33,10 @@ class CollectionResources(ModelResource):
         always_return_data = True
         queryset = Collection.objects.all()
         resource_name = 'collection'
+        auth_resources = {
+            'process': task_template_resource,
+            'common': common_template_resource,
+        }
         authorization = CollectionAuthorization()
         allowed_methods = ['get', 'post', 'delete', 'put']
         filtering = {
@@ -72,3 +80,63 @@ class CollectionResources(ModelResource):
         extra_info = bundle.data['extra_info']
         bundle.data['extra_info'] = json.dumps(extra_info)
         return bundle
+
+    def dehydrate(self, bundle):
+        username = bundle.request.user.username
+        category = bundle.data.get('category', '')
+        auth_resources = getattr(self._meta, 'auth_resources', None)
+        auth_resource = auth_resources.get(category, None)
+        if auth_resource is None:
+            return bundle
+
+        inspect = getattr(self._meta, 'inspect', None)
+        scope_id = inspect.scope_id(bundle) if inspect else None
+
+        resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource,
+                                                                  scope_id=scope_id)
+        obj_id = str(inspect.resource_id(bundle)) if inspect else str(json.loads(bundle.obj.extra_info)['id'])
+        auth_actions = resources_perms.get(obj_id, [])
+        bundle.data['auth_actions'] = auth_actions
+        return bundle
+
+    def alter_list_data_to_serialize(self, request, data):
+        objects = data.get(self._meta.collection_name, False)
+        auth_resources = getattr(self._meta, 'auth_resources', False)
+        categories = set([item.data['category'] for item in objects]) if objects else []
+        if not len(categories):
+            return data
+        operations = {}
+        resource = {}
+        for category in categories:
+            auth_resource = auth_resources.get(category, None)
+            if auth_resource:
+                operations[category] = auth_resource.operations
+                resource[category] = auth_resource.base_info()
+
+        data['meta']['auth_operations'] = operations
+        data['meta']['auth_resource'] = resource
+        return data
+
+    def alter_detail_data_to_serialize(self, request, data):
+        objects = data.get(self._meta.collection_name, False)
+        auth_resources = getattr(self._meta, 'auth_resources', None)
+
+        categories = set([item.data['category'] for item in objects]) if objects else []
+        if not len(categories):
+            return data
+        operations = {}
+        resource = {}
+        for category in categories:
+            auth_resource = auth_resources.get(category, None)
+            if auth_resource:
+                resource_info = auth_resource.base_info()
+                if not resource_info['scope_id']:
+                    inspect = getattr(self._meta, 'inspect', None)
+                    resource_info['scope_id'] = inspect.scope_id(data) if inspect else None
+                resource[category] = resource_info
+                operations[category] = auth_resource.operations
+
+        data.data['auth_operations'] = operations
+        data.data['auth_resource'] = resource
+
+        return data
