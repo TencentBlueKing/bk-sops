@@ -105,13 +105,19 @@ class CollectionResources(ModelResource):
         categories = set([item.data['category'] for item in objects]) if objects else []
         if not len(categories):
             return data
-        operations = {}
+
+        operate_ids = set()
+        operations = []
         resource = {}
         for category in categories:
             auth_resource = auth_resources.get(category, None)
             if auth_resource:
-                operations[category] = auth_resource.operations
                 resource[category] = auth_resource.base_info()
+                resource_operations = auth_resource.operations
+                for item in resource_operations:
+                    if item['operate_id'] not in operate_ids:
+                        operations.append(item)
+                        operate_ids.add(item['operate_id'])
 
         data['meta']['auth_operations'] = operations
         data['meta']['auth_resource'] = resource
@@ -124,7 +130,8 @@ class CollectionResources(ModelResource):
         categories = set([item.data['category'] for item in objects]) if objects else []
         if not len(categories):
             return data
-        operations = {}
+        operate_ids = set()
+        operations = []
         resource = {}
         for category in categories:
             auth_resource = auth_resources.get(category, None)
@@ -134,7 +141,12 @@ class CollectionResources(ModelResource):
                     inspect = getattr(self._meta, 'inspect', None)
                     resource_info['scope_id'] = inspect.scope_id(data) if inspect else None
                 resource[category] = resource_info
-                operations[category] = auth_resource.operations
+
+                resource_operations = auth_resource.operations
+                for item in resource_operations:
+                    if item['operate_id'] not in operate_ids:
+                        operations.append(item)
+                        operate_ids.add(item['operate_id'])
 
         data.data['auth_operations'] = operations
         data.data['auth_resource'] = resource
