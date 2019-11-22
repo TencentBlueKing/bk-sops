@@ -21,6 +21,11 @@
 
     const ROUTERS = [
         {
+            text: gettext('搜索'),
+            name: 'adminSearch',
+            path: '/admin/manage/search/'
+        },
+        {
             text: gettext('远程插件包源管理'),
             name: 'sourceManage',
             path: '/admin/manage/source_manage/'

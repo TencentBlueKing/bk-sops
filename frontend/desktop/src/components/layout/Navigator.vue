@@ -144,7 +144,7 @@
                         key: 'manage',
                         parent: 'admin',
                         name: gettext('后台管理'),
-                        path: '/admin/manage/source_manage/'
+                        path: '/admin/manage/search/'
                     },
                     {
                         key: 'statistics',
