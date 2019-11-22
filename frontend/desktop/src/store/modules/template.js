@@ -711,10 +711,10 @@ const template = {
                 common
             }
             const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
-            if (!validateResult) {
+            if (!validateResult.valid) {
                 return new Promise((resolve, reject) => {
                     const info = {
-                        message: gettext('流程数据格式错误，请检查节点、连线或者全局变量')
+                        message: `${gettext('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
                     }
                     reject(info)
                 })

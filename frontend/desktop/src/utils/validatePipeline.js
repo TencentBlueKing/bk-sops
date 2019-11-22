@@ -222,10 +222,12 @@ const validatePipeline = {
      */
     isPipelineDataValid (data) {
         const valid = validator(data)
+        let message = ''
         if (!valid) {
-            console.log(validator.errors)
+            const error = validator.errors[0]
+            message = `${error.dataPath} ${error.keyword} ${error.message}`
         }
-        return valid
+        return { valid, message }
     },
     getMessage (result = true, message = '') {
         return { result, message }
