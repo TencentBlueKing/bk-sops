@@ -219,7 +219,7 @@ const validatePipeline = {
     },
     /**
      * 校验 activities、start_event、end_event、gateways 的 incoming、outging 和 flows 的 source、target 是否对应
-     * @params {String} nodes 节点数据
+     * @params {String} node 节点数据
      * @params {Object} flows 数据
      */
     isFlowValid (node, flows) {
