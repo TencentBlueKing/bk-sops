@@ -18,7 +18,8 @@ from gcloud.webservice3.resources import (
     BusinessResource,
     ProjectResource,
     ComponentModelResource,
-    VariableModelResource
+    VariableModelResource,
+    CommonProjectResource,
 )
 from gcloud.commons.template.resources import (
     CommonTemplateResource,
@@ -38,6 +39,7 @@ from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskRes
 v3_api = Api(api_name='v3')
 v3_api.register(BusinessResource())
 v3_api.register(ProjectResource())
+v3_api.register(CommonProjectResource())
 v3_api.register(TaskTemplateResource())
 v3_api.register(ComponentModelResource())
 v3_api.register(VariableModelResource())
