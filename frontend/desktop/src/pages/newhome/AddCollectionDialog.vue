@@ -236,7 +236,6 @@
                         return false
                     }
                     this.collectionPending = true
-                    console.log(reqType, 'reqType')
                     switch (reqType) {
                         case 'common':
                             panelList = await this.getTemplateList(1, searchStr)

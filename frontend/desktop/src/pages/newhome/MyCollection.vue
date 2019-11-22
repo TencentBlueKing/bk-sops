@@ -10,26 +10,31 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="my-collection">
+    <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
         <ul v-if="collectionList.length" class="card-list">
             <task-card
                 v-for="(item, index) in collectionList"
                 :key="index"
                 :data="item"
+                :set-name="item.extra_info.name"
+                :is-apply-permission="getRourcePerm(item)"
                 @onCardClick="onCardClick"
                 @onDeleteCard="onDeleteCard">
             </task-card>
             <li class="add-collection" @click="onAddCollection">+</li>
         </ul>
         <panel-nodata v-else>
-            <span class="link-text">{{ i18n.add }}</span>
+            <span class="link-text" @click="onAddCollection">{{ i18n.add }}</span>
             <span>{{ i18n.noDataDesc }}</span>
         </panel-nodata>
         <add-collection-dialog
             :is-add-collection-dialog-show="isShowAdd"
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
+        <select-create-task-dialog
+            :is-create-task-dialog-show="isCreateTaskDialogShow">
+        </select-create-task-dialog>
         <bk-dialog
             width="400"
             ext-cls="common-dialog"
@@ -51,14 +56,19 @@
     import PanelNodata from './PanelNodata.vue'
     import TaskCard from '@/components/common/base/TaskCard.vue'
     import AddCollectionDialog from './AddCollectionDialog.vue'
+    import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
+    import permission from '@/mixins/permission.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions } from 'vuex'
     export default {
         name: 'MyCollection',
         components: {
             TaskCard,
             PanelNodata,
-            AddCollectionDialog
+            AddCollectionDialog,
+            SelectCreateTaskDialog
         },
+        mixins: [permission],
         data () {
             return {
                 i18n: {
@@ -68,18 +78,46 @@
                     deleteTips: gettext('确认删除收藏？'),
                     noDataDesc: gettext('常用流程到收藏夹，可作为你的流程管理快捷入口')
                 },
+                tplOperations: [],
                 collectionList: [],
                 isShowAdd: false, // 显示添加收藏
                 isDeleteDialogShow: false, // 显示确认删除
-                deleteCollectLoading: false // 确认删除按钮 loading
+                deleteCollectLoading: false, // 确认删除按钮 loading
+                isCreateTaskDialogShow: false, // 显示创建任务 dialog
+                collectionBodyLoading: false // 收藏 body
             }
         },
         created () {
         },
+        mounted () {
+            this.initData()
+        },
         methods: {
             ...mapActions('template/', [
-                'collectDelete'
+                'deleteCollect',
+                'getCollectList'
             ]),
+            async initData () {
+                try {
+                    this.collectionBodyLoading = true
+                    // const res = this.getCollectList()
+                    const res = await this.getTestCollectList()
+                    this.tplOperations = res.meta.auth_operations
+                    this.collectionList = res.objects
+                    this.collectionBodyLoading = false
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            // 待删除
+            getTestCollectList () {
+                return new Promise((resolve, reject) => {
+                    $.get('http://localhost:3333/', res => {
+                        console.log(res)
+                        resolve(res)
+                    })
+                })
+            },
             // 打开添加收藏
             onAddCollection () {
                 this.isShowAdd = true
@@ -106,11 +144,46 @@
             },
             // card 点击
             onCardClick (template) {
-                // const type = template.type
-                // switch (type) {
-                //     case: 'common'
-                //         this.select
-                // }
+                const type = template.type
+                // 有权限执行
+                const { project_id, template_id, app_id, id } = template.extrat_info
+                switch (type) {
+                    case 'common':
+                        this.openSelectCreateTask()
+                        break
+                    case 'process':
+                        this.$router.push({
+                            name: 'taskStep',
+                            params: { step: 'selectnode', project_id },
+                            query: { template_id }
+                        })
+                        break
+                    case 'periodic':
+                        this.$router.push({
+                            name: 'periodicTemplate',
+                            params: { project_id },
+                            query: { q: id } // q 表示筛选 Id 值
+                        })
+                        break
+                    case 'app_maker':
+                        this.$router.push({
+                            name: 'appmakerTaskCreate',
+                            params: { step: 'selectnode', app_id, project_id },
+                            query: { template_id }
+                        })
+                }
+            },
+            openSelectCreateTask () {
+                this.isCreateTaskDialogShow = true
+            },
+            /**
+             * 判断单个资源权限
+             */
+            getRourcePerm (item) {
+                if (item.category === 'process') {
+                    return !this.hasPermission(['create_task', 'create_template'], item.auth_actions, this.tplOperations)
+                }
+                return false
             }
         }
     }

@@ -330,7 +330,7 @@ const api = {
      * 删除收藏
      * @param {String} collect_id 模板id
      */
-    collectDelete (collect_id) {
+    deleteCollect (collect_id) {
         const prefixUrl = this.getPrefix('collectList') + `${collect_id}/`
         const opts = {
             method: 'DELETE',

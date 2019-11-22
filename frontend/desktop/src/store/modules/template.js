@@ -819,12 +819,15 @@ const template = {
         getLayoutedPipeline ({ commit }, data) {
             return api.getLayoutedPipeline(data).then(response => response.data)
         },
+        getCollectList ({ commit }, data) {
+            return api.getCollectList(data).then(response => response.data)
+        },
         // 收藏模板，批量操作
         collectSelect ({ commit }, list) {
             return api.collectSelect(list).then(response => response.data)
         },
         // 删除收藏模板，单个删除
-        collectDelete ({ commit }, id) {
+        deleteCollect ({ commit }, id) {
             return api.collectDelete(id).then(response => response.data)
         },
         queryTemplateData ({ commit }, data) {

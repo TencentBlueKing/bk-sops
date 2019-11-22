@@ -16,10 +16,10 @@
         }]"
         @click="onCardClick">
         <div class="card-icon">
-            {{ data.name.trim().substr(0,1).toUpperCase() }}
+            {{ displayName.trim().substr(0,1).toUpperCase() }}
         </div>
         <div class="card-content">
-            <p class="text">{{ data.name }}</p>
+            <p class="text">{{ displayName }}</p>
         </div>
         <div v-if="isApplyPermission" class="apply-permission-mask">
             <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
@@ -39,6 +39,10 @@
             isApplyPermission: {
                 type: Boolean,
                 default: false
+            },
+            setName: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -46,6 +50,11 @@
                 i18n: {
                     applyPermission: gettext('申请权限')
                 }
+            }
+        },
+        computed: {
+            displayName () {
+                return this.setName || this.data.name
             }
         },
         methods: {
