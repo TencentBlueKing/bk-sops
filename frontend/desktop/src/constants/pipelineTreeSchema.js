@@ -42,7 +42,7 @@ const serviceActivity = {
             properties: {
                 name: {
                     type: 'string',
-                    minLenth: 1,
+                    minLength: 1,
                     maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
                 },
                 type: {
@@ -54,7 +54,7 @@ const serviceActivity = {
                     properties: {
                         code: {
                             type: 'string',
-                            minLenth: 1
+                            minLength: 1
                         },
                         data: {
                             type: 'object'
@@ -106,7 +106,7 @@ const subProcess = {
                 },
                 name: {
                     type: 'string',
-                    minLenth: 1,
+                    minLength: 1,
                     maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
                 },
                 type: {
@@ -143,11 +143,11 @@ const constantItem = {
         key: {
             type: 'string',
             pattern: VAR_KEY_REG,
-            minLenth: 3
+            minLength: 3
         },
         name: {
             type: 'string',
-            minLenth: 1
+            minLength: 1
         },
         show_type: {
             type: 'string'
@@ -307,7 +307,8 @@ const lineItem = {
             type: 'object',
             properties: {
                 arrow: {
-                    type: 'string'
+                    type: 'string',
+                    minLength: 1
                 },
                 id: {
                     type: 'string',
@@ -320,7 +321,8 @@ const lineItem = {
             type: 'object',
             properties: {
                 arrow: {
-                    type: 'string'
+                    type: 'string',
+                    minLength: 1
                 },
                 id: {
                     type: 'string',
@@ -343,16 +345,17 @@ const locationItem = {
             pattern: NODE_ID_REG
         },
         type: {
-            type: 'string'
+            type: 'string',
+            minLength: 1
         },
         name: {
             type: 'string'
         },
         x: {
-            type: 'integer'
+            type: 'number'
         },
         y: {
-            type: 'integer'
+            type: 'number'
         }
     },
     required: ['id', 'type', 'x', 'y']
@@ -364,9 +367,25 @@ const activitiesFieldSchema = {
     patternProperties: {
         [NODE_ID_REG]: {
             type: 'object',
-            anyOf: [
-                { $ref: '/ServiceActivity' },
-                { $ref: '/SubProcess' }
+            properties: {
+                type: {
+                    type: 'string',
+                    enum: ['ServiceActivity', 'SubProcess']
+                }
+            },
+            allOf: [
+                {
+                    if: { properties: { type: { const: 'ServiceActivity' } } },
+                    then: {
+                        $ref: '/ServiceActivity'
+                    }
+                },
+                {
+                    if: { properties: { type: { const: 'SubProcess' } } },
+                    then: {
+                        $ref: '/SubProcess'
+                    }
+                }
             ]
         }
     }
@@ -397,10 +416,26 @@ const gatewayFieldSchema = {
     type: 'object',
     patternProperties: {
         [NODE_ID_REG]: {
-            anyOf: [
-                { $ref: '/ExclusiveGateway' },
-                { $ref: '/ParallelGateway' },
-                { $ref: '/ConvergeGateway' }
+            type: 'object',
+            properties: {
+                type: {
+                    type: 'string',
+                    enum: ['ExclusiveGateway', 'ParallelGateway', 'ConvergeGateway']
+                }
+            },
+            allOf: [
+                {
+                    if: { properties: { type: { const: 'ExclusiveGateway' } } },
+                    then: { $ref: '/ExclusiveGateway' }
+                },
+                {
+                    if: { properties: { type: { const: 'ParallelGateway' } } },
+                    then: { $ref: '/ParallelGateway' }
+                },
+                {
+                    if: { properties: { type: { const: 'ConvergeGateway' } } },
+                    then: { $ref: '/ConvergeGateway' }
+                }
             ]
         }
     }
