@@ -24,7 +24,7 @@
             </RenderForm>
             <NoData v-else></NoData>
         </div>
-        <div class="action-wrapper" v-if="!isEmptyParams">
+        <div class="action-wrapper">
             <bk-button theme="success" @click="onRetryTask">{{ i18n.confirm }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
         </div>
