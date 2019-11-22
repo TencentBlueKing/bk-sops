@@ -218,16 +218,63 @@ const validatePipeline = {
         return this.getMessage()
     },
     /**
+     * 校验 activities、start_event、end_event、gateways 的 incoming、outging 和 flows 的 source、target 是否对应
+     * @params {String} nodes 节点数据
+     * @params {Object} flows 数据
+     */
+    isFlowValid (node, flows) {
+        let message = ''
+        const { id, incoming, outgoing } = node
+        const lineGroup = [incoming, outgoing]
+        const valid = !lineGroup.some((item, index) => {
+            const type = index === 0 ? 'target' : 'source'
+            const lines = Array.isArray(item) ? item : [item]
+            return lines.some(line => {
+                if (line === '') {
+                    return false
+                }
+                if (!flows[line]) {
+                    message = `flows.${line} data doesn't exist`
+                    return true
+                }
+                if (flows[line][type] !== id) {
+                    message = gettext(`flows.${line}.${type} doesn't equal to ${id}`)
+                    return true
+                }
+            })
+        })
+
+        return { valid, message }
+    },
+    /**
      * 画布pipeline_tree数据校验
      */
     isPipelineDataValid (data) {
-        const valid = validator(data)
+        const { activities, start_event, end_event, gateways, flows } = data
+        let valid = validator(data)
         let message = ''
         if (!valid) {
             const error = validator.errors[0]
             message = `${error.dataPath} ${error.keyword} ${error.message}`
+            return this.getMessage(valid, message)
         }
-        return { valid, message }
+
+        const nodes = [
+            start_event,
+            end_event,
+            ...Object.keys(activities).map(id => activities[id]),
+            ...Object.keys(gateways).map(id => gateways[id])
+        ]
+
+        valid = !nodes.some(node => {
+            const result = this.isFlowValid(node, flows)
+            if (!result.valid) {
+                message = result.message
+                return true
+            }
+        })
+
+        return this.getMessage(valid, message)
     },
     getMessage (result = true, message = '') {
         return { result, message }
