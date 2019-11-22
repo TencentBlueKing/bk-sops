@@ -15,6 +15,7 @@ import logging
 import ujson as json
 
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
@@ -153,6 +154,28 @@ class TaskFlowInstanceResource(GCloudModelResource):
             'pipeline_instance': ALL_WITH_RELATIONS,
         }
         q_fields = ['id', 'pipeline_instance__name']
+        creator_or_executor_fields = ['pipeline_instance__creator', 'pipeline_instance__executor']
+
+    def build_filters(self, filters=None, ignore_bad_filters=False):
+        if filters is None:
+            filters = {}
+
+        orm_filters = super(GCloudModelResource, self).build_filters(
+            filters,
+            ignore_bad_filters
+        )
+        if filters.get('creator_or_executor', '').strip():
+            if getattr(self.Meta, 'creator_or_executor_fields', []):
+                queries = [Q(**{'%s__contains' % field: filters['creator_or_executor']})
+                           for field in self.Meta.creator_or_executor_fields]
+                query = queries.pop()
+                for item in queries:
+                    query |= item
+                if orm_filters.get('q', False):
+                    orm_filters['q'] |= query
+                else:
+                    orm_filters['q'] = query
+        return orm_filters
 
     @staticmethod
     def handle_task_name_attr(data):
