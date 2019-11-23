@@ -113,9 +113,11 @@
                     :editable="false"
                     :show-palette="false"
                     :canvas-data="canvasData"
+                    :has-admin-perm="hasAdminPerm"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onRetryClick="onRetryClick"
+                    @onForceFail="onForceFail"
                     @onSkipClick="onSkipClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
@@ -275,6 +277,7 @@
                 canvasMountedQueues: [], // canvas pending queues
                 pending: {
                     skip: false,
+                    forceFail: false,
                     selectGateway: false,
                     task: false,
                     parseNodeResume: false,
@@ -292,7 +295,8 @@
         computed: {
             ...mapState({
                 userType: state => state.userType,
-                view_mode: state => state.view_mode
+                view_mode: state => state.view_mode,
+                hasAdminPerm: state => state.hasAdminPerm
             }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
@@ -396,6 +400,9 @@
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
                 'pauseNodeResume'
+            ]),
+            ...mapActions('admin/', [
+                'taskflowNodeForceFail'
             ]),
             async loadTaskStatus () {
                 try {
@@ -566,6 +573,34 @@
                     errorHandler(e, this)
                 } finally {
                     this.pending.skip = false
+                }
+            },
+            async onForceFail (id) {
+                if (this.pending.forceFail) {
+                    return
+                }
+                this.pending.forceFail = true
+                try {
+                    const params = {
+                        node_id: id,
+                        task_id: Number(this.instance_id)
+                    }
+                    const res = await this.taskflowNodeForceFail(params)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('强制失败执行成功'),
+                            theme: 'success'
+                        })
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.pending.forceFail = false
                 }
             },
             async selectGatewayBranch (data) {

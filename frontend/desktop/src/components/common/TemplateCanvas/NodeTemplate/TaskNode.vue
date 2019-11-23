@@ -70,6 +70,11 @@
                     @click.stop="onResumeClick">
                     {{ i18n.resume }}
                 </bk-button>
+                <bk-button
+                    v-if="hasAdminPerm"
+                    @click.stop="$emit('onForceFail', node.id)">
+                    {{ i18n.forceFail }}
+                </bk-button>
             </template>
         </div>
     </el-tooltip>
@@ -82,6 +87,10 @@
     export default {
         name: 'TaskNode',
         props: {
+            hasAdminPerm: {
+                type: Boolean,
+                default: false
+            },
             node: {
                 type: Object,
                 default () {
@@ -96,6 +105,7 @@
                     skip: gettext('跳过'),
                     resume: gettext('继续'),
                     modifyTime: gettext('修改时间'),
+                    forceFail: gettext('强制失败'),
                     atomFailed: gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
                 }
             }

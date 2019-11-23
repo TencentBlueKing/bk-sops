@@ -1618,10 +1618,15 @@ const api = {
         return request(opts)
     },
     taskflowNodeForceFail (data) {
+        const { task_id, node_id } = data
         const prefixUrl = this.getPrefix('taskflowNodeForceFail')
         const opts = {
-            method: 'GET',
-            url: prefixUrl
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                task_id,
+                node_id
+            }
         }
         return request(opts)
     },
