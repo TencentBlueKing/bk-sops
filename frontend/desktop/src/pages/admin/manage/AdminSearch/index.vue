@@ -12,7 +12,7 @@
 <template>
     <div class="admin-search">
         <div v-if="!showResultComp" class="search-wrapper">
-            <p class="tips">{{ i18n.tips }}</p>
+            <p class="tips">{{ i18n.tip }}</p>
             <bk-input
                 v-model="searchStr"
                 class="search-input"

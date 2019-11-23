@@ -1565,6 +1565,89 @@ const api = {
             url: prefixUrl
         }
         return request(opts)
+    },
+    adminSearch (data) {
+        const prefixUrl = this.getPrefix('adminSearch')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                keyword: data.keyword
+            }
+        }
+        return request(opts)
+    },
+    adminTemplate (data) {
+        const prefixUrl = this.getPrefix('adminTemplate')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminTemplateRestore (data) {
+        const prefixUrl = this.getPrefix('adminTemplateRestore')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminTaskflow (data) {
+        const prefixUrl = this.getPrefix('adminTaskflow')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminTaskflowDetail (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminTaskflowHistroyLog (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowHistroyLog')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    taskflowNodeForceFail (data) {
+        const prefixUrl = this.getPrefix('taskflowNodeForceFail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminTaskflowNodeDetail (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowNodeDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminPeriodTask (data) {
+        const prefixUrl = this.getPrefix('adminPeriodTask')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminPeriodTaskHistory (data) {
+        const prefixUrl = this.getPrefix('adminPeriodTaskHistory')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
     }
 }
 

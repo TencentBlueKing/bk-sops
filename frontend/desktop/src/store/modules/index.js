@@ -23,6 +23,7 @@ import auditTask from './audit.js'
 import periodic from './periodic.js'
 import manage from './manage.js'
 import member from './member.js'
+import admin from './admin.js'
 
 const modules = {
     template,
@@ -38,7 +39,8 @@ const modules = {
     periodic,
     manage,
     project,
-    member
+    member,
+    admin
 }
 
 export default modules
