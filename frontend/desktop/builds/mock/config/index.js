@@ -62,29 +62,4 @@ module.exports = {
     //     method: 'GET',
     //     data: './test.js'
     // }
-    '/t/bk_sops/admin/search/': {
-        type: 'json',
-        method: 'POST',
-        data: {
-            result: true,
-            message: 'test',
-            data: {
-                matched: [
-                    {
-                        "type": "flow",
-                        "filter": {
-                            "project__id": 13,
-                            id_in: 12
-                        }
-                    },
-                    {
-                        "type": "task",
-                        "filter": {
-                            "project__id": 13
-                        }
-                    }
-                ]
-            }
-        }
-    }
 }

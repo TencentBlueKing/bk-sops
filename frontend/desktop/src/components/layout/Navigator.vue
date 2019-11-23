@@ -177,7 +177,6 @@
                     help: gettext('帮助文档'),
                     title: gettext('标准运维')
                 },
-                hasAdminPerm: false, // 是否拥有管理员入口查看权限
                 homeRoute: {
                     key: 'home',
                     path: '/home/'
@@ -189,6 +188,7 @@
                 site_url: state => state.site_url,
                 username: state => state.username,
                 userType: state => state.userType,
+                hasAdminPerm: state => state.hasAdminPerm,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
                 notFoundPage: state => state.notFoundPage,
@@ -224,7 +224,7 @@
                 } else {
                     let routes = ROUTE_LIST[`${this.userType}_router_list`]
 
-                    // 非管理员用户去掉管理员入口
+                    // 非管理员用户隐藏管理员入口
                     if (!this.hasAdminPerm) {
                         routes = routes.filter(item => item.key !== 'admin')
                     }
@@ -247,7 +247,8 @@
                 'loadProjectList'
             ]),
             ...mapMutations([
-                'setBizId'
+                'setBizId',
+                'setAdminPerm'
             ]),
             ...mapMutations('project', [
                 'setProjectPerm'
@@ -266,12 +267,10 @@
                         action_ids: JSON.stringify(['view'])
                     })
     
-                    const hasCreatePerm = !!res.data.details.find(item => {
+                    const hasPerm = !!res.data.details.find(item => {
                         return item.action_id === 'view' && item.is_pass
                     })
-                    if (hasCreatePerm) {
-                        this.hasAdminPerm = true
-                    }
+                    this.setAdminPerm(hasPerm)
                 } catch (err) {
                     errorHandler(err, this)
                 }
