@@ -217,7 +217,7 @@ class ProjectCounterManager(models.Manager):
     def increase_or_create(self, username, project_id):
         obj = self.filter(username=username, project_id=project_id)
         if obj.exists():
-            self.update(count=models.F('count')+1)
+            obj.update(count=models.F('count')+1)
         else:
             self.create(username=username, project_id=project_id)
 
