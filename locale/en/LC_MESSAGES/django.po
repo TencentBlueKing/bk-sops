@@ -2772,18 +2772,42 @@ msgstr "City"
 msgid "微信用户"
 msgstr "Wechat User"
 
-#~ msgid "模板不存在，错误信息：%s"
-#~ msgstr "Template not exist, error message: %s"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:25
+msgid "蓝鲸监控(BK)"
+msgstr "BK Monitor(BK)"
 
-#~ msgid " login_ip为空或输入格式错误"
-#~ msgstr "login_ip is empty or format error"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:48
+msgid "屏蔽Id"
+msgstr "Shield Id"
 
-#~ msgid "data_ip 为空或输入格式错误"
-#~ msgstr "data_ip is empty or format error"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:49
+msgid "详情"
+msgstr "Details"
 
-#~ msgid "cascade_ip 为空或输入格式错误"
-#~ msgstr "cascade_ip is empty or format error"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:75, 204
+msgid "查询监控(Monitor)的接口monitor.create_shield失败: %s"
+msgstr "Query interface monitor.create_shield failed %s"
 
-#~ msgid "提交的任务的job_id"
-#~ msgstr "task's job_id"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:151
+msgid "查询监控(Monitor)的接口monitor.query_host_by_ip失败: %s"
+msgstr "Query interface monitor.query_host_by_ip failed %s"
 
+#: pipeline_plugins/components/collections/sites/open/monitor.py:224
+msgid "创建告警屏蔽(按范围)"
+msgstr "Create Shield(By Scope)"
+
+#: pipeline_plugins/components/collections/sites/open/monitor.py:232
+msgid "创建告警屏蔽(按策略)"
+msgstr "Create Shield(By Strategy)"
+
+#: pipeline_plugins/components/collections/sites/open/monitor.py:240
+msgid "解除告警屏蔽"
+msgstr "Disable Strategy"
+
+#: pipeline_plugins/components/collections/sites/open/monitor.py:226,234
+msgid "提示: 请在告警屏蔽解除"
+msgstr "Notes: Please disable it in (Disable Strategy)"
+
+#: pipeline_plugins/components/collections/sites/open/monitor.py:242
+msgid "提示: 屏蔽id请从告警屏蔽或蓝鲸监控获取"
+msgstr "Notes: Please get shield id from (Create Shield) or (monitor)"
