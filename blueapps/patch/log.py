@@ -22,7 +22,7 @@ def get_paas_v2_logging_config_dict(is_local, bk_log_dir, log_level):
     """
     # 设置日志文件夹路径
     if is_local:
-        log_dir = os.path.join(os.path.dirname(BASE_DIR), 'logs', APP_CODE)
+        log_dir = os.path.join(BASE_DIR, 'logs', APP_CODE)
     else:
         log_dir = os.path.join(os.path.join(bk_log_dir, APP_CODE))
 
