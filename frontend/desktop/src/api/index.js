@@ -1617,7 +1617,7 @@ const api = {
         }
         return request(opts)
     },
-    taskflowNodeForceFail (data) {
+    adminTaskflowNodeForceFail (data) {
         const { task_id, node_id } = data
         const prefixUrl = this.getPrefix('taskflowNodeForceFail')
         const opts = {

@@ -95,6 +95,22 @@
                         }"
                         :to="getTplURL()">
                     </router-link>
+                    <i
+                        v-if="hasAdminPerm"
+                        :class="[
+                            'params-btn',
+                            'common-icon',
+                            'common-icon-paper',
+                            {
+                                actived: nodeInfoType === 'templateInfo'
+                            }
+                        ]"
+                        v-bk-tooltips="{
+                            content: i18n.templateInfo,
+                            placements: ['bottom']
+                        }"
+                        @click="onTaskParamsClick('templateInfo')">
+                    </i>
                 </div>
             </div>
         </div>
@@ -162,6 +178,10 @@
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
+                <TemplateInfo
+                    v-if="nodeInfoType === 'templateInfo'"
+                    :task-id="instance_id">
+                </TemplateInfo>
                 <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
                     <i class="common-icon-double-arrow"></i>
                 </div>
@@ -192,6 +212,7 @@
     import ExecuteInfo from './ExecuteInfo.vue'
     import RetryNode from './RetryNode.vue'
     import ModifyTime from './ModifyTime.vue'
+    import TemplateInfo from './TemplateInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
@@ -234,6 +255,7 @@
             ExecuteInfo,
             RetryNode,
             ModifyTime,
+            TemplateInfo,
             gatewaySelectDialog,
             revokeDialog
         },
@@ -256,7 +278,8 @@
                 i18n: {
                     params: gettext('查看参数'),
                     changeParams: gettext('修改参数'),
-                    checkFlow: gettext('查看流程')
+                    checkFlow: gettext('查看流程'),
+                    templateInfo: gettext('流程信息')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,

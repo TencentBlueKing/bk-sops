@@ -47,7 +47,7 @@ const admin = {
             )
         },
         taskflowDetail ({ commit }, data) {
-            return api.taskflowDetail(data).then(
+            return api.adminTaskflowDetail(data).then(
                 response => response.data
             )
         },
@@ -62,7 +62,7 @@ const admin = {
             )
         },
         taskflowNodeForceFail ({ commit }, data) {
-            return api.taskflowNodeForceFail(data).then(
+            return api.adminTaskflowNodeForceFail(data).then(
                 response => response.data
             )
         }
