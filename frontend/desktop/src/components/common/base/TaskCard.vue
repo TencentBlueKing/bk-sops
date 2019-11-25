@@ -78,6 +78,17 @@
     height: 60px;
     cursor: pointer;
     background: #f0f1f5;
+    &:not(.permission-disable):hover {
+        .card-icon {
+            background: #b9bbc1;
+        }
+        .card-content {
+            background: #e3e5e9;
+            .text::after {
+                background: #e3e5e9;
+            }
+        }
+    }
     .card-icon {
         float: left;
         width: 60px;

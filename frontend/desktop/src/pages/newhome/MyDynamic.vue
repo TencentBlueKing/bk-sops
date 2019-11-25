@@ -72,11 +72,13 @@
     const tableColumn = [
         {
             label: 'ID',
-            prop: 'id'
+            prop: 'id',
+            width: '100'
         },
         {
             label: gettext('任务名称'),
-            prop: 'name'
+            prop: 'name',
+            width: '300'
         },
         {
             label: gettext('业务'),
@@ -92,11 +94,13 @@
         },
         {
             label: gettext('创建方式'),
-            prop: 'create_method'
+            prop: 'create_method',
+            width: '150'
         },
         {
             label: gettext('状态'),
-            prop: 'status'
+            prop: 'status',
+            width: '100'
         }
     ]
     export default {

@@ -819,6 +819,11 @@ const template = {
         getLayoutedPipeline ({ commit }, data) {
             return api.getLayoutedPipeline(data).then(response => response.data)
         },
+        // 获取常用业务
+        loadCommonProject ({ commit }, data) {
+            return api.getCommonProject(data).then(response => response.data)
+        },
+        // 获取收藏列表
         getCollectList ({ commit }, data) {
             return api.getCollectList(data).then(response => response.data)
         },
@@ -828,7 +833,7 @@ const template = {
         },
         // 删除收藏模板，单个删除
         deleteCollect ({ commit }, id) {
-            return api.collectDelete(id).then(response => response.data)
+            return api.deleteCollect(id).then(response => response.data)
         },
         queryTemplateData ({ commit }, data) {
             return api.queryTemplate(data).then(response => response.data)

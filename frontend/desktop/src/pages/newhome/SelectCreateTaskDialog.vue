@@ -71,7 +71,7 @@
         components: {
         },
         mixins: [permission],
-        props: ['isCreateTaskDialogShow'],
+        props: ['isCreateTaskDialogShow', 'createTaskTemplateId'],
         data () {
             return {
                 i18n: {
@@ -129,6 +129,12 @@
                 if (!this.formData.selectedProject) {
                     this.isShowprojectError = true
                 }
+                const entrance = this.formData.taskType === 'periodic' ? 'periodicTask' : undefined
+                this.$router.push({
+                    name: 'taskStep',
+                    params: { project_id: this.formData.selectedProject, step: 'selectnode' },
+                    query: { template_id: this.createTaskTemplateId, common: '1', entrance }
+                })
             },
             onCancel () {
 

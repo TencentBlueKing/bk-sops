@@ -33,6 +33,7 @@
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
         <select-create-task-dialog
+            :create-task-template-id="createTaskTemplateId"
             :is-create-task-dialog-show="isCreateTaskDialogShow">
         </select-create-task-dialog>
         <bk-dialog
@@ -78,6 +79,7 @@
                     deleteTips: gettext('确认删除收藏？'),
                     noDataDesc: gettext('常用流程到收藏夹，可作为你的流程管理快捷入口')
                 },
+                createTaskTemplateId: '',
                 tplOperations: [],
                 collectionList: [],
                 isShowAdd: false, // 显示添加收藏
@@ -100,23 +102,14 @@
             async initData () {
                 try {
                     this.collectionBodyLoading = true
-                    // const res = this.getCollectList()
-                    const res = await this.getTestCollectList()
+                    const res = await this.getCollectList()
                     this.tplOperations = res.meta.auth_operations
+                    this.collectionResource = res.meta.auth_resource
                     this.collectionList = res.objects
                     this.collectionBodyLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
-            },
-            // 待删除
-            getTestCollectList () {
-                return new Promise((resolve, reject) => {
-                    $.get('http://localhost:3333/', res => {
-                        console.log(res)
-                        resolve(res)
-                    })
-                })
             },
             // 打开添加收藏
             onAddCollection () {
@@ -134,9 +127,10 @@
             // 确定删除
             async onDeleteConfirm () {
                 this.deleteCollectLoading = true
-                await this.collectDelete(this.deleteCollectId)
+                await this.deleteCollect(this.deleteCollectId)
                 this.deleteCollectLoading = false
                 this.isDeleteDialogShow = false
+                this.initData()
             },
             // 取消删除
             onDeleteCancel () {
@@ -144,12 +138,15 @@
             },
             // card 点击
             onCardClick (template) {
-                const type = template.type
+                if (this.getRourcePerm(template)) {
+                    return this.checkForPermission(template)
+                }
+                const type = template.category
                 // 有权限执行
-                const { project_id, template_id, app_id, id } = template.extrat_info
+                const { project_id, template_id, app_id, name } = template.extra_info
                 switch (type) {
                     case 'common':
-                        this.openSelectCreateTask()
+                        this.openSelectCreateTask(template_id)
                         break
                     case 'process':
                         this.$router.push({
@@ -162,19 +159,21 @@
                         this.$router.push({
                             name: 'periodicTemplate',
                             params: { project_id },
-                            query: { q: id } // q 表示筛选 Id 值
+                            query: { q: name } // q 表示筛选 Id 值
                         })
                         break
                     case 'app_maker':
-                        this.$router.push({
+                        const { href } = this.$router.resolve({
                             name: 'appmakerTaskCreate',
                             params: { step: 'selectnode', app_id, project_id },
                             query: { template_id }
                         })
+                        window.open(href, '_blank')
                 }
             },
-            openSelectCreateTask () {
+            openSelectCreateTask (templateId) {
                 this.isCreateTaskDialogShow = true
+                this.createTaskTemplateId = templateId
             },
             /**
              * 判断单个资源权限
@@ -184,6 +183,14 @@
                     return !this.hasPermission(['create_task', 'create_template'], item.auth_actions, this.tplOperations)
                 }
                 return false
+            },
+            /**
+             * 申请对应权限
+             */
+            checkForPermission (item) {
+                if (item.category === 'process') {
+                    this.applyForPermission(['create_task', 'create_template'], item, this.tplOperations, this.collectionResource)
+                }
             }
         }
     }

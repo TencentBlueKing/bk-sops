@@ -20,6 +20,7 @@
                     v-if="isShowSearch"
                     @input="onSearchInput"
                     @onShow="onAdvanceShow"
+                    :value="searchConfig.value"
                     :input-placeholader="searchConfig.placeholder"
                 >
                 </advance-search>
@@ -90,36 +91,13 @@
             searchConfig: {
                 type: Object,
                 default: () => ({
-                    placeholder: gettext('请输入')
+                    placeholder: gettext('请输入'),
+                    value: ''
                 })
             },
             searchForm: {
                 type: Array,
-                default: () => ([
-                    {
-                        type: 'select',
-                        label: '分类',
-                        key: 'mySelect',
-                        list: [
-                            {
-                                name: '1111',
-                                list: '22'
-                            }
-                        ]
-                    },
-                    {
-                        type: 'dateRange',
-                        key: 'myDate',
-                        label: '更新时间'
-                    },
-                    {
-                        type: 'input',
-                        key: 'myInput',
-                        label: '创建人',
-                        value: ''
-                    }
-                    
-                ])
+                default: () => ([])
             }
         },
         data () {
@@ -137,7 +115,6 @@
             this.searchForm.forEach(m => {
                 this.formData[m.key] = ''
             })
-            console.log(this.formData, '进入')
         },
         methods: {
             onSearchInput (val) {

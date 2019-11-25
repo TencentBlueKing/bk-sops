@@ -299,6 +299,17 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取常用业务
+     */
+    getCommonProject () {
+        const prefixUrl = this.getPrefix('commonProject')
+        const opts = {
+            method: 'GET',
+            url: `${prefixUrl}`
+        }
+        return request(opts)
+    },
+    /**
      * 获取收藏列表
      */
     getCollectList () {

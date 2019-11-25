@@ -14,7 +14,7 @@
         <div class="list-wrapper">
             <div class="operation-area">
                 <advance-search-form
-                    :search-config="{ placeholder: i18n.periodicNamePlaceholder }"
+                    :search-config="{ placeholder: i18n.periodicNamePlaceholder, value: requestData.flowName }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -260,7 +260,7 @@
                 requestData: {
                     creator: '',
                     enabled: '',
-                    flowName: ''
+                    flowName: this.$route.query.q || ''
                 },
                 pagination: {
                     current: 1,

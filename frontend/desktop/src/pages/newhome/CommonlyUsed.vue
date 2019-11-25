@@ -10,41 +10,50 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="common-used">
+    <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
         <ul v-if="commonUsedList.length" class="card-list">
             <li
                 v-for="(item, index) in commonUsedList"
                 :key="index"
-                class="card-item">
-                <p class="business-name">{{ item.name }}</p>
+                class="card-item"
+                @click="onSwitchBusiness(item.project.id)">
+                <p class="business-name">{{ item.project.name }}</p>
                 <div class="business-info">
                     <p class="info-item">
                         <label class="label">{{ i18n.businessId }}</label>
-                        <span class="text">34121</span>
+                        <span class="text">{{ item.project.id }}</span>
                     </p>
                     <p class="info-item">
                         <label class="label">{{ i18n.timeZone }}</label>
-                        <span class="text">34121</span>
+                        <span class="text">{{ item.project.create_at | getTimeZone }}</span>
                     </p>
                 </div>
             </li>
         </ul>
         <panel-nodata v-else>
             <span>{{ i18n.nodataDes1 }}</span>
-            <span class="link-text">{{ i18n.nodataDes2 }}</span>
+            <span class="link-text" @click="openOtherApp('bk_iam_app')">{{ i18n.nodataDes2 }}</span>
             <span>{{ i18n.nodataDes3 }}</span>
-            <span class="link-text">{{ i18n.nodataDes4 }}</span>
+            <span class="link-text" @click="openOtherApp('bk_cmdb')">{{ i18n.nodataDes4 }}</span>
         </panel-nodata>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import PanelNodata from './PanelNodata.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import { mapActions, mapMutations } from 'vuex'
     export default {
         name: 'CommonlyUsed',
         components: {
             PanelNodata
+        },
+        filters: {
+            getTimeZone (time) {
+                const res = /\+(\d)+$/g.exec(time)
+                return res ? res[0] : ''
+            }
         },
         data () {
             return {
@@ -58,10 +67,36 @@
                     timeZone: gettext('时区：')
 
                 },
+                commonlyUsedloading: false,
                 commonUsedList: []
             }
         },
-        created () {
+        mounted () {
+            this.initData()
+        },
+        methods: {
+            ...mapActions('template/', [
+                'loadCommonProject'
+            ]),
+            ...mapMutations('project', [
+                'setProjectId'
+            ]),
+            async initData () {
+                try {
+                    this.commonlyUsedloading = true
+                    const res = await this.loadCommonProject()
+                    this.commonUsedList = res.objects
+                    this.commonlyUsedloading = false
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            openOtherApp (url) {
+                window.PAAS_API.open_other_app(url)
+            },
+            onSwitchBusiness (id) {
+                this.setProjectId(id)
+            }
         }
     }
 </script>
@@ -87,6 +122,7 @@
             padding: 14px;
             width: 278px;
             background: #f0f1f5;
+            cursor: pointer;
             &:hover {
                 background: #e3e5e9;
             }

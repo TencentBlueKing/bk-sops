@@ -40,7 +40,7 @@
                 },
                 isAdvancedSerachShow: false,
                 shapeShow: false,
-                localValue: ''
+                localValue: this.value || ''
             }
         },
         watch: {

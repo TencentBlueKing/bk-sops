@@ -250,11 +250,11 @@
                         this.togglePermissionApplyPage(
                             {
                                 type: 'function_center',
-                                name: '职能化中心'
+                                name: gettext('职能化中心')
                             },
                             {
                                 id: 'view',
-                                name: '查看'
+                                name: gettext('查看')
                             }
                         )
                     }
@@ -265,11 +265,11 @@
                         this.togglePermissionApplyPage(
                             {
                                 type: 'audit_center',
-                                name: '审计中心'
+                                name: gettext('审计中心')
                             },
                             {
                                 id: 'view',
-                                name: '查看'
+                                name: gettext('查看')
                             }
                         )
                     }

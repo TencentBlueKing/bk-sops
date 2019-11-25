@@ -96,6 +96,12 @@
                 <span class="error-info">{{i18n.errorInfo}}</span>
             </div>
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :dialog-footer-data="dialogFooterData"
+            @onConfirm="onConfirm"
+            @onCancel="onCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -105,6 +111,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     const FILTER_LIST = [
         {
             name: gettext('选择类型'),
@@ -137,7 +144,8 @@
     export default {
         name: 'AddCollectionDialog',
         components: {
-            NoData
+            NoData,
+            DialogLoadingBtn
         },
         mixins: [permission],
         props: ['isAddCollectionDialogShow'],
@@ -371,7 +379,7 @@
                     this.selectError = true
                     return false
                 }
-                this.dialogFooterData.loading = true
+                this.dialogFooterData[0].loading = true
                 let projectId
                 const project = this.searchValue.find(m => m.id === 'project')
                 if (project) {
@@ -386,7 +394,7 @@
                 })
                 try {
                     const res = await this.collectSelect(saveList)
-                    this.dialogFooterData.loading = false
+                    this.dialogFooterData[0].loading = false
                     if (res.data) {
                         this.$bkMessage({
                             message: gettext('保存成功'),
@@ -406,7 +414,6 @@
                     case 'common':
                         extraInfo = {
                             template_id: template.template_id,
-                            id: template.id,
                             name: template.name
                         }
                         break
@@ -414,7 +421,6 @@
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
-                            id: template.id,
                             template_source: template.template_source,
                             name: template.name
                         }
@@ -423,7 +429,6 @@
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
-                            id: template.id,
                             name: template.name
                         }
                         break
@@ -432,7 +437,6 @@
                             app_id: template.id,
                             project_id: projectId,
                             template_id: template.template_id,
-                            id: template.id,
                             name: template.name
                         }
                 }
