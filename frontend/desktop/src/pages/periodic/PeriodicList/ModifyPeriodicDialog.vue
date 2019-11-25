@@ -27,7 +27,7 @@
                     <LoopRuleSelect
                         ref="loopRuleSelect"
                         class="loop-rule"
-                        :manual-input-value="periodicCron" />
+                        :manual-input-value="cron" />
                 </div>
                 <div
                     v-if="!loading"
@@ -86,7 +86,6 @@
                     regex: PERIODIC_REG
                 },
                 periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
-                periodicCron: this.cron,
                 dialogFooterData: [
                     {
                         type: 'primary',
@@ -151,6 +150,7 @@
                     }
                     if (this.cron === loopRule.rule && periodicConstants === '') {
                         // 没有改变表达式，且没有ramdomform内容
+                        this.dialogFooterData[0].loading = false
                         this.$emit('onModifyPeriodicCancel')
                     } else if (periodicConstants === '') {
                         this.modifyCron(cronData)
@@ -211,7 +211,7 @@
                         'theme': 'error'
                     })
                 }
-                this.dialogFooterData.confirmBtnPending = false
+                this.dialogFooterData[0].loading = false
                 this.$emit('onModifyPeriodicConfirm')
             }
         }
