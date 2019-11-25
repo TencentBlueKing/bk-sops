@@ -22,6 +22,9 @@ from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.collection.authorization import CollectionAuthorization
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.commons.template.permissions import common_template_resource
+from gcloud.contrib.appmaker.permissions import mini_app_resource
+from gcloud.periodictask.permissions import periodic_task_resource
+
 
 logger = logging.getLogger("root")
 
@@ -36,6 +39,8 @@ class CollectionResources(ModelResource):
         auth_resources = {
             'process': task_template_resource,
             'common': common_template_resource,
+            'app_maker': mini_app_resource,
+            'periodic': periodic_task_resource,
         }
         authorization = CollectionAuthorization()
         allowed_methods = ['get', 'post', 'delete', 'put']
