@@ -147,7 +147,7 @@ module.exports = {
         new VueLoaderPlugin(),
         new HtmlWebpackPlugin({
             template: './src/assets/html/template.html',
-            filename: path.posix.join(process.env.STATIC_ENV, 'dist/index' + process.env.VERSION + '.html')
+            filename: path.posix.join(process.env.STATIC_ENV, 'dist/index.html')
         }),
         new webpack.ProvidePlugin({
             $: 'jquery',
