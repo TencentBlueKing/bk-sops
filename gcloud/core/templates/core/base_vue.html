@@ -40,11 +40,11 @@
     </script>
 	<link href="{{STATIC_URL}}core/images/bk_sops.png" rel="shortcut icon" type="image/x-icon">
     {% if STATIC_VER == 'dev' %}
-	    <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/vendors.css?v={{STATIC_VERSION}}" rel="stylesheet">
-        <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/main.css?v={{STATIC_VERSION}}" rel="stylesheet">
+	    <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/vendors.{{STATIC_VERSION}}.css" rel="stylesheet">
+        <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/main.{{STATIC_VERSION}}.css" rel="stylesheet">
     {% else %}
-        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/vendors.css?v={{STATIC_VERSION}}" rel="stylesheet">
-        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/main.css?v={{STATIC_VERSION}}" rel="stylesheet">
+        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/vendors.{{STATIC_VERSION}}.css" rel="stylesheet">
+        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/main.{{STATIC_VERSION}}.css" rel="stylesheet">
     {% endif %}
 </head>
 
