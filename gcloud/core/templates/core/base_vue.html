@@ -53,15 +53,15 @@
 	<script type="text/javascript" src="{{REMOTE_API_URL}}"></script>
 	<script type="text/javascript" src="{{SITE_URL}}jsi18n/gcloud/"></script>
     {% if STATIC_VER == 'dev' %}
-        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/runtime~main.js?v={{STATIC_VERSION}}"></script>
-	    <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/vendors.js?v={{STATIC_VERSION}}"></script>
-	    <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}"></script>
-        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/jquery.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/runtime~main.{{STATIC_VERSION}}.js"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/vendors.{{STATIC_VERSION}}.js"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/main.{{STATIC_VERSION}}.js"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/jquery.{{STATIC_VERSION}}.js"></script>
     {% else %}
-        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/runtime~main.js?v={{STATIC_VERSION}}"></script>
-	    <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/vendors.js?v={{STATIC_VERSION}}"></script>
-	    <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}"></script>
-        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/jquery.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/runtime~main.{{STATIC_VERSION}}.js"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/vendors.{{STATIC_VERSION}}.js"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/main.{{STATIC_VERSION}}.js"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/jquery.{{STATIC_VERSION}}.js"></script>
     {% endif %}
 
 
