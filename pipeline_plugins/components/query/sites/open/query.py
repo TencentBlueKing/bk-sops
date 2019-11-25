@@ -11,36 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
 import logging
+import re
 import traceback
 
+from django.conf.urls import url
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
-from django.conf.urls import url
 
-from gcloud.core.models import EnvironmentVariables
-
-from pipeline_plugins.components.utils import (
-    cc_get_inner_ip_by_module_id,
-    supplier_account_inject,
-    handle_api_error,
-    supplier_id_inject
-)
-from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
-    cmdb_get_mainline_object_topo
-)
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
-
 from files.factory import ManagerFactory
-
 from gcloud.conf import settings
-from gcloud.exceptions import APIError
-from gcloud.core.models import Project
+from gcloud.core.models import EnvironmentVariables, Project
 from gcloud.core.utils import get_user_business_list
+from gcloud.exceptions import APIError
+from pipeline_plugins.cmdb_ip_picker.query import (
+    cmdb_get_mainline_object_topo, cmdb_search_host, cmdb_search_topo_tree)
+from pipeline_plugins.components.utils import (cc_get_inner_ip_by_module_id,
+                                               handle_api_error,
+                                               supplier_account_inject,
+                                               supplier_id_inject)
 
 logger = logging.getLogger('root')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -137,7 +128,7 @@ def cc_format_topo_data(data, obj_id, category):
     tree_data = []
     for item in data:
         tree_item = {
-            'id': "%s_%s" % (item['bk_obj_id'], item['bk_inst_id']),
+            'id': "{}_{}".format(item['bk_obj_id'], item['bk_inst_id']),
             'label': item['bk_inst_name']
         }
         if category == "prev":
@@ -162,12 +153,12 @@ def cc_format_module_hosts(username, biz_cc_id, module_id_list, supplier_account
         for module in item['module']:
             if module_host_dict.get('module_%s' % module['bk_module_id']):
                 module_host_dict['module_%s' % module['bk_module_id']].append({
-                    'id': '%s_%s' % (module['bk_module_id'], item['host']['bk_host_innerip']),
+                    'id': '{}_{}'.format(module['bk_module_id'], item['host']['bk_host_innerip']),
                     'label': item['host']['bk_host_innerip']
                 })
             else:
                 module_host_dict['module_%s' % module['bk_module_id']] = [{
-                    'id': '%s_%s' % (module['bk_module_id'], item['host']['bk_host_innerip']),
+                    'id': '{}_{}'.format(module['bk_module_id'], item['host']['bk_host_innerip']),
                     'label': item['host']['bk_host_innerip']
                 }]
     return module_host_dict
@@ -218,7 +209,7 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
     module_hosts = cc_format_module_hosts(request.user.username, biz_cc_id, [int(x) for x in select_module_id],
                                           supplier_account)
 
-    for del_id in (set(module_hosts.keys()) - set(['module_%s' % x for x in select_module_id])):
+    for del_id in (set(module_hosts.keys()) - {'module_%s' % x for x in select_module_id}):
         del module_hosts[del_id]
 
     return JsonResponse({'result': True, 'data': module_hosts})
@@ -516,6 +507,28 @@ def file_upload(request, project_id):
     })
 
 
+def monitor_get_strategy(request, biz_cc_id):
+    client = get_client_by_user(request.user.username)
+    response = client.monitor.query_strategy({'bk_biz_id': biz_cc_id})
+    if not response['result']:
+        message = _(u"查询监控(Monitor)的策略[app_id=%s]接口monitor.query_strategy返回失败: %s") % (
+            biz_cc_id, response['message'])
+        logger.error(message)
+        result = {
+            'result': False,
+            'data': [],
+            'message': message
+        }
+        return JsonResponse(result)
+    strategy_list = []
+    for strategy in response['data']:
+        strategy_list.append({
+            'value': strategy['id'],
+            'text': strategy['name'],
+        })
+    return JsonResponse({'result': True, 'data': strategy_list})
+
+
 urlpatterns = [
     url(r'^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_object_attribute),
     url(r'^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_create_object_attribute),
@@ -533,4 +546,6 @@ urlpatterns = [
     url(r'^cc_get_mainline_object_topo/(?P<project_id>\d+)/$', cc_get_mainline_object_topo),
 
     url(r'^cc_get_business_list/$', cc_get_business),
+    url(r'^monitor_get_strategy/(?P<biz_cc_id>\d+)/$', monitor_get_strategy),
+
 ]

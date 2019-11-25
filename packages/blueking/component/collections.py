@@ -15,13 +15,13 @@ from .apis.bk_login import CollectionsBkLogin
 from .apis.bk_paas import CollectionsBkPaas
 from .apis.cc import CollectionsCC
 from .apis.cmsi import CollectionsCMSI
+from .apis.esb import CollectionsEsb
 from .apis.gse import CollectionsGSE
 from .apis.job import CollectionsJOB
-from .apis.sops import CollectionsSOPS
-from .apis.esb import CollectionsEsb
-from .apis.usermanage import CollectionsUserManage
+from .apis.monitor import CollectionsMonitor
 from .apis.nodeman import CollectionsNodeMan
-
+from .apis.sops import CollectionsSOPS
+from .apis.usermanage import CollectionsUserManage
 
 # Available components
 AVAILABLE_COLLECTIONS = {
@@ -35,4 +35,5 @@ AVAILABLE_COLLECTIONS = {
     'esb': CollectionsEsb,
     'usermanage': CollectionsUserManage,
     'nodeman': CollectionsNodeMan,
+    'monitor': CollectionsMonitor,
 }

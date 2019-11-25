@@ -2772,30 +2772,43 @@ msgstr "城市"
 msgid "微信用户"
 msgstr "微信用户"
 
-#~ msgid "文件上传失败， 文件大小超过500M"
-#~ msgstr "文件上传失败， 文件大小超过500M"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:25
+msgid "蓝鲸监控(BK)"
+msgstr "蓝鲸监控(BK)"
 
-#~ msgid "非法业务 ID"
-#~ msgstr "非法业务 ID"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:48
+msgid "屏蔽Id"
+msgstr "屏蔽Id"
 
-#~ msgid "文件上传失败，路径不合法或者程序异常"
-#~ msgstr "文件上传失败，路径不合法或者程序异常"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:49
+msgid "详情"
+msgstr "详情"
 
-#~ msgid "IP选择器(简单版)"
-#~ msgstr "IP选择器(简单版)"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:75, 204
+msgid "查询监控(Monitor)的接口monitor.create_shield失败: %s"
+msgstr "查询监控(Monitor)的接口monitor.create_shield失败: %s"
 
-#~ msgid "模板不存在，错误信息：%s"
-#~ msgstr "模板不存在，错误信息：%s"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:151
+msgid "查询监控(Monitor)的接口monitor.query_host_by_ip失败: %s"
+msgstr "查询监控(Monitor)的接口monitor.query_host_by_ip失败: %s"
 
-#~ msgid " login_ip为空或输入格式错误"
-#~ msgstr " login_ip为空或输入格式错误"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:224
+msgid "创建告警屏蔽(按范围)"
+msgstr "创建告警屏蔽(按范围)"
 
-#~ msgid "data_ip 为空或输入格式错误"
-#~ msgstr "data_ip 为空或输入格式错误"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:232
+msgid "创建告警屏蔽(按策略)"
+msgstr "创建告警屏蔽(按策略)"
 
-#~ msgid "cascade_ip 为空或输入格式错误"
-#~ msgstr "cascade_ip 为空或输入格式错误"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:240
+msgid "解除告警屏蔽"
+msgstr "解除告警屏蔽"
 
-#~ msgid "提交的任务的job_id"
-#~ msgstr "提交的任务的job_id"
+#: pipeline_plugins/components/collections/sites/open/monitor.py:226,234
+msgid "提示: 请在告警屏蔽解除"
+msgstr "提示: 请在告警屏蔽解除"
+
+#: pipeline_plugins/components/collections/sites/open/monitor.py:242
+msgid "提示: 屏蔽id请从告警屏蔽或蓝鲸监控获取"
+msgstr "提示: 屏蔽id请从告警屏蔽或蓝鲸监控获取"
 

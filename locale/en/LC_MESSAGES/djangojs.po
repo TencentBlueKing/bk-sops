@@ -3937,6 +3937,190 @@ msgstr "Server API error:"
 msgid "文本框"
 msgstr "Textarea"
 
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:18
+msgid "屏蔽范围"
+msgstr "Shield Scope"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:28
+msgid "业务"
+msgstr "Business"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:28
+msgid "模块"
+msgstr "Module"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:163
+msgid "请输入主机IP，多个用逗号分隔"
+msgstr "Please enter host IP, multiple separated by commas"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:163
+msgid "IP不可为空"
+msgstr "IP cannot be empty"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:178
+msgid "指标"
+msgstr "Metric"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "所有告警"
+msgstr "All Alarms"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "5分钟平均负载"
+msgstr "5 minute average load"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "CPU总使用率"
+msgstr "Total CPU usage"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "CPU单核使用率"
+msgstr "CPU single core utilization"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "接收字节流量"
+msgstr "Receive byte traffic"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "发送字节流量"
+msgstr "Send byte traffic"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "发送包速率"
+msgstr "Packet rate sended"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "接收包速率"
+msgstr "Packet rate received"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "可用物理内存"
+msgstr "Free physical memory"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "交换分区使用量"
+msgstr "Exchange partition usage"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "物理内存使用率"
+msgstr "Physical memory usage"
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+
+msgid "磁盘使用率"
+msgstr "Disk usage"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "读速率"
+msgstr "Disk read rate"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "写速率"
+msgstr "Disk write rate"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "磁盘IO使用率"
+msgstr "Disk IO usage"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "物理内存使用量"
+msgstr "Physical memory usage"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "应用内存使用量"
+msgstr "Application memory usage"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "应用内存使用率"
+msgstr "Application memory usage rate"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "ESTABLISHED连接数"
+msgstr "Number of established connections"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "TIME_WAIT连接数"
+msgstr "Number of time wait connections"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "SYN_RECV连接数"
+msgstr "Number of syn recv connections"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "UDP接收包量"
+msgstr "UDP packets received"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "UDP发送包量"
+msgstr "UDP packets sent"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "CPU使用率"
+msgstr "CPU usage rate"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "内存使用率"
+msgstr "Memory usage rate"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "物理内存使用量"
+msgstr "Physical memory usage"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "文件句柄数"
+msgstr "Number of file handles"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "系统进程数"
+msgstr "Number of system processes"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "CLOSE_WAIT连接数"
+msgstr "CLOSE_WAIT connection number"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "系统重新启动"
+msgstr "System restart"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "进程端口"
+msgstr "Process port"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "Agent心跳丢失"
+msgstr "Agent heartbeat loss"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "磁盘只读"
+msgstr "Disk read only"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "Corefile产生"
+msgstr "Corefile generated"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "PING不可达告警"
+msgstr "Ping unreachable alarm"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "自定义字符型"
+msgstr "Custom character type"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_scope.js:224
+msgid "磁盘写满"
+msgstr "Disk write full"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_stragety.js:18
+msgid "策略"
+msgstr "Strategy"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_disable.js:18
+msgid "屏蔽id"
+msgstr "Shield ID"
+
+#: pipeline_plugins/components/static/components/atoms/bk/shield_by_disable.js:18
+msgid "请输入屏蔽id"
+msgstr "Please enter shield ID"
+
 #~ msgid "排序统计"
 #~ msgstr "Sort"
 
