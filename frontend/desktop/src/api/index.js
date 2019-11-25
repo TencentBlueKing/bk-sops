@@ -1602,10 +1602,15 @@ const api = {
         return request(opts)
     },
     adminTaskflowDetail (data) {
+        const { task_id } = data
+
         const prefixUrl = this.getPrefix('adminTaskflowDetail')
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: prefixUrl,
+            params: {
+                task_id
+            }
         }
         return request(opts)
     },
@@ -1647,10 +1652,14 @@ const api = {
         return request(opts)
     },
     adminPeriodTaskHistory (data) {
+        const { task_id } = data
         const prefixUrl = this.getPrefix('adminPeriodTaskHistory')
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: prefixUrl,
+            params: {
+                task_id
+            }
         }
         return request(opts)
     }

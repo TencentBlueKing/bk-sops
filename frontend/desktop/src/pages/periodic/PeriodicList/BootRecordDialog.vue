@@ -23,7 +23,7 @@
         @confirm="$emit('onClose')"
         @cancel="$emit('onClose')">
         <div class="dialog-content" v-bkloading="{ isLoading: loading, opacity: 1 }">
-            <bk-table :data="recordData" ref="recordTable">
+            <bk-table :data="recordData" :max-height="350" ref="recordTable">
                 <bk-table-column type="expand" width="30" align="center">
                     <template slot-scope="props">
                         <div v-if="props.row.ex_data" v-html="transformFailInfo(props.row.ex_data)"></div>
@@ -101,7 +101,7 @@
             ]),
             async getRecord () {
                 try {
-                    this.loading = false
+                    this.loading = true
                     const resp = await this.periodTaskHistory({ task_id: this.id })
                     this.recordData = resp.objects
                 } catch (e) {

@@ -99,7 +99,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         adminTaskflowNodeDetail: SITE_URL + 'admin/taskflow/node/detail/',
         adminTaskflowHistroyLog: SITE_URL + 'admin/taskflow/node/history/log/',
         taskflowNodeForceFail: SITE_URL + 'admin/taskflow/node/force_fail/',
-        adminPeriodTask: SITE_URL + 'admin/api/v3/period_task/',
-        adminPeriodTaskHistory: SITE_URL + 'admin/api/v3/period_task_history/'
+        adminPeriodTask: SITE_URL + 'admin/api/v3/periodic_task/',
+        adminPeriodTaskHistory: SITE_URL + 'admin/api/v3/periodic_task_history/'
     }
 }
