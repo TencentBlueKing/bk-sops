@@ -1581,15 +1581,20 @@ const api = {
         const prefixUrl = this.getPrefix('adminTemplate')
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: prefixUrl,
+            params: { ...data }
         }
         return request(opts)
     },
     adminTemplateRestore (data) {
+        const { template_id } = data
         const prefixUrl = this.getPrefix('adminTemplateRestore')
         const opts = {
-            method: 'GET',
-            url: prefixUrl
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                template_id
+            }
         }
         return request(opts)
     },
@@ -1597,7 +1602,8 @@ const api = {
         const prefixUrl = this.getPrefix('adminTaskflow')
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: prefixUrl,
+            params: { ...data }
         }
         return request(opts)
     },

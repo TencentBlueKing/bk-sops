@@ -17,7 +17,7 @@
                 v-model="searchStr"
                 class="search-input"
                 right-icon="bk-icon icon-search"
-                @change="onSearchInput">
+                @enter="onSearchInput">
             </bk-input>
         </div>
         <search-result
@@ -28,7 +28,6 @@
     </div>
 </template>
 <script>
-    import tools from '@/utils/tools.js'
     import SearchResult from './SearchResult.vue'
 
     export default {
@@ -45,11 +44,8 @@
                 }
             }
         },
-        created () {
-            this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
-        },
         methods: {
-            searchInputhandler () {
+            onSearchInput () {
                 this.showResultComp = true
             }
         }
@@ -59,7 +55,6 @@
     .admin-search {
         position: relative;
         height: calc(100% - 60px);
-        overflow: hidden;
     }
     .search-wrapper {
         position: absolute;
