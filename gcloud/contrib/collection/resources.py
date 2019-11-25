@@ -84,7 +84,7 @@ class CollectionResources(ModelResource):
     def dehydrate(self, bundle):
         username = bundle.request.user.username
         category = bundle.data.get('category', '')
-        auth_resources = getattr(self._meta, 'auth_resources', None)
+        auth_resources = self._meta.auth_resources
         auth_resource = auth_resources.get(category, None)
         if auth_resource is None:
             return bundle
@@ -103,7 +103,7 @@ class CollectionResources(ModelResource):
         objects = data.get(self._meta.collection_name, False)
         auth_resources = getattr(self._meta, 'auth_resources', False)
         categories = set([item.data['category'] for item in objects]) if objects else []
-        if not len(categories):
+        if not categories:
             return data
 
         operate_ids = set()
@@ -128,13 +128,13 @@ class CollectionResources(ModelResource):
         auth_resources = getattr(self._meta, 'auth_resources', None)
 
         categories = set([item.data['category'] for item in objects]) if objects else []
-        if not len(categories):
+        if not categories:
             return data
         operate_ids = set()
         operations = []
         resource = {}
         for category in categories:
-            auth_resource = auth_resources.get(category, None)
+            auth_resource = auth_resources.get(category)
             if auth_resource:
                 resource_info = auth_resource.base_info()
                 if not resource_info['scope_id']:

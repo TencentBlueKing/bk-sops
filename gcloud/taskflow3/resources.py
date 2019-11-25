@@ -166,12 +166,12 @@ class TaskFlowInstanceResource(GCloudModelResource):
         )
         if filters.get('creator_or_executor', '').strip():
             if getattr(self.Meta, 'creator_or_executor_fields', []):
-                queries = [Q(**{'%s__contains' % field: filters['creator_or_executor']})
+                queries = [Q(**{'%s' % field: filters['creator_or_executor']})
                            for field in self.Meta.creator_or_executor_fields]
                 query = queries.pop()
                 for item in queries:
                     query |= item
-                if orm_filters.get('q', False):
+                if 'q' in orm_filters:
                     orm_filters['q'] |= query
                 else:
                     orm_filters['q'] = query

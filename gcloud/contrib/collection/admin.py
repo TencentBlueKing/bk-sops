@@ -17,7 +17,7 @@ from gcloud.contrib.collection import models
 
 
 @admin.register(models.Collection)
-class TaskFlowInstanceAdmin(admin.ModelAdmin):
+class CollectionAdmin(admin.ModelAdmin):
     list_display = ['id', 'username', 'category', 'extra_info']
     list_filter = ['category']
     search_fields = ['id', 'username', 'category', 'extra_info']

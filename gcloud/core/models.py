@@ -215,13 +215,11 @@ class UserDefaultProject(models.Model):
 class ProjectCounterManager(models.Manager):
 
     def increase_or_create(self, username, project_id):
-        try:
-            counter = self.get(username=username, project_id=project_id)
-        except ProjectCounter.DoesNotExist:
-            self.create(username=username, project_id=project_id)
+        obj = self.filter(username=username, project_id=project_id)
+        if obj.exists():
+            self.update(count=models.F('count')+1)
         else:
-            counter.count += 1
-            counter.save()
+            self.create(username=username, project_id=project_id)
 
 
 class ProjectCounter(models.Model):
