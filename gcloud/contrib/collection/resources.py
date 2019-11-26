@@ -129,31 +129,15 @@ class CollectionResources(ModelResource):
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
-        objects = data.get(self._meta.collection_name, False)
-        auth_resources = getattr(self._meta, 'auth_resources', None)
-
-        categories = set([item.data['category'] for item in objects]) if objects else []
-        if not categories:
+        auth_resources = getattr(self._meta, 'auth_resources')
+        collection = data.data
+        category = collection.get('category')
+        if not auth_resources:
             return data
-        operate_ids = set()
-        operations = []
-        resource = {}
-        for category in categories:
-            auth_resource = auth_resources.get(category)
-            if auth_resource:
-                resource_info = auth_resource.base_info()
-                if not resource_info['scope_id']:
-                    inspect = getattr(self._meta, 'inspect', None)
-                    resource_info['scope_id'] = inspect.scope_id(data) if inspect else None
-                resource[category] = resource_info
 
-                resource_operations = auth_resource.operations
-                for item in resource_operations:
-                    if item['operate_id'] not in operate_ids:
-                        operations.append(item)
-                        operate_ids.add(item['operate_id'])
-
-        data.data['auth_operations'] = operations
-        data.data['auth_resource'] = resource
+        auth_resource = auth_resources.get(category)
+        if auth_resource:
+            data.data['auth_operations'] = auth_resource.operations
+            data.data['auth_resource'] = auth_resource.base_info()
 
         return data
