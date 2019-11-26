@@ -415,7 +415,7 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.tableSort = val.prop
-                } else if (val.order === 'decending') {
+                } else if (val.order === 'descending') {
                     this.tableSort = `-${val.prop}`
                 } else {
                     this.tableSort = ''
