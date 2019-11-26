@@ -758,6 +758,7 @@
                 }
 
                 // 处理在面板区域里的 popup 上的点击，eg: select、tooltip
+                const settingPanel = document.querySelector('.setting-area-wrap')
                 const nodeConfig = document.querySelector('.node-config')
                 const clinetX = document.body.clientWidth
                 const { left, right, top, bottom } = this.$refs.nodeConfigPanel.getBoundingClientRect()
@@ -770,9 +771,12 @@
                 ) {
                     return
                 }
-                if (this.isNodeConfigPanelShow && !dom.nodeContains(nodeConfig, e.target)) {
-                    this.subflowHasUpdate = false
-                    this.syncNodeDataToActivities()
+                if (settingPanel && this.isNodeConfigPanelShow) {
+                    if (!dom.nodeContains(settingPanel, e.target)
+                        && !dom.nodeContains(nodeConfig, e.target)) {
+                        this.subflowHasUpdate = false
+                        this.syncNodeDataToActivities()
+                    }
                 }
             },
             /**
