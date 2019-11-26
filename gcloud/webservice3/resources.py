@@ -26,14 +26,14 @@ from tastypie.exceptions import BadRequest
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.http import HttpForbidden
 
-from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization, BkSaaSReadOnlyAuthorization
 from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
-from gcloud.core.models import Business, Project
+from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.core.permissions import project_resource
 from gcloud.webservice3.serializers import AppSerializer
 
@@ -271,3 +271,30 @@ class VariableModelResource(GCloudModelResource):
         excludes = ['status', 'id']
         detail_uri_name = 'code'
         authorization = ReadOnlyAuthorization()
+
+
+class CommonProjectResource(GCloudModelResource):
+    project = fields.ForeignKey(
+        ProjectResource,
+        'project',
+        full=True
+    )
+
+    class Meta(GCloudModelResource.Meta):
+        queryset = ProjectCounter.objects.all().order_by('-count')
+        resource_name = 'common_project'
+        auth_resource = project_resource
+        authorization = BkSaaSReadOnlyAuthorization(auth_resource=auth_resource,
+                                                    read_action_id='view',
+                                                    resource_f='project')
+        allowed_methods = ['get']
+        filtering = {
+            "id": ALL,
+            "username": ALL,
+            "count": ALL,
+        }
+        q_fields = ['id', 'username', 'count']
+
+    def get_object_list(self, request):
+        query = super(GCloudModelResource, self).get_object_list(request)
+        return query.filter(username=request.user.username)

@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import ujson as json
 
+import ujson as json
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from tastypie import fields
@@ -27,7 +27,8 @@ from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_re
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
-from pipeline_web.parser import WebPipelineAdapter
+from pipeline.validators.base import validate_pipeline_tree
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.core.utils import name_handler
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
@@ -164,11 +165,14 @@ class TaskTemplateResource(GCloudModelResource):
             raise BadRequest(str(e))
         # XSS handle
         self.handle_template_name_attr(pipeline_template_kwargs)
+
         # validate pipeline tree
         try:
-            WebPipelineAdapter(pipeline_template_kwargs['pipeline_tree'])
+            validate_web_pipeline_tree(pipeline_template_kwargs['pipeline_tree'])
+            validate_pipeline_tree(pipeline_template_kwargs['pipeline_tree'], cycle_tolerate=True)
         except PipelineException as e:
             raise BadRequest(str(e))
+
         # Note: tastypie won't use model's create method
         try:
             pipeline_template = model.objects.create_pipeline_template(
@@ -193,13 +197,16 @@ class TaskTemplateResource(GCloudModelResource):
                     pipeline_template_kwargs['description'] = bundle.data.pop('description')
             except (KeyError, ValueError) as e:
                 raise BadRequest(str(e))
-            # validate pipeline tree
-            try:
-                WebPipelineAdapter(pipeline_template_kwargs['pipeline_tree'])
-            except PipelineException as e:
-                raise BadRequest(str(e))
             # XSS handle
             self.handle_template_name_attr(pipeline_template_kwargs)
+
+            # validate pipeline tree
+            try:
+                validate_web_pipeline_tree(pipeline_template_kwargs['pipeline_tree'])
+                validate_pipeline_tree(pipeline_template_kwargs['pipeline_tree'], cycle_tolerate=True)
+            except PipelineException as e:
+                raise BadRequest(str(e))
+
             try:
                 obj.update_pipeline_template(**pipeline_template_kwargs)
             except PipelineException as e:

@@ -18,7 +18,8 @@ from gcloud.webservice3.resources import (
     BusinessResource,
     ProjectResource,
     ComponentModelResource,
-    VariableModelResource
+    VariableModelResource,
+    CommonProjectResource,
 )
 from gcloud.commons.template.resources import (
     CommonTemplateResource,
@@ -31,12 +32,14 @@ from gcloud.tasktmpl3.resources import (
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.appmaker.resources import AppMakerResource
 from gcloud.contrib.function.resources import FunctionTaskResource
+from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
 
 v3_api = Api(api_name='v3')
 v3_api.register(BusinessResource())
 v3_api.register(ProjectResource())
+v3_api.register(CommonProjectResource())
 v3_api.register(TaskTemplateResource())
 v3_api.register(ComponentModelResource())
 v3_api.register(VariableModelResource())
@@ -44,6 +47,7 @@ v3_api.register(TemplateSchemeResource())
 v3_api.register(TaskFlowInstanceResource())
 v3_api.register(AppMakerResource())
 v3_api.register(FunctionTaskResource())
+v3_api.register(CollectionResources())
 v3_api.register(PeriodicTaskResource())
 v3_api.register(CommonTemplateResource())
 v3_api.register(CommonTemplateSchemeResource())

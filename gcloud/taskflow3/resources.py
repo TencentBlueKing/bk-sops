@@ -12,9 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import ujson as json
 
+import ujson as json
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
@@ -27,6 +28,7 @@ from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
+from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.core.utils import name_handler, pipeline_node_name_handle
@@ -157,6 +159,28 @@ class TaskFlowInstanceResource(GCloudModelResource):
             'pipeline_instance': ALL_WITH_RELATIONS,
         }
         q_fields = ['id', 'pipeline_instance__name']
+        creator_or_executor_fields = ['pipeline_instance__creator', 'pipeline_instance__executor']
+
+    def build_filters(self, filters=None, ignore_bad_filters=False):
+        if filters is None:
+            filters = {}
+
+        orm_filters = super(GCloudModelResource, self).build_filters(
+            filters,
+            ignore_bad_filters
+        )
+        if filters.get('creator_or_executor', '').strip():
+            if getattr(self.Meta, 'creator_or_executor_fields', []):
+                queries = [Q(**{'%s' % field: filters['creator_or_executor']})
+                           for field in self.Meta.creator_or_executor_fields]
+                query = queries.pop()
+                for item in queries:
+                    query |= item
+                if 'q' in orm_filters:
+                    orm_filters['q'] |= query
+                else:
+                    orm_filters['q'] = query
+        return orm_filters
 
     @staticmethod
     def handle_task_name_attr(data):
@@ -184,9 +208,11 @@ class TaskFlowInstanceResource(GCloudModelResource):
             raise BadRequest(str(e))
         # XSS handle
         self.handle_task_name_attr(pipeline_instance_kwargs)
+
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'])
+            validate_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'], cycle_tolerate=True)
         except PipelineException as e:
             raise BadRequest(str(e))
 
