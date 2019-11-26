@@ -1624,7 +1624,8 @@ const api = {
         const prefixUrl = this.getPrefix('adminTaskflowHistroyLog')
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: prefixUrl,
+            data: { ...data }
         }
         return request(opts)
     },
@@ -1645,7 +1646,8 @@ const api = {
         const prefixUrl = this.getPrefix('adminTaskflowNodeDetail')
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: prefixUrl,
+            params: { ...data }
         }
         return request(opts)
     },

@@ -29,7 +29,7 @@
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
-        name: 'TaskExecuteInfo',
+        name: 'TaskInfo',
         components: {
             NoData,
             VueJsonPretty

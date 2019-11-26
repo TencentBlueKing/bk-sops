@@ -178,10 +178,10 @@
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
-                <TaskExecuteInfo
+                <TaskInfo
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
-                </TaskExecuteInfo>
+                </TaskInfo>
                 <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
                     <i class="common-icon-double-arrow"></i>
                 </div>
@@ -212,7 +212,7 @@
     import ExecuteInfo from './ExecuteInfo.vue'
     import RetryNode from './RetryNode.vue'
     import ModifyTime from './ModifyTime.vue'
-    import TaskExecuteInfo from './TaskExecuteInfo.vue'
+    import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
@@ -255,7 +255,7 @@
             ExecuteInfo,
             RetryNode,
             ModifyTime,
-            TaskExecuteInfo,
+            TaskInfo,
             gatewaySelectDialog,
             revokeDialog
         },

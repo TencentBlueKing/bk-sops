@@ -79,7 +79,6 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -240,41 +239,22 @@
             this.initHome()
         },
         methods: {
-            ...mapActions([
-                'queryUserPermission'
-            ]),
             ...mapActions('project', [
                 'loadProjectList'
             ]),
             ...mapMutations([
-                'setBizId',
-                'setAdminPerm'
+                'setBizId'
             ]),
             ...mapMutations('project', [
                 'setProjectPerm'
             ]),
             async initHome () {
                 if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.getAdminPerm()
                     const res = await this.loadProjectList({ limit: 0 })
                     this.setProjectPerm(res.meta)
                 }
             },
-            async getAdminPerm () {
-                try {
-                    const res = await this.queryUserPermission({
-                        resource_type: 'admin_operate',
-                        action_ids: JSON.stringify(['view'])
-                    })
-    
-                    const hasPerm = !!res.data.details.find(item => {
-                        return item.action_id === 'view' && item.is_pass
-                    })
-                    this.setAdminPerm(hasPerm)
-                } catch (err) {
-                    errorHandler(err, this)
-                }
-            },
+            
             isNavActived (route) {
                 const key = route.key
                 // 轻应用打开
