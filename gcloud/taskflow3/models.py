@@ -486,7 +486,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 # 需要将 code 转为字符型
                 'instanceTotal': total_dict.get(str(appmaker_id), 0)
             })
-        if order_by[0] == '-':
+        if order_by.startswith('-'):
             # 需要去除负号
             order_by = order_by[1:]
             groups = sorted(groups, key=lambda group: -group.get(order_by))
@@ -691,7 +691,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             groups.append(item)
 
         order_by = filters.get('order_by', '-instanceId')
-        if order_by[0] == '-':
+        if order_by.startswith('-'):
             # 需要去除负号
             order_by = order_by[1:]
             groups = sorted(groups, key=lambda group: -group.get(order_by))
