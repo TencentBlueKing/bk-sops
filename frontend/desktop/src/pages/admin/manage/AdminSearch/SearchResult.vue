@@ -61,9 +61,9 @@
                                 <template v-else-if="col.prop === 'operation'">
                                     <span
                                         v-if="props.row.is_deleted"
-                                        v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                        v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, tplOperations) }"
                                         :class="['table-link', {
-                                            'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                            'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, tplOperations)
                                         }]"
                                         @click="onRestoreTemplate(props.row)">
                                         {{ i18n.restore }}
@@ -88,6 +88,7 @@
                                 <template v-else :title="props.row[col.prop]">{{ props.row[col.prop] }}</template>
                             </template>
                         </bk-table-column>
+                        <div slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </div>
                 <div class="list-table task-list-table">
@@ -137,10 +138,11 @@
                                 <template v-else :title="props.row[col.prop]">{{ props.row[col.prop] }}</template>
                             </template>
                         </bk-table-column>
+                        <div slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </div>
             </template>
-            <div v-else class="no-data-matched" slot="empty"><NoData :message="i18n.empty" /></div>
+            <div v-else class="no-data-matched" slot="empty"><no-data :message="i18n.empty"></no-data></div>
         </div>
         <bk-dialog
             width="400"
@@ -450,11 +452,11 @@
                 this.applyForPermission(required, data, operations, resource)
             },
             onRestoreTemplate (tpl) {
-                if (this.hasPermission(['delete'], tpl.auth_actions, this.tplOperations)) {
+                if (this.hasPermission(['edit'], tpl.auth_actions, this.tplOperations)) {
                     this.isRestoreDialogShow = true
                     this.restoreData = tpl
                 } else {
-                    this.onApplyPerm(['delete'], tpl, 'tpl')
+                    this.onApplyPerm(['edit'], tpl, 'tpl')
                 }
             },
             async onRestoreConfirm () {

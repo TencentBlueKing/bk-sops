@@ -102,14 +102,14 @@
                             'common-icon',
                             'common-icon-paper',
                             {
-                                actived: nodeInfoType === 'templateInfo'
+                                actived: nodeInfoType === 'taskExecuteInfo'
                             }
                         ]"
                         v-bk-tooltips="{
-                            content: i18n.templateInfo,
+                            content: i18n.taskExecuteInfo,
                             placements: ['bottom']
                         }"
-                        @click="onTaskParamsClick('templateInfo')">
+                        @click="onTaskParamsClick('taskExecuteInfo')">
                     </i>
                 </div>
             </div>
@@ -178,10 +178,10 @@
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
-                <TemplateInfo
-                    v-if="nodeInfoType === 'templateInfo'"
+                <TaskExecuteInfo
+                    v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
-                </TemplateInfo>
+                </TaskExecuteInfo>
                 <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
                     <i class="common-icon-double-arrow"></i>
                 </div>
@@ -212,7 +212,7 @@
     import ExecuteInfo from './ExecuteInfo.vue'
     import RetryNode from './RetryNode.vue'
     import ModifyTime from './ModifyTime.vue'
-    import TemplateInfo from './TemplateInfo.vue'
+    import TaskExecuteInfo from './TaskExecuteInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
@@ -255,7 +255,7 @@
             ExecuteInfo,
             RetryNode,
             ModifyTime,
-            TemplateInfo,
+            TaskExecuteInfo,
             gatewaySelectDialog,
             revokeDialog
         },
@@ -279,7 +279,7 @@
                     params: gettext('查看参数'),
                     changeParams: gettext('修改参数'),
                     checkFlow: gettext('查看流程'),
-                    templateInfo: gettext('流程信息')
+                    taskExecuteInfo: gettext('流程信息')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,

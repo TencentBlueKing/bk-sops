@@ -10,34 +10,29 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-info">
+    <div class="task-execute-info">
         <div class="panel-title">
             <h3>{{ i18n.title }}</h3>
         </div>
-        <div class="content-wrapper">
-            <div class="info-sections">
-                <section>
-                    <h4 class="common-section-title">{{ i18n.contextInfo }}</h4>
-                    <div class="context-data"></div>
-                </section>
-                <section>
-                    <h4 class="common-section-title">{{ i18n.modelInfo }}</h4>
-                    <div class="context-data"></div>
-                </section>
+        <div class="content-wrapper" v-bkloading="{ isLoading: taskflowDetailLoading, opacity: 1 }">
+            <div class="context-data" v-if="taskDetail">
+                <vue-json-pretty :data="taskDetail"></vue-json-pretty>
             </div>
-            <no-data></no-data>
+            <no-data v-else></no-data>
         </div>
     </div>
 </template>
 <script>
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import VueJsonPretty from 'vue-json-pretty'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
-        name: 'TemplateInfo',
+        name: 'TaskExecuteInfo',
         components: {
-            NoData
+            NoData,
+            VueJsonPretty
         },
         props: {
             taskId: {
@@ -48,8 +43,9 @@
         data () {
             return {
                 taskflowDetailLoading: true,
+                taskDetail: null,
                 i18n: {
-                    title: gettext('流程信息'),
+                    title: gettext('任务执行信息'),
                     contextInfo: gettext('上下文数据'),
                     modelInfo: gettext('任务模型数据')
                 }
@@ -67,7 +63,7 @@
                     this.taskflowDetailLoading = true
                     const resp = await this.taskflowDetail({ task_id: this.taskId })
                     if (resp.result) {
-                        console.log(resp.result)
+                        this.taskDetail = resp.data
                     } else {
                         errorHandler(resp, this)
                     }
@@ -81,12 +77,12 @@
     }
 </script>
 <style lang="scss" scoped>
-    .template-info {
+    .task-execute-info {
         position: relative;
         height: 100%;
         overflow: hidden;
         .panel-title {
-            margin: 20px;
+            margin: 20px 20px 0;
             padding-bottom: 5px;
             border-bottom: 1px solid #cacedb;
             h3 {
@@ -97,6 +93,10 @@
         }
         .content-wrapper {
             padding: 20px;
+            margin: 20px 20px 0;
+            height: calc(100% - 100px);
+            border: 1px solid #cacedb;
+            overflow-y: auto;
         }
         .common-section-title {
             color: #313238;
