@@ -56,7 +56,6 @@ from gcloud.core.utils import (
     convert_readable_username,
     timestamp_to_datetime,
     format_datetime,
-    camel_case_to_underscore_naming,
     gen_day_dates,
     get_month_dates
 )
@@ -661,33 +660,20 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         @return:
         """
         total = taskflow.count()
+        # 查询所有任务的统计数据
         instance_id_list = list(taskflow.values_list('pipeline_instance__instance_id', flat=True))
-        instance_pipeline_data = InstanceInPipeline.objects.filter(instance_id__in=instance_id_list)
-        order_by = filters.get('order_by', '-instanceId')
-        if order_by in ['elapsedTime', '-elapsedTime']:
-            ordered_data = [(task.pipeline_instance.instance_id, task.elapsed_time) for task in taskflow]
-            if order_by == 'elapsedTime':
-                ordered_data.sort(key=lambda x: x[1])
-            else:
-                ordered_data.sort(key=lambda x: - x[1])
-            pipeline_ids = [task[0] for task in ordered_data[(page - 1) * limit: page * limit]]
-            pipeline_data = list(instance_pipeline_data.filter(instance_id__in=pipeline_ids))
-            pipeline_data.sort(key=lambda x: pipeline_ids.index(x.instance_id))
+        instance_pipeline_data = InstanceInPipeline.objects.filter(instance_id__in=instance_id_list).values()
+        instance_in_pipeline_dict = {}
+        for instance in instance_pipeline_data:
+            instance_in_pipeline_dict[instance['instance_id']] = {
+                'atomTotal': instance['atom_total'],
+                'subprocessTotal': instance['subprocess_total'],
+                'gatewaysTotal': instance['gateways_total']
+            }
 
-        else:
-            # 使用驼峰转下划线进行转换order_by
-            camel_order_by = camel_case_to_underscore_naming(order_by)
-            # 排列获取分页后的数据
-            pipeline_data = instance_pipeline_data.order_by(camel_order_by)[(page - 1) * limit: page * limit]
-            pipeline_ids = list(pipeline_data.values_list('instance_id', flat=True))
-
-        # taskflow 按照 pipeline__instance_id 映射
-        taskflow_dict = {}
-        taskflow = taskflow.select_related('project', 'pipeline_instance').filter(
-            pipeline_instance__instance_id__in=pipeline_ids
-        )
+        groups = []
         for task in taskflow:
-            taskflow_dict[task.pipeline_instance.instance_id] = {
+            item = {
                 'instanceId': task.id,
                 'instanceName': task.pipeline_instance.name,
                 'projectId': task.project.id,
@@ -695,17 +681,24 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 'category': task.get_category_display(),
                 'createTime': format_datetime(task.pipeline_instance.create_time),
                 'creator': task.pipeline_instance.creator,
-                'elapsedTime': task.elapsed_time
+                'elapsedTime': task.elapsed_time,
+                'atomTotal': 0,
+                'subprocessTotal': 0,
+                'gatewaysTotal': 0
             }
-
-        groups = []
-        for pipeline in pipeline_data:
-            item = {'atomTotal': pipeline.atom_total,
-                    'subprocessTotal': pipeline.subprocess_total,
-                    'gatewaysTotal': pipeline.gateways_total}
-            item.update(taskflow_dict[pipeline.instance_id])
+            if task.pipeline_instance.instance_id in instance_in_pipeline_dict:
+                item.update(instance_in_pipeline_dict[task.pipeline_instance.instance_id])
             groups.append(item)
-        return total, groups
+
+        order_by = filters.get('order_by', '-instanceId')
+        if order_by[0] == '-':
+            # 需要去除负号
+            order_by = order_by[1:]
+            groups = sorted(groups, key=lambda group: -group.get(order_by))
+        else:
+            groups = sorted(groups, key=lambda group: group.get(order_by))
+
+        return total, groups[(page - 1) * limit: page * limit]
 
     def group_by_instance_time(self, taskflow, filters, *args):
         #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
