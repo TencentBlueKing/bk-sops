@@ -14,6 +14,7 @@ const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 
 /**
  * 生产环境分版本打包命令
@@ -153,6 +154,9 @@ module.exports = {
             $: 'jquery',
             jQuery: 'jquery',
             'window.jQuery': 'jquery'
+        }),
+        new MonacoWebpackPlugin({
+            languages: ['javascript', 'typescript', 'python']
         })
     ],
     optimization: {

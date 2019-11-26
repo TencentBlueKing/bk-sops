@@ -12,26 +12,19 @@
 <template>
     <div class="setting-area-wrap">
         <div class="setting-tab-wrap">
-            <div class="setting-panel-tab" @click="onTemplateSettingShow('globalVariableTab')">
-                <div :class="[
-                    'setting-menu-icon',
-                    {
-                        'active-tab': activeTab === 'globalVariableTab',
-                        'update': isGlobalVariableUpdate
+            <template v-for="tab in settingTabs">
+                <div
+                    :key="tab.id"
+                    class="setting-panel-tab"
+                    @click="onTemplateSettingShow(tab.id)">
+                    <div :class="['setting-menu-icon', {
+                        'active-tab': activeTab === tab.id,
+                        'update': activeTab === 'globalVariableTab' && isGlobalVariableUpdate
                     }]">
-                    <i class="common-icon-square-code" :title="i18n.globalVariable"></i>
+                        <i :class="tab.icon" :title="tab.ti"></i>
+                    </div>
                 </div>
-            </div>
-            <div class="setting-panel-tab" @click="onTemplateSettingShow('templateConfigTab')">
-                <div :class="['setting-menu-icon', { 'active-tab': activeTab === 'templateConfigTab' }]">
-                    <i class="common-icon-square-attribute" :title="i18n.basicInformation"></i>
-                </div>
-            </div>
-            <div class="setting-panel-tab" @click="onTemplateSettingShow('localDraftTab')">
-                <div :class="['setting-menu-icon', { 'active-tab': activeTab === 'localDraftTab' }]">
-                    <i class="common-icon-clock-reload" :title="i18n.localCache"></i>
-                </div>
-            </div>
+            </template>
         </div>
         <div class="setting-panel" v-show="showPanel">
             <div class="panel-content">
@@ -62,6 +55,7 @@
                     @hideConfigPanel="hideConfigPanel"
                     @updateLocalTemplateData="updateLocalTemplateData">
                 </TabLocalDraft>
+                <TabTemplateData v-show="activeTab === 'templateDataEditTab'"></TabTemplateData>
             </div>
         </div>
     </div>
@@ -72,12 +66,38 @@
     import TabGlobalVariables from './TabGlobalVariables.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabLocalDraft from './TabLocalDraft.vue'
+    import TabTemplateData from './TabTemplateData.vue'
+
+    const SETTING_TABS = [
+        {
+            id: 'globalVariableTab',
+            icon: 'common-icon-square-code',
+            title: gettext('全局变量')
+        },
+        {
+            id: 'templateConfigTab',
+            icon: 'common-icon-square-attribute',
+            title: gettext('基础信息')
+        },
+        {
+            id: 'localDraftTab',
+            icon: 'common-icon-clock-reload',
+            title: gettext('本地缓存')
+        },
+        {
+            id: 'templateDataEditTab',
+            icon: 'common-icon-paper',
+            title: gettext('模板数据')
+        }
+    ]
+
     export default {
         name: 'TemplateSetting',
         components: {
             TabGlobalVariables,
             TabTemplateConfig,
-            TabLocalDraft
+            TabLocalDraft,
+            TabTemplateData
         },
         props: [
             'projectInfoLoading',
@@ -91,11 +111,6 @@
         ],
         data () {
             return {
-                i18n: {
-                    globalVariable: gettext('全局变量'),
-                    basicInformation: gettext('基础信息'),
-                    localCache: gettext('本地缓存')
-                },
                 showPanel: true,
                 isVariableEditing: false,
                 activeTab: 'globalVariableTab'
@@ -106,7 +121,8 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
-                'timeout': state => state.template.time_out
+                'timeout': state => state.template.time_out,
+                'hasAdminPerm': state => state.hasAdminPerm
             }),
             variableData () {
                 if (this.theKeyOfEditing) {
@@ -126,6 +142,9 @@
                         value: ''
                     }
                 }
+            },
+            settingTabs () {
+                return this.hasAdminPerm ? SETTING_TABS.slice(0) : SETTING_TABS.slice(0, -1)
             }
         },
         watch: {
