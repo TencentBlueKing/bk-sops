@@ -11,15 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 import copy
-import json
 import logging
-import jsonschema
 
+import ujson as json
+import jsonschema
 from django.test import TestCase, Client
 
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from pipeline.exceptions import PipelineException
 
 from gcloud.conf import settings
@@ -28,7 +27,6 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.periodictask.models import PeriodicTask
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -383,6 +381,7 @@ class APITest(TestCase):
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
+                    template_source='project',
                     create_method='api',
                     create_info=TEST_APP_CODE,
                     flow_type='common',
@@ -427,6 +426,7 @@ class APITest(TestCase):
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
+                    template_source='common',
                     create_method='api',
                     create_info=TEST_APP_CODE,
                     flow_type='common',
@@ -745,15 +745,17 @@ class APITest(TestCase):
                                                                 bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, '')))
-    def test_query_task_count__extend_classified_count_fail(self):
+    def test_query_task_count__dispatch_fail(self):
         response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'group_by': 'category'}),
                                     content_type='application/json')
 
-        TaskFlowInstance.objects.extend_classified_count.assert_called_once_with('category',
-                                                                                 {'project_id': TEST_PROJECT_ID,
-                                                                                  'is_deleted': False})
-
+        task_flow_instance.dispatch.assert_called_once_with(
+            'category', {
+                'project_id': TEST_BIZ_CC_ID,
+                'is_deleted': False
+            }
+        )
         data = json.loads(response.content)
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
@@ -773,6 +775,7 @@ class APITest(TestCase):
             'id': task.id,
             'name': task.name,
             'template_id': task.template_id,
+            'template_source': task.template_source,
             'creator': task.creator,
             'cron': task.cron,
             'enabled': task.enabled,
@@ -798,6 +801,36 @@ class APITest(TestCase):
             'id': task.id,
             'name': task.name,
             'template_id': task.template_id,
+            'template_source': 'project',
+            'creator': task.creator,
+            'cron': task.cron,
+            'enabled': task.enabled,
+            'last_run_at': format_datetime(task.last_run_at),
+            'total_run_count': task.total_run_count,
+            'form': task.form,
+            'pipeline_tree': task.pipeline_tree
+        }
+
+        with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
+            response = self.client.get(path=self.GET_PERIODIC_TASK_INFO_URL.format(task_id=TEST_PERIODIC_TASK_ID,
+                                                                                   project_id=TEST_PROJECT_ID))
+
+            data = json.loads(response.content)
+
+            self.assertTrue(data['result'], msg=data)
+            self.assertEqual(data['data'], assert_data)
+
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
+    def test_get_periodic_task_info__common_template(self):
+        task = MockPeriodicTask(template_source='common')
+        assert_data = {
+            'id': task.id,
+            'name': task.name,
+            'template_id': task.template_id,
+            'template_source': 'common',
             'creator': task.creator,
             'cron': task.cron,
             'enabled': task.enabled,
@@ -834,6 +867,7 @@ class APITest(TestCase):
             'id': task.id,
             'name': task.name,
             'template_id': task.template_id,
+            'template_source': 'project',
             'creator': task.creator,
             'cron': task.cron,
             'enabled': task.enabled,
@@ -858,6 +892,7 @@ class APITest(TestCase):
                             project_id=TEST_PROJECT_ID),
                             data=json.dumps({'name': task.name,
                                              'cron': task.cron,
+                                             'template_source': 'project',
                                              'exclude_task_nodes_id': 'exclude_task_nodes_id'}),
                             content_type='application/json')
 
@@ -869,6 +904,66 @@ class APITest(TestCase):
                         PeriodicTask.objects.create.assert_called_once_with(
                             project=proj,
                             template=template,
+                            template_source='project',
+                            name=task.name,
+                            cron=task.cron,
+                            pipeline_tree=template.pipeline_tree,
+                            creator=''
+                        )
+
+                        data = json.loads(response.content)
+
+                        replace_template_id_mock.assert_called_once_with(TaskTemplate, template.pipeline_tree)
+
+                        self.assertTrue(data['result'], msg=data)
+                        self.assertEqual(data['data'], assert_data)
+
+    @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
+    @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
+    def test_create_periodic_task__common_template(self):
+        task = MockPeriodicTask(template_source='common')
+        assert_data = {
+            'id': task.id,
+            'name': task.name,
+            'template_id': task.template_id,
+            'template_source': 'common',
+            'creator': task.creator,
+            'cron': task.cron,
+            'enabled': task.enabled,
+            'last_run_at': format_datetime(task.last_run_at),
+            'total_run_count': task.total_run_count,
+            'form': task.form,
+            'pipeline_tree': task.pipeline_tree
+        }
+        proj = MockProject(project_id=TEST_PROJECT_ID,
+                           name=TEST_PROJECT_NAME,
+                           bk_biz_id=TEST_BIZ_CC_ID,
+                           from_cmdb=True)
+        template = MockCommonTemplate()
+        replace_template_id_mock = MagicMock()
+
+        with mock.patch(COMMONTEMPLATE_GET, MagicMock(return_value=template)):
+            with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
+                with mock.patch(PERIODIC_TASK_CREATE, MagicMock(return_value=task)):
+                    with mock.patch(APIGW_REPLACE_TEMPLATE_ID, replace_template_id_mock):
+                        response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(
+                            template_id=TEST_TEMPLATE_ID,
+                            project_id=TEST_PROJECT_ID),
+                            data=json.dumps({'name': task.name,
+                                             'cron': task.cron,
+                                             'template_source': 'common',
+                                             'exclude_task_nodes_id': 'exclude_task_nodes_id'}),
+                            content_type='application/json')
+
+                        TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes.assert_called_with(
+                            template.pipeline_tree,
+                            'exclude_task_nodes_id'
+                        )
+
+                        PeriodicTask.objects.create.assert_called_once_with(
+                            project=proj,
+                            template=template,
+                            template_source='common',
                             name=task.name,
                             cron=task.cron,
                             pipeline_tree=template.pipeline_tree,
@@ -934,7 +1029,6 @@ class APITest(TestCase):
                                     content_type='application/json')
 
         data = json.loads(response.content)
-
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 

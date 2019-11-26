@@ -43,13 +43,13 @@ class CachePackageSourceManager(PackageSourceManager):
 
 
 class CachePackageSource(PackageSource):
-    desc = models.TextField(_(u"包源说明"), max_length=1000, blank=True)
+    desc = models.TextField(_("包源说明"), max_length=1000, blank=True)
 
     objects = CachePackageSourceManager()
 
     class Meta:
-        verbose_name = _(u"远程包源缓存 CachePackageSource")
-        verbose_name_plural = _(u"远程包源缓存 CachePackageSource")
+        verbose_name = _("远程包源缓存 CachePackageSource")
+        verbose_name_plural = _("远程包源缓存 CachePackageSource")
         ordering = ['-id']
 
     @property

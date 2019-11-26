@@ -192,22 +192,21 @@
                 if (atom.tag_code === 'job_task') {
                     this.value[atom.tag_code] = this.reloadValue(atom, this.value)
                 }
-
                 return this.formData[atom.tag_code]
             },
             updateForm (fieldArr, val) {
-                const field = fieldArr.slice(-1)[0]
-                let fieldDataObj = this.value
-                fieldArr.slice(0, -1).forEach(item => {
-                    if (item in fieldDataObj) {
-                        fieldDataObj = fieldDataObj[item]
-                    } else {
-                        this.$set(fieldDataObj, item, {})
+                const fieldDataObj = tools.deepClone(this.formData)
+                fieldArr.reduce((acc, cur, index, arr) => {
+                    if (index === arr.length - 1) {
+                        acc[cur] = val
+                        return
                     }
-                })
-
-                this.$set(fieldDataObj, field, val)
-                this.$emit('change', this.value)
+                    if (!acc.hasOwnProperty(cur)) {
+                        acc[cur] = {}
+                    }
+                    return acc[cur]
+                }, fieldDataObj)
+                this.$emit('change', fieldDataObj)
             },
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
@@ -272,7 +271,7 @@
             margin: 0;
             margin-bottom: -1px;
             padding: 5px 14px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             color: #313238;
         }
@@ -287,7 +286,7 @@
         }
         .rf-group-desc {
             color: #c4c6cc;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             &:hover {
                 color: #f4aa1a;

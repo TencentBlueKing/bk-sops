@@ -42,7 +42,7 @@ class TestBase(TestCase):
                 def clean_execute_data(self, context):
                     return {}
         except ValueError as e:
-            self.assertNotEqual(e.message.find('name'), -1)
+            self.assertNotEqual(str(e).find('name'), -1)
 
     def test_no_code_component(self):
         class NoCodeComponentService(Service):
@@ -62,7 +62,7 @@ class TestBase(TestCase):
                     return {}
 
         except ValueError as e:
-            self.assertNotEqual(e.message.find('code'), -1)
+            self.assertNotEqual(str(e).find('code'), -1)
 
     def test_no_form_component(self):
         class NoFormComponentService(Service):
@@ -82,7 +82,7 @@ class TestBase(TestCase):
                     return {}
 
         except ValueError as e:
-            self.assertNotEqual(e.message.find('form'), -1)
+            self.assertNotEqual(str(e).find('form'), -1)
 
     def test_no_service_component(self):
         try:
@@ -97,7 +97,7 @@ class TestBase(TestCase):
                 def clean_execute_data(self, context):
                     return {}
         except ValueError as e:
-            self.assertNotEqual(e.message.find('service'), -1)
+            self.assertNotEqual(str(e).find('service'), -1)
 
     def test_wrong_class_service_component(self):
         try:
@@ -113,4 +113,4 @@ class TestBase(TestCase):
             def clean_execute_data(self, context):
                 return {}
         except ValueError as e:
-            self.assertNotEqual(e.message.find('service'), -1)
+            self.assertNotEqual(str(e).find('service'), -1)

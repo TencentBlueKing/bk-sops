@@ -22,16 +22,17 @@ from gcloud.commons.template.models import CommonTemplate
 
 common_template_resource = DjangoModelResource(
     rtype='common_flow',
-    name=_(u"公共流程"),
+    name=_("公共流程"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
+    scope_name=_("标准运维"),
     actions=[
-        Action(id='create', name=_(u"新建"), is_instance_related=False),
-        Action(id='view', name=_(u"查看"), is_instance_related=True),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='delete', name=_(u"删除"), is_instance_related=True),
-        Action(id='create_task', name=_(u"新建任务"), is_instance_related=True)
+        Action(id='create', name=_("新建"), is_instance_related=False),
+        Action(id='view', name=_("查看"), is_instance_related=True),
+        Action(id='edit', name=_("编辑"), is_instance_related=True),
+        Action(id='delete', name=_("删除"), is_instance_related=True),
+        Action(id='create_task', name=_("新建任务"), is_instance_related=True),
+        Action(id='create_periodic_task', name=_("新建周期任务"), is_instance_related=True)
     ],
     operations=[
         {
@@ -55,12 +56,24 @@ common_template_resource = DjangoModelResource(
             'actions_id': ['view', 'create_task']
         },
         {
+            'operate_id': 'create_periodic_task',
+            'actions_id': ['view', 'create_periodic_task']
+        },
+        {
             'operate_id': 'clone',
             'actions_id': ['view']
         },
         {
             'operate_id': 'export',
             'actions_id': ['view']
+        },
+        {
+            'operate_id': 'create_scheme',
+            'actions_id': ['view', 'edit']
+        },
+        {
+            'operate_id': 'delete_scheme',
+            'actions_id': ['view', 'edit']
         }
     ],
     resource_cls=CommonTemplate,

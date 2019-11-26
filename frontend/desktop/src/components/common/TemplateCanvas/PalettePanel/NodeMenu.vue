@@ -12,13 +12,9 @@
 <template>
     <transition name="slideLeft">
         <div class="node-menu" v-if="showNodeMenu" v-bk-clickoutside="handleClickOutSide">
-            <i
-                :class="[
-                    'common-icon-left-pin',
-                    'node-list-pin',
-                    { 'actived': isFixedNodeMenu }
-                ]"
-                @click.stop="onClickPin"></i>
+            <div :class="['panel-fixed-pin', { 'actived': isFixedNodeMenu }]" @click.stop="onClickPin">
+                <i class="common-icon-pin"></i>
+            </div>
             <div class="search-wrap">
                 <bk-input
                     class="search-input"
@@ -33,10 +29,11 @@
                         <bk-collapse v-for="group in listInPanel" :key="group.type">
                             <bk-collapse-item :name="group.group_name">
                                 <div class="group-header">
-                                    <img class="header-icon" :src="group.group_icon || defaultTypeIcon" />
+                                    <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
+                                    <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
                                     <span class="header-title">{{group.group_name}}
                                         <span class="header-atom">
-                                            {{group.list.length}}{{i18n.num}}
+                                            ({{group.list.length}})
                                         </span>
                                     </span>
                                 </div>
@@ -47,6 +44,9 @@
                                         :type="activeNodeListType"
                                         :node="node">
                                     </node-item>
+                                    <div class="node-empty" v-if="group.list.length === 0">
+                                        <no-data></no-data>
+                                    </div>
                                 </div>
                             </bk-collapse-item>
                         </bk-collapse>
@@ -73,6 +73,7 @@
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
     import toolsUtils from '@/utils/tools.js'
+    import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
         name: 'NodeMenu',
@@ -117,8 +118,7 @@
                 },
                 defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
                 i18n: {
-                    placeholder: gettext('请输入名称'),
-                    num: gettext('个')
+                    placeholder: gettext('请输入名称')
                 }
             }
         },
@@ -136,6 +136,16 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            getIconCls (type) {
+                const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(type))
+                if (this.activeNodeListType === 'subflow') {
+                    return 'common-icon-subflow-mark'
+                }
+                if (systemType) {
+                    return `common-icon-sys-${systemType.toLowerCase()}`
+                }
+                return 'common-icon-sys-default'
+            },
             onClickPin () {
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
             },
@@ -173,30 +183,37 @@
         position: absolute;
         top: 0;
         margin-left: 60px;
-        width: 300px;
+        width: 293px;
         height: 100%;
-        background: #fefcfc;
+        background: #ffffff;
         border-right: 1px solid #dddddd;
         z-index: 2;
     }
-    .node-list-pin {
+    .panel-fixed-pin {
         position: absolute;
-        top: 0;
-        right: 0;
-        font-size: 24px;
+        top: 16px;
+        right: 14px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        font-size: 14px;
+        text-align: center;
         color: #999999;
         cursor: pointer;
         z-index: 1;
         &:hover {
-            color: #727272;
+            color: #707379;
         }
         &.actived {
-            color: #30d878;
+            color: #52699d;
         }
     }
     .search-wrap {
-        padding: 20px;
+        padding: 16px 56px 16px 14px;
         border-bottom: 1px solid #ccd0dd;
+        background: #ffffff;
     }
     .node-list-wrap {
         height: calc(100% - 71px);
@@ -204,10 +221,31 @@
         @include scrollbar;
     }
     .bk-collapse-item {
-        border-bottom: 1px solid #ccd0dd;
+        border-bottom: 1px solid #e2e4ed;
+        /deep/ .bk-collapse-item-header {
+            background: #ffffff;
+            &:hover {
+                background: #fafbfd;
+            }
+        }
+        /deep/ .bk-collapse-item-content {
+            padding: 0;
+            border-top: 1px solid #e2e4ed;
+        }
     }
     .group-header {
-        .header-icon {
+        height: 42px;
+        overflow: hidden;
+        .group-icon-font {
+            float: left;
+            margin-top: 13px;
+            font-size: 16px;
+            color: #52699d;
+            &.common-icon-subflow-mark {
+                font-size: 18px;
+            }
+        }
+        .group-icon-img {
             float: left;
             margin-top: 13px;
             width: 16px;
@@ -220,7 +258,6 @@
             font-size: 14px;
             overflow: hidden;
             .header-atom {
-                float: right;
                 color: #a9b2bd;
                 font-size: 12px;
             }
@@ -228,6 +265,9 @@
     }
     .node-item-wrap {
         overflow: hidden;
+    }
+    .node-empty {
+        padding: 16px 0;
     }
     .search-result {
         padding: 20px 10px;

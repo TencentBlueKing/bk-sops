@@ -19,5 +19,7 @@ class PeriodicTaskConfig(AppConfig):
     verbose_name = 'GcloudPeriodicTask'
 
     def ready(self):
-        from gcloud.periodictask.signals.handlers import *  # noqa
-        from permissions import periodic_task_resource  # noqa
+        from .signals.handlers import (pre_periodic_task_start_handler,  # noqa
+                                       periodic_task_history_post_save_handler,
+                                       periodic_task_start_failed_handler)
+        from .permissions import periodic_task_resource  # noqa

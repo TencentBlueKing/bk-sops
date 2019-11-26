@@ -15,11 +15,13 @@ import base64
 import hashlib
 import hmac
 import random
-import urlparse
+import urllib.request
+import urllib.parse
+import urllib.error
 import time
-import json
 import logging
 
+import ujson as json
 import httplib2
 from django.conf import settings
 from django.utils.http import urlencode
@@ -62,7 +64,7 @@ def http_request_workbench(url, http_method, data=None):
         'Data': data
     }
 
-    url_parse = urlparse.urlparse(url)
+    url_parse = urllib.parse.urlparse(url)
     url_host = url_parse.netloc
     url_path = url_parse.path
     # 签名
@@ -87,9 +89,9 @@ def http_request_workbench(url, http_method, data=None):
             content_dict = json.loads(content)
             return content_dict
         except Exception:
-            logger.error(_(u"请求返回数据格式错误!"))
-            return {'result': 0, 'message': _(u"调用远程服务失败，Http请求返回数据格式错误!")}
+            logger.error(_("请求返回数据格式错误!"))
+            return {'result': 0, 'message': _("调用远程服务失败，Http请求返回数据格式错误!")}
     else:
-        err = _(u"调用远程服务失败，Http请求错误状态码：%(code)s， 请求url：%(url)s") % {'code': resp.status, 'url': url}
+        err = _("调用远程服务失败，Http请求错误状态码：%(code)s， 请求url：%(url)s") % {'code': resp.status, 'url': url}
         logger.error(err)
         return {'result': 0, 'message': err}

@@ -29,11 +29,11 @@ class UtilsTestCase(TestCase):
         url = get_node_callback_url(node_id)
         actual_prefix, token = url[:-1].rsplit('/', 1)
         self.assertEqual(expect_prefix, actual_prefix)
-        self.assertEqual(node_id, f.decrypt(bytes(token)))
+        self.assertEqual(node_id, f.decrypt(bytes(token, encoding='utf8')).decode())
 
         with mock.patch('gcloud.conf.settings.RUN_MODE', 'PRODUCT'):
             expect_prefix = "%staskflow/api/nodes/callback" % settings.APP_HOST
             url = get_node_callback_url(node_id)
             actual_prefix, token = url[:-1].rsplit('/', 1)
             self.assertEqual(expect_prefix, actual_prefix)
-            self.assertEqual(node_id, f.decrypt(bytes(token)))
+            self.assertEqual(node_id, f.decrypt(bytes(token, encoding='utf8')).decode())

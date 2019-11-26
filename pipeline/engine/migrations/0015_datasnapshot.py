@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 import pipeline.engine.models.fields
@@ -20,7 +20,7 @@ import pipeline.engine.models.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0014_merge'),
+        ('engine', '0011_auto_20180830_1205'),
     ]
 
     operations = [

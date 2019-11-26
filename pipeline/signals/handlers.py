@@ -17,7 +17,7 @@ from django.dispatch import receiver
 
 from pipeline.core.pipeline import Pipeline
 from pipeline.core.constants import PE
-from pipeline.engine.signals import pipeline_end
+from pipeline.engine.signals import pipeline_end, pipeline_revoke
 from pipeline.models import (
     PipelineTemplate,
     TemplateRelationship,
@@ -47,7 +47,7 @@ def pipeline_template_post_save_handler(sender, instance, created, **kwargs):
 
     with transaction.atomic():
         TemplateRelationship.objects.filter(ancestor_template_id=template.template_id).delete()
-        acts = template.data[PE.activities].values()
+        acts = list(template.data[PE.activities].values())
         subprocess_nodes = [act for act in acts if act['type'] == PE.SubProcess]
         rs = []
         for sp in subprocess_nodes:
@@ -66,5 +66,13 @@ def pipeline_template_post_save_handler(sender, instance, created, **kwargs):
 def pipeline_end_handler(sender, root_pipeline_id, **kwargs):
     try:
         PipelineInstance.objects.set_finished(root_pipeline_id)
+    except PipelineInstance.DoesNotExist:  # task which do not belong to any instance
+        pass
+
+
+@receiver(pipeline_revoke, sender=Pipeline)
+def pipeline_revoke_handler(sender, root_pipeline_id, **kwargs):
+    try:
+        PipelineInstance.objects.set_revoked(root_pipeline_id)
     except PipelineInstance.DoesNotExist:  # task which do not belong to any instance
         pass

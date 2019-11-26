@@ -24,8 +24,9 @@
                             <bk-select
                                 v-model="currentAtom"
                                 class="node-select"
-                                font-size="14"
                                 :searchable="true"
+                                :clearable="false"
+                                :disabled="atomConfigLoading"
                                 @selected="onAtomSelect">
                                 <bk-option
                                     v-for="(option, index) in atomList"
@@ -44,17 +45,43 @@
                                 v-bk-tooltips="{
                                     content: atomDesc,
                                     width: '400',
-                                    placements: ['left'] }">
+                                    placements: ['bottom-end'] }">
                             </i>
                             <!-- 子流程版本更新 -->
-                            <i class="common-icon-clock-inversion update-tooltip"
+                            <i
+                                :class="[
+                                    'common-icon-clock-inversion',
+                                    'update-tooltip',
+                                    {
+                                        'disabled': atomConfigLoading
+                                    }
+                                ]"
                                 v-if="subflowHasUpdate"
                                 v-bk-tooltips="{
                                     content: i18n.update,
-                                    placements: ['left'] }"
+                                    placements: ['bottom-end'] }"
                                 @click="onUpdateSubflowVersion">
                             </i>
                             <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
+                        </div>
+                    </div>
+                    <div v-show="isSingleAtom" class="form-item">
+                        <label class="required">{{ i18n.version_name }}</label>
+                        <div class="form-content">
+                            <bk-select
+                                v-model="currentVersion"
+                                class="node-select"
+                                :searchable="true"
+                                :clearable="false"
+                                @selected="onVersionSelect">
+                                <bk-option
+                                    v-for="(option, index) in currentVersionList"
+                                    :key="index"
+                                    :id="option.version"
+                                    :name="option.version">
+                                </bk-option>
+                            </bk-select>
+                            <span v-show="taskVersionEmpty" class="common-error-tip error-msg">{{ i18n.version_name + i18n.typeEmptyTip}}</span>
                         </div>
                     </div>
                     <div class="form-item">
@@ -64,8 +91,7 @@
                                 v-model="nodeName"
                                 name="nodeName"
                                 class="node-name"
-                                v-validate="nodeNameRule"
-                                data-vv-validate-on=" " />
+                                v-validate="nodeNameRule" />
                             <span v-show="errors.has('nodeName')" class="common-error-tip error-msg">{{ errors.first('nodeName') }}</span>
                         </div>
                     </div>
@@ -82,16 +108,22 @@
                             <bk-checkbox
                                 v-model="errorCouldBeIgnored"
                                 @change="onIgnoredChange">
-                                <i class="common-icon-dark-circle-i"></i>
-                                {{i18n.ignore}}
+                                <div class="checkbox-text-wrapper">
+                                    <i class="common-icon-dark-circle-i"></i>
+                                    <span class="checkbox-text">{{i18n.ignore}}</span>
+                                </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isSkip" :disabled="isDisable">
-                                <i class="common-icon-dark-circle-s"></i>
-                                {{i18n.manuallySkip}}
+                            <bk-checkbox v-model="isSkip" :disabled="isManulHandleErrrorDisable">
+                                <div class="checkbox-text-wrapper">
+                                    <i class="common-icon-dark-circle-s"></i>
+                                    <span class="checkbox-text">{{i18n.manuallySkip}}</span>
+                                </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isRetry" :disabled="isDisable">
-                                <i class="common-icon-dark-circle-r"></i>
-                                {{i18n.manuallyRetry}}
+                            <bk-checkbox v-model="isRetry" :disabled="isManulHandleErrrorDisable">
+                                <div class="checkbox-text-wrapper">
+                                    <i class="common-icon-dark-circle-r"></i>
+                                    <span class="checkbox-text">{{i18n.manuallyRetry}}</span>
+                                </div>
                             </bk-checkbox>
                             <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
                                 <p>
@@ -105,7 +137,7 @@
                                 </p>
                             </div>
                             <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info ui-failure-info"></i>
-                            <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
+                            <span v-show="manuallyEmpty" class="error-handler-warning-tip common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
                     <div class="form-item">
@@ -163,7 +195,7 @@
                                             placements: ['left'] }">
                                         <bk-checkbox :value="item.hook" @change="onOutputHookChange(item.name, item.key, $event)"></bk-checkbox>
                                     </span>
-                                    
+
                                 </td>
                             </tr>
                         </tbody>
@@ -191,6 +223,7 @@
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
     import atomFilter from '@/utils/atomFilter.js'
+    import formSchema from '@/utils/formSchema.js'
     import { random4 } from '@/utils/uuid.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -230,6 +263,8 @@
                     baseInfo: gettext('基础信息'),
                     flow: gettext('流程模板'),
                     node_name: gettext('节点名称'),
+                    version_name: gettext('插件版本'),
+                    version: gettext('版本'),
                     stage_tag: gettext('步骤名称'),
                     ignore: gettext('自动忽略'),
                     optional: gettext('是否可选'),
@@ -256,7 +291,7 @@
                     trigger: 'mouseenter',
                     theme: 'dark',
                     content: '#html-error-ingored-tootip',
-                    placement: 'left'
+                    placement: 'bottom-end'
                 },
                 atomConfigLoading: false,
                 errorCouldBeIgnored: false,
@@ -271,11 +306,13 @@
                 reuseVariable: {},
                 isReuseVarDialogShow: false,
                 taskTypeEmpty: false,
+                taskVersionEmpty: false,
                 reuseableVarList: [],
                 nodeId: this.idOfNodeInConfigPanel,
                 nodeName: '',
                 stageName: gettext('步骤1'),
                 currentAtom: '',
+                currentVersion: '',
                 subAtomInput: [],
                 subAtomOutput: [],
                 renderInputOption: {
@@ -297,7 +334,6 @@
                 },
                 isAtomChanged: false, // 用于切换标准插件
                 failureHandling: [], // 失败处理
-                isDisable: false, // 是否禁用手动选项
                 isSkip: true, // 是否手动跳过
                 isRetry: true, // 是否手动重试
                 manuallyEmpty: false // 手动选项为空
@@ -311,19 +347,37 @@
                 'atomForm': state => state.atomForm.form,
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormOutput': state => state.atomForm.output,
-                'subprocessInfo': state => state.template.subprocess_info
+                'subprocessInfo': state => state.template.subprocess_info,
+                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             /**
              * 标准插件节点、子节点列表
              */
             atomList () {
                 if (this.isSingleAtom) {
-                    return this.singleAtom.map(item => {
-                        return {
-                            id: item.code,
-                            name: item.group_name + '-' + item.name
+                    const setGroup = []
+                    const atomVersionGroup = []
+                    this.singleAtom.forEach(atom => {
+                        const code = atom.code
+                        const index = setGroup.indexOf(code)
+                        if (index > -1) {
+                            const group = atomVersionGroup[index]
+                            if (group.version < atom.version || group.version === 'legacy') {
+                                group.version = atom.version
+                            }
+                            group.list.push(atom)
+                        } else {
+                            const item = {
+                                id: code,
+                                name: atom.group_name + '-' + atom.name,
+                                list: [atom],
+                                version: atom.version
+                            }
+                            setGroup.push(code)
+                            atomVersionGroup.push(item)
                         }
                     })
+                    return atomVersionGroup
                 } else {
                     return this.subAtom.filter(item => {
                         return item.template_id !== Number(this.template_id)
@@ -336,11 +390,28 @@
                 }
             },
             /**
+             * 当前插件版本列表
+             */
+            currentVersionList () {
+                let list = []
+                this.atomList.some(atoms => {
+                    if (atoms.id === this.currentAtom) {
+                        list = atoms.list
+                        return true
+                    }
+                })
+                return list
+            },
+            /**
              * 标准插件节点描述
              */
             atomDesc () {
-                if (this.singleAtom) {
-                    return this.atomForm[this.currentAtom] && this.atomForm[this.currentAtom].desc
+                if (
+                    this.singleAtom
+                    && this.atomForm[this.currentAtom]
+                    && this.atomForm[this.currentAtom][this.currentVersion]
+                ) {
+                    return this.atomForm[this.currentAtom][this.currentVersion].desc
                 }
                 return ''
             },
@@ -355,8 +426,14 @@
              */
             renderOutputData () {
                 const outputData = []
-                const outputConfig = this.getOutputConfig()
-
+                let outputConfig = []
+                if (!this.currentAtom
+                    || JSON.stringify(this.atomFormConfig) === '{}'
+                    || !this.atomFormConfig[this.currentAtom]) {
+                    outputConfig = []
+                } else {
+                    outputConfig = this.getOutputConfig()
+                }
                 outputConfig && outputConfig.forEach(item => {
                     let hook = false
                     let key = item.key
@@ -394,33 +471,69 @@
                         }
                     }
                 }
-
                 return outputData
             },
             /**
              * 输入参数表单配置项
              */
             renderInputConfig () {
-                return this.isSingleAtom
-                    ? this.getSingleAtomConfig()
-                    : this.subAtomInput
+                if (this.isSingleAtom) {
+                    if (!this.currentAtom
+                        || JSON.stringify(this.atomFormConfig) === '{}'
+                        || !this.atomFormConfig[this.currentAtom]) {
+                        return []
+                    }
+                    return this.getSingleAtomConfig()
+                } else {
+                    return this.subAtomInput
+                }
             },
             /**
              * 输入参数数据
              */
             renderInputData () {
+                const hook = this.inputAtomHook
+                const value = this.inputAtomData
                 return {
-                    hook: this.inputAtomHook,
-                    value: this.inputAtomData
+                    hook,
+                    value
                 }
+            },
+            groupInfo () {
+                if (this.isSingleAtom && this.currentAtom) {
+                    return this.singleAtom.find(item => item.code === this.currentAtom)
+                }
+                return {}
+            },
+            // 任务节点执行失败手动处理选项禁用
+            isManulHandleErrrorDisable () {
+                return this.errorCouldBeIgnored
             }
         },
         watch: {
+            // 打开节点或切换节点
             idOfNodeInConfigPanel (val) {
+                if (!val) return
                 this.nodeId = val
+                // 清空验证
+                this.currentVersion = ''
                 this.taskTypeEmpty = false
+                this.subflowHasUpdate = false
+                this.taskVersionEmpty = false
                 this.errors.clear()
+
                 this.initData()
+                this.$nextTick(() => {
+                    // 只验证错误节点（正确节点关闭时会验证）
+                    if (
+                        document.querySelector(`#${val} .task-node.failed`)
+                        || document.querySelector(`#${val} .subflow-node.failed`)
+                    ) {
+                        this.$validator.validateAll()
+                        this.taskTypeEmpty = !this.currentAtom
+                        this.taskVersionEmpty = !this.currentVersion
+                    }
+                })
             },
             isRetry (val) {
                 this.manuallyEmpty = !val && !this.isSkip && !this.errorCouldBeIgnored
@@ -434,9 +547,6 @@
         },
         mounted () {
             document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
-            if (this.errorCouldBeIgnored) {
-                this.isDisable = true
-            }
         },
         beforeDestroy () {
             document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
@@ -460,18 +570,27 @@
                 this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
-                    this.getConfig(this.nodeConfigData.version) // load node config data
+                    if (this.isSingleAtom) {
+                        const component = this.nodeConfigData.component
+                        const version = component.version || this.SingleAtomVersionMap[component.code]
+                        if (version) {
+                            this.getConfig(this.nodeConfigData.component.version)
+                            this.currentVersion = version
+                        }
+                    } else {
+                        this.getConfig(this.nodeConfigData.version) // load node config data
+                    }
                 }
             },
             /**
              * 加载标准插件配置文件或子流程表单配置
-             * @param {String} version 子流程版本
+             * @param {String} version 子流程版本/标准插件配置文件版本
              */
             async getConfig (version) {
                 if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
                     || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
-                        await this.getAtomConfig(this.currentAtom)
+                        await this.getAtomConfig(this.currentAtom, version)
                     } else {
                         await this.getSubflowConfig(this.currentAtom, version)
                     }
@@ -485,9 +604,9 @@
             /**
              * 加载标准插件节点数据
              */
-            async getAtomConfig (atomType) {
+            async getAtomConfig (atomType, version) {
                 this.atomConfigLoading = true
-                if ($.atoms[atomType]) {
+                if (atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                     this.setNodeConfigData(atomType)
                     this.$nextTick(() => {
                         this.atomConfigLoading = false
@@ -495,9 +614,14 @@
                     return
                 }
                 try {
-                    await this.loadAtomConfig({ atomType })
+                    await this.loadAtomConfig({ atomType, version })
+
+                    // 节点配置面板收起后，不执行后续回调逻辑
+                    if (!this.isNodeConfigPanelShow) {
+                        return
+                    }
                     this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
-                    this.setNodeConfigData(atomType)
+                    this.setNodeConfigData(atomType, version)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -514,6 +638,10 @@
                 this.nodeConfigData.template_id = id
                 try {
                     this.subAtomConfigData = await this.loadSubflowConfig({ templateId: id, version, common: this.common })
+                    // 节点配置面板收起后，不执行后续回调逻辑
+                    if (!this.isNodeConfigPanelShow) {
+                        return
+                    }
                     const constants = {}
                     const inputConfig = []
                     const outputConfig = []
@@ -548,13 +676,12 @@
                     for (const form of variableArray) {
                         const { key } = form
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-
-                        if (!this.atomFormConfig[atomType]) {
-                            await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        // 全局变量版本
+                        const version = form.version || 'legacy'
+                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
+                            await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
-
-                        const atomConfig = this.atomFormConfig[atom]
+                        const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                         if (currentFormConfig) {
@@ -608,9 +735,9 @@
             /**
              * normal task node render form value
              */
-            setNodeConfigData (atomType) {
+            setNodeConfigData (atomType, version) {
                 const data = {}
-                const config = this.atomFormConfig[atomType]
+                const config = this.atomFormConfig[atomType][version]
                 if (atomType === this.activities[this.nodeId].component.code) {
                     this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 } else {
@@ -624,7 +751,8 @@
                         data
                     })
                 }
-                this.getNodeFormData()
+                // 暂时注释
+                // this.getNodeFormData()
                 this.$nextTick(() => {
                     this.updateActivities()
                 })
@@ -637,8 +765,8 @@
                 this.nodeName = formData.name
                 this.stageName = formData.stage_name
                 this.nodeCouldBeSkipped = formData.optional
-                this.isSkip = formData.isSkipped
-                this.isRetry = formData.can_retry
+                this.isSkip = formData.isSkipped || formData.skippable
+                this.isRetry = formData.can_retry || formData.retryable
                 const inputFormHooks = {}
                 const inputFormData = {}
                 if (this.isSingleAtom) {
@@ -667,7 +795,8 @@
                 this.inputAtomData = inputFormData
             },
             getSingleAtomConfig () {
-                const config = this.atomFormConfig[this.currentAtom]
+                // 当前版本或最新版本
+                const config = this.atomFormConfig[this.currentAtom][this.currentVersion]
                 if (!config) {
                     return {}
                 }
@@ -679,7 +808,8 @@
                 })
             },
             getOutputConfig () {
-                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom] : this.subAtomOutput
+                const version = this.currentVersion
+                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
             },
             getHookedInputVariables () {
                 const variables = []
@@ -690,7 +820,8 @@
                             variableKey,
                             formKey: key,
                             id: this.nodeId,
-                            tagCode: varKeyReg.test(key) ? key.match(varKeyReg)[1] : key
+                            tagCode: varKeyReg.test(key) ? key.match(varKeyReg)[1] : key,
+                            version: this.getVariableVersion(variableKey)
                         })
                     }
                 }
@@ -702,8 +833,7 @@
             iskeyInSourceInfo (key, tagCode) {
                 for (const cKey in this.constants) {
                     const constant = this.constants[cKey]
-                    const sourceInfo = constant.source_info[this.nodeId]
-
+                    const sourceInfo = JSON.stringify(constant.source_info)
                     if (
                         constant.source_type === 'component_inputs'
                         && sourceInfo
@@ -722,7 +852,7 @@
             handleNodeConfigPanelShow (e) {
                 if (!this.isNodeConfigPanelShow
                     || this.isReuseVarDialogShow
-                    || e.target.className.indexOf('bk-option') > -1) {
+                    || dom.parentClsContains('bk-option', e.target)) {
                     return
                 }
                 const settingPanel = document.querySelector('.setting-area-wrap')
@@ -731,6 +861,7 @@
                     if ((!dom.nodeContains(settingPanel, e.target)
                         && !dom.nodeContains(nodeConfig, e.target))
                     ) {
+                        this.subflowHasUpdate = false
                         this.syncNodeDataToActivities()
                     }
                 }
@@ -743,14 +874,23 @@
                 return this.updateNodeInfo()
             },
             updateActivities () {
+                if (this.atomConfigLoading) {
+                    return
+                }
                 const nodeData = tools.deepClone(this.nodeConfigData)
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
-                nodeData.isSkipped = this.isSkip
-                nodeData.can_retry = this.isRetry
+                
                 if (this.isSingleAtom) {
+                    nodeData.skippable = this.isSkip
+                    nodeData.retryable = this.isRetry
                     nodeData.error_ignorable = this.errorCouldBeIgnored
+                    nodeData.component.version = this.currentVersion
+                    // can_retry、isSkipped 为就数据字段，点开编辑保存时删除
+                    delete nodeData.can_retry
+                    delete nodeData.isSkipped
+
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
@@ -764,6 +904,10 @@
                     }
                     nodeData.constants = constants
                 }
+                // 任务节点参数编辑时，可能会修改输入输出连线，取最新的连线数据，防止被节点参数编辑时保存的旧数据覆盖
+                const { incoming, outgoing } = this.activities[this.nodeId]
+                Object.assign(nodeData, { incoming, outgoing })
+
                 this.setActivities({ type: 'edit', location: nodeData })
             },
             /**
@@ -777,6 +921,9 @@
                     if (!this.currentAtom) {
                         this.taskTypeEmpty = true
                     }
+                    if (!this.currentVersion) {
+                        this.taskVersionEmpty = true
+                    }
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
                     }
@@ -787,11 +934,14 @@
                     this.$emit('onUpdateNodeInfo', this.nodeId, {
                         status,
                         name: this.nodeName,
+                        mode: 'edit',
                         stage_name: this.stageName,
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
-                        can_retry: this.isRetry,
-                        isSkipped: this.isSkip
+                        retryable: this.isRetry,
+                        skippable: this.isSkip,
+                        group: this.groupInfo.group_name,
+                        icon: this.groupInfo.group_icon
                     })
                     this.$emit('hideConfigPanel')
                     return isValid
@@ -806,6 +956,9 @@
                         this.$refs.renderForm && this.$refs.renderForm.validate()
                         if (!this.currentAtom) {
                             this.taskTypeEmpty = true
+                        }
+                        if (!this.currentVersion) {
+                            this.taskVersionEmpty = true
                         }
                     }
                 }
@@ -823,6 +976,7 @@
                     }
                 })
                 this.taskTypeEmpty = false
+                this.taskVersionEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
                         this.removeFromGlobal(item.key)
@@ -831,11 +985,16 @@
             },
             onAtomSelect (id, data) {
                 this.isAtomChanged = true
+                const currentAtomlastVeriosn = this.SingleAtomVersionMap[id]
                 let nodeName
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.currentAtom = id
                 if (this.isSingleAtom) {
                     nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
+                    this.currentVersion = currentAtomlastVeriosn
+                    this.nodeConfigData.skippable = true
+                    this.nodeConfigData.retryable = true
+                    this.nodeConfigData.error_ignorable = false
                 } else {
                     // 切换子流程时，去掉节点小红点、刷新按钮、节点过期设为 false
                     this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
@@ -846,13 +1005,29 @@
                     })
                     nodeName = data.name.replace(/\s/g, '')
                     this.subAtomConfigData.form = {}
-                    this.inputAtomHook = {}
-                    this.inputAtomData = {}
                 }
+                this.inputAtomHook = {}
+                this.inputAtomData = {}
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
                 this.updateActivities()
-                this.getConfig()
+                // 如果是单原子，这里取最新版本配置
+                this.getConfig(currentAtomlastVeriosn)
+                this.$nextTick(() => {
+                    this.isAtomChanged = false
+                })
+            },
+            /**
+             * 版本选择
+             * @param {String} id version
+             */
+            onVersionSelect (id) {
+                this.isAtomChanged = true
+                this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
+                this.inputAtomHook = {}
+                this.inputAtomData = {}
+                this.updateActivities()
+                this.getConfig(id)
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
@@ -868,6 +1043,9 @@
              * 更新 store 数据状态
              */
             onUpdateSubflowVersion () {
+                if (this.atomConfigLoading) {
+                    return
+                }
                 const oldInputAtomHook = this.inputAtomHook
                 const oldInputAtomData = this.inputAtomData
 
@@ -887,7 +1065,8 @@
                                     variableKey: key,
                                     formKey: key,
                                     id: this.nodeId,
-                                    tagCode: key
+                                    tagCode: key,
+                                    version: this.getVariableVersion(oldInputAtomHook[key])
                                 }
                             ]
                             this.clearHookedVaribles(variable, [])
@@ -903,29 +1082,44 @@
                     })
                 })
             },
-            onErrorIngoredChange (selected) {
-                this.errorCouldBeIgnored = selected
-            },
             /**
              * 输入参数值更新
              */
             onInputDataChange (val) {
                 this.inputAtomData = val
             },
+            /**
+             * 获取勾选 tag 的版本
+             * @description
+             * 1. [标准插件]勾选 取当前插件版本
+             * 2.[子流程]勾选对应 tag 版本取原始 tag 版本 || 没有设置为 legacy
+             * @param {String} variableKey key
+             */
+            getVariableVersion (variableKey) {
+                if (this.isSingleAtom) {
+                    return this.currentVersion
+                }
+                return (this.subAtomConfigData.form[variableKey]
+                    ? this.subAtomConfigData.form[variableKey].version
+                    : this.subAtomConfigData.outputs[variableKey].version)
+                    || 'legacy'
+            },
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
-                let key, source_tag, source_info, custom_type, value, validation
+                let key, source_tag, source_info, custom_type, value
+                let validation = ''
                 // 变量 key 值，统一格式为 ${xxx}
                 let variableKey = varKeyReg.test(tagCode) ? tagCode : '${' + tagCode + '}'
                 const formConfig = this.renderInputConfig.filter(item => {
                     return item.tag_code === tagCode
                 })[0]
-
                 const name = formConfig.attrs.name.replace(/\s/g, '')
-                
+                const variableVersion = this.getVariableVersion(variableKey)
                 if (this.isSingleAtom) {
                     key = tagCode
-                    source_tag = this.nodeConfigData.component.code + '.' + tagCode
+                    source_tag = this.nodeConfigData.component.code
+                        + '.'
+                        + tagCode
                     source_info = { [this.nodeId]: [tagCode] }
                     custom_type = ''
                     value = tools.deepClone(this.inputAtomData[tagCode])
@@ -947,37 +1141,49 @@
                     const variableList = []
                     if (!source_tag) { // custom variable not include ip selector
                         const variableOpts = {
-                            name, key: variableKey, source_info, custom_type, value, validation
+                            name, key: variableKey, source_info, custom_type, value, validation, version: variableVersion
                         }
                         this.$set(this.inputAtomData, key, variableKey)
                         this.hookToGlobal(variableOpts)
                         return
                     }
+                    // 获取全局变量中已有的 key + version 相同项列表
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
+                        const sVersion = constant.version
                         const sTag = constant.source_tag
                         if (sTag) {
                             const tCode = sTag.split('.')[1]
-                            tCode === tagCode && variableList.push({
+                            tCode === tagCode && sVersion === variableVersion && variableList.push({
                                 name: `${constant.name}(${constant.key})`,
                                 id: constant.key
                             })
                         }
                     }
                     const isKeyUsedInConstants = variableKey in this.constants
-
+                    /**
+                     * 复用变量（全局变量中有key + version 都相同的项）
+                     * 新建变量（全局变量中有key相同version不同的项）
+                     */
                     if (variableList.length) { // input arguments include ip selector have same soure_tag
-                        this.reuseVariable = { name, key, source_tag, source_info, value, useNewKey: false }
+                        this.reuseVariable = { name, key, source_tag, source_info, value, validation, useNewKey: false }
                         this.reuseableVarList = variableList
                         this.isReuseVarDialogShow = true
                     } else if (isKeyUsedInConstants) { // the variable's key is used in other global variable
-                        this.reuseVariable = { name, key, source_tag, source_info, value, useNewKey: true }
+                        this.reuseVariable = { name, key, source_tag, source_info, value, validation, useNewKey: true }
                         this.reuseableVarList = variableList
                         this.isReuseVarDialogShow = true
                     } else {
                         const variableOpts = {
-                            name, key: variableKey, source_tag, source_info, custom_type, value, validation
+                            name, key: variableKey, source_tag, source_info, custom_type, value, validation, version: variableVersion
                         }
+                        // 全局变量添加 form_schema
+                        const atomType = source_tag.split('.')[0]
+                        variableOpts.form_schema = formSchema.getSchema(
+                            tagCode,
+                            this.atomFormConfig[atomType][variableVersion]
+                        )
+
                         this.$set(this.inputAtomData, key, variableKey)
                         this.hookToGlobal(variableOpts) // input arguments hook
                     }
@@ -987,7 +1193,6 @@
                     if (!variable) {
                         return
                     }
-
                     const formKey = this.isSingleAtom ? tagCode : key // input arguments form item key
                     this.inputAtomHook[formKey] = val
                     this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)
@@ -1000,7 +1205,6 @@
             onOutputHookChange (name, key, checked) {
                 if (checked) {
                     const variableKey = this.generateRandomKey(key)
-
                     const variableOpts = {
                         name,
                         key: variableKey,
@@ -1010,7 +1214,8 @@
                         },
                         source_tag: '',
                         custom_type: '',
-                        show_type: 'hide'
+                        show_type: 'hide',
+                        version: this.getVariableVersion(variableKey)
                     }
                     this.renderOutputData.some(item => {
                         if (item.key === key) {
@@ -1042,7 +1247,8 @@
                     show_type: 'show',
                     source_type: 'component_inputs',
                     validation: '',
-                    index: len
+                    index: len,
+                    version: 'legacy'
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))
@@ -1074,6 +1280,15 @@
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
                     const variableOpts = { name, key: varKey, source_tag, source_info, value }
+                    // 全局变量添加 form_schema
+                    const atomType = source_tag.split('.')[0]
+                    const version = this.getVariableVersion(key)
+                    variableOpts.form_schema = formSchema.getSchema(
+                        key,
+                        this.atomFormConfig[atomType][version]
+                    )
+
+                    this.createVariable(variableOpts)
                     this.hookToGlobal(variableOpts)
                 } else {
                     this.$set(this.inputAtomHook, varKey, true)
@@ -1105,7 +1320,6 @@
                 }
             },
             onIgnoredChange (updatedValue) {
-                this.isDisable = updatedValue
                 this.manuallyEmpty = !updatedValue
                 this.isSkip = false
                 this.isRetry = false
@@ -1120,7 +1334,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .node-config-panel {
     position: absolute;
-    top: 60px;
+    top: 59px;
     right: 476px;
     padding: 20px;
     width: 694px;
@@ -1145,17 +1359,10 @@
         right: 56px;
     }
     .basic-info-form {
-        .node-select,
-        /deep/ .bk-form-input {
-            font-size: 14px;
-        }
         .error-handler {
             position: relative;
             height: 32px;
             line-height: 32px;
-            /deep/ .bk-form-checkbox {
-                font-size: unset;
-            }
         }
         .desc-tooltip,
         .update-tooltip,
@@ -1165,8 +1372,12 @@
             top: 8px;
             color: #c4c6cc;
             cursor: pointer;
-            &:hover {
+            &:not(.disabled):hover {
                 color: #f4aa1a;
+            }
+            &.disabled {
+                color: #c4c6cc;
+                cursor: not-allowed;
             }
         }
         .error-ingored-tootip {
@@ -1175,14 +1386,21 @@
         .common-icon-dark-circle-i,
         .common-icon-dark-circle-s,
         .common-icon-dark-circle-r {
-            display: inline-block;
-            vertical-align: middle;
+            padding-right: 4px;
             color: #a6b0c7;
         }
-        .common-warning-tip {
+        .checkbox-text-wrapper {
+            display: flex;
+            align-items: center;
+            .checkbox-text {
+                font-size: 12px;
+            }
+        }
+        .error-handler-warning-tip {
+            position: absolute;
+            top: 22px;
+            left: 0;
             font-size: 12px;
-            height: 20px;
-            line-height: 20px;
         }
         .bk-switcher {
             top: 5px;
@@ -1190,9 +1408,6 @@
     }
 }
 // 子流程选择下拉框字号
-.subflow-option-name {
-    font-size: 14px;
-}
 .form-item {
     margin-bottom: 20px;
     @include clearfix;
@@ -1204,7 +1419,7 @@
         float: left;
         margin-top: 8px;
         width: 100px;
-        font-size: 14px;
+        font-size: 12px;
         color: $greyDefault;
         text-align: right;
         &.required:before {
@@ -1252,7 +1467,6 @@
 .inputs-info {
     /deep/ .render-form {
         .rf-form-item {
-            font-size: 14px;
             .rf-tag-label {
                 color: $greyDefault;
             }

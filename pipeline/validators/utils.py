@@ -17,6 +17,41 @@ from pipeline import exceptions
 from pipeline.core.constants import PE
 
 
+def format_to_list(notype):
+    """
+    format a data to list
+    :return:
+    """
+    if isinstance(notype, list):
+        return notype
+    if not notype:
+        return []
+    return [notype]
+
+
+def format_node_io_to_list(node, i=True, o=True):
+    if i:
+        node['incoming'] = format_to_list(node['incoming'])
+
+    if o:
+        node['outgoing'] = format_to_list(node['outgoing'])
+
+
+def format_pipeline_tree_io_to_list(pipeline_tree):
+    """
+    :summary: format incoming and outgoing to list
+    :param pipeline_tree:
+    :return:
+    """
+    for act in list(pipeline_tree[PE.activities].values()):
+        format_node_io_to_list(act, o=False)
+
+    for gateway in list(pipeline_tree[PE.gateways].values()):
+        format_node_io_to_list(gateway, o=False)
+
+    format_node_io_to_list(pipeline_tree[PE.end_event], o=False)
+
+
 def get_node_for_sequence(sid, tree, node_type):
     target_id = tree[PE.flows][sid][node_type]
 
@@ -30,18 +65,6 @@ def get_node_for_sequence(sid, tree, node_type):
         return tree[PE.start_event]
 
     raise exceptions.InvalidOperationException('node(%s) not in data' % target_id)
-
-
-def format_to_list(notype):
-    """
-    format a data to list
-    :return:
-    """
-    if isinstance(notype, list):
-        return notype
-    if not notype:
-        return []
-    return [notype]
 
 
 def get_nodes_dict(data):
@@ -60,7 +83,7 @@ def get_nodes_dict(data):
     nodes.update(data[PE.activities])
     nodes.update(data[PE.gateways])
 
-    for node in nodes.values():
+    for node in list(nodes.values()):
         # format to list
         node[PE.incoming] = format_to_list(node[PE.incoming])
         node[PE.outgoing] = format_to_list(node[PE.outgoing])

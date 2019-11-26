@@ -22,9 +22,7 @@ from pipeline.core.pipeline import Pipeline
 logger = logging.getLogger('celery')
 
 
-class Event(FlowNode):
-    __metaclass__ = ABCMeta
-
+class Event(FlowNode, metaclass=ABCMeta):
     def __init__(self, id, name=None, data=None):
         super(Event, self).__init__(id, name, data)
 
@@ -32,17 +30,15 @@ class Event(FlowNode):
         return self.outgoing.unique_one().target
 
 
-class ThrowEvent(Event):
-    __metaclass__ = ABCMeta
+class ThrowEvent(Event, metaclass=ABCMeta):
+    pass
 
 
-class CatchEvent(Event):
-    __metaclass__ = ABCMeta
+class CatchEvent(Event, metaclass=ABCMeta):
+    pass
 
 
-class EndEvent(ThrowEvent):
-    __metaclass__ = ABCMeta
-
+class EndEvent(ThrowEvent, metaclass=ABCMeta):
     def pipeline_finish(self, root_pipeline_id):
         try:
             pipeline_end.send(sender=Pipeline, root_pipeline_id=root_pipeline_id)
@@ -50,8 +46,8 @@ class EndEvent(ThrowEvent):
             logger.error("pipeline end handler error %s" % traceback.format_exc())
 
 
-class StartEvent(CatchEvent):
-    __metaclass__ = ABCMeta
+class StartEvent(CatchEvent, metaclass=ABCMeta):
+    pass
 
 
 class EmptyStartEvent(StartEvent):
@@ -62,9 +58,7 @@ class EmptyEndEvent(EndEvent):
     pass
 
 
-class ExecutableEndEvent(EndEvent):
-    __metaclass__ = ABCMeta
-
+class ExecutableEndEvent(EndEvent, metaclass=ABCMeta):
     @abstractmethod
     def execute(self, in_subprocess, root_pipeline_id, current_pipeline_id):
         raise NotImplementedError()

@@ -26,4 +26,4 @@ class TestSignalsHandlers(TestCase):
                 creator='user1',
                 create_method='manual'
             )
-            self.assertEquals(mocked_handler.call_count, 1)
+            self.assertEqual(mocked_handler.call_count, 1)

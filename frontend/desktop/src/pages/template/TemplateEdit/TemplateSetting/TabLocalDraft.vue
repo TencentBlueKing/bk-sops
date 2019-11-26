@@ -173,6 +173,7 @@
     height: 100%;
     .local-title {
         height: 35px;
+        line-height: 35px;
         margin: 20px;
         border-bottom: 1px solid #cacecb;
         span {
@@ -292,6 +293,9 @@
             .no-data-wrapper {
                 margin-top: 120px;
                 line-height: 1;
+                /deep/ .no-data-wording {
+                    font-size: 12px;
+                }
             }
         }
         .common-icon-dark-circle-close:hover {

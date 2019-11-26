@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
 
+import ujson as json
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
@@ -78,7 +78,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
     }
     host_result = client.cc.search_host(kwargs)
     if not host_result['result']:
-        message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.search_host', kwargs, host_result)
+        message = handle_api_error(_("配置平台(CMDB)"), 'cc.search_host', kwargs, host_result)
         result = {'result': False, 'code': ERROR_CODES.API_CMDB_ERROR, 'message': message}
         return JsonResponse(result)
 
@@ -107,7 +107,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
             }
             agent_result = client.gse.get_agent_status(agent_kwargs)
             if not agent_result['result']:
-                message = handle_api_error(_(u"管控平台(GSE)"),
+                message = handle_api_error(_("管控平台(GSE)"),
                                            'gse.get_agent_status',
                                            agent_kwargs,
                                            agent_result)
@@ -140,7 +140,7 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=''):
     client = get_client_by_user(request.user.username)
     cc_result = client.cc.get_mainline_object_topo(kwargs)
     if not cc_result['result']:
-        message = handle_api_error(_(u"配置平台(CMDB)"),
+        message = handle_api_error(_("配置平台(CMDB)"),
                                    'cc.get_mainline_object_topo',
                                    kwargs,
                                    cc_result)

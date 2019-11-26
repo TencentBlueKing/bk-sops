@@ -15,17 +15,18 @@
             <bk-button
                 v-if="add_btn"
                 class="add-column"
-                type="default"
+                size="small"
                 @click="add_row">
                 {{ i18n.add_text }}
             </bk-button>
             <div v-for="btn in table_buttons" :key="btn.type" class="table-buttons">
-                <el-button
+                <bk-button
                     v-if="btn.type !== 'import'"
                     type="default"
+                    size="small"
                     @click="onBtnClick(btn.callback)">
                     {{ btn.text}}
-                </el-button>
+                </bk-button>
                 <el-upload
                     v-else
                     ref="upload"
@@ -34,11 +35,12 @@
                     :show-file-list="false"
                     :on-change="importExcel"
                     :auto-upload="false">
-                    <el-button
+                    <bk-button
                         slot="trigger"
+                        size="small"
                         type="default">
                         {{ btn.text }}
-                    </el-button>
+                    </bk-button>
                 </el-upload>
             </div>
         </template>
@@ -408,8 +410,9 @@
              */
             setOutputParams (oldVal) {
                 const specialAtom = 'job_execute_task'
+                const veision = this.atomForm.SingleAtomVersionMap[specialAtom]
                 if (Array.isArray(this.value)) {
-                    const atomOutput = this.atomForm.form[specialAtom].output.slice(0)
+                    const atomOutput = this.atomForm.form[specialAtom][veision].output.slice(0)
 
                     this.value.forEach(item => {
                         if (typeof item.type === 'number' && item.type !== 2 && item.category === 1) {

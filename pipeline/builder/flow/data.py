@@ -24,7 +24,7 @@ class Data(object):
         base = {'inputs': {},
                 'outputs': self.outputs}
 
-        for key, value in self.inputs.items():
+        for key, value in list(self.inputs.items()):
             base['inputs'][key] = value.to_dict() if isinstance(value, Var) else value
 
         return base
@@ -37,7 +37,7 @@ class Params(object):
     def to_dict(self):
         base = {}
 
-        for key, value in self.params.items():
+        for key, value in list(self.params.items()):
             base[key] = value.to_dict() if isinstance(value, Var) else value
 
         return base
@@ -86,4 +86,16 @@ class NodeOutput(Var):
         base = super(NodeOutput, self).to_dict()
         base['source_act'] = self.source_act
         base['source_key'] = self.source_key
+        return base
+
+
+class RewritableNodeOutput(Var):
+    def __init__(self, source_act, *args, **kwargs):
+        self.source_act = source_act
+        kwargs['value'] = None
+        super(RewritableNodeOutput, self).__init__(*args, **kwargs)
+
+    def to_dict(self):
+        base = super(RewritableNodeOutput, self).to_dict()
+        base['source_act'] = self.source_act
         return base

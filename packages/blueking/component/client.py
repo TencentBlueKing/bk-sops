@@ -11,12 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import requests
-import json
 import time
 import random
 import logging
-import urlparse
+import urllib.request
+import urllib.parse
+import urllib.error
+
+import ujson as json
+import requests
 
 from . import conf
 from . import collections
@@ -136,7 +139,7 @@ class ComponentClientWithSignature(BaseComponentClient):
         if method == 'POST':
             params = {}
 
-        url_path = urlparse.urlparse(url).path
+        url_path = urllib.parse.urlparse(url).path
         # signature always in GET params
         params.update({
             'bk_timestamp': int(time.time()),

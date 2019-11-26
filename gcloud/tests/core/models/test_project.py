@@ -82,7 +82,7 @@ class ProjectTestCase(TestCase):
             self.assertEqual(proj.desc, '')
             self.assertTrue(proj.from_cmdb)
 
-        projects = Project.objects.filter(id__in=range(3, 10))
+        projects = Project.objects.filter(id__in=list(range(3, 10)))
         project_resource.batch_register_instance(projects)
 
     @factory.django.mute_signals(signals.post_save, signals.post_delete)

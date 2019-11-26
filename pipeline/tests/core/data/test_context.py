@@ -15,8 +15,8 @@ from copy import deepcopy
 
 from django.test import TestCase
 
-from pipeline.core.data import base, context
 from pipeline import exceptions
+from pipeline.core.data import base, context
 
 
 class TestContext(TestCase):
@@ -28,6 +28,10 @@ class TestContext(TestCase):
             },
             'act_id_2': {
                 'output_1': 'gk_2_1'
+            },
+            'act_id_4': {
+                'output_1': 'gk_4_1',
+                'output_2': 'gk_4_2'
             }
         }
         self.context = context.Context(act_outputs)
@@ -61,6 +65,13 @@ class TestContext(TestCase):
         act_3.data = data_3
         self.act_3 = act_3
 
+        act_4 = Activity()
+        act_4.id = 'act_id_4'
+        data_4 = base.DataObject({})
+        data_4.set_outputs('output_1', 'value_4_1')
+        act_4.data = data_4
+        self.act_4 = act_4
+
     def test_extract_output(self):
         self.assertEqual(self.context.change_keys, set())
         self.context.extract_output(self.act_1)
@@ -72,6 +83,14 @@ class TestContext(TestCase):
         self.context.extract_output(self.act_3)
         self.assertEqual(self.context.variables, {'gk_1_1': 'value_1_1', 'gk_1_2': 'value_1_2', 'gk_2_1': 'value_2_1'})
         self.assertEqual(self.context.change_keys, {'gk_1_1', 'gk_1_2', 'gk_2_1'})
+        self.context.extract_output(self.act_4, set_miss=False)
+        self.assertEqual(self.context.variables, {
+            'gk_1_1': 'value_1_1',
+            'gk_1_2': 'value_1_2',
+            'gk_2_1': 'value_2_1',
+            'gk_4_1': 'value_4_1'
+        })
+        self.assertEqual(self.context.change_keys, {'gk_1_1', 'gk_1_2', 'gk_2_1', 'gk_4_1'})
 
     def test_get(self):
         self.context.extract_output(self.act_1)

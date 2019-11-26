@@ -41,13 +41,13 @@ class TestComponent(TestCase):
                 ]
 
         class CCUpdateHostModuleComponent(Component):
-            name = u'修改主机所属模块'
+            name = '修改主机所属模块'
             bound_service = CCUpdateHostModuleService
             code = 'cc_update_module'
             form = 'form path'
 
         class CCUpdateHostModuleComponentEmbeddedForm(Component):
-            name = u'修改主机所属模块'
+            name = '修改主机所属模块'
             bound_service = CCUpdateHostModuleService
             code = 'cc_update_module_embedded_form'
             embedded_form = True

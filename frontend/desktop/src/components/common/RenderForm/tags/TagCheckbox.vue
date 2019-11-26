@@ -75,8 +75,8 @@
     .checkbox-item {
         display: inline-block;
         min-width: 100px;
-        height: 36px;
-        line-height: 36px;
+        height: 32px;
+        line-height: 32px;
         /deep/ .el-checkbox__input.is-checked + .el-checkbox__label {
             color: #606266;
         }

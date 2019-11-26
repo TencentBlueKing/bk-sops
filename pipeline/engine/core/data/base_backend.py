@@ -14,9 +14,7 @@ specific language governing permissions and limitations under the License.
 from abc import abstractmethod, ABCMeta
 
 
-class BaseDataBackend(object):
-    __metaclass__ = ABCMeta
-
+class BaseDataBackend(object, metaclass=ABCMeta):
     @abstractmethod
     def set_object(self, key, obj):
         raise NotImplementedError()

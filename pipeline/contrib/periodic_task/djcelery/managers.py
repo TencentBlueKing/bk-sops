@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import, unicode_literals
-
 import warnings
 
 from django.db import connection
@@ -39,7 +37,7 @@ from pipeline.contrib.periodic_task.djcelery.utils import now
 
 def update_model_with_dict(obj, fields):
     [setattr(obj, attr_name, attr_value)
-     for attr_name, attr_value in fields.items()]
+     for attr_name, attr_value in list(fields.items())]
     obj.save()
     return obj
 

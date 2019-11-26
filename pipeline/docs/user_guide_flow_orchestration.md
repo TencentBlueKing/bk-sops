@@ -492,7 +492,7 @@ subproc_1 = SubProcess(start=subproc_start, replace_id=True, data=sub_pipeline_d
         if act['type'] == 'SubProcess':
             for act in act['pipeline']['activities'].values():
                 if act['name'] == 'sub_act':
-                    print act['id']
+                    print(act['id'])
 6cba092689af3a57b2679143685dbcde
 8db1749af5343ab598fe9fe46d80e234
 ```

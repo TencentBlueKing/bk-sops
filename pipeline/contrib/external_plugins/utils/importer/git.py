@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import urlparse
+import urllib.parse
 import requests
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
@@ -66,10 +66,10 @@ class GitRepoModuleImporter(AutoInstallRequirementsImporter):
         return self._file_url(fullname, is_pkg=self.is_package(fullname))
 
     def _file_url(self, fullname, is_pkg=False):
-        base_url = '%s/' % urlparse.urljoin(self.repo_raw_url, self.branch)
+        base_url = '%s/' % urllib.parse.urljoin(self.repo_raw_url, self.branch)
         path = fullname.replace('.', '/')
         file_name = '%s/__init__.py' % path if is_pkg else '%s.py' % path
-        return urlparse.urljoin(base_url, file_name)
+        return urllib.parse.urljoin(base_url, file_name)
 
     def _fetch_repo_file(self, file_url):
         logger.info('Try to fetch git file: {file_url}'.format(file_url=file_url))

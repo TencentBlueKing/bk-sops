@@ -48,25 +48,25 @@ class BkWeixinUserManager(models.Manager):
 
 class BkWeixinUser(models.Model):
     """微信公众号或企业微信用户"""
-    userid = models.CharField(_(u"微信用户在应用里的唯一标识(公众号openid/企业微信userid)"), max_length=128, unique=True)
-    name = models.CharField(_(u"名称"), max_length=127, blank=True)
-    gender = models.CharField(_(u"性别"), max_length=15, blank=True)
-    avatar_url = models.CharField(_(u"头像"), max_length=255, blank=True)
-    date_joined = models.DateTimeField(_(u"加入时间"), default=timezone.now)
+    userid = models.CharField(_("微信用户在应用里的唯一标识(公众号openid/企业微信userid)"), max_length=128, unique=True)
+    name = models.CharField(_("名称"), max_length=127, blank=True)
+    gender = models.CharField(_("性别"), max_length=15, blank=True)
+    avatar_url = models.CharField(_("头像"), max_length=255, blank=True)
+    date_joined = models.DateTimeField(_("加入时间"), default=timezone.now)
     # 公众号特有信息，需要添加更多字段，需修改
     # (1)weixin.core.models.BkWeixinUserManager.get_update_or_create_user里update_fields
     # (2)weixin.core.api.WeiXinApi.get_user_info_for_account返回需要的字段
-    country = models.CharField(_(u"国家"), max_length=63, blank=True)
-    province = models.CharField(_(u"省份"), max_length=63, blank=True)
-    city = models.CharField(_(u"城市"), max_length=63, blank=True)
+    country = models.CharField(_("国家"), max_length=63, blank=True)
+    province = models.CharField(_("省份"), max_length=63, blank=True)
+    city = models.CharField(_("城市"), max_length=63, blank=True)
     # 企业微信特有信息，需要添加更多字段，需修改
     # (1)weixin.core.models.BkWeixinUserManager.get_update_or_create_user里update_fields
     # (2)weixin.core.api.QyWeiXinApi.get_user_info_for_account返回需要的字段
 
     class Meta:
         db_table = 'bk_weixin_user'
-        verbose_name = _(u"微信用户")
-        verbose_name_plural = _(u"微信用户")
+        verbose_name = _("微信用户")
+        verbose_name_plural = _("微信用户")
 
     objects = BkWeixinUserManager()
 

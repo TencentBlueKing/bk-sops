@@ -11,8 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 from abc import ABCMeta
+
+import ujson as json
 
 from pipeline.core.flow.base import FlowNode
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
@@ -24,8 +25,8 @@ from pipeline.exceptions import (
 from pipeline.utils.boolrule import BoolRule
 
 
-class Gateway(FlowNode):
-    __metaclass__ = ABCMeta
+class Gateway(FlowNode, metaclass=ABCMeta):
+    pass
 
 
 class ExclusiveGateway(Gateway):
@@ -61,7 +62,7 @@ class ExclusiveGateway(Gateway):
         :return:
         """
         for condition in self.conditions:
-            deformatted_data = {deformat_constant_key(key): value for key, value in data.items()}
+            deformatted_data = {deformat_constant_key(key): value for key, value in list(data.items())}
             try:
                 resolved_evaluate = ConstantTemplate(condition.evaluate).resolve_data(deformatted_data)
                 result = BoolRule(resolved_evaluate).test(data)
@@ -70,7 +71,7 @@ class ExclusiveGateway(Gateway):
                     'evaluate[%s] fail with data[%s] message: %s' % (
                         condition.evaluate,
                         json.dumps(deformatted_data),
-                        e.message
+                        e
                     )
                 )
             if result:
@@ -105,7 +106,7 @@ class ConditionalParallelGateway(Gateway):
         targets = []
 
         for condition in self.conditions:
-            deformatted_data = {deformat_constant_key(key): value for key, value in data.items()}
+            deformatted_data = {deformat_constant_key(key): value for key, value in list(data.items())}
             try:
                 resolved_evaluate = ConstantTemplate(condition.evaluate).resolve_data(deformatted_data)
                 result = BoolRule(resolved_evaluate).test(data)
@@ -114,7 +115,7 @@ class ConditionalParallelGateway(Gateway):
                     'evaluate[%s] fail with data[%s] message: %s' % (
                         condition.evaluate,
                         json.dumps(deformatted_data),
-                        e.message
+                        e
                     )
                 )
             if result:

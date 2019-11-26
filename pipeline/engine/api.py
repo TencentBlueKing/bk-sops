@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 import functools
 import time
 
@@ -33,7 +32,8 @@ from pipeline.engine.models import (
     ProcessCeleryTask,
     History,
     FunctionSwitch,
-)
+    Pipeline)
+from pipeline.engine.signals import pipeline_revoke
 from pipeline.engine.utils import calculate_elapsed_time, ActionResult
 from pipeline.utils import uniqid
 
@@ -74,7 +74,7 @@ def _worker_check(func):
                     return ActionResult(result=False, message='can not find celery workers, please check worker status')
             except exceptions.RabbitMQConnectionError as e:
                 return ActionResult(result=False, message='celery worker status check failed with message: %s, '
-                                                          'check rabbitmq status please' % e.message)
+                                                          'check rabbitmq status please' % e)
             except RedisConnectionError:
                 return ActionResult(result=False, message='redis connection error, check redis status please')
 
@@ -161,6 +161,8 @@ def revoke_pipeline(pipeline_id):
         process.revoke_subprocess()
         process.destroy_all()
 
+    pipeline_revoke.send(sender=Pipeline, root_pipeline_id=pipeline_id)
+
     return action_result
 
 
@@ -205,8 +207,8 @@ def resume_node_appointment(node_id):
         # processes had sleep caused by subprocess pause
         root_pipeline_id = processing_sleep.first().root_pipeline_id
 
-        process_can_be_waked = filter(lambda p: p.can_be_waked(), processing_sleep)
-        can_be_waked_ids = map(lambda p: p.id, process_can_be_waked)
+        process_can_be_waked = [p for p in processing_sleep if p.can_be_waked()]
+        can_be_waked_ids = [p.id for p in process_can_be_waked]
 
         # get subprocess id which should be transited
         subprocess_to_be_transit = set()
@@ -341,12 +343,12 @@ def get_status_tree(node_id, max_depth=1):
     rel_qs = NodeRelationship.objects.filter(ancestor_id=node_id, distance__lte=max_depth)
     if not rel_qs.exists():
         raise exceptions.InvalidOperationException('node(%s) does not exist, may have not by executed' % node_id)
-    descendants = map(lambda rel: rel.descendant_id, rel_qs)
+    descendants = [rel.descendant_id for rel in rel_qs]
     # remove root node
     descendants.remove(node_id)
 
     rel_qs = NodeRelationship.objects.filter(descendant_id__in=descendants, distance=1)
-    targets = map(lambda rel: rel.descendant_id, rel_qs)
+    targets = [rel.descendant_id for rel in rel_qs]
 
     root_status = Status.objects.filter(id=node_id).values().first()
     root_status['elapsed_time'] = calculate_elapsed_time(root_status['started_time'], root_status['archived_time'])
@@ -428,13 +430,14 @@ def get_outputs(node_id):
     }
 
 
-def get_activity_histories(node_id):
+def get_activity_histories(node_id, loop=None):
     """
     get get_activity_histories data for a node
-    :param node_id:
+    :param node_id: 节点 ID
+    :param loop: 循环序号
     :return:
     """
-    return History.objects.get_histories(node_id)
+    return History.objects.get_histories(node_id, loop)
 
 
 @_frozen_check

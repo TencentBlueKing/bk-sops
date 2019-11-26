@@ -18,7 +18,7 @@
             {
                 'rf-has-hook': showHook,
                 'show-label': option.showLabel,
-                'rf-has-hook': option.showHook,
+                'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols
             }
         ]"
@@ -245,6 +245,7 @@
                     case 'text':
                     case 'datetime':
                     case 'password':
+                    case 'memberSelector':
                         valueFormat = {
                             type: ['String', 'Number', 'Boolean'],
                             value: ''
@@ -332,7 +333,8 @@
 .rf-form-item {
     position: relative;
     margin: 15px 0;
-    min-height: 36px;
+    min-height: 32px;
+    font-size: 12px;
     &:first-child {
         margin-top: 0;
     }
@@ -348,12 +350,15 @@
         display: inline-block;
         margin: 0;
     }
+    &.rf-view-mode {
+        margin: 8px 0;
+    }
     .rf-tag-label {
         float: left;
         position: relative;
         margin-top: 8px;
         width: 100px;
-        font-size: 14px;
+        font-size: 12px;
         color: #313238;
         text-align: right;
         word-wrap: break-word;
@@ -374,15 +379,15 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 8px;
+        top: 4px;
         right: 0;
         z-index: 1;
     }
     .rf-view-value {
         display: inline-block;
-        height: 36px;
-        line-height: 36px;
-        font-size: 14px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
         word-wrap: break-word;
         word-break: break-all;
     }
@@ -390,5 +395,22 @@
         line-height: 20px;
         width: 100%;
     }
+    .el-input__inner {
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
+    }
+    .el-radio__label,
+    .el-checkbox__label {
+        font-size: 12px;
+        font-weight: normal;
+        color: #63656e;
+    }
+    .el-tree-node__label {
+        font-size: 12px;
+    }
+}
+.el-select-dropdown .el-select-dropdown__item {
+    font-size: 12px;
 }
 </style>

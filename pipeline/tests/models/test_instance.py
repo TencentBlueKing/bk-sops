@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 from django.test import TestCase
 
 from pipeline.tests.mock import *  # noqa
@@ -27,53 +25,53 @@ from pipeline.engine.models import Status, NodeRelationship
 class TestPipelineInstance(TestCase):
     def setUp(self):
         self.data = {
-            u'activities': {u'node8fe2bb234d29860981a2bc7e6077': {u'retryable': True,
-                                                                  u'component': {u'code': u'sleep_timer',
-                                                                                 u'data': {u'bk_timing': {
-                                                                                     u'hook': False,
-                                                                                     u'value': u'3'}}},
-                                                                  u'error_ignorable': False,
-                                                                  u'id': u'node8fe2bb234d29860981a2bc7e6077',
-                                                                  u'incoming': u'line67b0e8cc895b1b9f9e0413dc50d1',
-                                                                  u'isSkipped': True,
-                                                                  u'loop': None,
-                                                                  u'name': u'\u5b9a\u65f6',
-                                                                  u'optional': False,
-                                                                  u'outgoing': u'line73943da9f6f17601a40dc46bd229',
-                                                                  u'stage_name': u'\u6b65\u9aa41',
-                                                                  u'type': u'ServiceActivity'}},
-            u'constants': {u'${ip}': {u'custom_type': u'input',
-                                      u'desc': u'',
-                                      u'index': 0,
-                                      u'key': u'${ip}',
-                                      u'name': u'ip',
-                                      u'show_type': u'show',
-                                      u'source_info': {},
-                                      u'source_tag': u'',
-                                      u'source_type': u'custom',
-                                      u'validation': u'^.+$',
-                                      u'validator': [],
-                                      u'value': u''}},
-            u'end_event': {u'id': u'nodeade2061fe6e69dc5b64a588480a7',
-                           u'incoming': u'line73943da9f6f17601a40dc46bd229',
-                           u'name': u'',
-                           u'outgoing': u'',
-                           u'type': u'EmptyEndEvent'},
-            u'flows': {u'line67b0e8cc895b1b9f9e0413dc50d1': {u'id': u'line67b0e8cc895b1b9f9e0413dc50d1',
-                                                             u'is_default': False,
-                                                             u'source': u'nodedee24d10226c975f4d2c659cc29d',
-                                                             u'target': u'node8fe2bb234d29860981a2bc7e6077'},
-                       u'line73943da9f6f17601a40dc46bd229': {u'id': u'line73943da9f6f17601a40dc46bd229',
-                                                             u'is_default': False,
-                                                             u'source': u'node8fe2bb234d29860981a2bc7e6077',
-                                                             u'target': u'nodeade2061fe6e69dc5b64a588480a7'}},
-            u'gateways': {},
-            u'outputs': [],
-            u'start_event': {u'id': u'nodedee24d10226c975f4d2c659cc29d',
-                             u'incoming': u'',
-                             u'name': u'',
-                             u'outgoing': u'line67b0e8cc895b1b9f9e0413dc50d1',
-                             u'type': u'EmptyStartEvent'}}
+            'activities': {'node8fe2bb234d29860981a2bc7e6077': {'retryable': True,
+                                                                'component': {'code': 'sleep_timer',
+                                                                              'data': {'bk_timing': {
+                                                                                  'hook': False,
+                                                                                  'value': '3'}}},
+                                                                'error_ignorable': False,
+                                                                'id': 'node8fe2bb234d29860981a2bc7e6077',
+                                                                'incoming': 'line67b0e8cc895b1b9f9e0413dc50d1',
+                                                                'isSkipped': True,
+                                                                'loop': None,
+                                                                'name': '\u5b9a\u65f6',
+                                                                'optional': False,
+                                                                'outgoing': 'line73943da9f6f17601a40dc46bd229',
+                                                                'stage_name': '\u6b65\u9aa41',
+                                                                'type': 'ServiceActivity'}},
+            'constants': {'${ip}': {'custom_type': 'input',
+                                    'desc': '',
+                                    'index': 0,
+                                    'key': '${ip}',
+                                    'name': 'ip',
+                                    'show_type': 'show',
+                                    'source_info': {},
+                                    'source_tag': '',
+                                    'source_type': 'custom',
+                                    'validation': '^.+$',
+                                    'validator': [],
+                                    'value': ''}},
+            'end_event': {'id': 'nodeade2061fe6e69dc5b64a588480a7',
+                          'incoming': 'line73943da9f6f17601a40dc46bd229',
+                          'name': '',
+                          'outgoing': '',
+                          'type': 'EmptyEndEvent'},
+            'flows': {'line67b0e8cc895b1b9f9e0413dc50d1': {'id': 'line67b0e8cc895b1b9f9e0413dc50d1',
+                                                           'is_default': False,
+                                                           'source': 'nodedee24d10226c975f4d2c659cc29d',
+                                                           'target': 'node8fe2bb234d29860981a2bc7e6077'},
+                      'line73943da9f6f17601a40dc46bd229': {'id': 'line73943da9f6f17601a40dc46bd229',
+                                                           'is_default': False,
+                                                           'source': 'node8fe2bb234d29860981a2bc7e6077',
+                                                           'target': 'nodeade2061fe6e69dc5b64a588480a7'}},
+            'gateways': {},
+            'outputs': [],
+            'start_event': {'id': 'nodedee24d10226c975f4d2c659cc29d',
+                            'incoming': '',
+                            'name': '',
+                            'outgoing': 'line67b0e8cc895b1b9f9e0413dc50d1',
+                            'type': 'EmptyStartEvent'}}
         self.creator = 'start'
         self.template = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id='1')
         self.instance = PipelineInstance.objects.create_instance(self.template, exec_data=self.data,
@@ -122,19 +120,25 @@ class TestPipelineInstance(TestCase):
     def test_set_finished(self):
         NodeRelationship.objects.build_relationship(self.instance.instance_id, self.instance.instance_id)
         Status.objects.create(id=self.instance.instance_id, state=states.FINISHED)
-        for act_id in self.data[u'activities']:
+        for act_id in self.data['activities']:
             NodeRelationship.objects.build_relationship(self.instance.instance_id, act_id)
             Status.objects.create(id=act_id, state=states.FINISHED)
-        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data[u'start_event']['id'])
-        Status.objects.create(id=self.data[u'start_event']['id'], state=states.FINISHED)
-        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data[u'end_event']['id'])
-        Status.objects.create(id=self.data[u'end_event']['id'], state=states.FINISHED)
-        print '###############################'
-        print NodeRelationship.objects.filter(ancestor_id=self.instance.instance_id, distance__lte=99)
+        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data['start_event']['id'])
+        Status.objects.create(id=self.data['start_event']['id'], state=states.FINISHED)
+        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data['end_event']['id'])
+        Status.objects.create(id=self.data['end_event']['id'], state=states.FINISHED)
         PipelineInstance.objects.set_finished(self.instance.instance_id)
 
         self.instance.refresh_from_db()
         self.assertTrue(self.instance.is_finished)
+
+    def test_set_revoked(self):
+        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.instance.instance_id)
+        Status.objects.create(id=self.instance.instance_id, state=states.REVOKED)
+        PipelineInstance.objects.set_revoked(self.instance.instance_id)
+
+        self.instance.refresh_from_db()
+        self.assertTrue(self.instance.is_revoked)
 
     def test_delete_instance(self):
         PipelineInstance.objects.delete_model(self.instance.instance_id)

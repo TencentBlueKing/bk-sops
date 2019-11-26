@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
 import datetime
 
 from django.db import connection
@@ -28,7 +27,7 @@ class DataMigrationConfig(AppConfig):
             return
 
         # djcelery upgrate compatible
-        if djcelery.__version__.split('.')[1] >= 2:
+        if int(djcelery.__version__.split('.')[1]) >= 2:
             with connection.cursor() as cursor:
                 cursor.execute('show tables;')
                 tables = {item[0] for item in cursor.fetchall()}

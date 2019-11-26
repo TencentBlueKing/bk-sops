@@ -11,17 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import sys
 import logging
-from copy import deepcopy
+import sys
 from abc import abstractmethod
+from copy import deepcopy
 
-from django.db import models, IntegrityError
+from django.db import IntegrityError, models
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.component_framework.library import ComponentLibrary
 from pipeline.contrib.external_plugins import exceptions
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
-from pipeline.component_framework.library import ComponentLibrary
 
 GIT = 'git'
 S3 = 's3'
@@ -78,9 +78,9 @@ class SourceManager(models.Manager):
 
 
 class ExternalPackageSource(models.Model):
-    name = models.CharField(_(u"包源名"), max_length=128, unique=True)
-    from_config = models.BooleanField(_(u"是否是从配置文件中读取的"), default=False)
-    packages = JSONTextField(_(u"模块配置"))
+    name = models.CharField(_("包源名"), max_length=128, unique=True)
+    from_config = models.BooleanField(_("是否是从配置文件中读取的"), default=False)
+    packages = JSONTextField(_("模块配置"))
 
     objects = SourceManager()
 
@@ -106,13 +106,13 @@ class ExternalPackageSource(models.Model):
         try:
             importer = self.importer()
         except ValueError as e:
-            logger.exception(u"ExternalPackageSource[name=%s] call importer error: %s" % (self.name, e))
+            logger.exception("ExternalPackageSource[name={}] call importer error: {}".format(self.name, e))
             return plugins
-        for code, component in ComponentLibrary.components.items():
+        for component in ComponentLibrary.component_list():
             component_importer = getattr(sys.modules[component.__module__], '__loader__', None)
             if isinstance(component_importer, type(importer)) and component_importer.name == self.name:
                 plugins.append({
-                    'code': code,
+                    'code': component.code,
                     'name': component.name,
                     'group_name': component.group_name,
                     'class_name': component.__name__,
@@ -124,19 +124,19 @@ class ExternalPackageSource(models.Model):
     def modules(self):
         modules = []
 
-        for package_info in self.packages.values():
+        for package_info in list(self.packages.values()):
             modules.extend(package_info['modules'])
 
         return modules
 
     @staticmethod
     def update_package_source_from_config(source_configs):
-        classified_config = {source_type: [] for source_type in source_cls_factory.keys()}
+        classified_config = {source_type: [] for source_type in list(source_cls_factory.keys())}
 
         for config in deepcopy(source_configs):
             classified_config.setdefault(config.pop('type'), []).append(config)
 
-        for source_type, configs in classified_config.items():
+        for source_type, configs in list(classified_config.items()):
             try:
                 source_model_cls = source_cls_factory[source_type]
             except KeyError:

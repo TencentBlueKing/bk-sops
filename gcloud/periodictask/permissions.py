@@ -23,14 +23,14 @@ from gcloud.core.permissions import project_resource
 
 periodic_task_resource = DjangoModelResource(
     rtype='periodic_task',
-    name=_(u"周期任务"),
+    name=_("周期任务"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
+    scope_name=_("标准运维"),
     actions=[
-        Action(id='view', name=_(u"查看"), is_instance_related=True),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='delete', name=_(u"删除"), is_instance_related=True)
+        Action(id='view', name=_("查看"), is_instance_related=True),
+        Action(id='edit', name=_("编辑"), is_instance_related=True),
+        Action(id='delete', name=_("删除"), is_instance_related=True)
     ],
     operations=[
         {

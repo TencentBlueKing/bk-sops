@@ -20,7 +20,7 @@ from gcloud.periodictask.permissions import periodic_task_resource
 
 bk_iam_perm_templates = [
     {
-        'name': u"运维",
+        'name': "运维",
         'id': 'operation',
         'desc': '',
         'resource_actions': [
@@ -32,6 +32,7 @@ bk_iam_perm_templates = [
                     project_resource.actions.edit,
                     project_resource.actions.create_template,
                     project_resource.actions.use_common_template,
+                    project_resource.actions.fast_create_task
                 ]
             },
             {
@@ -39,6 +40,7 @@ bk_iam_perm_templates = [
                 'actions': [
                     common_template_resource.actions.view,
                     common_template_resource.actions.create_task,
+                    common_template_resource.actions.create_periodic_task
                 ]
             },
             {
@@ -83,7 +85,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u"产品",
+        'name': "产品",
         'id': 'product_manager',
         'desc': '',
         'resource_actions': [
@@ -118,7 +120,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u"测试",
+        'name': "测试",
         'id': 'tester',
         'desc': '',
         'resource_actions': [
@@ -153,7 +155,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u"开发",
+        'name': "开发",
         'id': 'developer',
         'desc': '',
         'resource_actions': [
@@ -188,7 +190,7 @@ bk_iam_perm_templates = [
         ]
     },
     {
-        'name': u'职能化',
+        'name': '职能化',
         'id': 'functor',
         'desc': '',
         'resource_actions': [
@@ -204,6 +206,15 @@ bk_iam_perm_templates = [
                     task_template_resource.actions.view,
                 ]
             },
+            {
+                'resource': taskflow_resource,
+                'actions': [
+                    taskflow_resource.actions.view,
+                    taskflow_resource.actions.edit,
+                    taskflow_resource.actions.operate,
+                    taskflow_resource.actions.claim,
+                ]
+            }
         ]
     }
 ]

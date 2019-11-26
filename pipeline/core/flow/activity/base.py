@@ -20,9 +20,7 @@ def _empty_method(data, parent_data):
     return
 
 
-class Activity(FlowNode):
-    __metaclass__ = ABCMeta
-
+class Activity(FlowNode, metaclass=ABCMeta):
     def __init__(self, id, name=None, data=None, failure_handler=None):
         super(Activity, self).__init__(id, name, data)
         self._failure_handler = failure_handler or _empty_method

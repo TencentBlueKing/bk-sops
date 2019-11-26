@@ -11,6 +11,21 @@
 */
 <template>
     <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div class="excute-time">
+            <span>{{i18n.theTime}}</span>
+            <bk-select
+                :clearable="false"
+                v-model="theExecuteTime"
+                @change="onSelectExecuteTime">
+                <bk-option
+                    v-for="index in loopTimes"
+                    :key="index"
+                    :id="index"
+                    :name="index">
+                </bk-option>
+            </bk-select>
+            <span>{{i18n.executeTime}}</span>
+        </div>
         <div class="execute-head">
             <div class="node-name">
                 <span>{{nodeInfo.name}}</span>
@@ -46,6 +61,10 @@
                 <tr>
                     <th class="manually-retry">{{i18n.manuallyRetry}}</th>
                     <td>{{nodeInfo.retry}}</td>
+                </tr>
+                <tr>
+                    <th class="manually-retry">{{i18n.executeVersion}}</th>
+                    <td>{{nodeDetailConfig.version}}</td>
                 </tr>
             </table>
         </section>
@@ -83,6 +102,7 @@
             <div v-html="failInfo"></div>
             <IpLogContent
                 v-if="nodeInfo.ex_data.show_ip_log"
+                :project-id="renderData.biz_cc_id"
                 :node-info="nodeInfo">
             </IpLogContent>
         </section>
@@ -145,6 +165,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
+    import atomFilter from '@/utils/atomFilter.js'
     import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -181,7 +202,10 @@
                     running: gettext('执行中'),
                     suspended: gettext('暂停'),
                     failed: gettext('失败'),
-                    finished: gettext('完成')
+                    finished: gettext('完成'),
+                    executeVersion: gettext('执行版本'),
+                    theTime: gettext('第'),
+                    executeTime: gettext('次执行')
                 },
                 loading: true,
                 bkMessageInstance: null,
@@ -195,7 +219,8 @@
                     formMode: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                theExecuteTime: undefined
             }
         },
         computed: {
@@ -223,11 +248,19 @@
             },
             nodeState () {
                 return TASK_STATE_DICT[this.nodeInfo.state]
+            },
+            loopTimes () {
+                const times = []
+                for (let i = 0; i < this.nodeInfo.loop; i++) {
+                    times.push(this.nodeInfo.loop - i)
+                }
+                return times
             }
         },
         watch: {
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
+                    this.theExecuteTime = 1
                     this.loadNodeInfo()
                 }
             }
@@ -248,9 +281,11 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
-                    const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
+                    const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                    const nodeDetailRes = await this.getNodeActDetail(query)
                     if (this.isSingleAtom) {
-                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                        const version = this.nodeDetailConfig.version
+                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     }
                     if (nodeDetailRes.result) {
                         this.nodeInfo = nodeDetailRes.data
@@ -287,14 +322,13 @@
                     this.loading = false
                 }
             },
-            async getNodeConfig (type) {
-                if (this.atomFormConfig[type]) {
-                    return this.atomFormConfig[type]
+            async getNodeConfig (type, version) {
+                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
+                    return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type })
-                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
-                        return this.atomFormConfig[type]
+                        await this.loadAtomConfig({ atomType: type, version })
+                        return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({
                             message: e,
@@ -334,6 +368,9 @@
                     return output.key
                 }
                 return output.name
+            },
+            onSelectExecuteTime () {
+                this.loadNodeInfo()
             }
         }
     }
@@ -347,6 +384,20 @@
     color: #313238;
     overflow-y: auto;
     @include scrollbar;
+    .excute-time {
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        &>span {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .bk-select {
+            margin: 0 6px;
+            width: 100px;
+        }
+    }
     .execute-head {
         display: flex;
         align-items: center;
