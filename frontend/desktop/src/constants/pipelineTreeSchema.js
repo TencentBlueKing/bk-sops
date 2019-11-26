@@ -1,12 +1,12 @@
 import { STRING_LENGTH } from './index.js'
-import { Validator } from 'jsonschema'
+import Ajv from 'ajv'
 
 const NODE_ID_REG = '^n[0-9a-z]+'
 const LINE_ID_REG = '^l[0-9a-z]+'
 const VAR_KEY_REG = '^\\${[\\.\\w]+}$'
 
 const flowNode = {
-    id: '/FlowNode',
+    $id: '/FlowNode',
     title: '流程节点字段',
     type: 'object',
     properties: {
@@ -33,7 +33,7 @@ const flowNode = {
 }
 
 const serviceActivity = {
-    id: '/ServiceActivity',
+    $id: '/ServiceActivity',
     title: '普通任务节点字段',
     allOf: [
         { $ref: '/FlowNode' },
@@ -42,7 +42,7 @@ const serviceActivity = {
             properties: {
                 name: {
                     type: 'string',
-                    minLenth: 1,
+                    minLength: 1,
                     maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
                 },
                 type: {
@@ -54,7 +54,7 @@ const serviceActivity = {
                     properties: {
                         code: {
                             type: 'string',
-                            minLenth: 1
+                            minLength: 1
                         },
                         data: {
                             type: 'object'
@@ -94,7 +94,7 @@ const serviceActivity = {
 }
 
 const subProcess = {
-    id: '/SubProcess',
+    $id: '/SubProcess',
     title: '子流程任务节点字段',
     allOf: [
         { $ref: '/FlowNode' },
@@ -106,7 +106,7 @@ const subProcess = {
                 },
                 name: {
                     type: 'string',
-                    minLenth: 1,
+                    minLength: 1,
                     maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
                 },
                 type: {
@@ -126,7 +126,7 @@ const subProcess = {
 }
 
 const constantItem = {
-    id: '/ConstantItem',
+    $id: '/ConstantItem',
     title: '全局变量字段',
     type: 'object',
     properties: {
@@ -143,11 +143,11 @@ const constantItem = {
         key: {
             type: 'string',
             pattern: VAR_KEY_REG,
-            minLenth: 3
+            minLength: 3
         },
         name: {
             type: 'string',
-            minLenth: 1
+            minLength: 1
         },
         show_type: {
             type: 'string'
@@ -165,7 +165,7 @@ const constantItem = {
 }
 
 const flowItem = {
-    id: '/FlowItem',
+    $id: '/FlowItem',
     title: 'flow item',
     type: 'object',
     properties: {
@@ -189,7 +189,7 @@ const flowItem = {
 }
 
 const exclusiveGateway = {
-    id: '/ExclusiveGateway',
+    $id: '/ExclusiveGateway',
     title: '分支网关节点字段',
     type: 'object',
     properties: {
@@ -234,7 +234,7 @@ const exclusiveGateway = {
 }
 
 const parallelGateway = {
-    id: '/ParallelGateway',
+    $id: '/ParallelGateway',
     title: '并行网关节点字段',
     type: 'object',
     properties: {
@@ -265,7 +265,7 @@ const parallelGateway = {
 }
 
 const convergeGateway = {
-    id: '/ConvergeGateway',
+    $id: '/ConvergeGateway',
     title: '汇聚网关节点字段',
     type: 'object',
     properties: {
@@ -296,7 +296,7 @@ const convergeGateway = {
 }
 
 const lineItem = {
-    id: '/LineItem',
+    $id: '/LineItem',
     type: 'object',
     properties: {
         id: {
@@ -307,7 +307,8 @@ const lineItem = {
             type: 'object',
             properties: {
                 arrow: {
-                    type: 'string'
+                    type: 'string',
+                    minLength: 1
                 },
                 id: {
                     type: 'string',
@@ -320,7 +321,8 @@ const lineItem = {
             type: 'object',
             properties: {
                 arrow: {
-                    type: 'string'
+                    type: 'string',
+                    minLength: 1
                 },
                 id: {
                     type: 'string',
@@ -334,7 +336,7 @@ const lineItem = {
 }
 
 const locationItem = {
-    id: '/LocationItem',
+    $id: '/LocationItem',
     title: '任务节点字段',
     type: 'object',
     properties: {
@@ -343,36 +345,54 @@ const locationItem = {
             pattern: NODE_ID_REG
         },
         type: {
-            type: 'string'
+            type: 'string',
+            minLength: 1
         },
         name: {
             type: 'string'
         },
         x: {
-            type: 'integer'
+            type: 'number'
         },
         y: {
-            type: 'integer'
+            type: 'number'
         }
     },
     required: ['id', 'type', 'x', 'y']
 }
 
 const activitiesFieldSchema = {
-    id: '/ActivitiesFieldSchema',
+    $id: '/ActivitiesFieldSchema',
     type: 'object',
     patternProperties: {
         [NODE_ID_REG]: {
-            anyOf: [
-                { $ref: '/ServiceActivity' },
-                { $ref: '/SubProcess' }
+            type: 'object',
+            properties: {
+                type: {
+                    type: 'string',
+                    enum: ['ServiceActivity', 'SubProcess']
+                }
+            },
+            allOf: [
+                {
+                    if: { properties: { type: { const: 'ServiceActivity' } } },
+                    then: {
+                        $ref: '/ServiceActivity'
+                    }
+                },
+                {
+                    if: { properties: { type: { const: 'SubProcess' } } },
+                    then: {
+                        $ref: '/SubProcess'
+                    }
+                }
             ]
         }
     }
 }
 
 const constantsFieldSchema = {
-    id: '/ConstantsFieldSchema',
+    $id: '/ConstantsFieldSchema',
     type: 'object',
     patternProperties: {
         [VAR_KEY_REG]: {
@@ -382,7 +402,7 @@ const constantsFieldSchema = {
 }
 
 const flowsFieldSchema = {
-    id: '/FlowsFieldSchema',
+    $id: '/FlowsFieldSchema',
     type: 'object',
     patternProperties: {
         [LINE_ID_REG]: {
@@ -392,21 +412,37 @@ const flowsFieldSchema = {
 }
 
 const gatewayFieldSchema = {
-    id: '/GatewayFieldSchema',
+    $id: '/GatewayFieldSchema',
     type: 'object',
     patternProperties: {
         [NODE_ID_REG]: {
-            anyOf: [
-                { $ref: '/ExclusiveGateway' },
-                { $ref: '/ParallelGateway' },
-                { $ref: '/ConvergeGateway' }
+            type: 'object',
+            properties: {
+                type: {
+                    type: 'string',
+                    enum: ['ExclusiveGateway', 'ParallelGateway', 'ConvergeGateway']
+                }
+            },
+            allOf: [
+                {
+                    if: { properties: { type: { const: 'ExclusiveGateway' } } },
+                    then: { $ref: '/ExclusiveGateway' }
+                },
+                {
+                    if: { properties: { type: { const: 'ParallelGateway' } } },
+                    then: { $ref: '/ParallelGateway' }
+                },
+                {
+                    if: { properties: { type: { const: 'ConvergeGateway' } } },
+                    then: { $ref: '/ConvergeGateway' }
+                }
             ]
         }
     }
 }
 
 const linesFieldSchema = {
-    id: '/LinesFieldSchema',
+    $id: '/LinesFieldSchema',
     type: 'array',
     items: {
         $ref: '/LineItem'
@@ -414,7 +450,7 @@ const linesFieldSchema = {
 }
 
 const locationFieldSchema = {
-    id: '/LocationFieldSchema',
+    $id: '/LocationFieldSchema',
     type: 'array',
     items: {
         $ref: '/LocationItem'
@@ -422,7 +458,7 @@ const locationFieldSchema = {
 }
 
 const endEventSchema = {
-    id: '/EndEventSchema',
+    $id: '/EndEventSchema',
     title: '结束节点字段',
     type: 'object',
     properties: {
@@ -450,7 +486,7 @@ const endEventSchema = {
 }
 
 const startEventSchema = {
-    id: '/StartEventSchema',
+    $id: '/StartEventSchema',
     title: '开始节点字段',
     type: 'object',
     properties: {
@@ -478,7 +514,7 @@ const startEventSchema = {
 }
 
 const outputsFieldSchema = {
-    id: '/OutputsFieldSchema',
+    $id: '/OutputsFieldSchema',
     title: '变量输出字段',
     type: 'array',
     items: {
@@ -488,7 +524,7 @@ const outputsFieldSchema = {
 }
 
 export const pipelineTreeSchema = {
-    id: '/pipelineSchema',
+    $id: '/pipelineSchema',
     title: 'pipeline_tree字段',
     properties: {
         activities: {
@@ -522,26 +558,26 @@ export const pipelineTreeSchema = {
     required: ['activities', 'constants', 'flows', 'gateways', 'line', 'location', 'end_event', 'start_event', 'outputs']
 }
 
-const schemaValidator = new Validator()
+const ajv = new Ajv()
 
-schemaValidator.addSchema(flowNode, '/FlowNode')
-schemaValidator.addSchema(serviceActivity, '/ServiceActivity')
-schemaValidator.addSchema(subProcess, '/SubProcess')
-schemaValidator.addSchema(constantItem, '/ConstantItem')
-schemaValidator.addSchema(flowItem, '/FlowItem')
-schemaValidator.addSchema(parallelGateway, '/ParallelGateway')
-schemaValidator.addSchema(convergeGateway, '/ConvergeGateway')
-schemaValidator.addSchema(exclusiveGateway, '/ExclusiveGateway')
-schemaValidator.addSchema(lineItem, '/LineItem')
-schemaValidator.addSchema(locationItem, '/LocationItem')
-schemaValidator.addSchema(activitiesFieldSchema, '/ActivitiesFieldSchema')
-schemaValidator.addSchema(constantsFieldSchema, '/ConstantsFieldSchema')
-schemaValidator.addSchema(flowsFieldSchema, '/FlowsFieldSchema')
-schemaValidator.addSchema(gatewayFieldSchema, '/GatewayFieldSchema')
-schemaValidator.addSchema(linesFieldSchema, '/LinesFieldSchema')
-schemaValidator.addSchema(locationFieldSchema, '/LocationFieldSchema')
-schemaValidator.addSchema(endEventSchema, '/EndEventSchema')
-schemaValidator.addSchema(startEventSchema, '/StartEventSchema')
-schemaValidator.addSchema(outputsFieldSchema, '/OutputsFieldSchema')
+ajv.addSchema(flowNode, '/FlowNode')
+ajv.addSchema(serviceActivity, '/ServiceActivity')
+ajv.addSchema(subProcess, '/SubProcess')
+ajv.addSchema(constantItem, '/ConstantItem')
+ajv.addSchema(flowItem, '/FlowItem')
+ajv.addSchema(parallelGateway, '/ParallelGateway')
+ajv.addSchema(convergeGateway, '/ConvergeGateway')
+ajv.addSchema(exclusiveGateway, '/ExclusiveGateway')
+ajv.addSchema(lineItem, '/LineItem')
+ajv.addSchema(locationItem, '/LocationItem')
+ajv.addSchema(activitiesFieldSchema, '/ActivitiesFieldSchema')
+ajv.addSchema(constantsFieldSchema, '/ConstantsFieldSchema')
+ajv.addSchema(flowsFieldSchema, '/FlowsFieldSchema')
+ajv.addSchema(gatewayFieldSchema, '/GatewayFieldSchema')
+ajv.addSchema(linesFieldSchema, '/LinesFieldSchema')
+ajv.addSchema(locationFieldSchema, '/LocationFieldSchema')
+ajv.addSchema(endEventSchema, '/EndEventSchema')
+ajv.addSchema(startEventSchema, '/StartEventSchema')
+ajv.addSchema(outputsFieldSchema, '/OutputsFieldSchema')
 
-export default schemaValidator
+export default ajv.compile(pipelineTreeSchema)
