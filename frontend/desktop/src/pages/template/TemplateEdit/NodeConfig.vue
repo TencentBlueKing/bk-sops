@@ -12,7 +12,13 @@
 <template>
     <div class="node-config" @click="e => e.stopPropagation()">
         <div
-            :class="['node-config-panel',{ 'position-right-side': !isSettingPanelShow }]">
+            :class="[
+                'node-config-panel',
+                {
+                    'position-right-side': !isSettingPanelShow
+                }
+            ]"
+            ref="nodeConfigPanel">
             <div class="node-title">
                 <span>{{ i18n.baseInfo }}</span>
             </div>
@@ -216,7 +222,6 @@
     </div>
 </template>
 <script>
-
     import '@/utils/i18n.js'
     import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -844,17 +849,26 @@
                 }
                 return false
             },
-            stopClickPropagation (e) {
-            },
             /**
              * 处理节点配置面板和全局变量面板之外的点击事件
              */
             handleNodeConfigPanelShow (e) {
-                if (!this.isNodeConfigPanelShow
-                    || this.isReuseVarDialogShow
-                    || dom.parentClsContains('bk-option', e.target)) {
+                // 节点参数面板未展开、有变量复用弹窗遮罩
+                if (!this.isNodeConfigPanelShow || this.isReuseVarDialogShow) {
                     return
                 }
+
+                // 处理在面板区域里的 popup 上的点击，eg: select、tooltip
+                const { left, right, top, bottom } = this.$refs.nodeConfigPanel.getBoundingClientRect()
+                if (
+                    e.clientX > left
+                    && e.clientX < right
+                    && e.clientY > top
+                    && e.clientY < bottom
+                ) {
+                    return
+                }
+
                 const settingPanel = document.querySelector('.setting-area-wrap')
                 const nodeConfig = document.querySelector('.node-config')
                 if (settingPanel && this.isNodeConfigPanelShow) {
@@ -943,6 +957,14 @@
                         group: this.groupInfo.group_name,
                         icon: this.groupInfo.group_icon
                     })
+                    // 清空配置信息
+                    this.subAtomConfigData = {
+                        form: {},
+                        outputs: {}
+                    }
+                    this.subAtomInput = []
+                    this.subAtomOutput = []
+
                     this.$emit('hideConfigPanel')
                     return isValid
                 })
@@ -1034,7 +1056,8 @@
             },
             onJumpToProcess (index) {
                 const item = this.atomList[index].id
-                const { href } = this.$router.resolve({ path: `/template/edit/${this.project_id}/?template_id=${item}` })
+                const path = this.common ? `/admin/template/edit/?template_id=${item}&common=1` : `/template/edit/${this.project_id}/?template_id=${item}`
+                const { href } = this.$router.resolve({ path })
                 window.open(href, '_blank')
             },
             /**
@@ -1042,12 +1065,13 @@
              * 去掉节点小红点、模板刷新按钮
              * 更新 store 数据状态
              */
-            onUpdateSubflowVersion () {
+            async onUpdateSubflowVersion () {
                 if (this.atomConfigLoading) {
                     return
                 }
-                const oldInputAtomHook = this.inputAtomHook
-                const oldInputAtomData = this.inputAtomData
+                const oldInputAtomHook = { ...this.inputAtomHook }
+                const oldInputAtomData = { ...this.inputAtomData }
+                const oldConstants = { ...this.subAtomConfigData.form }
 
                 // 清空 store 里的 constants 值
                 this.subAtomConfigData.form = {}
@@ -1055,31 +1079,48 @@
                 this.inputAtomData = {}
                 this.updateActivities()
 
-                this.getSubflowConfig(this.currentAtom).then(() => {
-                    Object.keys(oldInputAtomData).forEach(key => {
-                        if (this.inputAtomData.hasOwnProperty(key)) {
+                await this.getSubflowConfig(this.currentAtom)
+                Object.keys(oldInputAtomData).forEach(key => {
+                    const newContants = { ...this.subAtomConfigData.form }
+                    const newVar = newContants[key]
+                    const oldVar = oldConstants[key]
+
+                    /**
+                     * 子流程更新后保留用户当前编辑的子流程变量的值，保留条件：
+                     * 1.变量 key 相同
+                     * 2.变量类型相同
+                     *   - 变量为标准插件勾选的全局变量，需要满足 source_tag 相同（来自于同一个标准插件的表单项）
+                     *   - 变量为自定义全局变量，需要满足变量的 custom_type 相同
+                     */
+                    if (newVar) {
+                        const { custom_type: newCustomType, source_tag: newSourceTag } = newVar
+                        const { custom_type: oldCustomType, source_tag: oldSourceTag } = oldVar
+                        const canReplace = (newCustomType || oldCustomType) ? newCustomType === oldCustomType : newSourceTag === oldSourceTag
+                        if (canReplace) {
                             this.$set(this.inputAtomData, key, oldInputAtomData[key])
-                        } else if (oldInputAtomHook[key]) {
-                            const variable = [
-                                {
-                                    variableKey: key,
-                                    formKey: key,
-                                    id: this.nodeId,
-                                    tagCode: key,
-                                    version: this.getVariableVersion(oldInputAtomHook[key])
-                                }
-                            ]
-                            this.clearHookedVaribles(variable, [])
                         }
-                    })
-                    this.updateActivities()
-                    this.subflowHasUpdate = false
-                    this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
-                    this.setSubprocessUpdated({
-                        template_id: Number(this.currentAtom),
-                        subprocess_node_id: this.idOfNodeInConfigPanel,
-                        version: this.subAtomConfigData.version
-                    })
+                    }
+
+                    if (oldInputAtomHook[key]) {
+                        const variable = [
+                            {
+                                variableKey: key,
+                                formKey: key,
+                                id: this.nodeId,
+                                tagCode: key,
+                                version: this.getVariableVersion(oldInputAtomHook[key])
+                            }
+                        ]
+                        this.clearHookedVaribles(variable, [])
+                    }
+                })
+                this.updateActivities()
+                this.subflowHasUpdate = false
+                this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
+                this.setSubprocessUpdated({
+                    template_id: Number(this.currentAtom),
+                    subprocess_node_id: this.idOfNodeInConfigPanel,
+                    version: this.subAtomConfigData.version
                 })
             },
             /**
