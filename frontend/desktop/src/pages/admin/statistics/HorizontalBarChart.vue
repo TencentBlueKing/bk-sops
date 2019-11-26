@@ -170,7 +170,8 @@
                     }
                 }
                 return {
-                    width: val / this.totalNumber * 100 + '%'
+                    width: val / this.totalNumber * 100 + '%',
+                    'min-width': '2px'
                 }
             },
             onOptionClick (selector, id) {
