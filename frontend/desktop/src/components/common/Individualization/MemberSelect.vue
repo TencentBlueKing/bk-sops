@@ -75,12 +75,12 @@
         },
         data () {
             return {
+                isLoading: false
             }
         },
         computed: {
             ...mapState({
-                'memberlist': state => state.member.memberlist,
-                'isLoading': state => state.member.isLoading
+                'memberlist': state => state.member.memberlist
             }),
             setValue: {
                 get () {
@@ -132,9 +132,9 @@
             async getUserData () {
                 try {
                     if (this.memberlist && this.memberlist.length === 0 && !this.isLoading) {
-                        this.setLoading(true)
+                        this.isLoading = true
                         const result = await this.loadMemberList()
-                        this.setLoading(false)
+                        this.isLoading = false
                         this.setMemberList(result.data)
                     }
                 } catch (e) {
