@@ -50,7 +50,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'parallelgateway': {
@@ -58,7 +58,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway'],
         unique: false
     },
     'convergegateway': {

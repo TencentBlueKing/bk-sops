@@ -220,6 +220,7 @@
                 },
                 renderConfig: [],
                 renderData: {},
+                loop: 1,
                 theExecuteTime: undefined
             }
         },
@@ -251,8 +252,8 @@
             },
             loopTimes () {
                 const times = []
-                for (let i = 0; i < this.nodeInfo.loop; i++) {
-                    times.push(this.nodeInfo.loop - i)
+                for (let i = 0; i < this.loop; i++) {
+                    times.push(this.loop - i)
                 }
                 return times
             }
@@ -292,6 +293,9 @@
                         this.nodeInfo.histories.forEach(item => {
                             item.last_time = this.getLastTime(item.elapsed_time)
                         })
+                        if (this.theExecuteTime === undefined) {
+                            this.loop = nodeDetailRes.data.loop
+                        }
                         for (const key in this.nodeInfo.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }
