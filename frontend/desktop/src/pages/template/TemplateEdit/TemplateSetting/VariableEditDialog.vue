@@ -23,6 +23,7 @@
         @cancel="onCancel">
         <div class="variable-params-content">
             <RenderForm
+                v-if="isShow"
                 ref="renderForm"
                 :scheme="renderConfig"
                 :form-option="renderOption"
