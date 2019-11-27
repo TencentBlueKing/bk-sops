@@ -11,10 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
+from django.conf.urls import url
 
-from django.conf import settings
+from gcloud.contrib.develop import api
 
-
-query_module = importlib.import_module('pipeline_plugins.components.query.sites.%s.query' % settings.RUN_VER)
-urlpatterns = query_module.urlpatterns
+urlpatterns = [
+    url(r'^api/esb_get_systems/$', api.esb_get_systems),
+    url(r'^api/esb_get_components/$', api.esb_get_components),
+    url(r'^api/get_plugin_initial_code/$', api.get_plugin_initial_code),
+]

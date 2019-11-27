@@ -40,10 +40,8 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     get_job_instance_url,
-    get_node_callback_url,
-    handle_api_error
+    get_node_callback_url
 )
-
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
@@ -51,6 +49,7 @@ from pipeline.component_framework.component import Component
 from files.factory import ManagerFactory
 
 from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 from gcloud.core.models import EnvironmentVariables
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
