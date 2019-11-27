@@ -1581,7 +1581,7 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                system_names: name
+                system_names: JSON.stringify([name])
             }
         }
         return request(opts)
