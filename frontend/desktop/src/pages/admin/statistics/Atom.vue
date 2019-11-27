@@ -106,7 +106,9 @@
                                     :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
                                     {{props.row.instanceName}}
                                 </a>
-                                <template v-else>{{ props.row[item.prop] }}</template>
+                                <template v-else>
+                                    <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                </template>
                             </template>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><no-data></no-data></div>
@@ -153,11 +155,13 @@
             },
             {
                 label: gettext('分类'),
-                prop: 'category'
+                prop: 'category',
+                width: 180
             },
             {
                 label: gettext('创建人'),
-                prop: 'creator'
+                prop: 'creator',
+                width: 120
             },
             {
                 label: gettext('创建时间'),
@@ -182,11 +186,13 @@
             },
             {
                 label: gettext('分类'),
-                prop: 'category'
+                prop: 'category',
+                width: 180
             },
             {
                 label: gettext('创建人'),
-                prop: 'creator'
+                prop: 'creator',
+                width: 120
             },
             {
                 label: gettext('创建时间'),
