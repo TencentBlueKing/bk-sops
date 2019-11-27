@@ -25,7 +25,6 @@
                         v-bkloading="{ isLoading: tplDataLoading, opacity: 1 }"
                         :data="tplData"
                         :pagination="tplPagination"
-                        @sort-change="handleSortChange($event, 'tpl')"
                         @page-change="handlePageChange($event, 'tpl')">
                         <bk-table-column
                             v-for="col in tplListColumn"
@@ -96,7 +95,6 @@
                         v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }"
                         :data="taskData"
                         :pagination="taskPagination"
-                        @sort-change="handleSortChange($event, 'task')"
                         @page-change="handlePageChange($event, 'task')">
                         <bk-table-column
                             v-for="col in taskListColumn"
@@ -128,6 +126,9 @@
                                 </template>
                                 <template v-else-if="['start_time', 'finish_time', 'executor_name'].includes(col.prop)">
                                     <span :title="props.row[col.prop]">{{ props.row[col.prop] || '--' }}</span>
+                                </template>
+                                <template v-else-if="col.prop === 'create_method'">
+                                    <span>{{ methodList[props.row.create_method] || props.row.create_method }}</span>
                                 </template>
                                 <template v-else-if="col.prop === 'status'">
                                     <div class="task-status">
@@ -171,7 +172,6 @@
         {
             label: gettext('ID'),
             prop: 'id',
-            sortable: true,
             width: 100
         },
         {
@@ -204,7 +204,6 @@
         {
             label: gettext('ID'),
             prop: 'id',
-            sortable: true,
             width: 90
         },
         {
@@ -268,6 +267,7 @@
                 tplDataLoading: false,
                 taskDataLoading: false,
                 matchedList: [],
+                methodList: {},
                 tplFilter: {},
                 tplOperations: [],
                 tplResource: {},
@@ -317,7 +317,8 @@
         },
         methods: {
             ...mapActions('task/', [
-                'getInstanceStatus'
+                'getInstanceStatus',
+                'loadCreateMethod'
             ]),
             ...mapActions('admin/', [
                 'search',
@@ -338,6 +339,7 @@
                         }
                         if (this.taskFilter) {
                             this.getAdminTask()
+                            this.getCreateMethod()
                         }
                     } else {
                         errorHandler(res, this)
@@ -443,6 +445,22 @@
                     errorHandler(e, this)
                 }
             },
+            async getCreateMethod () {
+                try {
+                    const methodList = {}
+                    const resp = await this.loadCreateMethod()
+                    if (resp.result) {
+                        resp.data.forEach(item => {
+                            methodList[item.value] = item.name
+                        })
+                        this.methodList = methodList
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
             onSearch () {
                 this.getSearchResult()
             },
@@ -479,7 +497,6 @@
                     this.restorePending = false
                 }
             },
-            handleSortChange () {},
             handlePageChange (val, type) {
                 if (type === 'tpl') {
                     this.tplPagination.current = val
