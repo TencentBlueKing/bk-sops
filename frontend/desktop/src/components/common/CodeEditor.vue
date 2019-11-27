@@ -15,6 +15,8 @@
 <script>
     import '@/utils/i18n.js'
     import * as monaco from 'monaco-editor'
+    // import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+
     const DEFAULT_OPTIONS = {
         language: 'javascript',
         theme: 'vs-dark',
@@ -69,6 +71,19 @@
         },
         methods: {
             initIntance () {
+                window.MonacoEnvironment = {
+                    getWorkerUrl (moduleId, label) {
+                        if (label === 'typescript' || label === 'javascript') {
+                            return `data:text/javascript;charset=utf-8, ${encodeURIComponent(`
+                                importScripts('${process.env.PUBLIC_STATIC}/dist/js/ts.worker${process.env.VERSION}.js')`
+                            )}`
+                        }
+
+                        return `data:text/javascript;charset=utf-8, ${encodeURIComponent(`
+                            importScripts('${process.env.PUBLIC_STATIC}/dist/js/editor.worker${process.env.VERSION}.js')`
+                        )}`
+                    }
+                }
                 this.monacoInstance = monaco.editor.create(this.$el, this.editorOptions)
                 const model = this.monacoInstance.getModel()
                 model.onDidChangeContent(event => {

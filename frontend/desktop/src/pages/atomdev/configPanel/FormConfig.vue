@@ -24,7 +24,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import CodeEditor from './CodeEditor.vue'
+    import CodeEditor from '@/components/common/CodeEditor.vue'
 
     export default {
         name: 'FormConfig',
