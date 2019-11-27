@@ -10,23 +10,36 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-text">
-        <span class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
+    <div class="add-comp" @click="$emit('click')">
+        <slot>{{i18n.add}}</slot>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { getFormMixins } from '../formMixins.js'
-
-    export const attrs = {
-        value: {
-            type: String,
-            required: false,
-            default: ''
+    export default {
+        name: 'AddComp',
+        data () {
+            return {
+                i18n: {
+                    add: gettext('点击添加')
+                }
+            }
         }
     }
-    export default {
-        name: 'TagText',
-        mixins: [getFormMixins(attrs)]
-    }
 </script>
+<style lang="scss" scoped>
+    .add-comp {
+        display: flex;
+        height: 60px;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+        color: #c4c6cc;
+        border: 1px dotted #c4c6cc;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+            border-color: #3a84ff;
+        }
+    }
+</style>

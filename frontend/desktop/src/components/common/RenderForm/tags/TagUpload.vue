@@ -39,7 +39,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const uploadAttrs = {
+    export const attrs = {
         value: {
             type: Array,
             required: false,
@@ -122,7 +122,7 @@
     }
     export default {
         name: 'TagUpload',
-        mixins: [getFormMixins(uploadAttrs)],
+        mixins: [getFormMixins(attrs)],
         data () {
             return {
                 i18n: {

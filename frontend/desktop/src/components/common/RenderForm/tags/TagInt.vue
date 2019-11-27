@@ -29,7 +29,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const intAttrs = {
+    export const attrs = {
         placeholder: {
             type: String,
             required: false,
@@ -52,7 +52,7 @@
     }
     export default {
         name: 'TagInt',
-        mixins: [getFormMixins(intAttrs)],
+        mixins: [getFormMixins(attrs)],
         computed: {
             intValue: {
                 get () {

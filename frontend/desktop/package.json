@@ -19,6 +19,7 @@
     "jsencrypt": "^3.0.0-rc.1",
     "jsonschema": "^1.2.4",
     "jsplumb": "^2.7.3",
+    "jszip": "^3.2.2",
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.23",
     "monaco-editor": "^0.18.1",

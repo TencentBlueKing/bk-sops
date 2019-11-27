@@ -9,24 +9,13 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-<template>
-    <div class="tag-text">
-        <span class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
-    </div>
-</template>
-<script>
-    import '@/utils/i18n.js'
-    import { getFormMixins } from '../formMixins.js'
+import serialize from 'serialize-javascript'
 
-    export const attrs = {
-        value: {
-            type: String,
-            required: false,
-            default: ''
-        }
-    }
-    export default {
-        name: 'TagText',
-        mixins: [getFormMixins(attrs)]
-    }
-</script>
+const DEFAULT_OPTIONS = {
+    space: 4
+}
+
+export default function serializeObj (obj, options = {}) {
+    options = Object.assign({}, DEFAULT_OPTIONS, options)
+    return serialize(obj, options)
+}

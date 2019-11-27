@@ -25,7 +25,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '@/components/common/RenderForm/formMixins.js'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
-    const intAttrs = {
+    const attrs = {
         value: {
             type: String,
             required: false,
@@ -43,7 +43,7 @@
         components: {
             MemberSelect
         },
-        mixins: [getFormMixins(intAttrs)],
+        mixins: [getFormMixins(attrs)],
         computed: {
             memberValue: {
                 get () {

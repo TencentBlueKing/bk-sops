@@ -158,6 +158,11 @@
                         path: '/admin/common/template/'
                     }
                 ]
+            },
+            {
+                key: 'atomdev',
+                path: '/atomdev/',
+                name: gettext('插件开发')
             }
         ]
     }
@@ -298,6 +303,7 @@
                 } else if (
                     this.userType !== 'maintainer'
                     || route.key === 'project'
+                    || route.key === 'atomdev'
                     || route.parent === 'admin'
                     || (isNaN(this.project_id) || this.project_id === '')
                 ) {
