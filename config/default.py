@@ -55,10 +55,13 @@ INSTALLED_APPS += (
     'gcloud.contrib.appmaker',
     'gcloud.contrib.function',
     'gcloud.contrib.audit',
+    'gcloud.contrib.develop',
+    'gcloud.contrib.collection',
     'gcloud.apigw',
     'gcloud.commons.template',
     'gcloud.periodictask',
     'gcloud.external_plugins',
+    'gcloud.contrib.admin',
     'pipeline',
     'pipeline.component_framework',
     'pipeline.variable_framework',
@@ -128,7 +131,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.4.13'
+STATIC_VERSION = '3.5.1'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -180,7 +183,11 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
 # 程序会自动分析访客使用的语言，来显示相应的翻译结果
 LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
-_ = lambda s: s  # noqa
+
+
+def _(s): return s  # noqa
+
+
 LANGUAGES = (
     ('en', _('English')),
     ('zh-hans', _('简体中文')),

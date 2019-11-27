@@ -1577,7 +1577,6 @@ const api = {
     loadApiComponent (params) {
         const { name } = params
         const prefixUrl = this.getPrefix('esbGetComponents')
-
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -1597,6 +1596,111 @@ const api = {
             params: {
                 esb_system: system,
                 esb_component: component
+            }
+        }
+        return request(opts)
+    },
+    adminSearch (data) {
+        const prefixUrl = this.getPrefix('adminSearch')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                keyword: data.keyword
+            }
+        }
+        return request(opts)
+    },
+    adminTemplate (data) {
+        const prefixUrl = this.getPrefix('adminTemplate')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTemplateRestore (data) {
+        const { template_id } = data
+        const prefixUrl = this.getPrefix('adminTemplateRestore')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                template_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflow (data) {
+        const prefixUrl = this.getPrefix('adminTaskflow')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTaskflowDetail (data) {
+        const { task_id } = data
+
+        const prefixUrl = this.getPrefix('adminTaskflowDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                task_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflowHistroyLog (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowHistroyLog')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            data: { ...data }
+        }
+        return request(opts)
+    },
+    adminTaskflowNodeForceFail (data) {
+        const { task_id, node_id } = data
+        const prefixUrl = this.getPrefix('taskflowNodeForceFail')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                task_id,
+                node_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflowNodeDetail (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowNodeDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminPeriodTask (data) {
+        const prefixUrl = this.getPrefix('adminPeriodTask')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminPeriodTaskHistory (data) {
+        const { task_id } = data
+        const prefixUrl = this.getPrefix('adminPeriodTaskHistory')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                task_id
             }
         }
         return request(opts)

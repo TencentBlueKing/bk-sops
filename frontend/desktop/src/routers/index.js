@@ -42,6 +42,7 @@ const StatisticsAtom = () => import('@/pages/admin/statistics/Atom.vue')
 const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker.vue')
 const CommonTemplate = () => import('@/pages/admin/common/template.vue')
 const Manage = () => import('@/pages/admin/manage/index.vue')
+const AdminSearch = () => import('@/pages/admin/manage/AdminSearch/index.vue')
 const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
 const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
 const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
@@ -333,7 +334,6 @@ const routers = new VueRouter({
                             path: 'edit/:cc_id?/',
                             component: TemplateEdit,
                             props: (route) => ({
-                                cc_id: route.params.cc_id,
                                 template_id: route.query.template_id,
                                 type: 'edit',
                                 common: '1'
@@ -363,6 +363,11 @@ const routers = new VueRouter({
                     path: 'manage/',
                     component: Manage,
                     children: [
+                        {
+                            path: 'search/',
+                            name: 'adminSearch',
+                            component: AdminSearch
+                        },
                         {
                             path: 'source_manage/',
                             name: 'sourceManage',

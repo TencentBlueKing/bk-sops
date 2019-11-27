@@ -19,11 +19,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
-from pipeline_plugins.components.utils import (
-    handle_api_error,
-    format_sundry_ip
-)
+from pipeline_plugins.components.utils import format_sundry_ip
+
 from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 
 from .utils import get_cmdb_topo_tree
 from .constants import NO_ERROR, ERROR_CODES

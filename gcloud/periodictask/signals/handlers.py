@@ -16,6 +16,7 @@ import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from gcloud.constants import PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTaskHistory
@@ -34,7 +35,7 @@ def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **
         pipeline_instance=pipeline_instance,
         category=periodic_task.extra_info['category'],
         template_id=periodic_task.extra_info['template_num_id'],
-        template_source=periodic_task.extra_info.get('template_source'),
+        template_source=periodic_task.extra_info.get('template_source', PROJECT),
         create_method='periodic',
         create_info='',
         flow_type='common',

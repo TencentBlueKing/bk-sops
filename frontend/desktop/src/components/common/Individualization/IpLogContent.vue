@@ -83,8 +83,11 @@
             }
         },
         watch: {
-            search: function () {
+            search () {
                 this.dataTotal = this.ipTotal.filter(item => (!this.search || item.ip.includes(this.search)))
+                this.initTable()
+            },
+            nodeInfo () {
                 this.initTable()
             }
         },

@@ -19,12 +19,12 @@
                 :limit="limit"
                 :auto-upload="auto_upload"
                 :headers="headers"
-                :on-success="handleSuccess"
-                :on-remove="handleRemove"
-                :on-error="handleError"
-                :on-change="handleChange"
-                :before-upload="handleBeforeUpload"
-                :before-remove="handleBeforeRemove"
+                :on-success="handleSuccess.bind(this)"
+                :on-remove="handleRemove.bind(this)"
+                :on-error="handleError.bind(this)"
+                :on-change="handleChange.bind(this)"
+                :before-upload="handleBeforeUpload.bind(this)"
+                :before-remove="handleBeforeRemove.bind(this)"
                 :file-list="fileValue">
                 <bk-button size="small" theme="primary">{{ uploadText }}</bk-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>

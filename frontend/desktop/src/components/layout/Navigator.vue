@@ -79,7 +79,6 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -144,7 +143,7 @@
                         key: 'manage',
                         parent: 'admin',
                         name: gettext('后台管理'),
-                        path: '/admin/manage/source_manage/'
+                        path: '/admin/manage/search/'
                     },
                     {
                         key: 'statistics',
@@ -182,7 +181,6 @@
                     help: gettext('帮助文档'),
                     title: gettext('标准运维')
                 },
-                hasAdminPerm: false, // 是否拥有管理员入口查看权限
                 homeRoute: {
                     key: 'home',
                     path: '/home/'
@@ -194,6 +192,7 @@
                 site_url: state => state.site_url,
                 username: state => state.username,
                 userType: state => state.userType,
+                hasAdminPerm: state => state.hasAdminPerm,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
                 notFoundPage: state => state.notFoundPage,
@@ -229,7 +228,7 @@
                 } else {
                     let routes = ROUTE_LIST[`${this.userType}_router_list`]
 
-                    // 非管理员用户去掉管理员入口
+                    // 非管理员用户隐藏管理员入口
                     if (!this.hasAdminPerm) {
                         routes = routes.filter(item => item.key !== 'admin')
                     }
@@ -245,9 +244,6 @@
             this.initHome()
         },
         methods: {
-            ...mapActions([
-                'queryUserPermission'
-            ]),
             ...mapActions('project', [
                 'loadProjectList'
             ]),
@@ -259,28 +255,11 @@
             ]),
             async initHome () {
                 if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.getAdminPerm()
                     const res = await this.loadProjectList({ limit: 0 })
                     this.setProjectPerm(res.meta)
                 }
             },
-            async getAdminPerm () {
-                try {
-                    const res = await this.queryUserPermission({
-                        resource_type: 'admin_operate',
-                        action_ids: JSON.stringify(['view'])
-                    })
-    
-                    const hasCreatePerm = !!res.data.details.find(item => {
-                        return item.action_id === 'view' && item.is_pass
-                    })
-                    if (hasCreatePerm) {
-                        this.hasAdminPerm = true
-                    }
-                } catch (err) {
-                    errorHandler(err, this)
-                }
-            },
+            
             isNavActived (route) {
                 const key = route.key
                 // 轻应用打开
