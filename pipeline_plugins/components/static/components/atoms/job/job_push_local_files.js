@@ -55,7 +55,7 @@
                         fileList.splice(file_num - 2, 1);
                         show_msg(response.message, 'error');
                     }
-                    return true;
+                    this._set_value(fileList)
                 },
                 handleError: function (err, file, fileList) {
                     var result = JSON.parse(err.message)
