@@ -120,7 +120,7 @@ module.exports = {
                 use: {
                   loader: 'worker-loader',
                   options: {
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name]' + process.env.VERSION + '.js'),
+                    name: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name].js'),
                     publicPath: path.posix.join(process.env.STATIC_ENV, 'dist/js/')
                   }
                 }

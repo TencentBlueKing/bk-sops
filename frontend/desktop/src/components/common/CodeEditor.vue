@@ -75,12 +75,12 @@
                     getWorkerUrl (moduleId, label) {
                         if (label === 'typescript' || label === 'javascript') {
                             return `data:text/javascript;charset=utf-8, ${encodeURIComponent(`
-                                importScripts('${process.env.PUBLIC_STATIC}/dist/js/ts.worker${process.env.VERSION}.js')`
+                                importScripts('${process.env.PUBLIC_STATIC}/dist/js/ts.worker.js')`
                             )}`
                         }
 
                         return `data:text/javascript;charset=utf-8, ${encodeURIComponent(`
-                            importScripts('${process.env.PUBLIC_STATIC}/dist/js/editor.worker${process.env.VERSION}.js')`
+                            importScripts('${process.env.PUBLIC_STATIC}/dist/js/editor.worker.js')`
                         )}`
                     }
                 }
