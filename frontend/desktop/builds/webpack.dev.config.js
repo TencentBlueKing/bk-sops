@@ -25,10 +25,15 @@ const proxyPath = [
     'common_template/api/*',
     'template/api/*',
     'taskflow/api/*',
-    'appmaker/*',
+    'appmaker/save/',
+    'appmaker/get_appmaker_count/',
     'pipeline/*',
     'analysis/*',
-    'periodictask/api/*'
+    'periodictask/api/*',
+    'admin/search/',
+    'admin/api/*',
+    'admin/taskflow/*',
+    'admin/template/*'
 ]
 const proxyRule = {}
 proxyPath.forEach(item => {

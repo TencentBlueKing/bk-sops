@@ -104,12 +104,36 @@
     import XLSX from 'xlsx'
     import errorHandler from '@/utils/errorHandler.js'
 
-    const datatableAttrs = {
+    export const attrs = {
         columns: {
             type: Array,
             required: false,
             default () {
-                return []
+                return [
+                    {
+                        tag_code: 'name',
+                        type: 'text',
+                        attrs: {
+                            name: gettext('参数名称')
+                        }
+                    },
+                    {
+                        tag_code: 'type',
+                        type: 'text',
+                        attrs: {
+                            name: gettext('参数类型'),
+                            hidden: true
+                        }
+                    },
+                    {
+                        tag_code: 'value',
+                        type: 'textarea',
+                        attrs: {
+                            name: gettext('参数值'),
+                            editable: true
+                        }
+                    }
+                ]
             },
             desc: 'initial data, which should be a array like [{tag config}]'
         },
@@ -155,6 +179,9 @@
         table_buttons: {
             type: Array,
             required: false,
+            default () {
+                return []
+            },
             desc: 'dataTable buttons setting'
         }
     }
@@ -172,7 +199,7 @@
             FormItem,
             FormGroup
         },
-        mixins: [getFormMixins(datatableAttrs)],
+        mixins: [getFormMixins(attrs)],
         data () {
             return {
                 editRowNumber: undefined,

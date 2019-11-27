@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div :class="['execute-info', { 'loading': loading }]" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="excute-time">
             <span>{{i18n.theTime}}</span>
             <bk-select
@@ -28,7 +28,7 @@
         </div>
         <div class="execute-head">
             <div class="node-name">
-                <span>{{nodeInfo.name}}</span>
+                <span>{{executeInfo.name}}</span>
                 <div class="node-state">
                     <span :class="displayStatus"></span>
                     <span class="status-text-messages">{{nodeState}}</span>
@@ -38,33 +38,22 @@
         <section class="info-section">
             <h4 class="common-section-title">{{ i18n.executeInfo }}</h4>
             <table class="operation-table">
-                <tr>
-                    <th class="start-time">{{ i18n.startTime }}</th>
-                    <td>{{nodeInfo.start_time}}</td>
-                </tr>
-                <tr>
-                    <th class="finish-time">{{ i18n.finishTime }}</th>
-                    <td>{{nodeInfo.finish_time}}</td>
-                </tr>
-                <tr>
-                    <th class="last-time">{{ i18n.lastTime}}</th>
-                    <td>{{getLastTime(nodeInfo.elapsed_time)}}</td>
-                </tr>
-                <tr>
-                    <th class="task-skipped">{{ i18n.taskSkipped}}</th>
-                    <td>{{nodeInfo.skip ? i18n.yes : i18n.no}}</td>
-                </tr>
-                <tr>
-                    <th class="error_ignorable">{{i18n.errorIgnorable}}</th>
-                    <td>{{nodeInfo.error_ignorable ? i18n.yes : i18n.no}}</td>
-                </tr>
-                <tr>
-                    <th class="manually-retry">{{i18n.manuallyRetry}}</th>
-                    <td>{{nodeInfo.retry}}</td>
-                </tr>
-                <tr>
-                    <th class="manually-retry">{{i18n.executeVersion}}</th>
-                    <td>{{nodeDetailConfig.version}}</td>
+                <tr v-for="col in executeCols" :key="col.id">
+                    <th>{{ col.title }}</th>
+                    <td>
+                        <template v-if="typeof executeInfo[col.id] === 'boolean'">
+                            {{executeInfo[col.id] ? i18n.yes : i18n.no}}
+                        </template>
+                        <template v-else-if="col.id === 'elapsed_time'">
+                            {{getLastTime(executeInfo.elapsed_time)}}
+                        </template>
+                        <template v-else-if="col.id === 'callback_data'">
+                            {{JSON.stringify(executeInfo.callback_data, null, 4)}}
+                        </template>
+                        <template v-else>
+                            {{ executeInfo[col.id] }}
+                        </template>
+                    </td>
                 </tr>
             </table>
         </section>
@@ -90,29 +79,36 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="output in nodeInfo.outputs" :key="output.name">
+                    <tr v-for="output in outputsInfo" :key="output.name">
                         <td class="output-name">{{getOutputName(output)}}</td>
-                        <td class="output-value" v-html="getOutputValue(output)"></td>
+                        <td v-if="isUrl(output.value)" class="output-value" v-html="getOutputValue(output)"></td>
+                        <td v-else class="output-value">{{ getOutputValue(output) }}</td>
+                    </tr>
+                    <tr v-if="Object.keys(outputsInfo).length === 0">
+                        <td colspan="2"><no-data></no-data></td>
                     </tr>
                 </tbody>
             </table>
         </section>
-        <section class="info-section" v-if="nodeInfo && nodeInfo.ex_data">
+        <section class="info-section" v-if="executeInfo.ex_data">
             <h4 class="common-section-title">{{ i18n.exception }}</h4>
             <div v-html="failInfo"></div>
             <IpLogContent
-                v-if="nodeInfo.ex_data.show_ip_log"
+                v-if="executeInfo.ex_data.show_ip_log"
                 :project-id="renderData.biz_cc_id"
-                :node-info="nodeInfo">
+                :node-info="executeInfo">
             </IpLogContent>
         </section>
-        <section class="info-section" v-if="nodeInfo && nodeInfo.histories && nodeInfo.histories.length">
+        <section class="info-section" v-if="logInfo">
+            <h4 class="common-section-title">{{ i18n.nodeLog }}</h4>
+            <div>{{ logInfo }}</div>
+        </section>
+        <section class="info-section" v-if="historyInfo.length">
             <h4 class="common-section-title">{{ i18n.retries }}</h4>
-            <el-table
-                border
+            <bk-table
                 class="retry-table"
-                :data="nodeInfo.histories">
-                <el-table-column type="expand">
+                :data="historyInfo">
+                <bk-table-column type="expand" :width="60">
                     <template slot-scope="props">
                         <div class="common-form-item">
                             <label>{{ i18n.inputsParams }}</label>
@@ -136,27 +132,28 @@
                                 <div v-html="props.row.ex_data"></div>
                             </div>
                         </div>
+                        <div class="common-form-item" v-if="hasAdminPerm">
+                            <label>{{ i18n.log }}</label>
+                            <div class="common-form-content">
+                                <div v-bkloading="{ isLoading: historyLogLoading, opacity: 1 }">
+                                    {{ historyLog[props.row.history_id] || '--' }}
+                                </div>
+                            </div>
+                        </div>
                     </template>
-                </el-table-column>
-                <el-table-column :label="i18n.index" :width="'70'">
+                </bk-table-column>
+                <bk-table-column :label="i18n.index" :width="'70'">
                     <template slot-scope="props">
                         {{props.$index + 1}}
                     </template>
-                </el-table-column>
-                <el-table-column
-                    :label="i18n.start_time"
-                    prop="start_time">
-                </el-table-column>
-                <el-table-column
-                    :label="i18n.finish_time"
-                    prop="finish_time">
-                </el-table-column>
-                <el-table-column
-                    :width="'100'"
-                    :label="i18n.last_time"
-                    prop="last_time">
-                </el-table-column>
-            </el-table>
+                </bk-table-column>
+                <bk-table-column
+                    v-for="col in historyCols"
+                    :key="col.id"
+                    :label="col.title"
+                    :prop="col.id">
+                </bk-table-column>
+            </bk-table>
         </section>
     </div>
 </template>
@@ -171,6 +168,143 @@
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
+
+    const EXECUTE_INFO_COL = [
+        {
+            title: gettext('开始时间'),
+            id: 'start_time'
+        },
+        {
+            title: gettext('结束时间'),
+            id: 'finish_time'
+        },
+        {
+            title: gettext('耗时'),
+            id: 'elapsed_time'
+        },
+        {
+            title: gettext('失败后跳过'),
+            id: 'skip'
+        },
+        {
+            title: gettext('失败后自动忽略'),
+            id: 'error_ignorable'
+        },
+        {
+            title: gettext('重试次数'),
+            id: 'retry'
+        },
+        {
+            title: gettext('执行版本'),
+            id: 'version'
+        }
+    ]
+
+    const ADMIN_EXECUTE_INFO_COL = [
+        {
+            title: gettext('开始时间'),
+            id: 'start_time'
+        },
+        {
+            title: gettext('结束时间'),
+            id: 'archive_time'
+        },
+        {
+            title: gettext('耗时'),
+            id: 'elapsed_time'
+        },
+        {
+            title: gettext('失败后跳过'),
+            id: 'skip'
+        },
+        {
+            title: gettext('失败后自动忽略'),
+            id: 'error_ignorable'
+        },
+        {
+            title: gettext('重试次数'),
+            id: 'retry_times'
+        },
+        {
+            title: gettext('ID'),
+            id: 'id'
+        },
+        {
+            title: gettext('状态'),
+            id: 'state'
+        },
+        {
+            title: gettext('循环次数'),
+            id: 'loop'
+        },
+        {
+            title: gettext('创建时间'),
+            id: 'create_time'
+        },
+        {
+            title: gettext('执行版本'),
+            id: 'version'
+        },
+        {
+            title: gettext('调度ID'),
+            id: 'schedule_id'
+        },
+        {
+            title: gettext('正在被调度'),
+            id: 'is_scheduling'
+        },
+        {
+            title: gettext('调度次数'),
+            id: 'schedule_times'
+        },
+        {
+            title: gettext('等待回调'),
+            id: 'wait_callback'
+        },
+        {
+            title: gettext('完成调度'),
+            id: 'is_finished'
+        },
+        {
+            title: gettext('调度节点版本'),
+            id: 'schedule_version'
+        },
+        {
+            title: gettext('回调数据'),
+            id: 'callback_data'
+        }
+    ]
+
+    const HISTORY_COLS = [
+        {
+            title: gettext('开始时间'),
+            id: 'start_time'
+        },
+        {
+            title: gettext('结束时间'),
+            id: 'finish_time'
+        },
+        {
+            title: gettext('耗时'),
+            id: 'last_time'
+        }
+    ]
+
+    const ADMIN_HISTORY_COLS = [
+        {
+            title: gettext('开始时间'),
+            id: 'started_time'
+        },
+        {
+            title: gettext('结束时间'),
+            id: 'finished_time'
+        },
+        {
+            title: gettext('耗时'),
+            id: 'elapsed_time'
+        }
+    ]
+
     export default {
         name: 'ExecuteInfo',
         components: {
@@ -179,16 +313,17 @@
             NoData,
             IpLogContent
         },
-        props: ['nodeDetailConfig'],
+        props: {
+            nodeDetailConfig: {
+                type: Object,
+                required: true
+            }
+        },
         data () {
             return {
                 i18n: {
                     executeInfo: gettext('执行信息'),
-                    startTime: gettext('开始时间'),
-                    finishTime: gettext('结束时间'),
                     lastTime: gettext('耗时'),
-                    taskSkipped: gettext('失败后跳过'),
-                    errorIgnorable: gettext('失败自动忽略'),
                     inputsParams: gettext('输入参数'),
                     outputsParams: gettext('输出参数'),
                     name: gettext('参数名'),
@@ -198,18 +333,23 @@
                     index: gettext('序号'),
                     yes: gettext('是'),
                     no: gettext('否'),
-                    manuallyRetry: gettext('重试次数'),
+                    nodeLog: gettext('节点日志'),
+                    log: gettext('日志'),
                     running: gettext('执行中'),
                     suspended: gettext('暂停'),
                     failed: gettext('失败'),
                     finished: gettext('完成'),
-                    executeVersion: gettext('执行版本'),
                     theTime: gettext('第'),
                     executeTime: gettext('次执行')
                 },
                 loading: true,
-                bkMessageInstance: null,
-                nodeInfo: {},
+                executeInfo: {},
+                inputsInfo: {},
+                outputsInfo: [],
+                logInfo: '',
+                historyInfo: [],
+                historyLog: [],
+                historyLogLoading: false,
                 failInfo: '',
                 renderOption: {
                     showGroup: false,
@@ -226,7 +366,8 @@
         },
         computed: {
             ...mapState({
-                'atomFormConfig': state => state.atomForm.config
+                'atomFormConfig': state => state.atomForm.config,
+                'hasAdminPerm': state => state.hasAdminPerm
             }),
             isSingleAtom () {
                 return !!this.nodeDetailConfig.component_code
@@ -236,26 +377,34 @@
             },
             displayStatus () {
                 let state = ''
-                if (this.nodeInfo.state === 'RUNNING') {
+                if (this.executeInfo.state === 'RUNNING') {
                     state = 'common-icon-dark-circle-ellipsis'
-                } else if (this.nodeInfo.state === 'SUSPENDED') {
+                } else if (this.executeInfo.state === 'SUSPENDED') {
                     state = 'common-icon-dark-circle-pause'
-                } else if (this.nodeInfo.state === 'FINISHED') {
+                } else if (this.executeInfo.state === 'FINISHED') {
                     state = 'bk-icon icon-check-circle-shape'
-                } else if (this.nodeInfo.state === 'FAILED') {
+                } else if (this.executeInfo.state === 'FAILED') {
                     state = 'common-icon-dark-circle-close'
                 }
                 return state
             },
             nodeState () {
-                return TASK_STATE_DICT[this.nodeInfo.state]
+                return this.executeInfo.state && TASK_STATE_DICT[this.executeInfo.state]
             },
             loopTimes () {
                 const times = []
-                for (let i = 0; i < this.loop; i++) {
-                    times.push(this.loop - i)
+                const loop = this.executeInfo.hasOwnProperty('loop') ? this.executeInfo.loop : 1
+                for (let i = 0; i < loop; i++) {
+                    times.push(loop - i)
                 }
+
                 return times
+            },
+            executeCols () {
+                return this.hasAdminPerm ? ADMIN_EXECUTE_INFO_COL : EXECUTE_INFO_COL
+            },
+            historyCols () {
+                return this.hasAdminPerm ? ADMIN_HISTORY_COLS : HISTORY_COLS
             }
         },
         watch: {
@@ -276,54 +425,91 @@
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
             ]),
+            ...mapActions('admin/', [
+                'taskflowNodeDetail',
+                'taskflowHistroyLog'
+            ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig'
             ]),
             async loadNodeInfo () {
                 this.loading = true
                 try {
-                    const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
-                    const nodeDetailRes = await this.getNodeActDetail(query)
+                    const respData = await this.getTaskNodeDetail()
+                    
                     if (this.isSingleAtom) {
                         const version = this.nodeDetailConfig.version
                         this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     }
-                    if (nodeDetailRes.result) {
-                        this.nodeInfo = nodeDetailRes.data
-                        this.nodeInfo.histories.forEach(item => {
-                            item.last_time = this.getLastTime(item.elapsed_time)
-                        })
-                        if (this.theExecuteTime === undefined) {
-                            this.loop = nodeDetailRes.data.loop
-                        }
-                        for (const key in this.nodeInfo.inputs) {
-                            this.$set(this.renderData, key, this.nodeInfo.inputs[key])
-                        }
-                        if (this.nodeDetailConfig.component_code === 'job_execute_task') {
-                            this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => {
-                                const outputIndex = this.nodeInfo.inputs['job_global_var'].findIndex(prop => prop.name === output.key)
-                                if (!output.preset && outputIndex === -1) {
-                                    return false
-                                }
-                                return true
-                            })
-                        } else {
-                            this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => output.preset)
-                        }
-                        this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
 
-                        if (this.nodeInfo.ex_data && this.nodeInfo.ex_data.show_ip_log) {
-                            this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data.exception_msg)
-                        } else {
-                            this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
+                    if (this.hasAdminPerm) {
+                        this.executeInfo = respData.execution_info
+
+                        if (Object.prototype.toString.call(this.outputsInfo) === '[Object Object]') {
+                            this.outputsInfo = Object.keys(respData.outputs).map(item => {
+                                return {
+                                    name: item,
+                                    value: respData.outputs[item]
+                                }
+                            })
                         }
+
+                        this.historyInfo = respData.history
+                        this.getHistoryLog()
                     } else {
-                        errorHandler(nodeDetailRes, this)
+                        this.executeInfo = respData
+                        this.outputsInfo = respData.outputs
+                        this.historyInfo = respData.histories
+                        this.outputsInfo = this.outputsInfo.filter(output => output.preset)
+                    }
+                    this.inputsInfo = respData.inputs
+
+                    this.historyInfo.forEach(item => {
+                        item.last_time = this.getLastTime(item.elapsed_time)
+                    })
+                    for (const key in this.inputsInfo) {
+                        this.$set(this.renderData, key, this.inputsInfo[key])
+                    }
+                    if (this.nodeDetailConfig.component_code === 'job_execute_task') {
+                        this.outputsInfo = this.outputsInfo.filter(output => {
+                            const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
+                            if (!output.preset && outputIndex === -1) {
+                                return false
+                            }
+                            return true
+                        })
+                    }
+
+                    if (this.executeInfo.ex_data && this.executeInfo.ex_data.show_ip_log) {
+                        this.failInfo = this.transformFailInfo(this.executeInfo.ex_data.exception_msg)
+                    } else {
+                        this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
                     }
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.loading = false
+                }
+            },
+            async getTaskNodeDetail () {
+                try {
+                    let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                    let getData = this.getNodeActDetail
+                    
+                    if (this.hasAdminPerm) {
+                        const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
+                        query = { task_id, node_id, subprocess_stack }
+                        getData = this.taskflowNodeDetail
+                    }
+
+                    const res = await getData(query)
+                    if (res.result) {
+                        return res.data
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
                 }
             },
             async getNodeConfig (type, version) {
@@ -341,13 +527,37 @@
                     }
                 }
             },
+            async getHistoryLog () {
+                try {
+                    this.historyLogLoading = true
+                    for (const history of this.historyInfo) {
+                        const data = {
+                            node_id: this.nodeDetailConfig.node_id,
+                            history_id: history.history_id
+                        }
+                        const resp = await this.taskflowHistroyLog(data)
+                        if (resp.result) {
+                            this.historyLog[history.history_id] = resp.data.log
+                        } else {
+                            errorHandler(resp, this)
+                        }
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.historyLogLoading = false
+                }
+            },
+            isUrl (val) {
+                return typeof val === 'string' && URL_REG.test(val)
+            },
             getOutputValue (output) {
                 if (output.value === 'undefined' || output.value === '') {
                     return '--'
                 } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
                     return output.value
                 } else {
-                    if (URL_REG.test(output.value)) {
+                    if (this.isUrl(output.value)) {
                         return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
                     }
                     return output.value
@@ -388,6 +598,9 @@
     color: #313238;
     overflow-y: auto;
     @include scrollbar;
+    &.loading {
+        overflow: hidden;
+    }
     .excute-time {
         margin-bottom: 40px;
         display: flex;
@@ -475,21 +688,6 @@
             }
         }
     }
-    /deep/ .el-table {
-        .el-table__header {
-            tr, th {
-                font-size: 12px;
-                background: $whiteNodeBg;
-                color: $greyDefault;
-            }
-        }
-        .el-table__row.expanded {
-            background: $blueStatus;
-        }
-        .el-table__expanded-cell {
-            background: $whiteThinBg;
-        }
-    }
     .common-icon-dark-circle-ellipsis {
         font-size: 12px;
         color: #3c96ff;
@@ -505,6 +703,9 @@
     .common-icon-dark-circle-close {
         font-size: 12px;
         color: #ff5757;
+    }
+    /deep/ .bk-table .bk-table-expanded-cell {
+        padding: 20px;
     }
 }
 </style>

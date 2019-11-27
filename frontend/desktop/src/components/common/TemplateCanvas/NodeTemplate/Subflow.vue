@@ -52,7 +52,10 @@
             </div>
         </div>
         <div id="node-tooltip-content" slot="content">
-            <bk-button v-if="node.status === 'RUNNING'" @click="onSubflowPauseResumeClick('pause')">{{ i18n.pause }}</bk-button>
+            <template v-if="node.status === 'RUNNING'">
+                <bk-button @click="onSubflowPauseResumeClick('pause')">{{ i18n.pause }}</bk-button>
+                <bk-button v-if="hasAdminPerm" @click="$emit('onForceFail', node.id)">{{ i18n.forceFail }}</bk-button>
+            </template>
             <bk-button v-if="node.status === 'SUSPENDED'" @click="onSubflowPauseResumeClick('resume')">{{ i18n.resume }}</bk-button>
         </div>
     </el-tooltip>
@@ -63,6 +66,10 @@
     export default {
         name: 'Subflow',
         props: {
+            hasAdminPerm: {
+                type: Boolean,
+                default: false
+            },
             node: {
                 type: Object,
                 default () {
@@ -74,7 +81,8 @@
             return {
                 i18n: {
                     pause: gettext('暂停'),
-                    resume: gettext('继续')
+                    resume: gettext('继续'),
+                    forceFail: gettext('强制失败')
                 }
             }
         },

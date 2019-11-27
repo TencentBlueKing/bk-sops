@@ -210,3 +210,28 @@ class UserDefaultProject(models.Model):
 
     def __unicode__(self):
         return '%s_%s' % (self.username, self.default_project)
+
+
+class ProjectCounterManager(models.Manager):
+
+    def increase_or_create(self, username, project_id):
+        obj = self.filter(username=username, project_id=project_id)
+        if obj.exists():
+            obj.update(count=models.F('count') + 1)
+        else:
+            self.create(username=username, project_id=project_id)
+
+
+class ProjectCounter(models.Model):
+    username = models.CharField(_(u"用户名"), max_length=255)
+    project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
+    count = models.IntegerField(_(u"项目访问次数"), default=1)
+
+    objects = ProjectCounterManager()
+
+    class Meta:
+        verbose_name = _(u"用户访问项目计数 ProjectCounter")
+        verbose_name_plural = _(u"用户访问项目计数 ProjectCounter")
+
+    def __unicode__(self):
+        return '%s_%s_%s' % (self.username, self.project, self.count)

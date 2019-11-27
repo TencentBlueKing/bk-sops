@@ -98,6 +98,11 @@
                             </router-link>
                         </template>
                     </bk-table-column>
+                    <bk-table-column v-if="hasAdminPerm" :label="i18n.project" :width="140">
+                        <template slot-scope="props">
+                            <span :title="props.row.project.name">{{ props.row.project.name }}</span>
+                        </template>
+                    </bk-table-column>
                     <bk-table-column :label="i18n.periodicRule">
                         <template slot-scope="props">
                             <div :title="splitPeriodicCron(props.row.cron)">{{ splitPeriodicCron(props.row.cron) }}</div>
@@ -108,15 +113,15 @@
                             <div>{{ props.row.last_run_at || '--' }}</div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="130"></bk-table-column>
-                    <bk-table-column :label="i18n.enabled" width="120">
+                    <bk-table-column :label="i18n.creator" prop="creator" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.enabled" width="100">
                         <template slot-scope="props" class="periodic-status">
                             <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
                             {{props.row.enabled ? i18n.start : i18n.pause}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="140">
+                    <bk-table-column :label="i18n.operation" width="120">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <a
@@ -156,6 +161,13 @@
                                                 {{ i18n.delete }}
                                             </a>
                                         </li>
+                                        <li v-if="hasAdminPerm">
+                                            <a
+                                                href="javascript:void(0);"
+                                                @click="onRecordView(props.row, $event)">
+                                                {{ i18n.bootRecord }}
+                                            </a>
+                                        </li>
                                         <li>
                                             <router-link :to="`/taskflow/home/${project_id}/?template_id=${props.row.template_id}&create_method=periodic`">
                                                 {{ i18n.executeHistory }}
@@ -189,6 +201,11 @@
             @onModifyPeriodicConfirm="onModifyPeriodicConfirm"
             @onModifyPeriodicCancel="onModifyPeriodicCancel">
         </ModifyPeriodicDialog>
+        <BootRecordDialog
+            :show="isBootRecordDialogShow"
+            :id="selectedPeriodicId"
+            @onClose="isBootRecordDialogShow = false">
+        </BootRecordDialog>
         <DeletePeriodicDialog
             :is-delete-dialog-show="isDeleteDialogShow"
             :template-name="selectedTemplateName"
@@ -200,7 +217,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
@@ -210,6 +227,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
+    import BootRecordDialog from './BootRecordDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
 
     export default {
@@ -221,6 +239,7 @@
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,
+            BootRecordDialog,
             DeletePeriodicDialog
         },
         mixins: [permission],
@@ -231,6 +250,7 @@
                     createPeriodTask: gettext('新建'),
                     dialogTitle: gettext('新建周期任务'),
                     lastRunAt: gettext('上次运行时间'),
+                    project: gettext('项目'),
                     periodicRule: gettext('周期规则'),
                     periodicTask: gettext('周期任务'),
                     advanceSearch: gettext('高级搜索'),
@@ -255,15 +275,18 @@
                     periodicTemplate: gettext('流程模板'),
                     executeHistory: gettext('执行历史'),
                     query: gettext('搜索'),
-                    reset: gettext('清空')
+                    reset: gettext('清空'),
+                    bootRecord: gettext('启动记录')
                 },
                 businessInfoLoading: true,
                 isNewTaskDialogShow: false,
                 listLoading: true,
                 deleting: false,
                 totalPage: 1,
-                isDeleteDialogShow: false,
                 isAdvancedSerachShow: false,
+                isDeleteDialogShow: false,
+                isModifyDialogShow: false,
+                isBootRecordDialogShow: false,
                 creator: undefined,
                 enabled: undefined,
                 enabledList: [
@@ -272,7 +295,6 @@
                 ],
                 selectedPeriodicId: undefined,
                 periodicList: [],
-                isModifyDialogShow: false,
                 selectedCron: undefined,
                 constants: {},
                 modifyDialogLoading: false,
@@ -291,6 +313,11 @@
                 periodicOperations: [],
                 periodicResource: {}
             }
+        },
+        computed: {
+            ...mapState({
+                hasAdminPerm: state => state.hasAdminPerm
+            })
         },
         created () {
             this.getPeriodicList()
@@ -477,6 +504,10 @@
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
+            },
+            onRecordView (task) {
+                this.selectedPeriodicId = task.id
+                this.isBootRecordDialogShow = true
             },
             templateNameUrl (templateId, templateSource) {
                 let url = `/template/edit/${this.project_id}/?template_id=${templateId}`

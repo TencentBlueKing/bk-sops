@@ -24,7 +24,10 @@ from auth_backend.resources import resource_type_lib
 
 from gcloud.core import roles
 from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
-from gcloud.core.models import UserDefaultProject
+from gcloud.core.models import (
+    UserDefaultProject,
+    ProjectCounter,
+)
 from gcloud.core.utils import (
     convert_group_name,
     apply_permission_url,
@@ -46,6 +49,11 @@ def change_default_project(request, project_id):
         defaults={
             'default_project_id': project_id
         }
+    )
+
+    ProjectCounter.objects.increase_or_create(
+        username=request.user.username,
+        project_id=project_id
     )
 
     return JsonResponse({

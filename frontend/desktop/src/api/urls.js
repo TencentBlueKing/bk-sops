@@ -90,6 +90,19 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + PROJECT_ID + '/',
         cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + PROJECT_ID + '/',
         packageSource: SITE_URL + 'api/v3/package_source/',
-        syncTask: SITE_URL + 'api/v3/sync_task/'
+        syncTask: SITE_URL + 'api/v3/sync_task/',
+        esbGetSystems: SITE_URL + 'develop/api/esb_get_systems/',
+        esbGetComponents: SITE_URL + 'develop/api/esb_get_components/',
+        esbGetPluginInitialCode: SITE_URL + 'develop/api/esb_get_plugin_initial_code/',
+        adminSearch: SITE_URL + 'admin/search/',
+        adminTemplate: SITE_URL + 'admin/api/v3/template/',
+        adminTemplateRestore: SITE_URL + 'admin/template/restore/',
+        adminTaskflow: SITE_URL + 'admin/api/v3/taskflow/',
+        adminTaskflowDetail: SITE_URL + 'admin/taskflow/detail/',
+        adminTaskflowNodeDetail: SITE_URL + 'admin/taskflow/node/detail/',
+        adminTaskflowHistroyLog: SITE_URL + 'admin/taskflow/node/history/log/',
+        taskflowNodeForceFail: SITE_URL + 'admin/taskflow/node/force_fail/',
+        adminPeriodTask: SITE_URL + 'admin/api/v3/periodic_task/',
+        adminPeriodTaskHistory: SITE_URL + 'admin/api/v3/periodic_task_history/'
     }
 }

@@ -67,6 +67,7 @@
                     :is-node-check-open="isNodeCheckOpen"
                     :editable="editable"
                     :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+                    :has-admin-perm="hasAdminPerm"
                     @onConfigBtnClick="onShowNodeConfig"
                     @onInsertNode="onInsertNode"
                     @onAppendNode="onAppendNode"
@@ -76,6 +77,7 @@
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
                     @onRetryClick="onRetryClick"
+                    @onForceFail="onForceFail"
                     @onSkipClick="onSkipClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
@@ -159,6 +161,10 @@
                 default: false
             },
             subAtomListLoading: {
+                type: Boolean,
+                default: false
+            },
+            hasAdminPerm: {
                 type: Boolean,
                 default: false
             },
@@ -726,6 +732,9 @@
             },
             onSkipClick (id) {
                 this.$emit('onSkipClick', id)
+            },
+            onForceFail (id) {
+                this.$emit('onForceFail', id)
             },
             onModifyTimeClick (id) {
                 this.$emit('onModifyTimeClick', id)
