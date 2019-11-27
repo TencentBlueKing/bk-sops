@@ -18,12 +18,14 @@
         <component
             :is="nodeTemplate"
             :node="node"
+            :has-admin-perm="hasAdminPerm"
             @onNodeCheckClick="onNodeCheckClick"
             @onRetryClick="onRetryClick"
             @onSkipClick="onSkipClick"
             @onModifyTimeClick="onModifyTimeClick"
             @onGatewaySelectionClick="onGatewaySelectionClick"
             @onTaskNodeResumeClick="onTaskNodeResumeClick"
+            @onForceFail="onForceFail"
             @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
         <i
             v-if="editable"
@@ -70,6 +72,10 @@
             idOfNodeShortcutPanel: {
                 type: String,
                 default: ''
+            },
+            hasAdminPerm: {
+                type: Boolean,
+                default: false
             },
             canvasData: {
                 type: Object,
@@ -136,6 +142,9 @@
             },
             onRetryClick (id) {
                 this.$emit('onRetryClick', id)
+            },
+            onForceFail (id) {
+                this.$emit('onForceFail', id)
             },
             onSkipClick (id) {
                 this.$emit('onSkipClick', id)
