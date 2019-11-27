@@ -13,7 +13,7 @@ const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const webpackBaseConfig = require('./webpack.base.js')
-
+const mocker = require('./mock/index.js')
 const SITE_URL = '/'
 const proxyPath = [
     'static/*',
@@ -42,7 +42,7 @@ proxyPath.forEach(item => {
     }
 })
 
-module.exports = merge( webpackBaseConfig, {
+module.exports = merge(webpackBaseConfig, {
     plugins: [
         new webpack.DefinePlugin({
             'process.env': {
@@ -74,6 +74,10 @@ module.exports = merge( webpackBaseConfig, {
             chunks: false,
             entrypoints: false,
             modules: false
+        },
+        // 数据 mock
+        before: function (app) {
+            mocker(app)
         }
     }
 })

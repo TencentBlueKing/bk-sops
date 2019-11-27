@@ -13,5 +13,4 @@ specific language governing permissions and limitations under the License.
 
 from pipeline.engine.models.core import *  # noqa
 from pipeline.engine.models.function import *  # noqa
-from pipeline.engine.models.loop_activity import *  # noqa
 from pipeline.engine.models.data import *  # noqa

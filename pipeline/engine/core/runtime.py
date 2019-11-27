@@ -11,15 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
 import contextlib
+import logging
 import traceback
 
+from pipeline.conf import settings as pipeline_settings
 from pipeline.core.flow.activity import SubProcess
 from pipeline.engine import states
-from pipeline.engine.models import Status, NodeRelationship, FunctionSwitch, NAME_MAX_LENGTH
 from pipeline.engine.core.handlers import HandlersFactory
-from pipeline.conf import settings as pipeline_settings
+from pipeline.engine.models import (NAME_MAX_LENGTH, FunctionSwitch,
+                                    NodeRelationship, Status)
 
 logger = logging.getLogger('celery')
 
@@ -31,7 +32,7 @@ def runtime_exception_handler(process):
     try:
         yield
     except Exception as e:
-        logger.error(traceback.format_exc(e))
+        logger.error(traceback.format_exc())
         process.exit_gracefully(e)
 
 
@@ -49,8 +50,8 @@ def run_loop(process):
             if process.destination_id == current_node.id:
                 try:
                     process.destroy_and_wake_up_parent(current_node.id)
-                except Exception as e:
-                    logger.error(traceback.format_exc(e))
+                except Exception:
+                    logger.error(traceback.format_exc())
                 logger.info('child process(%s) finish.' % process.id)
                 return
 
@@ -92,14 +93,14 @@ def run_loop(process):
                 ))
 
                 if not action.result:
-                    logger.warning('can not transit node(%s) to running, pipeline(%s) turn to sleep. message: %s' % (
-                        current_node.id, process.root_pipeline.id, action.message))
+                    logger.warning('can not transit node({}) to running, pipeline({}) turn to sleep. '
+                                   'message: {}'.format(current_node.id, process.root_pipeline.id, action.message))
 
                 process.sleep(adjust_status=True)
                 return
 
             if not action.result:
-                logger.warning('can not transit node(%s) to running, pipeline(%s) turn to sleep. message: %s' % (
+                logger.warning('can not transit node({}) to running, pipeline({}) turn to sleep. message: {}'.format(
                     current_node.id, process.root_pipeline.id, action.message))
                 process.sleep(adjust_status=True)
                 return

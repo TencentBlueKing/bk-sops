@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import ujson as json
 
+import ujson as json
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from tastypie import fields
@@ -27,6 +27,7 @@ from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_re
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
+from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.core.utils import name_handler
@@ -161,20 +162,23 @@ class TaskTemplateResource(GCloudModelResource):
                 'description': bundle.data.pop('description', ''),
             }
         except (KeyError, ValueError) as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         # XSS handle
         self.handle_template_name_attr(pipeline_template_kwargs)
+
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_template_kwargs['pipeline_tree'])
+            validate_pipeline_tree(pipeline_template_kwargs['pipeline_tree'], cycle_tolerate=True)
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
+
         # Note: tastypie won't use model's create method
         try:
             pipeline_template = model.objects.create_pipeline_template(
                 **pipeline_template_kwargs)
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         except TaskTemplate.DoesNotExist:
             raise BadRequest('flow template referred as SubProcess does not exist')
         kwargs['pipeline_template_id'] = pipeline_template.template_id
@@ -192,13 +196,21 @@ class TaskTemplateResource(GCloudModelResource):
                 if 'description' in bundle.data:
                     pipeline_template_kwargs['description'] = bundle.data.pop('description')
             except (KeyError, ValueError) as e:
-                raise BadRequest(e.message)
+                raise BadRequest(str(e))
             # XSS handle
             self.handle_template_name_attr(pipeline_template_kwargs)
+
+            # validate pipeline tree
+            try:
+                validate_web_pipeline_tree(pipeline_template_kwargs['pipeline_tree'])
+                validate_pipeline_tree(pipeline_template_kwargs['pipeline_tree'], cycle_tolerate=True)
+            except PipelineException as e:
+                raise BadRequest(str(e))
+
             try:
                 obj.update_pipeline_template(**pipeline_template_kwargs)
             except PipelineException as e:
-                raise BadRequest(e.message)
+                raise BadRequest(str(e))
             bundle.data['pipeline_template'] = '/api/v3/pipeline_template/%s/' % obj.pipeline_template.pk
             return super(TaskTemplateResource, self).obj_update(bundle, **kwargs)
 

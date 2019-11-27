@@ -37,11 +37,11 @@ class Business(models.Model):
     # 开发商ID bk_supplier_id
     cc_company = models.CharField(max_length=100)
     time_zone = models.CharField(max_length=100, blank=True)
-    life_cycle = models.CharField(_(u"生命周期"), max_length=100, blank=True)
-    executor = models.CharField(_(u"任务执行者"), max_length=100, blank=True)
+    life_cycle = models.CharField(_("生命周期"), max_length=100, blank=True)
+    executor = models.CharField(_("任务执行者"), max_length=100, blank=True)
     # null 表未归档，disabled 表示已归档
-    status = models.CharField(_(u"业务状态"), max_length=32, null=True)
-    always_use_executor = models.BooleanField(_(u"是否始终使用任务执行者"), default=False)
+    status = models.CharField(_("业务状态"), max_length=32, null=True)
+    always_use_executor = models.BooleanField(_("是否始终使用任务执行者"), default=False)
 
     groups = models.ManyToManyField(
         Group,
@@ -56,15 +56,15 @@ class Business(models.Model):
     LIFE_CYCLE_CLOSE_DOWN = '3'  # 停运
 
     class Meta:
-        verbose_name = _(u"业务 Business")
-        verbose_name_plural = _(u"业务 Business")
+        verbose_name = _("业务 Business")
+        verbose_name_plural = _("业务 Business")
         permissions = (
             ("view_business", "Can view business"),
             ("manage_business", "Can manage business"),
         )
 
     def __unicode__(self):
-        return u"%s_%s" % (self.cc_id, self.cc_name)
+        return "%s_%s" % (self.cc_id, self.cc_name)
 
     def available(self):
         return self.status != 'disabled'
@@ -74,15 +74,15 @@ class UserBusiness(models.Model):
     """
     用户默认业务表
     """
-    user = models.CharField(_(u"用户QQ"), max_length=255, unique=True)
-    default_buss = models.IntegerField(_(u"默认业务"))
+    user = models.CharField(_("用户QQ"), max_length=255, unique=True)
+    default_buss = models.IntegerField(_("默认业务"))
 
     def __unicode__(self):
-        return u'%s_%s' % (self.user, self.default_buss)
+        return '%s_%s' % (self.user, self.default_buss)
 
     class Meta:
-        verbose_name = _(u"用户默认业务 UserBusiness")
-        verbose_name_plural = _(u"用户默认业务 UserBusiness")
+        verbose_name = _("用户默认业务 UserBusiness")
+        verbose_name_plural = _("用户默认业务 UserBusiness")
 
 
 class BusinessGroupMembership(models.Model):
@@ -92,36 +92,36 @@ class BusinessGroupMembership(models.Model):
     date_created = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        verbose_name = _(u"业务用户组 BusinessGroupMembership")
-        verbose_name_plural = _(u"业务用户组 BusinessGroupMembership")
+        verbose_name = _("业务用户组 BusinessGroupMembership")
+        verbose_name_plural = _("业务用户组 BusinessGroupMembership")
         unique_together = ('business', 'group')
 
     def __unicode__(self):
-        return u"B%s:G%s" % (self.business_id, self.group_id)
+        return "B%s:G%s" % (self.business_id, self.group_id)
 
 
 class EnvVarManager(models.Manager):
 
-    def get_var(self, key):
+    def get_var(self, key, default=None):
         objs = self.filter(key=key)
         if objs.exists():
             return objs[0].value
-        return environ.get(key, None)
+        return environ.get(key, default)
 
 
 class EnvironmentVariables(models.Model):
-    key = models.CharField(_(u"变量KEY"), max_length=255, unique=True)
-    name = models.CharField(_(u"变量描述"), max_length=255, blank=True)
-    value = models.CharField(_(u"变量值"), max_length=1000, blank=True)
+    key = models.CharField(_("变量KEY"), max_length=255, unique=True)
+    name = models.CharField(_("变量描述"), max_length=255, blank=True)
+    value = models.CharField(_("变量值"), max_length=1000, blank=True)
 
     objects = EnvVarManager()
 
     def __unicode__(self):
-        return u"%s_%s" % (self.key, self.name)
+        return "%s_%s" % (self.key, self.name)
 
     class Meta:
-        verbose_name = _(u"环境变量 EnvironmentVariables")
-        verbose_name_plural = _(u"环境变量 EnvironmentVariables")
+        verbose_name = _("环境变量 EnvironmentVariables")
+        verbose_name_plural = _("环境变量 EnvironmentVariables")
 
 
 class ProjectManager(models.Manager):
@@ -169,24 +169,24 @@ class ProjectManager(models.Manager):
 
 
 class Project(models.Model):
-    name = models.CharField(_(u"项目名"), max_length=256)
-    time_zone = models.CharField(_(u"项目时区"), max_length=100, blank=True)
-    creator = models.CharField(_(u"创建者"), max_length=256)
-    desc = models.CharField(_(u"项目描述"), max_length=512, blank=True)
-    create_at = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
-    from_cmdb = models.BooleanField(_(u"是否是从 CMDB 业务同步过来的项目"), default=False)
-    bk_biz_id = models.IntegerField(_(u"业务同步项目对应的 CMDB 业务 ID"), default=-1)
-    is_disable = models.BooleanField(_(u"是否已停用"), default=False)
-    relate_business = models.ManyToManyField(verbose_name=_(u"关联项目"), to=Business, blank=True)
+    name = models.CharField(_("项目名"), max_length=256)
+    time_zone = models.CharField(_("项目时区"), max_length=100, blank=True)
+    creator = models.CharField(_("创建者"), max_length=256)
+    desc = models.CharField(_("项目描述"), max_length=512, blank=True)
+    create_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    from_cmdb = models.BooleanField(_("是否是从 CMDB 业务同步过来的项目"), default=False)
+    bk_biz_id = models.IntegerField(_("业务同步项目对应的 CMDB 业务 ID"), default=-1)
+    is_disable = models.BooleanField(_("是否已停用"), default=False)
+    relate_business = models.ManyToManyField(verbose_name=_("关联项目"), to=Business, blank=True)
 
     objects = ProjectManager()
 
     class Meta:
-        verbose_name = _(u"项目 Project")
-        verbose_name_plural = _(u"项目 Project")
+        verbose_name = _("项目 Project")
+        verbose_name_plural = _("项目 Project")
 
     def __unicode__(self):
-        return u'%s_%s' % (self.id, self.name)
+        return '%s_%s' % (self.id, self.name)
 
 
 class UserDefaultProjectManager(models.Manager):
@@ -199,14 +199,39 @@ class UserDefaultProjectManager(models.Manager):
 
 
 class UserDefaultProject(models.Model):
-    username = models.CharField(_(u"用户名"), max_length=255, unique=True)
-    default_project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
+    username = models.CharField(_("用户名"), max_length=255, unique=True)
+    default_project = models.ForeignKey(verbose_name=_("用户默认项目"), to=Project)
 
     objects = UserDefaultProjectManager()
 
     class Meta:
-        verbose_name = _(u"用户默认项目 UserDefaultProject")
-        verbose_name_plural = _(u"用户默认项目 UserDefaultProject")
+        verbose_name = _("用户默认项目 UserDefaultProject")
+        verbose_name_plural = _("用户默认项目 UserDefaultProject")
 
     def __unicode__(self):
-        return u'%s_%s' % (self.username, self.default_project)
+        return '%s_%s' % (self.username, self.default_project)
+
+
+class ProjectCounterManager(models.Manager):
+
+    def increase_or_create(self, username, project_id):
+        obj = self.filter(username=username, project_id=project_id)
+        if obj.exists():
+            obj.update(count=models.F('count') + 1)
+        else:
+            self.create(username=username, project_id=project_id)
+
+
+class ProjectCounter(models.Model):
+    username = models.CharField(_(u"用户名"), max_length=255)
+    project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
+    count = models.IntegerField(_(u"项目访问次数"), default=1)
+
+    objects = ProjectCounterManager()
+
+    class Meta:
+        verbose_name = _(u"用户访问项目计数 ProjectCounter")
+        verbose_name_plural = _(u"用户访问项目计数 ProjectCounter")
+
+    def __unicode__(self):
+        return '%s_%s_%s' % (self.username, self.project, self.count)

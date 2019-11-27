@@ -52,7 +52,7 @@ class PackageSourceManager(models.Manager):
         all_fields = self.get_base_source_fields(source_type)
         original_kwargs = {}
         base_kwargs = {}
-        for key, value in details.items():
+        for key, value in list(details.items()):
             if key in all_fields:
                 base_kwargs[key] = value
             else:
@@ -76,8 +76,8 @@ class PackageSourceManager(models.Manager):
 
 
 class PackageSource(models.Model):
-    type = models.CharField(_(u"包源类型"), max_length=64)
-    base_source_id = models.IntegerField(_(u"包源模型 ID"), blank=True, null=True)
+    type = models.CharField(_("包源类型"), max_length=64)
+    base_source_id = models.IntegerField(_("包源模型 ID"), blank=True, null=True)
 
     _base_source_attr = '_base_source'
 

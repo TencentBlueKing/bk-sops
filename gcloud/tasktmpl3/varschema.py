@@ -26,7 +26,7 @@ VAR_SOURCE_TYPE_INPUTS = 'component_inputs'
 
 
 def add_schema_for_input_vars(pipeline_tree):
-    for var in pipeline_tree.get(PE.constants, {}).values():
+    for var in list(pipeline_tree.get(PE.constants, {}).values()):
         try:
             var['schema'] = SchemaFactory.schema_for_var(var)
         except Exception:

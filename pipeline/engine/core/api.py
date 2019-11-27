@@ -58,7 +58,7 @@ def workers():
                     break
                 tries += 1
         except socket.error as err:
-            raise RabbitMQConnectionError(err.message)
+            raise RabbitMQConnectionError(err)
 
         if worker_list:
             data.expire_cache('__pipeline__workers__', worker_list, settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES)

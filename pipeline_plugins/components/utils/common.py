@@ -15,6 +15,7 @@ import logging
 import re
 import os
 
+import ujson as json
 from django.conf import settings
 
 from gcloud.core.models import Business, Project

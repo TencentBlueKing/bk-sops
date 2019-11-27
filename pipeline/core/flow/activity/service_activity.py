@@ -16,22 +16,26 @@ from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema
+from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema, IntItemSchema
 from pipeline.core.flow.activity.base import Activity
 
 
-class Service(object):
-    __metaclass__ = ABCMeta
-
+class Service(object, metaclass=ABCMeta):
     schedule_result_attr = '__schedule_finish__'
     schedule_determine_attr = '__need_schedule__'
     InputItem = InputItem
     OutputItem = OutputItem
     interval = None
-    _result_output = OutputItem(name=_(u"执行结果"),
-                                key='_result',
-                                type='bool',
-                                schema=BooleanItemSchema(description=_(u"是否执行成功")))
+    default_outputs = [
+        OutputItem(name=_("执行结果"),
+                   key='_result',
+                   type='bool',
+                   schema=BooleanItemSchema(description=_("是否执行成功"))),
+        OutputItem(name=_("循环次数(起始为0)"),
+                   key='_loop',
+                   type='int',
+                   schema=IntItemSchema(description=_("循环执行次数")))
+    ]
 
     def __init__(self, name=None):
         self.name = name
@@ -54,7 +58,7 @@ class Service(object):
     def outputs(self):
         custom_format = self.outputs_format()
         assert isinstance(custom_format, list)
-        custom_format.append(self._result_output)
+        custom_format += self.default_outputs
         return custom_format
 
     def need_schedule(self):
@@ -174,16 +178,14 @@ class ServiceActivity(Activity):
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
     def __setstate__(self, state):
-        for attr, obj in state.items():
+        for attr, obj in list(state.items()):
             setattr(self, attr, obj)
 
         if 'timeout' not in state:
             self.timeout = None
 
 
-class AbstractIntervalGenerator(object):
-    __metaclass__ = ABCMeta
-
+class AbstractIntervalGenerator(object, metaclass=ABCMeta):
     def __init__(self):
         self.count = 0
 

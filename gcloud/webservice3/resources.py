@@ -26,15 +26,16 @@ from tastypie.exceptions import BadRequest
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.http import HttpForbidden
 
-from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization, BkSaaSReadOnlyAuthorization
 from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
-from gcloud.core.models import Business, Project
-from gcloud.webservice3.serializers import AppSerializer
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.core.permissions import project_resource
+from gcloud.webservice3.serializers import AppSerializer
 
 logger = logging.getLogger('root')
 
@@ -128,7 +129,7 @@ class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
 class BusinessResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = Business.objects.exclude(status='disabled') \
-                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")])
         authorization = ReadOnlyAuthorization()
         resource_name = 'business'
         detail_uri_name = 'cc_id'
@@ -200,9 +201,21 @@ class ComponentModelResource(GCloudModelResource):
         detail_uri_name = 'code'
         authorization = ReadOnlyAuthorization()
 
+    def build_filters(self, filters=None, ignore_bad_filters=False):
+        orm_filters = super(ComponentModelResource, self).build_filters(filters=filters,
+                                                                        ignore_bad_filters=ignore_bad_filters)
+        if filters and 'version' in filters:
+            orm_filters['version'] = filters.get('version') or LEGACY_PLUGINS_VERSION
+
+        return orm_filters
+
+    def get_detail(self, request, **kwargs):
+        kwargs['version'] = request.GET.get('version', None)
+        return super(ComponentModelResource, self).get_detail(request, **kwargs)
+
     def alter_list_data_to_serialize(self, request, data):
         for bundle in data['objects']:
-            component = ComponentLibrary.get_component_class(bundle.data['code'])
+            component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
             bundle.data['output'] = component.outputs_format()
             bundle.data['form'] = component.form
             bundle.data['desc'] = component.desc
@@ -217,7 +230,7 @@ class ComponentModelResource(GCloudModelResource):
     def alter_detail_data_to_serialize(self, request, data):
         data = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
         bundle = data
-        component = ComponentLibrary.get_component_class(bundle.data['code'])
+        component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
         bundle.data['output'] = component.outputs_format()
         bundle.data['form'] = component.form
         bundle.data['desc'] = component.desc
@@ -258,3 +271,30 @@ class VariableModelResource(GCloudModelResource):
         excludes = ['status', 'id']
         detail_uri_name = 'code'
         authorization = ReadOnlyAuthorization()
+
+
+class CommonProjectResource(GCloudModelResource):
+    project = fields.ForeignKey(
+        ProjectResource,
+        'project',
+        full=True
+    )
+
+    class Meta(GCloudModelResource.Meta):
+        queryset = ProjectCounter.objects.all().order_by('-count')
+        resource_name = 'common_project'
+        auth_resource = project_resource
+        authorization = BkSaaSReadOnlyAuthorization(auth_resource=auth_resource,
+                                                    read_action_id='view',
+                                                    resource_f='project')
+        allowed_methods = ['get']
+        filtering = {
+            "id": ALL,
+            "username": ALL,
+            "count": ALL,
+        }
+        q_fields = ['id', 'username', 'count']
+
+    def get_object_list(self, request):
+        query = super(GCloudModelResource, self).get_object_list(request)
+        return query.filter(username=request.user.username)

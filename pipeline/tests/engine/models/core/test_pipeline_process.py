@@ -19,7 +19,7 @@ from pipeline.django_signal_valve import valve
 from pipeline.engine import states, signals, exceptions
 from pipeline.engine.models import Status
 from pipeline.engine.utils import Stack
-from pipeline.engine.models.core import PipelineProcess, ProcessSnapshot, SubProcessRelationship
+from pipeline.engine.models.core import PipelineProcess, ProcessSnapshot, SubProcessRelationship, PipelineModel
 
 from ..mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
@@ -764,7 +764,7 @@ class TestPipelineProcess(TestCase):
 
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
-        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc(e))
+        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc())
         Status.objects.raw_fail.assert_not_called()
         process.sleep.assert_called_with(adjust_status=True)
 
@@ -775,7 +775,7 @@ class TestPipelineProcess(TestCase):
         mock_snapshot.data['_pipeline_stack'] = Stack([PipelineObject()])
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
-        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc(e))
+        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc())
         Status.objects.raw_fail.assert_not_called()
         process.sleep.assert_called_with(adjust_status=True)
 
@@ -789,7 +789,7 @@ class TestPipelineProcess(TestCase):
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
         Status.objects.fail.assert_not_called()
-        Status.objects.raw_fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc(e))
+        Status.objects.raw_fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc())
         process.sleep.assert_called_with(adjust_status=True)
 
     def test_refresh_current_node(self):
@@ -917,3 +917,13 @@ class TestPipelineProcess(TestCase):
         process.snapshot = snapshot
 
         self.assertFalse(process.in_subprocess)
+
+    def test_priority_for_process(self):
+        pipeline = PipelineObject()
+        process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
+        priority = 5
+        PipelineModel.objects.prepare_for_pipeline(pipeline=pipeline,
+                                                   process=process,
+                                                   priority=priority)
+
+        self.assertEqual(PipelineProcess.objects.priority_for_process(process.id), priority)

@@ -77,7 +77,7 @@ class PackageSourceResource(Resource):
 
     @staticmethod
     def get_source_models():
-        origin_models = source_cls_factory.values()
+        origin_models = list(source_cls_factory.values())
         source_models = origin_models + [CachePackageSource]
         return source_models
 
@@ -211,7 +211,7 @@ class PackageSourceResource(Resource):
             # collect packages of all origin to cache
             if caches:
                 cache_packages = {}
-                for origin_type, origin_model in source_cls_factory.items():
+                for origin_type, origin_model in list(source_cls_factory.items()):
                     origins_from_db = origin_model.objects.all().values('packages')
                     for origin in origins_from_db:
                         cache_packages.update(origin['packages'])
@@ -256,14 +256,14 @@ class PackageSourceResource(Resource):
                                                                         cache.get('desc', ''),
                                                                         **cache['details'])
                         except exceptions.GcloudExternalPluginsError as e:
-                            message = 'Create cache source raise error: %s' % e.message
+                            message = 'Create cache source raise error: %s' % str(e)
                             logger.error(message)
                             raise BadRequest(message)
             else:
                 CachePackageSource.objects.all().delete()
 
             # delete origins whom id not in param origins
-            for origin_type, origin_model in source_cls_factory.items():
+            for origin_type, origin_model in list(source_cls_factory.items()):
                 origins_to_update = [origin['id'] for origin in origins
                                      if 'id' in origin and origin['type'] == origin_type]
                 origin_model.objects.exclude(id__in=origins_to_update).delete()
@@ -307,7 +307,7 @@ class PackageSourceResource(Resource):
             for cache in caches:
                 cache.delete()
 
-            for origin_type, origin_model in source_cls_factory.items():
+            for origin_type, origin_model in list(source_cls_factory.items()):
                 origins = origin_model.objects.all()
                 # 需要单独调用自定义 delete 方法
                 for origin in origins:

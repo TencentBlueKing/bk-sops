@@ -31,7 +31,7 @@ logger = logging.getLogger('celery')
 def sync_task(task_id):
     sync = SyncTask.objects.get(id=task_id)
     all_origin_dirs = []
-    for origin_model in source_cls_factory.values():
+    for origin_model in list(source_cls_factory.values()):
         origins = origin_model.objects.all()
         for origin in origins:
             try:

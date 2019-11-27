@@ -16,7 +16,7 @@ import logging
 
 from django.utils import six
 
-from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
+from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH, AE
 
 logger = logging.getLogger("root")
 
@@ -30,9 +30,9 @@ def name_handler(name, max_length):
 
 
 def pipeline_node_name_handle(pipeline_tree):
-    for value in pipeline_tree.values():
+    for value in list(pipeline_tree.values()):
         if isinstance(value, dict):
-            for info in value.values():
+            for info in list(value.values()):
                 if isinstance(info, dict) and 'name' in info:
                     info['name'] = name_handler(info['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
             if 'name' in value:
@@ -64,3 +64,30 @@ def camel_case_to_underscore_naming(source):
             else:
                 result += s
     return result
+
+
+def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
+    """
+    检验参数是否正确
+    :param conditions:参数是一个dict
+    :param group_by:分组凭据
+    :param group_by_check:分组检查内容
+    :return:
+    """
+    result_dict = {'success': False, 'content': None, "conditions": conditions, "group_by": None}
+    if not isinstance(conditions, dict):
+        message = "params conditions[%s] are invalid dict data" % conditions
+        logger.error(message)
+        result_dict['content'] = message
+        return result_dict
+    # 检查传递分组是否有误
+    if group_by not in group_by_check:
+        message = "params group_by[%s] is invalid" % group_by
+        logger.error(message)
+        result_dict['content'] = message
+        return result_dict
+
+    result_dict['success'] = True
+    result_dict['group_by'] = group_by
+    result_dict['conditions'] = conditions
+    return result_dict

@@ -29,10 +29,10 @@ class TestConverter(TestCase):
         self.pipeline_data = {
             'language': 'zh-cn',
             'task_id': 63,
-            'biz_cc_name': u'UTC',
-            'task_name': u'20180918165807',
-            'executor': u'username',
-            'operator': u'username',
+            'biz_cc_name': 'UTC',
+            'task_name': '20180918165807',
+            'executor': 'username',
+            'operator': 'username',
             'biz_cc_id': 81
         }
 
@@ -50,22 +50,22 @@ class TestConverter(TestCase):
         self.key = '${ip}'
         self.info = {
             'custom_type': 'ip',
-            'source_tag': u'var_ip_picker.ip_picker',
+            'source_tag': 'var_ip_picker.ip_picker',
             'type': 'lazy',
             'value': {
-                u'var_ip_custom_value': u'1.1.1.11.1',
-                u'var_ip_method': u'custom',
-                u'var_ip_tree': u''
+                'var_ip_custom_value': '1.1.1.11.1',
+                'var_ip_method': 'custom',
+                'var_ip_tree': ''
             }
         }
         self.context = Context(self.key)
         self.pipeline_data = {
             'language': 'zh-cn',
             'task_id': 78,
-            'biz_cc_name': u'UTC',
-            'task_name': u'20180918175615',
-            'executor': u'username',
-            'operator': u'username',
+            'biz_cc_name': 'UTC',
+            'task_name': '20180918175615',
+            'executor': 'username',
+            'operator': 'username',
             'biz_cc_id': 0
         }
 

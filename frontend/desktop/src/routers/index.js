@@ -36,10 +36,10 @@ const ErrorPage = () => import('@/pages/error/index.vue')
 
 const Admin = () => import('@/pages/admin/index.vue')
 const Statistics = () => import('@/pages/admin/statistics/index.vue')
-const StatisticsTemplate = () => import('@/pages/admin/statistics/Template/index.vue')
-const StatisticsInstance = () => import('@/pages/admin/statistics/Instance/index.vue')
-const StatisticsAtom = () => import('@/pages/admin/statistics/Atom/index.vue')
-const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker/index.vue')
+const StatisticsTemplate = () => import('@/pages/admin/statistics/Template.vue')
+const StatisticsInstance = () => import('@/pages/admin/statistics/Instance.vue')
+const StatisticsAtom = () => import('@/pages/admin/statistics/Atom.vue')
+const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker.vue')
 const CommonTemplate = () => import('@/pages/admin/common/template.vue')
 const Manage = () => import('@/pages/admin/manage/index.vue')
 const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
@@ -86,12 +86,13 @@ const routers = new VueRouter({
             path: '/',
             redirect: function () {
                 const { userType, viewMode, project } = store.state
+                const { project_id } = project
                 const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
                 
                 if (PAGE_MAP[pageType]) {
                     return PAGE_MAP[pageType].getIndex()
                 } else {
-                    return `/home/${project.project_id}/`
+                    return (project_id || project_id === 0) ? `/home/${project_id}/` : '/home/'
                 }
             }
         },
@@ -330,7 +331,6 @@ const routers = new VueRouter({
                             path: 'edit/:cc_id?/',
                             component: TemplateEdit,
                             props: (route) => ({
-                                cc_id: route.params.cc_id,
                                 template_id: route.query.template_id,
                                 type: 'edit',
                                 common: '1'

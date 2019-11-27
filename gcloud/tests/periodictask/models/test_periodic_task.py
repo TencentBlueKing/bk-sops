@@ -11,17 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 import copy
 import factory
+
 from django.test import TestCase
 from django.db.models import signals
 
 from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
-
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
+
 from gcloud.core.models import Project
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -127,6 +126,7 @@ class PeriodicTaskTestCase(TestCase):
                 'project_id': self.project.id,
                 'category': self.template.category,
                 'template_id': self.template.pipeline_template.template_id,
+                'template_source': 'project',
                 'template_num_id': self.template.id
             },
             spread=True
@@ -174,9 +174,9 @@ class PeriodicTaskTestCase(TestCase):
     def test_task_template_name(self):
         self.assertEqual(self.task.task_template_name, self.template.name)
 
-    @patch(TASKTEMPLATE_GET, MagicMock(side_effect=Exception()))
+    @patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist))
     def test_task_template_name__task_does_not_exist(self):
-        self.assertIsNone(self.task.task_template_name)
+        self.assertEqual(self.task.task_template_name, '')
 
     def test_set_enabled(self):
         self.task.set_enabled(True)

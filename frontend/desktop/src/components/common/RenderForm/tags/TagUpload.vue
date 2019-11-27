@@ -19,21 +19,18 @@
                 :limit="limit"
                 :auto-upload="auto_upload"
                 :headers="headers"
-                :on-preview="handlePreview"
-                :on-remove="_handleRemove"
-                :on-success="_handleSuccess"
-                :on-error="handleError"
-                :on-progress="handleProgress"
-                :on-change="handleChange"
-                :on-exceed="handleExceed"
-                :before-upload="beforeUpload"
-                :before-remove="beforeRemove"
+                :on-success="handleSuccess.bind(this)"
+                :on-remove="handleRemove.bind(this)"
+                :on-error="handleError.bind(this)"
+                :on-change="handleChange.bind(this)"
+                :before-upload="handleBeforeUpload.bind(this)"
+                :before-remove="handleBeforeRemove.bind(this)"
                 :file-list="fileValue">
-                <el-button size="small" theme="primary">{{ text }}</el-button>
+                <bk-button size="small" theme="primary">{{ uploadText }}</bk-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
-            <el-button v-if="!auto_upload" type="success" @click="onSubmit">{{ i18n.submit }}</el-button>
-            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validate.message}}</span>
+            <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>
+            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
     </div>
@@ -53,6 +50,7 @@
         url: {
             type: String,
             required: true,
+            default: '',
             desc: 'upload url'
         },
         multiple: {
@@ -72,7 +70,7 @@
         auto_upload: {
             type: Boolean,
             required: false,
-            default: false,
+            default: true,
             desc: 'auto upload after selecting file'
         },
         limit: {
@@ -95,12 +93,31 @@
         },
         submit: {
             type: Function,
-            required: false,
-            default () {
-                return function () {
-                    this.$refs.upload.submit()
-                }
-            }
+            default: null
+        },
+        beforeUpload: {
+            type: Function,
+            default: null
+        },
+        beforeRemove: {
+            type: Function,
+            default: null
+        },
+        onSuccess: {
+            type: Function,
+            default: null
+        },
+        onRemove: {
+            type: Function,
+            default: null
+        },
+        fileChange: {
+            type: Function,
+            default: null
+        },
+        onError: {
+            type: Function,
+            default: null
         }
     }
     export default {
@@ -131,7 +148,7 @@
                 return this.fileValue.join(',')
             },
             uploadText () {
-                return this.text || (this.auto_upload ? this.i18n.select : this.i18n.upload)
+                return this.text || (this.auto_upload ? this.i18n.upload : this.i18n.select)
             }
         },
         methods: {
@@ -143,42 +160,41 @@
                     this.$refs.upload.submit()
                 }
             },
-            // 点击已上传的文件链接时的钩子, 可以通过 file.response 拿到服务端返回数据
-            handlePreview (file) {},
-            // 文件列表移除文件时的钩子
-            handleRemove (file, fileList) {
+            handleBeforeUpload (file, fileList) {
+                if (typeof this.beforeUpload === 'function') {
+                    return this.beforeUpload(file)
+                }
                 return true
             },
-            _handleRemove (file, fileList) {
-                if (this.handleRemove(file, fileList)) {
-                    this.updateForm(fileList)
-                }
-            },
-            // 文件上传成功时的钩子
             handleSuccess (response, file, fileList) {
+                this.updateForm(fileList)
+                if (typeof this.onSuccess === 'function') {
+                    this.onSuccess(response, file, fileList)
+                }
+            },
+            handleBeforeRemove (file, fileList) {
+                if (typeof this.beforeRemove === 'function') {
+                    return this.beforeRemove(file, fileList)
+                }
                 return true
             },
-            _handleSuccess (response, file, fileList) {
-                if (this.handleSuccess(response, file, fileList)) {
-                    this.updateForm(fileList)
+            handleRemove (file, fileList) {
+                this.updateForm(fileList)
+                if (typeof this.onRemove === 'function') {
+                    this.onRemove(file, fileList)
                 }
             },
-            // 文件上传失败时的钩子
+            handleChange (file, fileList) {
+                if (typeof this.fileChange === 'function') {
+                    this.fileChange(file, fileList)
+                }
+            },
             handleError (err, file, fileList) {
-                if (err) {
-                    console.error(err)
+                if (typeof this.onError === 'function') {
+                    this.onError(file, fileList)
                 }
-            },
-            // 文件上传时的钩子
-            handleProgress (file, fileList) {},
-            // 文件状态改变时的钩子，添加文件、上传成功和上传失败时都会被调用
-            handleChange (file, fileList) {},
-            // 文件超出个数限制时的钩子
-            handleExceed (file, fileList) {},
-            // 上传文件之前的钩子，参数为上传的文件，若返回 false 或者返回 Promise 且被 reject，则停止上传
-            beforeUpload (file, fileList) {},
-            // 删除文件之前的钩子，参数为上传的文件和文件列表，若返回 false 或者返回 Promise 且被 reject，则停止上传
-            beforeRemove (file, fileList) {}
+                console.log(err)
+            }
         }
     }
 </script>

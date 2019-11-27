@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 import logging
 import traceback
 
@@ -38,8 +37,8 @@ class FunctionSwitchManager(models.Manager):
                 else:
                     self.filter(name=switch['name']).update(description=switch['description'])
             self.bulk_create(s_to_be_created)
-        except Exception as e:
-            logger.error('function switch init failed: %s' % traceback.format_exc(e))
+        except Exception:
+            logger.error('function switch init failed: %s' % traceback.format_exc())
 
     def is_frozen(self):
         return self.get(name=function_switch.FREEZE_ENGINE).is_active
@@ -52,8 +51,8 @@ class FunctionSwitchManager(models.Manager):
 
 
 class FunctionSwitch(models.Model):
-    name = models.CharField(_(u"功能名称"), max_length=32, null=False, unique=True)
-    description = models.TextField(_(u"功能描述"), default='')
-    is_active = models.BooleanField(_(u"是否激活"), default=False)
+    name = models.CharField(_("功能名称"), max_length=32, null=False, unique=True)
+    description = models.TextField(_("功能描述"), default='')
+    is_active = models.BooleanField(_("是否激活"), default=False)
 
     objects = FunctionSwitchManager()

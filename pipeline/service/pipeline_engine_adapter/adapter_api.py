@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from pipeline.engine import api
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.log.models import LogEntry
 
 STATE_MAP = {
@@ -26,8 +27,8 @@ STATE_MAP = {
 }
 
 
-def run_pipeline(pipeline_instance, instance_id=None, check_workers=True):
-    return api.start_pipeline(pipeline_instance, check_workers=check_workers)
+def run_pipeline(pipeline_instance, instance_id=None, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
+    return api.start_pipeline(pipeline_instance, check_workers=check_workers, priority=priority)
 
 
 def pause_pipeline(pipeline_id):
@@ -112,7 +113,7 @@ def _get_node_state(tree):
         return STATE_MAP[tree['state']]
 
     # iterate children and get child state recursively
-    for identifier_code, child_tree in tree['children'].items():
+    for identifier_code, child_tree in list(tree['children'].items()):
         status.append(_get_node_state(child_tree))
 
     # summary parent state
@@ -137,7 +138,7 @@ def _get_parent_state_from_children_state(parent_state, children_state_list):
 
 def _collect_descendants(tree, descendants):
     # iterate children for tree
-    for identifier_code, child_tree in tree['children'].items():
+    for identifier_code, child_tree in list(tree['children'].items()):
         child_status = _map(child_tree)
         descendants[identifier_code] = child_status
 

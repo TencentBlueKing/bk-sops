@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <div class="canvas-wrapper" v-bkloading="{ isLoading: previewDataLoading, opacity: 1 }">
+        <div class="preview-canvas-wrapper" v-bkloading="{ isLoading: previewDataLoading, opacity: 1 }">
             <TemplateCanvas
                 v-if="!previewDataLoading"
                 ref="TemplateCanvas"
@@ -109,7 +109,7 @@
 .node-preview-wrapper {
     height: 100%;
 }
-.canvas-wrapper {
+.preview-canvas-wrapper {
     height: calc(100% - 50px);
     overflow: hidden;
     z-index: 1;

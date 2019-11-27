@@ -38,7 +38,7 @@ class SimpleExampleComponent(Component):
 
 class PipeExampleService(Service):
     def execute(self, data, parent_data):
-        for key, val in data.inputs.items():
+        for key, val in list(data.inputs.items()):
             data.set_outputs(key, val)
         return True
 

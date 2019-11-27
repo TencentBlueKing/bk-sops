@@ -49,8 +49,8 @@ class Graph(object):
 
 if __name__ == '__main__':
     graph1 = Graph([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4]])
-    print graph1.has_cycle(), graph1.get_cycle()
+    print((graph1.has_cycle(), graph1.get_cycle()))
     graph2 = Graph([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4], [4, 1]])
-    print graph2.has_cycle(), graph2.get_cycle()
+    print((graph2.has_cycle(), graph2.get_cycle()))
     graph3 = Graph([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4], [4, 2]])
-    print graph3.has_cycle(), graph3.get_cycle()
+    print((graph3.has_cycle(), graph3.get_cycle()))

@@ -31,8 +31,8 @@ class TestSourceWriter(TestCase):
         self.TEST_TYPE = 'TEST'
 
     def test_cls_factory(self):
-        self.assertEquals(writer_cls_factory[FILE_SYSTEM], FileSystemWriter)
-        self.assertEquals(writer_cls_factory[S3], S3Writer)
+        self.assertEqual(writer_cls_factory[FILE_SYSTEM], FileSystemWriter)
+        self.assertEqual(writer_cls_factory[S3], S3Writer)
         self.assertNotIn(GIT, writer_cls_factory)
 
     def test_writer(self):
@@ -43,7 +43,7 @@ class TestSourceWriter(TestCase):
             def write(self):
                 pass
 
-        self.assertEquals(writer_cls_factory[self.TEST_TYPE], TestWriter)
+        self.assertEqual(writer_cls_factory[self.TEST_TYPE], TestWriter)
         writer_cls_factory.pop(self.TEST_TYPE)
 
     @patch(OS_PATH_EXISTS, MagicMock(return_value=False))
@@ -74,7 +74,7 @@ class TestS3Writer(TestCase):
         )
         with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_WRITERS_BOTO3, mock_s3):
             s3_writer.write()
-            self.assertEquals(set(mock_s3.files), set(files))
+            self.assertEqual(set(mock_s3.files), set(files))
 
 
 class TestFileSystemWriter(TestCase):
@@ -89,5 +89,5 @@ class TestFileSystemWriter(TestCase):
         mock_shutil = MockShutil()
         with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_WRITERS_SHUTIL, mock_shutil):
             fs_writer.write()
-            self.assertEquals(mock_shutil.from_path, fs_writer.from_path)
-            self.assertEquals(mock_shutil.to_path, fs_writer.base_source.path)
+            self.assertEqual(mock_shutil.from_path, fs_writer.from_path)
+            self.assertEqual(mock_shutil.to_path, fs_writer.base_source.path)

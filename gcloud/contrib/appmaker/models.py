@@ -12,8 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import base64
-import datetime
-import re
 import logging
 
 from django.db import models
@@ -38,15 +36,11 @@ from gcloud.core.utils import (
     convert_readable_username,
     name_handler,
     time_now_str,
-    timestamp_to_datetime
 )
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 
 logger = logging.getLogger("root")
-
-APPMAKER_REGEX = re.compile(r'^category|create_time|creator_name|editor_name|'
-                            r'template_schema_id|finish_time|task_template_id|task_template_name')
 
 
 class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -72,7 +66,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                                                      project_id=project_id,
                                                      is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            return False, _(u"保存失败，引用的流程模板不存在！")
+            return False, _("保存失败，引用的流程模板不存在！")
 
         # create appmaker
         from gcloud.contrib.appmaker.permissions import mini_app_resource
@@ -126,7 +120,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 app_params['desc'],
             )
             if not app_create_result['result']:
-                return False, _(u"创建轻应用失败：%s") % app_create_result['message']
+                return False, _("创建轻应用失败：%s") % app_create_result['message']
 
             app_code = app_create_result['data']['bk_light_app_code']
             app_maker_obj.code = app_code
@@ -142,7 +136,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     is_deleted=False
                 )
             except AppMaker.DoesNotExist:
-                return False, _(u"保存失败，当前操作的轻应用不存在或已删除！")
+                return False, _("保存失败，当前操作的轻应用不存在或已删除！")
 
             verify_or_raise_auth_failed(principal_type='user',
                                         principal_id=app_params['username'],
@@ -166,7 +160,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     app_params['desc'],
                 )
                 if not app_edit_result['result']:
-                    return False, _(u"编辑轻应用失败：%s") % app_edit_result['message']
+                    return False, _("编辑轻应用失败：%s") % app_edit_result['message']
 
             app_maker_obj.name = app_params['name']
             app_maker_obj.desc = app_params['desc']
@@ -176,11 +170,11 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
         # upload app logo
         if not fake and app_params['logo_content']:
-            logo = base64.b64encode(app_params['logo_content'])
+            logo = base64.b64encode(app_params['logo_content'].encode('utf-8'))
             app_logo_result = modify_app_logo(app_maker_obj.creator, app_code, logo)
             if not app_logo_result['result']:
-                logger.warning(u"AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,
-                                                                            app_logo_result['message']))
+                logger.warning("AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,
+                                                                           app_logo_result['message']))
             # update app maker info
             app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
 
@@ -201,7 +195,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 is_deleted=False
             )
         except AppMaker.DoesNotExist:
-            return False, _(u"当前操作的轻应用不存在或已删除！")
+            return False, _("当前操作的轻应用不存在或已删除！")
 
         del_name = time_now_str()
         if not fake:
@@ -212,103 +206,70 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 del_name[:20],
             )
             if not app_edit_result['result']:
-                return False, _(u"删除失败：%s") % app_edit_result['message']
+                return False, _("删除失败：%s") % app_edit_result['message']
 
             # delete app on blueking desk
             app_del_result = del_maker_app(app_maker_obj.creator,
                                            app_maker_obj.code)
             if not app_del_result['result']:
-                return False, _(u"删除失败：%s") % app_del_result['message']
+                return False, _("删除失败：%s") % app_del_result['message']
 
         app_maker_obj.is_deleted = True
         app_maker_obj.name = del_name[:20]
         app_maker_obj.save()
         return True, app_maker_obj.code
 
-    def extend_classified_count(self, group_by, filters=None):
-        """
-        @summary: 兼容按照任务状态分类的扩展
-        @param group_by:
-        @param filters:
-        @return:
-        """
-        if filters is None:
-            filters = {}
-        prefix_filters = {}
-        for cond, value in filters.items():
-            if value in ['None', ''] or cond == 'type':
-                continue
-            if cond == 'create_time':
-                filter_cond = '%s__gte' % cond
-                prefix_filters.update({filter_cond: timestamp_to_datetime(value)})
-                continue
-            elif cond == 'finish_time':
-                filter_cond = 'create_time__lt'
-                prefix_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
-                continue
-            if APPMAKER_REGEX.match(cond):
-                filter_cond = 'task_template__%s' % cond
-            else:
-                filter_cond = cond
-            prefix_filters.update({filter_cond: value})
+    def group_by_project_id(self, appmaker, group_by):
+        # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
+        total = appmaker.count()
+        appmaker_list = appmaker.values(AE.project_id, AE.project__name).annotate(
+            value=Count(group_by)).order_by()
+        groups = []
+        for data in appmaker_list:
+            groups.append({
+                'code': data.get(AE.project_id),
+                'name': data.get(AE.project__name),
+                'value': data.get('value', 0)
+            })
+        return total, groups
 
-        try:
-            appmaker = self.filter(**prefix_filters)
-        except Exception as e:
-            message = u"query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
-            return False, message
-        if group_by == AE.project_id:
-            # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
-            total = appmaker.count()
-            appmaker_list = appmaker.values(AE.project_id, AE.project__name).annotate(
-                value=Count(group_by)).order_by()
-            groups = []
-            for data in appmaker_list:
-                groups.append({
-                    'code': data.get(AE.project_id),
-                    'name': data.get(AE.project__name),
-                    'value': data.get('value', 0)
-                })
-        elif group_by == AE.category:
-            # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
-            # field 用于外键查询对应的类型内容
-            field = "task_template__%s" % group_by
-            total = appmaker.count()
-            # 获取choices字段
-            choices = TaskTemplate.objects.get_choices(group_by)
-            appmaker_list = appmaker.values(field).annotate(value=Count(field)).order_by()
-            values = {item[field]: item['value'] for item in appmaker_list}
-            groups = []
-            for code, name in choices:
-                groups.append({
-                    'code': code,
-                    'name': name,
-                    'value': values.get(code, 0)
-                })
-        else:
-            total, groups = 0, []
-        data = {'total': total, 'groups': groups}
-        return True, data
+    def group_by_category(self, appmaker, group_by):
+        # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
+        # field 用于外键查询对应的类型内容
+        field = "task_template__%s" % group_by
+        total = appmaker.count()
+        # 获取choices字段
+        choices = TaskTemplate.objects.get_choices(group_by)
+        appmaker_list = appmaker.values(field).annotate(value=Count(field)).order_by()
+        values = {item[field]: item['value'] for item in appmaker_list}
+        groups = []
+        for code, name in choices:
+            groups.append({
+                'code': code,
+                'name': name,
+                'value': values.get(code, 0)
+            })
+        return total, groups
 
 
 class AppMaker(models.Model):
     """
     APP maker的基本信息
     """
-    project = models.ForeignKey(Project, verbose_name=_(u"所属项目"), null=True, on_delete=models.SET_NULL)
-    name = models.CharField(_(u"APP名称"), max_length=255)
-    code = models.CharField(_(u"APP编码"), max_length=255)
-    info = models.CharField(_(u"APP基本信息"), max_length=255, null=True)
-    desc = models.CharField(_(u"APP描述信息"), max_length=255, null=True)
-    logo_url = models.TextField(_(u"轻应用logo存放地址"), default='', blank=True)
-    link = models.URLField(_(u"gcloud链接"), max_length=255)
-    creator = models.CharField(_(u"创建人"), max_length=100)
-    create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
-    editor = models.CharField(_(u"编辑人"), max_length=100, null=True)
-    edit_time = models.DateTimeField(_(u"编辑时间"), auto_now=True, null=True)
-    task_template = models.ForeignKey(TaskTemplate, verbose_name=_(u"关联模板"))
-    template_scheme_id = models.CharField(_(u"执行方案"), max_length=100, blank=True)
-    is_deleted = models.BooleanField(_(u"是否删除"), default=False)
+    project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, on_delete=models.SET_NULL)
+    name = models.CharField(_("APP名称"), max_length=255)
+    code = models.CharField(_("APP编码"), max_length=255)
+    info = models.CharField(_("APP基本信息"), max_length=255, null=True)
+    desc = models.CharField(_("APP描述信息"), max_length=255, null=True)
+    logo_url = models.TextField(_("轻应用logo存放地址"), default='', blank=True)
+    link = models.URLField(_("gcloud链接"), max_length=255)
+    creator = models.CharField(_("创建人"), max_length=100)
+    create_time = models.DateTimeField(_("创建时间"), auto_now_add=True)
+    editor = models.CharField(_("编辑人"), max_length=100, null=True)
+    edit_time = models.DateTimeField(_("编辑时间"), auto_now=True, null=True)
+    task_template = models.ForeignKey(TaskTemplate, verbose_name=_("关联模板"))
+    template_scheme_id = models.CharField(_("执行方案"), max_length=100, blank=True)
+    is_deleted = models.BooleanField(_("是否删除"), default=False)
 
     objects = AppMakerManager()
 
@@ -329,9 +290,9 @@ class AppMaker(models.Model):
         return self.task_template.category
 
     def __unicode__(self):
-        return u'%s_%s' % (self.project, self.name)
+        return '%s_%s' % (self.project, self.name)
 
     class Meta:
-        verbose_name = _(u"轻应用 AppMaker")
-        verbose_name_plural = _(u"轻应用 AppMaker")
+        verbose_name = _("轻应用 AppMaker")
+        verbose_name_plural = _("轻应用 AppMaker")
         ordering = ['-id']

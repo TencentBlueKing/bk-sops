@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations
 
@@ -27,7 +27,7 @@ def forward_func(apps, schema_editor):
 
     for template in PipelineTemplate.objects.all():
         if not template.is_deleted:
-            acts = template.snapshot.data[PE.activities].values()
+            acts = list(template.snapshot.data[PE.activities].values())
             template.has_subprocess = any([act for act in acts if act['type'] == PE.SubProcess])
             template.save()
 

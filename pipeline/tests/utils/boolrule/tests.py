@@ -60,12 +60,9 @@ class BoolRuleTests(TestCase):
     def test_lt(self):
         self.assertTrue(BoolRule('1 < 2').test())
         self.assertTrue(BoolRule('"1" < 2').test())
-        self.assertTrue(BoolRule('2 < "s"').test())
 
         self.assertFalse(BoolRule('2 < 1').test())
         self.assertFalse(BoolRule('2 < 2').test())
-        self.assertFalse(BoolRule('"2" < 1').test())
-        self.assertFalse(BoolRule('"q" < 1').test())
 
     def test_in(self):
         self.assertTrue(BoolRule('1 in (1, 2)').test())
@@ -139,13 +136,8 @@ class BoolRuleTests(TestCase):
         self.assertTrue(BoolRule('${v1} <= 123456789111').test(context))
         self.assertFalse(BoolRule('${v1} <= 0').test(context))
         self.assertFalse(BoolRule('${v1} <= "0"').test(context))
-
-        self.assertTrue(BoolRule('${v1} <= "a"').test(context))
         self.assertTrue(BoolRule('"a" <= "b"').test(context))
         self.assertFalse(BoolRule('"a" <= "49"').test(context))
-
-        # self.assertTrue(BoolRule('${v1} >= 2').test(context))
-        # self.assertTrue(BoolRule('${v2} >= "2"').test(context))
 
     def test_true_equal(self):
         context = {
@@ -190,18 +182,29 @@ class BoolRuleTests(TestCase):
         self.assertFalse(BoolRule('${v1} == "s"').test(context))
 
     def test_multi_or(self):
-        self.assertTrue(BoolRule('("s" > "s" or "su" > "st") or (1 > 3 and 2 < 3)').test())
-        self.assertTrue(BoolRule('(1 > 3 and 2 < 3)  or ("s" > "s" or "su" > "st")').test())
-        self.assertTrue(BoolRule('(1 < 3 and 2 < 3)  or ("s" > "s" or "su" > "st")').test())
-        self.assertTrue(BoolRule('(1 > 2 or 2 > 3) or ("s" > "s" or "su" > "st") or (4  > 5 and 5 < 6)').test())
+        self.assertTrue(
+            BoolRule('("s" > "s" or "su" > "st") or (1 > 3 and 2 < 3)').test())
+        self.assertTrue(
+            BoolRule('(1 > 3 and 2 < 3)  or ("s" > "s" or "su" > "st")').test())
+        self.assertTrue(
+            BoolRule('(1 < 3 and 2 < 3)  or ("s" > "s" or "su" > "st")').test())
+        self.assertTrue(BoolRule(
+            '(1 > 2 or 2 > 3) or ("s" > "s" or "su" > "st") or (4  > 5 and 5 < 6)').test())
 
-        self.assertFalse(BoolRule('(1 > 2 or 2 > 3) or ("s" > "s" or "su" < "st")').test())
-        self.assertFalse(BoolRule('(1 > 2 or 2 > 3) or ("s" > "s" or "su" < "st") or (4  > 5 and 5 < 6)').test())
+        self.assertFalse(
+            BoolRule('(1 > 2 or 2 > 3) or ("s" > "s" or "su" < "st")').test())
+        self.assertFalse(BoolRule(
+            '(1 > 2 or 2 > 3) or ("s" > "s" or "su" < "st") or (4  > 5 and 5 < 6)').test())
 
     def test_multi_and(self):
-        self.assertTrue(BoolRule('("s" > "s" or "su" > "st") and (1 < 3 and 2 < 3)').test())
+        self.assertTrue(
+            BoolRule('("s" > "s" or "su" > "st") and (1 < 3 and 2 < 3)').test())
 
-        self.assertFalse(BoolRule('(1 < 2 or 2 > 3) and ("s" > "s" or "su" < "st")').test())
-        self.assertFalse(BoolRule('(1 > 2 or 2 > 3) and ("s" > "s" or "su" > "st")').test())
-        self.assertFalse(BoolRule('(1 > 2 or 2 > 3) and ("s" > "s" or "su" < "st")').test())
-        self.assertFalse(BoolRule('(1 < 3 and 2 < 3)  and ("s" > "s" or "su" > "st") and (4 > 5 and 5 < 6)').test())
+        self.assertFalse(
+            BoolRule('(1 < 2 or 2 > 3) and ("s" > "s" or "su" < "st")').test())
+        self.assertFalse(
+            BoolRule('(1 > 2 or 2 > 3) and ("s" > "s" or "su" > "st")').test())
+        self.assertFalse(
+            BoolRule('(1 > 2 or 2 > 3) and ("s" > "s" or "su" < "st")').test())
+        self.assertFalse(BoolRule(
+            '(1 < 3 and 2 < 3)  and ("s" > "s" or "su" > "st") and (4 > 5 and 5 < 6)').test())

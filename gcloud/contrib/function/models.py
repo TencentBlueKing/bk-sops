@@ -20,11 +20,11 @@ from gcloud.taskflow3.models import TaskFlowInstance
 
 
 FUNCTION_TASK_STATUS = [
-    ('submitted', _(u"未认领")),
-    ('claimed', _(u"已认领")),
-    ('rejected', _(u"已驳回")),
-    ('executed', _(u"已执行")),
-    ('finished', _(u"已完成")),
+    ('submitted', _("未认领")),
+    ('claimed', _("已认领")),
+    ('rejected', _("已驳回")),
+    ('executed', _("已执行")),
+    ('finished', _("已完成")),
 ]
 
 
@@ -32,23 +32,23 @@ class FunctionTask(models.Model):
     """
     职能化认领单
     """
-    task = models.ForeignKey(TaskFlowInstance, related_name='function_task', help_text=_(u"职能化单"))
-    creator = models.CharField(_(u"提单人"), max_length=32)
-    create_time = models.DateTimeField(_(u"提单时间"), auto_now_add=True)
-    claimant = models.CharField(_(u"认领人"), max_length=32, blank=True)
-    claim_time = models.DateTimeField(_(u"认领时间"), blank=True, null=True)
-    rejecter = models.CharField(_(u"驳回人"), max_length=32, blank=True)
-    reject_time = models.DateTimeField(_(u"驳回时间"), blank=True, null=True)
-    predecessor = models.CharField(_(u"转单人"), max_length=32, blank=True)
-    transfer_time = models.DateTimeField(_(u"转单时间"), blank=True, null=True)
-    status = models.CharField(_(u"单据状态"), max_length=32, default='submitted', choices=FUNCTION_TASK_STATUS)
+    task = models.ForeignKey(TaskFlowInstance, related_name='function_task', help_text=_("职能化单"))
+    creator = models.CharField(_("提单人"), max_length=32)
+    create_time = models.DateTimeField(_("提单时间"), auto_now_add=True)
+    claimant = models.CharField(_("认领人"), max_length=32, blank=True)
+    claim_time = models.DateTimeField(_("认领时间"), blank=True, null=True)
+    rejecter = models.CharField(_("驳回人"), max_length=32, blank=True)
+    reject_time = models.DateTimeField(_("驳回时间"), blank=True, null=True)
+    predecessor = models.CharField(_("转单人"), max_length=32, blank=True)
+    transfer_time = models.DateTimeField(_("转单时间"), blank=True, null=True)
+    status = models.CharField(_("单据状态"), max_length=32, default='submitted', choices=FUNCTION_TASK_STATUS)
 
     def __unicode__(self):
-        return u"%s_%s" % (self.task, self.id)
+        return "%s_%s" % (self.task, self.id)
 
     class Meta:
-        verbose_name = _(u"职能化认领单 FunctionTask")
-        verbose_name_plural = _(u"职能化认领单 FunctionTask")
+        verbose_name = _("职能化认领单 FunctionTask")
+        verbose_name_plural = _("职能化认领单 FunctionTask")
         ordering = ['-id']
 
     @property

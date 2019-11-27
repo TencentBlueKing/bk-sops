@@ -13,12 +13,11 @@
     <el-tooltip placement="bottom" popper-class="task-node-tooltip" :disabled="!isOpenTooltip">
         <div
             :class="[
-                'circle-node',
+                'gateway-node',
                 'branch-gateway',
                 node.status ? node.status.toLowerCase() : ''
             ]">
             <div class="node-type-icon common-icon-node-branchgateway"></div>
-            
         </div>
         <div id="node-tooltip-content" slot="content">
             <bk-button @click.stop="onGatewaySelectionClick">{{ i18n.skip }}</bk-button>
@@ -26,6 +25,8 @@
     </el-tooltip>
 </template>
 <script>
+    import '@/utils/i18n.js'
+
     export default {
         name: 'BranchGateway',
         props: {

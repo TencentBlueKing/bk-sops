@@ -22,4 +22,4 @@ class WebPipelineAdapter(PipelineParser):
     def __init__(self, web_pipeline_tree):
         validate_web_pipeline_tree(web_pipeline_tree)
         pipeline_tree = format_web_data_to_pipeline(web_pipeline_tree)
-        super(WebPipelineAdapter, self).__init__(pipeline_tree)
+        super(WebPipelineAdapter, self).__init__(pipeline_tree, cycle_tolerate=True)

@@ -41,7 +41,7 @@ class AccessorSignal(Signal):
         )
         if receiver_name != self.allowed_receiver:
             raise AccessForbidden(
-                u"%s is not allowed to connect" % receiver_name)
+                "%s is not allowed to connect" % receiver_name)
         Signal.connect(self, receiver, sender, weak, dispatch_uid)
 
 
@@ -108,7 +108,7 @@ class RequestProvider(MiddlewareMixin):
             sender = get_ident()
         if sender not in self._request_pool:
             raise ServerBlueException(
-                u"get_request can't be called in a new thread.")
+                "get_request can't be called in a new thread.")
         return self._request_pool[sender]
 
 

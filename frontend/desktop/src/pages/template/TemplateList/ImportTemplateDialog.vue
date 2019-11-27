@@ -164,12 +164,12 @@
                     templateFileError: gettext('模板上传内容不合法，请重新选择文件'),
                     templateFileErrorExt: gettext('该文件后缀不为.dat'),
                     amongThem: gettext('其中'),
-                    replaceWithoutConflict: gettext('保留ID，并提交'),
-                    reservedWithoutConflict: gettext('使用新ID, 并提交'),
+                    replaceWithoutConflict: gettext('流程ID不变提交'),
+                    reservedWithoutConflict: gettext('流程ID自增提交'),
                     replaceSubmit: gettext('覆盖冲突项, 并提交'),
                     reservedSubmit: gettext('保留两者, 并提交'),
                     cancel: gettext('取消'),
-                    conflictList: gettext('条流程与系统已有流程存在冲突')
+                    conflictList: gettext('条流程与项目已有流程ID存在冲突')
                 }
             }
         },
@@ -470,7 +470,7 @@
                 }
             }
             .template-table-conflict {
-                td {
+                .conflict-id {
                     color: #ff5656;
                 }
             }

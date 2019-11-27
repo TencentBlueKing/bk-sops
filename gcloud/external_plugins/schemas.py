@@ -27,7 +27,7 @@ ADD_SOURCE_SCHEMA = {
             'type': 'integer',
         },
         'type': {
-            'type': 'string', 'enum': source_cls_factory.keys()
+            'type': 'string', 'enum': list(source_cls_factory.keys())
         },
         'name': {
             'type': 'string',

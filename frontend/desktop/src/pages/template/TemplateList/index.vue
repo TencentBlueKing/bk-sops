@@ -83,7 +83,7 @@
                             :clearable="true"
                             v-model="subprocessUpdateVal"
                             @clear="onClearSubprocessUpdate"
-                            @change="onSelectedSubprocessUpdate">
+                            @selected="onSelectedSubprocessUpdate">
                             <bk-option
                                 v-for="(option, index) in selectSubprocessUpdateList"
                                 :key="index"
@@ -96,8 +96,10 @@
                         <bk-input
                             style="width: 260px;"
                             class="search-input"
+                            clearable
                             v-model="creator"
-                            :placeholder="i18n.creatorPlaceholder">
+                            :placeholder="i18n.creatorPlaceholder"
+                            @clear="creator = undefined">
                         </bk-input>
                     </bk-form-item>
                     <bk-form-item class="query-button">
@@ -514,23 +516,34 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        common: this.common,
-                        pipeline_template__name__contains: this.flowName,
-                        pipeline_template__creator__contains: this.creator,
-                        category: this.category,
                         subprocess_has_update: this.isSubprocessUpdated,
                         has_subprocess: this.isHasSubprocess
                     }
                     if (isCommon) {
                         data['common'] = 1
                     }
+                    if (this.flowName) {
+                        data['pipeline_template__name__contains'] = this.flowName
+                    }
+
+                    if (this.creator) {
+                        data['pipeline_template__creator__contains'] = this.creator
+                    }
+
+                    if (this.category) {
+                        data['category'] = this.category
+                    }
+
+                    if (this.isHasSubprocess !== undefined) {
+                        data['subprocess_has_update'] = this.isSubprocessUpdated
+                        data['has_subprocess'] = this.isHasSubprocess
+                    }
 
                     if (this.queryTime[0] && this.queryTime[1]) {
                         if (isCommon) {
                             data['pipeline_template__edit_time__gte'] = moment(this.queryTime[0]).format('YYYY-MM-DD')
                             data['pipeline_template__edit_time__lte'] = moment(this.queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
-                        // 无时区的公共流程使用本地的时间
-                        } else {
+                        } else { // 无时区的公共流程使用本地的时间
                             data['pipeline_template__edit_time__gte'] = moment.tz(this.queryTime[0], this.timeZone).format('YYYY-MM-DD')
                             data['pipeline_template__edit_time__lte'] = moment.tz(this.queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
@@ -604,7 +617,7 @@
                 try {
                     const data = {
                         common: this.common,
-                        list: JSON.stringify(list)
+                        list: list
                     }
                     const resp = await this.templateExport(data)
                     if (resp.result) {

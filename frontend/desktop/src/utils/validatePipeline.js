@@ -10,6 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import { NODE_DICT } from '@/constants/index.js'
+import validator, { pipelineTreeSchema } from '@/constants/pipelineTreeSchema.js'
 
 const NODE_RULE = {
     'startpoint': {
@@ -91,7 +92,11 @@ const validatePipeline = {
         let sourceLinesLinked = 0
         let targetLinesLinked = 0
         let isLoop = false
-
+        if (source.id === target.id) {
+            const i18n_text = gettext('相同节点不能回连')
+            const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
+            return this.getMessage(false, message)
+        }
         if (sourceRule.max_out === 0) {
             const i18n_text = gettext('只能添加输入连线')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
@@ -162,10 +167,10 @@ const validatePipeline = {
         return this.getMessage()
     },
     /**
-     * 校验有没有空节点
+     * 画布节点连线数目校验
      * @param {Object} data
      */
-    isDataValid (data) {
+    isNodeLineNumValid (data) {
         let message
         let tasknode = 0
         let subflow = 0
@@ -211,6 +216,12 @@ const validatePipeline = {
         }
 
         return this.getMessage()
+    },
+    /**
+     * 画布pipeline_tree数据校验
+     */
+    isPipelineDataValid (data) {
+        return validator.validate(data, pipelineTreeSchema)
     },
     getMessage (result = true, message = '') {
         return { result, message }

@@ -10,11 +10,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-try:
-    import ujson as json
-except ImportError:
-    import json
+
 import copy
+
+import ujson as json
 
 from pipeline import exceptions
 from pipeline.utils.collections import FancyDict
@@ -82,3 +81,9 @@ class DataObject(object):
     def __setstate__(self, state):
         self.inputs = FancyDict(state['inputs'])
         self.outputs = FancyDict(state['outputs'])
+
+    def __str__(self):
+        return '<inputs: {} | outputs: {}>'.format(
+            self.inputs,
+            self.outputs
+        )

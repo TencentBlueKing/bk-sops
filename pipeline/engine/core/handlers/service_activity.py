@@ -11,19 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 import logging
 import traceback
 
-from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.data.hydration import hydrate_node_data
-from pipeline.engine import signals
-from pipeline.engine.models import (
-    Status,
-    Data,
-    ScheduleService,
-)
+from pipeline.core.flow.activity import ServiceActivity
 from pipeline.django_signal_valve import valve
+from pipeline.engine import signals
+from pipeline.engine.models import Data, ScheduleService, Status
 
 from .base import FlowElementHandler
 
@@ -58,13 +53,13 @@ class ServiceActivityHandler(FlowElementHandler):
         element.data.outputs._loop = status.loop - 1
 
         # pre output extract
-        process.top_pipeline.context.extract_output(element)
+        process.top_pipeline.context.extract_output(element, set_miss=False)
 
         # hydrate inputs
         hydrate_node_data(element)
 
         if element.timeout:
-            logger.info('node %s %s start timeout monitor, timeout: %s' % (element.id, version, element.timeout))
+            logger.info('node {} {} start timeout monitor, timeout: {}'.format(element.id, version, element.timeout))
             signals.service_activity_timeout_monitor_start.send(sender=element.__class__,
                                                                 node_id=element.id,
                                                                 version=version,
@@ -75,13 +70,13 @@ class ServiceActivityHandler(FlowElementHandler):
         # execute service
         try:
             success = element.execute(root_pipeline.data)
-        except Exception as e:
+        except Exception:
             if element.error_ignorable:
                 # ignore exception
                 success = True
                 exception_occurred = True
                 element.ignore_error()
-            ex_data = traceback.format_exc(e)
+            ex_data = traceback.format_exc()
             element.data.outputs.ex_data = ex_data
             logger.error(ex_data)
 
@@ -91,14 +86,14 @@ class ServiceActivityHandler(FlowElementHandler):
             Status.objects.fail(element, ex_data)
             try:
                 element.failure_handler(root_pipeline.data)
-            except Exception as e:
-                logger.error('failure_handler(%s) failed: %s' % (element.id, traceback.format_exc(e)))
+            except Exception:
+                logger.error('failure_handler({}) failed: {}'.format(element.id, traceback.format_exc()))
 
             if monitoring:
                 signals.service_activity_timeout_monitor_end.send(sender=element.__class__,
                                                                   node_id=element.id,
                                                                   version=version)
-                logger.info('node %s %s timeout monitor revoke' % (element.id, version))
+                logger.info('node {} {} timeout monitor revoke'.format(element.id, version))
 
             # send activity error signal
             valve.send(signals, 'activity_failed', sender=root_pipeline,
@@ -127,7 +122,7 @@ class ServiceActivityHandler(FlowElementHandler):
                 signals.service_activity_timeout_monitor_end.send(sender=element.__class__,
                                                                   node_id=element.id,
                                                                   version=version)
-                logger.info('node %s %s timeout monitor revoke' % (element.id, version))
+                logger.info('node {} {} timeout monitor revoke'.format(element.id, version))
 
             if not Status.objects.finish(element, error_ignorable):
                 # has been forced failed

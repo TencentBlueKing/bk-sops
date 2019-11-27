@@ -11,21 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
-import abc
-import json
-import codecs
+from __future__ import absolute_import, unicode_literals
 
+import abc
+import codecs
+import json
+import os
+
+from builtins import object
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import render_to_string
+from future.utils import with_metaclass
 
 from auth_backend.constants import MIGRATION_TEMPLATE_NAME
 
 
-class ResourceSnapshotFinder(object):
-    __metaclass__ = abc.ABCMeta
-
+class ResourceSnapshotFinder(with_metaclass(abc.ABCMeta, object)):
     def __init__(self, snapshot_name):
         self.snapshot_name = snapshot_name
 

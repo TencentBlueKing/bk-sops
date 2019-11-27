@@ -111,6 +111,8 @@ task_service.run_pipeline(pipeline)
 - [流程构造器](./user_guide_flow_builder.md)
 - [流程管理](./user_guide_flow_management.md)
 - [自定义组件](./user_guide_custom_component.md)
+- [运行自定义组件](./user_guide_run_your_component.md)
+- [组件单元测试](./user_guide_component_unit_test.md)
 - [Worker 配置](./user_guide_workers.md)
 - [自定义配置](./user_guide_config.md)
 - API Reference

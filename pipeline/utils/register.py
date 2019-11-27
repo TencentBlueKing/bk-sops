@@ -48,5 +48,5 @@ def autodiscover_collections(path):
                                     (app_config.name, path))
             autodiscover_items(_module)
         except ImportError as e:
-            if not e.message == 'No module named %s' % path:
+            if not str(e) == 'No module named %s' % path:
                 pass

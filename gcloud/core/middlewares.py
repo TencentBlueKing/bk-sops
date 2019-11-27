@@ -66,7 +66,7 @@ class UnauthorizedMiddleware(MiddlewareMixin):
         # 405: 用户无当前业务或者数据的查询/操作权限
         if response.status_code in (403,):
             response = HttpResponse(
-                content=_(u"您没有权限进行此操作"),
+                content=_("您没有权限进行此操作"),
                 status=405
             )
         return response
@@ -91,5 +91,5 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
             logger.error(traceback.format_exc())
             return JsonResponse({
                 'result': False,
-                'message': 'Object not found: %s' % exception.message
+                'message': 'Object not found: %s' % exception
             })

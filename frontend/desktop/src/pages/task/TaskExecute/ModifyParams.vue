@@ -15,7 +15,13 @@
         v-bkloading="{ isLoading: loading, opacity: 1 }"
         @click="e => e.stopPropagation()">
         <div class="panel-title">
-            <h3>{{ i18n.change_params }}</h3>
+            <h3>{{ i18n.changeParams }}</h3>
+        </div>
+        <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
+            <p>
+                <i class="common-icon-info ui-notice"></i>
+                {{ i18n.editTaskDisable }}
+            </p>
         </div>
         <div class="edit-wrapper">
             <TaskParamEdit
@@ -64,7 +70,8 @@
                 configLoading: true, // 变量配置项加载
                 pending: false, // 提交修改中
                 i18n: {
-                    change_params: gettext('修改全局参数'),
+                    editTaskDisable: gettext('已开始执行的任务不能修改参数'),
+                    changeParams: gettext('修改全局参数'),
                     save: gettext('保存')
                 }
             }
@@ -167,15 +174,29 @@
         height: 100%;
         overflow: hidden;
         .panel-title {
-            padding: 20px;
+            margin: 20px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #cacedb;
             h3 {
                 margin: 0;
-                font-size: 22px;
-                font-weight: normal;
+                font-size: 14px;
+                font-weight: bold;
+            }
+        }
+        .panel-notice-task-run {
+            margin: 20px 20px 10px 20px;
+            padding: 0 10px;
+            font-size: 12px;
+            line-height: 36px;
+            background: $blueNavBg;
+            border: 1px solid #a3c5fd;
+            .ui-notice {
+                margin-right: 10px;
+                color: $blueDefault;
             }
         }
         .edit-wrapper {
-            padding: 20px 20px 0;
+            padding: 20px;
             height: calc(100% - 150px);
             overflow-y: auto;
             @include scrollbar;

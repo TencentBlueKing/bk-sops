@@ -151,6 +151,17 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取内置变量变量列表
+     */
+    getInternalVariableList () {
+        const prefixUrl = this.getPrefix('internalVariable')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程列表
      */
     getSubAtomList (data) {
@@ -175,13 +186,16 @@ const api = {
      * @param {String} type 标准插件code
      * @param {String} classify 标准插件分类
      */
-    getAtomFormURL (type, classify, isMeta) {
+    getAtomFormURL (type, classify, version = '', isMeta) {
         const prefixUrl = this.getPrefix(classify)
         let url = ''
-        if (isMeta) {
-            url = `${prefixUrl}${type}/?meta=1`
+        // 变量暂时没有版本系统
+        if (classify === 'variable') {
+            url = isMeta ? `${prefixUrl}${type}/?meta=1` : `${prefixUrl}${type}/`
         } else {
-            url = `${prefixUrl}${type}/`
+            url = isMeta
+                ? `${prefixUrl}${type}/?meta=1&version=${version}`
+                : `${prefixUrl}${type}/?version=${version}`
         }
         const opts = {
             method: 'GET',
@@ -194,19 +208,21 @@ const api = {
      * @param {String} type 标准插件code
      * @param {String} classify 标准插件分类
      */
-    $getAtomForm (type, classify, isMeta) {
-        return this.getAtomFormURL(type, classify, isMeta).then(response => {
+    $getAtomForm (type, classify, isMeta, version) {
+        return this.getAtomFormURL(type, classify, version, isMeta).then(response => {
             const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
-
-            store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
-            store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
-
+            if (classify === 'variable') {
+                version = 'legacy'
+            }
+            store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta, version })
+            store.commit('atomForm/setAtomOutput', { atomType: type, outputData, version })
             // 标准插件配置项内嵌到 form 字段
             if (embedded) {
+                /*eslint-disable */
                 eval(formResource)
+                /*eslint-disable */
                 return Promise.resolve({ data: $.atoms[type] })
             }
-
             return $.getScript(formResource)
         }).catch(e => {
             return Promise.reject(e)
@@ -370,10 +386,10 @@ const api = {
             prefixUrl = this.getPrefix('templateExport')
         }
         const opts = {
-            method: 'GET',
+            method: 'POST',
             url: `${prefixUrl}`,
             responseType: 'arraybuffer',
-            params: {
+            data: {
                 template_id_list: list
             }
         }
@@ -591,8 +607,9 @@ const api = {
      */
     getPreviewNodeData (data) {
         const prefixUrl = this.getPrefix('instancePreview')
-        const { templateId, excludeTaskNodesId, common } = data
+        const { templateId, excludeTaskNodesId, common, version } = data
         const dataJson = {
+            version,
             template_id: templateId,
             exclude_task_nodes_id: excludeTaskNodesId,
             template_source: 'project'
@@ -810,7 +827,7 @@ const api = {
      */
     getNodeActDetail (data) {
         const prefixUrl = this.getPrefix('nodeActDetails')
-        const { instance_id, node_id, component_code, subprocess_stack } = data
+        const { instance_id, node_id, component_code, subprocess_stack, loop } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -818,7 +835,8 @@ const api = {
                 instance_id,
                 node_id,
                 component_code,
-                subprocess_stack
+                subprocess_stack,
+                loop
             }
         }
 
@@ -830,10 +848,10 @@ const api = {
      */
     getJobInstanceLog (data) {
         const prefixUrl = this.getPrefix('jobInstanceLog')
-        const { job_instance_id } = data
+        const { job_instance_id, project_id } = data
         const opts = {
             method: 'GET',
-            url: prefixUrl,
+            url: `${prefixUrl}${project_id}/`,
             params: {
                 job_instance_id
             }
@@ -1075,45 +1093,37 @@ const api = {
     },
     queryTemplate (data) {
         const prefixUrl = this.getPrefix('analysisTemplate')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
     queryAtom (data) {
         const prefixUrl = this.getPrefix('analysisAtom')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
     queryInstance (data) {
         const prefixUrl = this.getPrefix('analysisInstance')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
     queryAppmaker (data) {
         const prefixUrl = this.getPrefix('analysisAppmaker')
-        data = qs.stringify(data)
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: data
+            data
         }
         return request(opts)
     },
@@ -1163,7 +1173,7 @@ const api = {
     createPeriodic (data) {
         const prefixUrl = this.getPrefix('periodic')
         const { project_id } = store.state.project
-        const { name, cron, templateId, execData } = data
+        const { name, cron, templateId, execData, templateSource } = data
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -1172,7 +1182,8 @@ const api = {
                 cron: cron,
                 name: name,
                 template_id: templateId,
-                pipeline_tree: execData
+                pipeline_tree: execData,
+                template_source: templateSource
             }
         }
         return request(opts)
@@ -1541,6 +1552,17 @@ const api = {
             url: prefixUrl,
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 获取人员列表
+     */
+    getMemberList () {
+        const prefixUrl = this.getPrefix('userList')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
         }
         return request(opts)
     }

@@ -124,7 +124,7 @@ def mock_os_walk(local):
 class MockWriterAndReader(object):
     def __init__(self, *args, **kwargs):
         self.kwargs = kwargs
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             setattr(self, key, value)
 
     def write(self, sub_dir=None):

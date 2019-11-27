@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 import logging
 
 
@@ -20,7 +18,7 @@ def setup(level=None):
     from pipeline.logging import pipeline_logger as logger
     from pipeline.log.handlers import EngineLogHandler
 
-    if level in logging._levelNames:
+    if level in set(logging._levelToName.values()):
         logger.setLevel(level)
 
     logging._acquireLock()

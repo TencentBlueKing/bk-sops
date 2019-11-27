@@ -34,4 +34,4 @@ class ApiConfig(AppConfig):
                 api_public_key = esb_result['data']['public_key']
                 django_settings.APIGW_PUBLIC_KEY = api_public_key
             else:
-                logger.warning(u"get api public key error: %s" % esb_result['message'])
+                logger.warning("get api public key error: %s" % esb_result['message'])

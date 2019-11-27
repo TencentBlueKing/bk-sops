@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 import logging
 import traceback
 import contextlib
@@ -24,6 +23,7 @@ from celery.task.control import revoke
 from pipeline.django_signal_valve import valve
 
 from pipeline.engine import exceptions
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.core.data.base import DataObject
 from pipeline.core.pipeline import Pipeline
 from pipeline.engine import states, utils, signals
@@ -52,8 +52,8 @@ class ProcessSnapshotManager(models.Manager):
 
 
 class ProcessSnapshot(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    data = IOField(verbose_name=_(u"pipeline 运行时数据"))
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    data = IOField(verbose_name=_("pipeline 运行时数据"))
 
     objects = ProcessSnapshotManager()
 
@@ -150,6 +150,14 @@ class ProcessManager(models.Manager):
         """
         valve.send(signals, 'child_process_ready', sender=PipelineProcess, child_id=child_id)
 
+    def priority_for_process(self, process_id):
+        """
+        查询进程对应的 pipeline 的优先级
+        :param process_id: 进程 ID
+        :return:
+        """
+        return PipelineModel.objects.get(id=self.get(id=process_id).root_pipeline_id).priority
+
 
 class PipelineProcess(models.Model):
     """
@@ -158,17 +166,17 @@ class PipelineProcess(models.Model):
             process = PipelineProcess.objects.get(root_pipeline_id=pipeline_inst.instance_id)
             pipeline_inst = PipelineInstance.objects.get(instance_id=process.root_pipeline_id)
     """
-    id = models.CharField(_(u"Process ID"), unique=True, primary_key=True, max_length=32)
-    root_pipeline_id = models.CharField(_(u"根 pipeline 的 ID"), max_length=32)
-    current_node_id = models.CharField(_(u"当前推进到的节点的 ID"), max_length=32, default='', db_index=True)
-    destination_id = models.CharField(_(u"遇到该 ID 的节点就停止推进"), max_length=32, default='')
-    parent_id = models.CharField(_(u"父 process 的 ID"), max_length=32, default='')
-    ack_num = models.IntegerField(_(u"收到子节点 ACK 的数量"), default=0)
-    need_ack = models.IntegerField(_(u"需要收到的子节点 ACK 的数量"), default=-1)
-    is_alive = models.BooleanField(_(u"该 process 是否还有效"), default=True)
-    is_sleep = models.BooleanField(_(u"该 process 是否正在休眠"), default=False)
-    is_frozen = models.BooleanField(_(u"该 process 是否被冻结"), default=False)
-    snapshot = models.ForeignKey(ProcessSnapshot, null=True)
+    id = models.CharField(_("Process ID"), unique=True, primary_key=True, max_length=32)
+    root_pipeline_id = models.CharField(_("根 pipeline 的 ID"), max_length=32)
+    current_node_id = models.CharField(_("当前推进到的节点的 ID"), max_length=32, default='', db_index=True)
+    destination_id = models.CharField(_("遇到该 ID 的节点就停止推进"), max_length=32, default='')
+    parent_id = models.CharField(_("父 process 的 ID"), max_length=32, default='')
+    ack_num = models.IntegerField(_("收到子节点 ACK 的数量"), default=0)
+    need_ack = models.IntegerField(_("需要收到的子节点 ACK 的数量"), default=-1)
+    is_alive = models.BooleanField(_("该 process 是否还有效"), default=True)
+    is_sleep = models.BooleanField(_("该 process 是否正在休眠"), default=False)
+    is_frozen = models.BooleanField(_("该 process 是否被冻结"), default=False)
+    snapshot = models.ForeignKey(ProcessSnapshot, null=True, on_delete=models.SET_NULL)
 
     objects = ProcessManager()
 
@@ -518,16 +526,20 @@ def _destroy_recursively(process):
 
 
 class PipelineModelManager(models.Manager):
-    def prepare_for_pipeline(self, pipeline, process):
-        return self.create(id=pipeline.id, process=process)
+    def prepare_for_pipeline(self, pipeline, process, priority):
+        return self.create(id=pipeline.id, process=process, priority=priority)
 
     def pipeline_ready(self, process_id):
         valve.send(signals, 'pipeline_ready', sender=Pipeline, process_id=process_id)
+
+    def priority_for_pipeline(self, pipeline_id):
+        return self.get(id=pipeline_id).priority
 
 
 class PipelineModel(models.Model):
     id = models.CharField('pipeline ID', unique=True, primary_key=True, max_length=32)
     process = models.ForeignKey(PipelineProcess, null=True, on_delete=models.SET_NULL)
+    priority = models.IntegerField(_("流程优先级"), default=PIPELINE_DEFAULT_PRIORITY)
 
     objects = PipelineModelManager()
 
@@ -547,15 +559,15 @@ class RelationshipManager(models.Manager):
 
 
 class NodeRelationship(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    ancestor_id = models.CharField(_(u"祖先 ID"), max_length=32, db_index=True)
-    descendant_id = models.CharField(_(u"后代 ID"), max_length=32, db_index=True)
-    distance = models.IntegerField(_(u"距离"))
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    ancestor_id = models.CharField(_("祖先 ID"), max_length=32, db_index=True)
+    descendant_id = models.CharField(_("后代 ID"), max_length=32, db_index=True)
+    distance = models.IntegerField(_("距离"))
 
     objects = RelationshipManager()
 
     def __unicode__(self):
-        return unicode(u"#%s -(%s)-> #%s" % (
+        return str("#%s -(%s)-> #%s" % (
             self.ancestor_id,
             self.distance,
             self.descendant_id,
@@ -667,7 +679,7 @@ class StatusManager(models.Manager):
         id_list = set(id_list)
         exclude = set(exclude)
         kwargs = {
-            'id__in': filter(lambda i: i not in exclude, id_list)
+            'id__in': [i for i in id_list if i not in exclude]
         }
         if from_state:
             kwargs['state'] = from_state
@@ -698,7 +710,7 @@ class StatusManager(models.Manager):
         return self.get(id=id).version
 
     def states_for(self, id_list):
-        return map(lambda s: s.state, self.filter(id__in=id_list))
+        return [s.state for s in self.filter(id__in=id_list)]
 
     def prepare_for_pipeline(self, pipeline):
         cls_str = str(pipeline.__class__)
@@ -813,17 +825,17 @@ class StatusManager(models.Manager):
 
 
 class Status(models.Model):
-    id = models.CharField(_(u"节点 ID"), unique=True, primary_key=True, max_length=32)
-    state = models.CharField(_(u"状态"), max_length=10)
-    name = models.CharField(_(u"节点名称"), max_length=NAME_MAX_LENGTH, default='')
-    retry = models.IntegerField(_(u"重试次数"), default=0)
-    loop = models.IntegerField(_(u"循环次数"), default=1)
-    skip = models.BooleanField(_(u"是否跳过"), default=False)
-    error_ignorable = models.BooleanField(_(u"是否出错后自动忽略"), default=False)
-    created_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True, db_index=True)
-    started_time = models.DateTimeField(_(u"开始时间"), null=True)
-    archived_time = models.DateTimeField(_(u"归档时间"), null=True)
-    version = models.CharField(_(u"版本"), max_length=32)
+    id = models.CharField(_("节点 ID"), unique=True, primary_key=True, max_length=32)
+    state = models.CharField(_("状态"), max_length=10)
+    name = models.CharField(_("节点名称"), max_length=NAME_MAX_LENGTH, default='')
+    retry = models.IntegerField(_("重试次数"), default=0)
+    loop = models.IntegerField(_("循环次数"), default=1)
+    skip = models.BooleanField(_("是否跳过"), default=False)
+    error_ignorable = models.BooleanField(_("是否出错后自动忽略"), default=False)
+    created_time = models.DateTimeField(_("创建时间"), auto_now_add=True, db_index=True)
+    started_time = models.DateTimeField(_("开始时间"), null=True)
+    archived_time = models.DateTimeField(_("归档时间"), null=True)
+    version = models.CharField(_("版本"), max_length=32)
 
     objects = StatusManager()
 
@@ -860,19 +872,19 @@ class DataManager(models.Manager):
 
 
 class Data(models.Model):
-    id = models.CharField(_(u"节点 ID"), unique=True, primary_key=True, max_length=32)
-    inputs = IOField(verbose_name=_(u"输入数据"))
-    outputs = IOField(verbose_name=_(u"输出数据"))
-    ex_data = IOField(verbose_name=_(u"异常数据"))
+    id = models.CharField(_("节点 ID"), unique=True, primary_key=True, max_length=32)
+    inputs = IOField(verbose_name=_("输入数据"))
+    outputs = IOField(verbose_name=_("输出数据"))
+    ex_data = IOField(verbose_name=_("异常数据"))
 
     objects = DataManager()
 
 
 class HistoryData(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    inputs = IOField(verbose_name=_(u"输入数据"))
-    outputs = IOField(verbose_name=_(u"输出数据"))
-    ex_data = IOField(verbose_name=_(u"异常数据"))
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    inputs = IOField(verbose_name=_("输入数据"))
+    outputs = IOField(verbose_name=_("输出数据"))
+    ex_data = IOField(verbose_name=_("异常数据"))
 
     objects = DataManager()
 
@@ -896,8 +908,13 @@ class HistoryManager(models.Manager):
                            loop=status.loop,
                            skip=status.skip)
 
-    def get_histories(self, identifier):
-        histories = self.filter(identifier=identifier).order_by('started_time')
+    def get_histories(self, identifier, loop=None):
+        filters = {
+            'identifier': identifier
+        }
+        if loop is not None:
+            filters['loop'] = loop
+        histories = self.filter(**filters).order_by('started_time')
         data = [{
             'history_id': item.id,
             'started_time': item.started_time,
@@ -913,14 +930,14 @@ class HistoryManager(models.Manager):
 
 
 class History(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    identifier = models.CharField(_(u"节点 id"), max_length=32, db_index=True)
-    started_time = models.DateTimeField(_(u"开始时间"))
-    archived_time = models.DateTimeField(_(u"结束时间"))
-    loop = models.IntegerField(_(u"循环次数"), default=1)
-    skip = models.BooleanField(_(u"是否跳过"), default=False)
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    identifier = models.CharField(_("节点 id"), max_length=32, db_index=True)
+    started_time = models.DateTimeField(_("开始时间"))
+    archived_time = models.DateTimeField(_("结束时间"))
+    loop = models.IntegerField(_("循环次数"), default=1)
+    skip = models.BooleanField(_("是否跳过"), default=False)
 
-    data = models.ForeignKey(HistoryData)
+    data = models.ForeignKey(HistoryData, null=True, on_delete=models.SET_NULL)
 
     objects = HistoryManager()
 
@@ -957,16 +974,16 @@ class ScheduleServiceManager(models.Manager):
 class ScheduleService(models.Model):
     SCHEDULE_ID_SPLIT_DIVISION = 32
 
-    id = models.CharField(_(u"ID 节点ID+version"), max_length=NAME_MAX_LENGTH, unique=True, primary_key=True)
-    activity_id = models.CharField(_(u"节点 ID"), max_length=32, db_index=True)
-    process_id = models.CharField(_(u"Pipeline 进程 ID"), max_length=32)
-    schedule_times = models.IntegerField(_(u"被调度次数"), default=0)
-    wait_callback = models.BooleanField(_(u"是否是回调型调度"), default=False)
-    callback_data = IOField(verbose_name=_(u"回调数据"), default=None)
-    service_act = IOField(verbose_name=_(u"待调度服务"))
-    is_finished = models.BooleanField(_(u"是否已完成"), default=False)
-    version = models.CharField(_(u"Activity 的版本"), max_length=32, db_index=True)
-    is_scheduling = models.BooleanField(_(u"是否正在被调度"), default=False)
+    id = models.CharField(_("ID 节点ID+version"), max_length=NAME_MAX_LENGTH, unique=True, primary_key=True)
+    activity_id = models.CharField(_("节点 ID"), max_length=32, db_index=True)
+    process_id = models.CharField(_("Pipeline 进程 ID"), max_length=32)
+    schedule_times = models.IntegerField(_("被调度次数"), default=0)
+    wait_callback = models.BooleanField(_("是否是回调型调度"), default=False)
+    callback_data = IOField(verbose_name=_("回调数据"), default=None)
+    service_act = IOField(verbose_name=_("待调度服务"))
+    is_finished = models.BooleanField(_("是否已完成"), default=False)
+    version = models.CharField(_("Activity 的版本"), max_length=32, db_index=True)
+    is_scheduling = models.BooleanField(_("是否正在被调度"), default=False)
 
     objects = ScheduleServiceManager()
 
@@ -1019,14 +1036,14 @@ class SubProcessRelationshipManager(models.Manager):
 
     def get_relate_process(self, subprocess_id):
         qs = self.filter(subprocess_id=subprocess_id)
-        proc_ids = map(lambda i: i.process_id, qs)
+        proc_ids = [i.process_id for i in qs]
         return PipelineProcess.objects.filter(id__in=proc_ids)
 
 
 class SubProcessRelationship(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    subprocess_id = models.CharField(_(u"子流程 ID"), max_length=32, db_index=True)
-    process_id = models.CharField(_(u"对应的进程 ID"), max_length=32)
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    subprocess_id = models.CharField(_("子流程 ID"), max_length=32, db_index=True)
+    process_id = models.CharField(_("对应的进程 ID"), max_length=32)
 
     objects = SubProcessRelationshipManager()
 
@@ -1058,9 +1075,9 @@ class ProcessCeleryTaskManager(models.Manager):
 
 
 class ProcessCeleryTask(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    process_id = models.CharField(_(u"pipeline 进程 ID"), max_length=32, unique=True, db_index=True)
-    celery_task_id = models.CharField(_(u"celery 任务 ID"), max_length=40, default='')
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    process_id = models.CharField(_("pipeline 进程 ID"), max_length=32, unique=True, db_index=True)
+    celery_task_id = models.CharField(_("celery 任务 ID"), max_length=40, default='')
 
     objects = ProcessCeleryTaskManager()
 
@@ -1086,9 +1103,9 @@ class ScheduleCeleryTaskManager(models.Manager):
 
 
 class ScheduleCeleryTask(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    schedule_id = models.CharField(_(u"schedule ID"), max_length=NAME_MAX_LENGTH, unique=True, db_index=True)
-    celery_task_id = models.CharField(_(u"celery 任务 ID"), max_length=40, default='')
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    schedule_id = models.CharField(_("schedule ID"), max_length=NAME_MAX_LENGTH, unique=True, db_index=True)
+    celery_task_id = models.CharField(_("celery 任务 ID"), max_length=40, default='')
 
     objects = ScheduleCeleryTaskManager()
 
@@ -1119,8 +1136,8 @@ class NodeCeleryTaskManager(models.Manager):
 
 
 class NodeCeleryTask(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    node_id = models.CharField(_(u"节点 ID"), max_length=32, unique=True, db_index=True)
-    celery_task_id = models.CharField(_(u"celery 任务 ID"), max_length=40, default='')
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    node_id = models.CharField(_("节点 ID"), max_length=32, unique=True, db_index=True)
+    celery_task_id = models.CharField(_("celery 任务 ID"), max_length=40, default='')
 
     objects = NodeCeleryTaskManager()

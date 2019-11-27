@@ -39,7 +39,8 @@
                                 v-model="creator"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
+                                :placeholder="i18n.creatorPlaceholder"
+                                @clear="creator = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -74,8 +75,12 @@
                     @page-change="onPageChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.periodicName" prop="name"></bk-table-column>
-                    <bk-table-column :label="i18n.periodicTemplate" prop="category_name">
+                    <bk-table-column :label="i18n.periodicName" prop="name">
+                        <template slot-scope="props">
+                            <span :title="props.row.name">{{props.row.name}}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.periodicTemplate">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, periodicOperations)"
@@ -88,7 +93,7 @@
                                 v-else
                                 class="periodic-name"
                                 :title="props.row.task_template_name"
-                                :to="`/template/edit/${project_id}/?template_id=${props.row.template_id}`">
+                                :to="templateNameUrl(props.row.template_id, props.row.template_source)">
                                 {{props.row.task_template_name}}
                             </router-link>
                         </template>
@@ -104,8 +109,8 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count"></bk-table-column>
-                    <bk-table-column :label="i18n.enabled" width="80">
+                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="130"></bk-table-column>
+                    <bk-table-column :label="i18n.enabled" width="120">
                         <template slot-scope="props" class="periodic-status">
                             <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
                             {{props.row.enabled ? i18n.start : i18n.pause}}
@@ -167,7 +172,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            type="periodic"
+            :entrance="'periodicTask'"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
@@ -472,6 +477,13 @@
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
+            },
+            templateNameUrl (templateId, templateSource) {
+                let url = `/template/edit/${this.project_id}/?template_id=${templateId}`
+                if (templateSource === 'common') {
+                    url += '&common=1'
+                }
+                return url
             }
         }
     }

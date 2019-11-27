@@ -21,19 +21,31 @@ from auth_backend.backends import get_backend_from_config
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.core.permissions import project_resource
 
+
+class TaskFlowInstanceInspect(FixedCreatorTypeFieldInspect):
+
+    def __init__(self, *args, **kwargs):
+        super(TaskFlowInstanceInspect, self).__init__(*args, **kwargs)
+
+    def properties(self, instance):
+        return {
+            'is_function_task': 'true' if instance.flow_type == 'common_func' else 'false'
+        }
+
+
 taskflow_resource = DjangoModelResource(
     rtype='task',
-    name=_(u"任务实例"),
+    name=_("任务实例"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
+    scope_name=_("标准运维"),
     actions=[
-        Action(id='view', name=_(u"查看"), is_instance_related=True),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='operate', name=_(u"控制"), is_instance_related=True),
-        Action(id='claim', name=_(u"认领"), is_instance_related=True),
-        Action(id='delete', name=_(u"删除"), is_instance_related=True),
-        Action(id='clone', name=_(u"克隆"), is_instance_related=True)
+        Action(id='view', name=_("查看"), is_instance_related=True),
+        Action(id='edit', name=_("编辑"), is_instance_related=True),
+        Action(id='operate', name=_("控制"), is_instance_related=True),
+        Action(id='claim', name=_("认领"), is_instance_related=True),
+        Action(id='delete', name=_("删除"), is_instance_related=True),
+        Action(id='clone', name=_("克隆"), is_instance_related=True)
     ],
     operations=[
         {
@@ -66,9 +78,17 @@ taskflow_resource = DjangoModelResource(
     id_field='id',
     tomb_field='is_deleted',
     backend=get_backend_from_config(),
-    inspect=FixedCreatorTypeFieldInspect(creator_type='user',
-                                         creator_id_f='creator',
-                                         resource_id_f='id',
-                                         resource_name_f='name',
-                                         parent_f='project',
-                                         scope_id_f=None))
+    inspect=TaskFlowInstanceInspect(
+        creator_type='user',
+        creator_id_f='creator',
+        resource_id_f='id',
+        resource_name_f='name',
+        parent_f='project',
+        scope_id_f=None),
+    properties=[
+        {
+            'key': 'is_function_task',
+            'name': "是否为职能化任务"
+        }
+    ]
+)

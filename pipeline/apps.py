@@ -11,15 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
-import redis
 import logging
 import traceback
 
-from redis.sentinel import Sentinel
+import redis
 from django.apps import AppConfig
 from django.conf import settings
+from redis.sentinel import Sentinel
 from rediscluster import StrictRedisCluster
 
 logger = logging.getLogger('root')
@@ -29,7 +27,10 @@ def get_client_through_sentinel():
     kwargs = {}
     if 'password' in settings.REDIS:
         kwargs['password'] = settings.REDIS['password']
-    rs = Sentinel([(settings.REDIS['host'], settings.REDIS['port'])], **kwargs)
+    host = settings.REDIS['host']
+    port = settings.REDIS['port']
+    sentinels = list(zip([h.strip() for h in host.split(',')], [p.strip() for p in str(port).split(',')]))
+    rs = Sentinel(sentinels, **kwargs)
     # avoid None value in settings.REDIS
     r = rs.master_for(settings.REDIS.get('service_name') or 'mymaster')
     # try to connect master
@@ -82,8 +83,8 @@ class PipelineConfig(AppConfig):
             mode = settings.REDIS.get('mode') or 'single'
             try:
                 settings.redis_inst = CLIENT_GETTER[mode]()
-            except Exception as e:
+            except Exception:
                 # fall back to single node mode
-                logger.error("redis client init error: %s" % traceback.format_exc(e))
+                logger.error("redis client init error: %s" % traceback.format_exc())
         else:
             logger.error("can not find REDIS in settings!")

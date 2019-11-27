@@ -20,60 +20,61 @@ from pipeline.models import PipelineTemplate, Snapshot
 class TestPipelineTemplate(TestCase):
     def setUp(self):
         self.data = {
-            u'activities': {
-                u'act_1': {
-                    u'outgoing': u'line_2',
-                    u'incoming': u'line_1',
-                    u'name': u'loop',
-                    u'error_ignorable': False,
-                    u'component': {
+            'activities': {
+                'act_1': {
+                    'outgoing': 'line_2',
+                    'incoming': 'line_1',
+                    'name': 'loop',
+                    'error_ignorable': False,
+                    'component': {
                         'global_outputs': {},
                         'inputs': {
-                            u'i': {'type': 'splice',
-                                   'value': '${loop_i}'}},
-                        u'code': u'loop_test_comp'},
-                    u'optional': False,
-                    u'type': u'LoopServiceActivity',
-                    u'loop_times': 4,
-                    u'id': u'act_1',
-                    u'loop': {}
+                            'i': {'type': 'splice',
+                                  'value': '${loop_i}'}
+                        },
+                        'code': 'loop_test_comp'},
+                    'optional': False,
+                    'type': 'ServiceActivity',
+                    'loop_times': 4,
+                    'id': 'act_1',
+                    'loop': {}
                 }
             },
-            u'end_event': {
-                u'incoming': u'line_2',
-                u'outgoing': u'',
-                u'type': u'EmptyEndEvent',
-                u'id': u'end_event_id',
-                u'name': u''
+            'end_event': {
+                'incoming': 'line_2',
+                'outgoing': '',
+                'type': 'EmptyEndEvent',
+                'id': 'end_event_id',
+                'name': ''
             },
-            u'flows': {
-                u'line_1': {
-                    u'is_default': False,
-                    u'source': u'start_event_id',
-                    u'id': u'line_1',
-                    u'target': u'act_1'
+            'flows': {
+                'line_1': {
+                    'is_default': False,
+                    'source': 'start_event_id',
+                    'id': 'line_1',
+                    'target': 'act_1'
                 },
-                u'line_2': {
-                    u'is_default': False,
-                    u'source': u'act_1',
-                    u'id': u'line_2',
-                    u'target': u'end_event_id'
+                'line_2': {
+                    'is_default': False,
+                    'source': 'act_1',
+                    'id': 'line_2',
+                    'target': 'end_event_id'
                 }
             },
-            u'id': u'pipeline_0',
-            u'gateways': {},
+            'id': 'pipeline_0',
+            'gateways': {},
             'data': {
                 'inputs': {
-                    u'${loop_i}': {'type': 'plain', 'value': 1},
+                    '${loop_i}': {'type': 'plain', 'value': 1},
                 },
                 'outputs': {}
             },
-            u'start_event': {
-                u'incoming': u'',
-                u'outgoing': u'line_1',
-                u'type': u'EmptyStartEvent',
-                u'id': u'start_event_id',
-                u'name': u''}
+            'start_event': {
+                'incoming': '',
+                'outgoing': 'line_1',
+                'type': 'EmptyStartEvent',
+                'id': 'start_event_id',
+                'name': ''}
         }
         self.creator = 'start'
         self.template = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id='1')

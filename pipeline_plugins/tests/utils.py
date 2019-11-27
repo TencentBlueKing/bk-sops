@@ -77,31 +77,31 @@ def mock_get_client_by_user(username):
                 'data': [
                     {
                         "default": 0,
-                        "bk_obj_name": u"业务",
+                        "bk_obj_name": "业务",
                         "bk_obj_id": "biz",
                         "child": [
                             {
                                 "default": 0,
-                                "bk_obj_name": u"集群",
+                                "bk_obj_name": "集群",
                                 "bk_obj_id": "set",
                                 "child": [
                                     {
                                         "default": 0,
-                                        "bk_obj_name": u"模块",
+                                        "bk_obj_name": "模块",
                                         "bk_obj_id": "module",
                                         "bk_inst_id": 5,
                                         "bk_inst_name": "test1"
                                     },
                                     {
                                         "default": 0,
-                                        "bk_obj_name": u"模块",
+                                        "bk_obj_name": "模块",
                                         "bk_obj_id": "module",
                                         "bk_inst_id": 6,
                                         "bk_inst_name": "test2"
                                     },
                                     {
                                         "default": 0,
-                                        "bk_obj_name": u"模块",
+                                        "bk_obj_name": "模块",
                                         "bk_obj_id": "module",
                                         "bk_inst_id": 7,
                                         "bk_inst_name": "test3"
@@ -112,19 +112,19 @@ def mock_get_client_by_user(username):
                             },
                             {
                                 "default": 0,
-                                "bk_obj_name": u"集群",
+                                "bk_obj_name": "集群",
                                 "bk_obj_id": "set",
                                 "child": [
                                     {
                                         "default": 0,
-                                        "bk_obj_name": u"模块",
+                                        "bk_obj_name": "模块",
                                         "bk_obj_id": "module",
                                         "bk_inst_id": 8,
                                         "bk_inst_name": "test1"
                                     },
                                     {
                                         "default": 0,
-                                        "bk_obj_name": u"模块",
+                                        "bk_obj_name": "模块",
                                         "bk_obj_id": "module",
                                         "bk_inst_id": 9,
                                         "bk_inst_name": "test2"
@@ -135,7 +135,7 @@ def mock_get_client_by_user(username):
                             },
                         ],
                         "bk_inst_id": 2,
-                        "bk_inst_name": u"蓝鲸"
+                        "bk_inst_name": "蓝鲸"
                     }
                 ],
                 'message': 'error'
@@ -146,22 +146,22 @@ def mock_get_client_by_user(username):
                 'result': self.success,
                 'data': {
                     'bk_set_id': 2,
-                    'bk_set_name': u'空闲机池',
+                    'bk_set_name': '空闲机池',
                     'module': [
 
                         {
                             "default": 1,
                             "bk_obj_id": "module",
                             "bk_module_id": 3,
-                            "bk_obj_name": u"模块",
-                            "bk_module_name": u"空闲机"
+                            "bk_obj_name": "模块",
+                            "bk_module_name": "空闲机"
                         },
                         {
                             "default": 1,
                             "bk_obj_id": "module",
                             "bk_module_id": 4,
-                            "bk_obj_name": u"模块",
-                            "bk_module_name": u"故障机"
+                            "bk_obj_name": "模块",
+                            "bk_module_name": "故障机"
                         }
                     ],
                 },
@@ -212,7 +212,7 @@ def mock_get_client_by_user(username):
                     'module': [
                         {
                             'bk_module_id': 3,
-                            'bk_module_name': u"空闲机"
+                            'bk_module_name': "空闲机"
                         }
                     ]
                 },

@@ -18,7 +18,7 @@ import App from './App.vue'
 import './api/index.js'
 import bkMagicVue, { locale, lang } from 'bk-magic-vue'
 import 'bk-magic-vue/dist/bk-magic-vue.min.css'
-import { Input, Select, Radio, RadioGroup, RadioButton, Checkbox,
+import { Input, InputNumber, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
     Container, Row, Col, Pagination, Tooltip } from 'element-ui'
@@ -32,6 +32,7 @@ Vue.use(VeeValidate)
 Vue.use(bkMagicVue)
 
 Vue.use(Input)
+Vue.use(InputNumber)
 Vue.use(Select)
 Vue.use(Radio)
 Vue.use(RadioGroup)

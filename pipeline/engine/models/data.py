@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.engine.models.fields import IOField
@@ -19,10 +19,12 @@ from pipeline.engine.models.fields import IOField
 
 class DataSnapshotManager(models.Manager):
     def set_object(self, key, obj):
-        self.update_or_create(key=key,
-                              defaults={
-                                  'obj': obj
-                              })
+        # do not use update_or_create, prevent of deadlock
+        with transaction.atomic():
+            if self.get_object(key):
+                self.filter(key=key).update(obj=obj)
+            else:
+                self.create(key=key, obj=obj)
         return True
 
     def get_object(self, key):
@@ -40,7 +42,7 @@ class DataSnapshotManager(models.Manager):
 
 
 class DataSnapshot(models.Model):
-    key = models.CharField(_(u"对象唯一键"), max_length=255, primary_key=True)
-    obj = IOField(verbose_name=_(u"对象存储字段"))
+    key = models.CharField(_("对象唯一键"), max_length=255, primary_key=True)
+    obj = IOField(verbose_name=_("对象存储字段"))
 
     objects = DataSnapshotManager()

@@ -11,13 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 import zlib
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 
 from django.db import models
 

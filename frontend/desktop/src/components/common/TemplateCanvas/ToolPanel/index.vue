@@ -80,10 +80,22 @@
                     { 'tool-disable': isSelectAllToolDisabled }]">
                 </i>
             </div>
+            <div
+                class="tool-icon"
+                v-bk-tooltips="{
+                    content: i18n.hotKey,
+                    delay: 1000,
+                    placements: ['bottom']
+                }"
+                @click="onToggleHotKeyInfo">
+                <i class="common-icon-flash"></i>
+            </div>
         </div>
     </transition>
 </template>
 <script>
+    import '@/utils/i18n.js'
+
     export default {
         name: 'ToolPanel',
         props: {
@@ -117,8 +129,10 @@
                     nodeSelection: gettext('节点框选'),
                     formatPosition: gettext('排版'),
                     choiceAll: gettext('全选'),
-                    cancelChoiceAll: gettext('反选')
-                }
+                    cancelChoiceAll: gettext('反选'),
+                    hotKey: gettext('快捷键')
+                },
+                isShowHotKey: false
             }
         },
         computed: {
@@ -144,6 +158,9 @@
             },
             onOpenFrameSelect () {
                 this.$emit('onOpenFrameSelect')
+            },
+            onToggleHotKeyInfo () {
+                this.$emit('onToggleHotKeyInfo')
             }
         }
     }
