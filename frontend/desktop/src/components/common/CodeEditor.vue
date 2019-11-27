@@ -71,19 +71,6 @@
         },
         methods: {
             initIntance () {
-                window.MonacoEnvironment = {
-                    getWorkerUrl (moduleId, label) {
-                        if (label === 'typescript' || label === 'javascript') {
-                            return `data:text/javascript;charset=utf-8, ${encodeURIComponent(`
-                                importScripts('${process.env.PUBLIC_STATIC}/dist/js/ts.worker.js')`
-                            )}`
-                        }
-
-                        return `data:text/javascript;charset=utf-8, ${encodeURIComponent(`
-                            importScripts('${process.env.PUBLIC_STATIC}/dist/js/editor.worker.js')`
-                        )}`
-                    }
-                }
                 this.monacoInstance = monaco.editor.create(this.$el, this.editorOptions)
                 const model = this.monacoInstance.getModel()
                 model.onDidChangeContent(event => {

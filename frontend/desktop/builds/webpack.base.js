@@ -115,17 +115,6 @@ module.exports = {
                 ]
             },
             {
-                // 匹配 *.worker.js
-                test: /\.worker\.js$/,
-                use: {
-                  loader: 'worker-loader',
-                  options: {
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name].js'),
-                    publicPath: path.posix.join(process.env.STATIC_ENV, 'dist/js/')
-                  }
-                }
-            },
-            {
                 test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
                 loader: 'url-loader',
                 options: {
