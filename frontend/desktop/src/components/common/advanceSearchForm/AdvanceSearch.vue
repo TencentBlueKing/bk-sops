@@ -15,7 +15,7 @@
             {{i18n.advancedSearch}}
             <div class="advanced-shape">
                 <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
-                <i class="bk-icon icon-up-shape search-up-shape" v-if="shapeShow"></i>
+                <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
             </div>
         </span>
         <bk-input
@@ -24,7 +24,8 @@
             :clearable="true"
             :placeholder="inputPlaceholader"
             :right-icon="'bk-icon icon-search'"
-            @change="onInput"></bk-input>
+            @change="onInput">
+        </bk-input>
     </div>
 </template>
 
@@ -32,7 +33,20 @@
     import '@/utils/i18n.js'
     export default {
         name: 'AdvanceSearch',
-        props: ['inputPlaceholader', 'hideAdvance', 'value'],
+        props: {
+            inputPlaceholader: {
+                type: String,
+                default: ''
+            },
+            hideAdvance: {
+                type: Boolean,
+                default: false
+            },
+            value: {
+                type: String,
+                default: ''
+            }
+        },
         data () {
             return {
                 i18n: {
@@ -40,15 +54,12 @@
                 },
                 isAdvancedSerachShow: false,
                 shapeShow: false,
-                localValue: this.value || ''
+                localValue: this.value
             }
         },
         watch: {
-            value: {
-                handler (value) {
-                    this.localValue = value
-                },
-                deep: true
+            value (value) {
+                this.localValue = value
             }
         },
         methods: {

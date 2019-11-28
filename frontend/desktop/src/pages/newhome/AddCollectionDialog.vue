@@ -414,7 +414,8 @@
                     case 'common':
                         extraInfo = {
                             template_id: template.template_id,
-                            name: template.name
+                            name: template.name,
+                            id: template.id
                         }
                         break
                     case 'process':
@@ -422,14 +423,16 @@
                             project_id: projectId,
                             template_id: template.template_id,
                             template_source: template.template_source,
-                            name: template.name
+                            name: template.name,
+                            id: template.id
                         }
                         break
                     case 'periodic':
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
-                            name: template.name
+                            name: template.name,
+                            id: template.id
                         }
                         break
                     case 'app_maker':
@@ -437,7 +440,8 @@
                             app_id: template.id,
                             project_id: projectId,
                             template_id: template.template_id,
-                            name: template.name
+                            name: template.name,
+                            id: template.id
                         }
                 }
                 return extraInfo

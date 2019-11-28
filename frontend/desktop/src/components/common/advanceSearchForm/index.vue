@@ -21,8 +21,7 @@
                     @input="onSearchInput"
                     @onShow="onAdvanceShow"
                     :value="searchConfig.value"
-                    :input-placeholader="searchConfig.placeholder"
-                >
+                    :input-placeholader="searchConfig.placeholder">
                 </advance-search>
             </div>
         </div>

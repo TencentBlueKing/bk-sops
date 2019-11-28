@@ -92,7 +92,11 @@
                 }
             },
             openOtherApp (url) {
-                window.PAAS_API.open_other_app(url)
+                if (self === top) {
+                    window.open(url, '__blank')
+                } else {
+                    window.PAAS_API.open_other_app(url)
+                }
             },
             onSwitchBusiness (id) {
                 this.setProjectId(id)

@@ -13,7 +13,7 @@
     <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
         <ul v-if="collectionList.length" class="card-list">
-            <task-card
+            <base-card
                 v-for="(item, index) in collectionList"
                 :key="index"
                 :data="item"
@@ -21,7 +21,7 @@
                 :is-apply-permission="getRourcePerm(item)"
                 @onCardClick="onCardClick"
                 @onDeleteCard="onDeleteCard">
-            </task-card>
+            </base-card>
             <li class="add-collection" @click="onAddCollection">+</li>
         </ul>
         <panel-nodata v-else>
@@ -55,7 +55,7 @@
 <script>
     import '@/utils/i18n.js'
     import PanelNodata from './PanelNodata.vue'
-    import TaskCard from '@/components/common/base/TaskCard.vue'
+    import BaseCard from '@/components/common/base/BaseCard.vue'
     import AddCollectionDialog from './AddCollectionDialog.vue'
     import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
     import permission from '@/mixins/permission.js'
@@ -64,7 +64,7 @@
     export default {
         name: 'MyCollection',
         components: {
-            TaskCard,
+            BaseCard,
             PanelNodata,
             AddCollectionDialog,
             SelectCreateTaskDialog
@@ -120,9 +120,9 @@
                 this.isShowAdd = false
             },
             // card 点击删除
-            onDeleteCard (id) {
+            onDeleteCard (data) {
                 this.isDeleteDialogShow = true
-                this.deleteCollectId = id
+                this.deleteCollectId = data.id
             },
             // 确定删除
             async onDeleteConfirm () {

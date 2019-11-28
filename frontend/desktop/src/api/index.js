@@ -330,10 +330,10 @@ const api = {
             objects: list
         }
         const opts = {
-            method: 'POST',
+            method: 'PUT',
             url: `${prefixUrl}`,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data
+            headers: { 'content-type': 'application/json' },
+            data: data
         }
         return request(opts)
     },

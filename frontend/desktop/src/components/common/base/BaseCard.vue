@@ -24,21 +24,25 @@
         <div v-if="isApplyPermission" class="apply-permission-mask">
             <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
         </div>
-        <div v-if="!isApplyPermission" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
+        <div v-if="!isApplyPermission || showDelete" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
     </li>
 </template>
 <script>
     import '@/utils/i18n.js'
     export default {
-        name: 'TaskCard',
+        name: 'BaseCard',
         props: {
             data: {
                 type: Object,
-                default: () => {}
+                default: () => ({})
             },
             isApplyPermission: {
                 type: Boolean,
                 default: false
+            },
+            showDelete: {
+                type: Boolean,
+                default: true
             },
             setName: {
                 type: String,
@@ -59,7 +63,7 @@
         },
         methods: {
             onDeleteCard () {
-                this.$emit('onDeleteCard', this.data.id)
+                this.$emit('onDeleteCard', this.data)
             },
             onCardClick () {
                 this.$emit('onCardClick', this.data)
