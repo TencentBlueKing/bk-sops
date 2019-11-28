@@ -102,6 +102,7 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
 .common-used {
     margin-top: 20px;
     padding: 20px 24px 28px 24px;
@@ -112,13 +113,12 @@
         font-weight: 600;
     }
     .card-list {
-        margin-top: -20px;
-        display: flex;
-        flex-wrap: wrap;
+        max-height: 95px;
         overflow: hidden;
+        @include scrollbar;
         .card-item {
-            margin-top: 20px;
-            margin-right: 16px;
+            display: inline-block;
+            margin-right: 10px;
             padding: 14px;
             width: 278px;
             background: #f0f1f5;
@@ -149,6 +149,17 @@
                         color: #313238;
                     }
                 }
+            }
+        }
+        @media screen and (max-width: 1626px){
+            .card-item {
+                width: 287px;
+            }
+        }
+        @media screen and (max-width: 1366px){
+            & {
+                overflow-x: scroll;
+                white-space: nowrap;
             }
         }
     }
