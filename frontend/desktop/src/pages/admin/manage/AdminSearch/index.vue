@@ -12,7 +12,7 @@
 <template>
     <div class="admin-search">
         <div v-if="!showResultComp" class="search-wrapper">
-            <p class="tips">{{ i18n.tip }}</p>
+            <p class="tips">{{ i18n.tips }}</p>
             <bk-input
                 v-model="searchStr"
                 class="search-input"
@@ -40,7 +40,7 @@
                 showResultComp: false,
                 searchStr: '',
                 i18n: {
-                    tips: gettext('搜索业务名称，流程模板ID，任务ID')
+                    tips: gettext('输入业务名、模板ID或任务ID进行搜索')
                 }
             }
         },
@@ -67,10 +67,16 @@
             font-size: 12px;
             color: #63656e;
         }
-        .search-input /deep/ input{
-            color: #313238;
-            height: 48px;
-            line-height: 48px;
+        /deep/ .search-input {
+            input{
+                color: #313238;
+                height: 48px;
+                line-height: 48px;
+            }
+            .icon-search {
+                font-size: 18px;
+                color: #63656e;
+            }
         }
     }
 </style>
