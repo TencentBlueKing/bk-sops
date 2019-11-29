@@ -28,8 +28,8 @@ from auth_backend.plugins.shortcuts import (
     verify_or_return_insufficient_perms
 )
 
-from pipeline_web.drawing import CANVAS_WIDTH, POSITION
-from pipeline_web.drawing import draw_pipeline as draw_pipeline_tree
+from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
+from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
 
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
