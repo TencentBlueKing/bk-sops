@@ -155,5 +155,3 @@ def loose_strip(data):
         return str(data).strip()
     except Exception:
         return data
-
-
