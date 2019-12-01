@@ -141,3 +141,19 @@ def format_sundry_ip(ip):
         logger.info('HOST[%s] has multiple ip' % ip)
         return ip.split(',')[0]
     return ip
+
+
+def loose_strip(data):
+    """
+    @summary: 尝试把 data 当做字符串处理两端空白字符
+    @param data:
+    @return:
+    """
+    if isinstance(data, str):
+        return data.strip()
+    try:
+        return str(data).strip()
+    except Exception:
+        return data
+
+
