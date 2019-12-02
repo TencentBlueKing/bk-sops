@@ -106,7 +106,7 @@
         created () {
             window.addEventListener('click', this.handleListShow, false)
         },
-        before () {
+        beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
         },
         methods: {

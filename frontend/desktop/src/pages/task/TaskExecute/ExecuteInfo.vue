@@ -18,7 +18,7 @@
                 v-model="theExecuteTime"
                 @change="onSelectExecuteTime">
                 <bk-option
-                    v-for="index in nodeInfo.loop"
+                    v-for="index in loopTimes"
                     :key="index"
                     :id="index"
                     :name="index">
@@ -220,7 +220,8 @@
                 },
                 renderConfig: [],
                 renderData: {},
-                theExecuteTime: 1
+                loop: 1,
+                theExecuteTime: undefined
             }
         },
         computed: {
@@ -248,6 +249,13 @@
             },
             nodeState () {
                 return TASK_STATE_DICT[this.nodeInfo.state]
+            },
+            loopTimes () {
+                const times = []
+                for (let i = 0; i < this.loop; i++) {
+                    times.push(this.loop - i)
+                }
+                return times
             }
         },
         watch: {
@@ -285,6 +293,9 @@
                         this.nodeInfo.histories.forEach(item => {
                             item.last_time = this.getLastTime(item.elapsed_time)
                         })
+                        if (this.theExecuteTime === undefined) {
+                            this.loop = nodeDetailRes.data.loop
+                        }
                         for (const key in this.nodeInfo.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }

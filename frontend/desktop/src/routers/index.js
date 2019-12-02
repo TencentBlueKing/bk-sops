@@ -331,7 +331,6 @@ const routers = new VueRouter({
                             path: 'edit/:cc_id?/',
                             component: TemplateEdit,
                             props: (route) => ({
-                                cc_id: route.params.cc_id,
                                 template_id: route.query.template_id,
                                 type: 'edit',
                                 common: '1'
