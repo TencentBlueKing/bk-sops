@@ -89,7 +89,9 @@
                                     :href="`${site_url}appmaker/home/${props.row.projectId}/`">
                                     {{props.row.templateName}}
                                 </a>
-                                <template v-else>{{ props.row[item.prop] }}</template>
+                                <template v-else>
+                                    <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                </template>
                             </template>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><no-data></no-data></div>
@@ -118,11 +120,13 @@
         },
         {
             label: gettext('分类'),
-            prop: 'category'
+            prop: 'category',
+            width: 140
         },
         {
             label: gettext('创建人'),
-            prop: 'creator'
+            prop: 'creator',
+            width: 120
         },
         {
             label: gettext('创建时间'),
@@ -132,7 +136,7 @@
             label: gettext('创建任务数'),
             prop: 'instanceTotal',
             sortable: true,
-            width: 120
+            width: 150
         }
     ]
 
