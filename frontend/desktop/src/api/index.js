@@ -1657,7 +1657,7 @@ const api = {
         const opts = {
             method: 'GET',
             url: prefixUrl,
-            data: { ...data }
+            params: { ...data }
         }
         return request(opts)
     },

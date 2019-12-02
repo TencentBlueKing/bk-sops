@@ -117,7 +117,7 @@
                                         class="table-link"
                                         target="_blank"
                                         :title="props.row.name"
-                                        :href="`${site_url}taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                        :href="`${site_url}taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}&is_admin=true`">
                                         {{props.row.name}}
                                     </a>
                                 </template>

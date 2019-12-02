@@ -96,7 +96,7 @@
                         :to="getTplURL()">
                     </router-link>
                     <i
-                        v-if="hasAdminPerm"
+                        v-if="adminView"
                         :class="[
                             'params-btn',
                             'common-icon',
@@ -129,7 +129,7 @@
                     :editable="false"
                     :show-palette="false"
                     :canvas-data="canvasData"
-                    :has-admin-perm="hasAdminPerm"
+                    :has-admin-perm="adminView"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onRetryClick="onRetryClick"
@@ -164,6 +164,7 @@
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo'"
+                    :admin-view="adminView"
                     :node-detail-config="nodeDetailConfig">
                 </ExecuteInfo>
                 <RetryNode
@@ -391,6 +392,9 @@
             // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
                 return this.userType !== 'functor' && this.userType !== 'auditor' && this.view_mode !== 'appmaker'
+            },
+            adminView () {
+                return this.hasAdminPerm && this.$route.query.is_admin === 'true'
             }
         },
         watch: {
