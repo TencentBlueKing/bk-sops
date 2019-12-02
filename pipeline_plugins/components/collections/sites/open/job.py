@@ -41,7 +41,8 @@ from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     get_job_instance_url,
     get_node_callback_url,
-    handle_api_error
+    handle_api_error,
+    loose_strip
 )
 
 from pipeline.core.flow.activity import Service
@@ -182,14 +183,15 @@ class JobExecuteTaskService(JobService):
         global_vars = []
         for _value in original_global_var:
             # 1-字符串，2-IP
+            val = loose_strip(_value['value'])
             if _value['type'] == 2:
                 var_ip = cc_get_ips_info_by_str(
                     username=executor,
                     biz_cc_id=biz_cc_id,
-                    ip_str=_value['value'],
+                    ip_str=val,
                     use_cache=False)
                 ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
-                if _value['value'].strip() and not ip_list:
+                if val and not ip_list:
                     data.outputs.ex_data = _(u"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
                     return False
                 if ip_list:
@@ -200,7 +202,7 @@ class JobExecuteTaskService(JobService):
             else:
                 global_vars.append({
                     'name': _value['name'],
-                    'value': _value['value'].strip(),
+                    'value': val,
                 })
 
         job_kwargs = {
