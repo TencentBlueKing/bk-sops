@@ -288,7 +288,7 @@ class JobFastPushFileService(JobService):
                     'ip': _ip['InnerIP'],
                     'bk_cloud_id': _ip['Source']
                 } for _ip in ip_info['ip_result']],
-                'account': item['account'].strip(),
+                'account': loose_strip(item['account']),
             })
 
         original_ip_list = data.get_one_of_inputs('job_ip_list')
