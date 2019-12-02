@@ -65,7 +65,8 @@ def position(pipeline,
     # 先分配节点位置
     locations = {}
     rank_x, rank_y = start
-    new_line_y = []
+    # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
+    new_line_y = rank_y
     for rk in range(min_rk, max_rk + MIN_LEN, MIN_LEN):
         layer_nodes = orders[rk]
         # 当前 rank 首个节点位置
@@ -73,6 +74,7 @@ def position(pipeline,
         for node_id in layer_nodes:
             if node_id in pipeline['all_nodes']:
                 node = pipeline['all_nodes'][node_id]
+                node_y = int(order_y + pipeline_element_shift_y[node[PE.type]])
                 locations[node[PE.id]] = {
                     'id': node[PE.id],
                     'type': PIPELINE_ELEMENT_TO_WEB.get(node[PE.type], node[PE.type]),
@@ -81,14 +83,14 @@ def position(pipeline,
                     'x': int(order_x),
                     'y': int(order_y + pipeline_element_shift_y[node[PE.type]])
                 }
+                if node_y > new_line_y:
+                    new_line_y = node_y + shift_y
             order_y += shift_y
-        new_line_y.append(order_y - shift_y)
         rank_x += shift_x
         # 1)宽度超出画布宽度 canvas_width 2)无分支 3)下一个节点非结束节点 ——> 换行
         if rank_x > canvas_width and len(layer_nodes) == 1 and rk < max_rk - MIN_LEN:
             rank_x = start[0]
-            rank_y += max(new_line_y)
-            new_line_y = []
+            rank_y = new_line_y
 
     flows = {}
     flows.update(pipeline[PE.flows])
@@ -169,13 +171,10 @@ def arrow_flow(flow, locations, pipeline_element_shift_y):
         if source_location_y < target_location_y:
             source_arrow = FLOW_ARROW['right']
             target_arrow = FLOW_ARROW['left']
-        # 并且起点在终点下侧，一般是打回流程
-        elif source_location_y > target_location_y:
-            source_arrow = FLOW_ARROW['left']
-            target_arrow = FLOW_ARROW['bottom']
+        # 并且起点在终点左侧或下侧，一般是打回流程
         else:
-            source_arrow = FLOW_ARROW['left']
-            target_arrow = FLOW_ARROW['right']
+            source_arrow = FLOW_ARROW['bottom']
+            target_arrow = FLOW_ARROW['bottom']
     # 起点和终点在同一横坐标上
     else:
         if source_location_y < target_location_y:
