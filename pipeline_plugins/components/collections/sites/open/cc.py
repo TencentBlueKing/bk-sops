@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import traceback
 from functools import partial
 
 from django.utils import translation
@@ -741,6 +742,14 @@ class CCCreateSetService(Service):
                             value = bk_service_status['data'].get(value)
                             if not value:
                                 data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
+                                return False
+
+                        elif key == "bk_capacity":
+                            try:
+                                value = int(value)
+                            except Exception:
+                                self.logger.error(traceback.format_exc())
+                                data.set_outputs('ex_data', _(u"集群容量必须为整数"))
                                 return False
 
                         cc_kwargs['data'][key] = value
