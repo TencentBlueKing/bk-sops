@@ -390,6 +390,7 @@
                 },
                 renderConfig: [],
                 renderData: {},
+                loop: 1,
                 theExecuteTime: undefined
             }
         },
@@ -487,6 +488,7 @@
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
+                        
                         if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.outputsInfo.hasOwnProperty('job_global_var')) {
                             this.outputsInfo = this.outputsInfo.filter(output => {
                                 const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
@@ -495,6 +497,10 @@
                                 }
                                 return true
                             })
+                        }
+                        
+                        if (this.theExecuteTime === undefined) {
+                            this.loop = respData.loop
                         }
                     }
 

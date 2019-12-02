@@ -148,7 +148,8 @@ def get_taskflow_node_detail(request):
         'inputs': 'pipeline has been destoryed',
         'outputs': 'pipeline has been destoryed',
         'history': {},
-        'log': ''
+        'log': '',
+        'ex_data': ''
     }
 
     taskflow = TaskFlowInstance.objects.get(id=task_id)
@@ -169,6 +170,7 @@ def get_taskflow_node_detail(request):
 
     # collect execution info
     data['execution_info'] = {
+        'name': status.name,
         'start_time': status.started_time.strftime(SERIALIZE_DATE_FORMAT),
         'archive_time': status.archived_time.strftime(SERIALIZE_DATE_FORMAT) if status.archived_time else None,
         'elapsed_time': calculate_elapsed_time(status.started_time, status.archived_time),
@@ -229,6 +231,9 @@ def get_taskflow_node_detail(request):
 
     # collect log
     data['log'] = task_service.get_plain_log_for_node(node_id)
+
+    # set ex_data
+    data['ex_data'] = task_service.get_outputs(node_id)['ex_data']
 
     return JsonResponse({
         'result': True,

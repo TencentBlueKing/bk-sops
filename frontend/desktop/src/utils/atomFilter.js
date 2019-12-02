@@ -52,6 +52,7 @@ const atomFilter = {
                         case 'text':
                         case 'datetime':
                         case 'password':
+                        case 'member_selector':
                             val = ''
                             break
                         case 'checkbox':
