@@ -360,6 +360,7 @@
                 },
                 renderConfig: [],
                 renderData: {},
+                loop: 1,
                 theExecuteTime: undefined
             }
         },
@@ -459,6 +460,9 @@
                         this.executeInfo = respData
                         this.outputsInfo = respData.outputs
                         this.historyInfo = respData.histories
+                        if (this.theExecuteTime === undefined) {
+                            this.loop = respData.loop
+                        }
                         this.outputsInfo = this.outputsInfo.filter(output => output.preset)
                     }
                     this.inputsInfo = respData.inputs
