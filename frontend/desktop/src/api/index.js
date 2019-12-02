@@ -1193,13 +1193,11 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getPeriodicList (data) {
-        const { project_id } = store.state.project
-        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
             url: prefixUrl,
-            params: querystring
+            params: { ...data }
         }
         return request(opts)
     },

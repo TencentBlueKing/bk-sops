@@ -12,9 +12,10 @@
 <template>
     <div class="periodic-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.periodicTask"></BaseTitle>
+            <BaseTitle v-if="!admin" :title="i18n.periodicTask"></BaseTitle>
             <div class="operation-area">
                 <bk-button
+                    v-if="!admin"
                     ref="childComponent"
                     theme="primary"
                     class="task-create-btn"
@@ -98,7 +99,7 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column v-if="hasAdminPerm" :label="i18n.project" :width="140">
+                    <bk-table-column v-if="adminView" :label="i18n.project" :width="140">
                         <template slot-scope="props">
                             <span :title="props.row.project.name">{{ props.row.project.name }}</span>
                         </template>
@@ -124,26 +125,34 @@
                     <bk-table-column :label="i18n.operation" width="120">
                         <template slot-scope="props">
                             <div class="periodic-operation">
+                                <template v-if="!adminView">
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, periodicOperations) }"
+                                        href="javascript:void(0);"
+                                        :class="['periodic-pause-btn', {
+                                            'periodic-start-btn': !props.row.enabled,
+                                            'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
+                                        }]"
+                                        @click="onSetEnable(props.row, $event)">
+                                        {{!props.row.enabled ? i18n.start : i18n.pause}}
+                                    </a>
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, periodicOperations) }"
+                                        href="javascript:void(0);"
+                                        :class="['periodic-bk-btn', {
+                                            'periodic-bk-disable': props.row.enabled,
+                                            'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
+                                        }]"
+                                        :title="props.row.enabled ? i18n.editTitle : ''"
+                                        @click="onModifyCronPeriodic(props.row, $event)">
+                                        {{ i18n.edit }}
+                                    </a>
+                                </template>
                                 <a
-                                    v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, periodicOperations) }"
+                                    v-else
                                     href="javascript:void(0);"
-                                    :class="['periodic-pause-btn', {
-                                        'periodic-start-btn': !props.row.enabled,
-                                        'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
-                                    }]"
-                                    @click="onSetEnable(props.row, $event)">
-                                    {{!props.row.enabled ? i18n.start : i18n.pause}}
-                                </a>
-                                <a
-                                    v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, periodicOperations) }"
-                                    href="javascript:void(0);"
-                                    :class="['periodic-bk-btn', {
-                                        'periodic-bk-disable': props.row.enabled,
-                                        'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
-                                    }]"
-                                    :title="props.row.enabled ? i18n.editTitle : ''"
-                                    @click="onModifyCronPeriodic(props.row, $event)">
-                                    {{ i18n.edit }}
+                                    @click="onRecordView(props.row, $event)">
+                                    {{ i18n.bootRecord }}
                                 </a>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
@@ -161,15 +170,8 @@
                                                 {{ i18n.delete }}
                                             </a>
                                         </li>
-                                        <li v-if="hasAdminPerm">
-                                            <a
-                                                href="javascript:void(0);"
-                                                @click="onRecordView(props.row, $event)">
-                                                {{ i18n.bootRecord }}
-                                            </a>
-                                        </li>
                                         <li>
-                                            <router-link :to="`/taskflow/home/${project_id}/?template_id=${props.row.template_id}&create_method=periodic`">
+                                            <router-link :to="`/taskflow/home/${props.row.project.id}/?template_id=${props.row.template_id}&create_method=periodic`">
                                                 {{ i18n.executeHistory }}
                                             </router-link>
                                         </li>
@@ -243,7 +245,15 @@
             DeletePeriodicDialog
         },
         mixins: [permission],
-        props: ['project_id'],
+        props: {
+            project_id: {
+                type: [String, Number]
+            },
+            admin: {
+                type: Boolean,
+                default: false
+            }
+        },
         data () {
             return {
                 i18n: {
@@ -317,7 +327,10 @@
         computed: {
             ...mapState({
                 hasAdminPerm: state => state.hasAdminPerm
-            })
+            }),
+            adminView () {
+                return this.hasAdminPerm && this.admin
+            }
         },
         created () {
             this.getPeriodicList()
@@ -344,6 +357,11 @@
                         task__creator__contains: this.creator,
                         task__name__contains: this.periodicName || undefined
                     }
+
+                    if (!this.admin) {
+                        data.project__id = this.project_id
+                    }
+
                     const periodicListData = await this.loadPeriodicList(data)
                     const list = periodicListData.objects
                     this.periodicList = list
@@ -529,6 +547,7 @@
     }
     .operation-area{
         margin: 20px 0px;
+        height: 32px;
         .task-create-btn {
             min-width: 120px;
         }

@@ -26,6 +26,11 @@
             path: '/admin/manage/search/'
         },
         {
+            text: gettext('周期任务'),
+            name: 'adminPeriodic',
+            path: '/admin/manage/periodic/'
+        },
+        {
             text: gettext('远程插件包源管理'),
             name: 'sourceManage',
             path: '/admin/manage/source_manage/'
