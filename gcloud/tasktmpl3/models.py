@@ -316,7 +316,7 @@ class TaskTemplateManager(BaseTemplateManager):
             })
 
         order_by = filters.get('order_by', '-templateId')
-        if order_by[0] == '-':
+        if order_by.startswith('-'):
             # 需要去除负号
             order_by = order_by[1:]
             groups = sorted(groups, key=lambda group: -group.get(order_by))
