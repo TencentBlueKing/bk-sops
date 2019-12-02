@@ -183,8 +183,8 @@ class JobExecuteTaskService(JobService):
         global_vars = []
         for _value in original_global_var:
             # 1-字符串，2-IP
+            val = loose_strip(_value['value'])
             if _value['type'] == 2:
-                val = loose_strip(_value['value'])
                 var_ip = cc_get_ips_info_by_str(
                     username=executor,
                     biz_cc_id=biz_cc_id,
