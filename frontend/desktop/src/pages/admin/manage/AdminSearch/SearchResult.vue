@@ -20,7 +20,7 @@
                 <span>{{ i18n.find }}</span>{{ matchedList.length }}<span>{{ i18n.result }}</span>
             </div>
             <template v-if="matchedList.length">
-                <div class="list-table template-list-table">
+                <div class="list-table template-list-table" v-if="tplDataLoading || tplData.length">
                     <bk-table
                         v-bkloading="{ isLoading: tplDataLoading, opacity: 1 }"
                         :data="tplData"
@@ -90,7 +90,7 @@
                         <div slot="empty"><no-data></no-data></div>
                     </bk-table>
                 </div>
-                <div class="list-table task-list-table">
+                <div class="list-table task-list-table" v-if="taskDataLoading || taskData.length">
                     <bk-table
                         v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }"
                         :data="taskData"
@@ -332,8 +332,8 @@
                     const res = await this.search({ keyword: this.searchStr })
                     if (res.result) {
                         this.matchedList = res.data.matched
-                        this.tplFilter = this.matchedList.find(item => item => item.type === 'flow')
-                        this.taskFilter = this.matchedList.find(item => item => item.type === 'taskflow')
+                        this.tplFilter = this.matchedList.find(item => item.type === 'flow')
+                        this.taskFilter = this.matchedList.find(item => item.type === 'task')
                         if (this.tplFilter) {
                             this.getAdminTemplate()
                         }
