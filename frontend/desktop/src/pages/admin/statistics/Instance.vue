@@ -98,7 +98,9 @@
                                     :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
                                     {{props.row.instanceName}}
                                 </a>
-                                <template v-else>{{ props.row[item.prop] }}</template>
+                                <template v-else>
+                                    <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                </template>
                             </template>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><no-data></no-data></div>
@@ -166,12 +168,13 @@
         },
         {
             label: gettext('分类'),
-            prop: 'category'
+            prop: 'category',
+            width: 120
         },
         {
             label: gettext('创建人'),
             prop: 'creator',
-            width: 100
+            width: 120
         },
         {
             label: gettext('创建时间'),
@@ -444,7 +447,7 @@
             handleSortChange (val) {
                 if (val.order === 'ascending') {
                     this.instanceSort = val.prop
-                } else if (val.order === 'decending') {
+                } else if (val.order === 'descending') {
                     this.instanceSort = `-${val.prop}`
                 } else {
                     this.instanceSort = ''
