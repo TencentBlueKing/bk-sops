@@ -39,7 +39,8 @@
                                 v-model="creator"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
+                                :placeholder="i18n.creatorPlaceholder"
+                                @clear="creator = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -92,7 +93,7 @@
                                 v-else
                                 class="periodic-name"
                                 :title="props.row.task_template_name"
-                                :to="`/template/edit/${project_id}/?template_id=${props.row.template_id}`">
+                                :to="templateNameUrl(props.row.template_id, props.row.template_source)">
                                 {{props.row.task_template_name}}
                             </router-link>
                         </template>
@@ -171,7 +172,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            type="periodic"
+            :entrance="'periodicTask'"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
@@ -476,6 +477,13 @@
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
+            },
+            templateNameUrl (templateId, templateSource) {
+                let url = `/template/edit/${this.project_id}/?template_id=${templateId}`
+                if (templateSource === 'common') {
+                    url += '&common=1'
+                }
+                return url
             }
         }
     }

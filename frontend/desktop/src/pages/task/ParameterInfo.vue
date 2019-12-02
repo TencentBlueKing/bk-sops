@@ -110,7 +110,7 @@
                 return this.$refs.TaskParamEdit
             },
             getReferencedStatus (variable) {
-                return this.taskMessageLoading
+                return (this.taskMessageLoading || !variable)
                     ? false
                     : (Object.keys(variable).some(key => {
                         return variable[key].show_type === 'show'

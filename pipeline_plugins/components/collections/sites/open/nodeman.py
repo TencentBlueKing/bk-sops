@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import base64
-import logging
-
 import rsa
 
 from django.utils.translation import ugettext_lazy as _
@@ -23,13 +21,17 @@ from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import get_ip_by_regex
 from pipeline.utils.crypt import rsa_decrypt_password
-from pipeline.core.flow.io import IntItemSchema
+from pipeline.core.flow.io import (
+    IntItemSchema,
+    StringItemSchema,
+    ArrayItemSchema,
+    ObjectItemSchema,
+)
 
 from gcloud.conf import settings
 
 __group_name__ = _(u"节点管理(Nodeman)")
 
-LOGGER = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDYvKQ/dAh499dXGDoQ2NWgwlev
@@ -63,10 +65,6 @@ class NodemanCreateTaskService(Service):
         op_type = data.inputs.nodeman_op_type
         nodeman_hosts = data.inputs.nodeman_hosts
 
-        auth_type_dict = {
-            'PASSWORD': 'password',
-            'KEY': 'key'
-        }
         hosts = []
 
         for host in nodeman_hosts:
@@ -74,46 +72,37 @@ class NodemanCreateTaskService(Service):
             if len(conn_ips) == 0:
                 data.set_outputs('ex_data', _(u'conn_ips 为空或输入格式错误'))
                 return False
-            try:
-                login_ip = get_ip_by_regex(host['login_ip'])[0]
-            except IndexError:
-                data.set_outputs('ex_data', _(u' login_ip为空或输入格式错误'))
-                return False
-            try:
-                data_ip = get_ip_by_regex(host['data_ip'])[0]
-            except IndexError:
-                data.set_outputs('ex_data', _(u'data_ip 为空或输入格式错误'))
-                return False
-            try:
-                cascade_ip = get_ip_by_regex(host['cascade_ip'])[0]
-            except IndexError:
-                data.set_outputs('ex_data', _(u'cascade_ip 为空或输入格式错误'))
-                return False
 
             one = {
-                'login_ip': login_ip,
-                'data_ip': data_ip,
-                'cascade_ip': cascade_ip,
                 'os_type': host['os_type'],
                 'has_cygwin': host['has_cygwin'],
                 'port': host['port'],
                 'account': host['account'],
                 'auth_type': host['auth_type'],
-                'password': host['password'],
-                'key': host['key'],
             }
-
             auth_type = host['auth_type']
+            auth_key = host['auth_key']
 
-            value = host[auth_type.lower()]
+            login_ip = get_ip_by_regex(host.get('login_ip', ''))
+            data_ip = get_ip_by_regex(host.get('data_ip', ''))
+            cascade_ip = get_ip_by_regex(host.get('cascade_ip', ''))
+
+            if len(login_ip):
+                one.update({'login_ip': login_ip[0]})
+            if len(data_ip):
+                one.update({'data_ip': data_ip[0]})
+            if len(cascade_ip):
+                one.update({'cascade_ip': cascade_ip[0]})
+
+            # 处理key/psw
             try:
-                value = rsa_decrypt_password(value, settings.RSA_PRIV_KEY)
+                auth_key = rsa_decrypt_password(auth_key, settings.RSA_PRIV_KEY)
             except Exception:
                 # password is not encrypted
                 pass
-            value = nodeman_rsa_encrypt(value)
+            auth_key = nodeman_rsa_encrypt(auth_key)
 
-            one.update({auth_type_dict[auth_type]: value})
+            one.update({auth_type.lower(): auth_key})
 
             for conn_ip in conn_ips:
                 dict_temp = {'conn_ips': conn_ip}
@@ -130,22 +119,88 @@ class NodemanCreateTaskService(Service):
         }
 
         agent_result = client.nodeman.create_task(agent_kwargs)
-        LOGGER.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
+        self.logger.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
             result=agent_result, kwargs=agent_kwargs))
         if agent_result['result']:
-            data.set_outputs('job_id', agent_result['data']['hosts'][0]['job_id'])
+            data.set_outputs('job_id', agent_result['data']['id'])
             return True
         else:
             message = u"create agent install task failed: %s" % agent_result['message']
             data.set_outputs('ex_data', message)
             return False
 
+    def schedule(self, data, parent_data, callback_data=None):
+        bk_biz_id = data.inputs.biz_cc_id
+        executor = parent_data.inputs.executor
+        client = get_client_by_user(executor)
+
+        job_id = data.get_one_of_outputs('job_id')
+
+        job_kwargs = {
+            'bk_biz_id': bk_biz_id,
+            'job_id': job_id
+        }
+        job_result = client.nodeman.get_task_info(job_kwargs)
+
+        self.logger.info('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+            result=job_result, kwargs=job_kwargs))
+
+        # 任务执行失败
+        if not job_result['result']:
+            self.logger.error('nodeman get task info result: {result}, api_kwargs: {kwargs}'.format(
+                result=job_result, kwargs=job_kwargs))
+            data.set_outputs('ex_data', _(u'查询失败，未能获得任务执行结果'))
+            self.finish_schedule()
+            return False
+
+        result_data = job_result['data']
+        host_count = result_data['host_count']
+        success_num = result_data['status_count']['success_count']
+        fail_num = result_data['status_count']['failed_count']
+        fail_infos = []
+
+        for host in result_data['hosts']:
+            # 安装失败
+            if host['status'] == 'FAILED':
+                fail_infos.append({
+                    'host_id': host['host']['id'],
+                    'inner_ip': host['host']['inner_ip']
+                })
+
+        if success_num + fail_num == host_count:
+            data.set_outputs('success_num', success_num)
+            data.set_outputs('fail_num', fail_num)
+            if success_num == host_count:
+                self.finish_schedule()
+                return True
+            else:
+                error_log = u"<br>%s</br>" % _(u'日志信息为：')
+                for fail_info in fail_infos:
+                    log_kwargs = {
+                        'host_id': fail_info['host_id'],
+                        'bk_biz_id': bk_biz_id
+                    }
+                    result = client.nodeman.get_log(log_kwargs)
+                    log_info = result['data']['logs']
+                    error_log = u'{error_log}<br><b>{host}{fail_host}</b></br><br>{log}</br>{log_info}'.format(
+                        error_log=error_log,
+                        host=_(u'主机：'),
+                        fail_host=fail_info['inner_ip'],
+                        log=_(u'日志：'),
+                        log_info=log_info
+                    )
+
+                data.set_outputs('ex_data', error_log)
+                self.finish_schedule()
+                return False
+        # 未完成
+
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'任务ID'),
+            self.OutputItem(name=_(u'任务 ID'),
                             key='job_id',
                             type='int',
-                            schema=IntItemSchema(description=_(u'提交的任务的job_id'))),
+                            schema=IntItemSchema(description=_(u'提交的任务的 job_id'))),
             self.OutputItem(name=_(u'安装成功个数'),
                             key='success_num',
                             type='int',
@@ -156,69 +211,48 @@ class NodemanCreateTaskService(Service):
                             schema=IntItemSchema(description=_(u'任务中安装失败的机器个数'))),
         ]
 
-    def schedule(self, data, parent_data, callback_data=None):
-        bk_biz_id = data.inputs.biz_cc_id
-        executor = parent_data.inputs.executor
-        client = get_client_by_user(executor)
-
-        job_id = data.get_one_of_outputs('job_id')
-        success_num = 0
-        fail_num = 0
-        fail_ids = []
-        fail_hosts = []
-
-        job_kwargs = {
-            'bk_biz_id': bk_biz_id,
-            'job_id': job_id
-        }
-        job_result = client.nodeman.get_task_info(job_kwargs)
-        host_count = job_result['data']['host_count']
-        result_data = job_result['data']
-
-        # 任务执行失败
-        if job_result['message'] != 'success':
-            data.set_outputs('ex_data', _(u'查询失败，未能获得任务执行结果'))
-            self.finish_schedule()
-            return False
-
-        for i in range(host_count):
-            job_result = result_data['hosts'][i]
-
-            # 安装成功
-            if job_result['status'] == 'SUCCEEDED':
-                success_num += 1
-            # 安装失败
-            else:
-                fail_num += 1
-                fail_ids.append(job_result['host']['id'])
-                fail_hosts.append(job_result['host']['inner_ip'])
-
-        if success_num + fail_num == host_count:
-            if success_num == host_count:
-                self.finish_schedule()
-                return True
-            else:
-                data.set_outputs('success_num', success_num)
-                data.set_outputs('fail_num', fail_num)
-                error_log = u"<br>%s</br>" % _(u'日志信息为：')
-                for i in range(len(fail_ids)):
-                    log_kwargs = {
-                        'host_id': fail_ids[i],
-                        'bk_biz_id': bk_biz_id
-                    }
-                    result = client.nodeman.get_log(log_kwargs)
-                    log_info = result['data']['logs']
-                    error_log = u'{error_log}<br><b>{host}{fail_host}</b></br><br>{log}</br>{log_info}'.format(
-                        error_log=error_log,
-                        host=_(u'主机：'),
-                        fail_host=fail_hosts[i],
-                        log=_(u'日志：'),
-                        log_info=log_info
-                    )
-
-                data.set_outputs('ex_data', error_log)
-                self.finish_schedule()
-                return False
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='int',
+                           schema=IntItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'云区域 ID'),
+                           key='nodeman_bk_cloud_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'节点所在云区域 ID'))),
+            self.InputItem(name=_(u'节点类型'),
+                           key='nodeman_node_type',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'节点类型，可以是 AGENT（表示直连区域安装 Agent）、 '
+                                                                 u'PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）'))),
+            self.InputItem(name=_(u'操作类型'),
+                           key='nodeman_op_type',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、'
+                                                                 u' UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）'))),
+            self.InputItem(name=_(u'主机'),
+                           key='nodeman_hosts',
+                           type='array',
+                           schema=ArrayItemSchema(
+                               description=_(u'主机所在云区域 ID'),
+                               item_schema=ObjectItemSchema(
+                                   description=_(u'主机相关信息'),
+                                   property_schemas={
+                                       'conn_ips': StringItemSchema(description=_(u'主机通信 IP')),
+                                       'login_ip': StringItemSchema(description=_(u'主机登录 IP，可以为空，适配复杂网络时填写')),
+                                       'data_ip': StringItemSchema(description=_(u'主机数据 IP，可以为空，适配复杂网络时填写')),
+                                       'cascade_ip': StringItemSchema(description=_(u'级联 IP, 可以为空，安装 PROXY 时必填')),
+                                       'os_type': StringItemSchema(description=_(u'操作系统类型，可以是 LINUX, WINDOWS, 或 AIX')),
+                                       'has_cygwin': StringItemSchema(description=_(u'是否安装了 cygwin，True：表示已安装，'
+                                                                                    u'False：表示未安装, windows 操作系统时选填')),
+                                       'port': StringItemSchema(description=_(u'端口号')),
+                                       'account': StringItemSchema(description=_(u'登录帐号')),
+                                       'auth_type': StringItemSchema(description=_(u'认证方式，可以是 PASSWORD 或 KEY')),
+                                       'auth_key': StringItemSchema(description=_(u'认证密钥,根据认证方式，是登录密码或者登陆密钥')),
+                                   }
+                               ))),
+        ]
 
 
 class NodemanCreateTaskComponent(Component):

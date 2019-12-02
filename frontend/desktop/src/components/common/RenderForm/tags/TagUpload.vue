@@ -19,18 +19,18 @@
                 :limit="limit"
                 :auto-upload="auto_upload"
                 :headers="headers"
-                :on-success="handleSuccess"
-                :on-remove="handleRemove"
-                :on-error="handleError"
-                :on-change="handleChange"
-                :before-upload="handleBeforeUpload"
-                :before-remove="handleBeforeRemove"
+                :on-success="handleSuccess.bind(this)"
+                :on-remove="handleRemove.bind(this)"
+                :on-error="handleError.bind(this)"
+                :on-change="handleChange.bind(this)"
+                :before-upload="handleBeforeUpload.bind(this)"
+                :before-remove="handleBeforeRemove.bind(this)"
                 :file-list="fileValue">
                 <bk-button size="small" theme="primary">{{ uploadText }}</bk-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
             <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>
-            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validate.message}}</span>
+            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
     </div>

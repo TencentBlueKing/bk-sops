@@ -16,9 +16,9 @@
             'variable-item',
             { 'variable-editing': isVariableEditing && theKeyOfEditing === constant.key }
         ]">
-        <div class="variable-content" @click="onEditVariable(constant.key)">
-            <i v-if="!isSystemVar" class="col-item-drag bk-icon icon-sort"></i>
-            <i v-else class="common-icon-lock-disable"></i>
+        <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
+            <i v-if="!isSystemVar && !isShowVariableEdit" class="col-item-drag bk-icon icon-sort"></i>
+            <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
             <span class="col-item col-name">
                 <p
                     class="col-constant-name"
@@ -79,7 +79,7 @@
                 <div @click.stop>
                     <bk-switcher
                         size="small"
-                        :selected="outputs.indexOf(constant.key) > -1"
+                        :value="outputs.indexOf(constant.key) > -1"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
                 </div>
@@ -98,6 +98,8 @@
                 :variable-data="variableData"
                 :variable-type-list="variableTypeList"
                 :is-new-variable="false"
+                :is-hide-system-var="isHideSystemVar"
+                :system-constants="systemConstants"
                 @scrollPanelToView="scrollPanelToView"
                 @onChangeEdit="onChangeEdit">
             </VariableEdit>
@@ -112,7 +114,7 @@
         components: {
             VariableEdit
         },
-        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList'],
+        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList', 'isHideSystemVar', 'systemConstants'],
         data () {
             return {
                 i18n: {
@@ -156,9 +158,9 @@
             onDeleteVariable (key, index) {
                 this.$emit('onDeleteVariable', { key, index })
             },
-            onEditVariable (key) {
+            onEditVariable (key, index) {
                 if (this.isSystemVar) return
-                this.$emit('onEditVariable', key)
+                this.$emit('onEditVariable', key, index)
             },
             scrollPanelToView (index) {
                 this.$emit('scrollPanelToView', index)

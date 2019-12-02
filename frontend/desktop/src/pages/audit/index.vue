@@ -33,7 +33,8 @@
                                 :searchable="true"
                                 :placeholder="i18n.choice"
                                 :clearable="true"
-                                @selected="onSelectProject">
+                                @selected="onSelectProject"
+                                @clear="projectId = undefined">
                                 <bk-option
                                     v-for="(option, index) in business.list"
                                     :key="index"
@@ -76,7 +77,8 @@
                                 v-model="creator"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
+                                :placeholder="i18n.creatorPlaceholder"
+                                @clear="creator = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -85,7 +87,8 @@
                                 v-model="executor"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.executorPlaceholder">
+                                :placeholder="i18n.executorPlaceholder"
+                                @clear="executor = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -248,7 +251,7 @@
                 selectedProject: '',
                 taskSync: '',
                 statusSync: '',
-                searchStr: '',
+                searchStr: undefined,
                 projectId: undefined,
                 creator: undefined,
                 executor: undefined,
@@ -315,7 +318,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         project__id: this.projectId,
                         category: this.activeTaskCategory,
-                        audit__pipeline_instance__name__contains: this.searchStr,
+                        audit__pipeline_instance__name__contains: this.searchStr || undefined,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
                         pipeline_instance__creator__contains: this.creator,
@@ -343,6 +346,9 @@
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
+                        } else if (item.is_revoked) {
+                            status.cls = 'revoke common-icon-dark-circle-shape'
+                            status.text = gettext('撤销')
                         } else if (item.is_started) {
                             status.cls = 'loading common-icon-loading'
                             this.getExecuteDetail(item, index)
@@ -393,10 +399,6 @@
                             case 'FAILED':
                                 status.cls = 'failed common-icon-dark-circle-close'
                                 status.text = gettext('失败')
-                                break
-                            case 'REVOKED':
-                                status.cls = 'revoke common-icon-dark-circle-shape'
-                                status.text = gettext('撤销')
                                 break
                             default:
                                 status.text = gettext('未知')
@@ -451,8 +453,9 @@
                 this.executor = undefined
                 this.searchStr = undefined
                 this.statusSync = ''
-                this.selectedProject = ''
                 this.taskSync = ''
+                this.selectedProject = ''
+                this.projectId = undefined
                 this.activeTaskCategory = undefined
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined

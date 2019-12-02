@@ -87,7 +87,7 @@ class TaskTemplateManager(BaseTemplateManager):
         if override and (not check_info['can_override']):
             return {
                 'result': False,
-                'message': 'Unable to override flows across project',
+                'message': 'Unable to override flows across project or keep ID when importing common flows data',
                 'data': 0
             }
 
@@ -316,7 +316,7 @@ class TaskTemplateManager(BaseTemplateManager):
             })
 
         order_by = filters.get('order_by', '-templateId')
-        if order_by[0] == '-':
+        if order_by.startswith('-'):
             # 需要去除负号
             order_by = order_by[1:]
             groups = sorted(groups, key=lambda group: -group.get(order_by))

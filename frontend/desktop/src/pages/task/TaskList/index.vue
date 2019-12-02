@@ -89,7 +89,8 @@
                                 v-model="creator"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
+                                :placeholder="i18n.creatorPlaceholder"
+                                @clear="creator = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -98,7 +99,8 @@
                                 v-model="executor"
                                 class="bk-input-inline"
                                 :clearable="true"
-                                :placeholder="i18n.executorPlaceholder">
+                                :placeholder="i18n.executorPlaceholder"
+                                @clear="executor = undefined">
                             </bk-input>
                         </div>
                         <div class="query-content">
@@ -213,7 +215,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            type="normal"
+            :entrance="'taskflow'"
             :common="common"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
@@ -419,7 +421,7 @@
                         template_id: this.templateId,
                         pipeline_instance__creator__contains: this.creator,
                         pipeline_instance__executor__contains: this.executor,
-                        pipeline_instance__name__contains: this.flowName,
+                        pipeline_instance__name__contains: this.flowName || undefined,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
                         create_method: this.createMethod || undefined
@@ -452,6 +454,9 @@
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
+                        } else if (item.is_revoked) {
+                            status.cls = 'revoke common-icon-dark-circle-shape'
+                            status.text = gettext('撤销')
                         } else if (item.is_started) {
                             status.cls = 'loading common-icon-loading'
                             this.getExecuteDetail(item, index)
@@ -495,10 +500,6 @@
                             case 'FAILED':
                                 status.cls = 'failed common-icon-dark-circle-close'
                                 status.text = gettext('失败')
-                                break
-                            case 'REVOKED':
-                                status.cls = 'revoke common-icon-dark-circle-shape'
-                                status.text = gettext('撤销')
                                 break
                             default:
                                 status.text = gettext('未知')
@@ -632,7 +633,7 @@
                 this.TimeRange = ['', '']
                 this.isStarted = undefined
                 this.isFinished = undefined
-                this.createMethod = ''
+                this.createMethod = undefined
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined

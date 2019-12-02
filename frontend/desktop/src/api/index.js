@@ -1167,7 +1167,7 @@ const api = {
     createPeriodic (data) {
         const prefixUrl = this.getPrefix('periodic')
         const { project_id } = store.state.project
-        const { name, cron, templateId, execData } = data
+        const { name, cron, templateId, execData, templateSource } = data
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -1176,7 +1176,8 @@ const api = {
                 cron: cron,
                 name: name,
                 template_id: templateId,
-                pipeline_tree: execData
+                pipeline_tree: execData,
+                template_source: templateSource
             }
         }
         return request(opts)
@@ -1545,6 +1546,17 @@ const api = {
             url: prefixUrl,
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 获取人员列表
+     */
+    getMemberList () {
+        const prefixUrl = this.getPrefix('userList')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
         }
         return request(opts)
     }

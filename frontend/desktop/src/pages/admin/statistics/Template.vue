@@ -89,7 +89,9 @@
                                     :href="`${site_url}template/edit/${props.row.projectId}/?template_id=${props.row.templateId}`">
                                     {{props.row.templateName}}
                                 </a>
-                                <template v-else>{{ props.row[item.prop] }}</template>
+                                <template v-else>
+                                    <span :title="props.row[item.prop]">{{ props.row[item.prop] }}</span>
+                                </template>
                             </template>
                         </bk-table-column>
                         <div class="empty-data" slot="empty"><no-data></no-data></div>
@@ -112,7 +114,7 @@
             label: gettext('流程ID'),
             prop: 'templateId',
             sortable: true,
-            width: 90
+            width: 100
         },
         {
             label: gettext('流程名称'),
@@ -124,12 +126,13 @@
         },
         {
             label: gettext('分类'),
-            prop: 'category'
+            prop: 'category',
+            width: 120
         },
         {
             label: gettext('创建人'),
             prop: 'creator',
-            width: 100
+            width: 120
         },
         {
             label: gettext('插件数'),

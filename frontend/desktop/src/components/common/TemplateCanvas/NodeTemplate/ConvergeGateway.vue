@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['circle-node', 'converge-gateway', node.status ? node.status.toLowerCase() : '']">
+    <div :class="['gateway-node', 'converge-gateway', node.status ? node.status.toLowerCase() : '']">
         <div class="node-type-icon common-icon-node-convergegateway"></div>
     </div>
 </template>
