@@ -65,40 +65,49 @@ def position(pipeline,
     # 先分配节点位置
     locations = {}
     rank_x, rank_y = start
+    new_line_y = []
     for rk in range(min_rk, max_rk + MIN_LEN, MIN_LEN):
         layer_nodes = orders[rk]
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
-        new_line_y = []
         for node_id in layer_nodes:
             if node_id in pipeline['all_nodes']:
                 node = pipeline['all_nodes'][node_id]
                 locations[node[PE.id]] = {
                     'id': node[PE.id],
                     'type': PIPELINE_ELEMENT_TO_WEB.get(node[PE.type], node[PE.type]),
-                    'name': node[PE.name],
+                    'name': node.get(PE.name, ''),
                     'status': '',
-                    'x': order_x,
-                    'y': order_y + pipeline_element_shift_y[node[PE.type]]
+                    'x': int(order_x),
+                    'y': int(order_y + pipeline_element_shift_y[node[PE.type]])
                 }
             order_y += shift_y
-        new_line_y.append(order_y)
+        new_line_y.append(order_y - shift_y)
         rank_x += shift_x
-        # 宽度超出画布宽度 canvas_width 并且无分支，换行
-        if rank_x > canvas_width and len(layer_nodes) == 1:
+        # 1)宽度超出画布宽度 canvas_width 2)无分支 3)下一个节点非结束节点 ——> 换行
+        if rank_x > canvas_width and len(layer_nodes) == 1 and rk < max_rk - MIN_LEN:
             rank_x = start[0]
             rank_y += max(new_line_y)
+            new_line_y = []
 
     flows = {}
     flows.update(pipeline[PE.flows])
     if isinstance(more_flows, dict):
         flows.update(more_flows)
-    lines = position_flows(flows, locations, pipeline_element_shift_y)
+    lines = position_flows(flows, locations, pipeline_element_shift_y, start[0], shift_y)
     return locations, lines
 
 
-def position_flows(flows, locations, pipeline_element_shift_y):
-    # 再分配连线端点
+def position_flows(flows, locations, pipeline_element_shift_y, start_x, shift_y):
+    """
+    @summary: 分配连线端点
+    @param flows:
+    @param locations:
+    @param pipeline_element_shift_y:
+    @param start_x: 画布最左侧
+    @param shift_y: 画布默认行距
+    @return:
+    """
     lines = {}
     for flow_id, flow in flows.items():
         source_arrow, target_arrow = arrow_flow(flow, locations, pipeline_element_shift_y)
@@ -113,6 +122,11 @@ def position_flows(flows, locations, pipeline_element_shift_y):
                 'id': flow[PE.target]
             }
         }
+        source_location = locations[flow[PE.source]]
+        target_location = locations[flow[PE.target]]
+        # 终点是每行起始位置，说明有换行，每次换行线段需要设置线段比例保证下折线与下一行距离为单行间距
+        if target_location['x'] == start_x:
+            lines[flow_id]['midpoint'] = 1 - shift_y * 0.5 / (target_location['y'] - source_location['y'])
     return lines
 
 

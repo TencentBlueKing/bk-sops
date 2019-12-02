@@ -67,6 +67,6 @@ class TestDummy(TestCase):
 
     def test_remove_dummy_nodes(self):
         self.real_flows_chain = dummy.replace_long_path_with_dummy(self.pipeline, self.ranks)
-        dummy.remove_dummy(self.pipeline, self.real_flows_chain)
+        dummy.remove_dummy(self.pipeline, self.real_flows_chain, dummy_nodes_included=[self.ranks])
         self.assertEqual(self.pipeline, self.pipeline_bak)
         self.assertEqual(self.ranks, self.ranks_bak)
