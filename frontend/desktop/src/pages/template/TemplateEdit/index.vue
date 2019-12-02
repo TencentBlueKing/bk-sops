@@ -41,7 +41,10 @@
                 :common="common"
                 :template_id="template_id"
                 :canvas-data="canvasData"
-                @onNodeClick="onNodeClick"
+                @onConditionClick="onOpenConditionEdit"
+                @variableDataChanged="variableDataChanged"
+                @onNodeMousedown="onNodeMousedown"
+                @onShowNodeConfig="onShowNodeConfig"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
@@ -49,9 +52,6 @@
                 @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
-            <div class="atom-node">
-                <span class="atom-number">{{i18n.added}} {{Object.keys(activities).length}} {{i18n.node}}</span>
-            </div>
             <NodeConfig
                 ref="nodeConfig"
                 :project_id="project_id"
@@ -67,6 +67,14 @@
                 @globalVariableUpdate="globalVariableUpdate"
                 @onUpdateNodeInfo="onUpdateNodeInfo">
             </NodeConfig>
+            <ConditionEdit
+                ref="conditionEdit"
+                :condition-data="conditionData"
+                :is-setting-panel-show="isSettingPanelShow"
+                :is-show-condition-edit="isShowConditionEdit"
+                v-show="isShowConditionEdit"
+                @onCloseConditionEdit="onCloseConditionEdit">
+            </ConditionEdit>
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
@@ -86,7 +94,8 @@
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
                 @updateLocalTemplateData="updateLocalTemplateData"
-                @hideConfigPanel="hideConfigPanel">
+                @hideConfigPanel="hideConfigPanel"
+                @updataConditionData="updataConditionData">
             </TemplateSetting>
             <bk-dialog
                 width="400"
@@ -117,6 +126,7 @@
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
     import NodeConfig from './NodeConfig.vue'
+    import ConditionEdit from './ConditionEdit.vue'
     import draft from '@/utils/draft.js'
     import { STRING_LENGTH } from '@/constants/index.js'
 
@@ -126,13 +136,13 @@
         tips: gettext('系统不会保存您所做的更改，确认离开？'),
         saved: gettext('保存成功'),
         error: gettext('任务节点参数错误，请点击错误节点查看详情'),
-        delete_success: gettext('删除本地缓存成功'),
-        delete_fail: gettext('该本地缓存不存在，删除失败'),
-        replace_success: gettext('替换流程成功'),
-        add_cache: gettext('新增流程本地缓存成功'),
-        replace_save: gettext('替换流程自动保存'),
-        added: gettext('已添加'),
-        node: gettext('个任务节点')
+        conditionError: gettext('分支节点参数错误，请点击错误节点查看详情'),
+        deleteSuccess: gettext('删除本地缓存成功'),
+        deleteFail: gettext('该本地缓存不存在，删除失败'),
+        replaceSuccess: gettext('替换流程成功'),
+        addCache: gettext('新增流程本地缓存成功'),
+        replaceSave: gettext('替换流程自动保存'),
+        layoutSave: gettext('排版完成，原内容在本地缓存中')
     }
 
     export default {
@@ -141,6 +151,7 @@
             TemplateHeader,
             TemplateCanvas,
             NodeConfig,
+            ConditionEdit,
             TemplateSetting
         },
         props: ['project_id', 'template_id', 'type', 'common'],
@@ -165,8 +176,10 @@
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
+                isShowConditionEdit: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
+                idOfNodeShortcutPanel: '',
                 subAtomGrouped: [],
                 draftArray: [],
                 intervalSaveTemplate: null,
@@ -176,7 +189,8 @@
                 isClickDraft: false,
                 tplOperations: [],
                 tplActions: [],
-                tplResource: {}
+                tplResource: {},
+                conditionData: {}
             }
         },
         computed: {
@@ -226,6 +240,9 @@
                     'subflow': subAtomGrouped
                 }
             },
+            projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
+                return this.common ? 'common' : this.project_id
+            },
             canvasData () {
                 const branchConditions = {}
                 for (const gKey in this.gateways) {
@@ -237,15 +254,25 @@
                 return {
                     activities: this.activities,
                     lines: this.lines,
-                    locations: this.locations.map(item => {
-                        const data = { ...item, mode: 'edit' }
+                    locations: this.locations.map(location => {
+                        let icon, group
+                        const atom = this.singleAtom.find(item => {
+                            if (location.type === 'tasknode') {
+                                return this.activities[location.id].component.code === item.code
+                            }
+                        })
+                        if (atom) {
+                            icon = atom.group_icon
+                            group = atom.group_name
+                        }
+                        const data = { ...location, mode: 'edit', icon, group }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
-                            && item.type === 'subflow'
+                            && location.type === 'subflow'
                         ) {
                             this.subprocess_info.details.some(subflow => {
-                                if (subflow.subprocess_node_id === item.id && subflow.expired) {
+                                if (subflow.subprocess_node_id === location.id && subflow.expired) {
                                     data.hasUpdated = true
                                     return true
                                 }
@@ -270,24 +297,25 @@
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
+
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.project_id, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
+                draft.copyAndReplaceDraft(this.username, this.projectOrCommon, this.template_id, this.templateUUID)
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
             } else {
                 // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             }
             // 五分钟进行存储本地缓存
             const fiveMinutes = 1000 * 60 * 5
             this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
+                draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
             }, fiveMinutes)
 
             // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
             const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
             this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
@@ -500,7 +528,7 @@
                     this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.project_id, data.template_id, this.templateUUID)
+                        draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
                     }
                     this.$bkMessage({
                         message: i18n.saved,
@@ -508,8 +536,9 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
+                        const path = this.common ? `/admin/template/edit/` : `/template/edit/${this.project_id}/`
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
+                        this.$router.push({ path, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -568,9 +597,6 @@
                 this.idOfNodeInConfigPanel = id
             },
             hideConfigPanel () {
-                if (this.idOfNodeInConfigPanel) {
-                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, { isActived: false })
-                }
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
             },
@@ -581,7 +607,7 @@
                 this.isTemplateDataChanged = true
             },
             /**
-             * 普通标准插件节点校验，不包括子流程节点
+             * 任务节点校验
              * 校验项包含：标准插件类型，节点名称，输入参数
              * @return isAllValid {Boolean} 节点是否合法
              */
@@ -600,6 +626,10 @@
                             }
                         } else {
                             isNodeValid = false // 节点标准插件类型为空
+                        }
+                    } else {
+                        if (!node.name || node.template_id === undefined) {
+                            isNodeValid = false
                         }
                     }
                     if (!isNodeValid) {
@@ -684,24 +714,23 @@
                 this.searchAtom(payload)
             },
             /**
-             * 任务节点点击
+             * 节点 Mousedown 回调
              */
-            onNodeClick (id, type) {
-                if (['tasknode', 'subflow'].indexOf(type) === -1) {
-                    return false
+            onNodeMousedown (id) {
+                this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+            },
+            /**
+             * 打开节点配置面板
+             */
+            onShowNodeConfig (id) {
+                if (this.isShowConditionEdit) {
+                    this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
                 }
                 this.toggleSettingPanel(false)
-                const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
                 })[0].type
                 if (nodeType === 'tasknode' || nodeType === 'subflow') {
-                    // 清除当前节点选中态
-                    if (currentId) {
-                        this.onUpdateNodeInfo(currentId, { isActived: false })
-                    }
-                    this.onUpdateNodeInfo(id, { isActived: true })
-
                     if (this.isNodeConfigPanelShow) {
                         this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
                             this.showConfigPanel(id)
@@ -713,11 +742,10 @@
             },
             // 分支网关失焦
             onLabelBlur (labelData) {
-                this.variableDataChanged()
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
@@ -729,7 +757,7 @@
                 try {
                     const pipelineTree = this.getPipelineTree()
                     const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
-                    const width = canvasEl.offsetWidth
+                    const width = canvasEl.offsetWidth - 200
                     const res = await this.getLayoutedPipeline({ width, pipelineTree })
                     if (res.result) {
                         this.onNewDraft(undefined, false)
@@ -737,8 +765,9 @@
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
+                            this.variableDataChanged()
                             this.$bkMessage({
-                                message: gettext('排版完成，原内容在本地缓存中'),
+                                message: i18n.layoutSave,
                                 theme: 'success'
                             })
                         })
@@ -792,7 +821,6 @@
                 this.setLine({ type: changeType, line })
             },
             onLocationMoveDone (location) {
-                this.variableDataChanged()
                 this.setLocationXY(location)
             },
             globalVariableUpdate (val) {
@@ -872,7 +900,18 @@
             // 同步节点配置面板数据
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
-                    this.$refs.nodeConfig.syncNodeDataToActivities().then((isValid) => {
+                    this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
+                        if (!isValid) return
+                        this.asyncConditionData()
+                    })
+                } else {
+                    this.asyncConditionData()
+                }
+            },
+            // 同步分支条件面板数据
+            asyncConditionData () {
+                if (this.isShowConditionEdit) {
+                    this.onSaveConditionData().then(isValid => {
                         if (!isValid) return
                         this.checkNodeAndSaveTemplate()
                     })
@@ -883,22 +922,23 @@
             // 校验节点配置
             checkNodeAndSaveTemplate () {
                 // 校验节点数目
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
                 }
                 // 节点配置是否错误
-                const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
+                const nodeWithErrors = document.querySelectorAll('.canvas-node-item .failed')
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
                     errorHandler({ message: i18n.error }, this)
                     return
                 }
-                const isAllNodeValid = this.validateAtomNode()
 
-                if (isAllNodeValid) {
+                const isAllNodeValid = this.validateAtomNode()
+                const isAllConditionValid = this.checkConditionData(true)
+                if (isAllNodeValid && isAllConditionValid) {
                     this.saveTemplate()
                 }
             },
@@ -918,39 +958,39 @@
             onDeleteDraft (key) {
                 if (draft.deleteDraft(key)) {
                     this.$bkMessage({
-                        'message': i18n.delete_success,
+                        'message': i18n.deleteSuccess,
                         'theme': 'success'
                     })
                 } else {
                     this.$bkMessage({
-                        'message': i18n.delete_fail,
+                        'message': i18n.deleteFail,
                         'theme': 'error'
                     })
                 }
                 // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             },
             // 模板替换
             onReplaceTemplate (data) {
                 const { templateData, type } = data
                 if (type === 'replace') {
                     const nowTemplateSerializable = JSON.stringify(this.getLocalTemplateData())
-                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID()))
+                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID()))
                     const lastTemplate = lastDraft['template']
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replace_save)
+                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
                     }
                     this.$bkMessage({
-                        'message': i18n.replace_success,
+                        'message': i18n.replaceSuccess,
                         'theme': 'success'
                     })
                 }
                 this.templateDataLoading = true
                 this.replaceTemplate(templateData)
                 // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                     this.$nextTick(() => {
@@ -964,17 +1004,17 @@
             onNewDraft (message, isMessage = true) {
                 // 创建本地缓存
                 if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.project_id, this.templateUUID, this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.projectOrCommon, this.templateUUID, this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
+                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
                 } else {
-                    draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
                 }
                 if (isMessage) {
                     this.$bkMessage({
-                        'message': i18n.add_cache,
+                        'message': i18n.addCache,
                         'theme': 'success'
                     })
                 }
@@ -1006,6 +1046,56 @@
                         isSkipped: nodes[node].isSkipped
                     })
                 })
+            },
+            // 打开分支条件编辑
+            onOpenConditionEdit (data) {
+                this.toggleSettingPanel(false)
+                this.isNodeConfigPanelShow = false
+                this.isShowConditionEdit = true
+                this.$refs.conditionEdit.updateConditionData(data)
+            },
+            // 更新分支数据
+            updataConditionData (data) {
+                // 更新 store 数据
+                this.onLabelBlur(data)
+                // 更新 cavans 页面数据
+                this.$refs.templateCanvas.updataConditionCanvasData(data)
+                this.$nextTick(() => {
+                    this.checkConditionData()
+                })
+            },
+            // 校验分支数据
+            checkConditionData (isShowError = false) {
+                let checkResult = true
+                const branchConditionDoms = document.querySelectorAll('.jtk-overlay .branch-condition')
+                branchConditionDoms.forEach(dom => {
+                    const name = dom.textContent
+                    const value = dom.dataset.value
+                    if (!name || !value) {
+                        dom.classList.add('failed')
+                        checkResult = false
+                    }
+                })
+                if (!checkResult && isShowError) {
+                    this.$bkMessage({
+                        'message': i18n.conditionError,
+                        'theme': 'error'
+                    })
+                }
+                return checkResult
+            },
+            onCloseConditionEdit (data) {
+                if (this.isShowConditionEdit) {
+                    this.isShowConditionEdit = false
+                    this.updataConditionData(data)
+                    // 删除分支条件节点选中样式
+                    document.querySelectorAll('.branch-condition.editing').forEach(dom => {
+                        dom.classList.remove('editing')
+                    })
+                }
+            },
+            onSaveConditionData () {
+                return this.$refs.conditionEdit.checkCurrentConditionData()
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1016,7 +1106,7 @@
                 const template_id = this.getTemplateIdOrTemplateUUID()
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
+                    draft.deleteAllDraftByUUID(this.username, this.projectOrCommon, this.templateUUID)
                 }
                 this.clearAtomForm()
                 next()
@@ -1033,20 +1123,6 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-    }
-    .atom-node {
-        position: absolute;
-        top: 86px;
-        left: 50%;
-        padding: 2px 9px;
-        border-radius: 1px;
-        transform: translateX(-50%);
-        background: rgba(225, 228, 232, 0.95);
-        z-index: 4;
-        .atom-number {
-            color: #a9b2bd;
-            font-size: 14px;
-        }
     }
     .pipeline-canvas-wrapper {
         height: 100%;

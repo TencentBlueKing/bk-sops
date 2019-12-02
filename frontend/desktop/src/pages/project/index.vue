@@ -29,9 +29,10 @@
                         <bk-input
                             v-model="searchStr"
                             class="search-input"
+                            clearable
                             :right-icon="'bk-icon icon-search'"
                             :placeholder="i18n.placeholder"
-                            @input="onSearchInput">
+                            @change="onSearchInput">
                         </bk-input>
                     </div>
                 </div>
@@ -498,14 +499,10 @@
              * @param {String} name
              */
             isShowOptBtn (isDisable, name) {
-                if (name === 'view' || name === 'edit') {
-                    return true
-                }
-                if (name === 'start' && isDisable) {
-                    return true
-                }
-                if (name === 'stop' && !isDisable) {
-                    return true
+                if (isDisable) {
+                    return name === 'start'
+                } else {
+                    return ['view', 'edit', 'stop'].includes(name)
                 }
             },
             /**

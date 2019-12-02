@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import traceback
 from functools import partial
 
 from django.utils import translation
@@ -32,7 +33,6 @@ logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _(u"配置平台(CMDB)")
-__group_icon__ = '%scomponents/atoms/cc/cc.png' % settings.STATIC_URL
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -441,19 +441,19 @@ class CCReplaceFaultMachineService(Service):
                 return False
 
             update_item = {
-                'datas': {},
-                'inst_id': new_host['bk_host_id']
+                'properties': {},
+                'bk_host_id': new_host['bk_host_id']
             }
             for attr in [attr for attr in editable_attrs if attr in fault_host]:
-                update_item['datas'][attr] = fault_host[attr]
+                update_item['properties'][attr] = fault_host[attr]
 
             batch_update_kwargs['update'].append(update_item)
             fault_replace_id_map[fault_host['bk_host_id']] = new_host['bk_host_id']
 
-        update_result = client.cc.batch_update_inst(batch_update_kwargs)
+        update_result = client.cc.batch_update_host(batch_update_kwargs)
 
         if not update_result['result']:
-            message = cc_handle_api_error('cc.batch_update_inst', batch_update_kwargs, update_result)
+            message = cc_handle_api_error('cc.batch_update_host', batch_update_kwargs, update_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
@@ -742,6 +742,14 @@ class CCCreateSetService(Service):
                             value = bk_service_status['data'].get(value)
                             if not value:
                                 data.set_outputs('ex_data', _(u"服务状态校验失败，请重试并修改为正确的服务状态"))
+                                return False
+
+                        elif key == "bk_capacity":
+                            try:
+                                value = int(value)
+                            except Exception:
+                                self.logger.error(traceback.format_exc())
+                                data.set_outputs('ex_data', _(u"集群容量必须为整数"))
                                 return False
 
                         cc_kwargs['data'][key] = value

@@ -336,9 +336,9 @@ class CommonTemplateManager(BaseTemplateManager):
     def import_operation_check(self, template_data):
         data = super(CommonTemplateManager, self).import_operation_check(template_data)
 
-        # business template cannot override common template
-        has_business_template = any([tmpl.get('business_id') for _, tmpl in template_data['template'].items()])
-        if has_business_template:
+        # project template cannot override common template
+        has_project_template = any([tmpl.get('project_id') for _, tmpl in template_data['template'].items()])
+        if has_project_template:
             data['can_override'] = False
             data['override_template'] = []
         return data

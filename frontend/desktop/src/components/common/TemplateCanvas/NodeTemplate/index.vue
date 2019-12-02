@@ -13,7 +13,8 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
-        @click="onNodeClick">
+        @click="onNodeClick"
+        @dblclick="onNodeDblclick">
         <component
             :is="nodeTemplate"
             :node="node"
@@ -29,6 +30,15 @@
             class="common-icon-dark-circle-close close-icon"
             @click.stop="onNodeRemove">
         </i>
+        <ShortcutPanel
+            :node="node"
+            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+            :canvas-data="canvasData"
+            @onAppendNode="onAppendNode"
+            @onInsertNode="onInsertNode"
+            @onConfigBtnClick="onConfigBtnClick">
+        </ShortcutPanel>
+
     </div>
 </template>
 <script>
@@ -40,9 +50,12 @@
     import BranchGateway from './BranchGateway.vue'
     import ParallelGateway from './ParallelGateway.vue'
     import ConvergeGateway from './ConvergeGateway.vue'
-
+    import ShortcutPanel from './ShortcutPanel.vue'
     export default {
         name: 'NodeTemplate',
+        components: {
+            ShortcutPanel
+        },
         props: {
             node: {
                 type: Object,
@@ -53,6 +66,16 @@
             editable: {
                 type: Boolean,
                 default: true
+            },
+            idOfNodeShortcutPanel: {
+                type: String,
+                default: ''
+            },
+            canvasData: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -69,7 +92,8 @@
                     branchgateway: BranchGateway,
                     parallelgateway: ParallelGateway,
                     convergegateway: ConvergeGateway
-                }
+                },
+                clickTimer: null
             }
         },
         computed: {
@@ -81,17 +105,28 @@
             onMousedown (e) {
                 const { pageX: x, pageY: y } = e
                 this.moveFlag = { x, y }
+                this.$emit('onNodeMousedown', this.node.id)
+            },
+            onNodeDblclick () {
+                clearTimeout(this.clickTimer)
+                this.$emit('onNodeDblclick', this.node.id)
             },
             onNodeClick (e) {
-                const moveBuffer = 2
-                const { pageX: x, pageY: y } = e
-                if (
-                    Math.abs(x - this.moveFlag.x) < moveBuffer
-                    && Math.abs(y - this.moveFlag.y) < moveBuffer
-                ) {
-                    this.$emit('onNodeClick', this.node.id, this.node.type)
-                    e.stopPropagation()
+                if ((e.ctrlKey || e.metaKey) && this.editable) {
+                    this.$emit('addNodesToDragSelection', this.node)
+                    return
                 }
+                clearTimeout(this.clickTimer)
+                this.clickTimer = setTimeout(() => {
+                    const moveBuffer = 2
+                    const { pageX: x, pageY: y } = e
+                    if (
+                        Math.abs(x - this.moveFlag.x) < moveBuffer
+                        && Math.abs(y - this.moveFlag.y) < moveBuffer
+                    ) {
+                        this.$emit('onNodeClick', this.node.id, this.node.type, e)
+                    }
+                }, 200)
             },
             onNodeCheckClick (id, val) {
                 this.$emit('onNodeCheckClick', id, val)
@@ -116,59 +151,76 @@
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
+            },
+            onAppendNode (data) {
+                this.$emit('onAppendNode', data)
+            },
+            onConfigBtnClick (id) {
+                this.$emit('onConfigBtnClick', id)
+            },
+            onInsertNode (data) {
+                this.$emit('onInsertNode', data)
             }
         }
     }
 </script>
 <style lang="scss">
-    $blueDark: #53699d;
-    $redDark: #ff5757;
-    $yellowDark: #f8b53f;
-    $greenDark: #30d878;
-    $greyShadow: rgba(83, 105, 157, 0.15);
+    $blueDark: #52699D;
+    $redDark: #ea3636;
+    $yellowDark: #ff9C01;
+    $greenDark: #2dcb56;
+    $whiteColor: #ffffff;
+    $defaultShadow: rgba(0, 0, 0, 0.15);
+    $activeShadow: rgba(0, 0, 0, 0.3);
     $redShadow: rgba(255, 87, 87, 0.15);
     $yellowShadow: rgba(248, 181, 63, 0.15);
     $greenShadow: rgba(48, 216, 120, 0.15);
+    $blueShadow: rgba(58, 132, 255, 0.15);
 
     @mixin circleStatusStyle ($color, $shadow) {
-        border-color: $color;
-        color: $color;
+        background-color: $color;
         &:hover {
             box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
         }
         .circle-node-text {
-            background: $color;
-        }
-        .node-type-icon {
-            color: $color;
+            color: $whiteColor;
         }
     }
 
-    @mixin taskNodeStyle ($color, $shadow) {
-        &:hover {
-            box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
-        }
-        .node-name {
-            border-color: $color;
-        }
-        .stage-name {
+    @mixin taskNodeStyle ($color) {
+        .node-status-block {
             background-color: $color;
         }
-        .subflow-node-icon {
-            background-color: $color;
+        .task-status-icon {
+            background: $color;
+        }
+       .sub-body {
+            .t-left .triangle, .blue-bar{
+                background-color: $color;
+            }
+        }
+    }
+    @mixin gatewayStyle ($color) {
+        .node-type-icon {
+            color: $color;
         }
     }
     .jsflow-node.selected {
         outline: 1px dashed #348af3;
     }
-    .canvas-node-item {
-        position: relative;
-        user-select: none;
-        z-index: 3;
+    .jsflow-node:not(.adding-node) {
         &:hover {
             .close-icon {
                 display: inline-block;
             }
+        }
+    }
+    .canvas-node-item {
+        position: relative;
+        user-select: none;
+        z-index: 3;
+        &>.subflow-node + .close-icon{
+            right: 14px;
         }
         .close-icon {
             display: none;
@@ -176,7 +228,7 @@
             top: -8px;
             right: -8px;
             font-size: 16px;
-            color: #ff5757;
+            color: #63656e;
             background: #ffffff;
             border-radius: 50%;
             z-index: 2;
@@ -186,14 +238,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 60px;
-            height: 60px;
-            background: #ffffff;
-            border: 1px dashed #b1b5bc;
+            width: 42px;
+            height: 42px;
+            background: #96a1b9;
             border-radius: 50%;
-            &:hover {
-                box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
-            }
             &.finished {
                 @include circleStatusStyle($greenDark, $greenShadow)
             }
@@ -205,87 +253,115 @@
             }
         }
         .circle-node-text {
-            width: 50px;
-            height: 50px;
-            line-height: 50px;
             font-size: 12px;
-            background: $blueDark;
             color: #ffffff;
+        }
+        .gateway-node {
+            position: relative;
+            height: 32px;
+            width: 32px;
             text-align: center;
-            border-radius: 50%;
+            &.failed {
+                @include gatewayStyle($redDark);
+            }
+            &.finished {
+                @include gatewayStyle($greenDark);
+            }
+            &:before {
+                content: '';
+                position: absolute;
+                top: 1px;
+                left: 2px;
+                width: 28px;
+                height: 28px;
+                background: #ffffff;
+                border-radius: 3px;
+                transform: rotate(45deg);
+                z-index: -1;
+            }
         }
         .node-type-icon {
-            font-size: 30px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 24px;
             color: $blueDark;
             text-align: center;
         }
-        .task-node,
-        .subflow-node {
+        .process-node {
             position: relative;
-            width: 152px;
-            height: 90px;
+            width: 150px;
+            height: 42px;
+            line-height: 42px;
             text-align: center;
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0px 0px 20px 0px  $defaultShadow;
             cursor: pointer;
-            &:hover {
-                box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
+            &.actived {
+                box-shadow: 0px 0px 20px 0px $activeShadow;
             }
-            &.failed {
-                @include taskNodeStyle ($redDark, $redShadow)
+            .node-status-block {
+                float: left;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 32px;
+                height: 100%;
+                background: #52699d;
+                border-top-left-radius: 4px;
+                border-bottom-left-radius: 4px;
             }
-            &.suspended {
-                @include taskNodeStyle ($yellowDark, $yellowShadow)
-            }
-            &.running {
-                @include taskNodeStyle ($yellowDark, $yellowShadow)
-            }
-            &.finished {
-                @include taskNodeStyle ($greenDark, $greenShadow)
-            }
-        }
-        .subflow-node .node-name {
-            border-top: 5px solid $blueDark;
-        }
-        .subflow-node-icon {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 24px;
-            height: 19px;
-            line-height: 19px;
-            font-size: 18px;
-            color: #ffffff;
-            background: $blueDark;
-        }
-        .node-name {
-            display: table;
-            width: 100%;
-            font-size: 12px;
-            height: 60px;
-            background: #fafafa;
-            border: 1px solid #a9adb5;
-            border-bottom: none;
-            table-layout: fixed;
-            overflow: hidden;
-            & > p {
-                display: table-cell;
-                padding: 0 10px;
-                width: 100%;
-                vertical-align: middle;
+            .node-name {
+                margin-left: 32px;
+                width: 118px;
+                font-size: 12px;
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
             }
+            &:hover {
+                box-shadow: 0px 0px 20px 0px $activeShadow;
+            }
+            &.failed {
+                @include taskNodeStyle ($redDark)
+            }
+            &.suspended {
+                @include taskNodeStyle ($yellowDark)
+            }
+            &.running {
+                @include taskNodeStyle ($yellowDark)
+            }
+            &.finished {
+                @include taskNodeStyle ($greenDark)
+            }
+            
         }
-        .stage-name {
-            height: 30px;
-            line-height: 30px;
-            font-size: 14px;
-            color: #ffffff;
+        .subflow-node {
+            &:hover > .ui-node-shadow {
+                box-shadow: 0px 0px 20px 0px $activeShadow;
+            }
+            &.failed {
+                @include taskNodeStyle ($redDark)
+            }
+            &.suspended {
+                @include taskNodeStyle ($yellowDark)
+            }
+            &.running {
+                @include taskNodeStyle ($yellowDark)
+            }
+            &.finished {
+                @include taskNodeStyle ($greenDark)
+            }
+        }
+        .subflow-node-icon {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 17px;
+            height: 8px;
             background: $blueDark;
-            border-top: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            border-top-left-radius: 4px;
+            border-bottom-right-radius: 4px;
         }
         .task-status-icon {
             position: absolute;
@@ -320,6 +396,11 @@
                 to {
                     transform: rotate(360deg);
                 }
+            }
+            &.subflow-status {
+                right: 12px;
+                top: -14px;
+                z-index: 1;
             }
         }
     }
