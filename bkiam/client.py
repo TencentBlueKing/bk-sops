@@ -89,7 +89,7 @@ class BKIAMClient(object):
         try:
             response = method_func(url, data=json.dumps(data or {}), headers=_headers, params=params or {})
         except Exception as e:
-            message = 'bk_iam request({url}) error: {e}'.format(url=response.request.url, e=e)
+            message = 'bk_iam request({url}) error: {e}'.format(url=url, e=e)
             logger.error(message)
 
             return {
