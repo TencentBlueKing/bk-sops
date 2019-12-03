@@ -29,8 +29,7 @@
                         :loading="loadingStatus.taskType"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.taskPlaceholder"
-                        @selected="onSelectTaskType">
+                        :placeholder="i18n.taskPlaceholder">
                         <bk-option
                             v-for="option in taskTypeList"
                             :key="option.value"
@@ -47,8 +46,7 @@
                         :loading="loadingStatus.project"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.projectPlaceholder"
-                        @selected="onSelectProject">
+                        :placeholder="i18n.projectPlaceholder">
                         <bk-option
                             v-for="option in projectList"
                             :key="option.value"
@@ -115,19 +113,25 @@
                 projectList: 'userCanViewProjects'
             })
         },
+        watch: {
+            isCreateTaskDialogShow (val) {
+                if (val) {
+                    this.formData.taskType = ''
+                    this.formData.selectedProject = ''
+                    this.isShowtaskError = false
+                    this.isShowprojectError = false
+                }
+            }
+        },
         methods: {
-            onSelectTaskType (type) {
-                
-            },
-            onSelectProject () {
-
-            },
             onConfirm () {
                 if (!this.formData.taskType) {
                     this.isShowtaskError = true
+                    return
                 }
                 if (!this.formData.selectedProject) {
                     this.isShowprojectError = true
+                    return
                 }
                 const entrance = this.formData.taskType === 'periodic' ? 'periodicTask' : undefined
                 this.$router.push({
@@ -137,7 +141,7 @@
                 })
             },
             onCancel () {
-
+                this.$emit('cancel')
             }
         }
     }

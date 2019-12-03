@@ -34,7 +34,8 @@
         </add-collection-dialog>
         <select-create-task-dialog
             :create-task-template-id="createTaskTemplateId"
-            :is-create-task-dialog-show="isCreateTaskDialogShow">
+            :is-create-task-dialog-show="isCreateTaskDialogShow"
+            @cancel="onHideCreateTask">
         </select-create-task-dialog>
         <bk-dialog
             width="400"
@@ -144,6 +145,7 @@
                 const type = template.category
                 // 有权限执行
                 const { project_id, template_id, app_id, name } = template.extra_info
+                console.log(type, 'type')
                 switch (type) {
                     case 'common':
                         this.openSelectCreateTask(template_id)
@@ -191,6 +193,9 @@
                 if (item.category === 'process') {
                     this.applyForPermission(['create_task', 'create_template'], item, this.tplOperations, this.collectionResource)
                 }
+            },
+            onHideCreateTask () {
+                this.isCreateTaskDialogShow = false
             }
         }
     }

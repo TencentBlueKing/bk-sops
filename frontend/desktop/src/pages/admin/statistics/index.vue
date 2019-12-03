@@ -106,7 +106,7 @@
             ...mapActions([
                 'getCategorys'
             ]),
-            changeDateRange (dateRange) {
+            onChangeDateRange (dateRange) {
                 this.dateRange = dateRange
             }
         }
