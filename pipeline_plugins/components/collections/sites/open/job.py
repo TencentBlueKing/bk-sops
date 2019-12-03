@@ -414,7 +414,7 @@ class JobFastExecuteScriptService(JobService):
         script_param = data.get_one_of_inputs('job_script_param')
         if script_param:
             job_kwargs.update({
-                'script_param': base64.b64encode(script_param.encode('utf-8'))
+                'script_param': base64.b64encode(script_param.encode('utf-8')).decode('utf-8')
             })
 
         script_source = data.get_one_of_inputs('job_script_source')
@@ -425,7 +425,8 @@ class JobFastExecuteScriptService(JobService):
         else:
             job_kwargs.update({
                 'script_type': data.get_one_of_inputs('job_script_type'),
-                'script_content': base64.b64encode(data.get_one_of_inputs('job_content').encode('utf-8')),
+                'script_content': base64.b64encode(
+                    data.get_one_of_inputs('job_content').encode('utf-8')).decode('utf-8'),
             })
 
         job_result = client.job.fast_execute_script(job_kwargs)

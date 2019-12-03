@@ -53,7 +53,7 @@ class MockClient(object):
 GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.job.get_client_by_user'
 GET_NODE_CALLBACK_URL = 'pipeline_plugins.components.collections.sites.open.job.get_node_callback_url'
 JOB_HANDLE_API_ERROR = 'pipeline_plugins.components.collections.sites.open.job.job_handle_api_error'
-
+GET_JOB_INSTANCE_URL = 'pipeline_plugins.components.collections.sites.open.job.get_job_instance_url'
 
 # success result
 SUCCESS_RESULT = {
@@ -136,9 +136,9 @@ MANUAL_KWARGS = {
     'account': 'root',
     'ip_list': [],
     'bk_callback_url': 'callback_url',
-    'script_param': b'MQ==',
+    'script_param': 'MQ==',
     'script_type': '1',
-    'script_content': b'ZWNobw=='
+    'script_content': 'ZWNobw=='
 }
 
 # 手动输入脚本失败样例输出
@@ -153,7 +153,7 @@ MANUAL_FAIL_OUTPUTS = {
 MANUAL_SUCCESS_OUTPUTS = {
     'job_inst_id': SUCCESS_RESULT['data']['job_instance_id'],
     'job_inst_name': 'API Quick execution script1521100521303',
-    'job_inst_url': '?taskInstanceList&appId=1#taskInstanceId=10000',
+    'job_inst_url': 'instance_url_token',
     'client': FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
 }
 # 异步回调函数参数错误返回
@@ -188,7 +188,8 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT)
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value='instance_url_token')
     ]
 )
 
@@ -217,7 +218,8 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT)
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value='instance_url_token')
     ]
 )
 
@@ -239,6 +241,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
-        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT)
+        Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value='instance_url_token')
     ]
 )
