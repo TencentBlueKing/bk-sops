@@ -24,7 +24,7 @@
         <div v-if="isApplyPermission" class="apply-permission-mask">
             <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
         </div>
-        <div v-if="!isApplyPermission || showDelete" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
+        <div v-if="!isApplyPermission && showDelete" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
     </li>
 </template>
 <script>

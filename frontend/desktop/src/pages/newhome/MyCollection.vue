@@ -104,7 +104,7 @@
                     this.collectionBodyLoading = true
                     const res = await this.getCollectList()
                     this.tplOperations = res.meta.auth_operations
-                    this.collectionResource = res.meta.auth_resource
+                    this.collectionResource = { ...res.meta.auth_resource, ...res.meta.auth_resource.process }
                     this.collectionList = res.objects
                     this.collectionBodyLoading = false
                 } catch (e) {

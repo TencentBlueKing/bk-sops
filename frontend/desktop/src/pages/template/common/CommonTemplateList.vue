@@ -60,13 +60,13 @@
                                 @click="onTemplatePermissonCheck(['view'], props.row, $event)">
                                 {{props.row.name}}
                             </a>
-                            <router-link
+                            <a
                                 v-else
                                 class="template-name"
                                 :title="props.row.name"
-                                :to="getJumpUrl('edit', props.row.id)">
+                                @click.prevent="getJumpUrl('edit', props.row.id)">
                                 {{props.row.name}}
-                            </router-link>
+                            </a>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.type" prop="category_name"></bk-table-column>
@@ -93,12 +93,12 @@
                                         @click="onTemplatePermissonCheck(['create_task'], props.row, $event)">
                                         {{i18n.newTemplate}}
                                     </a>
-                                    <router-link
+                                    <a
                                         v-else
                                         class="template-operate-btn"
-                                        :to="getJumpUrl('newTask', props.row.id)">
+                                        @click.prevent="getJumpUrl('newTask', props.row.id)">
                                         {{i18n.newTemplate}}
-                                    </router-link>
+                                    </a>
                                     <a
                                         v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
                                         v-cursor
@@ -106,12 +106,12 @@
                                         @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
                                         {{i18n.edit}}
                                     </a>
-                                    <router-link
+                                    <a
                                         v-else
                                         class="template-operate-btn"
-                                        :to="getJumpUrl('edit', props.row.id)">
+                                        @click.prevent="getJumpUrl('edit', props.row.id)">
                                         {{i18n.edit}}
-                                    </router-link>
+                                    </a>
                                     <a
                                         v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
                                         href="javascript:void(0);"
@@ -134,11 +134,11 @@
                                                     @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
                                                     {{i18n.clone}}
                                                 </a>
-                                                <router-link
+                                                <a
                                                     v-else
-                                                    :to="getJumpUrl('clone', props.row.id)">
+                                                    @click.prevent="getJumpUrl('clone', props.row.id)">
                                                     {{i18n.clone}}
-                                                </router-link>
+                                                </a>
                                             </li>
                                         </ul>
                                     </bk-dropdown-menu>
@@ -165,6 +165,9 @@
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
+        <ProjectSelectorModal
+            ref="ProjectSelectorModal">
+        </ProjectSelectorModal>
         <bk-dialog
             :mask-close="false"
             :header-position="'left'"
@@ -192,6 +195,7 @@
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
+    import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     const searchForm = [
@@ -235,6 +239,7 @@
             CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
+            ProjectSelectorModal,
             BaseTitle,
             AdvanceSearchForm,
             NoData
@@ -287,6 +292,7 @@
                 isImportDialogShow: false,
                 isExportDialogShow: false,
                 isAuthorityDialogShow: false,
+                isShowProjectSelector: false,
                 theDeleteTemplateId: undefined,
                 theAuthorityManageId: undefined,
                 active: true,
@@ -584,7 +590,11 @@
                     template_id,
                     common: '1'
                 }
-                return url
+                if (name === 'newTask' && !this.project_id) {
+                    this.$refs.ProjectSelectorModal.show(urlMap[name])
+                    return false
+                }
+                this.$router.push(url)
             },
             getExecuteHistoryUrl (id) {
                 return {
@@ -605,6 +615,9 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+a {
+    cursor: pointer;
+}
 .dialog-content {
     padding: 30px;
     word-break: break-all;

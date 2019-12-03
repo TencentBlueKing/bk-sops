@@ -87,8 +87,7 @@ const routers = new VueRouter({
             component: Home,
             props: (route) => ({
                 project_id: route.params.project_id
-            }),
-            meta: { project: true }
+            })
         },
         {
             path: '/common',

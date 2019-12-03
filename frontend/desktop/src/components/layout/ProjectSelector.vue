@@ -37,7 +37,17 @@
 
     export default {
         name: 'ProjectSelector',
-        props: ['disabled'],
+        props: {
+            disabled: {
+                type: Boolean,
+                default: false
+            },
+            // 切换项目后是否重定向
+            redirect: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 showList: false,
@@ -91,7 +101,7 @@
             },
             currentProject: {
                 get () {
-                    return Number(this.project_id)
+                    return Number(this.project_id) || ''
                 },
                 set (id) {
                     this.onProjectChange(id)
@@ -117,6 +127,9 @@
                     this.setTimeZone(timeZone)
                     
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
+                    if (!this.redirect) {
+                        return
+                    }
                     if (this.$route.name === 'home') {
                         this.$emit('reloadHome')
                     } else {
