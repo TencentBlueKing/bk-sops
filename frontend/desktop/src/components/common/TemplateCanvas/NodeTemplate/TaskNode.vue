@@ -20,7 +20,7 @@
             ]">
             <div class="node-status-block">
                 <img v-if="node.icon" class="node-icon" :src="node.icon" />
-                <i v-else :class="['node-icon-font', getIconCls(node.group)]"></i>
+                <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
             </div>
             <div class="node-name">
                 {{ node.name }}
@@ -77,7 +77,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
+    import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
 
     export default {
         name: 'TaskNode',
@@ -132,7 +132,12 @@
             }
         },
         methods: {
-            getIconCls (group) {
+            getIconCls (node) {
+                const { code, group } = node
+                if (BK_PLUGIN_ICON[code]) {
+                    return BK_PLUGIN_ICON[code]
+                }
+
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(group))
                 if (systemType) {
                     return `common-icon-sys-${systemType.toLowerCase()}`
@@ -161,7 +166,36 @@
     }
 </script>
 <style lang="scss" scoped>
+    .task-node {
+        position: relative;
+        width: 150px;
+        height: 42px;
+        text-align: center;
+        background: #ffffff;
+        border-radius: 4px;
+        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        &.actived {
+            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
+        }
+        .node-name {
+            margin-left: 32px;
+            width: 118px;
+            height: 100%;
+            font-size: 12px;
+            word-break: break-all;
+        }
+    }
     .node-status-block {
+        float: left;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 100%;
+        background: #52699d;
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
         .node-icon {
             width: 16px;
         }
@@ -172,7 +206,7 @@
     }
     .node-options-icon {
         position: absolute;
-        top: -45px;
+        top: -25px;
         left: 0;
         .bk-form-checkbox,
         &>[class*="common-icon"] {

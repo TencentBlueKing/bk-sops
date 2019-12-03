@@ -302,7 +302,7 @@
                 })
             },
             canvasData () {
-                const { line, location, gateways } = this.pipelineData
+                const { line, location, gateways, activities } = this.pipelineData
                 const branchConditions = {}
                 for (const gKey in gateways) {
                     const item = gateways[gKey]
@@ -313,7 +313,8 @@
                 return {
                     lines: line,
                     locations: location.map(item => {
-                        return { ...item, mode: 'execute', checked: true }
+                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+                        return { ...item, mode: 'execute', checked: true, code }
                     }),
                     branchConditions
                 }

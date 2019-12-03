@@ -190,13 +190,7 @@
         left: 50px;
         top: 0;
         width: 100px;
-        height: 42;
-        line-height: 42px;
         font-size: 12px;
-        text-align: center;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
         z-index: 1;
     }
     .node-options-icon {
