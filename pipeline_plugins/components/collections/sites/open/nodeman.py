@@ -100,7 +100,10 @@ class NodemanCreateTaskService(Service):
             except Exception:
                 # password is not encrypted
                 pass
-            auth_key = nodeman_rsa_encrypt(auth_key)
+
+            if auth_type.lower() == 'password':
+                # 只对密码加密
+                auth_key = nodeman_rsa_encrypt(auth_key)
 
             one.update({auth_type.lower(): auth_key})
 
