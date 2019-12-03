@@ -749,7 +749,7 @@ class CCCreateSetService(Service):
                                 value = int(value)
                             except Exception:
                                 self.logger.error(traceback.format_exc())
-                                data.set_outputs('ex_data', _(u"集群容量必须为整数"))
+                                data.set_outputs('ex_data', _("集群容量必须为整数"))
                                 return False
 
                         cc_kwargs['data'][key] = value
