@@ -105,7 +105,7 @@
                     query: gettext('搜索'),
                     reset: gettext('清空')
                 },
-                isAdvancedSerachShow: true,
+                isAdvancedSerachShow: false,
                 searchValue: '',
                 formData: {}
             }

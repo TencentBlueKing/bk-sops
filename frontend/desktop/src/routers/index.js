@@ -16,7 +16,7 @@ import store from '@/store/index.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
 
-const Home = () => import('@/pages/newhome/index.vue')
+const Home = () => import('@/pages/home/index.vue')
 
 const Template = () => import('@/pages/template/index.vue')
 const TemplateList = () => import('@/pages/template/TemplateList/index.vue')

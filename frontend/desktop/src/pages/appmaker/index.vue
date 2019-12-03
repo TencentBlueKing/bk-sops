@@ -15,44 +15,15 @@
             <div class="appmaker-table-content">
                 <base-title :title="i18n.title"></base-title>
                 <div class="operation-wrapper">
-                    <bk-button theme="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
-                    <AdvanceSearch
-                        v-model="searchStr"
-                        :input-placeholader="i18n.placeholder"
-                        @onShow="onAdvanceShow"
-                        @input="onSearchInput">
-                    </AdvanceSearch>
+                    <advance-search-form
+                        :search-form="searchForm"
+                        @onSearchInput="onSearchInput"
+                        @submit="onSearchFormSubmit">
+                        <template v-slot:operation>
+                            <bk-button theme="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
+                        </template>
+                    </advance-search-form>
                 </div>
-            </div>
-            <div class="app-search" v-show="isAdvancedSerachShow">
-                <fieldset class="appmaker-fieldset">
-                    <div class="advanced-query-content">
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.editor}}</span>
-                            <bk-input
-                                v-model="editor"
-                                class="bk-input-inline"
-                                :clearable="true"
-                                :placeholder="i18n.editorPlaceholder">
-                            </bk-input>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.editTime}}</span>
-                            <bk-date-picker
-                                :placeholder="i18n.dateRange"
-                                :type="'daterange'"
-                                v-model="selectedTime"
-                                @change="onChangeEditTime">
-                            </bk-date-picker>
-                        </div>
-                        <div class="query-button">
-                            <div class="query-button">
-                                <bk-button class="query-primary" theme="primary" @click="loadData">{{i18n.query}}</bk-button>
-                                <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
-                            </div>
-                        </div>
-                    </div>
-                </fieldset>
             </div>
             <div v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <div v-if="appList.length" class="app-list clearfix">
@@ -139,17 +110,31 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
-    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    const searchForm = [
+        {
+            type: 'input',
+            key: 'editor',
+            label: gettext('更新人'),
+            placeholder: gettext('请输入更新人'),
+            value: ''
+        },
+        {
+            type: 'dateRange',
+            key: 'updateTime',
+            placeholder: gettext('选择日期时间范围'),
+            label: gettext('更新时间'),
+            value: []
+        }
+    ]
     export default {
         name: 'AppMaker',
         components: {
             BaseTitle,
             AppCard,
             NoData,
-            AppEditDialog,
-            AdvanceSearch
+            AppEditDialog
         },
         props: ['project_id', 'common'],
         data () {
@@ -159,14 +144,10 @@
                 list: [],
                 searchMode: false,
                 searchList: [],
-                searchStr: '',
                 currentAppData: undefined,
                 isCreateNewApp: false,
                 isEditDialogShow: false,
                 isDeleteDialogShow: false,
-                isAdvancedSerachShow: false,
-                editor: undefined,
-                selectedTime: [],
                 editStartTime: undefined,
                 editEndTime: undefined,
                 isPermissionsDialog: false,
@@ -179,6 +160,12 @@
                 },
                 appOperations: [],
                 appResource: {},
+                searchForm: searchForm,
+                requestData: {
+                    updateTime: [],
+                    editor: '',
+                    flowName: ''
+                },
                 i18n: {
                     title: gettext('轻应用'),
                     addApp: gettext('新建'),
@@ -191,12 +178,8 @@
                     delete: gettext('删除'),
                     deleteTips: gettext('确认删除轻应用？'),
                     close: gettext('关闭'),
-                    editor: gettext('更新人'),
-                    editorPlaceholder: gettext('请输入更新人'),
-                    editTime: gettext('更新时间'),
                     query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    dateRange: gettext('选择日期时间范围')
+                    reset: gettext('清空')
                 }
             }
         },
@@ -230,12 +213,13 @@
                     this.editStartTime = undefined
                 }
                 try {
+                    const { updateTime, editor } = this.requestData
                     const data = {
-                        editor: this.editor || undefined
+                        editor: editor || undefined
                     }
-                    if (this.editEndTime) {
-                        data['edit_time__gte'] = moment.tz(this.editStartTime, this.timeZone).format('YYYY-MM-DD')
-                        data['edit_time__lte'] = moment.tz(this.editEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                    if (this.updateTime[0] && updateTime[1]) {
+                        data['edit_time__gte'] = moment.tz(updateTime[0], this.timeZone).format('YYYY-MM-DD')
+                        data['edit_time__lte'] = moment.tz(updateTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
@@ -247,10 +231,11 @@
                     this.loading = false
                 }
             },
-            searchInputhandler () {
-                if (this.searchStr.length) {
+            searchInputhandler (data) {
+                this.requestData.flowName = data
+                if (data.length) {
                     this.searchMode = true
-                    const reg = new RegExp(this.searchStr, 'i')
+                    const reg = new RegExp(this.requestData.flowName, 'i')
                     this.searchList = this.list.filter(item => {
                         return reg.test(item.name)
                     })
@@ -351,20 +336,6 @@
                     desc: '',
                     logo_url: undefined
                 }
-            },
-            onAdvanceShow () {
-                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-            },
-            onChangeEditTime (value) {
-                this.editStartTime = value[0]
-                this.editEndTime = value[1]
-            },
-            onResetForm () {
-                this.editor = undefined
-                this.selectedTime = []
-                this.editStartTime = undefined
-                this.editEndTime = undefined
-                this.loadData()
             }
         }
     }
