@@ -108,8 +108,6 @@ MIDDLEWARE += (
     'weixin.core.middlewares.WeixinAuthenticationMiddleware',
     'weixin.core.middlewares.WeixinLoginMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'gcloud.core.middlewares.UnauthorizedMiddleware',
-    'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
     'gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware',
     'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
