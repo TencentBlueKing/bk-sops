@@ -108,6 +108,7 @@
     import toolsUtils from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
     // moment用于时区使用
@@ -134,7 +135,8 @@
             BaseTitle,
             AppCard,
             NoData,
-            AppEditDialog
+            AppEditDialog,
+            AdvanceSearchForm
         },
         props: ['project_id', 'common'],
         data () {
@@ -217,7 +219,7 @@
                     const data = {
                         editor: editor || undefined
                     }
-                    if (this.updateTime[0] && updateTime[1]) {
+                    if (updateTime[0] && updateTime[1]) {
                         data['edit_time__gte'] = moment.tz(updateTime[0], this.timeZone).format('YYYY-MM-DD')
                         data['edit_time__lte'] = moment.tz(updateTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                     }
@@ -336,6 +338,10 @@
                     desc: '',
                     logo_url: undefined
                 }
+            },
+            onSearchFormSubmit (data) {
+                this.requestData = data
+                this.loadData()
             }
         }
     }
