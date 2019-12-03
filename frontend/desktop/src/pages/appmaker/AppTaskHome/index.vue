@@ -323,35 +323,6 @@
 }
 .operation-area {
     margin: 20px 0;
-    .advanced-search {
-        margin: 0;
-    }
-    .search-input {
-        padding: 0 40px 0 10px;
-        width: 360px;
-        height: 32px;
-        line-height: 32px;
-        font-size: 14px;
-        background: $whiteDefault;
-        border: 1px solid $commonBorderColor;
-        border-radius: 4px;
-        outline: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: $blueDefault;
-            & + i {
-                color: $blueDefault;
-            }
-        }
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
-    }
 }
 .app-search {
     @include advancedSearch;

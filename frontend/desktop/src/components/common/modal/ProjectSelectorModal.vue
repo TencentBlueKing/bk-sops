@@ -93,6 +93,7 @@
         }
         .project-select {
             border-color: #c4c6cc;
+            color: #63656e;
         }
     }
 }

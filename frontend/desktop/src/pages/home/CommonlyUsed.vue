@@ -122,7 +122,7 @@
         @include scrollbar;
         .card-item {
             display: inline-block;
-            margin-right: 10px;
+            margin-right: 11px;
             padding: 14px;
             width: 278px;
             background: #f0f1f5;

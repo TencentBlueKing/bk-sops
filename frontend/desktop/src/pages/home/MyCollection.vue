@@ -212,6 +212,9 @@
         flex-wrap: wrap;
         overflow: hidden;
         margin-top: -20px;
+        /deep/ .card-item {
+            margin-right: 11px;
+        }
     }
     .add-collection {
         margin-top: 20px;
