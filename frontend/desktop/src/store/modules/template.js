@@ -617,7 +617,7 @@ const template = {
                         id: location.id,
                         incoming: '',
                         name: location.name || '',
-                        outgoing: [],
+                        outgoing: '',
                         type: 'EmptyEndEvent'
                     }
                 }
