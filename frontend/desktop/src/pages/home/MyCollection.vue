@@ -33,7 +33,9 @@
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
         <select-create-task-dialog
-            :create-task-template-id="createTaskTemplateId"
+            :tpl-resource="collectionResource"
+            :tpl-operations="tplOperations"
+            :create-task-item="createTaskItem"
             :is-create-task-dialog-show="isCreateTaskDialogShow"
             @cancel="onHideCreateTask">
         </select-create-task-dialog>
@@ -80,8 +82,9 @@
                     deleteTips: gettext('确认删除收藏？'),
                     noDataDesc: gettext('常用流程到收藏夹，可作为你的流程管理快捷入口')
                 },
-                createTaskTemplateId: '',
+                createTaskItem: '',
                 tplOperations: [],
+                collectionResource: {},
                 collectionList: [],
                 isShowAdd: false, // 显示添加收藏
                 isDeleteDialogShow: false, // 显示确认删除
@@ -145,10 +148,9 @@
                 const type = template.category
                 // 有权限执行
                 const { project_id, template_id, app_id, name } = template.extra_info
-                console.log(type, 'type')
                 switch (type) {
                     case 'common':
-                        this.openSelectCreateTask(template_id)
+                        this.openSelectCreateTask(template)
                         break
                     case 'process':
                         this.$router.push({
@@ -173,9 +175,9 @@
                         window.open(href, '_blank')
                 }
             },
-            openSelectCreateTask (templateId) {
+            openSelectCreateTask (item) {
                 this.isCreateTaskDialogShow = true
-                this.createTaskTemplateId = templateId
+                this.createTaskItem = item
             },
             /**
              * 判断单个资源权限

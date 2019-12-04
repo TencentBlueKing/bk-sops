@@ -14,6 +14,7 @@
         width="850"
         :ext-cls="'common-dialog'"
         :title="i18n.title"
+        :ok-text="okText"
         :mask-close="false"
         :value="isCreateTaskDialogShow"
         :header-position="'left'"
@@ -29,7 +30,8 @@
                         :loading="loadingStatus.taskType"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.taskPlaceholder">
+                        :placeholder="i18n.taskPlaceholder"
+                        @change="checkPermission">
                         <bk-option
                             v-for="option in taskTypeList"
                             :key="option.value"
@@ -46,7 +48,8 @@
                         :loading="loadingStatus.project"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.projectPlaceholder">
+                        :placeholder="i18n.projectPlaceholder"
+                        @change="checkPermission">
                         <bk-option
                             v-for="option in projectList"
                             :key="option.value"
@@ -63,13 +66,13 @@
 <script>
     import '@/utils/i18n.js'
     import permission from '@/mixins/permission.js'
-    import { mapGetters } from 'vuex'
+    import { mapGetters, mapState } from 'vuex'
     export default {
         name: 'SelectCreateTaskDialog',
         components: {
         },
         mixins: [permission],
-        props: ['isCreateTaskDialogShow', 'createTaskTemplateId'],
+        props: ['isCreateTaskDialogShow', 'createTaskItem', 'tplOperations', 'tplResource'],
         data () {
             return {
                 i18n: {
@@ -105,13 +108,21 @@
                     selectedProject: ''
                 },
                 isShowtaskError: false,
-                isShowprojectError: false
+                isShowprojectError: false,
+                hasCreateTaskPer: true, // 新建任务权限
+                hasUseCommonTplPer: true // 使用公共流程权限
             }
         },
         computed: {
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
-            })
+            }),
+            ...mapState('project', {
+                'authOperations': state => state.authOperations
+            }),
+            okText () {
+                return this.hasCreateTaskPer && this.hasUseCommonTplPer ? gettext('确定') : gettext('去申请')
+            }
         },
         watch: {
             isCreateTaskDialogShow (val) {
@@ -125,6 +136,7 @@
         },
         methods: {
             onConfirm () {
+                const templateId = this.createTaskItem.extra_info.template_id
                 if (!this.formData.taskType) {
                     this.isShowtaskError = true
                     return
@@ -133,15 +145,43 @@
                     this.isShowprojectError = true
                     return
                 }
+                if (!this.hasCreateTaskPer) {
+                    this.applyForPermission(['create_task'], this.createTaskItem, this.tplOperations, this.tplResource)
+                    return
+                }
+                if (!this.hasUseCommonTplPer) {
+                    this.applyUseCommonPer()
+                    return
+                }
                 const entrance = this.formData.taskType === 'periodic' ? 'periodicTask' : undefined
                 this.$router.push({
                     name: 'taskStep',
                     params: { project_id: this.formData.selectedProject, step: 'selectnode' },
-                    query: { template_id: this.createTaskTemplateId, common: '1', entrance }
+                    query: { template_id: templateId, common: '1', entrance }
                 })
             },
             onCancel () {
                 this.$emit('cancel')
+            },
+            checkPermission () {
+                const { taskType, selectedProject } = this.formData
+                if (taskType && selectedProject) {
+                    const { auth_actions } = this.createTaskItem
+                    const hasPer = this.hasPermission(['create_task'], auth_actions, this.tplOperations)
+                    const action = this.projectList.find(m => m.id === selectedProject)
+                    this.hasCreateTaskPer = !!hasPer
+                    this.hasUseCommonTplPer = action.auth_actions.indexOf('use_common_template') > -1
+                }
+            },
+            // 申请公共流程使用权限
+            applyUseCommonPer () {
+                const project = this.projectList.find(m => m.id === this.formData.selectedProject)
+                const resourceData = {
+                    name: gettext('项目'),
+                    id: project.id,
+                    auth_actions: project.auth_actions
+                }
+                this.applyForPermission(['use_common_template'], resourceData, this.authOperations, this.authResource)
             }
         }
     }
