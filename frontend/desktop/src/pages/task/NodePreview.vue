@@ -106,6 +106,7 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+
 .node-preview-wrapper {
     height: 100%;
 }

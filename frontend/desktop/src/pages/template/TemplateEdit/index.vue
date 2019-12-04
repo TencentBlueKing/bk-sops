@@ -256,7 +256,7 @@
                     activities: this.activities,
                     lines: this.lines,
                     locations: this.locations.map(location => {
-                        let icon, group
+                        let icon, group, code
                         const atom = this.singleAtom.find(item => {
                             if (location.type === 'tasknode') {
                                 return this.activities[location.id].component.code === item.code
@@ -265,8 +265,9 @@
                         if (atom) {
                             icon = atom.group_icon
                             group = atom.group_name
+                            code = atom.code
                         }
-                        const data = { ...location, mode: 'edit', icon, group }
+                        const data = { ...location, mode: 'edit', icon, group, code }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
