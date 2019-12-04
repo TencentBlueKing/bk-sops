@@ -14,30 +14,23 @@ specific language governing permissions and limitations under the License.
 import functools
 import time
 
+from django.db import transaction
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from pipeline.constants import PIPELINE_DEFAULT_PRIORITY, PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
+from pipeline.constants import (PIPELINE_DEFAULT_PRIORITY,
+                                PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY)
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.gateway import ExclusiveGateway, ParallelGateway
+from pipeline.engine import exceptions, states
 from pipeline.engine.core.api import workers
-from pipeline.engine import states, exceptions
-from pipeline.engine.models import (
-    Status,
-    PipelineModel,
-    PipelineProcess,
-    NodeRelationship,
-    ScheduleService,
-    Data,
-    SubProcessRelationship,
-    ProcessCeleryTask,
-    History,
-    FunctionSwitch,
-    Pipeline)
+from pipeline.engine.models import (Data, FunctionSwitch, History,
+                                    NodeRelationship, Pipeline, PipelineModel,
+                                    PipelineProcess, ProcessCeleryTask,
+                                    ScheduleService, Status,
+                                    SubProcessRelationship)
 from pipeline.engine.signals import pipeline_revoke
-from pipeline.engine.utils import calculate_elapsed_time, ActionResult
+from pipeline.engine.utils import ActionResult, calculate_elapsed_time
 from pipeline.utils import uniqid
-
-from django.db import transaction
 
 
 def _node_existence_check(func):
@@ -147,11 +140,16 @@ def revoke_pipeline(pipeline_id):
     :return:
     """
 
+    try:
+        pipeline_model = PipelineModel.objects.get(id=pipeline_id)
+    except PipelineModel.DoesNotExist:
+        return ActionResult(result=False, message='pipeline to be revoked does not exist.')
+
     action_result = Status.objects.transit(id=pipeline_id, to_state=states.REVOKED, is_pipeline=True, appoint=True)
     if not action_result.result:
         return action_result
 
-    process = PipelineModel.objects.get(id=pipeline_id).process
+    process = pipeline_model.process
 
     if not process:
         return ActionResult(result=False, message='relate process is none, this pipeline may be revoked.')

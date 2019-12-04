@@ -17,6 +17,7 @@ import ujson as json
 
 from pipeline import exceptions
 from pipeline.utils.collections import FancyDict
+from pipeline.utils.utils import convert_bytes_to_str
 
 
 class DataObject(object):
@@ -79,8 +80,12 @@ class DataObject(object):
         return json.dumps(result)
 
     def __setstate__(self, state):
-        self.inputs = FancyDict(state['inputs'])
-        self.outputs = FancyDict(state['outputs'])
+        # py2 compatible
+        input_key = b'inputs' if b'inputs' in state else 'inputs'
+        outputs_key = b'outputs' if b'outputs' in state else 'outputs'
+
+        self.inputs = FancyDict(convert_bytes_to_str(state[input_key]))
+        self.outputs = FancyDict(convert_bytes_to_str(state[outputs_key]))
 
     def __str__(self):
         return '<inputs: {} | outputs: {}>'.format(

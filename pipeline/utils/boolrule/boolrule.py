@@ -63,7 +63,7 @@ lparen = Suppress('(')
 rparen = Suppress(')')
 
 binaryOp = oneOf(
-    "== != < > >= <= in notin", caseless=True
+    "== != < > >= <= in notin issuperset notissuperset", caseless=True
 )('operator')
 
 E = CaselessLiteral("E")
@@ -108,19 +108,7 @@ boolExpression << boolCondition + ZeroOrMore((and_ | or_) + boolExpression)
 
 def double_equals_trans(lval, rval, operator):
     # double equals
-    if operator not in ['in', 'notin']:
-        try:
-            if isinstance(lval, int):
-                rval = int(rval)
-            elif isinstance(rval, int):
-                lval = int(lval)
-            if isinstance(lval, str):
-                rval = str(rval)
-            elif isinstance(rval, str):
-                lval = str(lval)
-        except Exception:
-            pass
-    else:
+    if operator in ['in', 'notin']:
         if isinstance(rval, list) and len(rval):
             transed_rval = []
             if isinstance(lval, int):
@@ -136,6 +124,27 @@ def double_equals_trans(lval, rval, operator):
                     except Exception:
                         pass
             rval += transed_rval
+
+    elif operator in ['issuperset', 'notissuperset']:
+        # avoid convert set('abc') to {a, b, c}, but keep {'abc'}
+        if isinstance(lval, str):
+            lval = [lval]
+        if isinstance(rval, str):
+            rval = [rval]
+
+    else:
+        try:
+            if isinstance(lval, int):
+                rval = int(rval)
+            elif isinstance(rval, int):
+                lval = int(lval)
+            if isinstance(lval, str):
+                rval = str(rval)
+            elif isinstance(rval, str):
+                lval = str(lval)
+        except Exception:
+            pass
+
     return lval, rval
 
 
@@ -243,6 +252,10 @@ class BoolRule(object):
                 passed = lval in rval
             elif operator == 'notin':
                 passed = lval not in rval
+            elif operator == 'issuperset':
+                passed = set(lval).issuperset(set(rval))
+            elif operator == 'notissuperset':
+                passed = not set(lval).issuperset(set(rval))
             else:
                 raise UnknownOperatorException(
                     "Unknown operator '{}'".format(operator)

@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 
 from pipeline.core.flow.activity.base import Activity
+from pipeline.utils.utils import convert_bytes_to_str
 
 
 class SubProcess(Activity):
@@ -29,6 +30,9 @@ class SubProcess(Activity):
 
     def __setstate__(self, state):
         for attr, obj in list(state.items()):
+            if isinstance(attr, bytes):
+                attr = attr.decode('utf-8')
+                obj = convert_bytes_to_str(obj)
             setattr(self, attr, obj)
 
         if '_prepared_inputs' not in state:
