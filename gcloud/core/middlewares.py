@@ -15,7 +15,7 @@ import logging
 import traceback
 
 import pytz
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
@@ -33,14 +33,21 @@ class TimezoneMiddleware(MiddlewareMixin):
             try:
                 project = Project.objects.get(id=project_id)
             except Project.DoesNotExist:
-                return HttpResponseBadRequest(content='project does not exist.')
+                logger.error('project[id={project_id}] does not exist'.format(project_id=project_id))
+                return None
 
             # set time_zone of business
             request.session['blueking_timezone'] = project.time_zone
 
         tzname = request.session.get('blueking_timezone')
         if tzname:
-            timezone.activate(pytz.timezone(tzname))
+            try:
+                timezone.activate(pytz.timezone(tzname))
+            except Exception as e:
+                logger.error('activate timezone[{blueking_timezone}] raise error[{error}]'.format(
+                    blueking_timezone=tzname,
+                    error=e
+                ))
         else:
             timezone.deactivate()
 
