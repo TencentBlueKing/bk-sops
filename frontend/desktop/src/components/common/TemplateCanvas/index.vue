@@ -789,7 +789,6 @@
                     const ids = this.selectedNodes.map(m => m.id)
                     this.$refs.jsFlow.addNodesToDragSelection(ids)
                 }
-                
                 // 重新计算粘贴相对位置
                 this.selectionOriginPos = this.getNodesLocationOnLeftTop(this.selectedNodes)
                 document.addEventListener('keydown', this.nodeSelectedhandler)
@@ -1075,7 +1074,8 @@
             }
             .branch-condition {
                 padding: 4px 6px;
-                width: 60px;
+                min-width: 60px;
+                max-width: 86px;
                 min-height: 20px;
                 font-size: 12px;
                 text-align: center;
