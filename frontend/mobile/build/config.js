@@ -15,6 +15,7 @@ import devEnv from './dev.env'
  */
 let SITE_URL = ''
 let STATIC_ENV = ''
+let VERSION = ''
 
 process.argv.forEach(val => {
     if (/--SITE_URL=/.test(val)) {
@@ -23,9 +24,14 @@ process.argv.forEach(val => {
     if (/--STATIC_ENV=/.test(val)) {
         STATIC_ENV = val.replace(/--STATIC_ENV=/, '')
     }
+    if (/--VERSION=/.test(val)) {
+        VERSION = val.replace(/--VERSION=/, '')
+    }
 })
 
 process.env.STATIC_ENV = STATIC_ENV
+process.env.VERSION = VERSION ? '?v=' + VERSION : ''
+
 
 // const publicPath = path.posix.join(SITE_URL, '/static/')
 
