@@ -767,10 +767,20 @@
              * 单个添加选中节点
              */
             addNodesToDragSelection (selectedNode) {
-                this.selectedNodes.push(selectedNode)
-                this.copyNodes.push(selectedNode)
-                const ids = this.selectedNodes.map(m => m.id)
-                this.$refs.jsFlow.addNodesToDragSelection(ids)
+                const index = this.selectedNodes.findIndex(m => m.id === selectedNode.id)
+                if (index > -1) { // 已存在
+                    this.$refs.jsFlow.clearNodesDragSelection()
+                    this.$delete(this.selectedNodes, index)
+                    this.$delete(this.copyNodes, index)
+                    const ids = this.selectedNodes.map(m => m.id)
+                    this.$refs.jsFlow.addNodesToDragSelection(ids)
+                } else {
+                    this.selectedNodes.push(selectedNode)
+                    this.copyNodes.push(selectedNode)
+                    const ids = this.selectedNodes.map(m => m.id)
+                    this.$refs.jsFlow.addNodesToDragSelection(ids)
+                }
+                
                 // 重新计算粘贴相对位置
                 this.selectionOriginPos = this.getNodesLocationOnLeftTop(this.selectedNodes)
                 document.addEventListener('keydown', this.nodeSelectedhandler)

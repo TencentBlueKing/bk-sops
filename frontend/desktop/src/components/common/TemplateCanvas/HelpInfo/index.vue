@@ -58,7 +58,7 @@
                     zoomIn: gettext('：放大'),
                     zoomOut: gettext('：缩小'),
                     reduction: gettext('：还原'),
-                    multiple: gettext('鼠标左键单击 ：连续选中节点'),
+                    multiple: gettext('鼠标左键单击 ：连续选中（或取消）节点'),
                     selectAll: gettext('选中所有节点'),
                     afterSelect: gettext('选中后'),
                     delNode: gettext('：删除节点'),
