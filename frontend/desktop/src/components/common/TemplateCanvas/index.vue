@@ -762,7 +762,7 @@
                     const ids = this.selectedNodes.map(m => m.id)
                     this.$refs.jsFlow.addNodesToDragSelection(ids)
                 }
-
+                
                 // 重新计算粘贴相对位置
                 this.selectionOriginPos = this.getNodesLocationOnLeftTop(this.selectedNodes)
                 document.addEventListener('keydown', this.nodeSelectedhandler)
