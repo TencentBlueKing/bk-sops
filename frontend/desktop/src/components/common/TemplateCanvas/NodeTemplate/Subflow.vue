@@ -182,7 +182,7 @@
         top: 50%;
         transform: translate(0, -50%);
         color: #ffffff;
-        font-size: 22px;
+        font-size: 18px;
         z-index: 1;
     }
     .node-name {
