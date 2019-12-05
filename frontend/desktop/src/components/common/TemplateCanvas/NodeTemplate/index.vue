@@ -353,6 +353,23 @@
                 @include taskNodeStyle ($greenDark)
             }
         }
+        .task-node,
+        .subflow-node {
+            .node-name {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 5px 2px;
+                height: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                text-align: center;
+                color: #63656e;
+            }
+        }
         .subflow-node-icon {
             position: absolute;
             bottom: 0;
