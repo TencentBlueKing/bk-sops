@@ -34,7 +34,7 @@ module.exports = merge(webpackBaseConfig, {
         // 只打 moment.js 中文包，减小体积
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
-            filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name]' + process.env.VERSION + '.css')
+            filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name].css' + process.env.VERSION)
         }),
         new UglifyJsPlugin({
             sourceMap: true,
