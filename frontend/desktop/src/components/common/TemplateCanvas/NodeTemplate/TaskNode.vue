@@ -252,5 +252,6 @@
     .dark-circle {
         font-size: 12px;
         color: #979ba5;
+        margin-left: -2px;
     }
 </style>
