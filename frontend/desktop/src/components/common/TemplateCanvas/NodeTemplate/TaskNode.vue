@@ -166,7 +166,7 @@
             width: 16px;
         }
         .node-icon-font {
-            font-size: 16px;
+            font-size: 18px;
             color: #ffffff;
         }
     }
