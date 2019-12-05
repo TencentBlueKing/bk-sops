@@ -10,8 +10,13 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['execute-info', { 'loading': loading }]" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div class="excute-time">
+    <div
+        :class="['execute-info', {
+            'loading': loading,
+            'admin-view': adminView
+        }]"
+        v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div class="excute-time" v-if="!adminView">
             <span>{{i18n.theTime}}</span>
             <bk-select
                 :clearable="false"
@@ -48,7 +53,9 @@
                             {{getLastTime(executeInfo.elapsed_time)}}
                         </template>
                         <template v-else-if="col.id === 'callback_data'">
-                            {{JSON.stringify(executeInfo.callback_data, null, 4)}}
+                            <div class="code-block-wrap">
+                                <VueJsonPretty :data="executeInfo.callback_data"></VueJsonPretty>
+                            </div>
                         </template>
                         <template v-else>
                             {{ executeInfo[col.id] }}
@@ -57,7 +64,7 @@
                 </tr>
             </table>
         </section>
-        <section class="info-section" v-show="isSingleAtom">
+        <section class="info-section" v-if="!adminView">
             <h4 class="common-section-title">{{ i18n.inputsParams }}</h4>
             <div>
                 <RenderForm
@@ -69,7 +76,13 @@
                 <NoData v-else></NoData>
             </div>
         </section>
-        <section class="info-section" v-show="isSingleAtom">
+        <section class="info-section" v-else>
+            <h4 class="common-section-title">{{ i18n.inputsParams }}</h4>
+            <div class="code-block-wrap">
+                <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
+            </div>
+        </section>
+        <section class="info-section" v-if="!adminView">
             <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
             <table class="operation-table outputs-table">
                 <thead>
@@ -90,6 +103,12 @@
                 </tbody>
             </table>
         </section>
+        <section class="info-section" v-else>
+            <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
+            <div class="code-block-wrap">
+                <VueJsonPretty :data="outputsInfo"></VueJsonPretty>
+            </div>
+        </section>
         <section class="info-section" v-if="executeInfo.ex_data">
             <h4 class="common-section-title">{{ i18n.exception }}</h4>
             <div v-html="failInfo"></div>
@@ -99,54 +118,60 @@
                 :node-info="executeInfo">
             </IpLogContent>
         </section>
-        <section class="info-section" v-if="logInfo">
+        <section class="info-section" v-if="adminView">
             <h4 class="common-section-title">{{ i18n.nodeLog }}</h4>
-            <div>{{ logInfo }}</div>
+            <div class="code-block-wrap">
+                <VueJsonPretty :data="logInfo || null"></VueJsonPretty>
+            </div>
         </section>
         <section class="info-section" v-if="historyInfo.length">
             <h4 class="common-section-title">{{ i18n.retries }}</h4>
             <bk-table
                 class="retry-table"
-                :data="historyInfo">
+                :data="historyInfo"
+                @expand-change="onHistoyExpand">
                 <bk-table-column type="expand" :width="60">
                     <template slot-scope="props">
                         <div class="common-form-item">
                             <label>{{ i18n.inputsParams }}</label>
                             <div class="common-form-content">
-                                <VueJsonPretty
-                                    :data="props.row.inputs">
-                                </VueJsonPretty>
+                                <div class="code-block-wrap">
+                                    <VueJsonPretty :data="props.row.inputs"></VueJsonPretty>
+                                </div>
                             </div>
                         </div>
                         <div class="common-form-item">
                             <label>{{ i18n.outputsParams }}</label>
                             <div class="common-form-content">
-                                <VueJsonPretty
-                                    :data="props.row.outputs">
-                                </VueJsonPretty>
+                                <div class="code-block-wrap">
+                                    <VueJsonPretty :data="props.row.outputs"></VueJsonPretty>
+                                </div>
                             </div>
                         </div>
-                        <div class="common-form-item">
+                        <div class="common-form-item" v-if="props.row.ex_data">
                             <label>{{ i18n.exception }}</label>
                             <div class="common-form-content">
                                 <div v-html="props.row.ex_data"></div>
                             </div>
                         </div>
-                        <div class="common-form-item" v-if="hasAdminPerm">
+                        <div class="common-form-item" v-if="adminView">
                             <label>{{ i18n.log }}</label>
                             <div class="common-form-content">
-                                <div v-bkloading="{ isLoading: historyLogLoading, opacity: 1 }">
-                                    {{ historyLog[props.row.history_id] || '--' }}
+                                <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                    <div class="code-block-wrap">
+                                        <VueJsonPretty :data="historyLog[props.row.history_id] || null"></VueJsonPretty>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="i18n.index" :width="'70'">
+                <bk-table-column :label="i18n.index" :width="70">
                     <template slot-scope="props">
                         {{props.$index + 1}}
                     </template>
                 </bk-table-column>
+                <bk-table-column :label="i18n.loopTime" :width="100" prop="loop"></bk-table-column>
                 <bk-table-column
                     v-for="col in historyCols"
                     :key="col.id"
@@ -242,10 +267,6 @@
             id: 'create_time'
         },
         {
-            title: gettext('执行版本'),
-            id: 'version'
-        },
-        {
             title: gettext('调度ID'),
             id: 'schedule_id'
         },
@@ -268,6 +289,10 @@
         {
             title: gettext('调度节点版本'),
             id: 'schedule_version'
+        },
+        {
+            title: gettext('执行版本'),
+            id: 'version'
         },
         {
             title: gettext('回调数据'),
@@ -314,6 +339,10 @@
             IpLogContent
         },
         props: {
+            adminView: {
+                type: Boolean,
+                default: false
+            },
             nodeDetailConfig: {
                 type: Object,
                 required: true
@@ -340,7 +369,8 @@
                     failed: gettext('失败'),
                     finished: gettext('完成'),
                     theTime: gettext('第'),
-                    executeTime: gettext('次执行')
+                    executeTime: gettext('次执行'),
+                    loopTime: gettext('执行次数')
                 },
                 loading: true,
                 executeInfo: {},
@@ -348,8 +378,8 @@
                 outputsInfo: [],
                 logInfo: '',
                 historyInfo: [],
-                historyLog: [],
-                historyLogLoading: false,
+                historyLog: {},
+                historyLogLoading: {},
                 failInfo: '',
                 renderOption: {
                     showGroup: false,
@@ -366,12 +396,8 @@
         },
         computed: {
             ...mapState({
-                'atomFormConfig': state => state.atomForm.config,
-                'hasAdminPerm': state => state.hasAdminPerm
+                'atomFormConfig': state => state.atomForm.config
             }),
-            isSingleAtom () {
-                return !!this.nodeDetailConfig.component_code
-            },
             isEmptyParams () {
                 return this.renderConfig && this.renderConfig.length === 0
             },
@@ -401,10 +427,10 @@
                 return times
             },
             executeCols () {
-                return this.hasAdminPerm ? ADMIN_EXECUTE_INFO_COL : EXECUTE_INFO_COL
+                return this.adminView ? ADMIN_EXECUTE_INFO_COL : EXECUTE_INFO_COL
             },
             historyCols () {
-                return this.hasAdminPerm ? ADMIN_HISTORY_COLS : HISTORY_COLS
+                return this.adminView ? ADMIN_HISTORY_COLS : HISTORY_COLS
             }
         },
         watch: {
@@ -436,52 +462,51 @@
                 this.loading = true
                 try {
                     const respData = await this.getTaskNodeDetail()
+                    const { execution_info, outputs, inputs, log, history } = respData
                     
-                    if (this.isSingleAtom) {
-                        const version = this.nodeDetailConfig.version
-                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
-                    }
+                    const version = this.nodeDetailConfig.version
+                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
 
-                    if (this.hasAdminPerm) {
-                        this.executeInfo = respData.execution_info
-
-                        if (Object.prototype.toString.call(this.outputsInfo) === '[Object Object]') {
-                            this.outputsInfo = Object.keys(respData.outputs).map(item => {
-                                return {
-                                    name: item,
-                                    value: respData.outputs[item]
-                                }
-                            })
-                        }
-
-                        this.historyInfo = respData.history
-                        this.getHistoryLog()
+                    if (this.adminView) {
+                        this.executeInfo = execution_info
+                        this.outputsInfo = outputs
+                        this.inputsInfo = inputs
+                        this.logInfo = log
+                        this.historyInfo = history.sort((a, b) => {
+                            if (a.loop === b.loop) {
+                                return b.history_id - a.history_id
+                            } else {
+                                return b.loop - a.loop
+                            }
+                        })
                     } else {
                         this.executeInfo = respData
-                        this.outputsInfo = respData.outputs
+                        this.inputsInfo = inputs
+                        this.outputsInfo = outputs
                         this.historyInfo = respData.histories
+                        this.outputsInfo = outputs.filter(output => output.preset)
+                        for (const key in this.inputsInfo) {
+                            this.$set(this.renderData, key, this.inputsInfo[key])
+                        }
+                        
+                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.outputsInfo.hasOwnProperty('job_global_var')) {
+                            this.outputsInfo = this.outputsInfo.filter(output => {
+                                const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
+                                if (!output.preset && outputIndex === -1) {
+                                    return false
+                                }
+                                return true
+                            })
+                        }
+                        
                         if (this.theExecuteTime === undefined) {
                             this.loop = respData.loop
                         }
-                        this.outputsInfo = this.outputsInfo.filter(output => output.preset)
                     }
-                    this.inputsInfo = respData.inputs
 
                     this.historyInfo.forEach(item => {
                         item.last_time = this.getLastTime(item.elapsed_time)
                     })
-                    for (const key in this.inputsInfo) {
-                        this.$set(this.renderData, key, this.inputsInfo[key])
-                    }
-                    if (this.nodeDetailConfig.component_code === 'job_execute_task') {
-                        this.outputsInfo = this.outputsInfo.filter(output => {
-                            const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
-                            if (!output.preset && outputIndex === -1) {
-                                return false
-                            }
-                            return true
-                        })
-                    }
 
                     if (this.executeInfo.ex_data && this.executeInfo.ex_data.show_ip_log) {
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data.exception_msg)
@@ -499,7 +524,7 @@
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                     let getData = this.getNodeActDetail
                     
-                    if (this.hasAdminPerm) {
+                    if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
                         query = { task_id, node_id, subprocess_stack }
                         getData = this.taskflowNodeDetail
@@ -530,25 +555,23 @@
                     }
                 }
             },
-            async getHistoryLog () {
+            async getHistoryLog (id) {
                 try {
-                    this.historyLogLoading = true
-                    for (const history of this.historyInfo) {
-                        const data = {
-                            node_id: this.nodeDetailConfig.node_id,
-                            history_id: history.history_id
-                        }
-                        const resp = await this.taskflowHistroyLog(data)
-                        if (resp.result) {
-                            this.historyLog[history.history_id] = resp.data.log
-                        } else {
-                            errorHandler(resp, this)
-                        }
+                    this.$set(this.historyLogLoading, id, true)
+                    const data = {
+                        node_id: this.nodeDetailConfig.node_id,
+                        history_id: id
+                    }
+                    const resp = await this.taskflowHistroyLog(data)
+                    if (resp.result) {
+                        this.$set(this.historyLog, id, resp.data.log)
+                    } else {
+                        errorHandler(resp, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
-                    this.historyLogLoading = false
+                    this.historyLogLoading[id] = false
                 }
             },
             isUrl (val) {
@@ -588,6 +611,12 @@
             },
             onSelectExecuteTime () {
                 this.loadNodeInfo()
+            },
+            onHistoyExpand (row, expended) {
+                const id = Number(row.history_id)
+                if (this.adminView && expended && !this.historyLog.hasOwnProperty(id)) {
+                    this.getHistoryLog(id)
+                }
             }
         }
     }
@@ -603,6 +632,20 @@
     @include scrollbar;
     &.loading {
         overflow: hidden;
+    }
+    &.admin-view {
+        .code-block-wrap {
+            background: #313238;
+            padding: 10px;
+            /deep/ .vjs-tree {
+                .vjs-key {
+                    color: #ffffff;
+                }
+            }
+        }
+    }
+    /deep/ .vjs-tree {
+        font-size: 12px;
     }
     .excute-time {
         margin-bottom: 40px;
