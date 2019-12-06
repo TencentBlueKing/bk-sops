@@ -17,7 +17,7 @@ const isProd = process.env.NODE_ENV === 'production'
 export default {
     output: {
         path: isProd ? config.build.assetsRoot : config.dev.assetsRoot,
-        filename: '[name].js',
+        filename: '[name].js' + process.env.VERSION,
         publicPath: isProd ? config.build.assetsPublicPath : config.dev.assetsPublicPath
     },
 
@@ -78,7 +78,7 @@ export default {
                 loader: 'url-loader',
                 options: {
                     limit: 10000,
-                    name: assetsPath('images/[name].[ext]')
+                    name: assetsPath('images/[name].[ext]' + process.env.VERSION)
                 }
             },
             {
@@ -87,7 +87,7 @@ export default {
                     loader: 'url-loader',
                     options: {
                         limit: 10000,
-                        name: assetsPath('media/[name].[ext]')
+                        name: assetsPath('media/[name].[ext]' + process.env.VERSION)
                     }
                 }
             },
@@ -97,7 +97,7 @@ export default {
                     loader: 'url-loader',
                     options: {
                         limit: 1,
-                        name: assetsPath('fonts/[name].[ext]')
+                        name: assetsPath('fonts/[name].[ext]' + process.env.VERSION)
                     }
                 }
             }
