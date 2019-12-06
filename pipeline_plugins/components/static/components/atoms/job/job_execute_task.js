@@ -59,7 +59,8 @@
                     {
                         type: "required"
                     }
-                ]
+                ],
+                cols: 10
             },
             events: [
                 {
@@ -85,6 +86,29 @@
                         }
                         this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + value + '/';
                         this.remoteMethod();
+                    }
+                }
+            ]
+        },
+        {
+            tag_code: "button_refresh",
+            type: "button",
+            attrs: {
+                hookable: false,
+                type: "primary",
+                title: '刷新',
+                plain: true,
+                size: "small",
+                cols: 1,
+                formViewHidden: true
+            },
+            events: [
+                {
+                    source: "button_refresh",
+                    type: "click",
+                    action: function (value) {
+                        const job_id = this.get_parent().get_child("job_task_id").value;
+                        this.emit_event("job_task_id", "change", job_id)
                     }
                 }
             ]
@@ -134,6 +158,10 @@
                     source: "job_task_id",
                     type: "change",
                     action: function (value) {
+                        if ($.job_execute_task_data === undefined) {
+                            $.job_execute_task_data = {}
+                        }
+                        $.job_execute_task_data['current_job_task_id'] = value;
                         var $this = this;
                         this.changeHook(false);
                         if (value === '') {
@@ -147,7 +175,22 @@
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {
-                                $this._set_value(resp.data.global_var);
+                                if ($.job_execute_task_data[value] === undefined) {
+                                    $.job_execute_task_data[value] = resp.data.global_var;
+                                    $this._set_value(resp.data.global_var);
+                                } else {
+                                    var global_var = $.job_execute_task_data[value];
+                                    var new_global_var = resp.data.global_var.map(function (item) {
+                                        var target = global_var.find(function (old_item) {
+                                            return old_item.name === item.name;
+                                        });
+                                        if (target) {
+                                            item.value = target.value;
+                                        }
+                                        return item;
+                                    })
+                                    $this._set_value(new_global_var);
+                                }
                                 $this.set_loading(false);
                                 if (resp.result === false) {
                                     show_msg(resp.message, 'error');
@@ -159,6 +202,14 @@
                                 show_msg('request job detail error', 'error');
                             }
                         });
+                    }
+                },
+                {
+                    source: "job_global_var",
+                    type: "change",
+                    action: function (value) {
+                        var task_job_id = $.job_execute_task_data['current_job_task_id'];
+                        $.job_execute_task_data[task_job_id] = value;
                     }
                 }
             ]
