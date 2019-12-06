@@ -124,6 +124,8 @@ class CollectionResources(ModelResource):
                         operations.append(item)
                         operate_ids.add(item['operate_id'])
 
+        if 'meta' not in data:
+            data['meta'] = {}
         data['meta']['auth_operations'] = operations
         data['meta']['auth_resource'] = resource
         return data
