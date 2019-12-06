@@ -82,7 +82,7 @@
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
-                    @addNodesToDragSelection="addNodesToDragSelection"
+                    @addNodesToDragSelection="addNodeToSelectedList"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </node-template>
             </template>
@@ -775,7 +775,7 @@
             /**
              * 单个添加选中节点
              */
-            addNodesToDragSelection (selectedNode) {
+            addNodeToSelectedList (selectedNode) {
                 const index = this.selectedNodes.findIndex(m => m.id === selectedNode.id)
                 if (index > -1) { // 已存在
                     this.$refs.jsFlow.clearNodesDragSelection()

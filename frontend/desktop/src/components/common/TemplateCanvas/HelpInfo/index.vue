@@ -17,7 +17,7 @@
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
                     <template>
-                        <p class="text title">Windows</p>
+                        <p class="text title">{{ commonTitle }}</p>
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
@@ -66,6 +66,7 @@
                     cancel: gettext('：取消选中')
                 },
                 isMac,
+                commonTitle: isMac ? 'Mac' : 'Windows',
                 commonCtrl: isMac ? 'Command' : 'Ctrl',
                 hotKeyTriggeringConditions
             }

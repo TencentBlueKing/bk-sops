@@ -587,13 +587,7 @@ const template = {
                 const oldSouceId = location.oldSouceId
                 const newActivitie = tools.deepClone(state.activities[oldSouceId])
                 if (!state.activities[location.id]) {
-                    if (location.type === 'tasknode') {
-                        newActivitie.id = location.id
-                        newActivitie.incoming = ''
-                        newActivitie.loop = null
-                        newActivitie.outgoing = ''
-                        state.activities[location.id] = newActivitie
-                    } else if (location.type === 'subflow') {
+                    if (location.type === 'tasknode' || location.type === 'subflow') {
                         newActivitie.id = location.id
                         newActivitie.incoming = ''
                         newActivitie.loop = null
