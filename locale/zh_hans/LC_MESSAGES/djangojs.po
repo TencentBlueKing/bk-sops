@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-05 17:52+0800\n"
+"POT-Creation-Date: 2019-12-06 14:47+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3340,23 +3340,27 @@ msgstr "最大输入连线条数"
 msgid "在模板中只能添加一个"
 msgstr "在模板中只能添加一个"
 
-#: frontend/desktop/src/utils/validatePipeline.js:195
+#: frontend/desktop/src/utils/validatePipeline.js:201
 msgid "至少需要"
 msgstr "至少需要"
 
-#: frontend/desktop/src/utils/validatePipeline.js:197
+#: frontend/desktop/src/utils/validatePipeline.js:203
 msgid "条输入连线"
 msgstr "条输入连线"
 
-#: frontend/desktop/src/utils/validatePipeline.js:202
+#: frontend/desktop/src/utils/validatePipeline.js:208
 msgid "条输出连线"
 msgstr "条输出连线"
 
-#: frontend/desktop/src/utils/validatePipeline.js:214
+#: frontend/desktop/src/utils/validatePipeline.js:220
 msgid "请添加任务节点"
 msgstr "请添加任务节点"
 
-#: frontend/desktop/src/utils/validatePipeline.js:241
+#: frontend/desktop/src/utils/validatePipeline.js:225
+msgid "并行网关、分支网关个数和汇聚网关个数必须一致，并且必须配对使用"
+msgstr "并行网关、分支网关个数和汇聚网关个数必须一致，并且必须配对使用"
+
+#: frontend/desktop/src/utils/validatePipeline.js:252
 msgid "t equal to ${id}`)"
 msgstr "t equal to ${id}`)"
 
