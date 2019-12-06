@@ -9,6 +9,13 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+/**
+ * 参数 schema 是用于描述标准运维流程模板中输入类型全局变量的元信息的结构，
+ * 其记录了全局变量的 类型， 可选值， 结构， 描述 等信息，目的是方便 API 的调用方获取模板中全局变量的相关信息。
+ * 目前流程模板中输入类型的全局变量来源有以下两种：
+ * 插件表单中勾选
+ * 自定义全局变量
+ */
 // Tag 配置项过滤列表
 const SCHEMA_CONFIG = {
     'checkbox': null,
@@ -35,7 +42,11 @@ const formSchema = {
      * @param {Object} oldConfig 原始配置
      */
     getSchema (tagCode, oldConfig) {
-        const { type, attrs } = oldConfig.filter(m => m.tag_code === tagCode)[0]
+        const config = oldConfig.find(m => m.tag_code === tagCode)
+        if (!config) {
+            return {}
+        }
+        const { type, attrs } = config
         const currTagFilterList = SCHEMA_CONFIG[type]
         const newAttrs = {}
 
