@@ -94,6 +94,7 @@
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
                 @updateLocalTemplateData="updateLocalTemplateData"
+                @modifyTemplateData="modifyTemplateData"
                 @hideConfigPanel="hideConfigPanel"
                 @updataConditionData="updataConditionData">
             </TemplateSetting>
@@ -1113,6 +1114,14 @@
                     // actions[atom.code] = atom.version
                 })
                 this.setVersionMap(actions)
+            },
+            // 流程模板数据编辑更新
+            modifyTemplateData (data) {
+                this.templateDataLoading = true
+                this.setPipelineTree(data)
+                this.$nextTick(() => {
+                    this.templateDataLoading = false
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
