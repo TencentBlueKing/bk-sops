@@ -448,8 +448,9 @@
             },
             // 拖拽到节点上自动连接
             onConnectionDragStop (source, targetId, event) {
-                if (source.id === targetId) {
-                    return false // 节点不可以连接自身
+                const location = this.canvasData.locations.find(item => item.id === source.id)
+                if (source.id === targetId && location.type !== 'branchgateway') {
+                    return false // 非分支节点不可以连接自身
                 }
                 let arrow
                 const nodeEl = document.getElementById(targetId)
@@ -491,9 +492,12 @@
             // 拖拽到端点上连接
             onBeforeDrop (line) {
                 const { sourceId, targetId, connection, dropEndpoint } = line
-                if (sourceId === targetId) {
+                const location = this.canvasData.locations.find(item => item.id === sourceId)
+
+                if (sourceId === targetId && location.type !== 'branchgateway') {
                     return false
                 }
+
                 const data = {
                     source: {
                         id: sourceId,
@@ -654,7 +658,7 @@
                 const bY = pageY - 50 - offsetY + 5
                 const type = endpoint.anchor.type
                 // 第二次点击
-                if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
+                if (this.referenceLine.id) {
                     this.createLine(
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
@@ -704,7 +708,12 @@
             },
             // 创建连线
             createLine (source, target) {
-                if (source.id === target.id) return false
+                const location = this.canvasData.locations.find(item => item.id === source.id)
+
+                if (source.id === target.id && location.type !== 'branchgateway') {
+                    return false
+                }
+                
                 const line = {
                     source,
                     target
