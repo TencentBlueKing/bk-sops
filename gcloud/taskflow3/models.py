@@ -1114,7 +1114,11 @@ class TaskFlowInstance(models.Model):
                 'code': err_code.INVALID_OPERATION.code
             }
         if action not in INSTANCE_ACTIONS:
-            return {'result': False, 'message': 'task action is invalid'}
+            return {
+                'result': False,
+                'message': 'task action is invalid',
+                'code': err_code.INVALID_OPERATION.code
+            }
         if action == 'start':
             try:
                 action_result = self.pipeline_instance.start(username)
