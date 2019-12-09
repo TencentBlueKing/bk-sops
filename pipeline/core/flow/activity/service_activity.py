@@ -16,8 +16,10 @@ from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema, IntItemSchema
 from pipeline.core.flow.activity.base import Activity
+from pipeline.core.flow.io import (BooleanItemSchema, InputItem, IntItemSchema,
+                                   OutputItem)
+from pipeline.utils.utils import convert_bytes_to_str
 
 
 class Service(object, metaclass=ABCMeta):
@@ -178,7 +180,13 @@ class ServiceActivity(Activity):
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
     def __setstate__(self, state):
+
         for attr, obj in list(state.items()):
+            # py2 compatible
+            if isinstance(attr, bytes):
+                attr = attr.decode('utf-8')
+                obj = convert_bytes_to_str(obj)
+
             setattr(self, attr, obj)
 
         if 'timeout' not in state:

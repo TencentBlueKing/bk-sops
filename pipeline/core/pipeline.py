@@ -11,6 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from queue import Queue
+
+from pipeline.core.flow.activity import Activity
+from pipeline.core.flow.gateway import Gateway
 from pipeline.exceptions import PipelineException
 
 
@@ -33,6 +37,68 @@ class PipelineSpec(object):
         self.data = data
         self.objects = objects
         self.context = context
+
+    def prune(self, keep_from, keep_to):
+        if keep_from != self.start_event.id:
+            self.start_event.outgoing = None
+
+        if keep_to != self.end_event.id:
+            self.end_event.incoming = None
+
+        self.activities = []
+        self.gateways = []
+        self.flows = []
+
+        keep_from_node = self.objects[keep_from]
+        keep_to_node = self.objects[keep_to]
+
+        keep_from_node.incoming = None
+        keep_to_node.outgoing = None
+
+        to_be_process = Queue()
+        to_be_process.put(keep_from_node)
+
+        new_objects = {}
+        keep_to_incoming_flows = []
+
+        while not to_be_process.empty():
+            node = to_be_process.get()
+
+            if issubclass(node.__class__, Activity):
+                self.activities.append(node)
+            elif issubclass(node.__class__, Gateway):
+                self.gateways.append(node)
+
+            new_objects[node.id] = node
+
+            if node.id == keep_to_node.id:
+                continue
+
+            for out in node.outgoing:
+
+                self.flows.append(out)
+
+                if out.target.id not in new_objects:
+                    next_node = out.target
+                    if next_node.id == keep_to_node.id:
+                        keep_to_incoming_flows.append(out)
+                    to_be_process.put(next_node)
+
+        keep_to_node.incoming.flows = keep_to_incoming_flows
+        keep_to_node.incoming.flow_dict = {}
+        for flow in keep_to_incoming_flows:
+            keep_to_node.incoming.flow_dict[flow.id] = flow
+
+        self.objects = new_objects
+
+
+class PipelineShell(object):
+    def __init__(self, id, data):
+        self.id = id
+        self.data = data
+
+    def shell(self):
+        return PipelineShell(id=self.id, data=self.data)
 
 
 class Pipeline(object):
@@ -69,3 +135,9 @@ class Pipeline(object):
 
     def node(self, id):
         return self.spec.objects.get(id)
+
+    def prune(self, keep_from, keep_to):
+        self.spec.prune(keep_from=keep_from, keep_to=keep_to)
+
+    def shell(self):
+        return PipelineShell(id=self.id, data=self.data)

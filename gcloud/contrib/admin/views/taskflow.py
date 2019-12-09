@@ -23,6 +23,7 @@ from pipeline.engine.models import (
     Status,
     ScheduleService
 )
+from pipeline.core.pipeline import PipelineShell
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.core.data.var import Variable
 from pipeline.service import task_service
@@ -82,7 +83,10 @@ def serialize_process_data(process):
             data['in_subprocess'] = process.in_subprocess
 
         if process.root_pipeline:
-            data['context'] = serialize_pipeline_context(process.root_pipeline.context)
+            if isinstance(process.root_pipeline, PipelineShell):
+                data['context'] = 'can not get context from PipelineShell'
+            else:
+                data['context'] = serialize_pipeline_context(process.root_pipeline.context)
 
         if process.pipeline_stack:
             for pipeline in process.pipeline_stack[:-1]:

@@ -16,13 +16,15 @@ import traceback
 from django.test import TestCase
 
 from pipeline.django_signal_valve import valve
-from pipeline.engine import states, signals, exceptions
+from pipeline.engine import exceptions, signals, states
 from pipeline.engine.models import Status
+from pipeline.engine.models.core import (PipelineModel, PipelineProcess,
+                                         ProcessSnapshot,
+                                         SubProcessRelationship)
 from pipeline.engine.utils import Stack
-from pipeline.engine.models.core import PipelineProcess, ProcessSnapshot, SubProcessRelationship, PipelineModel
+from pipeline.tests.mock_settings import *  # noqa
 
 from ..mock import *  # noqa
-from pipeline.tests.mock_settings import *  # noqa
 
 valve.unload_valve_function()
 
@@ -54,7 +56,8 @@ class TestPipelineProcess(TestCase):
         )
         self.assertEqual(len(child.id), 32)
         self.assertEqual(process.root_pipeline_id, child.root_pipeline_id)
-        self.assertEqual(process.pipeline_stack, child.pipeline_stack)
+        self.assertEqual(len(child.pipeline_stack), 1)
+        self.assertEqual(child.top_pipeline.id, process.top_pipeline.id)
         self.assertEqual(process.children, child.children)
         self.assertEqual(process.root_pipeline.id, child.root_pipeline.id)
         self.assertEqual(process.subprocess_stack, child.subprocess_stack)
@@ -62,6 +65,7 @@ class TestPipelineProcess(TestCase):
         self.assertEqual(child.current_node_id, current_node_id)
         self.assertEqual(child.destination_id, destination_id)
         self.assertEqual(context.clear_change_keys.call_count, 1)
+        child.top_pipeline.prune.assert_called_once_with(current_node_id, destination_id)
 
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_process_ready(self):

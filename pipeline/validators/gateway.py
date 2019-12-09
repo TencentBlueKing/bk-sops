@@ -16,8 +16,8 @@ import queue
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline import exceptions
-from pipeline.engine.utils import Stack
 from pipeline.core.constants import PE
+from pipeline.engine.utils import Stack
 from pipeline.validators.utils import get_node_for_sequence, get_nodes_dict
 
 STREAM = 'stream'
@@ -102,7 +102,7 @@ def match_converge(converges,
     current_gateway = gateways[cur_index]
     target = gateways[cur_index][PE.target]
     stack.push(gateways[cur_index])
-    stack_id_set = set([g[PE.id] for g in stack])
+    stack_id_set = {g[PE.id] for g in stack}
 
     # find closest converge recursively
     for i in range(len(target)):
@@ -202,7 +202,7 @@ def match_converge(converges,
         if converge_id in converges:
             # this converge is shared by multiple gateway
             # only compare to the number of positive incoming
-            shared = converge_in_len[converge_id] > cur_to_converge
+            shared = converge_in_len[converge_id] > cur_to_converge or converge_id in converged
     else:
         # for parallel gateway
 
@@ -416,7 +416,7 @@ def blend(source, target, custom_stream=None):
 def streams_for_parallel(p):
     streams = set()
     for i, target_id in enumerate(p[PE.target]):
-        streams.add('%s_%s' % (p[PE.id], i))
+        streams.add('{}_{}'.format(p[PE.id], i))
 
     return streams
 
@@ -449,7 +449,7 @@ def flowing(where, to, parallel_converges):
 
         # generate different stream
         if is_parallel:
-            stream = '%s_%s' % (where[PE.id], i)
+            stream = '{}_{}'.format(where[PE.id], i)
 
         if target_id in parallel_converges:
 
