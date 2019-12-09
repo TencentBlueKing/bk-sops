@@ -27,7 +27,7 @@ from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
-from pipeline_web.drawing import draw_pipeline
+from pipeline_web.drawing_new.drawing import draw_pipeline
 
 from gcloud.conf import settings
 from gcloud.constants import PROJECT, BUSINESS, ONETIME

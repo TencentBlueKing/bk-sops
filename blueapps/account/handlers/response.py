@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.http import HttpResponseRedirect, JsonResponse
+from django.conf import settings
 try:
     from django.urls import reverse
 except Exception:
@@ -35,6 +36,11 @@ class ResponseHandler(object):
         self._settings = _settings
 
     def build_401_response(self, request):
+
+        # 强制要求ajax弹窗
+        if getattr(settings, 'IS_AJAX_PLAIN_MODE', False) and request.is_ajax():
+            return self._build_ajax_401_response(request)
+
         # Just redirect to PAAS-LOGIN-PLATRORM no matter whether request.is_ajax
         if self._conf.HAS_PLAIN:
             if request.is_ajax():
