@@ -364,7 +364,13 @@ def node_callback(request, token):
             'message': 'invalid request body'
         }, status=400)
 
-    return JsonResponse(TaskFlowInstance.objects.callback(node_id, callback_data))
+    callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
+    logger.info('result of callback call({}): {}'.format(
+        token,
+        callback_result
+    ))
+
+    return JsonResponse(callback_result)
 
 
 def get_taskflow_root_context(request, taskflow_id):
