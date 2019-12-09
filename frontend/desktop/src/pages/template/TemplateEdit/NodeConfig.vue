@@ -1329,7 +1329,6 @@
                         this.atomFormConfig[atomType][version]
                     )
 
-                    this.createVariable(variableOpts)
                     this.hookToGlobal(variableOpts)
                 } else {
                     this.$set(this.inputAtomHook, varKey, true)
