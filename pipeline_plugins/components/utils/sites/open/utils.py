@@ -60,7 +60,8 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         'Source': , 'SetID': , 'SetName': , 'ModuleID': , 'ModuleName': },{}]}
     """
     plat_ip_reg = re.compile(r'\d+:' + ip_re)
-    set_module_ip_reg = re.compile(r'[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|' + ip_re)  # 中文字符或者其他字符
+    # 中文字符或者其他字符
+    set_module_ip_reg = re.compile(r'[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|' + ip_re)
     ip_input_list = get_ip_by_regex(ip_str)
     ip_result = []
     # 如果是格式2，可以返回IP的集群、模块、平台信息

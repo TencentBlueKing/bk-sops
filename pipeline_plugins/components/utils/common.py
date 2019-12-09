@@ -26,8 +26,7 @@ from gcloud.core.utils import apply_permission_url
 
 logger = logging.getLogger('root')
 
-ip_re = r'(([12][0-9][0-9]|[1-9][0-9]|[0-9])\.){3,3}' \
-        r'([12][0-9][0-9]|[1-9][0-9]|[0-9])'
+ip_re = r'((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)'
 ip_pattern = re.compile(ip_re)
 
 
