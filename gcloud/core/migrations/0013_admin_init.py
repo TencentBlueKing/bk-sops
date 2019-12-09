@@ -30,8 +30,6 @@ def load_data(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        # 分别修改为django app名及最后一个migration文件名
-        # 例如：('home_application', '0001_initial')
         ('core', '0012_auto_20190612_2113'),
     ]
     operations = [
