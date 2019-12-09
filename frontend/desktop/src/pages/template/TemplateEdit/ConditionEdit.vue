@@ -91,14 +91,9 @@
                 if (!this.isShowConditionEdit) {
                     return
                 }
-                const settingPanel = document.querySelector('.setting-area-wrap')
-                const nodeConfig = document.querySelector('.condition-edit')
-                if (settingPanel && this.isShowConditionEdit) {
-                    if ((!dom.nodeContains(settingPanel, e.target)
-                        && !dom.nodeContains(nodeConfig, e.target))
-                    ) {
-                        this.closeConditionEdit()
-                    }
+                const condition = document.querySelector('.condition-edit')
+                if (condition && !dom.nodeContains(condition, e.target)) {
+                    this.closeConditionEdit()
                 }
             },
             closeConditionEdit () {

@@ -11,6 +11,21 @@
 */
 <template>
     <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div class="excute-time">
+            <span>{{i18n.theTime}}</span>
+            <bk-select
+                :clearable="false"
+                v-model="theExecuteTime"
+                @change="onSelectExecuteTime">
+                <bk-option
+                    v-for="index in loopTimes"
+                    :key="index"
+                    :id="index"
+                    :name="index">
+                </bk-option>
+            </bk-select>
+            <span>{{i18n.executeTime}}</span>
+        </div>
         <div class="execute-head">
             <div class="node-name">
                 <span>{{nodeInfo.name}}</span>
@@ -188,7 +203,9 @@
                     suspended: gettext('暂停'),
                     failed: gettext('失败'),
                     finished: gettext('完成'),
-                    executeVersion: gettext('执行版本')
+                    executeVersion: gettext('执行版本'),
+                    theTime: gettext('第'),
+                    executeTime: gettext('次执行')
                 },
                 loading: true,
                 bkMessageInstance: null,
@@ -202,7 +219,9 @@
                     formMode: false
                 },
                 renderConfig: [],
-                renderData: {}
+                renderData: {},
+                loop: 1,
+                theExecuteTime: undefined
             }
         },
         computed: {
@@ -230,11 +249,19 @@
             },
             nodeState () {
                 return TASK_STATE_DICT[this.nodeInfo.state]
+            },
+            loopTimes () {
+                const times = []
+                for (let i = 0; i < this.loop; i++) {
+                    times.push(this.loop - i)
+                }
+                return times
             }
         },
         watch: {
             'nodeDetailConfig.node_id' (val) {
                 if (val !== undefined) {
+                    this.theExecuteTime = 1
                     this.loadNodeInfo()
                 }
             }
@@ -255,7 +282,8 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
-                    const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
+                    const query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
+                    const nodeDetailRes = await this.getNodeActDetail(query)
                     if (this.isSingleAtom) {
                         const version = this.nodeDetailConfig.version
                         this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
@@ -265,6 +293,9 @@
                         this.nodeInfo.histories.forEach(item => {
                             item.last_time = this.getLastTime(item.elapsed_time)
                         })
+                        if (this.theExecuteTime === undefined) {
+                            this.loop = nodeDetailRes.data.loop
+                        }
                         for (const key in this.nodeInfo.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                         }
@@ -341,6 +372,9 @@
                     return output.key
                 }
                 return output.name
+            },
+            onSelectExecuteTime () {
+                this.loadNodeInfo()
             }
         }
     }
@@ -354,6 +388,20 @@
     color: #313238;
     overflow-y: auto;
     @include scrollbar;
+    .excute-time {
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        &>span {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .bk-select {
+            margin: 0 6px;
+            width: 100px;
+        }
+    }
     .execute-head {
         display: flex;
         align-items: center;

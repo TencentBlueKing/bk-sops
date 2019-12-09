@@ -120,7 +120,6 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            type="normal"
             :entrance="'taskflow'"
             :common="common"
             :project_id="project_id"

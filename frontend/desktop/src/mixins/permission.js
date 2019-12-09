@@ -42,7 +42,7 @@ const permission = {
             const permissions = []
             actions.forEach(item => {
                 const res = []
-                if (resource.resource_type !== 'project' || item.id !== 'create') {
+                if (resource.resource_type !== 'project') {
                     res.push([{
                         resource_id: resourceData.id,
                         resource_name: resourceData.name,

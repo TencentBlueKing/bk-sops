@@ -242,8 +242,8 @@
              */
             async getLayoutedPosition (data) {
                 try {
-                    const canvasEl = document.body.scrollWidth
-                    const width = canvasEl.offsetWidth
+                    const canvasEl = document.querySelector('.canvas-content')
+                    const width = canvasEl.offsetWidth - 90
                     const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
                     if (res.result) {
                         return res.data.pipeline_tree

@@ -16,20 +16,13 @@
             :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
-                    <template v-if="isMac">
-                        <p class="text title">Mac</p>
-                        <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
-                        <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                        <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text">{{i18n.afterSelect}} Ctrl +{{ i18n.moveNode }}</p>
-                        <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
-                    </template>
-                    <template v-else>
+                    <template>
                         <p class="text title">Windows</p>
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text">{{i18n.afterSelect}} Ctrl + {{ i18n.moveNode }}</p>
+                        <p class="text" v-show="editable">{{commonCtrl}} + {{i18n.multiple}}</p>
+                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                 </div>
@@ -43,11 +36,7 @@
     const hotKeyTriggeringConditions = [
         { emit: 'onZoomIn', keyCodes: [107, 187], ctrl: true },
         { emit: 'onZoomOut', keyCodes: [109, 189], ctrl: true },
-        { emit: 'onResetPosition', keyCodes: [96, 48], ctrl: true },
-        { emit: 'onMovePosition', keyCodes: [38], ctrl: true, params: { type: 'top' } },
-        { emit: 'onMovePosition', keyCodes: [37], ctrl: true, params: { type: 'left' } },
-        { emit: 'onMovePosition', keyCodes: [40], ctrl: true, params: { type: 'bottom' } },
-        { emit: 'onMovePosition', keyCodes: [39], ctrl: true, params: { type: 'right' } }
+        { emit: 'onResetPosition', keyCodes: [96, 48], ctrl: true }
     ]
     export default {
         name: 'HelpInfo',
@@ -77,6 +66,7 @@
                     cancel: gettext('：取消选中')
                 },
                 isMac,
+                commonCtrl: isMac ? 'Command' : 'Ctrl',
                 hotKeyTriggeringConditions
             }
         },

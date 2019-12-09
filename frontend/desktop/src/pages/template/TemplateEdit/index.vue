@@ -41,6 +41,7 @@
                 :canvas-data="canvasData"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
+                @onNodeMousedown="onNodeMousedown"
                 @onShowNodeConfig="onShowNodeConfig"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
@@ -138,7 +139,8 @@
         deleteFail: gettext('该本地缓存不存在，删除失败'),
         replaceSuccess: gettext('替换流程成功'),
         addCache: gettext('新增流程本地缓存成功'),
-        replaceSave: gettext('替换流程自动保存')
+        replaceSave: gettext('替换流程自动保存'),
+        layoutSave: gettext('排版完成，原内容在本地缓存中')
     }
 
     export default {
@@ -237,6 +239,9 @@
                     'subflow': subAtomGrouped
                 }
             },
+            projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
+                return this.common ? 'common' : this.project_id
+            },
             canvasData () {
                 const branchConditions = {}
                 for (const gKey in this.gateways) {
@@ -295,24 +300,25 @@
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
+
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.draftProjectId, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.templateUUID)
+                draft.copyAndReplaceDraft(this.username, this.projectOrCommon, this.template_id, this.templateUUID)
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
             } else {
                 // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             }
             // 五分钟进行存储本地缓存
             const fiveMinutes = 1000 * 60 * 5
             this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
+                draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
             }, fiveMinutes)
 
             // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
             const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
             this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
@@ -527,7 +533,7 @@
                     this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.draftProjectId, data.template_id, this.templateUUID)
+                        draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
                     }
                     this.$bkMessage({
                         message: i18n.saved,
@@ -608,7 +614,7 @@
                 this.isTemplateDataChanged = true
             },
             /**
-             * 普通标准插件节点校验，不包括子流程节点
+             * 任务节点校验
              * 校验项包含：标准插件类型，节点名称，输入参数
              * @return isAllValid {Boolean} 节点是否合法
              */
@@ -627,6 +633,10 @@
                             }
                         } else {
                             isNodeValid = false // 节点标准插件类型为空
+                        }
+                    } else {
+                        if (!node.name || node.template_id === undefined) {
+                            isNodeValid = false
                         }
                     }
                     if (!isNodeValid) {
@@ -711,10 +721,18 @@
                 this.searchAtom(payload)
             },
             /**
+             * 节点 Mousedown 回调
+             */
+            onNodeMousedown (id) {
+                this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+            },
+            /**
              * 打开节点配置面板
              */
             onShowNodeConfig (id) {
-                this.isShowConditionEdit = false
+                if (this.isShowConditionEdit) {
+                    this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+                }
                 this.toggleSettingPanel(false)
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
@@ -746,7 +764,7 @@
                 try {
                     const pipelineTree = this.getPipelineTree()
                     const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
-                    const width = canvasEl.offsetWidth
+                    const width = canvasEl.offsetWidth - 200
                     const res = await this.getLayoutedPipeline({ width, pipelineTree })
                     if (res.result) {
                         this.onNewDraft(undefined, false)
@@ -756,7 +774,7 @@
                             this.$refs.templateCanvas.updateCanvas()
                             this.variableDataChanged()
                             this.$bkMessage({
-                                message: gettext('排版完成，原内容在本地缓存中'),
+                                message: i18n.layoutSave,
                                 theme: 'success'
                             })
                         })
@@ -918,7 +936,7 @@
                     return
                 }
                 // 节点配置是否错误
-                const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
+                const nodeWithErrors = document.querySelectorAll('.canvas-node-item .failed')
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
@@ -954,19 +972,19 @@
                     })
                 }
                 // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             },
             // 模板替换
             onReplaceTemplate (data) {
                 const { templateData, type } = data
                 if (type === 'replace') {
                     const nowTemplateSerializable = JSON.stringify(this.getLocalTemplateData())
-                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID()))
+                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID()))
                     const lastTemplate = lastDraft['template']
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
+                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
                     }
                     this.$bkMessage({
                         'message': i18n.replaceSuccess,
@@ -976,7 +994,7 @@
                 this.templateDataLoading = true
                 this.replaceTemplate(templateData)
                 // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                     this.$nextTick(() => {
@@ -990,13 +1008,13 @@
             onNewDraft (message, isMessage = true) {
                 // 创建本地缓存
                 if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.draftProjectId, this.templateUUID, this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.projectOrCommon, this.templateUUID, this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.templateUUID)
+                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
                 } else {
-                    draft.addDraft(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.draftProjectId, this.getTemplateIdOrTemplateUUID())
+                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
                 }
                 if (isMessage) {
                     this.$bkMessage({
@@ -1028,8 +1046,8 @@
                         stage_name: nodes[node].stage_name,
                         optional: nodes[node].optional,
                         error_ignorable: nodes[node].error_ignorable,
-                        can_retry: nodes[node].can_retry,
-                        isSkipped: nodes[node].isSkipped
+                        retryable: nodes[node].can_retry || nodes[node].retryable,
+                        skippable: nodes[node].isSkipped || nodes[node].skippable
                     })
                 })
             },
@@ -1106,7 +1124,7 @@
                 const template_id = this.getTemplateIdOrTemplateUUID()
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.draftProjectId, this.templateUUID)
+                    draft.deleteAllDraftByUUID(this.username, this.projectOrCommon, this.templateUUID)
                 }
                 this.clearAtomForm()
                 next()

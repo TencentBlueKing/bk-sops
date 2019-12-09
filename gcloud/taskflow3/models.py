@@ -45,10 +45,11 @@ from pipeline.exceptions import (
     StreamValidateError
 )
 from pipeline.validators.gateway import validate_gateways
+from pipeline.validators.utils import format_node_io_to_list
 from pipeline_web.parser import WebPipelineAdapter
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
-from pipeline_web.parser.format import format_node_io_to_list
 
+from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
 from gcloud.core.models import Project
@@ -56,7 +57,6 @@ from gcloud.core.utils import (
     convert_readable_username,
     timestamp_to_datetime,
     format_datetime,
-    camel_case_to_underscore_naming,
     gen_day_dates,
     get_month_dates
 )
@@ -487,7 +487,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 # 需要将 code 转为字符型
                 'instanceTotal': total_dict.get(str(appmaker_id), 0)
             })
-        if order_by[0] == '-':
+        if order_by.startswith('-'):
             # 需要去除负号
             order_by = order_by[1:]
             groups = sorted(groups, key=lambda group: -group.get(order_by))
@@ -588,10 +588,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         fail_percent = {}
         for component in component_data:
             component_code = component['component_code']
-            execute_times = component['execute_times']
-            fail_percent[component_code] = '%.2f' % (
-                (failed_dict.get(component_code, 0) * 1.00 / execute_times) * 100
-            )
+            if component_code in failed_dict:
+                execute_times = component['execute_times']
+                fail_percent[component_code] = '%.2f' % (
+                    (failed_dict[component_code] * 1.00 / execute_times) * 100
+                )
 
         groups = []
         for data in component_list:
@@ -660,32 +661,20 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         @return:
         """
         total = taskflow.count()
+        # 查询所有任务的统计数据
         instance_id_list = list(taskflow.values_list('pipeline_instance__instance_id', flat=True))
-        instance_pipeline_data = InstanceInPipeline.objects.filter(instance_id__in=instance_id_list)
-        order_by = filters.get('order_by', '-instanceId')
-        if order_by in ['elapsedTime', '-elapsedTime']:
-            ordered_data = [(task.pipeline_instance.instance_id, task.elapsed_time) for task in taskflow]
-            if order_by == 'elapsedTime':
-                ordered_data.sort(key=lambda x: x[1])
-            else:
-                ordered_data.sort(key=lambda x: - x[1])
-            pipeline_ids = [task[0] for task in ordered_data[(page - 1) * limit: page * limit]]
-            pipeline_data = list(instance_pipeline_data.filter(instance_id__in=pipeline_ids))
-            pipeline_data.sort(key=lambda x: pipeline_ids.index(x.instance_id))
-        else:
-            # 使用驼峰转下划线进行转换order_by
-            camel_order_by = camel_case_to_underscore_naming(order_by)
-            # 排列获取分页后的数据
-            pipeline_data = instance_pipeline_data.order_by(camel_order_by)[(page - 1) * limit: page * limit]
-            pipeline_ids = list(pipeline_data.values_list('instance_id', flat=True))
+        instance_pipeline_data = InstanceInPipeline.objects.filter(instance_id__in=instance_id_list).values()
+        instance_in_pipeline_dict = {}
+        for instance in instance_pipeline_data:
+            instance_in_pipeline_dict[instance['instance_id']] = {
+                'atomTotal': instance['atom_total'],
+                'subprocessTotal': instance['subprocess_total'],
+                'gatewaysTotal': instance['gateways_total']
+            }
 
-        # taskflow 按照 pipeline__instance_id 映射
-        taskflow_dict = {}
-        taskflow = taskflow.select_related('project', 'pipeline_instance').filter(
-            pipeline_instance__instance_id__in=pipeline_ids
-        )
+        groups = []
         for task in taskflow:
-            taskflow_dict[task.pipeline_instance.instance_id] = {
+            item = {
                 'instanceId': task.id,
                 'instanceName': task.pipeline_instance.name,
                 'projectId': task.project.id,
@@ -693,17 +682,24 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 'category': task.get_category_display(),
                 'createTime': format_datetime(task.pipeline_instance.create_time),
                 'creator': task.pipeline_instance.creator,
-                'elapsedTime': task.elapsed_time
+                'elapsedTime': task.elapsed_time,
+                'atomTotal': 0,
+                'subprocessTotal': 0,
+                'gatewaysTotal': 0
             }
-
-        groups = []
-        for pipeline in pipeline_data:
-            item = {'atomTotal': pipeline.atom_total,
-                    'subprocessTotal': pipeline.subprocess_total,
-                    'gatewaysTotal': pipeline.gateways_total}
-            item.update(taskflow_dict[pipeline.instance_id])
+            if task.pipeline_instance.instance_id in instance_in_pipeline_dict:
+                item.update(instance_in_pipeline_dict[task.pipeline_instance.instance_id])
             groups.append(item)
-        return total, groups
+
+        order_by = filters.get('order_by', '-instanceId')
+        if order_by.startswith('-'):
+            # 需要去除负号
+            order_by = order_by[1:]
+            groups = sorted(groups, key=lambda group: -group.get(order_by))
+        else:
+            groups = sorted(groups, key=lambda group: group.get(order_by))
+
+        return total, groups[(page - 1) * limit: page * limit]
 
     def group_by_instance_time(self, taskflow, filters, *args):
         #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
@@ -748,6 +744,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         try:
             result = pipeline_api.activity_callback(activity_id=act_id, callback_data=data)
         except Exception as e:
+            logger.error('node({}) callback with data({}) error: {}'.format(
+                act_id,
+                data,
+                traceback.format_exc()
+            ))
             return {
                 'result': False,
                 'message': str(e)
@@ -944,14 +945,14 @@ class TaskFlowInstance(models.Model):
             act_started = False
         else:
             # 最新 loop 执行记录，直接通过接口获取
-            if loop is None or loop == detail['loop']:
+            if loop is None or int(loop) >= detail['loop']:
                 inputs = pipeline_api.get_inputs(node_id)
                 outputs = pipeline_api.get_outputs(node_id)
             # 历史 loop 记录，需要从 histories 获取，并取最新一次操作数据（如手动重试时重新填参）
             else:
                 his_data = detail['histories'] = pipeline_api.get_activity_histories(node_id, loop)
                 inputs = his_data[-1]['inputs']
-                outputs = his_data[-1]['outputs']
+                outputs = {'outputs': his_data[-1]['outputs'], 'ex_data': his_data[-1]['ex_data']}
 
         instance_data = self.pipeline_instance.execution_data
         if not act_started:
@@ -982,7 +983,7 @@ class TaskFlowInstance(models.Model):
 
         if component_code:
             outputs_table = []
-            version = self.pipeline_tree[PE.activities][node_id].get('version', None)
+            version = self.get_act_web_info(node_id).get('version', None)
             try:
                 component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
@@ -1039,24 +1040,56 @@ class TaskFlowInstance(models.Model):
                 node_id=node_id,
                 task_id=self.id
             )
-            return {'result': False, 'message': message, 'data': {}}
+            return {
+                'result': False,
+                'message': message, 'data': {},
+                'code': err_code.REQUEST_PARAM_INVALID.code
+            }
 
         ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack, loop)
-        # 注意：状态数据只返回最新的记录，无视 loop 参数
+        # 首先获取最新一次执行详情
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:
-            return {'result': False, 'message': str(e), 'data': {}}
+            return {
+                'result': False,
+                'message': str(e), 'data': {},
+                'code': err_code.INVALID_OPERATION.code
+            }
         TaskFlowInstance.format_pipeline_status(detail)
         # 默认只请求最后一次循环结果
-        if loop is None:
+        if loop is None or int(loop) >= detail['loop']:
             loop = detail['loop']
-        detail['histories'] = pipeline_api.get_activity_histories(node_id, loop)
+            detail['histories'] = pipeline_api.get_activity_histories(node_id, loop)
+        else:
+            histories = pipeline_api.get_activity_histories(node_id, loop)
+            # index为-1表示当前loop的最后一次执行
+            current_loop = histories[-1]
+            current_loop['state'] = states.FINISHED
+            # 循环只有成功才会继续任务
+            TaskFlowInstance.format_pipeline_status(current_loop)
+            detail.update({
+                'start_time': current_loop['start_time'],
+                'finish_time': current_loop['finish_time'],
+                'elapsed_time': current_loop['elapsed_time'],
+                'loop': current_loop['loop'],
+                'skip': current_loop['skip'],
+                'state': current_loop['state']
+            })
+            # index非-1表示当前loop的重试记录
+            detail['histories'] = histories[1:]
+
         for his in detail['histories']:
-            his.setdefault('state', 'FAILED')
+            # 重试记录必然是因为失败才重试
+            his.setdefault('state', states.FAILED)
             TaskFlowInstance.format_pipeline_status(his)
         detail.update(ret_data['data'])
-        return {'result': True, 'data': detail, 'message': ''}
+        return {
+            'result': True,
+            'data': detail,
+            'message': '',
+            'code': err_code.SUCCESS.code
+        }
 
     def task_claim(self, username, constants, name):
         if self.flow_type != 'common_func':
@@ -1080,57 +1113,90 @@ class TaskFlowInstance(models.Model):
 
     def task_action(self, action, username):
         if self.current_flow != 'execute_task':
-            return {'result': False, 'message': 'task with current_flow:%s cannot be %sed' % (self.current_flow,
-                                                                                              action)}
+            return {
+                'result': False,
+                'message': 'task with current_flow:%s cannot be %sed' % (self.current_flow, action),
+                'code': err_code.INVALID_OPERATION.code
+            }
         if action not in INSTANCE_ACTIONS:
-            return {'result': False, 'message': 'task action is invalid'}
+            return {
+                'result': False,
+                'message': 'task action is invalid',
+                'code': err_code.INVALID_OPERATION.code
+            }
         if action == 'start':
             try:
                 action_result = self.pipeline_instance.start(username)
                 if action_result.result:
                     taskflow_started.send(sender=self, username=username)
-                return {'result': action_result.result, 'message': action_result.message}
+                return {
+                    'result': action_result.result,
+                    'message': action_result.message,
+                    'code': err_code.OPERATION_FAIL.code
+                }
 
             except ConvergeMatchError as e:
                 message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id,
                                                                                           str(e),
                                                                                           e.gateway_id)
                 logger.exception(message)
+                code = err_code.VALIDATION_ERROR.code
 
             except StreamValidateError as e:
                 message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, str(e), e.node_id)
                 logger.exception(message)
+                code = err_code.VALIDATION_ERROR.code
 
             except IsolateNodeError as e:
                 message = "task[id=%s] has isolate structure, message: %s" % (self.id, str(e))
                 logger.exception(message)
+                code = err_code.VALIDATION_ERROR.code
 
             except ConnectionValidateError as e:
                 message = "task[id=%s] connection check failed, message: %s, nodes: %s" % (self.id,
                                                                                            e.detail,
                                                                                            e.failed_nodes)
                 logger.exception(message)
+                code = err_code.VALIDATION_ERROR.code
 
             except TypeError:
                 message = 'redis connection error, please check redis configuration'
                 logger.exception(traceback.format_exc())
+                code = err_code.ENV_ERROR.code
 
             except Exception as e:
                 message = "task[id=%s] action failed:%s" % (self.id, e)
                 logger.exception(traceback.format_exc())
+                code = err_code.UNKNOW_ERROR.code
 
-            return {'result': False, 'message': message}
+            return {
+                'result': False,
+                'message': message,
+                'code': code
+            }
 
         try:
             action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
             if action_result.result:
-                return {'result': True, 'data': {}}
+                return {
+                    'result': True,
+                    'data': {},
+                    'code': err_code.SUCCESS.code
+                }
             else:
-                return {'result': action_result.result, 'message': action_result.message}
+                return {
+                    'result': action_result.result,
+                    'message': action_result.message,
+                    'code': err_code.OPERATION_FAIL.code
+                }
         except Exception as e:
             message = "task[id=%s] action failed:%s" % (self.id, e)
             logger.exception(traceback.format_exc())
-            return {'result': False, 'message': message}
+            return {
+                'result': False,
+                'message': message,
+                'code': err_code.UNKNOW_ERROR.code
+            }
 
     def nodes_action(self, action, node_id, username, **kwargs):
         if not self.has_node(node_id):
@@ -1282,7 +1348,8 @@ class TaskFlowInstance(models.Model):
         if not self.has_node(act_id):
             return {
                 'result': False,
-                'message': 'task[{tid}] does not have node[{nid}]'.format(tid=self.id, nid=act_id)
+                'message': 'task[{tid}] does not have node[{nid}]'.format(tid=self.id, nid=act_id),
+                'code': err_code.REQUEST_PARAM_INVALID.code
             }
 
         return TaskFlowInstance.objects.callback(act_id, data)

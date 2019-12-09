@@ -108,8 +108,6 @@ MIDDLEWARE += (
     'weixin.core.middlewares.WeixinAuthenticationMiddleware',
     'weixin.core.middlewares.WeixinLoginMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'gcloud.core.middlewares.UnauthorizedMiddleware',
-    'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
     'gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware',
     'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
@@ -128,7 +126,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.4.12'
+STATIC_VERSION = '3.4.13'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -261,6 +259,9 @@ BK_PAAS_HOST = os.getenv('BK_PAAS_HOST', BK_URL)
 
 # 用于 用户认证、用户信息获取 的蓝鲸主机
 BK_PAAS_INNER_HOST = os.getenv('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
+
+# AJAX 请求弹窗续期登陆设置
+IS_AJAX_PLAIN_MODE = True
 
 # cc、job域名
 BK_CC_HOST = os.environ.get('BK_CC_HOST')

@@ -93,6 +93,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import NoData from '@/components/common/base/NoData.vue'
 
     const SORT_LIST = [
@@ -169,7 +170,8 @@
                     }
                 }
                 return {
-                    width: val / this.totalNumber * 100 + '%'
+                    width: val / this.totalNumber * 100 + '%',
+                    'min-width': '2px'
                 }
             },
             onOptionClick (selector, id) {

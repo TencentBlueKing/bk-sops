@@ -50,7 +50,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'parallelgateway': {
@@ -58,7 +58,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway'],
         unique: false
     },
     'convergegateway': {
@@ -92,7 +92,8 @@ const validatePipeline = {
         let sourceLinesLinked = 0
         let targetLinesLinked = 0
         let isLoop = false
-        if (source.id === target.id) {
+
+        if (source.id === target.id && sourceNode.type !== 'branchgateway') {
             const i18n_text = gettext('相同节点不能回连')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
             return this.getMessage(false, message)

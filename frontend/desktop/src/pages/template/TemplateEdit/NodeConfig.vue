@@ -12,7 +12,13 @@
 <template>
     <div class="node-config" @click="e => e.stopPropagation()">
         <div
-            :class="['node-config-panel',{ 'position-right-side': !isSettingPanelShow }]">
+            :class="[
+                'node-config-panel',
+                {
+                    'position-right-side': !isSettingPanelShow
+                }
+            ]"
+            ref="nodeConfigPanel">
             <div class="node-title">
                 <span>{{ i18n.baseInfo }}</span>
             </div>
@@ -113,13 +119,13 @@
                                     <span class="checkbox-text">{{i18n.ignore}}</span>
                                 </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isSkip" :disabled="isDisable">
+                            <bk-checkbox v-model="isSkip" :disabled="isManulHandleErrrorDisable">
                                 <div class="checkbox-text-wrapper">
                                     <i class="common-icon-dark-circle-s"></i>
                                     <span class="checkbox-text">{{i18n.manuallySkip}}</span>
                                 </div>
                             </bk-checkbox>
-                            <bk-checkbox v-model="isRetry" :disabled="isDisable">
+                            <bk-checkbox v-model="isRetry" :disabled="isManulHandleErrrorDisable">
                                 <div class="checkbox-text-wrapper">
                                     <i class="common-icon-dark-circle-r"></i>
                                     <span class="checkbox-text">{{i18n.manuallyRetry}}</span>
@@ -216,7 +222,6 @@
     </div>
 </template>
 <script>
-
     import '@/utils/i18n.js'
     import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -334,7 +339,6 @@
                 },
                 isAtomChanged: false, // 用于切换标准插件
                 failureHandling: [], // 失败处理
-                isDisable: false, // 是否禁用手动选项
                 isSkip: true, // 是否手动跳过
                 isRetry: true, // 是否手动重试
                 manuallyEmpty: false // 手动选项为空
@@ -506,6 +510,10 @@
                     return this.singleAtom.find(item => item.code === this.currentAtom)
                 }
                 return {}
+            },
+            // 任务节点执行失败手动处理选项禁用
+            isManulHandleErrrorDisable () {
+                return this.errorCouldBeIgnored
             }
         },
         watch: {
@@ -545,9 +553,6 @@
         },
         mounted () {
             document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
-            if (this.errorCouldBeIgnored) {
-                this.isDisable = true
-            }
         },
         beforeDestroy () {
             document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
@@ -766,8 +771,8 @@
                 this.nodeName = formData.name
                 this.stageName = formData.stage_name
                 this.nodeCouldBeSkipped = formData.optional
-                this.isSkip = formData.isSkipped
-                this.isRetry = formData.can_retry
+                this.isSkip = formData.isSkipped || formData.skippable
+                this.isRetry = formData.can_retry || formData.retryable
                 const inputFormHooks = {}
                 const inputFormData = {}
                 if (this.isSingleAtom) {
@@ -845,17 +850,26 @@
                 }
                 return false
             },
-            stopClickPropagation (e) {
-            },
             /**
              * 处理节点配置面板和全局变量面板之外的点击事件
              */
             handleNodeConfigPanelShow (e) {
-                if (!this.isNodeConfigPanelShow
-                    || this.isReuseVarDialogShow
-                    || e.target.className.indexOf('bk-option') > -1) {
+                // 节点参数面板未展开、有变量复用弹窗遮罩
+                if (!this.isNodeConfigPanelShow || this.isReuseVarDialogShow) {
                     return
                 }
+
+                // 处理在面板区域里的 popup 上的点击，eg: select、tooltip
+                const { left, right, top, bottom } = this.$refs.nodeConfigPanel.getBoundingClientRect()
+                if (
+                    e.clientX > left
+                    && e.clientX < right
+                    && e.clientY > top
+                    && e.clientY < bottom
+                ) {
+                    return
+                }
+
                 const settingPanel = document.querySelector('.setting-area-wrap')
                 const nodeConfig = document.querySelector('.node-config')
                 if (settingPanel && this.isNodeConfigPanelShow) {
@@ -882,11 +896,16 @@
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
-                nodeData.isSkipped = this.isSkip
-                nodeData.can_retry = this.isRetry
+                
                 if (this.isSingleAtom) {
+                    nodeData.skippable = this.isSkip
+                    nodeData.retryable = this.isRetry
                     nodeData.error_ignorable = this.errorCouldBeIgnored
                     nodeData.component.version = this.currentVersion
+                    // can_retry、isSkipped 为就数据字段，点开编辑保存时删除
+                    delete nodeData.can_retry
+                    delete nodeData.isSkipped
+
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
@@ -900,6 +919,10 @@
                     }
                     nodeData.constants = constants
                 }
+                // 任务节点参数编辑时，可能会修改输入输出连线，取最新的连线数据，防止被节点参数编辑时保存的旧数据覆盖
+                const { incoming, outgoing } = this.activities[this.nodeId]
+                Object.assign(nodeData, { incoming, outgoing })
+
                 this.setActivities({ type: 'edit', location: nodeData })
             },
             /**
@@ -930,11 +953,19 @@
                         stage_name: this.stageName,
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
-                        can_retry: this.isRetry,
-                        isSkipped: this.isSkip,
+                        retryable: this.isRetry,
+                        skippable: this.isSkip,
                         group: this.groupInfo.group_name,
                         icon: this.groupInfo.group_icon
                     })
+                    // 清空配置信息
+                    this.subAtomConfigData = {
+                        form: {},
+                        outputs: {}
+                    }
+                    this.subAtomInput = []
+                    this.subAtomOutput = []
+
                     this.$emit('hideConfigPanel')
                     return isValid
                 })
@@ -984,6 +1015,9 @@
                 if (this.isSingleAtom) {
                     nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
                     this.currentVersion = currentAtomlastVeriosn
+                    this.nodeConfigData.skippable = true
+                    this.nodeConfigData.retryable = true
+                    this.nodeConfigData.error_ignorable = false
                 } else {
                     // 切换子流程时，去掉节点小红点、刷新按钮、节点过期设为 false
                     this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
@@ -1039,12 +1073,13 @@
              * 去掉节点小红点、模板刷新按钮
              * 更新 store 数据状态
              */
-            onUpdateSubflowVersion () {
+            async onUpdateSubflowVersion () {
                 if (this.atomConfigLoading) {
                     return
                 }
-                const oldInputAtomHook = this.inputAtomHook
-                const oldInputAtomData = this.inputAtomData
+                const oldInputAtomHook = { ...this.inputAtomHook }
+                const oldInputAtomData = { ...this.inputAtomData }
+                const oldConstants = { ...this.subAtomConfigData.form }
 
                 // 清空 store 里的 constants 值
                 this.subAtomConfigData.form = {}
@@ -1052,35 +1087,49 @@
                 this.inputAtomData = {}
                 this.updateActivities()
 
-                this.getSubflowConfig(this.currentAtom).then(() => {
-                    Object.keys(oldInputAtomData).forEach(key => {
-                        if (this.inputAtomData.hasOwnProperty(key)) {
+                await this.getSubflowConfig(this.currentAtom)
+                Object.keys(oldInputAtomData).forEach(key => {
+                    const newContants = { ...this.subAtomConfigData.form }
+                    const newVar = newContants[key]
+                    const oldVar = oldConstants[key]
+
+                    /**
+                     * 子流程更新后保留用户当前编辑的子流程变量的值，保留条件：
+                     * 1.变量 key 相同
+                     * 2.变量类型相同
+                     *   - 变量为标准插件勾选的全局变量，需要满足 source_tag 相同（来自于同一个标准插件的表单项）
+                     *   - 变量为自定义全局变量，需要满足变量的 custom_type 相同
+                     */
+                    if (newVar) {
+                        const { custom_type: newCustomType, source_tag: newSourceTag } = newVar
+                        const { custom_type: oldCustomType, source_tag: oldSourceTag } = oldVar
+                        const canReplace = (newCustomType || oldCustomType) ? newCustomType === oldCustomType : newSourceTag === oldSourceTag
+                        if (canReplace) {
                             this.$set(this.inputAtomData, key, oldInputAtomData[key])
-                        } else if (oldInputAtomHook[key]) {
-                            const variable = [
-                                {
-                                    variableKey: key,
-                                    formKey: key,
-                                    id: this.nodeId,
-                                    tagCode: key,
-                                    version: this.getVariableVersion(oldInputAtomHook[key])
-                                }
-                            ]
-                            this.clearHookedVaribles(variable, [])
                         }
-                    })
-                    this.updateActivities()
-                    this.subflowHasUpdate = false
-                    this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
-                    this.setSubprocessUpdated({
-                        template_id: Number(this.currentAtom),
-                        subprocess_node_id: this.idOfNodeInConfigPanel,
-                        version: this.subAtomConfigData.version
-                    })
+                    }
+
+                    if (oldInputAtomHook[key]) {
+                        const variable = [
+                            {
+                                variableKey: key,
+                                formKey: key,
+                                id: this.nodeId,
+                                tagCode: key,
+                                version: this.getVariableVersion(oldInputAtomHook[key])
+                            }
+                        ]
+                        this.clearHookedVaribles(variable, [])
+                    }
                 })
-            },
-            onErrorIngoredChange (selected) {
-                this.errorCouldBeIgnored = selected
+                this.updateActivities()
+                this.subflowHasUpdate = false
+                this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
+                this.setSubprocessUpdated({
+                    template_id: Number(this.currentAtom),
+                    subprocess_node_id: this.idOfNodeInConfigPanel,
+                    version: this.subAtomConfigData.version
+                })
             },
             /**
              * 输入参数值更新
@@ -1320,7 +1369,6 @@
                 }
             },
             onIgnoredChange (updatedValue) {
-                this.isDisable = updatedValue
                 this.manuallyEmpty = !updatedValue
                 this.isSkip = false
                 this.isRetry = false

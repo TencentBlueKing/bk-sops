@@ -12,20 +12,23 @@
 <template>
     <bk-tag-input
         v-model="setValue"
-        :list="memberlist"
+        v-bkloading="{ isLoading: isLoading, opacity: 0.8 }"
+        :list="displayList"
         :placeholder="placeholder"
         :has-delete-icon="hasDeleteIcon"
         :max-data="maxData"
         :max-result="maxResult"
         save-key="username"
         search-key="username"
-        display-key="username"
+        display-key="showName"
         @change="change"
         @select="select"
         @remove="remove">
     </bk-tag-input>
 </template>
 <script>
+    import '@/utils/i18n.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     export default {
         name: 'MemberSelect',
@@ -70,6 +73,11 @@
                 default: 5
             }
         },
+        data () {
+            return {
+                isLoading: false
+            }
+        },
         computed: {
             ...mapState({
                 'memberlist': state => state.member.memberlist
@@ -81,6 +89,12 @@
                 set (val) {
                     this.$emit('change', val)
                 }
+            },
+            displayList () {
+                return this.memberlist.map(m => {
+                    m.showName = `${m.username}(${m.display_name})`
+                    return m
+                })
             }
         },
         created () {
@@ -91,7 +105,8 @@
                 'loadMemberList'
             ]),
             ...mapMutations('member/', [
-                'setMemberList'
+                'setMemberList',
+                'setLoading'
             ]),
             initData () {
                 switch (this.type) {
@@ -115,9 +130,15 @@
                 this.$emit('remove', tag)
             },
             async getUserData () {
-                if (this.memberlist && this.memberlist.length === 0) {
-                    const result = await this.loadMemberList()
-                    this.setMemberList(result.data)
+                try {
+                    if (this.memberlist && this.memberlist.length === 0 && !this.isLoading) {
+                        this.isLoading = true
+                        const result = await this.loadMemberList()
+                        this.isLoading = false
+                        this.setMemberList(result.data)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
                 }
             },
             // 暂未支持邮件组

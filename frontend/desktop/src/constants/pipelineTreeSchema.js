@@ -2,8 +2,8 @@ import { STRING_LENGTH } from './index.js'
 import { Validator } from 'jsonschema'
 
 const NODE_ID_REG = '^n[0-9a-z]+'
-const LINE_ID_REG = '^l[0-9a-z]+$'
-const VAR_KEY_REG = '^\\$\\{(\\w+)\\}$'
+const LINE_ID_REG = '^l[0-9a-z]+'
+const VAR_KEY_REG = '^\\${[\\.\\w]+}$'
 
 const flowNode = {
     id: '/FlowNode',
@@ -15,7 +15,7 @@ const flowNode = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         outgoing: {
@@ -102,8 +102,7 @@ const subProcess = {
             type: 'object',
             properties: {
                 template_id: {
-                    type: 'string',
-                    minLenth: 1
+                    type: ['string', 'number']
                 },
                 name: {
                     type: 'string',
@@ -213,7 +212,7 @@ const exclusiveGateway = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         name: {
@@ -244,7 +243,7 @@ const parallelGateway = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         name: {
@@ -432,7 +431,7 @@ const endEventSchema = {
             pattern: NODE_ID_REG
         },
         incoming: {
-            type: 'string',
+            type: ['string', 'array'],
             pattern: LINE_ID_REG
         },
         name: {

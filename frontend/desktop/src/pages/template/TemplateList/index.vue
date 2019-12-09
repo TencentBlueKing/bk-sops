@@ -385,6 +385,22 @@
                         subprocess_has_update,
                         has_subprocess
                     }
+                    if (this.flowName) {
+                        data['pipeline_template__name__contains'] = this.flowName
+                    }
+
+                    if (this.creator) {
+                        data['pipeline_template__creator__contains'] = this.creator
+                    }
+
+                    if (this.category) {
+                        data['category'] = this.category
+                    }
+
+                    if (this.isHasSubprocess !== undefined) {
+                        data['subprocess_has_update'] = this.isSubprocessUpdated
+                        data['has_subprocess'] = this.isHasSubprocess
+                    }
 
                     if (queryTime[0] && queryTime[1]) {
                         data['pipeline_template__edit_time__gte'] = moment.tz(queryTime[0], this.timeZone).format('YYYY-MM-DD')
