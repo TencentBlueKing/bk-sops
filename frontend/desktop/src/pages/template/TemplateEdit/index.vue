@@ -770,6 +770,7 @@
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
+                            this.$refs.templateCanvas.onResetPosition()
                             this.variableDataChanged()
                             this.$bkMessage({
                                 message: i18n.layoutSave,

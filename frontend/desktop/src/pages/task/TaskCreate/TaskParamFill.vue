@@ -256,6 +256,10 @@
                     }
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
+                    if (templateData.result === false) {
+                        throw (templateData)
+                    }
+
                     this.tplActions = templateData.auth_actions
                     this.tplResource = templateData.auth_resource
                     this.tplOperations = templateData.auth_operations
@@ -269,6 +273,10 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
+                    if (previewData.result === false) {
+                        throw (previewData)
+                    }
+
                     const pipelineTree = previewData.data.pipeline_tree
                     if (this.excludeNode.length > 0) {
                         const layoutedData = await this.getLayoutedPosition(pipelineTree)

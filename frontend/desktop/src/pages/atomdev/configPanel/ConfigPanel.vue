@@ -82,7 +82,7 @@
     import serializeObj from '@/utils/serializeObj.js'
     import FormConfig from './FormConfig.vue'
     import ContextEdit from './ContextEdit.vue'
-    import validator, { atomFormItemSchema } from '../atomConfigSchema.js'
+    import validator from '../atomConfigSchema.js'
 
     const PROJECT_DEFAULT = {
         id: 1,
@@ -230,12 +230,13 @@
                         } else {
                             formTagCodeList.push(item.tag_code)
                         }
-                        const result = validator.validate(item, atomFormItemSchema)
-                        if (!result.valid) {
-                            console.log(result.errors)
-                            this.$emit('atomEditError', result.errors[0].stack)
+                        const result = validator(item)
+                        if (!result) {
+                            const error = validator.errors[0]
+                            console.error(error)
+                            this.$emit('atomEditError', `${error.dataPath} ${error.keyword} ${error.message}`)
                         }
-                        return !tagCodeRepeat && result.valid
+                        return !tagCodeRepeat && result
                     })
                     if (validateResult) {
                         this.$emit('atomEditError', '')
