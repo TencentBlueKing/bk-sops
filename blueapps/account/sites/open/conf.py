@@ -22,7 +22,7 @@ class ConfFixture(object):
 
     CONSOLE_LOGIN_URL = settings.BK_PAAS_HOST
     LOGIN_URL = settings.BK_PAAS_HOST + '/login/'
-    LOGIN_PLAIN_URL = settings.BK_PAAS_HOST + '/login/'
+    LOGIN_PLAIN_URL = settings.BK_PAAS_HOST + '/login/plain/'
     VERIFY_URL = settings.BK_PAAS_INNER_HOST + '/login/accounts/is_login/'
     USER_INFO_URL = settings.BK_PAAS_INNER_HOST + '/login/accounts/get_user/'
     HAS_PLAIN = False
