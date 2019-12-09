@@ -26,6 +26,7 @@ from pipeline.models import PipelineInstance, TemplateRelationship
 from pipeline.parser.utils import replace_all_id
 from auth_backend.resources import resource_type_lib
 
+from gcloud import err_code
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.constant import TASK_CATEGORY, AE
 from gcloud.core.models import Project
@@ -88,7 +89,8 @@ class TaskTemplateManager(BaseTemplateManager):
             return {
                 'result': False,
                 'message': 'Unable to override flows across project',
-                'data': 0
+                'data': 0,
+                'code': err_code.INVALID_OPERATION.code
             }
 
         def defaults_getter(template_dict):
