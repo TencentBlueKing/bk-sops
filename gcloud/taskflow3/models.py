@@ -743,6 +743,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         try:
             result = pipeline_api.activity_callback(activity_id=act_id, callback_data=data)
         except Exception as e:
+            logger.error('node({}) callback with data({}) error: {}'.format(
+                act_id,
+                data,
+                traceback.format_exc()
+            ))
             return {
                 'result': False,
                 'message': str(e)
