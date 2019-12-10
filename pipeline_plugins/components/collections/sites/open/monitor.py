@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 from abc import abstractmethod
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
@@ -21,10 +22,12 @@ from packages.blueking.component.shortcuts import get_client_by_user
 from pipeline.component_framework.component import Component
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema
+from pipeline_plugins.components.utils import handle_api_error
 
 __group_name__ = _(u"蓝鲸监控(BK)")
 
-logger = logging.getLogger(__name__)
+job_handle_api_error = partial(handle_api_error, __group_name__)
 
 SCOPE = {
     'business': 'bk_alarm_shield_business',
@@ -36,8 +39,6 @@ SCOPE = {
 class AlarmShieldService(Service):
     def __init__(self, *args, **kwargs):
         super(AlarmShieldService, self).__init__(*args, **kwargs)
-        self.client = None
-        self.bk_biz_id = None
 
     @abstractmethod
     def execute(self, data, parent_data):
@@ -45,20 +46,26 @@ class AlarmShieldService(Service):
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'屏蔽Id'), key='shield_id', type='str'),
-            self.OutputItem(name=_(u'详情'), key='message', type='int')
+            self.OutputItem(name=_(u'屏蔽Id'),
+                            key='shield_id',
+                            type='string',
+                            schema=StringItemSchema(description=_('创建的告警屏蔽 ID'))),
+            self.OutputItem(name=_(u'详情'),
+                            key='message',
+                            type='string',
+                            schema=StringItemSchema(description=_('创建的告警屏蔽详情')))
         ]
 
-    def get_request_body(self, begin_time, end_time, shied_type, shied_value):
+    def get_request_body(self, bk_biz_id, begin_time, end_time, shied_type, shied_value, client):
         category_map = {
             'business': 'scope',
             'IP': 'scope',
             'node': 'scope',
             'strategy': 'strategy'
         }
-        dimension_config = self.get_dimension_config(shied_type, shied_value)
+        dimension_config = self.get_dimension_config(shied_type, shied_value, bk_biz_id, client)
         request_body = {'begin_time': begin_time,
-                        'bk_biz_id': self.bk_biz_id,
+                        'bk_biz_id': bk_biz_id,
                         'category': category_map[shied_type],
                         'cycle_config': {'begin_time': "", 'end_time': "", 'day_list': [], 'week_list': [], 'type': 1},
                         'description': "shield by bk_sops",
@@ -69,34 +76,57 @@ class AlarmShieldService(Service):
                         'source': settings.APP_ID}
         return request_body
 
-    def send_request(self, request_body, data):
-        response = self.client.monitor.create_shield(request_body)
+    def send_request(self, request_body, data, client):
+        response = client.monitor.create_shield(request_body)
         if not response['result']:
-            message = _(u"查询监控(Monitor)的接口monitor.create_shield失败: %s") % response['message']
-            logger.error(message)
-            shield_id = 'error'
+            message = job_handle_api_error('monitor.create_shield', request_body, response)
+            self.logger.error(message)
+            shield_id = ''
             ret_flag = False
         else:
             shield_id = response['data']['id']
             ret_flag = True
             message = response['message']
-        data.set_outputs('id', shield_id)
+        data.set_outputs('shield_id', shield_id)
         data.set_outputs('message', message)
         return ret_flag
 
-    def get_dimension_config(self, shied_type, shied_value):
+    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, client):
         pass
 
 
 class AlarmShieldScopeService(AlarmShieldService):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_('业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('屏蔽范围类型'),
+                               key='bk_alarm_shield_scope',
+                               type='string',
+                               schema=StringItemSchema(description=_('需要执行屏蔽的范围类型'))),
+                self.InputItem(name=_('策略 ID'),
+                               key='bk_alarm_shield_target',
+                               type='string',
+                               schema=StringItemSchema(description=_('需要执行屏蔽的指标'))),
+                self.InputItem(name=_('屏蔽开始时间'),
+                               key='bk_alarm_shield_strategy_begin_time',
+                               type='string',
+                               schema=StringItemSchema(description=_('开始屏蔽的时间'))),
+                self.InputItem(name=_('屏蔽结束时间'),
+                               key='bbk_alarm_shield_strategy_end_time',
+                               type='string',
+                               schema=StringItemSchema(description=_('结束屏蔽的时间'))),
+                ]
+
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        self.bk_biz_id = parent_data.get_one_of_inputs('biz_cc_id')
+        bk_biz_id = parent_data.get_one_of_inputs('biz_cc_id')
         executor = parent_data.get_one_of_inputs('executor')
-        self.client = get_client_by_user(executor)
+        client = get_client_by_user(executor)
         combine = data.get_one_of_inputs('bk_alarm_shield_info')
         scope_type = combine.get('bk_alarm_shield_scope')
         scope_value = combine.get(SCOPE[scope_type])
@@ -104,32 +134,32 @@ class AlarmShieldScopeService(AlarmShieldService):
         begin_time = data.get_one_of_inputs('bk_alarm_shield_begin_time')
         end_time = data.get_one_of_inputs('bk_alarm_shield_end_time')
 
-        request_body = self.get_request_body(begin_time, end_time, scope_type, scope_value)
+        request_body = self.get_request_body(bk_biz_id, begin_time, end_time, scope_type, scope_value, client)
         if 'all' not in target:
             request_body['dimension_config'].update({'metric_id': target})
 
-        result_flag = self.send_request(request_body, data)
+        result_flag = self.send_request(request_body, data, client)
 
         return result_flag
 
-    def get_dimension_config(self, shied_type, shied_value):
+    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, client):
         dimension_map = {'business': self.get_biz_dimension,
                          'IP': self.get_ip_dimension,
                          'node': self.get_node_dimension}
-        return dimension_map[shied_type](shied_value)
+        return dimension_map[shied_type](shied_value, bk_biz_id, client)
 
     @staticmethod
-    def get_biz_dimension(scope_value):
+    def get_biz_dimension(scope_value, bk_biz_id, client):
         return {'scope_type': "biz"}
 
     @staticmethod
-    def get_node_dimension(scope_value):
+    def get_node_dimension(scope_value, bk_biz_id, client):
         target = [{'bk_obj_id': node.split('_')[0],
                    'bk_inst_id': node.split('_')[1]}
                   for node in scope_value]
         return {'scope_type': "node", 'target': target}
 
-    def get_ip_dimension(self, scope_value):
+    def get_ip_dimension(self, scope_value, bk_biz_id, client):
         ip_list = scope_value.split(',')
         request_body = {
             'ip': {
@@ -142,14 +172,14 @@ class AlarmShieldScopeService(AlarmShieldService):
                 'condition': [{
                     'operator': '$in',
                     'field': 'bk_biz_id',
-                    'value': [self.bk_biz_id]
+                    'value': [bk_biz_id]
                 }]
             }]
         }
-        response = self.client.cc.search_host(request_body)
+        response = client.cc.search_host(request_body)
         if not response['result']:
-            message = _(u"查询监控(Monitor)的接口monitor.query_host_by_ip失败: %s") % response['message']
-            logger.error(message)
+            message = job_handle_api_error('cc.search_host', request_body, response)
+            self.logger.error(message)
             raise message
         target = []
         response_data = response['data']["info"]
@@ -167,42 +197,73 @@ class AlarmShieldScopeService(AlarmShieldService):
 
 class AlarmShieldStrategyService(AlarmShieldService):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_('业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('策略 ID'),
+                               key='bk_alarm_shield_strategy',
+                               type='string',
+                               schema=StringItemSchema(description=_('需要执行屏蔽的策略 ID'))),
+                self.InputItem(name=_('屏蔽开始时间'),
+                               key='bk_alarm_shield_strategy_begin_time',
+                               type='string',
+                               schema=StringItemSchema(description=_('开始屏蔽的时间'))),
+                self.InputItem(name=_('屏蔽结束时间'),
+                               key='bbk_alarm_shield_strategy_end_time',
+                               type='string',
+                               schema=StringItemSchema(description=_('结束屏蔽的时间'))),
+                ]
+
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        self.bk_biz_id = parent_data.get_one_of_inputs('biz_cc_id')
+        bk_biz_id = parent_data.get_one_of_inputs('biz_cc_id')
         executor = parent_data.get_one_of_inputs('executor')
-        self.client = get_client_by_user(executor)
+        client = get_client_by_user(executor)
         strategy = data.get_one_of_inputs('bk_alarm_shield_strategy')
         begin_time = data.get_one_of_inputs('bk_alarm_shield_strategy_begin_time')
         end_time = data.get_one_of_inputs('bbk_alarm_shield_strategy_end_time')
 
-        request_body = self.get_request_body(begin_time, end_time, 'strategy', strategy)
+        request_body = self.get_request_body(bk_biz_id, begin_time, end_time, 'strategy', strategy, client)
 
-        result_flag = self.send_request(request_body, data)
+        result_flag = self.send_request(request_body, data, client)
 
         return result_flag
 
-    def get_dimension_config(self, shied_type, shied_value):
+    def get_dimension_config(self, shied_type, shied_value, bk_biz_id, client):
         return {'id': shied_value}
 
 
 class AlarmShieldDisableService(Service):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_('业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('业务 ID'),
+                               key='bk_alarm_shield_id_input',
+                               type='string',
+                               schema=StringItemSchema(description=_('当前操作的屏蔽 ID')))
+                ]
+
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
         executor = parent_data.get_one_of_inputs('executor')
-
+        bk_biz_id = parent_data.get_one_of_inputs('biz_cc_id')
         shield_id = data.get_one_of_inputs('bk_alarm_shield_id_input')
 
         client = get_client_by_user(executor)
-        response = client.monitor.disable_shield({'bk_biz_id': 2, 'id': shield_id})
+        request_body = {'bk_biz_id': bk_biz_id, 'id': shield_id}
+        response = client.monitor.disable_shield(request_body)
         if not response['result']:
-            message = _(u"查询监控(Monitor)的接口monitor.create_shield失败: %s") % response['message']
-            logger.error(message)
+            message = job_handle_api_error('monitor.disable_shield', request_body, response)
+            self.logger.error(message)
             result = message
             ret_flag = False
         else:
@@ -215,8 +276,14 @@ class AlarmShieldDisableService(Service):
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'响应内容'), key='data', type='str'),
-            self.OutputItem(name=_(u'状态码'), key='status_code', type='int')
+            self.OutputItem(name=_(u'响应内容'),
+                            key='data',
+                            type='str',
+                            schema=StringItemSchema(description=_('解除告警屏蔽的响应内容'))),
+            self.OutputItem(name=_(u'状态码'),
+                            key='status_code',
+                            type='int',
+                            schema=StringItemSchema(description=_('解除告警屏蔽的响应状态码')))
         ]
 
 
@@ -225,7 +292,7 @@ class AlarmShieldScopeComponent(Component):
     code = 'alarm_shield_scope'
     desc = _(u"提示: 请在告警屏蔽解除")
     bound_service = AlarmShieldScopeService
-    form = settings.STATIC_URL + 'components/atoms/bk/shield_by_scope.js'
+    form = settings.STATIC_URL + 'components/atoms/monitor/shield_by_scope.js'
 
 
 class AlarmShieldStrategyComponent(Component):
@@ -233,7 +300,7 @@ class AlarmShieldStrategyComponent(Component):
     code = 'alarm_shield_strategy'
     desc = _(u"提示: 请在告警屏蔽解除")
     bound_service = AlarmShieldStrategyService
-    form = settings.STATIC_URL + 'components/atoms/bk/shield_by_strategy.js'
+    form = settings.STATIC_URL + 'components/atoms/monitor/shield_by_strategy.js'
 
 
 class AlarmShieldDisableComponent(Component):
@@ -241,4 +308,4 @@ class AlarmShieldDisableComponent(Component):
     code = 'alarm_shield_disable'
     desc = _(u"提示: 屏蔽id请从告警屏蔽或蓝鲸监控获取")
     bound_service = AlarmShieldDisableService
-    form = settings.STATIC_URL + 'components/atoms/bk/shield_disable.js'
+    form = settings.STATIC_URL + 'components/atoms/monitor/shield_disable.js'

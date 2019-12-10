@@ -110,10 +110,6 @@
                                             result: true,
                                             error_message: ""
                                         };
-                                        console.log(parent_data.bk_alarm_shield_scope);
-                                        console.log(parent_data.bk_alarm_shield_scope === 'node');
-                                        console.log(value);
-                                        console.log(!value);
                                         if (
                                             parent_data.hasOwnProperty('bk_alarm_shield_scope') &&
                                             (parent_data.bk_alarm_shield_scope === 'node') &&
