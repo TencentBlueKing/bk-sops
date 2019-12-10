@@ -11,14 +11,19 @@
 */
 <template>
     <div class="content-wrapper">
-        <h3 class="error-title">{{ i18n.title }}</h3>
-        <bk-button theme="primary" @click="onReloadLogin">{{ i18n.login }}</bk-button>
+        <iframe :src="loginArgs.login_url" frameborder="0" :width="loginArgs.width" :height="loginArgs.height"></iframe>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     export default {
         name: 'ErrorCode401',
+        props: {
+            loginArgs: {
+                type: Object,
+                required: true
+            }
+        },
         data () {
             return {
                 i18n: {

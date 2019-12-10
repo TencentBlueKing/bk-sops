@@ -40,6 +40,8 @@ axios.interceptors.response.use(
                 bus.$emit('showMessage', info)
                 break
             case 401:
+                bus.$emit('showLoginModal', response.data)
+                break
             case 403:
             case 405:
             case 406:
