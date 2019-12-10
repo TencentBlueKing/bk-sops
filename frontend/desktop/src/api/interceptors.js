@@ -40,7 +40,10 @@ axios.interceptors.response.use(
                 bus.$emit('showMessage', info)
                 break
             case 401:
-                bus.$emit('showLoginModal', response.data)
+                const data = response.data
+                if (data.has_plain) {
+                    window.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
+                }
                 break
             case 403:
             case 405:

@@ -17,7 +17,6 @@
         <div class="main-container">
             <router-view v-if="isRouterViewShow"></router-view>
         </div>
-        <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
         <permissionApply
@@ -34,7 +33,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
-    import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
     import Navigator from '@/components/layout/Navigator.vue'
@@ -44,7 +42,6 @@
         name: 'App',
         components: {
             Navigator,
-            UserLoginModal,
             ErrorCodeModal,
             permissionApply,
             PermissionModal
