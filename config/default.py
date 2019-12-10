@@ -263,6 +263,9 @@ BK_PAAS_INNER_HOST = os.getenv('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
 # AJAX 请求弹窗续期登陆设置
 IS_AJAX_PLAIN_MODE = True
 
+# init admin list
+INIT_SUPERUSER = ["admin"]
+
 # cc、job域名
 BK_CC_HOST = os.environ.get('BK_CC_HOST')
 BK_JOB_HOST = os.environ.get('BK_JOB_HOST')
