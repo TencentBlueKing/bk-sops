@@ -85,8 +85,8 @@
             }
         },
         created () {
-            bus.$on('showLoginModal', src => {
-                this.$refs.userLogin.show(src)
+            bus.$on('showLoginModal', args => {
+                this.$refs.userLogin.show(args)
             })
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)

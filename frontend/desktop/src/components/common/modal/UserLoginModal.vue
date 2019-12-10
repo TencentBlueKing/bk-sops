@@ -12,6 +12,7 @@
 <template>
     <bk-dialog
         width="600"
+        :render-directive="'if'"
         :value="isModalShow"
         :has-header="false"
         :show-footer="false"
@@ -24,7 +25,7 @@
                 height="100%"
                 frameborder="0"
                 allowtransparency="yes"
-                :src="src">
+                :src="loginArgs.login_url">
             </iframe>
         </div>
     </bk-dialog>
@@ -36,13 +37,13 @@
         data () {
             return {
                 isModalShow: false,
-                src: ''
+                loginArgs: {}
             }
         },
         methods: {
-            show (src) {
+            show (args) {
+                this.loginArgs = args
                 this.isModalShow = true
-                this.src = src
             }
         }
     }
