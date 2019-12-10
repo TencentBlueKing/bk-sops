@@ -221,7 +221,7 @@
         },
         {
             title: gettext('插件版本'),
-            id: 'version'
+            id: 'plugin_version'
         }
     ]
 
@@ -481,6 +481,7 @@
                         })
                     } else {
                         this.executeInfo = respData
+                        this.executeInfo.plugin_version = this.nodeDetailConfig.version
                         this.inputsInfo = inputs
                         this.outputsInfo = outputs
                         this.historyInfo = respData.histories
