@@ -254,6 +254,7 @@ const validatePipeline = {
         let valid = validator(data)
         let message = ''
         if (!valid) {
+            console.log(validator.errors)
             const error = validator.errors[0]
             let nodeName = ''
             const nodeReg = /^\.activities\['(\w+)'\]/
@@ -261,7 +262,7 @@ const validatePipeline = {
             if (matchResult) {
                 nodeName = activities[matchResult[1]] ? activities[matchResult[1]].name : ''
             }
-            message = `${nodeName} ${error.dataPath} ${error.keyword} ${error.message}`
+            message = `${nodeName} ${error.dataPath} ${error.message}`
             return this.getMessage(valid, message)
         }
 

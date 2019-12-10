@@ -102,8 +102,8 @@
                 }
                 if (!this.errorMessage) {
                     const validateResult = validatePipeline.isPipelineDataValid(pipelineData)
-                    if (!validateResult.valid) {
-                        this.errorMessage = validateResult.errors
+                    if (!validateResult.result) {
+                        this.errorMessage = validateResult.message
                         return
                     }
                     this.$emit('confirm', pipelineData)
