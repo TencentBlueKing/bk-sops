@@ -823,63 +823,50 @@
             },
             getOrderedTree (data) {
                 const fstLine = data.start_event.outgoing
-                const orderedData = this.retrieveLines(data, fstLine)
+                const orderedData = []
+                const passedLines = []
+                this.retrieveLines(data, fstLine, orderedData, passedLines)
+                orderedData.sort((a, b) => a.level - b.level)
                 return orderedData
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
              * @param {Object} data 画布数据
-             * @param {Array} line 节点连线
+             * @param {Array} lineId 连线ID
+             * @param {Array} ordered 排序后的节点数据
+             * @param {Array} passedLines 遍历过的连线
+             * @param {Number} level 任务节点与开始节点的距离
              *
-             * @return {Array} nodes 排序后的节点
              */
-            retrieveLines (data, line) {
-                let nodes = []
-                const { flows, activities, gateways } = data
-                const curNode = data.flows[line].target
-                const activityNode = activities[curNode]
-                if (activityNode) {
-                    const node = Object.assign({}, activityNode)
-                    if (node.pipeline) {
-                        node.children = this.getOrderedTree(node.pipeline)
-                    }
-                    nodes.push(node)
-                    nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
-                } else {
-                    const gatewayNode = gateways[curNode]
-                    if (gatewayNode) {
-                        if (gatewayNode.type === 'ParallelGateway' || gatewayNode.type === 'ExclusiveGateway') {
-                            const gatewayLinkedNodes = []
-                            gatewayNode.outgoing.forEach(line => {
-                                const linkedNode = activities[flows[line].target]
-                                if (linkedNode) {
-                                    if (linkedNode.pipeline) {
-                                        linkedNode.children = this.getOrderedTree(linkedNode.pipeline)
-                                    }
-                                    gatewayLinkedNodes.push(linkedNode)
-                                    nodes.push(linkedNode)
-                                } else {
-                                    nodes = nodes.concat(this.retrieveLines(data, line))
+            retrieveLines (data, lineId, ordered, passedLines, level = 1) {
+                const isLinePassed = passedLines.includes(lineId)
+                if (!isLinePassed) {
+                    const { activities, gateways, flows } = data
+                    const currentNode = flows[lineId].target
+                    const activity = activities[currentNode]
+                    const gateway = gateways[currentNode]
+                    const node = activity || gateway
+                    passedLines.push(lineId)
+
+                    if (node) {
+                        if (activity) {
+                            const isExistInList = ordered.find(item => item.id === activity.id)
+                            if (!isExistInList) {
+                                if (activity.pipeline) {
+                                    activity.children = this.getOrderedTree(activity.pipeline)
                                 }
-                            })
-                            gatewayLinkedNodes.forEach(node => {
-                                nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
-                            })
-                        } else if (gatewayNode.type === 'ConvergeGateway') {
-                            if (gatewayNode.hasRun) {
-                                gatewayNode.hasRun.push(gatewayNode.id)
-                            } else {
-                                gatewayNode.hasRun = [gatewayNode.id]
+                                activity.level = level
+                                ordered.push(activity)
                             }
-                            if (gatewayNode.hasRun.length === gatewayNode.incoming.length) {
-                                nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
-                            }
-                        } else {
-                            nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
                         }
+
+                        const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
+                        level += 1
+                        outgoing.forEach((line, index, arr) => {
+                            this.retrieveLines(data, line, ordered, passedLines, level)
+                        })
                     }
                 }
-                return nodes
             },
             updateNodeActived (id, isActived) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })

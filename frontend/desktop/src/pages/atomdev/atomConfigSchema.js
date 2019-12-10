@@ -9,7 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import { Validator } from 'jsonschema'
+import Ajv from 'ajv'
 import importTag from './importTag'
 
 const { components } = importTag()
@@ -19,10 +19,10 @@ const tagNames = Object.keys(components).map(item => {
     }).slice(1)
 })
 
-const NAME_REG = /^[a-zA-Z_][a-zA-Z0-9_]*/
+const NAME_REG = '^[a-zA-Z_][a-zA-Z0-9_]*'
 
 export const atomFormItemSchema = {
-    id: '/AtomFormItem',
+    $id: '/AtomFormItem',
     title: '标准插件单个表单项配置',
     type: 'object',
     properties: {
@@ -53,8 +53,6 @@ export const atomFormItemSchema = {
     required: ['tag_code', 'type', 'attrs']
 }
 
-const atomConfigValidator = new Validator()
+const ajv = new Ajv()
 
-atomConfigValidator.addSchema(atomFormItemSchema, '/AtomFormItem')
-
-export default atomConfigValidator
+export default ajv.compile(atomFormItemSchema)

@@ -210,7 +210,7 @@
             width: 16px;
         }
         .node-icon-font {
-            font-size: 16px;
+            font-size: 18px;
             color: #ffffff;
         }
     }
@@ -252,5 +252,6 @@
     .dark-circle {
         font-size: 12px;
         color: #979ba5;
+        margin-left: -2px;
     }
 </style>

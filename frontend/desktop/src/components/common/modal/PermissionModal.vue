@@ -51,7 +51,7 @@
             </div>
         </div>
         <div class="permission-footer" slot="footer">
-            <div class="bk-button-group">
+            <div class="button-group">
                 <bk-button theme="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
                 <bk-button theme="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
             </div>
@@ -196,9 +196,9 @@
             }
         }
     }
-    .bk-button-group {
+    .button-group {
         .bk-button {
-            margin-left: 10px;
+            margin-left: 7px;
         }
     }
     

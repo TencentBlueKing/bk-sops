@@ -86,5 +86,7 @@ class PipelineConfig(AppConfig):
             except Exception:
                 # fall back to single node mode
                 logger.error("redis client init error: %s" % traceback.format_exc())
-        else:
+        elif getattr(settings,
+                     'PIPELINE_DATA_BACKEND',
+                     None) == 'pipeline.engine.core.data.redis_backend.RedisDataBackend':
             logger.error("can not find REDIS in settings!")

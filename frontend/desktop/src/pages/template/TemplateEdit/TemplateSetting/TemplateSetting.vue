@@ -55,7 +55,11 @@
                     @hideConfigPanel="hideConfigPanel"
                     @updateLocalTemplateData="updateLocalTemplateData">
                 </TabLocalDraft>
-                <TabTemplateData v-show="activeTab === 'templateDataEditTab'"></TabTemplateData>
+                <PipelineTreeDialog
+                    :is-show="isPipelineTreeDialogShow"
+                    @confirm="onDataModify"
+                    @cancel="isPipelineTreeDialogShow = false">
+                </PipelineTreeDialog>
             </div>
         </div>
     </div>
@@ -66,7 +70,7 @@
     import TabGlobalVariables from './TabGlobalVariables.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabLocalDraft from './TabLocalDraft.vue'
-    import TabTemplateData from './TabTemplateData.vue'
+    import PipelineTreeDialog from './PipelineTreeEditDialog.vue'
 
     const SETTING_TABS = [
         {
@@ -97,7 +101,7 @@
             TabGlobalVariables,
             TabTemplateConfig,
             TabLocalDraft,
-            TabTemplateData
+            PipelineTreeDialog
         },
         props: [
             'projectInfoLoading',
@@ -113,6 +117,7 @@
             return {
                 showPanel: true,
                 isVariableEditing: false,
+                isPipelineTreeDialogShow: false,
                 activeTab: 'globalVariableTab'
             }
         },
@@ -209,6 +214,11 @@
                 this.isVariableEditing = val
             },
             onTemplateSettingShow (val) {
+                if (val === 'templateDataEditTab') {
+                    this.isPipelineTreeDialogShow = true
+                    return
+                }
+
                 if (this.activeTab === val) {
                     this.togglePanel(false)
                 } else {
@@ -216,6 +226,10 @@
                     this.togglePanel(true)
                 }
                 this.$emit('globalVariableUpdate', false)
+            },
+            onDataModify (data) {
+                this.isPipelineTreeDialogShow = false
+                this.$emit('modifyTemplateData', data)
             }
         }
     }

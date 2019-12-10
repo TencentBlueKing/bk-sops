@@ -11,28 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import contextlib
 import logging
 import traceback
-import contextlib
 
+from celery.task.control import revoke
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from celery.task.control import revoke
 
-from pipeline.django_signal_valve import valve
-
-from pipeline.engine import exceptions
+from pipeline.conf import settings as pipeline_settings
 from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.core.data.base import DataObject
 from pipeline.core.pipeline import Pipeline
-from pipeline.engine import states, utils, signals
+from pipeline.django_signal_valve import valve
+from pipeline.engine import exceptions, signals, states, utils
 from pipeline.engine.core import data as data_service
-from pipeline.engine.utils import calculate_elapsed_time, ActionResult
-from pipeline.utils.uniqid import uniqid, node_uniqid
-from pipeline.log.models import LogEntry
 from pipeline.engine.models.fields import IOField
-from pipeline.conf import settings as pipeline_settings
+from pipeline.engine.utils import ActionResult, Stack, calculate_elapsed_time
+from pipeline.log.models import LogEntry
+from pipeline.utils.uniqid import node_uniqid, uniqid
 
 logger = logging.getLogger('celery')
 
@@ -76,6 +74,9 @@ class ProcessSnapshot(models.Model):
     def clean_children(self):
         self.data['_children'] = []
 
+    def prune_top_pipeline(self, keep_from, keep_to):
+        self.data['_pipeline_stack'].top().prune(keep_from, keep_to)
+
 
 class ProcessManager(models.Manager):
     def prepare_for_pipeline(self, pipeline):
@@ -108,10 +109,18 @@ class ProcessManager(models.Manager):
         # clear parent's change
         parent.top_pipeline.context.clear_change_keys()
 
-        snapshot = ProcessSnapshot.objects.create_snapshot(pipeline_stack=parent.pipeline_stack,
-                                                           children=[],
-                                                           root_pipeline=parent.root_pipeline,
-                                                           subprocess_stack=parent.subprocess_stack)
+        pipeline_stack = Stack([parent.top_pipeline])
+        root_pipeline_shell = parent.root_pipeline.shell()
+        snapshot = ProcessSnapshot.objects.create_snapshot(
+            pipeline_stack=pipeline_stack,
+            children=[],
+            root_pipeline=root_pipeline_shell,
+            subprocess_stack=parent.subprocess_stack
+        )
+        # refresh first, avoid keep the same ref to parent.top_pipeline
+        snapshot.refresh_from_db()
+        snapshot.prune_top_pipeline(current_node_id, destination_id)
+        snapshot.save()
 
         child = self.create(id=node_uniqid(), root_pipeline_id=parent.root_pipeline.id, current_node_id=current_node_id,
                             destination_id=destination_id, parent_id=parent.id, snapshot=snapshot)
@@ -202,7 +211,7 @@ class PipelineProcess(models.Model):
 
     @property
     def in_subprocess(self):
-        return len(self.snapshot.pipeline_stack) > 1
+        return len(self.snapshot.pipeline_stack) > 1 if self.snapshot else False
 
     def push_pipeline(self, pipeline, is_subprocess=False):
         """
@@ -395,7 +404,7 @@ class PipelineProcess(models.Model):
             parent_data = data_service.get_object(self._data_key(child_id))
             if context is None or parent_data is None:
                 raise exceptions.ChildDataSyncError(
-                    'sync data with children %s failed, context(%s) or parent_data(%s) is None' % (
+                    'sync data with children {} failed, context({}) or parent_data({}) is None'.format(
                         child_id, context, parent_data))
             self.top_pipeline.context.sync_change(context)
             # self.top_pipeline.context.update_global_var(context.variables)
@@ -567,7 +576,7 @@ class NodeRelationship(models.Model):
     objects = RelationshipManager()
 
     def __unicode__(self):
-        return str("#%s -(%s)-> #%s" % (
+        return str("#{} -({})-> #{}".format(
             self.ancestor_id,
             self.distance,
             self.descendant_id,
@@ -640,8 +649,6 @@ class StatusManager(models.Manager):
 
                 if name:
                     status.name = name
-                if start:
-                    status.started_time = timezone.now()
                 if to_state in states.ARCHIVED_STATES:
                     status.archived_time = timezone.now()
 
@@ -654,12 +661,15 @@ class StatusManager(models.Manager):
                     status.skip = False
                     status.version = uniqid()
 
+                # reset started_time after record last status
+                if start:
+                    status.started_time = timezone.now()
                 status.state = to_state
                 status.save()
                 return ActionResult(result=True, message='success', extra=status)
             else:
                 return ActionResult(result=False,
-                                    message='can\'t transit state(%s) from %s to %s' % (id, status.state, to_state),
+                                    message='can\'t transit state({}) from {} to {}'.format(id, status.state, to_state),
                                     extra=status)
 
     def batch_transit(self, id_list, state, from_state=None, exclude=None):
@@ -945,7 +955,7 @@ class History(models.Model):
 class ScheduleServiceManager(models.Manager):
     def set_schedule(self, activity_id, service_act, process_id, version, parent_data):
         wait_callback = service_act.service.interval is None
-        schedule = self.create(id="%s%s" % (activity_id, version), activity_id=activity_id, service_act=service_act,
+        schedule = self.create(id="{}{}".format(activity_id, version), activity_id=activity_id, service_act=service_act,
                                process_id=process_id, wait_callback=wait_callback, version=version)
         data_service.set_schedule_data(schedule.id, parent_data)
 
@@ -958,7 +968,7 @@ class ScheduleServiceManager(models.Manager):
         return schedule
 
     def schedule_for(self, activity_id, version):
-        return self.get(id='%s%s' % (activity_id, version))
+        return self.get(id='{}{}'.format(activity_id, version))
 
     def delete_schedule(self, activity_id, version):
         return self.filter(activity_id=activity_id, version=version).delete()

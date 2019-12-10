@@ -12,18 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 import mock
+from mock import MagicMock, patch  # noqa
 
-from pipeline.utils.uniqid import uniqid
 from pipeline.utils.collections import FancyDict
-
-from mock import patch, MagicMock  # noqa
+from pipeline.utils.uniqid import uniqid
 
 
 def __reduce__(self):
-    return (mock.Mock, ())
+    return (mock.MagicMock, ())
 
 
+mock.mock.MagicMock.__reduce__ = __reduce__
 mock.MagicMock.__reduce__ = __reduce__
+MagicMock.__reduce__ = __reduce__
 
 
 class Object(object):
@@ -96,10 +97,14 @@ class PipelineObject(IdentifyObject):
         self.nodes = nodes or {}
         self.start_event = start_event or StartEventObject()
         self.spec = spec or PipelineSpecObject()
+        self.prune = MagicMock()
         super(PipelineObject, self).__init__()
 
     def node(self, node_id):
         return self.nodes.get(node_id) or self.real_node or node_id
+
+    def shell(self):
+        return self
 
 
 class StatusObject(IdentifyObject):
@@ -232,7 +237,7 @@ class MockHandlerResult(object):
 
 class MockScheduleService(object):
     def __init__(self, id=None, **kwargs):
-        self.id = id or ('%s%s' % (uniqid(), uniqid()))
+        self.id = id or ('{}{}'.format(uniqid(), uniqid()))
         self.activity_id = self.id[:32]
         self.version = self.id[32:]
         self.destroy = mock.MagicMock()
