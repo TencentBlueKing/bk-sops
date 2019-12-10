@@ -704,7 +704,7 @@
 
                     if (nodeActivities) {
                         code = nodeActivities.component ? nodeActivities.component.code : ''
-                        canSkipped = nodeActivities.isSkipped
+                        canSkipped = nodeActivities.isSkipped || nodeActivities.skippable
                         canRetry = nodeActivities.can_retry || nodeActivities.retryable
                     }
 
