@@ -92,9 +92,9 @@
             }
         }
         .content-wrapper {
-            padding: 20px;
             margin: 20px 20px 0;
             height: calc(100% - 100px);
+            background: #313238;
             border: 1px solid #cacedb;
             overflow-y: auto;
         }
@@ -102,6 +102,12 @@
             color: #313238;
             font-size: 14px;
             margin-bottom: 20px;
+        }
+        .context-data {
+            padding: 10px;
+        }
+        .vjs-tree {
+            color: #ffffff;
         }
     }
 </style>
