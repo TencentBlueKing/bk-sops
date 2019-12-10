@@ -121,7 +121,7 @@
         <section class="info-section" v-if="adminView">
             <h4 class="common-section-title">{{ i18n.nodeLog }}</h4>
             <div class="code-block-wrap">
-                <VueJsonPretty :data="logInfo || null"></VueJsonPretty>
+                <VueJsonPretty :data="logInfo"></VueJsonPretty>
             </div>
         </section>
         <section class="info-section" v-if="historyInfo.length">
@@ -159,7 +159,7 @@
                             <div class="common-form-content">
                                 <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
                                     <div class="code-block-wrap">
-                                        <VueJsonPretty :data="historyLog[props.row.history_id] || null"></VueJsonPretty>
+                                        <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
                                     </div>
                                 </div>
                             </div>
@@ -220,7 +220,7 @@
             id: 'retry'
         },
         {
-            title: gettext('执行版本'),
+            title: gettext('插件版本'),
             id: 'version'
         }
     ]
@@ -638,9 +638,7 @@
             background: #313238;
             padding: 10px;
             /deep/ .vjs-tree {
-                .vjs-key {
-                    color: #ffffff;
-                }
+                color: #ffffff;
             }
         }
     }
