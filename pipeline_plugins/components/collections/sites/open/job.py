@@ -45,7 +45,6 @@ from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     get_job_instance_url,
     get_node_callback_url,
-    handle_api_error,
     loose_strip
 )
 
