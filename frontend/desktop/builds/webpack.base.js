@@ -37,7 +37,7 @@ process.argv.forEach(val => {
 })
 
 process.env.STATIC_ENV = STATIC_ENV
-process.env.VERSION = VERSION ? '.' + VERSION : ''
+process.env.VERSION = VERSION ? '?v=' + VERSION : ''
 
 const publicPath = path.posix.join(SITE_URL, '/static/')
 
@@ -54,7 +54,7 @@ module.exports = {
         path: path.join(__dirname, '../static'),
         publicPath: publicPath,
         pathinfo: true,
-        filename: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name]' + process.env.VERSION + '.js')
+        filename: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name].js' + process.env.VERSION)
     },
     module: {
         rules: [
@@ -127,7 +127,7 @@ module.exports = {
                 loader: 'url-loader',
                 options: {
                     limit: 10000,
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/videos/[name]'+ process.env.VERSION + '.[ext]')
+                    name: path.posix.join(process.env.STATIC_ENV, 'dist/videos/[name].[ext]' + process.env.VERSION)
                 }
             },
             {
@@ -139,7 +139,7 @@ module.exports = {
                 ],
                 options: {
                     limit: 10000,
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/fonts/[name]'+ process.env.VERSION + '.[ext]')
+                    name: path.posix.join(process.env.STATIC_ENV, 'dist/fonts/[name].[ext]' + process.env.VERSION)
                 }
             }
         ]

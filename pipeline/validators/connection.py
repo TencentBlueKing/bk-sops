@@ -52,14 +52,14 @@ def validate_graph_connection(data):
                                           detail=result['message'])
 
 
-def find_graph_circle(data):
+def validate_graph_without_circle(data):
     """
     validate if a graph has not cycle
 
     return {
         "result": False,
         "message": "error message",
-        "failed_nodes": ["dfc939e785c4484f884583beb9bb791a", "8f0bf9a291dd94627997870405eeff4d"]
+        "error_data": ["node1_id", "node2_id", "node1_id"]
     }
     """
 
