@@ -135,3 +135,25 @@
     display: inline-block;
     width: 260px;
 }
+
+.tippy-tooltip.guide-theme {
+    background-color: #444d62;
+    color: #d2d5dd;
+    padding: 0;
+    .tippy-content {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+}
+.tippy-tooltip.guide-theme[x-placement^='top'] .tippy-arrow {
+    border-top-color: #444d62;
+}
+.tippy-tooltip.guide-theme[x-placement^='bottom'] .tippy-arrow {
+    border-bottom-color: #444d62;
+}
+.tippy-tooltip.guide-theme[x-placement^='left'] .tippy-arrow {
+    border-left-color: #444d62;
+}
+.tippy-tooltip.guide-theme[x-placement^='right'] .tippy-arrow {
+    border-right-color: #444d62;
+}

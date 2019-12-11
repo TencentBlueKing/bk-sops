@@ -55,6 +55,14 @@
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
         </div>
+        <!-- <div id="guideContent" class="guide-content">
+            <div class="guide-map"></div>
+            <div class="guide-info">
+                <span class="info-name">标准插件节点:</span>
+                <span class="info-text">已封装好的可用插件，支持拖拽和点击</span>
+            </div>
+        </div> -->
+        
         <node-menu
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
@@ -68,12 +76,12 @@
 <script>
     import '@/utils/i18n.js'
     import NodeMenu from './NodeMenu.vue'
+    import Guide from '@/utils/guide.js'
     import { mapState } from 'vuex'
     export default {
         name: 'PalattePanel',
         components: {
-            NodeMenu
-        },
+            NodeMenu },
         props: {
             atomTypeList: {
                 type: Object,
@@ -107,6 +115,32 @@
                 i18n: {
                     start: gettext('开始'),
                     end: gettext('结束')
+                },
+                htmlConfig: {
+                    interactiveBorder: 0,
+                    allowHtml: true,
+                    width: 330,
+                    trigger: '6',
+                    theme: 'guide',
+                    content: '#guideContent',
+                    placement: 'right-start',
+                    extCls: 'guide-content'
+                },
+                nodeGuideConfig: {
+                    img: {
+                        height: 112,
+                        url: require('@/assets/images/building.png')
+                    },
+                    text: [
+                        {
+                            type: 'name',
+                            val: gettext('双击左键')
+                        },
+                        {
+                            type: 'text',
+                            val: gettext('可以快捷打开节点配置面板')
+                        }
+                    ]
                 }
             }
         },
@@ -129,6 +163,7 @@
         },
         mounted () {
             this.$emit('registerPaletteEvent')
+            this.renderGuide()
         },
         methods: {
             onMouseDown (e) {
@@ -168,11 +203,35 @@
                     this.onOpenNodeMenu()
                 }
                 document.removeEventListener('mouseup', this.mouseUpHandler)
+            },
+            renderGuide () {
+                const config = {
+                    el: '',
+                    width: 150,
+                    placement: 'right-top',
+                    trigger: 'mouseenter',
+                    img: {
+                        height: 112,
+                        url: require('@/assets/images/building.png')
+                    },
+                    text: [
+                        {
+                            type: 'name',
+                            val: gettext('双击左键')
+                        },
+                        {
+                            type: 'text',
+                            val: gettext('可以快捷打开节点配置面板')
+                        }
+                    ]
+                }
+                const guide = new Guide(config)
+                guide.mount(document.querySelector('.entry-item[data-type=tasknode]'))
             }
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
     .palette-panel {
         position: relative;
         width: 60px;
@@ -213,6 +272,30 @@
         .node-type-icon {
             font-size: 28px;
             color: #546a9e;
+        }
+    }
+    .guide-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #444d62;
+        .guide-map {
+            width: 100%;
+            height: 155px;
+        }
+        .guide-info {
+            width: 100%;
+            height: 45px;
+            line-height: 45px;
+            text-align: center;
+            background: #444d62;
+            .info-name {
+                color: #ffffff;
+            }
+            .info-text {
+                color: #d2d5dd;
+            }
         }
     }
 </style>
