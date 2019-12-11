@@ -287,7 +287,7 @@
              * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
              */
             formatCanvasData (mode, data) {
-                const { line, location, gateways } = data
+                const { line, location, gateways, activities } = data
                 const branchConditions = {}
                 for (const gKey in gateways) {
                     const item = gateways[gKey]
@@ -298,7 +298,8 @@
                 return {
                     lines: line,
                     locations: location.map(item => {
-                        return { ...item, mode }
+                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+                        return { ...item, mode, code }
                     }),
                     branchConditions
                 }

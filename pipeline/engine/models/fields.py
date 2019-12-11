@@ -11,10 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import zlib
 import pickle
+import traceback
+import zlib
 
 from django.db import models
+
+from pipeline.utils.utils import convert_bytes_to_str
 
 
 class IOField(models.BinaryField):
@@ -30,8 +33,11 @@ class IOField(models.BinaryField):
         try:
             value = super(IOField, self).to_python(value)
             return pickle.loads(zlib.decompress(value))
-        except ImportError as e:
-            return "IOField to_python raise error: %s" % e
+        except UnicodeDecodeError:
+            # py2 pickle data process
+            return convert_bytes_to_str(pickle.loads(zlib.decompress(value), encoding='bytes'))
+        except Exception:
+            return "IOField to_python raise error: {}".format(traceback.format_exc())
 
     def from_db_value(self, value, expression, connection, context):
         return self.to_python(value)

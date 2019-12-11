@@ -11,11 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import pkgutil
 import sys
-
 from importlib import import_module
+
 from django.utils._os import npath, upath
+
+logger = logging.getLogger('root')
 
 
 def autodiscover_items(module):
@@ -29,7 +32,11 @@ def autodiscover_items(module):
                pkgutil.iter_modules([npath(module_dir)])
                if not is_pkg and not name.startswith('_')]
     for name in modules:
-        __import__("%s.%s" % (module.__name__, name))
+        module_path = "{}.{}".format(module.__name__, name)
+        try:
+            __import__(module_path)
+        except Exception as e:
+            logger.error(f'[!] module({module_path}) import failed with err: {e}')
 
 
 def autodiscover_collections(path):

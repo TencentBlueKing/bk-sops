@@ -14,6 +14,7 @@ const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 
 /**
  * 生产环境分版本打包命令
@@ -153,6 +154,13 @@ module.exports = {
             $: 'jquery',
             jQuery: 'jquery',
             'window.jQuery': 'jquery'
+        }),
+        new webpack.DefinePlugin({
+            'process.env.PUBLIC_STATIC': path.posix.join(publicPath, process.env.STATIC_ENV),
+            'process.env.VERSION': process.env.VERSION
+        }),
+        new MonacoWebpackPlugin({
+            languages: ['javascript', 'typescript', 'python']
         })
     ],
     optimization: {

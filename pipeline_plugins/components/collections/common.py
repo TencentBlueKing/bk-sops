@@ -14,10 +14,10 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import requests
+from django.conf import settings
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component

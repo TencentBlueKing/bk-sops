@@ -55,10 +55,13 @@ INSTALLED_APPS += (
     'gcloud.contrib.appmaker',
     'gcloud.contrib.function',
     'gcloud.contrib.audit',
+    'gcloud.contrib.develop',
+    'gcloud.contrib.collection',
     'gcloud.apigw',
     'gcloud.commons.template',
     'gcloud.periodictask',
     'gcloud.external_plugins',
+    'gcloud.contrib.admin',
     'pipeline',
     'pipeline.component_framework',
     'pipeline.variable_framework',
@@ -126,7 +129,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.4.13'
+STATIC_VERSION = '3.5.1'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')

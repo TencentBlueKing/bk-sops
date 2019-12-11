@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 ITERATED = 1
 NEW = 0
 ITERATING = -1
@@ -58,3 +57,60 @@ def _has_circle(graph, cur_node, marks, trace):
     marks[cur_node] = ITERATED
 
     return False
+
+
+def convert_bytes_to_str(obj):
+
+    converted = set()
+
+    def _convert(obj, converted):
+        if isinstance(obj, dict):
+            new_dict = obj.__class__()
+
+            for attr, value in obj.items():
+
+                if isinstance(attr, bytes):
+                    attr = attr.decode('utf-8')
+
+                value = _convert(value, converted)
+
+                new_dict[attr] = value
+
+            obj = new_dict
+
+        if isinstance(obj, list):
+            new_list = obj.__class__()
+
+            for item in obj:
+                new_list.append(_convert(item, converted))
+
+            obj = new_list
+
+        elif isinstance(obj, bytes):
+
+            try:
+                obj = obj.decode('utf-8')
+            except Exception:
+                pass
+
+        elif hasattr(obj, '__dict__'):
+
+            if id(obj) in converted:
+                return obj
+            else:
+                converted.add(id(obj))
+
+            new__dict__ = {}
+
+            for attr, value in obj.__dict__.items():
+
+                if isinstance(attr, bytes):
+                    attr = attr.decode('utf-8')
+
+                new__dict__[attr] = _convert(value, converted)
+
+            obj.__dict__ = new__dict__
+
+        return obj
+
+    return _convert(obj, converted)

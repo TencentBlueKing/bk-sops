@@ -1,3 +1,25 @@
+# 2.2.0rc1
+
+- features:
+  - 添加插件执行命令 `manage.py run_component`
+  - 输出变量支持配置多个 source_act
+  - redis replication 模式支持配置多 sentinels
+  - 支持配置备选 data_backend, 提升流程执行容错性
+  - PipelineInstance 新增 is_revoked 属性
+- improvements:
+  - 优化并行网关的执行效率
+  - 优化无法从 settings 中获取 redis 配置时的日志提示
+  - 插件模块导入错误时添加错误日志
+- bugfix:
+  - 修复 MySQLDatabackend 更新数据时产生死锁问题
+  - 修复带打回流程 tree 导致 parser 解析错误问题
+  - 修复 py3 下部分编码问题
+  - 修复多次对不存在的流程调用 revoke_piepline 接口返回结果不一致的问题
+  - 修复 snapshot 为空时 in_subprocess 调用报错的问题
+  - 修复汇聚网关是否被共享判断逻辑有漏洞的问题
+  - 修复节点重入时记录的 history 中 started_time 不正确的问题
+  - 修复读取 python2 pickle dump 的数据可能会导致 DecodeError 的问题
+
 # 2.1.0rc1
 
 - features:

@@ -86,7 +86,16 @@ class BKIAMClient(object):
                 method=method, url=url, headers=_headers, data=data, params=params
             ))
 
-        response = method_func(url, data=json.dumps(data or {}), headers=_headers, params=params or {})
+        try:
+            response = method_func(url, data=json.dumps(data or {}), headers=_headers, params=params or {})
+        except Exception as e:
+            message = 'bk_iam request({url}) error: {e}'.format(url=url, e=e)
+            logger.error(message)
+
+            return {
+                'result': False,
+                'message': message
+            }
 
         try:
             response.raise_for_status()

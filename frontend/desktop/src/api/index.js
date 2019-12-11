@@ -1193,13 +1193,11 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getPeriodicList (data) {
-        const { project_id } = store.state.project
-        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
             url: prefixUrl,
-            params: querystring
+            params: { ...data }
         }
         return request(opts)
     },
@@ -1563,6 +1561,145 @@ const api = {
         const opts = {
             method: 'GET',
             url: prefixUrl
+        }
+        return request(opts)
+    },
+    loadApiList () {
+        const prefixUrl = this.getPrefix('esbGetSystems')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    loadApiComponent (params) {
+        const { name } = params
+        const prefixUrl = this.getPrefix('esbGetComponents')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                system_names: JSON.stringify([name])
+            }
+        }
+        return request(opts)
+    },
+    loadApiPluginCode (params) {
+        const { system, component } = params
+        const prefixUrl = this.getPrefix('esbGetPluginInitialCode')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                esb_system: system,
+                esb_component: component
+            }
+        }
+        return request(opts)
+    },
+    adminSearch (data) {
+        const prefixUrl = this.getPrefix('adminSearch')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                keyword: data.keyword
+            }
+        }
+        return request(opts)
+    },
+    adminTemplate (data) {
+        const prefixUrl = this.getPrefix('adminTemplate')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTemplateRestore (data) {
+        const { template_id } = data
+        const prefixUrl = this.getPrefix('adminTemplateRestore')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                template_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflow (data) {
+        const prefixUrl = this.getPrefix('adminTaskflow')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTaskflowDetail (data) {
+        const { task_id } = data
+
+        const prefixUrl = this.getPrefix('adminTaskflowDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                task_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflowHistroyLog (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowHistroyLog')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTaskflowNodeForceFail (data) {
+        const { task_id, node_id } = data
+        const prefixUrl = this.getPrefix('taskflowNodeForceFail')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                task_id,
+                node_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflowNodeDetail (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowNodeDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminPeriodTask (data) {
+        const prefixUrl = this.getPrefix('adminPeriodTask')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminPeriodTaskHistory (data) {
+        const { task_id } = data
+        const prefixUrl = this.getPrefix('adminPeriodTaskHistory')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                task_id
+            }
         }
         return request(opts)
     }

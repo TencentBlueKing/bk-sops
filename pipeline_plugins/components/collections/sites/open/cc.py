@@ -23,11 +23,11 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSche
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     get_ip_by_regex,
-    handle_api_error,
     supplier_account_for_business
 )
 
 from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER

@@ -17,14 +17,12 @@
         :title="title"
         :mask-close="false"
         :show-footer="false"
-        :close-icon="code !== 401"
         :value="isModalShow"
         @cancel="onCloseDialog">
         <div class="error-content">
             <div class="pic-wrapper">
                 <img :src="errorPic" class="error-pic" alt="error-pic">
             </div>
-            <ErrorCode401 v-if="code === 401"></ErrorCode401>
             <ErrorCode403 v-if="code === 403"></ErrorCode403>
             <ErrorCode405 v-if="code === 405" :response-text="responseText"></ErrorCode405>
             <ErrorCode406 v-if="code === 406"></ErrorCode406>
@@ -36,7 +34,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import ErrorCode401 from './ErrorCode401.vue'
     import ErrorCode403 from './ErrorCode403.vue'
     import ErrorCode405 from './ErrorCode405.vue'
     import ErrorCode406 from './ErrorCode406.vue'
@@ -46,7 +43,6 @@
         name: 'ErrorCodeModal',
         components: {
             ErrorCode403,
-            ErrorCode401,
             ErrorCode405,
             ErrorCode406,
             ErrorCode407,
@@ -67,8 +63,6 @@
             errorPic () {
                 if (this.code === 500) {
                     return this.expPic500
-                } else if (this.code === 401) {
-                    return this.expPic401
                 }
                 return this.expPic403
             }

@@ -33,11 +33,11 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import IpSelector from '../IpSelector/index.vue'
 
-    const intAttrs = {
+    export const attrs = {
         isMultiple: {
             type: Boolean,
             required: false,
-            default: true,
+            default: false,
             desc: 'checkbox or radio'
         },
         value: {
@@ -45,7 +45,7 @@
             required: false,
             default () {
                 return {
-                    selectors: [],
+                    selectors: ['ip'],
                     ip: [],
                     topo: [],
                     filters: [],
@@ -55,11 +55,11 @@
         }
     }
     export default {
-        name: 'TagIp_selector',
+        name: 'TagIpSelector',
         components: {
             IpSelector
         },
-        mixins: [getFormMixins(intAttrs)],
+        mixins: [getFormMixins(attrs)],
         data () {
             return {
                 loading: true,

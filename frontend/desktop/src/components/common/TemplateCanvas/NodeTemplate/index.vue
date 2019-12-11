@@ -18,12 +18,14 @@
         <component
             :is="nodeTemplate"
             :node="node"
+            :has-admin-perm="hasAdminPerm"
             @onNodeCheckClick="onNodeCheckClick"
             @onRetryClick="onRetryClick"
             @onSkipClick="onSkipClick"
             @onModifyTimeClick="onModifyTimeClick"
             @onGatewaySelectionClick="onGatewaySelectionClick"
             @onTaskNodeResumeClick="onTaskNodeResumeClick"
+            @onForceFail="onForceFail"
             @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
         <i
             v-if="editable"
@@ -70,6 +72,10 @@
             idOfNodeShortcutPanel: {
                 type: String,
                 default: ''
+            },
+            hasAdminPerm: {
+                type: Boolean,
+                default: false
             },
             canvasData: {
                 type: Object,
@@ -137,6 +143,9 @@
             onRetryClick (id) {
                 this.$emit('onRetryClick', id)
             },
+            onForceFail (id) {
+                this.$emit('onForceFail', id)
+            },
             onSkipClick (id) {
                 this.$emit('onSkipClick', id)
             },
@@ -165,6 +174,8 @@
     }
 </script>
 <style lang="scss">
+    @import '@/scss/mixins/multiLineEllipsis.scss';
+
     $blueDark: #52699D;
     $redDark: #ea3636;
     $yellowDark: #ff9C01;
@@ -287,38 +298,7 @@
             color: $blueDark;
             text-align: center;
         }
-        .process-node {
-            position: relative;
-            width: 150px;
-            height: 42px;
-            line-height: 42px;
-            text-align: center;
-            background: #ffffff;
-            border-radius: 4px;
-            box-shadow: 0px 0px 20px 0px  $defaultShadow;
-            cursor: pointer;
-            &.actived {
-                box-shadow: 0px 0px 20px 0px $activeShadow;
-            }
-            .node-status-block {
-                float: left;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 32px;
-                height: 100%;
-                background: #52699d;
-                border-top-left-radius: 4px;
-                border-bottom-left-radius: 4px;
-            }
-            .node-name {
-                margin-left: 32px;
-                width: 118px;
-                font-size: 12px;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow: hidden;
-            }
+        .task-node {
             &:hover {
                 box-shadow: 0px 0px 20px 0px $activeShadow;
             }
@@ -351,6 +331,23 @@
             }
             &.finished {
                 @include taskNodeStyle ($greenDark)
+            }
+        }
+        .task-node,
+        .subflow-node {
+            .node-name {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 5px 2px;
+                height: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                text-align: center;
+                color: #63656e;
             }
         }
         .subflow-node-icon {

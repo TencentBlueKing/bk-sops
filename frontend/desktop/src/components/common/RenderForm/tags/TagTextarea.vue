@@ -27,7 +27,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const textareaAttrs = {
+    export const attrs = {
         value: {
             type: String,
             required: false,
@@ -42,7 +42,7 @@
     }
     export default {
         name: 'TagTextarea',
-        mixins: [getFormMixins(textareaAttrs)],
+        mixins: [getFormMixins(attrs)],
         computed: {
             textareaValue: {
                 get () {

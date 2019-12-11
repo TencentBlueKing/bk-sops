@@ -95,6 +95,22 @@
                         }"
                         :to="getTplURL()">
                     </router-link>
+                    <i
+                        v-if="adminView"
+                        :class="[
+                            'params-btn',
+                            'common-icon',
+                            'common-icon-paper',
+                            {
+                                actived: nodeInfoType === 'taskExecuteInfo'
+                            }
+                        ]"
+                        v-bk-tooltips="{
+                            content: i18n.taskExecuteInfo,
+                            placements: ['bottom']
+                        }"
+                        @click="onTaskParamsClick('taskExecuteInfo')">
+                    </i>
                 </div>
             </div>
         </div>
@@ -113,9 +129,11 @@
                     :editable="false"
                     :show-palette="false"
                     :canvas-data="canvasData"
+                    :has-admin-perm="adminView"
                     @hook:mounted="onTemplateCanvasMounted"
                     @onNodeClick="onNodeClick"
                     @onRetryClick="onRetryClick"
+                    @onForceFail="onForceFail"
                     @onSkipClick="onSkipClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
@@ -146,6 +164,7 @@
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo'"
+                    :admin-view="adminView"
                     :node-detail-config="nodeDetailConfig">
                 </ExecuteInfo>
                 <RetryNode
@@ -160,6 +179,10 @@
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
+                <TaskInfo
+                    v-if="nodeInfoType === 'taskExecuteInfo'"
+                    :task-id="instance_id">
+                </TaskInfo>
                 <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
                     <i class="common-icon-double-arrow"></i>
                 </div>
@@ -190,6 +213,7 @@
     import ExecuteInfo from './ExecuteInfo.vue'
     import RetryNode from './RetryNode.vue'
     import ModifyTime from './ModifyTime.vue'
+    import TaskInfo from './TaskInfo.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
@@ -232,6 +256,7 @@
             ExecuteInfo,
             RetryNode,
             ModifyTime,
+            TaskInfo,
             gatewaySelectDialog,
             revokeDialog
         },
@@ -254,7 +279,8 @@
                 i18n: {
                     params: gettext('查看参数'),
                     changeParams: gettext('修改参数'),
-                    checkFlow: gettext('查看流程')
+                    checkFlow: gettext('查看流程'),
+                    taskExecuteInfo: gettext('流程信息')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -275,6 +301,7 @@
                 canvasMountedQueues: [], // canvas pending queues
                 pending: {
                     skip: false,
+                    forceFail: false,
                     selectGateway: false,
                     task: false,
                     parseNodeResume: false,
@@ -292,7 +319,8 @@
         computed: {
             ...mapState({
                 userType: state => state.userType,
-                view_mode: state => state.view_mode
+                view_mode: state => state.view_mode,
+                hasAdminPerm: state => state.hasAdminPerm
             }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
@@ -303,7 +331,7 @@
                 })
             },
             canvasData () {
-                const { line, location, gateways } = this.pipelineData
+                const { line, location, gateways, activities } = this.pipelineData
                 const branchConditions = {}
                 for (const gKey in gateways) {
                     const item = gateways[gKey]
@@ -314,7 +342,8 @@
                 return {
                     lines: line,
                     locations: location.map(item => {
-                        return { ...item, mode: 'execute', checked: true }
+                        const code = item.type === 'tasknode' ? activities[item.id].component.code : ''
+                        return { ...item, mode: 'execute', checked: true, code }
                     }),
                     branchConditions
                 }
@@ -364,6 +393,9 @@
             // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
                 return this.userType !== 'functor' && this.userType !== 'auditor' && this.view_mode !== 'appmaker'
+            },
+            adminView () {
+                return this.hasAdminPerm && this.$route.query.is_admin === 'true'
             }
         },
         watch: {
@@ -396,6 +428,9 @@
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
                 'pauseNodeResume'
+            ]),
+            ...mapActions('admin/', [
+                'taskflowNodeForceFail'
             ]),
             async loadTaskStatus () {
                 try {
@@ -568,6 +603,34 @@
                     this.pending.skip = false
                 }
             },
+            async onForceFail (id) {
+                if (this.pending.forceFail) {
+                    return
+                }
+                this.pending.forceFail = true
+                try {
+                    const params = {
+                        node_id: id,
+                        task_id: Number(this.instance_id)
+                    }
+                    const res = await this.taskflowNodeForceFail(params)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('强制失败执行成功'),
+                            theme: 'success'
+                        })
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.pending.forceFail = false
+                }
+            },
             async selectGatewayBranch (data) {
                 this.pending.selectGateway = true
                 try {
@@ -641,7 +704,7 @@
 
                     if (nodeActivities) {
                         code = nodeActivities.component ? nodeActivities.component.code : ''
-                        canSkipped = nodeActivities.isSkipped
+                        canSkipped = nodeActivities.isSkipped || nodeActivities.skippable
                         canRetry = nodeActivities.can_retry || nodeActivities.retryable
                     }
 
@@ -760,63 +823,50 @@
             },
             getOrderedTree (data) {
                 const fstLine = data.start_event.outgoing
-                const orderedData = this.retrieveLines(data, fstLine)
+                const orderedData = []
+                const passedLines = []
+                this.retrieveLines(data, fstLine, orderedData, passedLines)
+                orderedData.sort((a, b) => a.level - b.level)
                 return orderedData
             },
             /**
              * 根据节点连线遍历任务节点，返回按广度优先排序的节点数据
              * @param {Object} data 画布数据
-             * @param {Array} line 节点连线
+             * @param {Array} lineId 连线ID
+             * @param {Array} ordered 排序后的节点数据
+             * @param {Array} passedLines 遍历过的连线
+             * @param {Number} level 任务节点与开始节点的距离
              *
-             * @return {Array} nodes 排序后的节点
              */
-            retrieveLines (data, line) {
-                let nodes = []
-                const { flows, activities, gateways } = data
-                const curNode = data.flows[line].target
-                const activityNode = activities[curNode]
-                if (activityNode) {
-                    const node = Object.assign({}, activityNode)
-                    if (node.pipeline) {
-                        node.children = this.getOrderedTree(node.pipeline)
-                    }
-                    nodes.push(node)
-                    nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
-                } else {
-                    const gatewayNode = gateways[curNode]
-                    if (gatewayNode) {
-                        if (gatewayNode.type === 'ParallelGateway' || gatewayNode.type === 'ExclusiveGateway') {
-                            const gatewayLinkedNodes = []
-                            gatewayNode.outgoing.forEach(line => {
-                                const linkedNode = activities[flows[line].target]
-                                if (linkedNode) {
-                                    if (linkedNode.pipeline) {
-                                        linkedNode.children = this.getOrderedTree(linkedNode.pipeline)
-                                    }
-                                    gatewayLinkedNodes.push(linkedNode)
-                                    nodes.push(linkedNode)
-                                } else {
-                                    nodes = nodes.concat(this.retrieveLines(data, line))
+            retrieveLines (data, lineId, ordered, passedLines, level = 1) {
+                const isLinePassed = passedLines.includes(lineId)
+                if (!isLinePassed) {
+                    const { activities, gateways, flows } = data
+                    const currentNode = flows[lineId].target
+                    const activity = activities[currentNode]
+                    const gateway = gateways[currentNode]
+                    const node = activity || gateway
+                    passedLines.push(lineId)
+
+                    if (node) {
+                        if (activity) {
+                            const isExistInList = ordered.find(item => item.id === activity.id)
+                            if (!isExistInList) {
+                                if (activity.pipeline) {
+                                    activity.children = this.getOrderedTree(activity.pipeline)
                                 }
-                            })
-                            gatewayLinkedNodes.forEach(node => {
-                                nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
-                            })
-                        } else if (gatewayNode.type === 'ConvergeGateway') {
-                            if (gatewayNode.hasRun) {
-                                gatewayNode.hasRun.push(gatewayNode.id)
-                            } else {
-                                gatewayNode.hasRun = [gatewayNode.id]
+                                activity.level = level
+                                ordered.push(activity)
                             }
-                            if (gatewayNode.hasRun.length === gatewayNode.incoming.length) {
-                                nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
-                            }
-                        } else {
-                            nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
                         }
+
+                        const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
+                        level += 1
+                        outgoing.forEach((line, index, arr) => {
+                            this.retrieveLines(data, line, ordered, passedLines, level)
+                        })
                     }
                 }
-                return nodes
             },
             updateNodeActived (id, isActived) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })

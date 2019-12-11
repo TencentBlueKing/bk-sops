@@ -42,6 +42,8 @@ const StatisticsAtom = () => import('@/pages/admin/statistics/Atom.vue')
 const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker.vue')
 const CommonTemplate = () => import('@/pages/admin/common/template.vue')
 const Manage = () => import('@/pages/admin/manage/index.vue')
+const AdminSearch = () => import('@/pages/admin/manage/AdminSearch/index.vue')
+const AdminPeriodic = () => import('@/pages/admin/manage/AdminPeriodic.vue')
 const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
 const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
 const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
@@ -54,6 +56,8 @@ const AuditHome = () => import('@/pages/audit/index.vue')
 
 const periodic = () => import('@/pages/periodic/index.vue')
 const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.vue')
+
+const AtomDev = () => import('@/pages/atomdev/index.vue')
 
 Vue.use(VueRouter)
 
@@ -361,6 +365,16 @@ const routers = new VueRouter({
                     component: Manage,
                     children: [
                         {
+                            path: 'search/',
+                            name: 'adminSearch',
+                            component: AdminSearch
+                        },
+                        {
+                            path: 'periodic',
+                            name: 'adminPeriodic',
+                            component: AdminPeriodic
+                        },
+                        {
                             path: 'source_manage/',
                             name: 'sourceManage',
                             component: SourceManage
@@ -389,6 +403,10 @@ const routers = new VueRouter({
                     ]
                 }
             ]
+        },
+        {
+            path: '/atomdev/',
+            component: AtomDev
         },
         {
             path: '/error/:code(401|403|405|406|500)/',

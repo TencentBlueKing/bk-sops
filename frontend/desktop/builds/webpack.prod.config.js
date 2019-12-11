@@ -35,12 +35,12 @@ module.exports = merge(webpackBaseConfig, {
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
             filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name].css' + process.env.VERSION)
-        }),
-        new UglifyJsPlugin({
-            sourceMap: true,
-            parallel: true,
-            cache: true
         })
+        // new UglifyJsPlugin({
+        //     sourceMap: true,
+        //     parallel: true,
+        //     cache: true
+        // })
         // new BundleAnalyzerPlugin()
     ],
     stats: {
@@ -50,7 +50,9 @@ module.exports = merge(webpackBaseConfig, {
         modules: false,
         children: false,
         publicPath: true,
-        colors: true
+        colors: true,
+        errors: true,
+        warnings: true
     },
     mode: 'production',
     performance: {
