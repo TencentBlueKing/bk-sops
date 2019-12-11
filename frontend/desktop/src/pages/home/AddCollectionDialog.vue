@@ -395,11 +395,12 @@
                 try {
                     const res = await this.collectSelect(saveList)
                     this.dialogFooterData[0].loading = false
-                    if (res.data) {
+                    if (res.objects) {
                         this.$bkMessage({
                             message: gettext('保存成功'),
                             theme: 'success'
                         })
+                        this.$emit('onCloseDialog')
                     } else {
                         errorHandler(res, this)
                     }
