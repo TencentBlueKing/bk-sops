@@ -55,10 +55,13 @@ INSTALLED_APPS += (
     'gcloud.contrib.appmaker',
     'gcloud.contrib.function',
     'gcloud.contrib.audit',
+    'gcloud.contrib.develop',
+    'gcloud.contrib.collection',
     'gcloud.apigw',
     'gcloud.commons.template',
     'gcloud.periodictask',
     'gcloud.external_plugins',
+    'gcloud.contrib.admin',
     'pipeline',
     'pipeline.component_framework',
     'pipeline.variable_framework',
@@ -126,7 +129,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.4.13'
+STATIC_VERSION = '3.5.1'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -262,6 +265,9 @@ BK_PAAS_INNER_HOST = os.getenv('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
 
 # AJAX 请求弹窗续期登陆设置
 IS_AJAX_PLAIN_MODE = True
+
+# init admin list
+INIT_SUPERUSER = ["admin"]
 
 # cc、job域名
 BK_CC_HOST = os.environ.get('BK_CC_HOST')

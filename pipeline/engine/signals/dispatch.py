@@ -114,6 +114,7 @@ def dispatch_service_activity_timeout_monitor_end():
 
 def dispatch():
     dispatch_pipeline_ready()
+    dispatch_pipeline_end()
     dispatch_child_process_ready()
     dispatch_process_ready()
     dispatch_batch_process_ready()

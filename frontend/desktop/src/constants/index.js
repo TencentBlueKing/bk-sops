@@ -32,7 +32,13 @@ const NODE_DICT = {
     'subflow': gettext('子流程节点')
 }
 
-const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK']
+const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman']
+const BK_PLUGIN_ICON = {
+    'bk_http_request': 'common-icon-bk-plugin-http',
+    'bk_notify': 'common-icon-bk-plugin-notify',
+    'sleep_timer': 'common-icon-bk-plugin-timer',
+    'pause_node': 'common-icon-bk-plugin-pause'
+}
 
 // 最大长度常量
 const TEMPLATE_NAME_MAX_LENGTH = 50
@@ -75,4 +81,4 @@ const PERIODIC_REG = /^((\*\/)?(([0-5]?\d[,-/])*([0-5]?\d))|\*)[ ]((\*\/)?(([0]?
 const URL_REG= new RegExp('^(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]$')
 /* eslint-enable */
 
-export { TASK_STATE_DICT, NODE_DICT, SYSTEM_GROUP_ICON, NAME_REG, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }
+export { TASK_STATE_DICT, NODE_DICT, SYSTEM_GROUP_ICON, BK_PLUGIN_ICON, NAME_REG, PACKAGE_NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }

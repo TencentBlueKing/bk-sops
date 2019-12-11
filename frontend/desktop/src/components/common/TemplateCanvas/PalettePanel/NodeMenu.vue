@@ -178,7 +178,6 @@
 </script>
 <style lang="scss" scoped>
     @import '@/scss/mixins/scrollbar.scss';
-    @import '@/scss/mixins/multiLineEllipsis.scss';
     .node-menu {
         position: absolute;
         top: 0;

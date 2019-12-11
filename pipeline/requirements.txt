@@ -7,7 +7,7 @@ django-celery==3.2.2
 httplib2==0.9.1
 Mako==1.0.6
 MarkupSafe==1.0
-pytz==2016.6.1
+pytz==2019.3
 suds-jurko==0.6
 mysqlclient==1.4.4
 

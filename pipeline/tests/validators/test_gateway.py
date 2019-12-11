@@ -173,8 +173,9 @@ class TestStreamValidation(TestCase):
                     msg='{id} actual: {a}, expect: {e}'.format(id=gid, a=actual, e=expect))
 
         # edge cases
-        for c in flow_valid_edge_cases:
+        for i, c in enumerate(flow_valid_edge_cases):
             tree = c['case']()
+            print(f'test gateway valid edge case {i+1}')
             converged = validate_gateways(tree)
 
     def test_validate_stream(self):
@@ -196,7 +197,7 @@ class TestStreamValidation(TestCase):
             try:
                 validate_stream(tree)
             except Exception as e:
-                self.assertTrue(False, msg='valid edge case %s raise exception: %s' % (n, e))
+                self.assertTrue(False, msg='valid edge case {} raise exception: {}'.format(n, e))
 
         for n, item in enumerate(flow_invalid_cases, start=1):
             tree = item['case']()

@@ -92,6 +92,7 @@
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
                 @updateLocalTemplateData="updateLocalTemplateData"
+                @modifyTemplateData="modifyTemplateData"
                 @hideConfigPanel="hideConfigPanel"
                 @updataConditionData="updataConditionData">
             </TemplateSetting>
@@ -254,7 +255,7 @@
                     activities: this.activities,
                     lines: this.lines,
                     locations: this.locations.map(location => {
-                        let icon, group
+                        let icon, group, code
                         const atom = this.singleAtom.find(item => {
                             if (location.type === 'tasknode') {
                                 return this.activities[location.id].component.code === item.code
@@ -263,8 +264,9 @@
                         if (atom) {
                             icon = atom.group_icon
                             group = atom.group_name
+                            code = atom.code
                         }
-                        const data = { ...location, mode: 'edit', icon, group }
+                        const data = { ...location, mode: 'edit', icon, group, code }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
@@ -772,6 +774,7 @@
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
+                            this.$refs.templateCanvas.onResetPosition()
                             this.variableDataChanged()
                             this.$bkMessage({
                                 message: i18n.layoutSave,
@@ -1114,6 +1117,14 @@
                     // actions[atom.code] = atom.version
                 })
                 this.setVersionMap(actions)
+            },
+            // 流程模板数据编辑更新
+            modifyTemplateData (data) {
+                this.templateDataLoading = true
+                this.setPipelineTree(data)
+                this.$nextTick(() => {
+                    this.templateDataLoading = false
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

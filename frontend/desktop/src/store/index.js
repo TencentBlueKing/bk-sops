@@ -28,6 +28,7 @@ const store = new Vuex.Store({
             function: false,
             audit: false
         },
+        hasAdminPerm: false, // 是否有管理员权限
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id
@@ -43,6 +44,9 @@ const store = new Vuex.Store({
     mutations: {
         setAppId (state, id) {
             state.app_id = id
+        },
+        setAdminPerm (state, perm) {
+            state.hasAdminPerm = perm
         },
         setViewMode (state, mode) {
             state.view_mode = mode

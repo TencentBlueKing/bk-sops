@@ -25,6 +25,14 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     const ROUTERS = [
         {
+            name: gettext('搜索'),
+            routerName: 'adminSearch'
+        },
+        {
+            name: gettext('周期任务'),
+            routerName: 'adminPeriodic'
+        },
+        {
             name: gettext('远程插件包源管理'),
             routerName: 'sourceManage'
         },

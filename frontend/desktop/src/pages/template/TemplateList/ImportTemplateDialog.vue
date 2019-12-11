@@ -106,7 +106,7 @@
             </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
-            <div class="bk-button-group">
+            <div class="button-group">
                 <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
                 <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
                 <bk-button theme="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
@@ -497,8 +497,7 @@
 }
 .common-wrapper-btn {
     .bk-button {
-        margin-left: 10px;
+        margin-left: 7px;
     }
 }
-
 </style>

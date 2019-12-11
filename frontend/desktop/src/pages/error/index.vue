@@ -19,7 +19,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import ErrorCode401 from '@/components/common/modal/ErrorCode401.vue'
     import ErrorCode403 from '@/components/common/modal/ErrorCode403.vue'
     import ErrorCode405 from '@/components/common/modal/ErrorCode405.vue'
     import ErrorCode406 from '@/components/common/modal/ErrorCode406.vue'
@@ -27,7 +26,6 @@
     export default {
         name: 'ErrorPage',
         components: {
-            ErrorCode401,
             ErrorCode403,
             ErrorCode405,
             ErrorCode406,

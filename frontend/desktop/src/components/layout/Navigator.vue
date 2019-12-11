@@ -203,9 +203,6 @@
             this.initNavgator()
         },
         methods: {
-            ...mapActions([
-                'queryUserPermission'
-            ]),
             ...mapActions('project', [
                 'loadProjectList'
             ]),

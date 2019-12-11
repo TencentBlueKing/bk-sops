@@ -18,7 +18,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const textAttrs = {
+    export const attrs = {
         value: {
             type: String,
             required: false,
@@ -27,6 +27,6 @@
     }
     export default {
         name: 'TagText',
-        mixins: [getFormMixins(textAttrs)]
+        mixins: [getFormMixins(attrs)]
     }
 </script>

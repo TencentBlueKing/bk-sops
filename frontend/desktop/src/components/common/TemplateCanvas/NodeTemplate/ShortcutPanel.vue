@@ -179,7 +179,6 @@
     width: 120px;
     transform: translateX(-50%);
     cursor: default;
-    box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, .15);
     .shortcut-wrap {
         display: flex;
         align-items: center;

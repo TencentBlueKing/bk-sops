@@ -20,7 +20,7 @@
             ]">
             <div class="node-status-block">
                 <img v-if="node.icon" class="node-icon" :src="node.icon" />
-                <i v-else :class="['node-icon-font', getIconCls(node.group)]"></i>
+                <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
             </div>
             <div class="node-name">
                 {{ node.name }}
@@ -70,6 +70,11 @@
                     @click.stop="onResumeClick">
                     {{ i18n.resume }}
                 </bk-button>
+                <bk-button
+                    v-if="hasAdminPerm"
+                    @click.stop="$emit('onForceFail', node.id)">
+                    {{ i18n.forceFail }}
+                </bk-button>
             </template>
         </div>
     </el-tooltip>
@@ -77,11 +82,15 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
+    import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
 
     export default {
         name: 'TaskNode',
         props: {
+            hasAdminPerm: {
+                type: Boolean,
+                default: false
+            },
             node: {
                 type: Object,
                 default () {
@@ -96,6 +105,7 @@
                     skip: gettext('跳过'),
                     resume: gettext('继续'),
                     modifyTime: gettext('修改时间'),
+                    forceFail: gettext('强制失败'),
                     atomFailed: gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
                 }
             }
@@ -132,7 +142,12 @@
             }
         },
         methods: {
-            getIconCls (group) {
+            getIconCls (node) {
+                const { code, group } = node
+                if (BK_PLUGIN_ICON[code]) {
+                    return BK_PLUGIN_ICON[code]
+                }
+
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(group))
                 if (systemType) {
                     return `common-icon-sys-${systemType.toLowerCase()}`
@@ -161,18 +176,47 @@
     }
 </script>
 <style lang="scss" scoped>
+    .task-node {
+        position: relative;
+        width: 150px;
+        height: 42px;
+        text-align: center;
+        background: #ffffff;
+        border-radius: 4px;
+        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        &.actived {
+            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
+        }
+        .node-name {
+            margin-left: 32px;
+            width: 118px;
+            height: 100%;
+            font-size: 12px;
+            word-break: break-all;
+        }
+    }
     .node-status-block {
+        float: left;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 100%;
+        background: #52699d;
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
         .node-icon {
             width: 16px;
         }
         .node-icon-font {
-            font-size: 16px;
+            font-size: 18px;
             color: #ffffff;
         }
     }
     .node-options-icon {
         position: absolute;
-        top: -45px;
+        top: -25px;
         left: 0;
         .bk-form-checkbox,
         &>[class*="common-icon"] {
@@ -208,5 +252,6 @@
     .dark-circle {
         font-size: 12px;
         color: #979ba5;
+        margin-left: -2px;
     }
 </style>
