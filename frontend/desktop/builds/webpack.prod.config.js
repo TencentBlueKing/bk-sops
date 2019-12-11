@@ -13,13 +13,22 @@ const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpackBaseConfig = require('./webpack.base.js')
 
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 module.exports = merge(webpackBaseConfig, {
+    optimization: {
+        minimizer: [
+            new TerserPlugin({
+                cache: true,
+                parallel: true,
+                sourceMap: true
+            })
+        ]
+    },
     plugins: [
         new webpack.DefinePlugin({
             'process.env': {
@@ -34,13 +43,8 @@ module.exports = merge(webpackBaseConfig, {
         // 只打 moment.js 中文包，减小体积
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
-            filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name]' + process.env.VERSION + '.css')
-        })
-        // new UglifyJsPlugin({
-        //     sourceMap: true,
-        //     parallel: true,
-        //     cache: true
-        // })
+            filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name].css' + process.env.VERSION)
+        }),
         // new BundleAnalyzerPlugin()
     ],
     stats: {

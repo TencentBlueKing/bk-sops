@@ -15,7 +15,6 @@
 <script>
     import '@/utils/i18n.js'
     import * as monaco from 'monaco-editor'
-    // import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 
     const DEFAULT_OPTIONS = {
         language: 'javascript',
