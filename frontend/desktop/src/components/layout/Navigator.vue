@@ -112,7 +112,7 @@
             name: gettext('项目管理')
         },
         {
-            routerName: 'sourceManage',
+            routerName: 'adminSearch',
             path: '/admin',
             name: gettext('管理员入口'),
             children: [
@@ -212,6 +212,9 @@
             ...mapMutations([
                 'setUserRights',
                 'setAdminPerm'
+            ]),
+            ...mapActions([
+                'queryUserPermission'
             ]),
             onLogoClick () {
                 if (this.view_mode !== 'app') {

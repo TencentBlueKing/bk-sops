@@ -276,6 +276,8 @@
                 deleting: false,
                 totalPage: 1,
                 isDeleteDialogShow: false,
+                isModifyDialogShow: false,
+                isBootRecordDialogShow: false,
                 selectedPeriodicId: undefined,
                 periodicList: [],
                 selectedCron: undefined,

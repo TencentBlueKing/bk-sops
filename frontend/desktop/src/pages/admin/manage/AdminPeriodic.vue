@@ -15,7 +15,7 @@
     </div>
 </template>
 <script>
-    import PeriodicList from '@/pages/periodic/PeriodicList/index.vue'
+    import PeriodicList from '@/pages/task/PeriodicList/index.vue'
 
     export default {
         name: 'AdminPeriodic',
