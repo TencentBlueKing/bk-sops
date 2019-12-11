@@ -33,15 +33,15 @@
             default () {
                 return [
                     {
-                        name: '选项1',
+                        name: gettext('选项1'),
                         value: 'value1'
                     },
                     {
-                        name: '选项2',
+                        name: gettext('选项2'),
                         value: 'value2'
                     },
                     {
-                        name: '选项3',
+                        name: gettext('选项3'),
                         value: 'value3'
                     }
                 ]

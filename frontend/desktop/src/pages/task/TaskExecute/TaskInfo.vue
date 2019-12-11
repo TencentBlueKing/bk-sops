@@ -23,6 +23,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import VueJsonPretty from 'vue-json-pretty'
