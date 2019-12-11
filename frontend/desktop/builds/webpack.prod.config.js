@@ -44,7 +44,7 @@ module.exports = merge(webpackBaseConfig, {
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
             filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name].css' + process.env.VERSION)
-        }),
+        })
         // new BundleAnalyzerPlugin()
     ],
     stats: {
