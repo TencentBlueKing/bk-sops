@@ -10,23 +10,25 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="appmaker-container">
+    <div class="audit-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.taskRecord"></base-title>
+            <base-title :title="i18n.auditList"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    :search-config="{ placeholder: i18n.taskNamePlaceholder }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>
             </div>
-            <div class="appmaker-table-content">
+            <div class="audit-table-content">
                 <bk-table
-                    :data="appmakerList"
+                    :data="auditList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.business" prop="project.name" width="120"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
                             <a
@@ -34,7 +36,7 @@
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(props.row, $event)">
+                                @click="onTemplatePermissonCheck(props.row)">
                                 {{props.row.name}}
                             </a>
                             <router-link
@@ -42,8 +44,8 @@
                                 class="task-name"
                                 :title="props.row.name"
                                 :to="{
-                                    name: 'appmakerTaskExecute',
-                                    params: { app_id: props.row.create_info, project_id: props.row.project.id },
+                                    name: 'auditTaskExecute',
+                                    params: { project_id: props.row.project.id },
                                     query: { instance_id: props.row.id }
                                 }">
                                 {{props.row.name}}
@@ -67,12 +69,33 @@
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="i18n.status" width="120">
                         <template slot-scope="props">
-                            <div class="ui-task-status">
+                            <div class="audit-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
                                 <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
                             </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.operation" width="100">
+                        <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                @click="onTemplatePermissonCheck(props.row)">
+                                {{i18n.view}}
+                            </a>
+                            <router-link
+                                v-else
+                                class="audit-operation-btn"
+                                :to="{
+                                    name: 'auditTaskExecute',
+                                    params: { project_id: props.row.project.id },
+                                    query: { instance_id: props.row.id }
+                                }">
+                                {{ i18n.view }}
+                            </router-link>
                         </template>
                     </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData /></div>
@@ -84,20 +107,28 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapActions, mapMutations } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
-    import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
     const searchForm = [
         {
+            type: 'select',
+            label: gettext('所属项目'),
+            key: 'selectedProject',
+            loading: false,
+            placeholder: gettext('请选择所属项目'),
+            list: []
+        },
+        {
             type: 'dateRange',
-            key: 'queryTime',
+            key: 'executeTime',
             placeholder: gettext('选择日期时间范围'),
             label: gettext('执行开始'),
             value: []
@@ -138,7 +169,7 @@
         }
     ]
     export default {
-        name: 'appmakerTaskHome',
+        name: 'auditHome',
         components: {
             AdvanceSearchForm,
             CopyrightFooter,
@@ -146,11 +177,12 @@
             NoData
         },
         mixins: [permission, task],
-        props: ['project_id', 'app_id'],
         data () {
             return {
                 i18n: {
+                    auditList: gettext('审计中心'),
                     placeholder: gettext('请输入ID或流程名称'),
+                    business: gettext('所属项目'),
                     startedTime: gettext('执行开始'),
                     finishedTime: gettext('执行结束'),
                     name: gettext('任务名称'),
@@ -158,27 +190,42 @@
                     creator: gettext('创建人'),
                     operator: gettext('执行人'),
                     status: gettext('状态'),
+                    operation: gettext('操作'),
+                    view: gettext('查看'),
                     total: gettext('共'),
                     item: gettext('条记录'),
                     comma: gettext('，'),
                     currentPageTip: gettext('当前第'),
                     page: gettext('页'),
-                    taskRecord: gettext('任务记录'),
+                    executing: gettext('执行中'),
+                    pauseState: gettext('暂停'),
+                    taskType: gettext('任务分类'),
                     query: gettext('搜索'),
                     reset: gettext('清空'),
-                    statusPlaceholder: gettext('请选择状态')
+                    dateRange: gettext('选择日期时间范围')
                 },
-                listLoading: true,
-                isDeleteDialogShow: false,
                 taskBasicInfoLoading: true,
-                theDeleteTemplateId: undefined,
-                pending: {
-                    delete: false,
-                    authority: false
+                listLoading: true,
+                activeTaskCategory: undefined,
+                business: {
+                    list: [],
+                    loading: false,
+                    id: null,
+                    searchable: true,
+                    empty: false
                 },
-                appmakerList: [],
-                executeStatus: [], // 任务执行状态
+                auditList: [],
                 taskCategory: [],
+                executeStatus: [], // 任务执行态
+                requestData: {
+                    selectedProject: '',
+                    executeTime: [],
+                    category: '',
+                    creator: '',
+                    executor: '',
+                    statusSync: '',
+                    flowName: ''
+                },
                 pagination: {
                     current: 1,
                     count: 0,
@@ -186,42 +233,30 @@
                     'limit-list': [15],
                     'show-limit': false
                 },
-                statusList: [
-                    { 'value': 'nonExecution', 'name': gettext('未执行') },
-                    { 'value': 'runing', 'name': gettext('未完成') },
-                    { 'value': 'finished', 'name': gettext('完成') }
-                ],
                 taskOperations: [],
-                taskResource: {},
-                requestData: {
-                    queryTime: [],
-                    category: '',
-                    creator: '',
-                    executor: '',
-                    statusSync: '',
-                    flowName: ''
-                }
+                taskResource: {}
             }
         },
         computed: {
-            ...mapState({
-                businessTimezone: state => state.businessTimezone
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             searchForm () {
                 const value = searchForm
-                value[1].list = this.taskCategory
-                value[0].loading = this.taskBasicInfoLoading
+                value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
+                value[2].list = this.taskCategory
                 return searchForm
             }
         },
         created () {
-            this.getAppmakerList()
-            this.getBizBaseInfo()
+            this.loadAuditTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            this.getProjectList()
+            this.getProjectBaseInfo()
         },
         methods: {
-            ...mapActions('taskList/', [
-                'loadTaskList'
+            ...mapActions('auditTask/', [
+                'loadAuditTaskList'
             ]),
             ...mapActions('task/', [
                 'getInstanceStatus'
@@ -229,13 +264,13 @@
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
-            ...mapMutations('template/', [
-                'setProjectBaseInfo'
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
-            async getAppmakerList () {
+            async loadAuditTask () {
                 this.listLoading = true
                 try {
-                    const { queryTime, category, creator, executor, statusSync, flowName } = this.requestData
+                    const { selectedProject, executeTime, category, creator, executor, statusSync, flowName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
                     if (statusSync) {
@@ -245,27 +280,30 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        create_method: 'app_maker',
-                        create_info: this.app_id,
-                        q: flowName,
+                        project__id: selectedProject || undefined,
                         category: category || undefined,
-                        pipeline_instance__creator__contains: creator || undefined,
-                        pipeline_instance__executor__contains: executor || undefined,
+                        audit__pipeline_instance__name__contains: flowName || undefined,
                         pipeline_instance__is_started,
-                        pipeline_instance__is_finished
+                        pipeline_instance__is_finished,
+                        pipeline_instance__creator__contains: creator || undefined,
+                        pipeline_instance__executor__contains: executor || undefined
                     }
-                    
-                    if (queryTime[0] && queryTime[1]) {
-                        data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.businessTimezone).format('YYYY-MM-DD')
-                        data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                    if (executeTime[0] && executeTime[1]) {
+                        if (this.common) {
+                            data['pipeline_template__start_time__gte'] = moment(executeTime[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(executeTime[1]).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__start_time__gte'] = moment.tz(executeTime[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(executeTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
+                        }
                     }
-                    
-                    const appmakerListData = await this.loadTaskList(data)
-                    const list = appmakerListData.objects
-                    this.appmakerList = list
-                    this.taskOperations = appmakerListData.meta.auth_operations
-                    this.taskResource = appmakerListData.meta.auth_resource
-                    this.pagination.count = appmakerListData.meta.total_count
+                    const auditListData = await this.loadAuditTaskList(data)
+                    const list = auditListData.objects
+                    this.auditList = list
+                    this.pagination.count = auditListData.meta.total_count
+                    this.taskOperations = auditListData.meta.auth_operations
+                    this.taskResource = auditListData.meta.auth_resource
+                    this.totalCount = auditListData.meta.total_count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
@@ -274,45 +312,63 @@
                     this.listLoading = false
                 }
             },
-            async getBizBaseInfo () {
-                try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ value: m.value, name: m.name }))
-                    this.setProjectBaseInfo(projectBasicInfo)
-                    this.taskBasicInfoLoading = false
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
             onPageChange (page) {
                 this.pagination.current = page
-                this.getAppmakerList()
+                this.loadAuditTask()
             },
             searchInputhandler (data) {
                 this.requestData.flowName = data
                 this.pagination.current = 1
-                this.getAppmakerList()
+                this.loadAuditTask()
             },
-            onTaskPermissonCheck (task, event) {
-                this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
-                event.preventDefault()
+            async getProjectList () {
+                this.business.loading = true
+                try {
+                    const businessData = await this.loadProjectList({ limit: 0 })
+                    this.business.list = businessData.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.business.loading = false
+                }
+            },
+            async getProjectBaseInfo () {
+                this.taskBasicInfoLoading = true
+                try {
+                    const data = await this.loadProjectBaseInfo()
+                    this.taskCategory = data.task_categories.map(m => ({ name: m.name, value: m.value }))
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.taskBasicInfoLoading = false
+                }
+            },
+            onClearCategory () {
+                this.activeTaskCategory = undefined
+            },
+            onSelectedCategory (id) {
+                this.activeTaskCategory = id
+            },
+            onTemplatePermissonCheck (task) {
+                if (!this.hasPermission(['view'], task.auth_actions, this.taskOperations)) {
+                    this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
+                }
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
-                this.getAppmakerList()
+                this.loadAuditTask()
             }
         }
     }
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
-@import '@/scss/mixins/advancedSearch.scss';
 @import '@/scss/task.scss';
 .bk-select-inline,.bk-input-inline {
-   display: inline-block;
+    display: inline-block;
     width: 260px;
 }
-.appmaker-container {
+.audit-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #fafafa;
@@ -320,32 +376,51 @@
 .list-wrapper {
     padding: 0 60px;
     min-height: calc(100vh - 240px);
+    .advanced-search {
+        margin: 0;
+    }
 }
 .operation-area {
     margin: 20px 0;
+    .common-icon-search {
+        position: absolute;
+        right: 15px;
+        top: 8px;
+        color: $commonBorderColor;
+    }
 }
-.app-search {
-    @include advancedSearch;
+.common-icon-dark-circle-pause {
+    color: #ff9C01;
+    font-size: 12px;
 }
-.appmaker-table-content {
+.audit-table-content {
     background: #ffffff;
     a.task-name {
         color: $blueDefault;
     }
+    .audit-status {
+        @include ui-task-status;
+    }
+    .audit-operation-btn {
+        color: #3c96ff;
+    }
     .empty-data {
         padding: 120px 0;
     }
-    .ui-task-status {
-        @include ui-task-status;
+}
+.panagation {
+    padding: 10px 20px;
+    text-align: right;
+    border: 1px solid #dde4eb;
+    border-top: none;
+    background: #fafbfd;
+    .page-info {
+        float: left;
+        line-height: 36px;
+        font-size: 14px;
     }
-}
-.success {
-    color:#30d878;
-}
-.warning {
-    color: #f8b53f;
-}
-.primary {
-    color: #4a9bff;
+    .bk-page {
+        display: inline-block;
+    }
 }
 </style>

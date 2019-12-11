@@ -775,13 +775,21 @@ const template = {
         getLayoutedPipeline ({ commit }, data) {
             return api.getLayoutedPipeline(data).then(response => response.data)
         },
+        // 获取常用业务
+        loadCommonProject ({ commit }, data) {
+            return api.getCommonProject(data).then(response => response.data)
+        },
+        // 获取收藏列表
+        getCollectList ({ commit }, data) {
+            return api.getCollectList(data).then(response => response.data)
+        },
         // 收藏模板，批量操作
-        templateCollectSelect ({ commit }, list) {
-            return api.templateCollectSelect(list).then(response => response.data)
+        collectSelect ({ commit }, list) {
+            return api.collectSelect(list).then(response => response.data)
         },
         // 删除收藏模板，单个删除
-        templateCollectDelete ({ commit }, id) {
-            return api.templateCollectDelete(id).then(response => response.data)
+        deleteCollect ({ commit }, id) {
+            return api.deleteCollect(id).then(response => response.data)
         },
         queryTemplateData ({ commit }, data) {
             return api.queryTemplate(data).then(response => response.data)
@@ -789,8 +797,8 @@ const template = {
         loadTemplateSummary ({ commit }, data) {
             return api.loadTemplateSummary(data).then(response => response.data)
         },
-        loadTemplateCollectList ({ commit }) {
-            return api.loadTemplateCollectList().then(response => response.data)
+        loadCollectList ({ commit }) {
+            return api.loadCollectList().then(response => response.data)
         },
         getCollectedTemplateDetail ({ commit }, ids) {
             return api.getCollectedTemplateDetail(ids).then(

@@ -125,7 +125,7 @@
                     if (isProjectValid) {
                         this.goToAuthCenter()
                     } else {
-                        this.$router.push('/project/home/')
+                        this.$router.push({ name: 'projectHome' })
                     }
                 } else {
                     this.goToAuthCenter()
@@ -146,7 +146,7 @@
                 if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
                     this.goToApply('create')
                 } else {
-                    this.$router.push('/project/home/')
+                    this.$router.push({ name: 'projectHome' })
                 }
             },
             goToApply (perm) {

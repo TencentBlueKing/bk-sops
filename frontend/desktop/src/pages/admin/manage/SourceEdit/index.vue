@@ -135,7 +135,7 @@
                 })
                 try {
                     await this.deletePackageSource(data)
-                    this.$router.push('/admin/manage/source_manage/')
+                    this.$router.push({ name: 'sourceManage' })
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
@@ -167,7 +167,7 @@
                     } else {
                         await this.updatePackageSource(data)
                     }
-                    this.$router.push('/admin/manage/source_manage/')
+                    this.$router.push({ name: 'sourceManage' })
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {

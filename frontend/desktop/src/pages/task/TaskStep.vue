@@ -68,7 +68,7 @@
         computed: {
             ...mapState({
                 'lang': state => state.lang,
-                userType: state => state.userType,
+                userRights: state => state.userRights,
                 view_mode: state => state.view_mode
             }),
             currentStepIndex () {
@@ -124,17 +124,34 @@
              */
             getHomeUrl () {
                 const backObj = {
-                    'business': `/template/home/${this.project_id}/`,
-                    'periodicTask': `/periodic/home/${this.project_id}/`,
-                    'taskflow': `/taskflow/home/${this.project_id}/`,
-                    'common': `/template/common/${this.project_id}/`,
-                    'adminCommon': '/admin/common/template/',
-                    'templateEdit': `/template/edit/${this.project_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
-                    'functor': `/function/home/`,
-                    'auditor': `/audit/home/`,
-                    'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.project_id}/`
+                    'business': {
+                        name: 'process',
+                        params: { project_id: this.project_id }
+                    },
+                    'periodicTask': {
+                        name: 'periodicTemplate',
+                        params: { project_id: this.project_id }
+                    },
+                    'taskflow': {
+                        name: 'taskList',
+                        params: { project_id: this.project_id }
+                    },
+                    'common': { name: 'commonProcessList' },
+                    'templateEdit': {
+                        name: 'templatePanel',
+                        params: { type: 'edit', project_id: this.project_id },
+                        query: { template_id: this.template_id || this.asyncTemplateId }
+                    },
+                    'function': { name: 'functionHome' },
+                    'audit': { name: 'auditHome' },
+                    'appmaker': {
+                        name: 'appmakerTaskHome',
+                        params: { type: 'edit', app_id: this.$route.params.app_id, project_id: this.project_id }
+                    }
                 }
-                const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
+                const pathMap = ['function', 'audit']
+                const type = this.$route.path.split('/')[1]
+                const currentUser = this.view_mode === 'app' ? (pathMap.includes(type) ? type : 'maintainer') : 'appmaker'
                 const entrance = this.$route.query.entrance || ''
                 let url = '/'
                 switch (currentUser) {
@@ -165,13 +182,13 @@
                             url = backObj['taskflow']
                         }
                         break
-                    case 'functor':
-                    case 'auditor':
+                    case 'function':
+                    case 'audit':
                     case 'appmaker':
                         url = backObj[currentUser]
                         break
                     default:
-                        url = '/'
+                        url = { name: 'home' }
                 }
                 this.$router.push(url)
             }

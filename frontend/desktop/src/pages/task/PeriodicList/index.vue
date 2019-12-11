@@ -12,62 +12,23 @@
 <template>
     <div class="periodic-container">
         <div class="list-wrapper">
-            <BaseTitle v-if="!admin" :title="i18n.periodicTask"></BaseTitle>
             <div class="operation-area">
-                <bk-button
-                    v-if="!admin"
-                    ref="childComponent"
-                    theme="primary"
-                    class="task-create-btn"
-                    size="normal"
-                    @click="onCreatePeriodTask">
-                    {{i18n.createPeriodTask}}
-                </bk-button>
-                <AdvanceSearch
-                    v-model="periodicName"
-                    class="base-search"
-                    :input-placeholader="i18n.periodicNamePlaceholder"
-                    @onShow="onAdvanceShow"
-                    @input="onSearchInput">
-                </AdvanceSearch>
-            </div>
-            <div v-show="isAdvancedSerachShow" class="periodic-search">
-                <fieldset class="periodic-fieldset">
-                    <div class="periodic-query-content">
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.creator}}</span>
-                            <bk-input
-                                v-model="creator"
-                                class="bk-input-inline"
-                                :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder"
-                                @clear="creator = undefined">
-                            </bk-input>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.enabled}}</span>
-                            <bk-select
-                                class="bk-select-inline"
-                                v-model="enabledSync"
-                                :popover-width="260"
-                                :placeholder="i18n.enabledPlaceholder"
-                                :clearable="true"
-                                @clear="onClearSelectedEnabled"
-                                @selected="onSelectEnabled">
-                                <bk-option
-                                    v-for="(option, index) in enabledList"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-button">
-                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
-                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
-                        </div>
-                    </div>
-                </fieldset>
+                <advance-search-form
+                    :search-config="{ placeholder: i18n.periodicNamePlaceholder, value: requestData.flowName }"
+                    :search-form="searchForm"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                    <template v-slot:operation>
+                        <bk-button
+                            ref="childComponent"
+                            theme="primary"
+                            class="task-create-btn"
+                            size="normal"
+                            @click="onCreatePeriodTask">
+                            {{i18n.createPeriodTask}}
+                        </bk-button>
+                    </template>
+                </advance-search-form>
             </div>
             <div class="periodic-table-content">
                 <bk-table
@@ -171,7 +132,12 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <router-link :to="`/taskflow/home/${props.row.project.id}/?template_id=${props.row.template_id}&create_method=periodic`">
+                                            <router-link
+                                                :to="{
+                                                    name: 'taskList',
+                                                    params: { project_id: project_id },
+                                                    query: { template_id: props.row.template_id, create_method: 'periodic' }
+                                                }">
                                                 {{ i18n.executeHistory }}
                                             </router-link>
                                         </li>
@@ -224,20 +190,37 @@
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import BootRecordDialog from './BootRecordDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
-
+    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
+    const searchForm = [
+        {
+            type: 'input',
+            key: 'creator',
+            label: gettext('创建人'),
+            placeholder: gettext('请输入创建人'),
+            value: ''
+        },
+        {
+            type: 'select',
+            label: gettext('状态'),
+            key: 'enabled',
+            loading: false,
+            placeholder: gettext('请选择状态'),
+            list: [
+                { 'value': 'true', 'name': gettext('启动') },
+                { 'value': 'false', 'name': gettext('暂停') }
+            ]
+        }
+    ]
     export default {
         name: 'PeriodicList',
         components: {
             CopyrightFooter,
-            BaseTitle,
-            AdvanceSearch,
+            AdvanceSearchForm,
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,
@@ -281,7 +264,6 @@
                     enabled: gettext('状态'),
                     periodicName: gettext('名称'),
                     editTitle: gettext('请暂停任务后再执行编辑操作'),
-                    enabledPlaceholder: gettext('请选择状态'),
                     periodicTemplate: gettext('流程模板'),
                     executeHistory: gettext('执行历史'),
                     query: gettext('搜索'),
@@ -293,26 +275,23 @@
                 listLoading: true,
                 deleting: false,
                 totalPage: 1,
-                isAdvancedSerachShow: false,
                 isDeleteDialogShow: false,
                 isModifyDialogShow: false,
                 isBootRecordDialogShow: false,
-                creator: undefined,
-                enabled: undefined,
-                enabledList: [
-                    { 'id': 'true', 'name': gettext('启动') },
-                    { 'id': 'false', 'name': gettext('暂停') }
-                ],
                 selectedPeriodicId: undefined,
                 periodicList: [],
                 selectedCron: undefined,
                 constants: {},
                 modifyDialogLoading: false,
                 selectedTemplateName: undefined,
-                periodicName: undefined,
-                enabledSync: '',
                 periodEntrance: '',
                 taskCategory: [],
+                searchForm: searchForm,
+                requestData: {
+                    creator: '',
+                    enabled: '',
+                    flowName: this.$route.query.q || ''
+                },
                 pagination: {
                     current: 1,
                     count: 0,
@@ -350,12 +329,13 @@
             async getPeriodicList () {
                 this.listLoading = true
                 try {
+                    const { creator, enabled, flowName } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        task__celery_task__enabled: this.enabled,
-                        task__creator__contains: this.creator,
-                        task__name__contains: this.periodicName || undefined
+                        task__celery_task__enabled: enabled || undefined,
+                        task__creator__contains: creator || undefined,
+                        task__name__contains: flowName || undefined
                     }
 
                     if (!this.admin) {
@@ -388,7 +368,8 @@
                     errorHandler(e, this)
                 }
             },
-            searchInputhandler () {
+            searchInputhandler (data) {
+                this.requestData.flowName = data
                 this.pagination.current = 1
                 this.getPeriodicList()
             },
@@ -414,9 +395,6 @@
             onPageChange (page) {
                 this.pagination.current = page
                 this.getPeriodicList()
-            },
-            onSelectEnabled (enabled) {
-                this.enabled = enabled
             },
             async onSetEnable (item, event) {
                 if (!this.hasPermission(['edit'], item.auth_actions, this.periodicOperations)) {
@@ -501,21 +479,8 @@
             onDeletePeriodicCancel () {
                 this.isDeleteDialogShow = false
             },
-            onClearSelectedEnabled () {
-                this.enabled = undefined
-            },
             splitPeriodicCron (cron) {
                 return cron.split('(')[0].trim()
-            },
-            onResetForm () {
-                this.periodicName = undefined
-                this.creator = undefined
-                this.enabled = undefined
-                this.enabledSync = ''
-                this.searchInputhandler()
-            },
-            onAdvanceShow () {
-                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
             },
             onCreatePeriodTask () {
                 this.isNewTaskDialogShow = true
@@ -528,11 +493,16 @@
                 this.isBootRecordDialogShow = true
             },
             templateNameUrl (templateId, templateSource) {
-                let url = `/template/edit/${this.project_id}/?template_id=${templateId}`
-                if (templateSource === 'common') {
-                    url += '&common=1'
+                const url = {
+                    name: 'templatePanel',
+                    params: { type: 'edit' },
+                    query: { template_id: templateId, common: templateSource === 'common' || undefined }
                 }
                 return url
+            },
+            onSearchFormSubmit (data) {
+                this.requestData = data
+                this.getPeriodicList()
             }
         }
     }
@@ -540,8 +510,7 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .list-wrapper {
-    padding: 0 60px;
-    min-height: calc(100vh - 240px);
+    min-height: calc(100vh - 300px);
     .advanced-search {
         margin: 0px;
     }
@@ -550,60 +519,6 @@
         height: 32px;
         .task-create-btn {
             min-width: 120px;
-        }
-    }
-}
-.periodic-fieldset {
-    width: 100%;
-    margin-bottom: 15px;
-    border: 1px solid $commonBorderColor;
-    background: #ffffff;
-    padding: 8px;
-    .periodic-query-content {
-        display: flex;
-        flex-wrap: wrap;
-        .query-content {
-            min-width: 420px;
-            padding: 10px;
-            @media screen and (max-width: 1420px){
-                min-width: 380px;
-            }
-            .query-span {
-                float: left;
-                min-width: 130px;
-                margin-right: 12px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                text-align: right;
-                @media screen and (max-width: 1420px){
-                    min-width: 100px;
-                }
-            }
-            .bk-select-inline {
-                display: inline-block;
-                width: 260px;
-            }
-            .bk-input-inline {
-                display: inline-block;
-                width: 260px;
-            }
-            // 浏览兼容样式
-            input::-webkit-input-placeholder{
-                color: $formBorderColor;
-            }
-            input:-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input::-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input:-ms-input-placeholder {
-                color: $formBorderColor;
-            }
-            .bk-selector-search-item > input {
-                min-width: 249px;
-            }
         }
     }
 }

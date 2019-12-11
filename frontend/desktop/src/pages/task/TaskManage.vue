@@ -10,12 +10,11 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-manage">
+    <div class="task-manage">
         <base-title
-            class="title"
             type="router"
-            :tab-list="routers"
-            :title="title">
+            :title="title"
+            :tab-list="titleTabList">
         </base-title>
         <router-view></router-view>
     </div>
@@ -23,56 +22,32 @@
 <script>
     import '@/utils/i18n.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    const ROUTERS = [
-        {
-            name: gettext('搜索'),
-            routerName: 'adminSearch'
-        },
-        {
-            name: gettext('周期任务'),
-            routerName: 'adminPeriodic'
-        },
-        {
-            name: gettext('远程插件包源管理'),
-            routerName: 'sourceManage'
-        },
-        {
-            name: gettext('远程插件同步'),
-            routerName: 'sourceSync'
-        }
-    ]
-
+    import { mapState } from 'vuex'
     export default {
-        name: 'Manage',
+        name: 'TaskManage',
         components: {
             BaseTitle
         },
         data () {
             return {
-                i18n: {
-                    manage: gettext('后台管理'),
-                    editSource: gettext('编辑包源')
-                }
+                title: gettext('任务管理')
             }
         },
         computed: {
-            routers () {
-                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? [] : ROUTERS
-            },
-            title () {
-                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? this.i18n.editSource : this.i18n.manage
+            ...mapState('project', {
+                project_id: state => state.project_id
+            }),
+            titleTabList () {
+                return [
+                    { name: gettext('任务记录'), routerName: 'taskList', params: { project_id: this.project_id } },
+                    { name: gettext('周期任务'), routerName: 'periodicTemplate', params: { project_id: this.project_id } }
+                ]
             }
         }
     }
 </script>
 <style lang="scss" scoped>
-    .page-manage {
-        padding: 0 60px;
-        min-width: 1320px;
-        height: 100%;
-        background: #f4f7fa;
-        .header-wrapper {
-            margin: 0 60px 0;
-        }
-    }
+.task-manage {
+    padding: 0 60px;
+}
 </style>

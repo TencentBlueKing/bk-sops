@@ -208,7 +208,7 @@
                 try {
                     const data = {
                         formData: new FormData(),
-                        common: this.common
+                        common: this.common || undefined
                     }
                     data.formData.append('data_file', this.file)
                     const resp = await this.templateUploadCheck(data)
@@ -236,7 +236,7 @@
                 formData.append('override', isOverride)
                 const data = {
                     formData: formData,
-                    common: this.common
+                    common: this.common || undefined
                 }
                 try {
                     const resp = await this.templateImport(data)

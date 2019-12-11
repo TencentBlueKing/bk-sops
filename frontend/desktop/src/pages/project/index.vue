@@ -12,7 +12,7 @@
 <template>
     <div class="project-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.projectManage"></BaseTitle>
+            <base-title :title="i18n.projectManage"></base-title>
             <div class="list-header">
                 <!-- <bk-button
                     v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"
@@ -439,7 +439,7 @@
                     this.applyForPermission(['view'], project, this.projectOperations, this.projectResource)
                     return
                 }
-                this.$router.push(`/home/${project.id}/`)
+                this.$router.push({ name: 'home' })
             },
             onEditProject (project) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {

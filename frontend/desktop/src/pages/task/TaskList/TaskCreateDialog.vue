@@ -261,14 +261,17 @@
                     this.selectError = true
                     return
                 }
-                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${this.selectedId}`
-                if (this.selectedTplType === 'publicProcess') {
-                    url += '&common=1'
-                }
-                if (this.entrance === 'periodicTask') {
-                    url += '&entrance=periodicTask'
-                } else if (this.entrance === 'taskflow') {
-                    url += '&entrance=taskflow'
+                const url = {
+                    name: 'taskStep',
+                    params: {
+                        project_id: this.project_id,
+                        step: 'selectnode'
+                    },
+                    query: {
+                        template_id: this.selectedId,
+                        common: this.selectedTplType === 'publicProcess' ? '1' : undefined,
+                        entrance: this.entrance || undefined
+                    }
                 }
                 this.$router.push(url)
             },

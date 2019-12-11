@@ -20,24 +20,14 @@ function getAppLang () {
     return getCookie('blueking_language')
 }
 
-// 用户类型
-function getUserType () {
-    let userType = ''
-    if (window.IS_FUNCTOR === 1) {
-        userType = 'functor'
-    } else if (window.IS_AUDITOR === 1) {
-        userType = 'auditor'
-    } else {
-        userType = 'maintainer'
-    }
-    return userType
-}
-
 const store = new Vuex.Store({
     strict: process.env.NODE_ENV !== 'production',
     state: {
         username: window.USERNAME,
-        userType: getUserType(),
+        userRights: {
+            function: false,
+            audit: false
+        },
         hasAdminPerm: false, // 是否有管理员权限
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
@@ -69,6 +59,10 @@ const store = new Vuex.Store({
         },
         setSingleAtomList (state, data) {
             state.components = data
+        },
+        setUserRights (state, data) {
+            const { type, val } = data
+            state.userRights[type] = val
         }
     },
     actions: {

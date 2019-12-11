@@ -22,7 +22,7 @@
             <div v-if="list.length === 0" class="add-cache" @click="onCreateCache">{{i18n.addCache}}</div>
         </div>
         <div class="operate-area">
-            <router-link to="/admin/manage/source_edit/package_edit/" class="bk-button bk-default">{{ i18n.prevStep }}</router-link>
+            <router-link :to="{ name: 'packageEdit' }" class="bk-button bk-default">{{ i18n.prevStep }}</router-link>
             <bk-button
                 theme="success"
                 class="save-btn"
@@ -30,7 +30,7 @@
                 @click="onSaveSetting">
                 {{ i18n.save }}
             </bk-button>
-            <router-link to="/admin/manage/source_manage/" class="bk-button bk-default">{{ i18n.cancel }}</router-link>
+            <router-link :to="{ name: 'sourceManage' }" class="bk-button bk-default">{{ i18n.cancel }}</router-link>
         </div>
     </div>
 </template>

@@ -10,17 +10,46 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="admin-periodic">
-        <periodic-list :admin="true"></periodic-list>
+    <div class="panel-nodata">
+        <p class="text">{{ text }}</p>
+        <div class="des">
+            <slot></slot>
+        </div>
     </div>
 </template>
 <script>
-    import PeriodicList from '@/pages/task/PeriodicList/index.vue'
-
+    import '@/utils/i18n.js'
     export default {
-        name: 'AdminPeriodic',
-        components: {
-            PeriodicList
+        name: 'PanelNodata',
+        props: {
+            text: {
+                type: String,
+                default: gettext('暂无数据')
+            }
+        },
+        data () {
+            return {
+            }
+        },
+        created () {
         }
     }
 </script>
+<style lang="scss" scoped>
+@import '@/scss/config.scss';
+.panel-nodata {
+    min-height: 134px;
+    padding-top: 40px;
+    .text {
+        text-align: center;
+        font-size: 14px;
+        color: #63656e;
+    }
+    .des {
+        margin-top: 15px;
+        text-align: center;
+        color: #63656e;
+        font-size: 12px;
+    }
+}
+</style>

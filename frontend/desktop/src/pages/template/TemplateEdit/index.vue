@@ -26,8 +26,7 @@
                 :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
                 @onNewDraft="onNewDraft"
-                @onSaveTemplate="onSaveTemplate"
-                @onBackToList="onBackToList">
+                @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <TemplateCanvas
                 ref="templateCanvas"
@@ -36,7 +35,6 @@
                 :sub-atom-list-loading="subAtomListLoading"
                 :atom-type-list="atomTypeList"
                 :name="name"
-                :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"
@@ -285,6 +283,10 @@
                     }),
                     branchConditions
                 }
+            },
+            // draftProjectId
+            draftProjectId () {
+                return this.common ? 'common' : this.project_id
             }
         },
         async created () {
@@ -541,9 +543,11 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
-                        const path = this.common ? `/admin/template/edit/` : `/template/edit/${this.project_id}/`
                         this.allowLeave = true
-                        this.$router.push({ path, query: { 'template_id': data.template_id, 'common': this.common } })
+                        const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
+                        if (this.common) {
+                            url.name = 'commonTemplatePanel'
+                        }
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -859,10 +863,11 @@
             // 跳转到节点选择页面
             goToTaskUrl (template_id) {
                 this.$router.push({
-                    path: `/template/newtask/${this.project_id}/selectnode/`,
+                    name: 'taskStep',
+                    params: { step: 'selectnode', project_id: this.project_id },
                     query: {
                         template_id,
-                        common: this.common ? '1' : undefined,
+                        common: this.common,
                         entrance: 'templateEdit'
                     }
                 })
@@ -946,9 +951,6 @@
                 if (isAllNodeValid && isAllConditionValid) {
                     this.saveTemplate()
                 }
-            },
-            onBackToList () {
-                this.$router.push({ path: `/template/home/${this.project_id}/` })
             },
             onLeaveConfirm () {
                 this.allowLeave = true

@@ -389,7 +389,8 @@
                     }).map(item => {
                         return {
                             id: item.template_id,
-                            name: item.name
+                            name: item.name,
+                            templateSource: item.template_source
                         }
                     })
                 }
@@ -1055,9 +1056,16 @@
                 })
             },
             onJumpToProcess (index) {
-                const item = this.atomList[index].id
-                const path = this.common ? `/admin/template/edit/?template_id=${item}&common=1` : `/template/edit/${this.project_id}/?template_id=${item}`
-                const { href } = this.$router.resolve({ path })
+                const { id, templateSource } = this.atomList[index]
+                const url = {
+                    name: 'templatePanel',
+                    params: { type: 'edit', project_id: this.project_id },
+                    query: { template_id: id }
+                }
+                if (templateSource === 'common') {
+                    url.name = 'commonTemplatePanel'
+                }
+                const { href } = this.$router.resolve(url)
                 window.open(href, '_blank')
             },
             /**

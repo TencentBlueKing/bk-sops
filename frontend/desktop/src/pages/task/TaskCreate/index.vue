@@ -81,7 +81,7 @@
             ...mapState({
                 locations: state => state.template.location,
                 lines: state => state.template.line,
-                userType: state => state.userType
+                userRights: state => state.userRights
             }),
             currentStep () {
                 return this.step || 'selectnode'
@@ -129,7 +129,7 @@
             }
         },
         mounted () {
-            if (this.userType === 'functor') {
+            if (this.userRights.function) {
                 this.setFunctionalStep(true)
             }
             if (this.entrance === 'periodicTask') {
