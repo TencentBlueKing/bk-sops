@@ -210,7 +210,8 @@
                 'setProjectPerm'
             ]),
             ...mapMutations([
-                'setUserRights'
+                'setUserRights',
+                'setAdminPerm'
             ]),
             onLogoClick () {
                 if (this.view_mode !== 'app') {
@@ -228,6 +229,7 @@
                     // 是否展示管理员入口
                     const hasAdminPerm = await this.getActionPerm('admin_operate', ['view'])
                     this.hasAdminPerm = hasAdminPerm
+                    this.setAdminPerm(hasAdminPerm)
                     this.checkRouterPerm()
                 }
             },
