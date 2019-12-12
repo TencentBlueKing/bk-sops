@@ -153,7 +153,7 @@
             ConditionEdit,
             TemplateSetting
         },
-        props: ['project_id', 'template_id', 'type', 'common'],
+        props: ['template_id', 'type', 'common'],
         data () {
             return {
                 i18n,
@@ -213,7 +213,8 @@
                 'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             ...mapState('project', {
-                'timeZone': state => state.timezone
+                'timeZone': state => state.timezone,
+                'project_id': state => state.project_id
             }),
             ...mapGetters('atomList/', [
                 'singleAtomGrouped'

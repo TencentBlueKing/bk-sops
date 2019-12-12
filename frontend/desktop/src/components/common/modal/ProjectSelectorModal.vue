@@ -12,7 +12,7 @@
 <template>
     <bk-dialog
         width="670"
-        :title="i18n.new"
+        :title="title"
         :value="isModalShow"
         :header-position="'left'"
         :ext-cls="'common-dialog'"
@@ -26,7 +26,7 @@
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="bk-button-group">
-                <bk-button style="margin-right:10px" theme="primary" @click="newTask">{{ i18n.newTask }}</bk-button>
+                <bk-button style="margin-right:10px" theme="primary" @click="newTask">{{ confirm }}</bk-button>
                 <bk-button theme="default" @click="cancel"> {{ i18n.cancel }} </bk-button>
             </div>
         </div>
@@ -41,16 +41,23 @@
         components: {
             ProjectSelector
         },
+        props: {
+            // 是否新建任务
+            isNewTask: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 i18n: {
-                    new: gettext('新建任务'),
                     select: gettext('选择业务：'),
-                    newTask: gettext('去新建'),
                     cancel: gettext('取消')
                 },
                 isModalShow: false,
-                route: {}
+                templateId: '',
+                title: this.isNewTask ? gettext('新建任务') : gettext('选择项目'),
+                confirm: this.isNewTask ? gettext('去新建') : gettext('确定')
             }
         },
         computed: {
@@ -59,15 +66,16 @@
             })
         },
         methods: {
-            show (route) {
+            show (templateId) {
                 this.isModalShow = true
-                this.route = route
+                this.templateId = templateId
             },
             newTask () {
-                this.$router.push(this.route)
+                this.$emit('confirm', this.project_id, this.templateId)
+                this.isModalShow = false
             },
             cancel () {
-                this.route = {}
+                this.templateId = ''
                 this.isModalShow = false
             }
         }

@@ -41,22 +41,25 @@
                     { 'btn-permission-disable': !isSaveBtnEnable }]"
                 :loading="templateSaving"
                 v-cursor="{ active: !isSaveBtnEnable }"
-                @click="onSaveTemplate(false)">
+                @click="onSaveClick(false)">
                 {{i18n.save}}
             </bk-button>
             <bk-button
-                v-if="isShowNewTask"
                 theme="primary"
                 :class="['task-btn', {
                     'btn-permission-disable': !isSaveAndCreateBtnEnable
                 }]"
                 :loading="createTaskSaving"
                 v-cursor="{ active: !isSaveAndCreateBtnEnable }"
-                @click="onSaveTemplate(true)">
+                @click="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
             <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>
         </div>
+        <ProjectSelectorModal
+            :is-new-task="false"
+            ref="ProjectSelectorModal">
+        </ProjectSelectorModal>
     </div>
 </template>
 <script>
@@ -65,11 +68,12 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-
+    import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
     export default {
         name: 'TemplateHeader',
         components: {
-            BaseTitle
+            BaseTitle,
+            ProjectSelectorModal
         },
         mixins: [permission],
         props: {
@@ -154,7 +158,7 @@
                 return this.$route.query.template_id === undefined ? this.i18n.create : this.i18n.edit
             },
             isSaveAndCreateTaskType () {
-                return this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone'
+                return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
             },
             createTaskBtnText () {
                 return this.isSaveAndCreateTaskType ? this.i18n.saveAndCreateTask : this.i18n.createTask
@@ -177,21 +181,26 @@
                 }
             },
             isSaveBtnEnable () {
-                if (this.type === 'new') {
-                    return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
+                if (this.project_id && !this.common) {
+                    if (this.type === 'new') {
+                        return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
+                    } else {
+                        return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                    }
                 } else {
-                    return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                    return true
                 }
             },
             isSaveAndCreateBtnEnable () {
-                if (this.type === 'new') {
-                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
+                if (this.project_id) {
+                    if (this.type === 'new') {
+                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
+                    } else {
+                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                    }
                 } else {
-                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                    return true
                 }
-            },
-            isShowNewTask () {
-                return !this.common
             }
         },
         watch: {
@@ -206,7 +215,17 @@
             onInputName (val) {
                 this.$emit('onChangeName', val)
             },
-            onSaveTemplate (saveAndCreate = false) {
+            onSaveClick (saveAndCreate = false) {
+                if (!this.project_id && saveAndCreate) {
+                    this.$refs.ProjectSelectorModal.show()
+                    this.$refs.ProjectSelectorModal.$on('confirm', (projectId) => {
+                        this.onSaveTemplate()
+                    })
+                    return false
+                }
+                this.onSaveTemplate(saveAndCreate)
+            },
+            onSaveTemplate (saveAndCreate = false, projectId) {
                 const { resourceData, operations, actions, resource } = this.getPermissionData()
                 const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
                 if (!this.hasPermission(required, actions, operations)) {

@@ -14,7 +14,7 @@ import api from '@/api/index.js'
 const project = {
     namespaced: true,
     state: {
-        project_id: window.DEFAULT_PROJECT_ID,
+        project_id: Number(window.DEFAULT_PROJECT_ID),
         projectName: '',
         projectList: [],
         timeZone: window.TIMEZONE,

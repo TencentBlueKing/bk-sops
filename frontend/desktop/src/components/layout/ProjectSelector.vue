@@ -112,10 +112,13 @@
         methods: {
             ...mapMutations('project', [
                 'setProjectId',
-                'setTimeZone'
+                'setTimeZone',
+                'setProjectName',
+                'setProjectActions'
             ]),
             ...mapActions('project', [
-                'changeDefaultProject'
+                'changeDefaultProject',
+                'loadProjectDetail'
             ]),
             async onProjectChange (id) {
                 if (this.project_id === id) {
@@ -126,7 +129,10 @@
                     await this.changeDefaultProject(id)
                     const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
                     this.setTimeZone(timeZone)
-                    
+
+                    const projectDetail = await this.loadProjectDetail(this.project_id)
+                    this.setProjectName(projectDetail.name)
+                    this.setProjectActions(projectDetail.auth_actions)
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
                     if (!this.redirect) {
                         return
@@ -149,7 +155,10 @@
                     const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
                     if (key) {
                         if (this.$route.name === redirectMap[key].name) {
-                            this.$emit('reloadHome')
+                            this.$router.push(redirectMap[key])
+                            this.$nextTick(() => {
+                                this.$emit('reloadHome')
+                            })
                         } else {
                             this.$router.push(redirectMap[key])
                         }
