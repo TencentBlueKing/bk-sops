@@ -58,12 +58,12 @@
         data () {
             return {
                 i18n: {
-                    title: gettext('常用业务'),
-                    nodataDes1: gettext('业务，业务集的权限请前往'),
+                    title: gettext('常用项目'),
+                    nodataDes1: gettext('项目，项目集的权限请前往'),
                     nodataDes2: gettext('权限中心'),
-                    nodataDes3: gettext('进行申请；如需新建业务，业务集请前往'),
+                    nodataDes3: gettext('进行申请；如需新建项目，项目集请前往'),
                     nodataDes4: gettext('配置平台'),
-                    businessId: gettext('业务id：'),
+                    businessId: gettext('项目id：'),
                     timeZone: gettext('时区：')
 
                 },

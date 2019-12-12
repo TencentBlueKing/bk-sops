@@ -40,7 +40,7 @@
                 showResultComp: false,
                 searchStr: '',
                 i18n: {
-                    tips: gettext('输入业务名、模板ID或任务ID进行搜索')
+                    tips: gettext('输入项目名、模板ID或任务ID进行搜索')
                 }
             }
         },

@@ -287,7 +287,7 @@
                     claim: gettext('认领'),
                     view: gettext('查看'),
                     new: gettext('新建'),
-                    choiceBusiness: gettext('选择业务'),
+                    choiceBusiness: gettext('选择项目'),
                     choiceTemplate: gettext('选择模板'),
                     tips: gettext('如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
                     total: gettext('共'),

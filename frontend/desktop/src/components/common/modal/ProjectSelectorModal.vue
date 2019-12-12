@@ -45,7 +45,7 @@
             return {
                 i18n: {
                     new: gettext('新建任务'),
-                    select: gettext('选择业务：'),
+                    select: gettext('选择项目：'),
                     newTask: gettext('去新建'),
                     cancel: gettext('取消')
                 },
