@@ -400,7 +400,7 @@
                             message: gettext('保存成功'),
                             theme: 'success'
                         })
-                        this.$emit('onCloseDialog')
+                        this.$emit('onCloseDialog', true)
                     } else {
                         errorHandler(res, this)
                     }
