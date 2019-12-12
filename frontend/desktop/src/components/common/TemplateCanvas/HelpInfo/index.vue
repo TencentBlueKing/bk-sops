@@ -73,9 +73,13 @@
         },
         mounted () {
             document.body.addEventListener('keydown', this.handerKeyDown, false)
+            document.getElementById('canvas-flow').addEventListener('mousewheel', this.onMouseWheel, false)
+            document.getElementById('canvas-flow').addEventListener('DOMMouseScroll', this.onMouseWheel, false)
         },
         beforeDestroy () {
             document.body.removeEventListener('keydown', this.handerKeyDown, false)
+            document.getElementById('canvas-flow').removeEventListener('mousewheel', this.onMouseWheel, false)
+            document.getElementById('canvas-flow').removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
         },
         methods: {
             onCloseHotkeyInfo () {
@@ -96,6 +100,18 @@
                     return false
                 }
                 return true
+            },
+            // 滚轮缩放
+            onMouseWheel (e) {
+                const ev = e || window.event
+                let down = true
+                down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
+                if (down) {
+                    this.$emit('onZoomOut')
+                } else {
+                    this.$emit('onZoomIn')
+                }
+                return false
             }
         }
     }
