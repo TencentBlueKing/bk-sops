@@ -100,6 +100,10 @@
             },
             onSwitchBusiness (id) {
                 this.setProjectId(id)
+                this.$router.push({
+                    name: 'process',
+                    params: { project_id: id }
+                })
             }
         }
     }

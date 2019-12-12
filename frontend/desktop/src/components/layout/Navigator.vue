@@ -191,7 +191,8 @@
             },
             isProjectDisabled () {
                 const route = this.$route
-                return route.path.indexOf('/admin/') === 0
+                const hideRouterList = ['/home', '/common', '/admin', '/function', '/project', '/atomdev', '/audit']
+                return hideRouterList.some(path => route.path.indexOf(path) === 0)
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {

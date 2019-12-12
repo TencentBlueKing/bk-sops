@@ -165,9 +165,9 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'manage/',
+                    path: 'home/',
                     component: TaskManage,
-                    name: 'TaskManage',
+                    name: 'taskHome',
                     children: [
                         {
                             path: 'list/:project_id?/',

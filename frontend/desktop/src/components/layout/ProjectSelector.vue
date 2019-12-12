@@ -12,6 +12,7 @@
 <template>
     <div class="project-wrapper">
         <bk-select
+            v-show="!disabled"
             class="project-select"
             v-model="currentProject"
             :disabled="disabled"
@@ -130,10 +131,28 @@
                     if (!this.redirect) {
                         return
                     }
-                    if (this.$route.name === 'home') {
-                        this.$emit('reloadHome')
-                    } else {
-                        this.$router.push({ name: 'home' })
+                    // switch project go back this home list
+                    const redirectMap = {
+                        '/template': {
+                            name: 'process',
+                            params: { project_id: id }
+                        },
+                        '/taskflow': {
+                            name: 'taskList',
+                            params: { project_id: id }
+                        },
+                        '/appmaker': {
+                            name: 'appMakerList',
+                            params: { project_id: id }
+                        }
+                    }
+                    const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
+                    if (key) {
+                        if (this.$route.name === redirectMap[key].name) {
+                            this.$emit('reloadHome')
+                        } else {
+                            this.$router.push(redirectMap[key])
+                        }
                     }
                 } catch (err) {
                     errorHandler(err, this)
