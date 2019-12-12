@@ -583,7 +583,7 @@
         }
     }
     .empty-template {
-        padding-top: 40px;
+        padding-top: 104px;
     }
     .selected-wrapper {
         width: 292px;
