@@ -74,11 +74,6 @@
 
     const ROUTE_LIST = [
         {
-            routerName: 'commonProcessList',
-            name: gettext('公共流程'),
-            path: '/common'
-        },
-        {
             routerName: 'process',
             name: gettext('业务流程'),
             path: '/template/',
@@ -95,6 +90,11 @@
             name: gettext('轻应用'),
             path: '/appmaker/',
             params: ['project_id']
+        },
+        {
+            routerName: 'commonProcessList',
+            name: gettext('公共流程'),
+            path: '/common'
         },
         {
             routerName: 'functionHome',
