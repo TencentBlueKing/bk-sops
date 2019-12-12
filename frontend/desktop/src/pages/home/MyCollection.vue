@@ -123,7 +123,10 @@
                 this.isShowAdd = true
             },
             // 关闭添加收藏
-            onCloseDialog () {
+            onCloseDialog (save) {
+                if (save) {
+                    this.initData()
+                }
                 this.isShowAdd = false
             },
             // card 点击删除
@@ -223,7 +226,7 @@
         overflow: hidden;
         margin-top: -20px;
         /deep/ .card-item {
-            margin-right: 11px;
+            margin-right: 10px;
         }
     }
     .add-collection {
