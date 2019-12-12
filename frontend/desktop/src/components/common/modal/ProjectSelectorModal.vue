@@ -21,12 +21,19 @@
         <div class="select-wrapper">
             <label class="label-project" for="">{{ i18n.select }}</label>
             <project-selector
-                :redirect="false">
+                :redirect="false"
+                @loading="onLoading">
             </project-selector>
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="bk-button-group">
-                <bk-button style="margin-right:10px" theme="primary" @click="newTask">{{ confirm }}</bk-button>
+                <bk-button
+                    title="loading"
+                    :loading="isLoading"
+                    style="margin-right:10px" theme="primary"
+                    @click="newTask">
+                    {{ confirm }}
+                </bk-button>
                 <bk-button theme="default" @click="cancel"> {{ i18n.cancel }} </bk-button>
             </div>
         </div>
@@ -55,6 +62,7 @@
                     cancel: gettext('取消')
                 },
                 isModalShow: false,
+                isLoading: false,
                 templateId: '',
                 title: this.isNewTask ? gettext('新建任务') : gettext('选择项目'),
                 confirm: this.isNewTask ? gettext('去新建') : gettext('确定')
@@ -77,6 +85,10 @@
             cancel () {
                 this.templateId = ''
                 this.isModalShow = false
+            },
+            onLoading (val) {
+                console.log('emit', val)
+                this.isLoading = val
             }
         }
     }

@@ -12,6 +12,7 @@
 <template>
     <div class="project-wrapper">
         <bk-select
+            v-bkloading="{ isLoading: isLoading, opacity: 0.8 }"
             v-show="!disabled"
             class="project-select"
             v-model="currentProject"
@@ -52,6 +53,7 @@
         data () {
             return {
                 showList: false,
+                isLoading: false,
                 searchStr: '',
                 i18n: {
                     biz: gettext('业务'),
@@ -125,6 +127,9 @@
                     return false
                 }
                 try {
+                    this.isLoading = true
+                    this.$emit('loading', true)
+
                     this.setProjectId(id)
                     await this.changeDefaultProject(id)
                     const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
@@ -135,6 +140,8 @@
                     this.setProjectActions(projectDetail.auth_actions)
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
                     if (!this.redirect) {
+                        this.isLoading = false
+                        this.$emit('loading', false)
                         return
                     }
                     // switch project go back this home list
@@ -163,6 +170,8 @@
                             this.$router.push(redirectMap[key])
                         }
                     }
+                    this.isLoading = false
+                    this.$emit('loading', false)
                 } catch (err) {
                     errorHandler(err, this)
                 }
