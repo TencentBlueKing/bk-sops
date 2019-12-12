@@ -252,7 +252,8 @@
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
                         pipeline_instance__is_started,
-                        pipeline_instance__is_finished
+                        pipeline_instance__is_finished,
+                        project__id: this.project_id
                     }
                     
                     if (queryTime[0] && queryTime[1]) {

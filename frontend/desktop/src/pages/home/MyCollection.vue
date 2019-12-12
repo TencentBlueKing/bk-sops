@@ -199,6 +199,7 @@
              */
             checkForPermission (item) {
                 if (item.category === 'process') {
+                    item.name = item.extra_info.name
                     this.applyForPermission(['create_task', 'create_template'], item, this.tplOperations, this.collectionResource)
                 }
             },
