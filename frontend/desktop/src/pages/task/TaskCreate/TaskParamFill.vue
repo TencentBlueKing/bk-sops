@@ -33,7 +33,7 @@
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
-                        <div class="button-group">
+                        <div class="bk-button-group">
                             <bk-button
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
