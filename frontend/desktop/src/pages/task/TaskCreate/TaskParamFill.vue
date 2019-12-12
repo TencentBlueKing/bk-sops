@@ -406,7 +406,7 @@
                                 url = {
                                     name: 'taskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: this.instance_id, common: this.common } // 公共流程创建职能化任务
+                                    query: { instance_id: taskData.instance_id, common: this.common } // 公共流程创建职能化任务
                                 }
                             }
                             this.$router.push(url)
