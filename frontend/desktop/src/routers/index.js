@@ -409,6 +409,7 @@ const routers = new VueRouter({
         },
         {
             path: '/atomdev/',
+            name: 'atomDev',
             component: AtomDev
         },
         {

@@ -127,6 +127,11 @@
                     name: gettext('运营数据')
                 }
             ]
+        },
+        {
+            routerName: 'atomDev',
+            path: '/atomdev',
+            name: gettext('插件开发')
         }
     ]
     const APPMAKER_ROUTER_LIST = [
@@ -395,6 +400,9 @@ header {
             float: left;
             &:first-child {
                 margin-left: 141px;
+                @media screen and (max-width: 1420px){
+                    margin-left: 60px;
+                }
             }
             &:hover {
                 color: $whiteDefault;
