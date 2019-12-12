@@ -24,7 +24,7 @@
         <div v-if="isApplyPermission" class="apply-permission-mask">
             <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
         </div>
-        <div v-if="!isApplyPermission && showDelete" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
+        <div v-if="isShowDelBtn" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
     </li>
 </template>
 <script>
@@ -42,7 +42,7 @@
             },
             showDelete: {
                 type: Boolean,
-                default: true
+                default: false
             },
             setName: {
                 type: String,
@@ -59,6 +59,9 @@
         computed: {
             displayName () {
                 return this.setName || this.data.name
+            },
+            isShowDelBtn () {
+                return this.showDelete || !this.isApplyPermission
             }
         },
         methods: {
