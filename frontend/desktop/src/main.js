@@ -27,7 +27,7 @@ import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
-const cron = require('@/assets/js/node-cron-valid/node-cron-vaild.js')
+import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
 Vue.use(VeeValidate)
 
 Vue.use(bkMagicVue)
