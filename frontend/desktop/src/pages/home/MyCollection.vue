@@ -19,6 +19,7 @@
                 :data="item"
                 :set-name="item.extra_info.name"
                 :is-apply-permission="getRourcePerm(item)"
+                :show-delete="true"
                 @onCardClick="onCardClick"
                 @onDeleteCard="onDeleteCard">
             </base-card>
@@ -107,8 +108,10 @@
                 try {
                     this.collectionBodyLoading = true
                     const res = await this.getCollectList()
-                    this.tplOperations = res.meta.auth_operations
-                    this.collectionResource = { ...res.meta.auth_resource, ...res.meta.auth_resource.process }
+                    if (res.objects && res.objects.length > 0) {
+                        this.tplOperations = res.meta.auth_operations
+                        this.collectionResource = { ...res.meta.auth_resource, ...res.meta.auth_resource.process }
+                    }
                     this.collectionList = res.objects
                     this.collectionBodyLoading = false
                 } catch (e) {
