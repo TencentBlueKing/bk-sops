@@ -25,6 +25,9 @@ module.exports = {
     '^.+\\.js$': '<rootDir>/node_modules/babel-jest',
     '.*\\.(vue)$': '<rootDir>/node_modules/vue-jest'
   },
+  testMatch: [
+    '**/test/unit/**/*.spec.js'
+  ],
   setupFiles: ['<rootDir>/test/unit/setup'],
   coverageDirectory: '<rootDir>/test/unit/coverage',
   collectCoverageFrom: [
