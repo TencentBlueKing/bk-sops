@@ -21,6 +21,7 @@ import bus from './bus.js'
 //     width: 325,
 //     placement: 'bottom',
 //     once: true,
+//     delay: 0,
 //     el: document.getElementById('#xxx'),
 //     img: {
 //         height: 145,
@@ -46,15 +47,17 @@ const Guide = function (config = {}) {
     console.log(this.int, 'fdsafdsa')
     this.int.$mount()
     this.mount = (el) => {
-        console.log(el, 'el')
-        const { width, trigger, placement, once } = this.config
+        const { width, trigger, placement, delay, arrow, once } = this.config
         this.instance = this.instance || bus.$bkPopover(el, {
             width,
+            arrow,
             placement,
+            delay: delay || 0,
+            duration: [0, 0],
             trigger: trigger || 'click',
-            arrow: true,
             allowHTML: true,
             theme: 'guide',
+            animation: 'shift-away',
             content: this.int.$el.innerHTML,
             onHidden: () => {
                 if (once) {

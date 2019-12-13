@@ -197,9 +197,10 @@
                     width: 150,
                     placement: 'bottom',
                     once: true,
+                    arrow: true,
                     img: {
                         height: 112,
-                        url: require('@/assets/images/building.png')
+                        url: require('@/assets/images/node-double-click-guide.gif')
                     },
                     text: [
                         {
@@ -1149,12 +1150,11 @@
                 })
             },
             handerGuideTip () {
-                if (!localStorage.getItem('guide-is-show-node')) {
+                if (this.type === 'new') {
                     const config = this.nodeGuideConfig
                     const guide = new Guide(config)
                     guide.mount(document.querySelector('.task-node'))
                     guide.instance.show(1000)
-                    localStorage.setItem('guide-is-show-node', true)
                 }
             },
             canvasMounted () {

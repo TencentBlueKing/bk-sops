@@ -205,28 +205,49 @@
                 document.removeEventListener('mouseup', this.mouseUpHandler)
             },
             renderGuide () {
-                const config = {
+                const nodesGuide = [
+                    {
+                        el: '.entry-item[data-type=tasknode]'
+                    },
+                    {
+                        el: '.entry-item[data-type=subflow]'
+                    },
+                    {
+                        el: '.entry-item[data-type=parallelgateway]'
+                    },
+                    {
+                        el: '.entry-item[data-type=branchgateway]'
+                    },
+                    {
+                        el: '.entry-item[data-type=convergegateway]'
+                    }
+                ]
+                const baseConfig = {
                     el: '',
-                    width: 150,
-                    placement: 'right-top',
+                    width: 330,
+                    delay: 500,
+                    arrow: false,
+                    placement: 'right',
                     trigger: 'mouseenter',
                     img: {
-                        height: 112,
-                        url: require('@/assets/images/building.png')
+                        height: 155,
+                        url: require('@/assets/images/left-tasknode-guide.gif')
                     },
                     text: [
                         {
                             type: 'name',
-                            val: gettext('双击左键')
+                            val: gettext('标准插件节点：')
                         },
                         {
                             type: 'text',
-                            val: gettext('可以快捷打开节点配置面板')
+                            val: gettext('已封装好的可用插件，支持拖')
                         }
                     ]
                 }
-                const guide = new Guide(config)
-                guide.mount(document.querySelector('.entry-item[data-type=tasknode]'))
+                nodesGuide.forEach(m => {
+                    const guide = new Guide(baseConfig)
+                    guide.mount(document.querySelector(m.el))
+                })
             }
         }
     }
