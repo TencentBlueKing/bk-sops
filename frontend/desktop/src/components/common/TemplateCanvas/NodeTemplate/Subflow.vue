@@ -184,6 +184,7 @@
         color: #ffffff;
         font-size: 18px;
         z-index: 1;
+        word-break: break-all;
     }
     .node-name {
         position: absolute;
