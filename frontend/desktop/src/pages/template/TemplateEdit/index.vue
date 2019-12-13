@@ -1149,7 +1149,7 @@
                     this.templateDataLoading = false
                 })
             },
-            handerGuideTip () {
+            handlerGuideTip () {
                 if (this.type === 'new') {
                     const config = this.nodeGuideConfig
                     const guide = new Guide(config)
@@ -1158,7 +1158,7 @@
                 }
             },
             canvasMounted () {
-                this.handerGuideTip()
+                this.handlerGuideTip()
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

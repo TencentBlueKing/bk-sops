@@ -55,14 +55,6 @@
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
         </div>
-        <!-- <div id="guideContent" class="guide-content">
-            <div class="guide-map"></div>
-            <div class="guide-info">
-                <span class="info-name">标准插件节点:</span>
-                <span class="info-text">已封装好的可用插件，支持拖拽和点击</span>
-            </div>
-        </div> -->
-        
         <node-menu
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
@@ -293,30 +285,6 @@
         .node-type-icon {
             font-size: 28px;
             color: #546a9e;
-        }
-    }
-    .guide-content {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        background: #444d62;
-        .guide-map {
-            width: 100%;
-            height: 155px;
-        }
-        .guide-info {
-            width: 100%;
-            height: 45px;
-            line-height: 45px;
-            text-align: center;
-            background: #444d62;
-            .info-name {
-                color: #ffffff;
-            }
-            .info-text {
-                color: #d2d5dd;
-            }
         }
     }
 </style>

@@ -44,7 +44,6 @@ const Guide = function (config = {}) {
     const GuideComponent = Vue.extend(GuidePopover)
     this.int = new GuideComponent()
     this.int.$props.config = config
-    console.log(this.int, 'fdsafdsa')
     this.int.$mount()
     this.mount = (el) => {
         const { width, trigger, placement, delay, arrow, once } = this.config
