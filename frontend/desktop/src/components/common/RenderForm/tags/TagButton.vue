@@ -40,7 +40,7 @@
         title: {
             type: String,
             required: false,
-            default: '按钮文本',
+            default: gettext('按钮文本'),
             desc: 'determine whether it\'s a plain button'
         },
         type: {

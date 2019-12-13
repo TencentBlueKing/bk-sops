@@ -19,7 +19,7 @@
         props: {
             title: {
                 type: String,
-                default: '页面title'
+                default: 'title'
             }
         }
     }
