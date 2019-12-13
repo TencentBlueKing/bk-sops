@@ -19,6 +19,7 @@ from django.http.response import JsonResponse
 from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
 
 from gcloud.core.permissions import admin_operate_resource
+from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
@@ -35,6 +36,10 @@ def restore_template(request):
     template_id = data['template_id']
 
     res = TaskTemplate.objects.filter(id=template_id, is_deleted=True).update(is_deleted=False)
+
+    if res:
+        template = TaskTemplate.objects.get(id=template_id)
+        task_template_resource.register_instance(template)
 
     return JsonResponse({
         'result': True,
