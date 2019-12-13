@@ -223,7 +223,7 @@ class PipelineTemplateWebWrapper(object):
                 if act[PE.type] == PE.SubProcess:
                     subprocess_data = template[act['template_id']]['tree']
                     h = hashlib.md5()
-                    h.update(json.dumps(subprocess_data))
+                    h.update(json.dumps(subprocess_data).encode('utf-8'))
                     md5sum = h.hexdigest()
                     act['version'] = md5sum
 
