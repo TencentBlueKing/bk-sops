@@ -231,6 +231,11 @@ class PeriodicTaskResource(GCloudModelResource):
                                                      principal_id=creator,
                                                      perms_tuples=perms_tuples)
 
+            try:
+                replace_template_id(CommonTemplate, pipeline_tree)
+            except TaskTemplate.DoesNotExist:
+                raise BadRequest('invalid subprocess, check subprocess node please')
+
         else:
             raise BadRequest('invalid template_source[%s]' % template_source)
 
