@@ -338,6 +338,7 @@
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 text-align: center;
+                color: #63656e;
             }
         }
         .subflow-node-icon {

@@ -12,7 +12,7 @@
 import Vue from 'vue'
 import api from '@/api/index.js'
 import nodeFilter from '@/utils/nodeFilter.js'
-import { uuid } from '@/utils/uuid.js'
+import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
 
@@ -348,7 +348,7 @@ const template = {
             state.gateways[nodeId]['conditions'][id].name = name
             state.gateways[nodeId]['conditions'][id].evaluate = value
         },
-        // 节点增加、删除、编辑操作，数据更新
+        // 节点增加、删除、编辑、复制,操作，数据更新
         setLocation (state, payload) {
             const { type, location } = payload
             let locationIndex
@@ -358,7 +358,7 @@ const template = {
                     return true
                 }
             })
-            if (type === 'add' && !isLocationExist) {
+            if (['add', 'copy'].indexOf(type) > -1 && !isLocationExist) {
                 const loc = tools.deepClone(location)
                 delete loc.atomId // 添加节点后删除标准插件类型字段
                 state.location.push(loc)
@@ -410,13 +410,24 @@ const template = {
                 if (state.gateways[sourceNode]) {
                     const gatewayNode = state.gateways[sourceNode]
                     if (Array.isArray(gatewayNode.outgoing)) {
-                        gatewayNode.outgoing.push(id)
+                        const len = gatewayNode.outgoing.length
+                        Vue.set(gatewayNode.outgoing, len, id)
                         if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
                             const conditions = gatewayNode.conditions
-                            const key = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
+                            let evaluate = Object.keys(conditions).length ? '1 == 0' : '1 == 1'
+                            let name = evaluate
+                            // copy 连线，需复制原来的分支条件信息
+                            if (line.oldSouceId) {
+                                const sourceNodeId = state.flows[line.oldSouceId].source
+                                const sourceGateWayNode = state.gateways[sourceNodeId]
+                                const sourceCondition = sourceGateWayNode.conditions[line.oldSouceId]
+
+                                evaluate = sourceCondition.evaluate || sourceCondition.name
+                                name = sourceCondition.name
+                            }
                             const conditionItem = {
-                                evaluate: key,
-                                name: key,
+                                evaluate: evaluate,
+                                name: name,
                                 tag: `branch_${sourceNode}_${targetNode}`
                             }
                             Vue.set(conditions, id, conditionItem)
@@ -476,7 +487,7 @@ const template = {
                 Vue.delete(state.flows, deletedLine.id)
             }
         },
-        // 任务节点增加、删除、编辑操作，更新模板各相关字段数据
+        // 任务节点增加、删除、编辑,复制操作，更新模板各相关字段数据
         setActivities (state, payload) {
             const { type, location } = payload
             if (type === 'add') {
@@ -579,12 +590,46 @@ const template = {
                     }
                 }
                 Vue.delete(state.activities, location.id)
+            } else if (type === 'copy') { // 复制节点
+                const oldSouceId = location.oldSouceId
+                const newActivitie = tools.deepClone(state.activities[oldSouceId])
+                if (!state.activities[location.id]) {
+                    if (location.type === 'tasknode' || location.type === 'subflow') {
+                        newActivitie.id = location.id
+                        newActivitie.incoming = ''
+                        newActivitie.loop = null
+                        newActivitie.outgoing = ''
+                        state.activities[location.id] = newActivitie
+                    }
+                }
+                // 勾选变量处理
+                for (const key in state.constants) {
+                    const item = state.constants[key]
+                    const source_info = item.source_info
+                    const info = source_info[oldSouceId]
+                    if (info) {
+                        const source_type = state.constants[key].source_type
+                        if (source_type === 'component_inputs') { // 复用输入变量
+                            Vue.set(source_info, location.id, info)
+                        } else if (source_type === 'component_outputs') { // 新建输出变量
+                            const constantsLen = Object.keys(state.constants).length
+                            const varId = '${' + info[0] + '_' + random4() + '}'
+                            const varValue = tools.deepClone(item)
+                            const changeObj = {
+                                source_info: { [location.id]: info },
+                                key: varId,
+                                index: constantsLen
+                            }
+                            Vue.set(state.constants, varId, Object.assign(varValue, changeObj))
+                        }
+                    }
+                }
             }
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {
             const { type, location } = payload
-            if (type === 'add') {
+            if (['add', 'copy'].indexOf(type) > -1) {
                 if (!state.gateways[location.id]) {
                     state.gateways[location.id] = {
                         id: location.id,
