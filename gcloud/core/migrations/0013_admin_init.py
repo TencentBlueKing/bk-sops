@@ -11,10 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
+from __future__ import unicode_literals
+from django.db import migrations
+from django.conf import settings
 
-from gcloud.conf import settings
-from pipeline.core.flow.activity import Service
-from pipeline.component_framework.component import Component
 
-logger = logging.getLogger('celery')
+def load_data(apps, schema_editor):
+    """
+    添加用户为管理员
+    """
+    User = apps.get_model("account", "User")
+    for name in settings.INIT_SUPERUSER:
+        User.objects.update_or_create(
+            username=name,
+            defaults={'is_staff': True, 'is_active': True, 'is_superuser': True}
+        )
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ('core', '0012_auto_20190612_2113'),
+    ]
+    operations = [
+        migrations.RunPython(load_data)
+    ]

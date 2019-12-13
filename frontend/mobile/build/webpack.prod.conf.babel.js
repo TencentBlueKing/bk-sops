@@ -27,8 +27,8 @@ const prodConf = merge(baseConf, {
         main: './src/main.js'
     },
     output: {
-        filename: assetsPath('js/[name].js'),
-        chunkFilename: assetsPath('js/[name].js')
+        filename: assetsPath('js/[name].js' + process.env.VERSION),
+        chunkFilename: assetsPath('js/[name].js' + process.env.VERSION)
     },
     optimization: {
         minimizer: [
@@ -165,7 +165,7 @@ const prodConf = merge(baseConf, {
         }),
 
         new MiniCssExtractPlugin({
-            filename: assetsPath('css/[name].css')
+            filename: assetsPath('css/[name].css' + process.env.VERSION)
         }),
         new CopyWebpackPlugin([
             {
