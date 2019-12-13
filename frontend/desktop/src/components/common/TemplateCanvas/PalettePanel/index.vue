@@ -108,16 +108,6 @@
                     start: gettext('开始'),
                     end: gettext('结束')
                 },
-                htmlConfig: {
-                    interactiveBorder: 0,
-                    allowHtml: true,
-                    width: 330,
-                    trigger: '6',
-                    theme: 'guide',
-                    content: '#guideContent',
-                    placement: 'right-start',
-                    extCls: 'guide-content'
-                },
                 nodeGuideConfig: {
                     img: {
                         height: 112,
