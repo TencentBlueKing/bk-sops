@@ -419,9 +419,8 @@
             },
             loopTimes () {
                 const times = []
-                const loop = this.executeInfo.hasOwnProperty('loop') ? this.executeInfo.loop : 1
-                for (let i = 0; i < loop; i++) {
-                    times.push(loop - i)
+                for (let i = 0; i < this.loop; i++) {
+                    times.push(this.loop - i)
                 }
 
                 return times
@@ -502,6 +501,7 @@
                         
                         if (this.theExecuteTime === undefined) {
                             this.loop = respData.loop
+                            this.theExecuteTime = respData.loop
                         }
                     }
 
