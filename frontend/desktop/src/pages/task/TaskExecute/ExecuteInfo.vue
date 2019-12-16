@@ -297,6 +297,10 @@
         {
             title: gettext('回调数据'),
             id: 'callback_data'
+        },
+        {
+            title: gettext('插件版本'),
+            id: 'plugin_version'
         }
     ]
 
@@ -480,7 +484,6 @@
                         })
                     } else {
                         this.executeInfo = respData
-                        this.executeInfo.plugin_version = this.nodeDetailConfig.version
                         this.inputsInfo = inputs
                         this.outputsInfo = outputs
                         this.historyInfo = respData.histories
@@ -505,6 +508,7 @@
                         }
                     }
 
+                    this.executeInfo.plugin_version = this.nodeDetailConfig.version
                     this.historyInfo.forEach(item => {
                         item.last_time = this.getLastTime(item.elapsed_time)
                     })
