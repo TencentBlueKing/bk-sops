@@ -173,7 +173,6 @@ const routers = new VueRouter({
                             path: 'list/:project_id?/',
                             component: TaskList,
                             name: 'taskList',
-                            pathToRegexpOptions: { strict: true },
                             props: (route) => ({
                                 project_id: route.params.project_id,
                                 common: route.query.common,
