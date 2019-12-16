@@ -223,6 +223,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import Vue from 'vue'
     import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
@@ -237,13 +238,18 @@
 
     const varKeyReg = /^\$\{(\w+)\}$/
 
+    /**
+     * notice：provide为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
+     */
+    const reactiveNodeId = Vue.observable({ id: '' })
+
     export default {
         /**
          * notice：provide为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
          */
         provide () {
             return {
-                nodeId: this.idOfNodeInConfigPanel
+                node: reactiveNodeId
             }
         },
         name: 'NodeConfig',
@@ -515,6 +521,12 @@
             idOfNodeInConfigPanel (val) {
                 if (!val) return
                 this.nodeId = val
+
+                /**
+                 * notice：provide为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
+                 */
+                reactiveNodeId.id = val
+
                 // 清空验证
                 this.currentVersion = ''
                 this.taskTypeEmpty = false

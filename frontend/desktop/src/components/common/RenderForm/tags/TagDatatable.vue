@@ -190,8 +190,10 @@
          * notice：inject为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
          */
         inject: {
-            nodeId: {
-                default: null
+            node: {
+                default () {
+                    return {}
+                }
             }
         },
         name: 'TagDatatable',
@@ -437,10 +439,9 @@
              */
             setOutputParams (oldVal) {
                 const specialAtom = 'job_execute_task'
-                const veision = this.atomForm.SingleAtomVersionMap[specialAtom]
+                const version = this.atomForm.SingleAtomVersionMap[specialAtom]
                 if (Array.isArray(this.value)) {
-                    const atomOutput = this.atomForm.form[specialAtom][veision].output.slice(0)
-
+                    const atomOutput = this.atomForm.form[specialAtom][version].output.slice(0)
                     this.value.forEach(item => {
                         if (typeof item.type === 'number' && item.type !== 2 && item.category === 1) {
                             atomOutput.push({
@@ -451,16 +452,17 @@
                     })
                     this.setAtomOutput({
                         atomType: specialAtom,
-                        outputData: atomOutput
+                        outputData: atomOutput,
+                        version
                     })
                 }
-                if (oldVal && this.nodeId) {
+                if (oldVal && this.node.id) {
                     oldVal.forEach(item => {
                         if (typeof item.type === 'number' && item.type !== 2) {
                             let variableKey
                             Object.keys(this.constants).some(key => {
                                 const cst = this.constants[key]
-                                const sourceInfo = cst.source_info[this.nodeId]
+                                const sourceInfo = cst.source_info[this.node.id]
                                 if (sourceInfo && sourceInfo.indexOf(item.key)) {
                                     variableKey = key
                                     return true
