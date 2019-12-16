@@ -432,15 +432,9 @@
              */
             renderOutputData () {
                 const outputData = []
-                let outputConfig = []
-                if (!this.currentAtom
-                    || JSON.stringify(this.atomFormConfig) === '{}'
-                    || !this.atomFormConfig[this.currentAtom]) {
-                    outputConfig = []
-                } else {
-                    outputConfig = this.getOutputConfig()
-                }
-                outputConfig && outputConfig.forEach(item => {
+                const outputConfig = this.getOutputConfig()
+
+                outputConfig.forEach(item => {
                     let hook = false
                     let key = item.key
                     for (const cKey in this.constants) {
@@ -815,7 +809,14 @@
             },
             getOutputConfig () {
                 const version = this.currentVersion
-                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
+                if (this.isSingleAtom) {
+                    if (this.atomFormOutput && this.currentAtom && this.atomFormOutput[this.currentAtom]) {
+                        return this.atomFormOutput[this.currentAtom][version]
+                    }
+                    return []
+                } else {
+                    return this.subAtomOutput || []
+                }
             },
             getHookedInputVariables () {
                 const variables = []
