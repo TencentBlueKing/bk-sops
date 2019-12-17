@@ -61,6 +61,7 @@ from gcloud.core.utils import (
 )
 from gcloud.commons.template.models import replace_template_id, CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import (
     TASK_CREATE_METHOD,
     TEMPLATE_SOURCE,
@@ -862,7 +863,7 @@ class TaskFlowInstance(models.Model):
     def template(self):
         if self.template_source == ONETIME:
             return None
-        elif self.template_source == PROJECT:
+        elif self.template_source in NON_COMMON_TEMPLATE_TYPES:
             return TaskTemplate.objects.get(pk=self.template_id)
         else:
             return CommonTemplate.objects.get(pk=self.template_id)
