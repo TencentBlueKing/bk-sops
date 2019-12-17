@@ -26,16 +26,18 @@ from gcloud.core.permissions import project_resource
 from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
 from gcloud.apigw.exceptions import UserNotExistError
+from gcloud.apigw.whitelist import EnvWhitelist
 
-WHITE_APPS = {'bk_fta', 'bk_bcs'}
+app_whitelist = EnvWhitelist(
+    transient_list={'bk_fta', 'bk_bcs'},
+    env_key='APP_WHITELIST'
+)
 WHETHER_PREPARE_BIZ = getattr(settings, 'WHETHER_PREPARE_BIZ_IN_API_CALL', True)
 
 
 def check_white_apps(request):
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
-    if app_code in WHITE_APPS:
-        return True
-    return False
+    return app_whitelist.has(app_code)
 
 
 def inject_user(request):
