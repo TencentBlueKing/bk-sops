@@ -163,8 +163,10 @@
          * notice：inject为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
          */
         inject: {
-            nodeId: {
-                default: null
+            node: {
+                default () {
+                    return {}
+                }
             }
         },
         name: 'TagDatatable',
@@ -426,13 +428,13 @@
                         outputData: atomOutput
                     })
                 }
-                if (oldVal && this.nodeId) {
+                if (oldVal && this.node.id) {
                     oldVal.forEach(item => {
                         if (typeof item.type === 'number' && item.type !== 2) {
                             let variableKey
                             Object.keys(this.constants).some(key => {
                                 const cst = this.constants[key]
-                                const sourceInfo = cst.source_info[this.nodeId]
+                                const sourceInfo = cst.source_info[this.node.id]
                                 if (sourceInfo && sourceInfo.indexOf(item.key)) {
                                     variableKey = key
                                     return true
