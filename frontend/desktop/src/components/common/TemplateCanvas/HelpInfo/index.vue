@@ -72,12 +72,12 @@
             }
         },
         mounted () {
-            document.body.addEventListener('keydown', this.handerKeyDown, false)
+            document.body.addEventListener('keydown', this.handlerKeyDown, false)
             document.getElementById('canvas-flow').addEventListener('mousewheel', this.onMouseWheel, false)
             document.getElementById('canvas-flow').addEventListener('DOMMouseScroll', this.onMouseWheel, false)
         },
         beforeDestroy () {
-            document.body.removeEventListener('keydown', this.handerKeyDown, false)
+            document.body.removeEventListener('keydown', this.handlerKeyDown, false)
             document.getElementById('canvas-flow').removeEventListener('mousewheel', this.onMouseWheel, false)
             document.getElementById('canvas-flow').removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
         },
@@ -85,7 +85,7 @@
             onCloseHotkeyInfo () {
                 this.$emit('onCloseHotkeyInfo')
             },
-            handerKeyDown (e) {
+            handlerKeyDown (e) {
                 const ctrl = window.event.ctrlKey
                 const action = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl)
                 if (action && this.isUsable(action.emit)) {
