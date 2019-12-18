@@ -137,14 +137,14 @@
     const APPMAKER_ROUTER_LIST = [
         {
             routerName: 'appmakerTaskCreate',
-            path: 'appMakerList',
+            path: 'appmakerTaskCreate',
             params: ['app_id', 'project_id'],
             query: ['appmakerTemplateId'],
             name: gettext('新建任务')
         },
         {
-            routerName: 'appmakerTaskList',
-            path: 'appmakerTaskList',
+            routerName: 'appmakerTaskHome',
+            path: 'appmakerTaskHome',
             params: ['project_id'],
             name: gettext('任务记录')
         }

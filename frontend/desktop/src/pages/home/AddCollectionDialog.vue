@@ -380,8 +380,8 @@
                     return false
                 }
                 this.dialogFooterData[0].loading = true
-                let projectId
                 const project = this.searchValue.find(m => m.id === 'project')
+                let projectId
                 if (project) {
                     projectId = project.values[0].id
                 }
