@@ -12,8 +12,8 @@
 <template>
     <div class="guide-popover">
         <div class="guide-content">
-            <div class="guide-map" :style="{ height: config.img.height + 'px' }">
-                <img class="guide-img" :src="config.img.url" alt="">
+            <div v-if="config.img" class="guide-map" :style="{ height: config.img.height + 'px' }">
+                <img class="guide-img" :src="config.img.url" alt="guide-img">
             </div>
             <div class="guide-info">
                 <span

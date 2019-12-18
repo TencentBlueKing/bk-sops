@@ -73,7 +73,8 @@
     export default {
         name: 'PalattePanel',
         components: {
-            NodeMenu },
+            NodeMenu
+        },
         props: {
             atomTypeList: {
                 type: Object,
@@ -107,22 +108,6 @@
                 i18n: {
                     start: gettext('开始'),
                     end: gettext('结束')
-                },
-                nodeGuideConfig: {
-                    img: {
-                        height: 112,
-                        url: require('@/assets/images/building.png')
-                    },
-                    text: [
-                        {
-                            type: 'name',
-                            val: gettext('双击左键')
-                        },
-                        {
-                            type: 'text',
-                            val: gettext('可以快捷打开节点配置面板')
-                        }
-                    ]
                 }
             }
         },
@@ -189,19 +174,74 @@
             renderGuide () {
                 const nodesGuide = [
                     {
-                        el: '.entry-item[data-type=tasknode]'
+                        el: '.entry-item[data-type=tasknode]',
+                        url: require('@/assets/images/left-tasknode-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('标准插件节点：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('已封装好的可用插件，可直接选中拖拽至画布中。')
+                            }
+                        ]
                     },
                     {
-                        el: '.entry-item[data-type=subflow]'
+                        el: '.entry-item[data-type=subflow]',
+                        url: require('@/assets/images/left-subflow-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('子流程：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。')
+                            }
+                        ]
                     },
                     {
-                        el: '.entry-item[data-type=parallelgateway]'
+                        el: '.entry-item[data-type=parallelgateway]',
+                        url: require('@/assets/images/left-parallelgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('并行网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('有多个流出分支，并且多个流出分支都默认执行。')
+                            }
+                        ]
                     },
                     {
-                        el: '.entry-item[data-type=branchgateway]'
+                        el: '.entry-item[data-type=branchgateway]',
+                        url: require('@/assets/images/left-branchgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('分支网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。')
+                            }
+                        ]
                     },
                     {
-                        el: '.entry-item[data-type=convergegateway]'
+                        el: '.entry-item[data-type=convergegateway]',
+                        url: require('@/assets/images/left-convergegateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('汇聚网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
+                            }
+                        ]
                     }
                 ]
                 const baseConfig = {
@@ -213,20 +253,13 @@
                     trigger: 'mouseenter',
                     img: {
                         height: 155,
-                        url: require('@/assets/images/left-tasknode-guide.gif')
+                        url: ''
                     },
-                    text: [
-                        {
-                            type: 'name',
-                            val: gettext('标准插件节点：')
-                        },
-                        {
-                            type: 'text',
-                            val: gettext('已封装好的可用插件，支持拖')
-                        }
-                    ]
+                    text: []
                 }
                 nodesGuide.forEach(m => {
+                    baseConfig.img.url = m.url
+                    baseConfig.text = m.text
                     const guide = new Guide(baseConfig)
                     guide.mount(document.querySelector(m.el))
                 })
