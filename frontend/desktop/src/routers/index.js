@@ -96,7 +96,6 @@ const routers = new VueRouter({
         },
         {
             path: '/common',
-            name: 'commonProcess',
             component: CommonTemplate,
             children: [
                 {
@@ -278,7 +277,6 @@ const routers = new VueRouter({
         },
         {
             path: '/function',
-            name: 'function',
             component: Functor,
             children: [
                 {
@@ -321,7 +319,6 @@ const routers = new VueRouter({
         },
         {
             path: '/audit',
-            name: 'audit',
             component: Audit,
             children: [
                 {
