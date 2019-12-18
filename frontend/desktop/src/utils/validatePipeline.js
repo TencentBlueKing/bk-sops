@@ -93,8 +93,8 @@ const validatePipeline = {
         let targetLinesLinked = 0
         let isLoop = false
 
-        if (source.id === target.id && sourceNode.type !== 'branchgateway') {
-            const i18n_text = gettext('相同节点不能回连')
+        if (source.id === target.id) {
+            const i18n_text = gettext('节点不可连接自身')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
             return this.getMessage(false, message)
         }
@@ -125,7 +125,7 @@ const validatePipeline = {
             if (item.target.id === targetId) {
                 targetLinesLinked += 1
             }
-            if (item.source.id === targetId && item.target.id === sourceId) {
+            if (item.source.id === targetId && item.target.id === sourceId && sourceNode.type !== 'branchgateway') {
                 isLoop = true
             }
         })

@@ -40,10 +40,12 @@
                 <bk-table-column :width="80" :label="i18n.ExInfo">
                     <template slot-scope="props">
                         <span
+                            v-if="!props.row.start_success"
                             class="view-btn"
                             @click="$refs.recordTable.toggleRowExpansion(props.row)">
-                            {{ !props.row.start_success ? i18n.view : '' }}
+                            {{ i18n.view }}
                         </span>
+                        <span v-else>--</span>
                     </template>
                 </bk-table-column>
                 <div class="no-data-matched" slot="empty"><NoData /></div>
