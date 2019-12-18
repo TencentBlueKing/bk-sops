@@ -60,6 +60,6 @@ module.exports = {
     // '/t/bk_sops/static/components/atoms/job/job_fast_execute_script.js': {
     //     type: 'file',
     //     method: 'GET',
-    //     data: './test.js'
+    //     data: './data.js'
     // }
 }
