@@ -141,7 +141,7 @@
                 templateType: [
                     {
                         id: 'businessProcess',
-                        name: gettext('业务流程')
+                        name: gettext('项目流程')
                     },
                     {
                         id: 'publicProcess',
