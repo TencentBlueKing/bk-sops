@@ -137,13 +137,8 @@
         methods: {
             onConfirm () {
                 const templateId = this.createTaskItem.extra_info.template_id
-                if (!this.formData.taskType) {
-                    this.isShowtaskError = true
-                    return
-                }
-                if (!this.formData.selectedProject) {
-                    this.isShowprojectError = true
-                    return
+                if (!this.checkEmpty()) {
+                    return false
                 }
                 if (!this.hasCreateTaskPer) {
                     this.applyForPermission(['create_task'], this.createTaskItem, this.tplOperations, this.tplResource)
@@ -163,13 +158,23 @@
             onCancel () {
                 this.$emit('cancel')
             },
+            checkEmpty () {
+                this.isShowtaskError = !this.formData.taskType
+                this.isShowprojectError = !this.formData.selectedProject
+                if (!this.formData.taskType || !this.formData.selectedProject) {
+                    return false
+                }
+                return true
+            },
             checkPermission () {
+                this.checkEmpty()
                 const { taskType, selectedProject } = this.formData
                 if (taskType && selectedProject) {
                     const { auth_actions } = this.createTaskItem
                     const hasPer = this.hasPermission(['create_task'], auth_actions, this.tplOperations)
                     const action = this.projectList.find(m => m.id === selectedProject)
                     this.hasCreateTaskPer = !!hasPer
+                    debugger
                     this.hasUseCommonTplPer = action.auth_actions.indexOf('use_common_template') > -1
                 }
             },

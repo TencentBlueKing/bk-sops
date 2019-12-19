@@ -283,7 +283,7 @@
             },
             async getAppMakerList (projectId, searchStr) {
                 const data = await this.loadAppmaker({
-                    project_id: projectId,
+                    project__id: projectId,
                     q: searchStr || undefined
                 })
                 return data.objects || []
@@ -387,9 +387,15 @@
                 }
                 const saveList = this.selectedList.map(template => {
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
+                    const saveCategoryMap = {
+                        'process': 'flow',
+                        'common': 'common_flow',
+                        'periodic': 'periodic_task',
+                        'app_maker': 'mini_app'
+                    }
                     return {
                         extra_info,
-                        category: template.collectType
+                        category: saveCategoryMap[template.collectType]
                     }
                 })
                 try {

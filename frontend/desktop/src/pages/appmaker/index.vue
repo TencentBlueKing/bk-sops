@@ -217,7 +217,8 @@
                 try {
                     const { updateTime, editor } = this.requestData
                     const data = {
-                        editor: editor || undefined
+                        editor: editor || undefined,
+                        project__id: this.project_id
                     }
                     if (updateTime[0] && updateTime[1]) {
                         data['edit_time__gte'] = moment.tz(updateTime[0], this.timeZone).format('YYYY-MM-DD')

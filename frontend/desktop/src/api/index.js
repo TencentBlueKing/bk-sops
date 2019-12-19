@@ -1039,9 +1039,8 @@ const api = {
      * 加载轻应用数据
      */
     loadAppmaker (data) {
-        const { project_id } = store.state.project
         const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data, { 'project__id': project_id })
+        const querystring = Object.assign({}, data)
         const opts = {
             method: 'GET',
             url: prefixUrl,

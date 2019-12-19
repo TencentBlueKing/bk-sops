@@ -155,24 +155,24 @@
                 // 有权限执行
                 const { project_id, template_id, app_id, name } = template.extra_info
                 switch (type) {
-                    case 'common':
+                    case 'common_flow':
                         this.openSelectCreateTask(template)
                         break
-                    case 'process':
+                    case 'flow':
                         this.$router.push({
                             name: 'taskStep',
                             params: { step: 'selectnode', project_id },
                             query: { template_id }
                         })
                         break
-                    case 'periodic':
+                    case 'periodic_task':
                         this.$router.push({
                             name: 'periodicTemplate',
                             params: { project_id },
                             query: { q: name } // q 表示筛选 Id 值
                         })
                         break
-                    case 'app_maker':
+                    case 'mini_app':
                         const { href } = this.$router.resolve({
                             name: 'appmakerTaskCreate',
                             params: { step: 'selectnode', app_id, project_id },
@@ -189,7 +189,7 @@
              * 判断单个资源权限
              */
             getRourcePerm (item) {
-                if (item.category === 'process') {
+                if (item.category === 'flow') {
                     return !this.hasPermission(['create_task', 'create_template'], item.auth_actions, this.tplOperations)
                 }
                 return false
@@ -198,7 +198,7 @@
              * 申请对应权限
              */
             checkForPermission (item) {
-                if (item.category === 'process') {
+                if (item.category === 'flow') {
                     item.name = item.extra_info.name
                     this.applyForPermission(['create_task', 'create_template'], item, this.tplOperations, this.collectionResource)
                 }
