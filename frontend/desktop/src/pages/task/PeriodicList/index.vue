@@ -516,7 +516,6 @@
     }
     .operation-area{
         margin: 20px 0px;
-        height: 32px;
         .task-create-btn {
             min-width: 120px;
         }
