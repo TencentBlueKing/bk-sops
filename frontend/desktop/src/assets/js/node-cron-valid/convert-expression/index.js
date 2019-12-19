@@ -7,7 +7,7 @@ var convertAsterisksToRanges = require('./asterisk-to-range-conversion');
 var convertRanges = require('./range-conversion');
 var convertSteps = require('./step-values-conversion');
 
-module.exports = (() => {
+export default (() => {
 
   function appendSeccondExpression(expressions){
     if(expressions.length === 5){

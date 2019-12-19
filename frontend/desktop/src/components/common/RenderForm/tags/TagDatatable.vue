@@ -102,7 +102,7 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
-    import errorHandler from '@/utils/errorHandler.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     export const attrs = {
         columns: {

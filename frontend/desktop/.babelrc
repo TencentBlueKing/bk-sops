@@ -3,7 +3,7 @@
         [
             "@babel/preset-env",
             {
-                "modules": "commonjs",
+                "modules": false,
                 "corejs": 2,
                 "spec": true,
                 "targets": {
@@ -42,5 +42,20 @@
         "@babel/plugin-proposal-export-namespace-from",
         "@babel/plugin-proposal-numeric-separator",
         "@babel/plugin-proposal-throw-expressions"
-    ]
+    ],
+    "env": {
+        "test": {
+            "presets": [
+                [
+                    "@babel/preset-env",
+                    {
+                        "modules": "commonjs",
+                        "targets": {
+                            "node": "current"
+                        }
+                    }
+                ]
+            ]
+        }
+    }
 }
