@@ -285,6 +285,13 @@ class BaseTemplate(models.Model):
             item['name'] = item.pop('pipeline_template__name')
         return result
 
+    def referencer_appmaker(self):
+        appmaker_referencer = self.appmaker_set.all().values('id', 'name')
+        if not appmaker_referencer.exists():
+            return []
+
+        return appmaker_referencer
+
     def update_pipeline_template(self, **kwargs):
         pipeline_template = self.pipeline_template
         if pipeline_template is None:
