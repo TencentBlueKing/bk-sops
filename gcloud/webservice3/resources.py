@@ -282,7 +282,7 @@ class CommonProjectResource(GCloudModelResource):
 
     class Meta(GCloudModelResource.Meta):
         queryset = ProjectCounter.objects.all().order_by('-count')
-        resource_name = 'common_project'
+        resource_name = 'common_use_project'
         auth_resource = project_resource
         authorization = BkSaaSReadOnlyAuthorization(auth_resource=auth_resource,
                                                     read_action_id='view',
