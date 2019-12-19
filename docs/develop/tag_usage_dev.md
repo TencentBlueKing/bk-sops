@@ -29,6 +29,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 目前标准运维系统内置的 Tag 组件包含：
 
 - button
+- cascader
 - checkbox
 - datatable
 - datetime
@@ -94,7 +95,25 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-## 2. TagCheckbox
+### 2. TagCascader
+
+级联组件，一般用于逐级查看和选择多层级结构的数据。
+
+**属性**
+
+  - `items`：：提供选择的级联选项，eg: [{label: '', value: '', children: [...]}, {label: '', value: '', children: [...]}]
+  - `value`：级联选择器的选中值
+  - `multiple`：设置是否可多选
+  - `filterable`：设置是否可搜索
+  - `placeholder`：占位文本
+  - `lazy`：是否开启远程加载
+  - `lazyLoad`：远程加载方法, 文档参考element-ui cascader组件lazyload说明
+
+**方法**
+
+*none*
+
+## 3. TagCheckbox
 
 多选框，通过配置项传入可选项，提供给使用者选择。
 
@@ -107,7 +126,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 3. TagDatatable**
+### 4. TagDatatable
 
 表格，用来展示多条并列数据，支持远程加载数据、单独添加数据、数据编辑。
 
@@ -152,7 +171,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `set_loading`：传入布尔类型参数来设置表格是否为 loading 状态
   - `remoteMethod`：远程加载数据
 
-### 4. TagDatetime
+### 5. TagDatetime
 
 日期时间选择器。
 
@@ -165,7 +184,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 5. TagInput
+### 6. TagInput
 
 文本框，一般用来输入单行文本。
 
@@ -179,7 +198,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 6. TagInt
+### 7. TagInt
 
 整数输入框，用来输入正整数。
 
@@ -192,7 +211,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 7. TagIpSelector
+### 8. TagIpSelector
 
 ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
@@ -206,7 +225,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 *none*
 
 
-### 8. TagPassword
+### 9. TagPassword
 
 密码输入框。
 
@@ -218,7 +237,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 9. TagRadio
+### 10. TagRadio
 
 单选框，通过配置项传入可选项，提供给使用者选择。
 
@@ -231,7 +250,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 10. TagSelect
+### 11. TagSelect
 
 下拉框，通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -250,7 +269,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `set_loading`：传入布尔类型参数来设置下拉框是否为 loading 状态
   - `remoteMethod`：远程加载数据
 
-### 11. TagText
+### 12. TagText
 
 文本组件，不可编辑，一般用来展示文本信息。
 
@@ -262,7 +281,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 12. TagTextarea
+### 13. TagTextarea
 
 多行文本框。
 
@@ -275,7 +294,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 13. TagTree
+### 14. TagTree
 
 树形选择组件，一般用来多个分组层级数据的选择。通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -321,7 +340,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remoteMethod`：远程加载数据
 
 
-**14. TagUpload**
+### 15. TagUpload
 
 上传组件。
 
@@ -346,7 +365,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `fileChange`: 上传文件变更时的钩子函数，添加文件、上传成功和上传失败时都会被调用，参数 file， fileList
   - `onError`: 文件上传失败时的钩子函数，参数 err, file， fileList
 
-**15. TagMemberSelector**
+### 16. TagMemberSelector
 
 人员选择组件
 
