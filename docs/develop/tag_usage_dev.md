@@ -113,7 +113,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-## 3. TagCheckbox
+### 3. TagCheckbox
 
 多选框，通过配置项传入可选项，提供给使用者选择。
 
@@ -340,7 +340,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remoteMethod`：远程加载数据
 
 
-**15. TagUpload**
+### 15. TagUpload
 
 上传组件。
 
@@ -365,7 +365,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `fileChange`: 上传文件变更时的钩子函数，添加文件、上传成功和上传失败时都会被调用，参数 file， fileList
   - `onError`: 文件上传失败时的钩子函数，参数 err, file， fileList
 
-**16. TagMemberSelector**
+### 16. TagMemberSelector
 
 人员选择组件
 
