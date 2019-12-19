@@ -20,6 +20,7 @@
                 :set-name="item.extra_info.name"
                 :is-apply-permission="getRourcePerm(item)"
                 :show-delete="true"
+                :icon-text="getCategoryCh(item.category)"
                 @onCardClick="onCardClick"
                 @onDeleteCard="onDeleteCard">
             </base-card>
@@ -205,6 +206,15 @@
             },
             onHideCreateTask () {
                 this.isCreateTaskDialogShow = false
+            },
+            getCategoryCh (enType) {
+                const categoryMap = {
+                    'flow': gettext('项目流程'),
+                    'common_flow': gettext('公共流程'),
+                    'mini_app': gettext('轻应用'),
+                    'periodic_task': gettext('周期任务')
+                }
+                return categoryMap[enType]
             }
         }
     }

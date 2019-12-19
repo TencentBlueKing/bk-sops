@@ -15,8 +15,16 @@
             'permission-disable': isApplyPermission
         }]"
         @click="onCardClick">
-        <div class="card-icon">
+        <div v-if="!iconText" class="card-icon">
             {{ displayName.trim().substr(0,1).toUpperCase() }}
+        </div>
+        <div v-else
+            :class="[
+                'card-icon',
+                'type-icon',
+                { 'zh-en': lang === 'en' }
+            ]">
+            {{ iconText }}
         </div>
         <div class="card-content">
             <p class="text">{{ displayName }}</p>
@@ -29,6 +37,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
     export default {
         name: 'BaseCard',
         props: {
@@ -47,6 +56,10 @@
             setName: {
                 type: String,
                 default: ''
+            },
+            iconText: {
+                type: String,
+                default: '公共流程'
             }
         },
         data () {
@@ -57,6 +70,9 @@
             }
         },
         computed: {
+            ...mapState({
+                lang: state => state.lang
+            }),
             displayName () {
                 return this.setName || this.data.name
             },
@@ -78,6 +94,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 .card-item {
+    display: table;
     position: relative;
     margin-top: 20px;
     margin-right: 16px;
@@ -85,6 +102,7 @@
     height: 60px;
     cursor: pointer;
     background: #f0f1f5;
+    border-radius: 2px;
     &:not(.permission-disable):hover {
         .card-icon {
             background: #b9bbc1;
@@ -97,20 +115,30 @@
         }
     }
     .card-icon {
-        float: left;
+        display: table-cell;
         width: 60px;
         height: 60px;
         line-height: 60px;
         text-align: center;
         font-size: 32px;
         color: #ffffff;
+        vertical-align: middle;
         background: #c4c6cc;
+        &.type-icon {
+            word-break: break-word;
+            font-size: 16px;
+            line-height: normal;
+            padding: 8px;
+        }
+        &.zh-en {
+            font-size: 12px;
+        }
     }
     .card-content {
-        display: flex;
-        align-items: center;
+        display: table-cell;
         padding: 12px 33px 12px 12px;
         height: 60px;
+        vertical-align: middle;
         .text {
             font-size: 12px;
             color: #313238;
