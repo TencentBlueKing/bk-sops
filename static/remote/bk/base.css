@@ -1,0 +1,52 @@
+/******************** Reset ********************/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td{margin: 0; padding: 0; border: 0; outline: 0; font-size:12px; font-family: "Microsoft YaHei", Arial, "Segoe UI", sans-serif; background: transparent;}
+img{display:block;}
+ul,ol{list-style:none;}
+input, textarea, select{padding:0; outline:none;}
+textarea{resize:none; overflow:hidden;}
+em, i{font-style:normal;}
+blockquote, q{quotes:none;}
+blockquote:before, blockquote:after,
+q:before, q:after{content:''; content: none;}
+h1,h2,h3,h4,h5,h6{font-size:100%; font-weight:normal;}
+
+/* remember to define focus styles! */
+:focus{outline:0;}
+
+/* remember to highlight inserts somehow! */
+ins{text-decoration:none;}
+del{text-decoration:line-through;}
+i{font-style:normal;}
+
+/* tables still need 'cellspacing="0"' in the markup */
+table{border-collapse:collapse; border-spacing:0;}
+
+/* Link style */
+a{text-decoration:none; cursor:pointer; outline-color:-moz-use-text-color; outline-style:none; outline-width:0;}
+a:hover{text-decoration:none;}
+a{-moz-outline:none; outline:none; ie-dummy:expression(this.hideFocus=true);}
+
+.clearfix:after {clear:both; content:"."; display:block; height:0; line-height:0; font-size:0; visibility:hidden;}
+.clearfix {zoom:1;}
+
+.f_l{float:left;}
+.f_r{float:right;}
+
+.v_align_t{vertical-align:top;}
+
+.pt_40{padding-top:40px;}
+.pb_80{padding-bottom:80px;}
+
+/*webkit滚动条样式*/
+::-webkit-scrollbar-track-piece{background-color:#f5f5f5;border-left:1px solid #d2d2d2}
+::-webkit-scrollbar{width:13px;height:13px}
+::-webkit-scrollbar-thumb{background-color:#c2c2c2;background-clip:padding-box;border:1px solid #979797;min-height:28px}
+::-webkit-scrollbar-thumb:hover{border:1px solid #636363;background-color:#929292}
