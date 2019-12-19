@@ -12,19 +12,27 @@
 <template>
     <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <ul v-if="collectionList.length" class="card-list">
-            <base-card
-                v-for="(item, index) in collectionList"
-                :key="index"
-                :data="item"
-                :set-name="item.extra_info.name"
-                :is-apply-permission="getRourcePerm(item)"
-                :show-delete="true"
-                :icon-text="getCategoryCh(item.category)"
-                @onCardClick="onCardClick"
-                @onDeleteCard="onDeleteCard">
-            </base-card>
-            <li class="add-collection" @click="onAddCollection">+</li>
+        <ul v-if="collectionList.length && !isScreenChange" class="card-list">
+            <bk-container :col="cardCol">
+                <bk-row>
+                    <bk-col
+                        v-for="(item, index) in collectionList"
+                        :key="index">
+                        <base-card
+                            :data="item"
+                            :set-name="item.extra_info.name"
+                            :is-apply-permission="getRourcePerm(item)"
+                            :show-delete="true"
+                            :icon-text="getCategoryCh(item.category)"
+                            @onCardClick="onCardClick"
+                            @onDeleteCard="onDeleteCard">
+                        </base-card>
+                    </bk-col>
+                    <bk-col>
+                        <li class="add-collection" @click="onAddCollection">+</li>
+                    </bk-col>
+                </bk-row>
+            </bk-container>
         </ul>
         <panel-nodata v-else>
             <span class="link-text" @click="onAddCollection">{{ i18n.add }}</span>
@@ -92,13 +100,17 @@
                 isDeleteDialogShow: false, // 显示确认删除
                 deleteCollectLoading: false, // 确认删除按钮 loading
                 isCreateTaskDialogShow: false, // 显示创建任务 dialog
-                collectionBodyLoading: false // 收藏 body
+                collectionBodyLoading: false, // 收藏 body
+                isScreenChange: false,
+                cardCol: 6
             }
         },
         created () {
         },
         mounted () {
             this.initData()
+            window.addEventListener('resize', this.handlerScreenChange)
+            this.handlerScreenChange()
         },
         methods: {
             ...mapActions('template/', [
@@ -215,6 +227,21 @@
                     'periodic_task': gettext('周期任务')
                 }
                 return categoryMap[enType]
+            },
+            handlerScreenChange () {
+                const width = document.documentElement.clientWidth
+                this.isScreenChange = true
+                if (width > 1920) {
+                    const addCol = Math.floor((width - 1920) / 960) * 3
+                    this.cardCol = 6 + addCol
+                } else if (width > 1440) {
+                    this.cardCol = 6
+                } else {
+                    this.cardCol = 4
+                }
+                this.$nextTick(() => {
+                    this.isScreenChange = false
+                })
             }
         }
     }
@@ -237,7 +264,10 @@
         overflow: hidden;
         margin-top: -20px;
         /deep/ .card-item {
-            margin-right: 10px;
+            width: 100%;
+        }
+        /deep/ .bk-grid-container {
+            padding: 0 !important;
         }
     }
     .add-collection {

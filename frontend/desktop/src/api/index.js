@@ -312,8 +312,8 @@ const api = {
     /**
      * 获取收藏列表
      */
-    getCollectList () {
-        const prefixUrl = this.getPrefix('collectList')
+    getCollectList (data) {
+        const prefixUrl = this.getPrefix('collectList') + '?limit=0'
         const opts = {
             method: 'GET',
             url: `${prefixUrl}`

@@ -12,24 +12,30 @@
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <ul v-if="commonUsedList.length" class="card-list">
-            <li
-                v-for="(item, index) in commonUsedList"
-                :key="index"
-                class="card-item"
-                @click="onSwitchBusiness(item.project.id)">
-                <p class="business-name">{{ item.project.name }}</p>
-                <div class="business-info">
-                    <p class="info-item">
-                        <label class="label">{{ i18n.businessId }}</label>
-                        <span class="text">{{ item.project.id }}</span>
-                    </p>
-                    <p class="info-item">
-                        <label class="label">{{ i18n.timeZone }}</label>
-                        <span class="text">{{ item.project.create_at | getTimeZone }}</span>
-                    </p>
-                </div>
-            </li>
+        <ul v-if="commonUsedList.length && !isScreenChange" class="card-list">
+            <bk-container :col="cardCol" :gutter="16">
+                <bk-row>
+                    <bk-col
+                        v-for="(item, index) in commonUsedList"
+                        :key="index">
+                        <li
+                            class="card-item"
+                            @click="onSwitchBusiness(item.project.id)">
+                            <p class="business-name">{{ item.project.name }}</p>
+                            <div class="business-info">
+                                <p class="info-item">
+                                    <label class="label">{{ i18n.businessId }}</label>
+                                    <span class="text">{{ item.project.id }}</span>
+                                </p>
+                                <p class="info-item">
+                                    <label class="label">{{ i18n.timeZone }}</label>
+                                    <span class="text">{{ item.project.create_at | getTimeZone }}</span>
+                                </p>
+                            </div>
+                        </li>
+                    </bk-col>
+                </bk-row>
+            </bk-container>
         </ul>
         <panel-nodata v-else>
             <span>{{ i18n.nodataDes1 }}</span>
@@ -68,11 +74,18 @@
 
                 },
                 commonlyUsedloading: false,
-                commonUsedList: []
+                isScreenChange: false,
+                commonUsedList: [],
+                cardCol: 4
             }
         },
         mounted () {
             this.initData()
+            window.addEventListener('resize', this.handlerScreenChange)
+            this.handlerScreenChange()
+        },
+        beforeDestroy () {
+            window.removeEventListener('resize', this.handlerScreenChange)
         },
         methods: {
             ...mapActions('template/', [
@@ -104,6 +117,19 @@
                     name: 'process',
                     params: { project_id: id }
                 })
+            },
+            handlerScreenChange () {
+                const width = document.documentElement.clientWidth
+                this.isScreenChange = true
+                if (width > 1920) {
+                    const addCol = Math.floor((width - 1920) / 960) * 2
+                    this.cardCol = 4 + addCol
+                } else {
+                    this.cardCol = 4
+                }
+                this.$nextTick(() => {
+                    this.isScreenChange = false
+                })
             }
         }
     }
@@ -123,12 +149,14 @@
     .card-list {
         max-height: 95px;
         overflow: hidden;
-        @include scrollbar;
+        /deep/ .bk-grid-container {
+            padding: 0 !important;
+        }
         .card-item {
             display: inline-block;
             margin-right: 11px;
             padding: 14px;
-            width: 278px;
+            width: 100%;
             background: #f0f1f5;
             cursor: pointer;
             &:hover {
@@ -157,17 +185,6 @@
                         color: #313238;
                     }
                 }
-            }
-        }
-        @media screen and (max-width: 1626px){
-            .card-item {
-                width: 287px;
-            }
-        }
-        @media screen and (max-width: 1366px){
-            & {
-                overflow-x: scroll;
-                white-space: nowrap;
             }
         }
     }
