@@ -267,7 +267,8 @@
             width: 100%;
         }
         /deep/ .bk-grid-container {
-            padding: 0 !important;
+            padding-right: 10px !important;
+            padding-left: 0 !important;
         }
     }
     .add-collection {

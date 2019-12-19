@@ -550,8 +550,9 @@
         color: #30d878;
     }
     a.periodic-name,
-    .periodic-operation a {
+    .periodic-operation>a {
         color: $blueDefault;
+        padding: 5px;
         &.periodic-bk-disable {
             color:#cccccc;
             cursor: not-allowed;

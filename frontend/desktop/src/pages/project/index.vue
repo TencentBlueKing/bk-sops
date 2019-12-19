@@ -570,7 +570,7 @@
     }
     .operate-btn {
         margin-right: 5px;
-        padding: 0;
+        padding: 5px;
         height: auto;
         line-height: 1;
         background: transparent;

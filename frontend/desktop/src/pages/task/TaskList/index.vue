@@ -608,6 +608,7 @@
     .task-operation {
         width: 150px;
         .task-operation-clone {
+            padding: 5px;
             color: #3C96FF;
             font-size: 12px;
         }
