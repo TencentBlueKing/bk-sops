@@ -38,6 +38,7 @@ PIPELINE_END_HANDLER = getattr(settings, 'PIPELINE_END_HANDLER',
 PIPELINE_WORKER_STATUS_CACHE_EXPIRES = getattr(settings, 'PIPELINE_WORKER_STATUS_CACHE_EXPIRES',
                                                30)
 PIPELINE_RERUN_MAX_TIMES = getattr(settings, 'PIPELINE_RERUN_MAX_TIMES', 0)
+PIPELINE_RERUN_INDEX_OFFSET = getattr(settings, 'PIPELINE_RERUN_INDEX_OFFSET', -1)
 
 COMPONENT_AUTO_DISCOVER_PATH = [
     'components.collections',

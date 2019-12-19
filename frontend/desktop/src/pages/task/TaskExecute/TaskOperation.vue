@@ -824,8 +824,8 @@
             getOrderedTree (data) {
                 const fstLine = data.start_event.outgoing
                 const orderedData = []
-                const passedLines = []
-                this.retrieveLines(data, fstLine, orderedData, passedLines)
+                const passedNodes = []
+                this.retrieveLines(data, fstLine, orderedData, passedNodes)
                 orderedData.sort((a, b) => a.level - b.level)
                 return orderedData
             },
@@ -834,38 +834,39 @@
              * @param {Object} data 画布数据
              * @param {Array} lineId 连线ID
              * @param {Array} ordered 排序后的节点数据
-             * @param {Array} passedLines 遍历过的连线
+             * @param {Array} passedNodes 遍历过的节点
              * @param {Number} level 任务节点与开始节点的距离
              *
              */
-            retrieveLines (data, lineId, ordered, passedLines, level = 1) {
-                const isLinePassed = passedLines.includes(lineId)
-                if (!isLinePassed) {
-                    const { activities, gateways, flows } = data
-                    const currentNode = flows[lineId].target
-                    const activity = activities[currentNode]
-                    const gateway = gateways[currentNode]
-                    const node = activity || gateway
-                    passedLines.push(lineId)
+            retrieveLines (data, lineId, ordered, passedNodes, level = 0) {
+                const { activities, gateways, flows } = data
+                const currentNode = flows[lineId].target
+                const activity = activities[currentNode]
+                const gateway = gateways[currentNode]
+                const node = activity || gateway
 
-                    if (node) {
-                        if (activity) {
-                            const isExistInList = ordered.find(item => item.id === activity.id)
-                            if (!isExistInList) {
-                                if (activity.pipeline) {
-                                    activity.children = this.getOrderedTree(activity.pipeline)
-                                }
-                                activity.level = level
-                                ordered.push(activity)
+                if (node && !passedNodes.includes(node.id)) {
+                    passedNodes.push(node.id)
+
+                    if (activity) {
+                        const isExistInList = ordered.find(item => item.id === activity.id)
+                        if (!isExistInList) {
+                            if (activity.pipeline) {
+                                activity.children = this.getOrderedTree(activity.pipeline)
                             }
+                            activity.level = level
+                            ordered.push(activity)
                         }
-
-                        const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
-                        level += 1
-                        outgoing.forEach((line, index, arr) => {
-                            this.retrieveLines(data, line, ordered, passedLines, level)
-                        })
                     }
+
+                    const outgoing = Array.isArray(node.outgoing) ? node.outgoing : [node.outgoing]
+                    // 分支网关
+                    if (gateway) {
+                        level += 1
+                    }
+                    outgoing.forEach((line, index, arr) => {
+                        this.retrieveLines(data, line, ordered, passedNodes, level)
+                    })
                 }
             },
             updateNodeActived (id, isActived) {

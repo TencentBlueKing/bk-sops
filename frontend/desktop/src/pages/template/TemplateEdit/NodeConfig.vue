@@ -223,6 +223,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import Vue from 'vue'
     import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
@@ -237,13 +238,18 @@
 
     const varKeyReg = /^\$\{(\w+)\}$/
 
+    /**
+     * notice：provide为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
+     */
+    const reactiveNodeId = Vue.observable({ id: '' })
+
     export default {
         /**
          * notice：provide为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
          */
         provide () {
             return {
-                nodeId: this.idOfNodeInConfigPanel
+                node: reactiveNodeId
             }
         },
         name: 'NodeConfig',
@@ -432,15 +438,9 @@
              */
             renderOutputData () {
                 const outputData = []
-                let outputConfig = []
-                if (!this.currentAtom
-                    || JSON.stringify(this.atomFormConfig) === '{}'
-                    || !this.atomFormConfig[this.currentAtom]) {
-                    outputConfig = []
-                } else {
-                    outputConfig = this.getOutputConfig()
-                }
-                outputConfig && outputConfig.forEach(item => {
+                const outputConfig = this.getOutputConfig()
+
+                outputConfig.forEach(item => {
                     let hook = false
                     let key = item.key
                     for (const cKey in this.constants) {
@@ -521,6 +521,12 @@
             idOfNodeInConfigPanel (val) {
                 if (!val) return
                 this.nodeId = val
+
+                /**
+                 * notice：provide为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
+                 */
+                reactiveNodeId.id = val
+
                 // 清空验证
                 this.currentVersion = ''
                 this.taskTypeEmpty = false
@@ -815,7 +821,14 @@
             },
             getOutputConfig () {
                 const version = this.currentVersion
-                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
+                if (this.isSingleAtom) {
+                    if (this.atomFormOutput && this.currentAtom && this.atomFormOutput[this.currentAtom]) {
+                        return this.atomFormOutput[this.currentAtom][version]
+                    }
+                    return []
+                } else {
+                    return this.subAtomOutput || []
+                }
             },
             getHookedInputVariables () {
                 const variables = []

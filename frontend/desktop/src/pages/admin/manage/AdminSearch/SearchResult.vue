@@ -163,6 +163,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'

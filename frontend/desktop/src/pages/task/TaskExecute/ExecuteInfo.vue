@@ -297,6 +297,10 @@
         {
             title: gettext('回调数据'),
             id: 'callback_data'
+        },
+        {
+            title: gettext('插件版本'),
+            id: 'plugin_version'
         }
     ]
 
@@ -419,9 +423,8 @@
             },
             loopTimes () {
                 const times = []
-                const loop = this.executeInfo.hasOwnProperty('loop') ? this.executeInfo.loop : 1
-                for (let i = 0; i < loop; i++) {
-                    times.push(loop - i)
+                for (let i = 0; i < this.loop; i++) {
+                    times.push(this.loop - i)
                 }
 
                 return times
@@ -481,7 +484,6 @@
                         })
                     } else {
                         this.executeInfo = respData
-                        this.executeInfo.plugin_version = this.nodeDetailConfig.version
                         this.inputsInfo = inputs
                         this.outputsInfo = outputs
                         this.historyInfo = respData.histories
@@ -502,9 +504,11 @@
                         
                         if (this.theExecuteTime === undefined) {
                             this.loop = respData.loop
+                            this.theExecuteTime = respData.loop
                         }
                     }
 
+                    this.executeInfo.plugin_version = this.nodeDetailConfig.version
                     this.historyInfo.forEach(item => {
                         item.last_time = this.getLastTime(item.elapsed_time)
                     })

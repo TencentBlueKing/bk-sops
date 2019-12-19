@@ -483,7 +483,7 @@ const template = {
                     gatewayNode.incoming = updateIncoming(gatewayNode.incoming, id, 'add')
                 }
                 state.line.push(newLine)
-            } else if (type === 'delete') { // async activities、flows、gateways、start_event、end_event
+            } else if (type === 'delete') { // sync activities、flows、gateways、start_event、end_event
                 let deletedLine
                 for (const item in state.flows) {
                     const flow = state.flows[item]
@@ -585,7 +585,6 @@ const template = {
                 for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
-
                     if (sourceInfo && sourceInfo[location.id]) {
                         if (Object.keys(sourceInfo).length > 1) {
                             Vue.delete(sourceInfo, location.id)

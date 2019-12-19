@@ -9,36 +9,31 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-<template>
-    <div class="page-title">{{ title }}</div>
-</template>
-<script>
-    import '@/utils/i18n.js'
-    export default {
-        name: 'PageTitle',
-        props: {
-            title: {
-                type: String,
-                default: 'title'
-            }
-        }
-    }
-</script>
-<style lang="scss" scoped>
-    .page-title {
-        position: relative;
-        margin-left: 12px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #313238;
-        &:before {
-            content: '';
-            position: absolute;
-            left: -10px;
-            top: 0;
-            width: 0;
-            height: 20px;
-            border-left: 2px solid #a3c5fd;
-        }
-    }
-</style>
+const path = require('path')
+
+module.exports = {
+  rootDir: path.resolve(__dirname, '../../'),
+  moduleFileExtensions: [
+    'js',
+    'json',
+    'vue'
+  ],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1'
+  },
+  transform: {
+    '^.+\\.js$': '<rootDir>/node_modules/babel-jest',
+    '.*\\.(vue)$': '<rootDir>/node_modules/vue-jest'
+  },
+  testMatch: [
+    '**/test/unit/**/*.spec.js'
+  ],
+  setupFiles: ['<rootDir>/test/unit/setup'],
+  coverageDirectory: '<rootDir>/test/unit/coverage',
+  collectCoverageFrom: [
+    'src/**/*.{js,vue}',
+    '!src/main.js',
+    '!src/router/index.js',
+    '!**/node_modules/**'
+  ]
+}

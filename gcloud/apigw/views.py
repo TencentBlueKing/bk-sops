@@ -31,7 +31,7 @@ from pipeline_web.drawing_new.drawing import draw_pipeline
 
 from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.constants import PROJECT, BUSINESS, ONETIME
+from gcloud.constants import PROJECT, ONETIME
 from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     api_verify_perms,
@@ -49,6 +49,7 @@ from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -124,7 +125,7 @@ def format_template_data(template, project=None):
 def get_template_list(request, project_id):
     template_source = request.GET.get('template_source', PROJECT)
     project = request.project
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project.id,
                                                                                     is_deleted=False)
     else:
@@ -144,7 +145,7 @@ def get_template_list(request, project_id):
 def get_template_info(request, template_id, project_id):
     project = request.project
     template_source = request.GET.get('template_source', PROJECT)
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project.id,
@@ -257,7 +258,7 @@ def create_task(request, template_id, project_id):
         params=params))
 
     # 兼容老版本的接口调用
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         template_source = PROJECT
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
@@ -609,7 +610,7 @@ def create_periodic_task(request, template_id, project_id):
                                                                                         project_id=project.id,
                                                                                         params=params))
 
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         template_source = PROJECT
         try:
             template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
