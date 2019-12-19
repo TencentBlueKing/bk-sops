@@ -1,6 +1,6 @@
 /* eslint-disable */
 'use strict';
-module.exports = ( () => {
+export default ( () => {
   function replaceWithRange(expression, text, init, end) {
     var numbers = [];
     var last = parseInt(end);

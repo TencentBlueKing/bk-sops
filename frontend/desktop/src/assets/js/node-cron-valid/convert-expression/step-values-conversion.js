@@ -1,7 +1,6 @@
 /* eslint-disable */
 'use strict';
-
-module.exports = (() => {
+export default (() => {
   function convertSteps(expressions){
     var stepValuePattern = /^(.+)\/(\d+)$/;
     for(const i in expressions){
