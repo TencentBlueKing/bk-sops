@@ -255,6 +255,7 @@
                     case 'datatable':
                     case 'tree':
                     case 'upload':
+                    case 'cascader':
                         valueFormat = {
                             type: 'Array',
                             value: []
@@ -309,6 +310,7 @@
                 return required
             },
             updateForm (fieldArr, val) {
+                console.log(val)
                 this.$emit('change', fieldArr, val)
             },
             onShowForm () {
