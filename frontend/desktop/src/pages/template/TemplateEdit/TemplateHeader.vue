@@ -216,16 +216,16 @@
                 this.$emit('onChangeName', val)
             },
             onSaveClick (saveAndCreate = false) {
-                if (!this.project_id && saveAndCreate) {
+                if (saveAndCreate) {
                     this.$refs.ProjectSelectorModal.show()
                     this.$refs.ProjectSelectorModal.$on('confirm', (projectId) => {
-                        this.onSaveTemplate()
+                        this.saveTemplate(true)
                     })
                     return false
                 }
-                this.onSaveTemplate(saveAndCreate)
+                this.saveTemplate(saveAndCreate)
             },
-            onSaveTemplate (saveAndCreate = false, projectId) {
+            saveTemplate (saveAndCreate = false, projectId) {
                 const { resourceData, operations, actions, resource } = this.getPermissionData()
                 const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
                 if (!this.hasPermission(required, actions, operations)) {

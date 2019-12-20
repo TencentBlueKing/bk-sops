@@ -19,7 +19,7 @@
         :has-header="false"
         :mask-close="false">
         <div class="select-wrapper">
-            <label class="label-project" for="">{{ i18n.select }}</label>
+            <label class="label-project">{{ i18n.select }}</label>
             <project-selector
                 :redirect="false"
                 @loading="onLoading">
@@ -28,10 +28,9 @@
         <div slot="footer" class="common-wrapper-btn">
             <div class="bk-button-group">
                 <bk-button
-                    title="loading"
                     :loading="isLoading"
                     style="margin-right:10px" theme="primary"
-                    @click="newTask">
+                    @click="onCreateTask">
                     {{ confirm }}
                 </bk-button>
                 <bk-button theme="default" @click="cancel"> {{ i18n.cancel }} </bk-button>
@@ -58,7 +57,7 @@
         data () {
             return {
                 i18n: {
-                    select: gettext('选择业务：'),
+                    select: gettext('选择项目：'),
                     cancel: gettext('取消')
                 },
                 isModalShow: false,
@@ -78,7 +77,7 @@
                 this.isModalShow = true
                 this.templateId = templateId
             },
-            newTask () {
+            onCreateTask () {
                 this.$emit('confirm', this.project_id, this.templateId)
                 this.isModalShow = false
             },
@@ -87,7 +86,6 @@
                 this.isModalShow = false
             },
             onLoading (val) {
-                console.log('emit', val)
                 this.isLoading = val
             }
         }

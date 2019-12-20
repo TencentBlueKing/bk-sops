@@ -12,13 +12,13 @@
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <ul v-if="commonUsedList.length && !isScreenChange" class="card-list">
+        <div v-if="commonUsedList.length && !isScreenChange" class="card-list">
             <bk-container :col="cardCol" :gutter="16">
                 <bk-row>
                     <bk-col
                         v-for="(item, index) in commonUsedList"
                         :key="index">
-                        <li
+                        <div
                             class="card-item"
                             @click="onSwitchBusiness(item.project.id)">
                             <p class="business-name">{{ item.project.name }}</p>
@@ -32,11 +32,11 @@
                                     <span class="text">{{ item.project.create_at | getTimeZone }}</span>
                                 </p>
                             </div>
-                        </li>
+                        </div>
                     </bk-col>
                 </bk-row>
             </bk-container>
-        </ul>
+        </div>
         <panel-nodata v-else>
             <span>{{ i18n.nodataDes1 }}</span>
             <span class="link-text" @click="openOtherApp('bk_iam_app')">{{ i18n.nodataDes2 }}</span>

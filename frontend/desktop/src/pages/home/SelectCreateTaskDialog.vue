@@ -57,7 +57,7 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <div v-show="isShowprojectError" class="error-info">{{ i18n.projectPlaceholder }}</div>
+                    <div v-show="isShowProjectError" class="error-info">{{ i18n.projectPlaceholder }}</div>
                 </bk-form-item>
             </bk-form>
         </div>
@@ -108,7 +108,7 @@
                     selectedProject: ''
                 },
                 isShowtaskError: false,
-                isShowprojectError: false,
+                isShowProjectError: false,
                 hasCreateTaskPer: true, // 新建任务权限
                 hasUseCommonTplPer: true // 使用公共流程权限
             }
@@ -130,7 +130,7 @@
                     this.formData.taskType = ''
                     this.formData.selectedProject = ''
                     this.isShowtaskError = false
-                    this.isShowprojectError = false
+                    this.isShowProjectError = false
                 }
             }
         },
@@ -160,7 +160,7 @@
             },
             checkEmpty () {
                 this.isShowtaskError = !this.formData.taskType
-                this.isShowprojectError = !this.formData.selectedProject
+                this.isShowProjectError = !this.formData.selectedProject
                 if (!this.formData.taskType || !this.formData.selectedProject) {
                     return false
                 }
@@ -174,7 +174,6 @@
                     const hasPer = this.hasPermission(['create_task'], auth_actions, this.tplOperations)
                     const action = this.projectList.find(m => m.id === selectedProject)
                     this.hasCreateTaskPer = !!hasPer
-                    debugger
                     this.hasUseCommonTplPer = action.auth_actions.indexOf('use_common_template') > -1
                 }
             },

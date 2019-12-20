@@ -591,7 +591,7 @@
                     template_id,
                     common: '1'
                 }
-                if (name === 'newTask' && !this.project_id) {
+                if (name === 'newTask') {
                     this.$refs.ProjectSelectorModal.show(template_id)
                     return false
                 }

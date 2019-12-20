@@ -12,7 +12,7 @@
 <template>
     <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <ul v-if="collectionList.length && !isScreenChange" class="card-list">
+        <div v-if="collectionList.length && !isScreenChange" class="card-list">
             <bk-container :col="cardCol">
                 <bk-row>
                     <bk-col
@@ -22,18 +22,18 @@
                             :data="item"
                             :set-name="item.extra_info.name"
                             :is-apply-permission="getRourcePerm(item)"
-                            :show-delete="true"
-                            :icon-text="getCategoryCh(item.category)"
+                            :show-delete="!getRourcePerm(item)"
+                            :icon-text="getCategoryChineseName(item.category)"
                             @onCardClick="onCardClick"
                             @onDeleteCard="onDeleteCard">
                         </base-card>
                     </bk-col>
                     <bk-col>
-                        <li class="add-collection" @click="onAddCollection">+</li>
+                        <div class="add-collection" @click="onAddCollection">+</div>
                     </bk-col>
                 </bk-row>
             </bk-container>
-        </ul>
+        </div>
         <panel-nodata v-else>
             <span class="link-text" @click="onAddCollection">{{ i18n.add }}</span>
             <span>{{ i18n.noDataDesc }}</span>
@@ -219,7 +219,7 @@
             onHideCreateTask () {
                 this.isCreateTaskDialogShow = false
             },
-            getCategoryCh (enType) {
+            getCategoryChineseName (enType) {
                 const categoryMap = {
                     'flow': gettext('项目流程'),
                     'common_flow': gettext('公共流程'),
@@ -273,7 +273,6 @@
     }
     .add-collection {
         margin-top: 20px;
-        width: 278px;
         height: 60px;
         line-height: 60px;
         font-size: 18px;
