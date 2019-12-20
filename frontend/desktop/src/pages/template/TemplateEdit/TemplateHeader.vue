@@ -216,7 +216,7 @@
                 this.$emit('onChangeName', val)
             },
             onSaveClick (saveAndCreate = false) {
-                if (saveAndCreate) {
+                if (saveAndCreate && this.common) {
                     this.$refs.ProjectSelectorModal.show()
                     this.$refs.ProjectSelectorModal.$on('confirm', (projectId) => {
                         this.saveTemplate(true)
