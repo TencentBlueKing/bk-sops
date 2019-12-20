@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-12-06 14:47+0800\n"
+"POT-Creation-Date: 2019-12-20 15:26+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 #: blueapps/account/admin.py:25
 msgid "Personal info"
@@ -177,7 +177,7 @@ msgid "流程超时时间(分钟)"
 msgstr "流程超时时间(分钟)"
 
 #: gcloud/commons/template/models.py:199 gcloud/contrib/appmaker/models.py:272
-#: gcloud/taskflow3/models.py:784 pipeline/models.py:284
+#: gcloud/taskflow3/models.py:790 pipeline/models.py:284
 msgid "是否删除"
 msgstr "是否删除"
 
@@ -290,8 +290,8 @@ msgstr "当前操作的轻应用不存在或已删除！"
 msgid "删除失败：%s"
 msgstr "删除失败：%s"
 
-#: gcloud/contrib/appmaker/models.py:259 gcloud/periodictask/models.py:83
-#: gcloud/taskflow3/models.py:759 gcloud/tasktmpl3/models.py:363
+#: gcloud/contrib/appmaker/models.py:259 gcloud/periodictask/models.py:84
+#: gcloud/taskflow3/models.py:765 gcloud/tasktmpl3/models.py:363
 msgid "所属项目"
 msgstr "所属项目"
 
@@ -373,7 +373,7 @@ msgstr "已驳回"
 msgid "已执行"
 msgstr "已执行"
 
-#: gcloud/contrib/function/models.py:27 gcloud/taskflow3/models.py:408
+#: gcloud/contrib/function/models.py:27 gcloud/taskflow3/models.py:409
 #: gcloud/tasktmpl3/models.py:129
 msgid "已完成"
 msgstr "已完成"
@@ -804,7 +804,7 @@ msgstr "文件系统路径"
 msgid "FS远程包源 FileSystemOriginalSource"
 msgstr "FS远程包源 FileSystemOriginalSource"
 
-#: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:402
+#: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:403
 #: gcloud/tasktmpl3/models.py:123
 #: gcloud/tests/external_plugins/models/test_sync_task.py:38
 msgid "执行中"
@@ -830,7 +830,7 @@ msgstr "部署自动触发"
 msgid "执行者"
 msgstr "执行者"
 
-#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:773
+#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:779
 msgid "创建方式"
 msgstr "创建方式"
 
@@ -856,62 +856,62 @@ msgstr "同步详情信息"
 msgid "远程包源同步任务 SyncTask"
 msgstr "远程包源同步任务 SyncTask"
 
-#: gcloud/periodictask/models.py:87
+#: gcloud/periodictask/models.py:88
 msgid "pipeline 层周期任务"
 msgstr "pipeline 层周期任务"
 
-#: gcloud/periodictask/models.py:88 gcloud/taskflow3/models.py:769
+#: gcloud/periodictask/models.py:89 gcloud/taskflow3/models.py:775
 msgid "创建任务所用的模板ID"
 msgstr "创建任务所用的模板ID"
 
-#: gcloud/periodictask/models.py:89 gcloud/taskflow3/models.py:770
+#: gcloud/periodictask/models.py:90 gcloud/taskflow3/models.py:776
 msgid "流程模板来源"
 msgstr "流程模板来源"
 
-#: gcloud/periodictask/models.py:96 gcloud/periodictask/models.py:97
+#: gcloud/periodictask/models.py:97 gcloud/periodictask/models.py:98
 msgid "周期任务 PeriodicTask"
 msgstr "周期任务 PeriodicTask"
 
-#: gcloud/periodictask/models.py:142
+#: gcloud/periodictask/models.py:143
 msgid "流程模板[project={project}, id={template_id}]不存在"
 msgstr "流程模板[project={project}, id={template_id}]不存在"
 
-#: gcloud/periodictask/models.py:150
+#: gcloud/periodictask/models.py:151
 msgid "公共流程模板[id={template_id}]不存在"
 msgstr "公共流程模板[id={template_id}]不存在"
 
-#: gcloud/periodictask/models.py:179
+#: gcloud/periodictask/models.py:180
 #, python-format
 msgid "获取周期任务历史相关任务实例失败：%s"
 msgstr "获取周期任务历史相关任务实例失败：%s"
 
-#: gcloud/periodictask/models.py:192
+#: gcloud/periodictask/models.py:193
 msgid "pipeline 层周期任务历史"
 msgstr "pipeline 层周期任务历史"
 
-#: gcloud/periodictask/models.py:193 gcloud/periodictask/permissions.py:26
+#: gcloud/periodictask/models.py:194 gcloud/periodictask/permissions.py:26
 #: gcloud/taskflow3/constants.py:23
 #: pipeline/contrib/periodic_task/models.py:395
 msgid "周期任务"
 msgstr "周期任务"
 
-#: gcloud/periodictask/models.py:194
+#: gcloud/periodictask/models.py:195
 msgid "流程实例"
 msgstr "流程实例"
 
-#: gcloud/periodictask/models.py:195
+#: gcloud/periodictask/models.py:196
 #: pipeline/contrib/periodic_task/models.py:403 pipeline/log/models.py:46
 msgid "异常信息"
 msgstr "异常信息"
 
-#: gcloud/periodictask/models.py:196
+#: gcloud/periodictask/models.py:197
 #: pipeline/contrib/periodic_task/models.py:404
 #: pipeline/engine/models/core.py:837 pipeline/engine/models/core.py:931
 #: pipeline/engine/models/loop_activity.py:67
 msgid "开始时间"
 msgstr "开始时间"
 
-#: gcloud/periodictask/models.py:197
+#: gcloud/periodictask/models.py:198
 #: pipeline/contrib/periodic_task/models.py:405
 msgid "是否启动成功"
 msgstr "是否启动成功"
@@ -974,27 +974,27 @@ msgstr "任务ID"
 msgid "任务名称"
 msgstr "任务名称"
 
-#: gcloud/taskflow3/models.py:397 gcloud/tasktmpl3/models.py:118
+#: gcloud/taskflow3/models.py:398 gcloud/tasktmpl3/models.py:118
 msgid "未执行"
 msgstr "未执行"
 
-#: gcloud/taskflow3/models.py:767
+#: gcloud/taskflow3/models.py:773
 msgid "任务类型，继承自模板"
 msgstr "任务类型，继承自模板"
 
-#: gcloud/taskflow3/models.py:777
+#: gcloud/taskflow3/models.py:783
 msgid "创建任务额外信息（App maker ID或者APP CODE）"
 msgstr "创建任务额外信息（App maker ID或者APP CODE）"
 
-#: gcloud/taskflow3/models.py:779
+#: gcloud/taskflow3/models.py:785
 msgid "任务流程类型"
 msgstr "任务流程类型"
 
-#: gcloud/taskflow3/models.py:783
+#: gcloud/taskflow3/models.py:789
 msgid "当前任务流程阶段"
 msgstr "当前任务流程阶段"
 
-#: gcloud/taskflow3/models.py:792 gcloud/taskflow3/models.py:793
+#: gcloud/taskflow3/models.py:798 gcloud/taskflow3/models.py:799
 msgid "流程实例 TaskFlowInstance"
 msgstr "流程实例 TaskFlowInstance"
 

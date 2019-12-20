@@ -3,12 +3,12 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
+#: gcloud/core/static/remote/jquery/jquery-1.7.2.min.js:2
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-12-06 14:47+0800\n"
+"POT-Creation-Date: 2019-12-20 15:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -164,15 +164,15 @@ msgstr "目标账户"
 msgid "请输入在蓝鲸作业平台上注册的账户名"
 msgstr "请输入在蓝鲸作业平台上注册的账户名"
 
-#: frontend/desktop/src/api/interceptors.js:72
+#: frontend/desktop/src/api/interceptors.js:77
 msgid "接口数据返回为空"
 msgstr "接口数据返回为空"
 
-#: frontend/desktop/src/api/interceptors.js:73
+#: frontend/desktop/src/api/interceptors.js:78
 msgid "接口异常，"
 msgstr "接口异常，"
 
-#: frontend/desktop/src/api/interceptors.js:73
+#: frontend/desktop/src/api/interceptors.js:78
 msgid "HTTP状态码："
 msgstr "HTTP状态码："
 
@@ -295,13 +295,13 @@ msgstr "task-zh"
 
 #: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:121
 #: frontend/desktop/src/components/common/RenderForm/FormItem.vue:173
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:259
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:265
 msgid "取消勾选"
 msgstr "取消勾选"
 
 #: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:122
 #: frontend/desktop/src/components/common/RenderForm/FormItem.vue:174
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:258
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:264
 msgid "勾选参数作为全局变量"
 msgstr "勾选参数作为全局变量"
 
@@ -320,7 +320,7 @@ msgstr "请输入拓扑实例名称，多个用换行符分隔"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:53
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:128
 #: frontend/desktop/src/components/common/RenderForm/formMixins.js:200
-#: frontend/desktop/src/main.js:85
+#: frontend/desktop/src/main.js:86
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:179
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:277
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:83
@@ -386,7 +386,7 @@ msgstr "清空Agent未安装IP"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:114
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:79
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:187
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:189
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:275
 msgid "添加"
 msgstr "添加"
@@ -425,7 +425,7 @@ msgid "异常"
 msgstr "异常"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:122
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:185
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:187
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:274
 #: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:121
 #: frontend/desktop/src/pages/audit/index.vue:230
@@ -456,7 +456,7 @@ msgid "服务器"
 msgstr "服务器"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:85
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:183
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:185
 #: frontend/desktop/src/components/common/base/DialogLoadingBtn.vue:40
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:82
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheEdit.vue:65
@@ -493,7 +493,7 @@ msgstr "筛选条件"
 msgid "排除条件"
 msgstr "排除条件"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:182
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:184
 #: frontend/desktop/src/pages/config/index.vue:71
 #: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:150
 #: frontend/desktop/src/pages/task/TaskExecute/ModifyParams.vue:75
@@ -503,7 +503,7 @@ msgstr "排除条件"
 msgid "保存"
 msgstr "保存"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:184
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:186
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:76
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:87
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:241
@@ -513,7 +513,7 @@ msgstr "保存"
 msgid "编辑"
 msgstr "编辑"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:186
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:188
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:173
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:263
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:88
@@ -526,11 +526,11 @@ msgstr "编辑"
 msgid "删除"
 msgstr "删除"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:262
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:264
 msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
 msgstr "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:399
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:401
 msgid "请求表头数据失败，使用预置表头"
 msgstr "请求表头数据失败，使用预置表头"
 
@@ -590,8 +590,8 @@ msgid "：还原"
 msgstr "：还原"
 
 #: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:61
-msgid "鼠标左键单击 ：连续选中节点"
-msgstr "鼠标左键单击 ：连续选中节点"
+msgid "鼠标左键单击 ：连续选中（或取消）节点"
+msgstr "鼠标左键单击 ：连续选中（或取消）节点"
 
 #: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:62
 msgid "选中所有节点"
@@ -723,14 +723,6 @@ msgstr "高级搜索"
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:171
 msgid "确认"
 msgstr "确认"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode401.vue:25
-msgid "您需要登录蓝鲸智云"
-msgstr "您需要登录蓝鲸智云"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode401.vue:26
-msgid "立即登录"
-msgstr "立即登录"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode403.vue:28
 msgid "对不起，您没有当前应用的访问权限"
@@ -870,13 +862,14 @@ msgstr "审计中心"
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:89
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:195
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:255
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:249
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:368
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:255
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:374
 msgid "流程模板"
 msgstr "流程模板"
 
 #: frontend/desktop/src/components/layout/Navigator.vue:109
 #: frontend/desktop/src/pages/functor/index.vue:340
+#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:144
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:349
 msgid "项目流程"
 msgstr "项目流程"
@@ -1128,253 +1121,253 @@ msgstr "文件系统"
 msgid "服务器文件系统路径"
 msgstr "服务器文件系统路径"
 
-#: frontend/desktop/src/main.js:72 frontend/desktop/src/main.js:156
+#: frontend/desktop/src/main.js:73 frontend/desktop/src/main.js:157
 msgid "输入定时表达式非法，请校验"
 msgstr "输入定时表达式非法，请校验"
 
-#: frontend/desktop/src/main.js:78 frontend/desktop/src/main.js:160
+#: frontend/desktop/src/main.js:79 frontend/desktop/src/main.js:161
 msgid "间隔时间必须是正整数"
 msgstr "间隔时间必须是正整数"
 
-#: frontend/desktop/src/main.js:89
+#: frontend/desktop/src/main.js:90
 msgid "流程名称不能为空"
 msgstr "流程名称不能为空"
 
-#: frontend/desktop/src/main.js:90
+#: frontend/desktop/src/main.js:91
 msgid "流程名称不能包含"
 msgstr "流程名称不能包含"
 
-#: frontend/desktop/src/main.js:90 frontend/desktop/src/main.js:95
-#: frontend/desktop/src/main.js:99 frontend/desktop/src/main.js:104
-#: frontend/desktop/src/main.js:122 frontend/desktop/src/main.js:127
-#: frontend/desktop/src/main.js:135 frontend/desktop/src/main.js:143
-#: frontend/desktop/src/main.js:148 frontend/desktop/src/main.js:164
+#: frontend/desktop/src/main.js:91 frontend/desktop/src/main.js:96
+#: frontend/desktop/src/main.js:100 frontend/desktop/src/main.js:105
+#: frontend/desktop/src/main.js:123 frontend/desktop/src/main.js:128
+#: frontend/desktop/src/main.js:136 frontend/desktop/src/main.js:144
+#: frontend/desktop/src/main.js:149 frontend/desktop/src/main.js:165
 msgid "非法字符"
 msgstr "非法字符"
 
-#: frontend/desktop/src/main.js:91
+#: frontend/desktop/src/main.js:92
 msgid "流程名称长度不能超过"
 msgstr "流程名称长度不能超过"
 
-#: frontend/desktop/src/main.js:91 frontend/desktop/src/main.js:96
-#: frontend/desktop/src/main.js:100 frontend/desktop/src/main.js:105
-#: frontend/desktop/src/main.js:110 frontend/desktop/src/main.js:123
-#: frontend/desktop/src/main.js:128 frontend/desktop/src/main.js:136
-#: frontend/desktop/src/main.js:139 frontend/desktop/src/main.js:144
-#: frontend/desktop/src/main.js:149 frontend/desktop/src/main.js:152
-#: frontend/desktop/src/main.js:165 frontend/desktop/src/main.js:169
-#: frontend/desktop/src/main.js:173 frontend/desktop/src/main.js:177
+#: frontend/desktop/src/main.js:92 frontend/desktop/src/main.js:97
+#: frontend/desktop/src/main.js:101 frontend/desktop/src/main.js:106
+#: frontend/desktop/src/main.js:111 frontend/desktop/src/main.js:124
+#: frontend/desktop/src/main.js:129 frontend/desktop/src/main.js:137
+#: frontend/desktop/src/main.js:140 frontend/desktop/src/main.js:145
+#: frontend/desktop/src/main.js:150 frontend/desktop/src/main.js:153
+#: frontend/desktop/src/main.js:166 frontend/desktop/src/main.js:170
+#: frontend/desktop/src/main.js:174 frontend/desktop/src/main.js:178
 msgid "个字符"
 msgstr "个字符"
 
-#: frontend/desktop/src/main.js:94
+#: frontend/desktop/src/main.js:95
 msgid "节点名称不能为空"
 msgstr "节点名称不能为空"
 
-#: frontend/desktop/src/main.js:95
+#: frontend/desktop/src/main.js:96
 msgid "节点名称不能包含"
 msgstr "节点名称不能包含"
 
-#: frontend/desktop/src/main.js:96
+#: frontend/desktop/src/main.js:97
 msgid "节点名称长度不能超过"
 msgstr "节点名称长度不能超过"
 
-#: frontend/desktop/src/main.js:99
+#: frontend/desktop/src/main.js:100
 msgid "步骤名称不能包含"
 msgstr "步骤名称不能包含"
 
-#: frontend/desktop/src/main.js:100
+#: frontend/desktop/src/main.js:101
 msgid "步骤名称不能超过"
 msgstr "步骤名称不能超过"
 
-#: frontend/desktop/src/main.js:103
+#: frontend/desktop/src/main.js:104
 msgid "变量名称不能为空"
 msgstr "变量名称不能为空"
 
-#: frontend/desktop/src/main.js:104
+#: frontend/desktop/src/main.js:105
 msgid "变量名称不能包含"
 msgstr "变量名称不能包含"
 
-#: frontend/desktop/src/main.js:105
+#: frontend/desktop/src/main.js:106
 msgid "变量名称长度不能超过"
 msgstr "变量名称长度不能超过"
 
-#: frontend/desktop/src/main.js:108
+#: frontend/desktop/src/main.js:109
 msgid "变量KEY值不能为空"
 msgstr "变量KEY值不能为空"
 
-#: frontend/desktop/src/main.js:109
+#: frontend/desktop/src/main.js:110
 msgid "变量KEY由英文字母、数字、下划线组成，且不能以数字开头"
 msgstr "变量KEY由英文字母、数字、下划线组成，且不能以数字开头"
 
-#: frontend/desktop/src/main.js:110
+#: frontend/desktop/src/main.js:111
 msgid "变量KEY值长度不能超过"
 msgstr "变量KEY值长度不能超过"
 
-#: frontend/desktop/src/main.js:111
+#: frontend/desktop/src/main.js:112
 msgid "变量KEY值已存在"
 msgstr "变量KEY值已存在"
 
-#: frontend/desktop/src/main.js:114
+#: frontend/desktop/src/main.js:115
 msgid "变量隐藏时默认值不能为空"
 msgstr "变量隐藏时默认值不能为空"
 
-#: frontend/desktop/src/main.js:115
+#: frontend/desktop/src/main.js:116
 msgid "默认值不满足正则校验"
 msgstr "默认值不满足正则校验"
 
-#: frontend/desktop/src/main.js:118
+#: frontend/desktop/src/main.js:119
 msgid "正则校验不是合法的正则表达式"
 msgstr "正则校验不是合法的正则表达式"
 
-#: frontend/desktop/src/main.js:121 frontend/mobile/src/main.js:111
+#: frontend/desktop/src/main.js:122 frontend/mobile/src/main.js:111
 msgid "任务名称不能为空"
 msgstr "任务名称不能为空"
 
-#: frontend/desktop/src/main.js:122
+#: frontend/desktop/src/main.js:123
 msgid "任务名称不能包含"
 msgstr "任务名称不能包含"
 
-#: frontend/desktop/src/main.js:123
+#: frontend/desktop/src/main.js:124
 msgid "任务名称不能超过"
 msgstr "任务名称不能超过"
 
-#: frontend/desktop/src/main.js:126
+#: frontend/desktop/src/main.js:127
 msgid "方案名称不能为空"
 msgstr "方案名称不能为空"
 
-#: frontend/desktop/src/main.js:127
+#: frontend/desktop/src/main.js:128
 msgid "方案名称不能包含"
 msgstr "方案名称不能包含"
 
-#: frontend/desktop/src/main.js:128
+#: frontend/desktop/src/main.js:129
 msgid "方案名称不能超过"
 msgstr "方案名称不能超过"
 
-#: frontend/desktop/src/main.js:131
+#: frontend/desktop/src/main.js:132
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:196
 msgid "流程模板不能为空"
 msgstr "流程模板不能为空"
 
-#: frontend/desktop/src/main.js:134
+#: frontend/desktop/src/main.js:135
 msgid "应用名称不能为空"
 msgstr "应用名称不能为空"
 
-#: frontend/desktop/src/main.js:135
+#: frontend/desktop/src/main.js:136
 msgid "应用名称不能包含"
 msgstr "应用名称不能包含"
 
-#: frontend/desktop/src/main.js:136
+#: frontend/desktop/src/main.js:137
 msgid "应用名称不能超过"
 msgstr "应用名称不能超过"
 
-#: frontend/desktop/src/main.js:139
+#: frontend/desktop/src/main.js:140
 msgid "应用简介不能超过"
 msgstr "应用简介不能超过"
 
-#: frontend/desktop/src/main.js:142
+#: frontend/desktop/src/main.js:143
 msgid "定时流程名称不能为空"
 msgstr "定时流程名称不能为空"
 
-#: frontend/desktop/src/main.js:143
+#: frontend/desktop/src/main.js:144
 msgid "定时流程名称包含"
 msgstr "定时流程名称包含"
 
-#: frontend/desktop/src/main.js:144
+#: frontend/desktop/src/main.js:145
 msgid "定时流程名称不能超过"
 msgstr "定时流程名称不能超过"
 
-#: frontend/desktop/src/main.js:147
+#: frontend/desktop/src/main.js:148
 msgid "项目名称不能为空"
 msgstr "项目名称不能为空"
 
-#: frontend/desktop/src/main.js:148
+#: frontend/desktop/src/main.js:149
 msgid "项目名称包含"
 msgstr "项目名称包含"
 
-#: frontend/desktop/src/main.js:149
+#: frontend/desktop/src/main.js:150
 msgid "项目名称不能超过"
 msgstr "项目名称不能超过"
 
-#: frontend/desktop/src/main.js:152
+#: frontend/desktop/src/main.js:153
 msgid "项目描述不能超过"
 msgstr "项目描述不能超过"
 
-#: frontend/desktop/src/main.js:155
+#: frontend/desktop/src/main.js:156
 msgid "定时表达式不能为空"
 msgstr "定时表达式不能为空"
 
-#: frontend/desktop/src/main.js:159
+#: frontend/desktop/src/main.js:160
 msgid "间隔时间不能为空"
 msgstr "间隔时间不能为空"
 
-#: frontend/desktop/src/main.js:163
+#: frontend/desktop/src/main.js:164
 msgid "本地缓存名称不能为空"
 msgstr "本地缓存名称不能为空"
 
-#: frontend/desktop/src/main.js:164
+#: frontend/desktop/src/main.js:165
 msgid "本地缓存名称包含"
 msgstr "本地缓存名称包含"
 
-#: frontend/desktop/src/main.js:165
+#: frontend/desktop/src/main.js:166
 msgid "本地缓存名称不能超过"
 msgstr "本地缓存名称不能超过"
 
-#: frontend/desktop/src/main.js:168 frontend/desktop/src/main.js:172
-#: frontend/desktop/src/main.js:176
+#: frontend/desktop/src/main.js:169 frontend/desktop/src/main.js:173
+#: frontend/desktop/src/main.js:177
 msgid "名称由英文字母、数字、下划线组成，且不能以数字开头"
 msgstr "名称由英文字母、数字、下划线组成，且不能以数字开头"
 
-#: frontend/desktop/src/main.js:169 frontend/desktop/src/main.js:173
-#: frontend/desktop/src/main.js:177
+#: frontend/desktop/src/main.js:170 frontend/desktop/src/main.js:174
+#: frontend/desktop/src/main.js:178
 msgid "名称长度不能超过"
 msgstr "名称长度不能超过"
 
-#: frontend/desktop/src/main.js:180
+#: frontend/desktop/src/main.js:181
 msgid "开始分钟数不能为空"
 msgstr "开始分钟数不能为空"
 
-#: frontend/desktop/src/main.js:181
+#: frontend/desktop/src/main.js:182
 msgid "请输入 0 - 59 之间的数"
 msgstr "请输入 0 - 59 之间的数"
 
-#: frontend/desktop/src/main.js:184
+#: frontend/desktop/src/main.js:185
 msgid "开始小时数不能为空"
 msgstr "开始小时数不能为空"
 
-#: frontend/desktop/src/main.js:185
+#: frontend/desktop/src/main.js:186
 msgid "请输入 0 - 23 之间的数"
 msgstr "请输入 0 - 23 之间的数"
 
-#: frontend/desktop/src/main.js:188
+#: frontend/desktop/src/main.js:189
 msgid "开始周数不能为空"
 msgstr "开始周数不能为空"
 
-#: frontend/desktop/src/main.js:189
+#: frontend/desktop/src/main.js:190
 msgid "请输入 0 - 6 之间的数"
 msgstr "请输入 0 - 6 之间的数"
 
-#: frontend/desktop/src/main.js:192
+#: frontend/desktop/src/main.js:193
 msgid "开始天数不能为空"
 msgstr "开始天数不能为空"
 
-#: frontend/desktop/src/main.js:193
+#: frontend/desktop/src/main.js:194
 msgid "请输入 1 - 31 之间的数"
 msgstr "请输入 1 - 31 之间的数"
 
-#: frontend/desktop/src/main.js:196
+#: frontend/desktop/src/main.js:197
 msgid "开始月数不能为空"
 msgstr "开始月数不能为空"
 
-#: frontend/desktop/src/main.js:197
+#: frontend/desktop/src/main.js:198
 msgid "请输入 1 - 12 之间的数"
 msgstr "请输入 1 - 12 之间的数"
 
-#: frontend/desktop/src/main.js:200
+#: frontend/desktop/src/main.js:201
 msgid "test不能为空"
 msgstr "test不能为空"
 
-#: frontend/desktop/src/main.js:201
+#: frontend/desktop/src/main.js:202
 msgid "请输入 test 之间的数"
 msgstr "请输入 test 之间的数"
 
@@ -1397,7 +1390,7 @@ msgstr "添加本地缓存"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:110
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:252
 #: frontend/desktop/src/pages/project/index.vue:259
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:256
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:262
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:154
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:106
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:114
@@ -1823,7 +1816,7 @@ msgid "插件统计"
 msgstr "插件统计"
 
 #: frontend/desktop/src/pages/admin/statistics/Atom.vue:293
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:368
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:374
 msgid "标准插件"
 msgstr "标准插件"
 
@@ -2184,8 +2177,8 @@ msgid "认领"
 msgstr "认领"
 
 #: frontend/desktop/src/pages/functor/index.vue:304
-msgid "选择业务"
-msgstr "选择业务"
+msgid "选择项目"
+msgstr "选择项目"
 
 #: frontend/desktop/src/pages/functor/index.vue:305
 msgid "选择模板"
@@ -2551,13 +2544,13 @@ msgid "失败自动忽略"
 msgstr "失败自动忽略"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:172
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:254
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:260
 #: frontend/mobile/src/views/task/nodes.vue:114
 msgid "输入参数"
 msgstr "输入参数"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:173
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:255
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:261
 #: frontend/mobile/src/views/task/nodes.vue:115
 msgid "输出参数"
 msgstr "输出参数"
@@ -2750,10 +2743,6 @@ msgstr "全部分类"
 msgid "申请权限"
 msgstr "申请权限"
 
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:144
-msgid "业务流程"
-msgstr "业务流程"
-
 #: frontend/desktop/src/pages/task/TaskList/index.vue:315
 msgid "全部"
 msgstr "全部"
@@ -2800,85 +2789,85 @@ msgstr "分支名称"
 msgid "表达式"
 msgstr "表达式"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:248
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:254
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:78
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:96
 msgid "基础信息"
 msgstr "基础信息"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:250
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:256
 msgid "节点名称"
 msgstr "节点名称"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:251
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:257
 msgid "步骤名称"
 msgstr "步骤名称"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:252
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:258
 msgid "自动忽略"
 msgstr "自动忽略"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:253
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:259
 msgid "是否可选"
 msgstr "是否可选"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:257
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:263
 msgid "引用"
 msgstr "引用"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:260
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:266
 msgid "不能为空"
 msgstr "不能为空"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:261
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:267
 msgid "版本更新"
 msgstr "版本更新"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:262
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:268
 msgid "手动跳过"
 msgstr "手动跳过"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:263
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:269
 msgid "手动重试"
 msgstr "手动重试"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:264
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:270
 msgid "失败处理"
 msgstr "失败处理"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:265
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:271
 msgid "说明："
 msgstr "说明："
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:266
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:272
 msgid "自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。"
 msgstr "自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:267
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:273
 msgid "手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。"
 msgstr "手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:268
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:274
 msgid "手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。"
 msgstr "手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:269
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:275
 msgid "未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续"
 msgstr "未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:295
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:301
 #: frontend/desktop/src/store/modules/template.js:42
 #: frontend/desktop/src/store/modules/template.js:68
-#: frontend/desktop/src/store/modules/template.js:497
-#: frontend/desktop/src/store/modules/template.js:512
+#: frontend/desktop/src/store/modules/template.js:508
+#: frontend/desktop/src/store/modules/template.js:523
 msgid "步骤1"
 msgstr "步骤1"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:611
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:623
 msgid "默认值不符合正则规则："
 msgstr "默认值不符合正则规则："
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1152
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1164
 msgid "变量KEY已存在"
 msgstr "变量KEY已存在"
 
@@ -3258,7 +3247,7 @@ msgstr "搜索流程名称"
 msgid "无子流程"
 msgstr "无子流程"
 
-#: frontend/desktop/src/store/modules/template.js:811
+#: frontend/desktop/src/store/modules/template.js:856
 msgid "流程数据格式错误，请检查节点、连线或者全局变量"
 msgstr "流程数据格式错误，请检查节点、连线或者全局变量"
 
@@ -3945,6 +3934,18 @@ msgstr "请求后台接口异常:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "文本框"
+
+#~ msgid "您需要登录蓝鲸智云"
+#~ msgstr "您需要登录蓝鲸智云"
+
+#~ msgid "立即登录"
+#~ msgstr "立即登录"
+
+#~ msgid "选择业务"
+#~ msgstr "选择业务"
+
+#~ msgid "业务流程"
+#~ msgstr "业务流程"
 
 #~ msgid "排序统计"
 #~ msgstr "排序统计"
