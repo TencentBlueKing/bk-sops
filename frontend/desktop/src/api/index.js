@@ -313,10 +313,13 @@ const api = {
      * 获取收藏列表
      */
     getCollectList (data) {
-        const prefixUrl = this.getPrefix('collectList') + '?limit=0'
+        const prefixUrl = this.getPrefix('collectList')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}`
+            url: `${prefixUrl}`,
+            params: {
+                limit: 0
+            }
         }
         return request(opts)
     },
