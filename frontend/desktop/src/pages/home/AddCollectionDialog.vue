@@ -162,6 +162,7 @@
                 selectError: false,
                 collectionPending: false,
                 tplOperations: [],
+                tplResource: {},
                 panelList: [],
                 selectedList: [],
                 dialogFooterData: [
@@ -279,6 +280,7 @@
                     pipeline_template__name__contains: searchStr || undefined
                 })
                 this.tplOperations = data.meta.auth_operations
+                this.tplResource = data.meta.auth_resource
                 return data.objects || []
             },
             async getAppMakerList (projectId, searchStr) {
