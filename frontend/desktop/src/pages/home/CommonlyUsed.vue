@@ -128,9 +128,17 @@
             display: inline-block;
             margin-right: 10px;
             padding: 14px;
-            width: 278px;
             background: #f0f1f5;
             cursor: pointer;
+            @media screen and (max-width: 1560px) {
+                width: 24%;
+            }
+            @media screen and (min-width: 1561px) and (max-width: 1919px) {
+                width: 19.2%;
+            }
+            @media screen and (min-width: 1920px) {
+                width: 16%;
+            }
             &:hover {
                 background: #e3e5e9;
             }

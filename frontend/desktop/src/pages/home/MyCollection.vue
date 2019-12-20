@@ -13,19 +13,17 @@
     <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
         <ul v-if="collectionList.length && !isScreenChange" class="card-list">
-            <li
+            <base-card
                 v-for="(item, index) in collectionList"
-                :key="index">
-                <base-card
-                    :data="item"
-                    :set-name="item.extra_info.name"
-                    :is-apply-permission="getRourcePerm(item)"
-                    :show-delete="!getRourcePerm(item)"
-                    :icon-text="getCategoryChineseName(item.category)"
-                    @onCardClick="onCardClick"
-                    @onDeleteCard="onDeleteCard">
-                </base-card>
-            </li>
+                :key="index"
+                :data="item"
+                :set-name="item.extra_info.name"
+                :is-apply-permission="getRourcePerm(item)"
+                :show-delete="!getRourcePerm(item)"
+                :icon-text="getCategoryChineseName(item.category)"
+                @onCardClick="onCardClick"
+                @onDeleteCard="onDeleteCard">
+            </base-card>
             <li class="add-collection" @click="onAddCollection">+</li>
         </ul>
         <panel-nodata v-else>
@@ -241,11 +239,19 @@
         margin-top: -20px;
         /deep/ .card-item {
             margin-right: 10px;
+            @media screen and (max-width: 1560px) {
+                width: 24%;
+            }
+            @media screen and (min-width: 1561px) and (max-width: 1919px) {
+                width: 19.2%;
+            }
+            @media screen and (min-width: 1920px) {
+                width: 16%;
+            }
         }
     }
     .add-collection {
         margin-top: 20px;
-        width: 278px;
         height: 60px;
         line-height: 60px;
         font-size: 18px;
@@ -254,6 +260,15 @@
         background: #fcfcfc;
         cursor: pointer;
         border: 1px solid #f0f1f5;
+        @media screen and (max-width: 1560px) {
+            width: 24%;
+        }
+        @media screen and (min-width: 1561px) and (max-width: 1919px) {
+            width: 19.2%;
+        }
+        @media screen and (min-width: 1920px) {
+            width: 16%;
+        }
         &:hover {
             background: #e1ecff;
             color: #3a84ff;
