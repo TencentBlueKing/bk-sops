@@ -21,7 +21,7 @@
             <bk-select
                 :clearable="false"
                 v-model="theExecuteTime"
-                @change="onSelectExecuteTime">
+                @selected="onSelectExecuteTime">
                 <bk-option
                     v-for="index in loopTimes"
                     :key="index"
@@ -463,12 +463,17 @@
             ]),
             async loadNodeInfo () {
                 this.loading = true
+
                 try {
                     const respData = await this.getTaskNodeDetail()
                     const { execution_info, outputs, inputs, log, history } = respData
                     
                     const version = this.nodeDetailConfig.version
-                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+
+                    // 任务节点需要加载标准插件
+                    if (this.nodeDetailConfig.component_code) {
+                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+                    }
 
                     if (this.adminView) {
                         this.executeInfo = execution_info
@@ -528,6 +533,11 @@
                 try {
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                     let getData = this.getNodeActDetail
+
+                    // 分支网关请求参数不传 component_code
+                    if (!this.nodeDetailConfig.component_code) {
+                        delete query.component_code
+                    }
                     
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
