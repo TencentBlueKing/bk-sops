@@ -26,7 +26,7 @@ from pipeline_plugins.components.utils import handle_api_error
 
 __group_name__ = _(u"蓝鲸监控(BK)")
 
-job_handle_api_error = partial(handle_api_error, __group_name__)
+monitor_handle_api_error = partial(handle_api_error, __group_name__)
 
 SCOPE = {
     'business': 'bk_alarm_shield_business',
@@ -78,7 +78,7 @@ class AlarmShieldService(Service):
     def send_request(self, request_body, data, client):
         response = client.monitor.create_shield(request_body)
         if not response['result']:
-            message = job_handle_api_error('monitor.create_shield', request_body, response)
+            message = monitor_handle_api_error('monitor.create_shield', request_body, response)
             self.logger.error(message)
             shield_id = ''
             ret_flag = False
@@ -177,7 +177,7 @@ class AlarmShieldScopeService(AlarmShieldService):
         }
         response = client.cc.search_host(request_body)
         if not response['result']:
-            message = job_handle_api_error('cc.search_host', request_body, response)
+            message = monitor_handle_api_error('cc.search_host', request_body, response)
             self.logger.error(message)
             raise message
         target = []
@@ -261,7 +261,7 @@ class AlarmShieldDisableService(Service):
         request_body = {'bk_biz_id': bk_biz_id, 'id': shield_id}
         response = client.monitor.disable_shield(request_body)
         if not response['result']:
-            message = job_handle_api_error('monitor.disable_shield', request_body, response)
+            message = monitor_handle_api_error('monitor.disable_shield', request_body, response)
             self.logger.error(message)
             result = message
             ret_flag = False
