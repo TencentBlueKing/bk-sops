@@ -23,7 +23,6 @@ from pipeline.engine.models import (
     Status,
     ScheduleService
 )
-from pipeline.core.constants import PE
 from pipeline.core.pipeline import PipelineShell
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.core.data.var import Variable
