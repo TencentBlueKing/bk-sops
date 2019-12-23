@@ -310,7 +310,6 @@
                 return required
             },
             updateForm (fieldArr, val) {
-                console.log(val)
                 this.$emit('change', fieldArr, val)
             },
             onShowForm () {
