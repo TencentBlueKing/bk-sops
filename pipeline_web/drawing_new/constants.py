@@ -19,7 +19,7 @@ DUMMY_FLOW_TYPE = 'DummyFlow'
 
 CANVAS_WIDTH = 1300
 POSITION = {
-    'activity_size': (150, 42),
+    'activity_size': (168, 42),
     'event_size': (42, 42),
     'gateway_size': (32, 32),
     'start': (60, 100)

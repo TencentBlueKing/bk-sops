@@ -43,12 +43,12 @@ def position(pipeline,
     @return:
     """
     # 节点之间的平均距离
-    shift_x = max(activity_size[0], event_size[0], gateway_size[0]) * 1.2
-    shift_y = max(activity_size[1], event_size[1], gateway_size[1]) * 2
+    shift_x = int(max(activity_size[0], event_size[0], gateway_size[0]) * 1.2)
+    shift_y = int(max(activity_size[1], event_size[1], gateway_size[1]) * 2)
     # 开始/结束节点纵坐标偏差
-    event_shift_y = (activity_size[1] - event_size[1]) * 0.5
+    event_shift_y = int((activity_size[1] - event_size[1]) * 0.5)
     # 网关节点纵坐标偏差
-    gateway_shift_y = (activity_size[1] - gateway_size[1]) * 0.5
+    gateway_shift_y = int((activity_size[1] - gateway_size[1]) * 0.5)
     pipeline_element_shift_y = {
         DUMMY_NODE_TYPE: 0,
         PE.ServiceActivity: 0,
@@ -66,11 +66,11 @@ def position(pipeline,
     locations = {}
     rank_x, rank_y = start
     # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
-    new_line_y = rank_y
     for rk in range(min_rk, max_rk + MIN_LEN, MIN_LEN):
         layer_nodes = orders[rk]
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
+        new_line_y = rank_y + shift_y
         for node_id in layer_nodes:
             if node_id in pipeline['all_nodes']:
                 node = pipeline['all_nodes'][node_id]
@@ -81,7 +81,7 @@ def position(pipeline,
                     'name': node.get(PE.name, ''),
                     'status': '',
                     'x': int(order_x),
-                    'y': int(order_y + pipeline_element_shift_y[node[PE.type]])
+                    'y': node_y
                 }
                 if node_y > new_line_y:
                     new_line_y = node_y + shift_y
