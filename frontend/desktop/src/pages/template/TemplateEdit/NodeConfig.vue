@@ -632,7 +632,7 @@
                     if (!this.isNodeConfigPanelShow) {
                         return
                     }
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                    this.setAtomConfig({ atomType, configData: $.atoms[atomType], version })
                     this.setNodeConfigData(atomType, version)
                 } catch (e) {
                     errorHandler(e, this)
