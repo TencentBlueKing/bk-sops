@@ -204,6 +204,7 @@
 <script>
     import '@/utils/i18n.js'
     import { mapActions, mapState } from 'vuex'
+    import axios from 'axios'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
@@ -217,6 +218,9 @@
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
+
+    const CancelToken = axios.CancelToken
+    const source = CancelToken.source()
 
     const TASK_OPERATIONS = {
         execute: {
@@ -412,6 +416,7 @@
             window.addEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         beforeDestroy () {
+            source.cancel('cancelled')
             this.cancelTaskStatusTimer()
             window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
         },
@@ -437,7 +442,8 @@
                     this.$emit('taskStatusLoadChange', true)
                     const data = {
                         instance_id: this.taskId,
-                        project_id: this.project_id
+                        project_id: this.project_id,
+                        cancelToken: source.token
                     }
                     if (this.selectedFlowPath.length > 1 && this.selectedFlowPath[1].type !== 'ServiceActivity') {
                         data.instance_id = this.instance_id
@@ -448,6 +454,7 @@
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
                     ) {
+                        source.cancel('cancelled') // 取消定时器里已经执行的请求
                         instanceStatus = await this.getCacheStatusData()
                     } else {
                         instanceStatus = await this.getInstanceStatus(data)
@@ -465,7 +472,9 @@
                     }
                 } catch (e) {
                     this.cancelTaskStatusTimer()
-                    errorHandler(e, this)
+                    if (e.message !== 'cancelled') {
+                        errorHandler(e, this)
+                    }
                 } finally {
                     this.$emit('taskStatusLoadChange', false)
                 }
