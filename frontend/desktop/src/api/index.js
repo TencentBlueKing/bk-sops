@@ -711,7 +711,7 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, project_id, subprocess_id } = data
+        const { instance_id, project_id, subprocess_id, cancelToken } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
@@ -719,7 +719,8 @@ const api = {
             params: {
                 instance_id,
                 subprocess_id
-            }
+            },
+            cancelToken
         }
 
         return request(opts)
