@@ -348,8 +348,9 @@
                 }
 
                 const loopRule = !this.isStartNow ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
-                if (!loopRule.check) return
-                if (this.isSubmit) return
+                if (!loopRule.check || this.isSubmit) {
+                    return false
+                }
                 // 页面中是否有 TaskParamEdit 组件
                 const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
                 this.$validator.validateAll().then(async (result) => {
