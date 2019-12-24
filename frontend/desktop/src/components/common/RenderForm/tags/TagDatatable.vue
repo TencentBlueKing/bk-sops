@@ -209,7 +209,7 @@
                  * notice：兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
                  */
                 if (this.tagCode === 'job_global_var' && this.formEdit) {
-                    this.setOutputParams(oldVal)
+                    this.setOutputParams(val, oldVal)
                 }
             }
         },
@@ -408,9 +408,10 @@
              * notice: 该方法为了兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
              * description: 切换作业模板时，将当前作业的全局变量添加到输出参数
              *
-             * @param {Array} oldVal 作业模板切换之前的全局变量值
+             * @param {Array} val 表格值
+             * @param {Array} oldVal 表格变更之前的值
              */
-            setOutputParams (oldVal) {
+            setOutputParams (val, oldVal) {
                 const specialAtom = 'job_execute_task'
                 if (Array.isArray(this.value)) {
                     const atomOutput = this.atomForm.form[specialAtom].output.slice(0)
@@ -428,20 +429,21 @@
                         outputData: atomOutput
                     })
                 }
+                // 删除输出变量已勾选的全局变量
                 if (oldVal && this.node.id) {
                     oldVal.forEach(item => {
+                        if (val.find(v => v.id === item.id)) {
+                            return
+                        }
                         if (typeof item.type === 'number' && item.type !== 2) {
-                            let variableKey
                             Object.keys(this.constants).some(key => {
                                 const cst = this.constants[key]
                                 const sourceInfo = cst.source_info[this.node.id]
-                                if (sourceInfo && sourceInfo.indexOf(item.key)) {
-                                    variableKey = key
+                                if (sourceInfo && sourceInfo.indexOf(item.name) > -1) {
+                                    this.deleteVariable(key)
                                     return true
                                 }
                             })
-
-                            variableKey && this.deleteVariable(variableKey)
                         }
                     })
                 }
