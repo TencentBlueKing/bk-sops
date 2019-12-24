@@ -516,7 +516,7 @@
 }
 .bk-button-group {
     .bk-button {
-        width: 150px;
+        width: 250px;
         margin: 0px;
     }
     .bk-button.bk-primary {
