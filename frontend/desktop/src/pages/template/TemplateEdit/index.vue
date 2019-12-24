@@ -39,6 +39,7 @@
                 :common="common"
                 :template_id="template_id"
                 :canvas-data="canvasData"
+                @hook:mounted="canvasMounted"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
                 @onNodeMousedown="onNodeMousedown"
@@ -127,6 +128,7 @@
     import NodeConfig from './NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import draft from '@/utils/draft.js'
+    import Guide from '@/utils/guide.js'
     import { STRING_LENGTH } from '@/constants/index.js'
 
     const i18n = {
@@ -189,7 +191,28 @@
                 tplOperations: [],
                 tplActions: [],
                 tplResource: {},
-                conditionData: {}
+                conditionData: {},
+                nodeGuideConfig: {
+                    el: '',
+                    width: 150,
+                    placement: 'bottom',
+                    once: true,
+                    arrow: true,
+                    img: {
+                        height: 112,
+                        url: require('@/assets/images/node-double-click-guide.gif')
+                    },
+                    text: [
+                        {
+                            type: 'name',
+                            val: gettext('双击左键')
+                        },
+                        {
+                            type: 'text',
+                            val: gettext('可以快捷打开节点配置面板')
+                        }
+                    ]
+                }
             }
         },
         computed: {
@@ -1126,6 +1149,17 @@
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                 })
+            },
+            handlerGuideTip () {
+                if (this.type === 'new') {
+                    const config = this.nodeGuideConfig
+                    const guide = new Guide(config)
+                    guide.mount(document.querySelector('.task-node'))
+                    guide.instance.show(1000)
+                }
+            },
+            canvasMounted () {
+                this.handlerGuideTip()
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
