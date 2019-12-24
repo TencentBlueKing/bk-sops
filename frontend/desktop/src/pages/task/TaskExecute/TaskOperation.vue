@@ -759,6 +759,7 @@
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                        this.cancelSelectedNode(this.selectedNodeId)
                     }
                 }
             },
