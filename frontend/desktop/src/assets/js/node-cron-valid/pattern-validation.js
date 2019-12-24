@@ -1,7 +1,7 @@
 /* eslint-disable */
 'use strict';
+import convertExpression from './convert-expression'
 var commonConfig = {}
-var convertExpression = require('./convert-expression');
 var KEYSMAP = [
     {
         key: 'second',
@@ -35,7 +35,7 @@ var KEYSMAP = [
     }
 ]
 
-module.exports = ( () => {
+export default ( () => {
   function isValidExpression(expression, min, max){
     var options = expression.split(',');
     var regexValidation = /^\d+$|^\*$|^\*\/\d+$/;

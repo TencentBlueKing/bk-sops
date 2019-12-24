@@ -14,13 +14,15 @@ const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 
 /**
  * 生产环境分版本打包命令
- * npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod"
+ * npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod" --VERSION="V3.5.3"
  */
 let SITE_URL = ''
 let STATIC_ENV = ''
+let VERSION = ''
 
 process.argv.forEach(val => {
     if (/--SITE_URL=/.test(val)) {
@@ -29,15 +31,20 @@ process.argv.forEach(val => {
     if (/--STATIC_ENV=/.test(val)) {
         STATIC_ENV = val.replace(/--STATIC_ENV=/, '')
     }
+    if (/--VERSION=/.test(val)) {
+        VERSION = val.replace(/--VERSION=/, '')
+    }
 })
 
 process.env.STATIC_ENV = STATIC_ENV
+process.env.VERSION = VERSION ? '?v=' + VERSION : ''
 
 const publicPath = path.posix.join(SITE_URL, '/static/')
 
 console.log('build mode:', process.env.NODE_ENV)
 console.log('SITE_URL:', SITE_URL)
 console.log('publicPath:', publicPath)
+console.log('version:', VERSION)
 
 module.exports = {
     entry: {
@@ -47,7 +54,7 @@ module.exports = {
         path: path.join(__dirname, '../static'),
         publicPath: publicPath,
         pathinfo: true,
-        filename: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name].js')
+        filename: path.posix.join(process.env.STATIC_ENV, 'dist/js/[name].js' + process.env.VERSION)
     },
     module: {
         rules: [
@@ -120,7 +127,7 @@ module.exports = {
                 loader: 'url-loader',
                 options: {
                     limit: 10000,
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/videos/[name].[ext]')
+                    name: path.posix.join(process.env.STATIC_ENV, 'dist/videos/[name].[ext]' + process.env.VERSION)
                 }
             },
             {
@@ -132,7 +139,7 @@ module.exports = {
                 ],
                 options: {
                     limit: 10000,
-                    name: path.posix.join(process.env.STATIC_ENV, 'dist/fonts/[name].[ext]')
+                    name: path.posix.join(process.env.STATIC_ENV, 'dist/fonts/[name].[ext]' + process.env.VERSION)
                 }
             }
         ]
@@ -147,6 +154,14 @@ module.exports = {
             $: 'jquery',
             jQuery: 'jquery',
             'window.jQuery': 'jquery'
+        }),
+        new webpack.DefinePlugin({
+            'process.env.PUBLIC_STATIC': path.posix.join(publicPath, process.env.STATIC_ENV),
+            'process.env.VERSION': process.env.VERSION
+        }),
+        new MonacoWebpackPlugin({
+            output: path.posix.join(process.env.STATIC_ENV, 'dist/js/'),
+            languages: ['javascript', 'typescript', 'python']
         })
     ],
     optimization: {
@@ -161,6 +176,12 @@ module.exports = {
                 'moment-timezone': {
                     test: /moment-timezone/,
                     name: 'moment-timezone',
+                    chunks: 'all',
+                    priority: 100
+                },
+                'monaco-editor': {
+                    test: /monaco-editor/,
+                    name: 'monaco-editor',
                     chunks: 'all',
                     priority: 100
                 },

@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import traceback
 from functools import partial
 
 from django.utils import translation
@@ -22,11 +23,11 @@ from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSche
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     get_ip_by_regex,
-    handle_api_error,
     supplier_account_for_business
 )
 
 from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -741,6 +742,14 @@ class CCCreateSetService(Service):
                             value = bk_service_status['data'].get(value)
                             if not value:
                                 data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
+                                return False
+
+                        elif key == "bk_capacity":
+                            try:
+                                value = int(value)
+                            except Exception:
+                                self.logger.error(traceback.format_exc())
+                                data.set_outputs('ex_data', _("集群容量必须为整数"))
                                 return False
 
                         cc_kwargs['data'][key] = value

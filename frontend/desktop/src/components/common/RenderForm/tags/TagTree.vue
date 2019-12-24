@@ -36,7 +36,7 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const TreeAttrs = {
+    export const attrs = {
         value: {
             type: [Array, String],
             required: false,
@@ -94,7 +94,7 @@
     }
     export default {
         name: 'TagTree',
-        mixins: [getFormMixins(TreeAttrs)],
+        mixins: [getFormMixins(attrs)],
         data () {
             return {
                 default_props: {

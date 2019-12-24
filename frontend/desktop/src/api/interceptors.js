@@ -28,6 +28,12 @@ axios.interceptors.response.use(
         return response
     },
     error => {
+        // 取消接口请求
+        if (error.message === 'cancelled') {
+            console.warn('cancelled')
+            return Promise.reject(error)
+        }
+
         const response = error.response
         console.log(response)
 
@@ -40,6 +46,11 @@ axios.interceptors.response.use(
                 bus.$emit('showMessage', info)
                 break
             case 401:
+                const data = response.data
+                if (data.has_plain) {
+                    window.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
+                }
+                break
             case 403:
             case 405:
             case 406:

@@ -11,13 +11,10 @@
 */
 <template>
     <div id="app">
-        <navigator
-            v-if="!hideHeader"
-            :appmaker-data-loading="appmakerDataLoading" />
-        <div class="main-container">
+        <navigator v-if="!hideHeader" :appmaker-data-loading="appmakerDataLoading" />
+        <div class="main-container" v-bkloading="{ isloading: adminPermLoading, opacity: 1 }">
             <router-view v-if="isRouterViewShow"></router-view>
         </div>
-        <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
         <permissionApply
@@ -34,7 +31,6 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
-    import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
     import Navigator from '@/components/layout/Navigator.vue'
@@ -44,7 +40,6 @@
         name: 'App',
         components: {
             Navigator,
-            UserLoginModal,
             ErrorCodeModal,
             permissionApply,
             PermissionModal
@@ -63,6 +58,7 @@
                     permission: []
                 },
                 isRouterAlive: false,
+                adminPermLoading: false, // 管理员权限加载
                 appmakerDataLoading: false // 轻应用加载 app 详情,
             }
         },
@@ -77,7 +73,7 @@
                 'project_id': state => state.project_id
             }),
             isRouterViewShow () {
-                return !this.permissinApplyShow && this.isRouterAlive
+                return !this.permissinApplyShow && this.isRouterAlive && !this.adminPermLoading
             }
         },
         watch: {
@@ -86,8 +82,8 @@
             }
         },
         created () {
-            bus.$on('showLoginModal', src => {
-                this.$refs.userLogin.show(src)
+            bus.$on('showLoginModal', args => {
+                this.$refs.userLogin.show(args)
             })
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
@@ -128,6 +124,9 @@
             this.initData()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
             ]),
@@ -142,12 +141,17 @@
                 'setProjectName',
                 'setProjectActions'
             ]),
+            ...mapMutations([
+                'setAdminPerm'
+            ]),
             initData () {
                 if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
                     this.getProjectDetail()
                 }
                 if (this.viewMode === 'appmaker') {
                     this.getAppmakerDetail()
+                } else {
+                    this.queryAdminPerm()
                 }
             },
             async getProjectDetail () {
@@ -173,6 +177,42 @@
                     errorHandler(e, this)
                 } finally {
                     this.appmakerDataLoading = false
+                }
+            },
+            async queryAdminPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'admin_operate',
+                        action_ids: JSON.stringify(['view'])
+                    })
+    
+                    const hasPerm = !!res.data.details.find(item => {
+                        return item.action_id === 'view' && item.is_pass
+                    })
+                    this.setAdminPerm(hasPerm)
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
+            /**
+             * 查询用户是否有管理员查看权限
+             *
+             */
+            async getAdminPerm () {
+                try {
+                    this.adminPermLoading = true
+                    const res = await this.queryUserPermission({
+                        resource_type: 'admin_operate',
+                        action_ids: JSON.stringify(['view'])
+                    })
+    
+                    const hasPerm = !!res.data.details.find(item => {
+                        return item.action_id === 'view' && item.is_pass
+                    })
+                    this.setAdminPerm(hasPerm)
+                    this.adminPermLoading = false
+                } catch (err) {
+                    errorHandler(err, this)
                 }
             },
             handleRouteChange () {

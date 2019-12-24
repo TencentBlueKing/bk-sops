@@ -19,10 +19,14 @@ const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vu
 const Home = () => import('@/pages/home/index.vue')
 
 const Template = () => import('@/pages/template/index.vue')
-const TemplateEdit = () => import('@/pages/template/TemplateEdit/index.vue')
 const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
 
+const CommonTemplate = () => import('@/pages/template/common/index.vue')
+const TemplatePanel = () => import('@/pages/template/TemplateEdit/index.vue')
+const CommonTemplateList = () => import('@/pages/template/common/CommonTemplateList.vue')
+
 const Task = () => import('@/pages/task/index.vue')
+const TaskManage = () => import('@/pages/task/TaskManage.vue')
 const TaskList = () => import('@/pages/task/TaskList/index.vue')
 const TaskCreate = () => import('@/pages/task/TaskCreate/index.vue')
 const TaskExecute = () => import('@/pages/task/TaskExecute/index.vue')
@@ -40,42 +44,32 @@ const StatisticsTemplate = () => import('@/pages/admin/statistics/Template.vue')
 const StatisticsInstance = () => import('@/pages/admin/statistics/Instance.vue')
 const StatisticsAtom = () => import('@/pages/admin/statistics/Atom.vue')
 const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker.vue')
-const CommonTemplate = () => import('@/pages/admin/common/template.vue')
 const Manage = () => import('@/pages/admin/manage/index.vue')
+const AdminSearch = () => import('@/pages/admin/manage/AdminSearch/index.vue')
+const AdminPeriodic = () => import('@/pages/admin/manage/AdminPeriodic.vue')
 const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
 const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
 const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
 const CacheEdit = () => import('@/pages/admin/manage/SourceEdit/CacheEdit.vue')
 const SourceSync = () => import('@/pages/admin/manage/SourceSync/index.vue')
 
-const FunctionHome = () => import('@/pages/functor/index.vue')
+const FunctionHome = () => import('@/pages/functor/FunctionList.vue')
+const Functor = () => import('@/pages/functor/index.vue')
 
-const AuditHome = () => import('@/pages/audit/index.vue')
+const AuditHome = () => import('@/pages/audit/AuditList.vue')
+const Audit = () => import('@/pages/audit/index.vue')
 
-const periodic = () => import('@/pages/periodic/index.vue')
-const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.vue')
+const periodicTemplateList = () => import('@/pages/task/PeriodicList/index.vue')
+
+const AtomDev = () => import('@/pages/atomdev/index.vue')
 
 Vue.use(VueRouter)
 
-const PAGE_MAP = {
-    functor: {
-        getIndex () {
-            return '/function/home/'
-        },
-        routes: ['functionHome', 'templateStep', 'taskExecute']
+const APPMAKER = {
+    getIndex () {
+        return `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
     },
-    auditor: {
-        getIndex () {
-            return '/audit/home/'
-        },
-        routes: ['auditHome', 'taskExecute']
-    },
-    appmaker: {
-        getIndex () {
-            return `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
-        },
-        routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
-    }
+    routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
 }
 
 const routers = new VueRouter({
@@ -85,25 +79,50 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: function () {
-                const { userType, viewMode, project } = store.state
-                const { project_id } = project
-                const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
-                
-                if (PAGE_MAP[pageType]) {
-                    return PAGE_MAP[pageType].getIndex()
-                } else {
-                    return (project_id || project_id === 0) ? `/home/${project_id}/` : '/home/'
-                }
+                const viewMode = store.state.viewMode
+                return viewMode === 'appmaker'
+                    ? `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
+                    : '/home/'
             }
         },
         {
-            path: '/home/:project_id?/',
+            path: '/home/',
             name: 'home',
             component: Home,
             props: (route) => ({
                 project_id: route.params.project_id
-            }),
-            meta: { project: true }
+            })
+        },
+        {
+            path: '/common',
+            name: 'commonProcess',
+            component: CommonTemplate,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home/',
+                    name: 'commonProcessList',
+                    component: CommonTemplateList,
+                    props: () => ({
+                        common: '1'
+                    })
+                },
+                {
+                    path: ':type(new|edit|clone)/',
+                    component: TemplatePanel,
+                    name: 'commonTemplatePanel',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        template_id: route.query.template_id,
+                        type: route.params.type,
+                        common: '1'
+                    }),
+                    meta: { project: false }
+                }
+            ]
         },
         {
             path: '/template',
@@ -115,6 +134,7 @@ const routers = new VueRouter({
                 },
                 {
                     path: 'home/:project_id?/',
+                    name: 'process',
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
@@ -124,60 +144,14 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: 'common/:project_id?/',
-                    component: TemplateList,
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        common: 1,
-                        common_template: 'common'
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'edit/:project_id/',
-                    component: TemplateEdit,
-                    name: 'templateEdit',
+                    path: ':type(new|edit|clone)/:project_id/',
+                    component: TemplatePanel,
+                    name: 'templatePanel',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
-                        type: 'edit',
+                        type: route.params.type,
                         common: route.query.common
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'new/:project_id/',
-                    component: TemplateEdit,
-                    name: 'templateEdit',
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        type: 'new',
-                        common: route.query.common
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'clone/:project_id/',
-                    component: TemplateEdit,
-                    name: 'templateEdit',
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        template_id: route.query.template_id,
-                        type: 'clone',
-                        common: route.query.common
-                    }),
-                    meta: { project: true }
-                },
-                {
-                    path: 'newtask/:project_id/:step/',
-                    component: TaskCreate,
-                    name: 'templateStep',
-                    props: (route) => ({
-                        project_id: route.params.project_id,
-                        step: route.params.step,
-                        template_id: route.query.template_id,
-                        common: route.query.common,
-                        entrance: route.query.entrance
                     }),
                     meta: { project: true }
                 }]
@@ -191,13 +165,43 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:project_id?/',
-                    component: TaskList,
-                    name: 'taskList',
+                    path: 'manage/',
+                    component: TaskManage,
+                    name: 'TaskManage',
+                    children: [
+                        {
+                            path: 'list/:project_id?/',
+                            component: TaskList,
+                            name: 'taskList',
+                            props: (route) => ({
+                                project_id: route.params.project_id,
+                                common: route.query.common,
+                                create_method: route.query.create_method
+                            }),
+                            meta: { project: true }
+                        },
+                        {
+                            path: 'periodic/:project_id?/',
+                            component: periodicTemplateList,
+                            name: 'periodicTemplate',
+                            props: (route) => ({
+                                project_id: route.params.project_id
+                            }),
+                            meta: { project: true }
+                        }
+                    ],
+                    meta: { project: true }
+                },
+                {
+                    path: 'newtask/:project_id/:step/',
+                    component: TaskCreate,
+                    name: 'taskStep',
                     props: (route) => ({
                         project_id: route.params.project_id,
+                        step: route.params.step,
+                        template_id: route.query.template_id,
                         common: route.query.common,
-                        create_method: route.query.create_method
+                        entrance: route.query.entrance
                     }),
                     meta: { project: true }
                 },
@@ -216,6 +220,7 @@ const routers = new VueRouter({
         {
             path: '/appmaker/home/:project_id?/',
             component: AppMaker,
+            name: 'appMakerList',
             props: (route) => ({
                 project_id: route.params.project_id
             }),
@@ -258,27 +263,71 @@ const routers = new VueRouter({
             component: ProjectHome
         },
         {
-            path: '/function/home/',
-            name: 'functionHome',
-            component: FunctionHome
+            path: '/function',
+            name: 'function',
+            component: Functor,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home',
+                    name: 'functionHome',
+                    component: FunctionHome
+                },
+                {
+                    path: 'newtask/:project_id/:step/',
+                    component: TaskCreate,
+                    name: 'functionTemplateStep',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        step: route.params.step,
+                        template_id: route.query.template_id,
+                        common: route.query.common,
+                        entrance: route.query.entrance
+                    }),
+                    meta: { project: true }
+                },
+                {
+                    path: 'execute/:project_id/',
+                    component: TaskExecute,
+                    name: 'functionTaskExecute',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        common: route.query.common,
+                        instance_id: route.query.instance_id
+                    }),
+                    meta: { project: true }
+                }
+            ]
         },
         {
-            path: '/audit/home/',
-            name: 'auditHome',
-            component: AuditHome
-        },
-        {
-            path: '/periodic',
-            component: periodic,
-            children: [{
-                path: 'home/:project_id?/',
-                component: periodicTemplateList,
-                name: 'periodicTemplate',
-                props: (route) => ({
-                    project_id: route.params.project_id
-                }),
-                meta: { project: true }
-            }]
+            path: '/audit',
+            name: 'audit',
+            component: Audit,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home',
+                    name: 'auditHome',
+                    component: AuditHome
+                },
+                {
+                    path: 'execute/:project_id/',
+                    component: TaskExecute,
+                    name: 'auditTaskExecute',
+                    props: (route) => ({
+                        project_id: route.params.project_id,
+                        common: route.query.common,
+                        instance_id: route.query.instance_id
+                    }),
+                    meta: { project: true }
+                }
+            ]
         },
         {
             path: '/admin',
@@ -315,52 +364,19 @@ const routers = new VueRouter({
                     ]
                 },
                 {
-                    path: 'common/template',
-                    name: 'commonTemplateHome',
-                    component: CommonTemplate
-                },
-                {
-                    path: 'template/',
-                    component: Template,
-                    children: [
-                        {
-                            path: '',
-                            component: NotFoundComponent
-                        },
-                        {
-                            path: 'edit/:cc_id?/',
-                            component: TemplateEdit,
-                            props: (route) => ({
-                                cc_id: route.params.cc_id,
-                                template_id: route.query.template_id,
-                                type: 'edit',
-                                common: '1'
-                            })
-                        },
-                        {
-                            path: 'new/:cc_id/',
-                            component: TemplateEdit,
-                            props: (route) => ({
-                                cc_id: route.params.cc_id,
-                                type: 'new',
-                                common: '1'
-                            })
-                        },
-                        {
-                            path: 'clone/:cc_id/',
-                            component: TemplateEdit,
-                            props: (route) => ({
-                                cc_id: route.params.cc_id,
-                                template_id: route.query.template_id,
-                                type: 'clone',
-                                common: '1'
-                            })
-                        }]
-                },
-                {
                     path: 'manage/',
                     component: Manage,
                     children: [
+                        {
+                            path: 'search/',
+                            name: 'adminSearch',
+                            component: AdminSearch
+                        },
+                        {
+                            path: 'periodic',
+                            name: 'adminPeriodic',
+                            component: AdminPeriodic
+                        },
                         {
                             path: 'source_manage/',
                             name: 'sourceManage',
@@ -392,6 +408,10 @@ const routers = new VueRouter({
             ]
         },
         {
+            path: '/atomdev/',
+            component: AtomDev
+        },
+        {
             path: '/error/:code(401|403|405|406|500)/',
             component: ErrorPage,
             name: 'errorPage',
@@ -418,12 +438,8 @@ routers.beforeEach((to, from, next) => {
     if (to.params.project_id) {
         store.commit('project/setProjectId', to.params.project_id)
     }
-
-    const { userType, viewMode } = store.state
-    const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
-    const page = PAGE_MAP[pageType]
-    if (page && !page.routes.includes(to.name)) {
-        next(page.getIndex())
+    if (store.state.viewMode === 'appmaker' && !APPMAKER.routes.includes(to.name)) {
+        next(APPMAKER.getIndex())
     } else {
         next()
     }

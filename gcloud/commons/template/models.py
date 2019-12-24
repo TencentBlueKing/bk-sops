@@ -22,6 +22,7 @@ from pipeline.models import PipelineTemplate
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from auth_backend.resources import resource_type_lib
 
+from gcloud import err_code
 from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
@@ -164,7 +165,8 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         return {
             'result': True,
             'data': len(template),
-            'message': 'Successfully imported %s flows' % len(template)
+            'message': 'Successfully imported %s flows' % len(template),
+            'code': err_code.SUCCESS.code
         }
 
 
@@ -283,6 +285,13 @@ class BaseTemplate(models.Model):
             item['name'] = item.pop('pipeline_template__name')
         return result
 
+    def referencer_appmaker(self):
+        appmaker_referencer = self.appmaker_set.all().values('id', 'name')
+        if not appmaker_referencer.exists():
+            return []
+
+        return appmaker_referencer
+
     def update_pipeline_template(self, **kwargs):
         pipeline_template = self.pipeline_template
         if pipeline_template is None:
@@ -350,7 +359,8 @@ class CommonTemplateManager(BaseTemplateManager):
             return {
                 'result': False,
                 'message': 'Unable to override common flows or keep ID when importing business flows data',
-                'data': 0
+                'data': 0,
+                'code': err_code.INVALID_OPERATION.code
             }
 
         def defaults_getter(template_dict):

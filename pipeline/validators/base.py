@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from pipeline import exceptions
 from pipeline.validators.connection import (
     validate_graph_connection,
-    find_graph_circle,
+    validate_graph_without_circle,
 )
 from pipeline.validators.gateway import validate_gateways, validate_stream
 from pipeline.validators.utils import format_pipeline_tree_io_to_list
@@ -30,7 +30,7 @@ def validate_pipeline_tree(pipeline_tree, cycle_tolerate=False):
 
     # do not tolerate circle in flow
     if not cycle_tolerate:
-        no_cycle = find_graph_circle(pipeline_tree)
+        no_cycle = validate_graph_without_circle(pipeline_tree)
         if not no_cycle['result']:
             raise exceptions.ParserException(no_cycle['message'])
 

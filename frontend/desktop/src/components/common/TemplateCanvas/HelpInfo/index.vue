@@ -17,7 +17,7 @@
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
                     <template>
-                        <p class="text title">Windows</p>
+                        <p class="text title">{{ commonTitle }}</p>
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
@@ -58,7 +58,7 @@
                     zoomIn: gettext('：放大'),
                     zoomOut: gettext('：缩小'),
                     reduction: gettext('：还原'),
-                    multiple: gettext('鼠标左键单击 ：连续选中节点'),
+                    multiple: gettext('鼠标左键单击 ：连续选中（或取消）节点'),
                     selectAll: gettext('选中所有节点'),
                     afterSelect: gettext('选中后'),
                     delNode: gettext('：删除节点'),
@@ -66,6 +66,7 @@
                     cancel: gettext('：取消选中')
                 },
                 isMac,
+                commonTitle: isMac ? 'Mac' : 'Windows',
                 commonCtrl: isMac ? 'Command' : 'Ctrl',
                 hotKeyTriggeringConditions
             }

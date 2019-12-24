@@ -20,22 +20,25 @@ from django.utils.decorators import available_attrs
 
 from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
 
+from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.core.permissions import project_resource
 from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
 from gcloud.apigw.exceptions import UserNotExistError
+from gcloud.apigw.whitelist import EnvWhitelist
 
-WHITE_APPS = {'bk_fta', 'bk_bcs'}
+app_whitelist = EnvWhitelist(
+    transient_list={'bk_fta', 'bk_bcs'},
+    env_key='APP_WHITELIST'
+)
 WHETHER_PREPARE_BIZ = getattr(settings, 'WHETHER_PREPARE_BIZ_IN_API_CALL', True)
 
 
 def check_white_apps(request):
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
-    if app_code in WHITE_APPS:
-        return True
-    return False
+    return app_whitelist.has(app_code)
 
 
 def inject_user(request):
@@ -63,7 +66,8 @@ def mark_request_whether_is_trust(view_func):
         except UserNotExistError as e:
             return JsonResponse({
                 'result': False,
-                'message': str(e)
+                'message': str(e),
+                'code': err_code.CONTENT_NOT_EXIST.code
             })
 
         return view_func(request, *args, **kwargs)
@@ -91,7 +95,8 @@ def project_inject(view_func):
         except Exception:
             return JsonResponse({
                 'result': False,
-                'message': 'invalid param format'
+                'message': 'invalid param format',
+                'code': err_code.REQUEST_PARAM_INVALID.code
             })
 
         try:
@@ -99,7 +104,8 @@ def project_inject(view_func):
         except Project.DoesNotExist:
             return JsonResponse({
                 'result': False,
-                'message': 'project({id}) with scope({scope}) does not exist.'.format(id=obj_id, scope=obj_scope)
+                'message': 'project({id}) with scope({scope}) does not exist.'.format(id=obj_id, scope=obj_scope),
+                'code': err_code.CONTENT_NOT_EXIST.code
             })
 
         setattr(request, 'project', project)
@@ -123,7 +129,8 @@ def api_verify_proj_perms(actions):
                     except Exception:
                         return JsonResponse({
                             'result': False,
-                            'message': 'invalid param format'
+                            'message': 'invalid param format',
+                            'code': err_code.REQUEST_PARAM_INVALID.code
                         })
 
                     try:
@@ -132,7 +139,8 @@ def api_verify_proj_perms(actions):
                         return JsonResponse({
                             'result': False,
                             'message': 'project{id} with scope{scope} does not exist.'.format(id=obj_id,
-                                                                                              scope=obj_scope)
+                                                                                              scope=obj_scope),
+                            'code': err_code.CONTENT_NOT_EXIST.code
                         })
 
                 verify_or_raise_auth_failed(principal_type='user',
@@ -167,7 +175,8 @@ def api_verify_perms(auth_resource, actions, get_kwargs):
                     except Project.DoesNotExist:
                         return JsonResponse({
                             'result': False,
-                            'message': 'project{id} with scope{scope} does not exist.'.format(id=obj_id, scope=scope)
+                            'message': 'project{id} with scope{scope} does not exist.'.format(id=obj_id, scope=scope),
+                            'code': err_code.CONTENT_NOT_EXIST.code
                         })
                     get_filters['project_id'] = project.id
 

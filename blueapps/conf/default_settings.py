@@ -68,6 +68,19 @@ try:
     pymysql.install_as_MySQLdb()
     # Patch version info to forcely pass Django client check
     setattr(pymysql, 'version_info', (1, 2, 6, "final", 0))
+
+    # compatible with django sqlmigrate
+    from pymysql.converters import encoders
+
+    def mysqldb_escape(value, conv_dict):
+        vtype = type(value)
+        # note: you could provide a default:
+        # PY2: encoder = encoders.get(vtype, escape_str)
+        # PY3: encoder = encoders.get(vtype, escape_unicode)
+        encoder = encoders.get(vtype)
+        return encoder(value)
+
+    setattr(pymysql, 'escape', mysqldb_escape)
 except ImportError as e:
     raise ImportError("PyMySQL is not installed: %s" % e)
 

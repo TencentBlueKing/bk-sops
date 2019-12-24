@@ -15,6 +15,7 @@ import itertools
 
 from django.test import TestCase
 
+from pipeline.conf import default_settings
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.django_signal_valve import valve
 from pipeline.engine import signals
@@ -62,8 +63,14 @@ class ServiceActivityHandlerTestCase(TestCase):
                 else:
                     service_act.prepare_rerun_data.assert_not_called()
 
-                self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
-                self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
+                self.assertEqual(
+                    service_act.data.inputs._loop,
+                    status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                )
+                self.assertEqual(
+                    service_act.data.outputs._loop,
+                    status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                )
 
                 top_context.extract_output.assert_called_once_with(service_act, set_miss=False)
 
@@ -152,8 +159,14 @@ class ServiceActivityHandlerTestCase(TestCase):
                     else:
                         service_act.prepare_rerun_data.assert_not_called()
 
-                    self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
-                    self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
+                    self.assertEqual(
+                        service_act.data.inputs._loop,
+                        status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                    )
+                    self.assertEqual(
+                        service_act.data.outputs._loop,
+                        status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                    )
 
                     service_act_h.hydrate_node_data.assert_called_once()
 
@@ -235,8 +248,14 @@ class ServiceActivityHandlerTestCase(TestCase):
                 else:
                     service_act.prepare_rerun_data.assert_not_called()
 
-                self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
-                self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
+                self.assertEqual(
+                    service_act.data.inputs._loop,
+                    status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                )
+                self.assertEqual(
+                    service_act.data.outputs._loop,
+                    status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                )
 
                 top_context.extract_output.assert_called_once_with(service_act, set_miss=False)
 
@@ -323,8 +342,14 @@ class ServiceActivityHandlerTestCase(TestCase):
                     else:
                         service_act.prepare_rerun_data.assert_not_called()
 
-                    self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
-                    self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
+                    self.assertEqual(
+                        service_act.data.inputs._loop,
+                        status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                    )
+                    self.assertEqual(
+                        service_act.data.outputs._loop,
+                        status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                    )
 
                     service_act_h.hydrate_node_data.assert_called_once()
 
@@ -411,8 +436,14 @@ class ServiceActivityHandlerTestCase(TestCase):
                 else:
                     service_act.prepare_rerun_data.assert_not_called()
 
-                self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
-                self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
+                self.assertEqual(
+                    service_act.data.inputs._loop,
+                    status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                )
+                self.assertEqual(
+                    service_act.data.outputs._loop,
+                    status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                )
 
                 service_act_h.hydrate_node_data.assert_called_once()
 
@@ -502,8 +533,14 @@ class ServiceActivityHandlerTestCase(TestCase):
                     if on_retry:
                         service_act.retry_at_current_exec.assert_called_once()
 
-                    self.assertEqual(service_act.data.inputs._loop, status.loop - 1)
-                    self.assertEqual(service_act.data.outputs._loop, status.loop - 1)
+                    self.assertEqual(
+                        service_act.data.inputs._loop,
+                        status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                    )
+                    self.assertEqual(
+                        service_act.data.outputs._loop,
+                        status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+                    )
 
                     service_act_h.hydrate_node_data.assert_called_once()
 

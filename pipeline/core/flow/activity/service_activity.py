@@ -16,8 +16,10 @@ from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema, IntItemSchema
 from pipeline.core.flow.activity.base import Activity
+from pipeline.core.flow.io import (BooleanItemSchema, InputItem, IntItemSchema,
+                                   OutputItem)
+from pipeline.utils.utils import convert_bytes_to_str
 
 
 class Service(object, metaclass=ABCMeta):
@@ -31,7 +33,7 @@ class Service(object, metaclass=ABCMeta):
                    key='_result',
                    type='bool',
                    schema=BooleanItemSchema(description=_("是否执行成功"))),
-        OutputItem(name=_("循环次数(起始为0)"),
+        OutputItem(name=_("循环次数"),
                    key='_loop',
                    type='int',
                    schema=IntItemSchema(description=_("循环执行次数")))
@@ -178,7 +180,13 @@ class ServiceActivity(Activity):
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
     def __setstate__(self, state):
+
         for attr, obj in list(state.items()):
+            # py2 compatible
+            if isinstance(attr, bytes):
+                attr = attr.decode('utf-8')
+                obj = convert_bytes_to_str(obj)
+
             setattr(self, attr, obj)
 
         if 'timeout' not in state:

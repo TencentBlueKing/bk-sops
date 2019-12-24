@@ -11,7 +11,7 @@
 */
 <template>
     <div class="functionalization-wrapper">
-        <div :class="['task-info', { 'functor-task-info': userType === 'functor' }]">
+        <div :class="['task-info', { 'functor-task-info': userRights.function }]">
             <span class="task-info-title">{{ i18n.task_info }}</span>
             <div class="task-info-division-line"></div>
             <div class="common-form-item">
@@ -130,7 +130,7 @@
         },
         computed: {
             ...mapState({
-                'userType': state => state.userType
+                'userRights': state => state.userRights
             }),
             isVariableEmpty () {
                 return Object.keys(this.pipelineData.constants).length === 0

@@ -299,37 +299,54 @@ const api = {
         return request(opts)
     },
     /**
-     * 模板收藏
-     * @param {String} list 模板列表
+     * 获取常用业务
      */
-    templateCollectSelect (list) {
-        const prefixUrl = this.getPrefix('templateCollect')
-        const data = qs.stringify({
-            template_list: list
-        })
+    getCommonProject () {
+        const prefixUrl = this.getPrefix('commonProject')
         const opts = {
-            method: 'POST',
-            url: `${prefixUrl}`,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data
+            method: 'GET',
+            url: `${prefixUrl}`
         }
         return request(opts)
     },
     /**
-     * 删除收藏模板
-     * @param {String} template_id 模板id
+     * 获取收藏列表
      */
-    templateCollectDelete (template_id) {
-        const prefixUrl = this.getPrefix('templateCollect')
-        const data = qs.stringify({
-            'method': 'remove',
-            template_id
-        })
+    getCollectList () {
+        const prefixUrl = this.getPrefix('collectList')
         const opts = {
-            method: 'POST',
+            method: 'GET',
+            url: `${prefixUrl}`
+        }
+        return request(opts)
+    },
+    /**
+     * 添加收藏
+     * @param {String} list 列表
+     */
+    collectSelect (list) {
+        const prefixUrl = this.getPrefix('collectList')
+        const data = {
+            objects: list
+        }
+        const opts = {
+            method: 'PUT',
+            url: `${prefixUrl}`,
+            headers: { 'content-type': 'application/json' },
+            data: data
+        }
+        return request(opts)
+    },
+    /**
+     * 删除收藏
+     * @param {String} collect_id 模板id
+     */
+    deleteCollect (collect_id) {
+        const prefixUrl = this.getPrefix('collectList') + `${collect_id}/`
+        const opts = {
+            method: 'DELETE',
             url: `${prefixUrl}`,
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data
         }
         return request(opts)
     },
@@ -694,7 +711,7 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, project_id, subprocess_id } = data
+        const { instance_id, project_id, subprocess_id, cancelToken } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
@@ -702,7 +719,8 @@ const api = {
             params: {
                 instance_id,
                 subprocess_id
-            }
+            },
+            cancelToken
         }
 
         return request(opts)
@@ -1193,13 +1211,11 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getPeriodicList (data) {
-        const { project_id } = store.state.project
-        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
             url: prefixUrl,
-            params: querystring
+            params: { ...data }
         }
         return request(opts)
     },
@@ -1211,8 +1227,8 @@ const api = {
         }
         return request(opts)
     },
-    loadTemplateCollectList () {
-        const prefixUrl = this.getPrefix('templateCollectList')
+    loadCollectList () {
+        const prefixUrl = this.getPrefix('loadCollectList')
         const opts = {
             method: 'GET',
             url: prefixUrl
@@ -1563,6 +1579,145 @@ const api = {
         const opts = {
             method: 'GET',
             url: prefixUrl
+        }
+        return request(opts)
+    },
+    loadApiList () {
+        const prefixUrl = this.getPrefix('esbGetSystems')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    loadApiComponent (params) {
+        const { name } = params
+        const prefixUrl = this.getPrefix('esbGetComponents')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                system_names: JSON.stringify([name])
+            }
+        }
+        return request(opts)
+    },
+    loadApiPluginCode (params) {
+        const { system, component } = params
+        const prefixUrl = this.getPrefix('esbGetPluginInitialCode')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                esb_system: system,
+                esb_component: component
+            }
+        }
+        return request(opts)
+    },
+    adminSearch (data) {
+        const prefixUrl = this.getPrefix('adminSearch')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                keyword: data.keyword
+            }
+        }
+        return request(opts)
+    },
+    adminTemplate (data) {
+        const prefixUrl = this.getPrefix('adminTemplate')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTemplateRestore (data) {
+        const { template_id } = data
+        const prefixUrl = this.getPrefix('adminTemplateRestore')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                template_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflow (data) {
+        const prefixUrl = this.getPrefix('adminTaskflow')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTaskflowDetail (data) {
+        const { task_id } = data
+
+        const prefixUrl = this.getPrefix('adminTaskflowDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                task_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflowHistroyLog (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowHistroyLog')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminTaskflowNodeForceFail (data) {
+        const { task_id, node_id } = data
+        const prefixUrl = this.getPrefix('taskflowNodeForceFail')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                task_id,
+                node_id
+            }
+        }
+        return request(opts)
+    },
+    adminTaskflowNodeDetail (data) {
+        const prefixUrl = this.getPrefix('adminTaskflowNodeDetail')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: { ...data }
+        }
+        return request(opts)
+    },
+    adminPeriodTask (data) {
+        const prefixUrl = this.getPrefix('adminPeriodTask')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    adminPeriodTaskHistory (data) {
+        const { task_id } = data
+        const prefixUrl = this.getPrefix('adminPeriodTaskHistory')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                task_id
+            }
         }
         return request(opts)
     }

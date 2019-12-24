@@ -1,6 +1,6 @@
 /* eslint-disable */
 'use strict';
-module.exports = (() => {
+export default (() => {
   var weekDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
   'friday', 'saturday'];
   var shortWeekDays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];

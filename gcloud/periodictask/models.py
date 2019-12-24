@@ -25,6 +25,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from gcloud.core.models import Project
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.models import TaskFlowInstance
 
 logger = logging.getLogger("root")
@@ -135,7 +136,7 @@ class PeriodicTask(models.Model):
     @property
     def task_template_name(self):
         name = ''
-        if self.template_source == PROJECT:
+        if self.template_source in NON_COMMON_TEMPLATE_TYPES:
             try:
                 template = TaskTemplate.objects.get(project=self.project, id=self.template_id)
             except TaskTemplate.DoesNotExist:

@@ -11,13 +11,26 @@
 */
 <template>
     <div class="page-statistics">
-        <navi-header
-            :routers="routers"
+        <base-title
+            type="router"
             :title="i18n.title"
-            :show-date-picker="true"
-            :date-range="defaultDateRange"
-            @changeDateRange="changeDateRange">
-        </navi-header>
+            :tab-list="routers">
+            <template v-slot:expand>
+                <div class="date-picker">
+                    <bk-form form-type="inline">
+                        <bk-form-item :label="i18n.dateRange">
+                            <bk-date-picker
+                                v-model="dateRange"
+                                type="daterange"
+                                placement="top-end"
+                                :clearable="false"
+                                @change="onChangeDateRange">
+                            </bk-date-picker>
+                        </bk-form-item>
+                    </bk-form>
+                </div>
+            </template>
+        </base-title>
         <div class="statistics-content">
             <router-view
                 :date-range="dateStamp"
@@ -31,44 +44,39 @@
     import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
     import '@/utils/i18n.js'
-    import NaviHeader from '../common/NaviHeader.vue'
-
+    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     const ROUTERS = [
         {
-            text: gettext('流程统计'),
-            name: 'statisticsTemplate',
-            path: '/admin/statistics/template/'
+            name: gettext('流程统计'),
+            routerName: 'statisticsTemplate'
         },
         {
-            text: gettext('任务统计'),
-            name: 'statisticsInstance',
-            path: '/admin/statistics/instance/'
+            name: gettext('任务统计'),
+            routerName: 'statisticsInstance'
         },
         {
-            text: gettext('标准插件统计'),
-            name: 'statisticsAtom',
-            path: '/admin/statistics/atom/'
+            name: gettext('标准插件统计'),
+            routerName: 'statisticsAtom'
         },
         {
-            text: gettext('轻应用统计'),
-            name: 'statisticsAppmaker',
-            path: '/admin/statistics/appmaker/'
+            name: gettext('轻应用统计'),
+            routerName: 'statisticsAppmaker'
         }
     ]
     export default {
         name: 'Statistics',
         components: {
-            NaviHeader
+            BaseTitle
         },
         data () {
             const format = 'YYYY-MM-DD'
             const defaultDateRange = [moment().subtract(1, 'month').format(format), moment().format(format)]
             return {
                 routers: ROUTERS,
-                defaultDateRange,
                 dateRange: defaultDateRange.slice(0),
                 i18n: {
-                    title: gettext('运营数据')
+                    title: gettext('运营数据'),
+                    dateRange: gettext('时间范围')
                 }
             }
         },
@@ -98,7 +106,7 @@
             ...mapActions([
                 'getCategorys'
             ]),
-            changeDateRange (dateRange) {
+            onChangeDateRange (dateRange) {
                 this.dateRange = dateRange
             }
         }
@@ -106,6 +114,7 @@
 </script>
 <style lang="scss" scoped>
     .page-statistics {
+        padding: 0 60px;
         min-width: 1320px;
         height: 100%;
         background: #f4f7fa;
@@ -113,7 +122,14 @@
             margin: 0 60px 0;
         }
         .statistics-content {
-            padding: 20px 60px 60px;
+            padding-top: 20px;
+        }
+        .date-picker {
+            height: 60px;
+            /deep/ .bk-label {
+                height: 60px;
+                line-height: 60px;
+            }
         }
         /deep/ .statistics-select {
             width: 250px;

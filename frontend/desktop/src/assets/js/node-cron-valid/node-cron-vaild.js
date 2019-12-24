@@ -1,6 +1,6 @@
 /* eslint-disable */
 'use strict';
-var  validation = require('./pattern-validation');
+import validation from './pattern-validation'
 function ErrorException (value) {
     this.value = value;
     this.message = "是一个非法表达式，请校验";
@@ -8,7 +8,7 @@ function ErrorException (value) {
         return this.value + this.message;
     };
 }
-module.exports = (() => {
+export default (() => {
 
   function validate(expression, config) {
     var common_config = Object.assign({ language: 'en'}, config || {})

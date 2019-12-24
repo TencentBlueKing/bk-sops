@@ -11,31 +11,41 @@
 */
 <template>
     <div class="page-manage">
-        <navi-header :routers="routers" :title="title"></navi-header>
+        <base-title
+            class="title"
+            type="router"
+            :tab-list="routers"
+            :title="title">
+        </base-title>
         <router-view></router-view>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import NaviHeader from '../common/NaviHeader.vue'
-
+    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     const ROUTERS = [
         {
-            text: gettext('远程插件包源管理'),
-            name: 'sourceManage',
-            path: '/admin/manage/source_manage/'
+            name: gettext('搜索'),
+            routerName: 'adminSearch'
         },
         {
-            text: gettext('远程插件同步'),
-            name: 'sourceSync',
-            path: '/admin/manage/source_sync/'
+            name: gettext('周期任务'),
+            routerName: 'adminPeriodic'
+        },
+        {
+            name: gettext('远程插件包源管理'),
+            routerName: 'sourceManage'
+        },
+        {
+            name: gettext('远程插件同步'),
+            routerName: 'sourceSync'
         }
     ]
 
     export default {
         name: 'Manage',
         components: {
-            NaviHeader
+            BaseTitle
         },
         data () {
             return {
@@ -57,6 +67,7 @@
 </script>
 <style lang="scss" scoped>
     .page-manage {
+        padding: 0 60px;
         min-width: 1320px;
         height: 100%;
         background: #f4f7fa;

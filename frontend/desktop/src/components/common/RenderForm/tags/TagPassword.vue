@@ -32,7 +32,7 @@
     import { JSEncrypt } from 'jsencrypt'
     import { getFormMixins } from '../formMixins.js'
 
-    const passwordAttrs = {
+    export const attrs = {
         value: {
             type: [String, Boolean],
             required: false,
@@ -41,7 +41,7 @@
     }
     export default {
         name: 'TagPassword',
-        mixins: [getFormMixins(passwordAttrs)],
+        mixins: [getFormMixins(attrs)],
         data () {
             return {
                 encrypted: false,

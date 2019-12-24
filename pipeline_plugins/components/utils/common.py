@@ -15,19 +15,13 @@ import logging
 import re
 import os
 
-import ujson as json
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
-
-from auth_backend.constants import AUTH_FORBIDDEN_CODE
 
 from gcloud.core.models import Business, Project
-from gcloud.core.utils import apply_permission_url
 
 logger = logging.getLogger('root')
 
-ip_re = r'(([12][0-9][0-9]|[1-9][0-9]|[0-9])\.){3,3}' \
-        r'([12][0-9][0-9]|[1-9][0-9]|[0-9])'
+ip_re = r'((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)'
 ip_pattern = re.compile(ip_re)
 
 
@@ -76,41 +70,7 @@ def supplier_id_inject(func):
     return wrapper
 
 
-def handle_api_error(system, api_name, params, result):
-    if result.get('code') == AUTH_FORBIDDEN_CODE:
-        permission = result.get('permission', [])
-        apply_result = apply_permission_url(permission)
-        if not apply_result['result']:
-            logger.error("获取申请权限链接失败: {msg}".format(msg=apply_result['message']))
-
-        url = apply_result.get('data', {}).get('url', '')
-
-        pre_message = _("调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。").format(
-            system=system,
-            api_name=api_name,
-            url=url,
-        )
-        message = "{pre_message}\n details: params={params}, error={error}".format(
-            pre_message=pre_message,
-            params=json.dumps(params),
-            error=result.get('message', '')
-        )
-
-    else:
-        message = _("调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
-            system=system,
-            api_name=api_name,
-            params=json.dumps(params),
-            error=result.get('message', '')
-        )
-
-    logger.error(message)
-
-    return message
-
-
 def get_ip_by_regex(ip_str):
-    ip_str = "%s" % ip_str
     ret = []
     for match in ip_pattern.finditer(ip_str):
         ret.append(match.group())
@@ -141,3 +101,17 @@ def format_sundry_ip(ip):
         logger.info('HOST[%s] has multiple ip' % ip)
         return ip.split(',')[0]
     return ip
+
+
+def loose_strip(data):
+    """
+    @summary: 尝试把 data 当做字符串处理两端空白字符
+    @param data:
+    @return:
+    """
+    if isinstance(data, str):
+        return data.strip()
+    try:
+        return str(data).strip()
+    except Exception:
+        return data

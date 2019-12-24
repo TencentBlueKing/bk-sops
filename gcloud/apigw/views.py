@@ -27,10 +27,11 @@ from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
-from pipeline_web.drawing import draw_pipeline
+from pipeline_web.drawing_new.drawing import draw_pipeline
 
+from gcloud import err_code
 from gcloud.conf import settings
-from gcloud.constants import PROJECT, BUSINESS, ONETIME
+from gcloud.constants import PROJECT, ONETIME
 from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     api_verify_perms,
@@ -48,6 +49,7 @@ from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -123,12 +125,16 @@ def format_template_data(template, project=None):
 def get_template_list(request, project_id):
     template_source = request.GET.get('template_source', PROJECT)
     project = request.project
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project.id,
                                                                                     is_deleted=False)
     else:
         templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
-    return JsonResponse({'result': True, 'data': format_template_list_data(templates, project)})
+    return JsonResponse({
+        'result': True,
+        'data': format_template_list_data(templates, project),
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -139,7 +145,7 @@ def get_template_list(request, project_id):
 def get_template_info(request, template_id, project_id):
     project = request.project
     template_source = request.GET.get('template_source', PROJECT)
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project.id,
@@ -150,7 +156,9 @@ def get_template_info(request, template_id, project_id):
                 'message': 'template[id={template_id}] of project[project_id={project_id}, biz_id={biz_id}] '
                            'does not exist'.format(template_id=template_id,
                                                    project_id=project.id,
-                                                   biz_id=project.bk_biz_id)}
+                                                   biz_id=project.bk_biz_id),
+                'code': err_code.CONTENT_NOT_EXIST.code
+            }
             return JsonResponse(result)
         auth_resource = task_template_resource
     else:
@@ -159,7 +167,8 @@ def get_template_info(request, template_id, project_id):
         except CommonTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id),
+                'code': err_code.CONTENT_NOT_EXIST.code
             }
             return JsonResponse(result)
         auth_resource = common_template_resource
@@ -172,7 +181,11 @@ def get_template_info(request, template_id, project_id):
                                     instance=tmpl,
                                     status=200)
 
-    return JsonResponse({'result': True, 'data': format_template_data(tmpl, project)})
+    return JsonResponse({
+        'result': True,
+        'data': format_template_data(tmpl, project),
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -182,7 +195,11 @@ def get_template_info(request, template_id, project_id):
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
 
-    return JsonResponse({'result': True, 'data': format_template_list_data(templates)})
+    return JsonResponse({
+        'result': True,
+        'data': format_template_list_data(templates),
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -195,7 +212,8 @@ def get_common_template_info(request, template_id):
     except CommonTemplate.DoesNotExist:
         result = {
             'result': False,
-            'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+            'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id),
+            'code': err_code.CONTENT_NOT_EXIST.code
         }
         return JsonResponse(result)
 
@@ -208,7 +226,11 @@ def get_common_template_info(request, template_id):
                                     instance=tmpl,
                                     status=200)
 
-    return JsonResponse({'result': True, 'data': format_template_data(template=tmpl)})
+    return JsonResponse({
+        'result': True,
+        'data': format_template_data(template=tmpl),
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -223,7 +245,8 @@ def create_task(request, template_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     project = request.project
@@ -235,7 +258,7 @@ def create_task(request, template_id, project_id):
         params=params))
 
     # 兼容老版本的接口调用
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         template_source = PROJECT
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
@@ -247,7 +270,9 @@ def create_task(request, template_id, project_id):
                 'message': 'template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] '
                            'does not exist'.format(template_id=template_id,
                                                    project_id=project.id,
-                                                   biz_id=project.bk_biz_id)}
+                                                   biz_id=project.bk_biz_id),
+                'code': err_code.CONTENT_NOT_EXIST.code
+            }
             return JsonResponse(result)
 
         if not request.is_trust:
@@ -264,7 +289,8 @@ def create_task(request, template_id, project_id):
         except CommonTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id),
+                'code': err_code.CONTENT_NOT_EXIST.code
             }
             return JsonResponse(result)
 
@@ -284,12 +310,20 @@ def create_task(request, template_id, project_id):
     except jsonschema.ValidationError as e:
         logger.warning("apigw create_task raise prams error: %s" % e)
         message = 'task params is invalid: %s' % e
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.REQUEST_PARAM_INVALID.code
+        })
 
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = 'app_code cannot be empty, make sure api gateway has sent correct params'
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.CONTENT_NOT_EXIST.code
+        })
 
     pipeline_instance_kwargs = {
         'name': params['name'],
@@ -301,9 +335,17 @@ def create_task(request, template_id, project_id):
         result, data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
             tmpl, pipeline_instance_kwargs, params['constants'], params['exclude_task_nodes_id'])
     except PipelineException as e:
-        return JsonResponse({'result': False, 'message': str(e)})
+        return JsonResponse({
+            'result': False,
+            'message': str(e),
+            'code': err_code.UNKNOW_ERROR.code
+        })
     if not result:
-        return JsonResponse({'result': False, 'message': data})
+        return JsonResponse({
+            'result': False,
+            'message': data,
+            'code': err_code.UNKNOW_ERROR.code
+        })
 
     task = TaskFlowInstance.objects.create(
         project=project,
@@ -322,7 +364,9 @@ def create_task(request, template_id, project_id):
             'task_id': task.id,
             'task_url': task.url,
             'pipeline_tree': task.pipeline_tree
-        }})
+        },
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -357,7 +401,8 @@ def operate_task(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
     action = params.get('action')
     username = request.user.username
@@ -382,7 +427,8 @@ def get_task_status(request, task_id, project_id):
         task_status = task.get_status()
         result = {
             'result': True,
-            'data': task_status
+            'data': task_status,
+            'code': err_code.SUCCESS.code
         }
         return JsonResponse(result)
     # 请求子流程的状态，直接通过pipeline api查询
@@ -391,7 +437,11 @@ def get_task_status(request, task_id, project_id):
     except Exception as e:
         message = 'task[id={task_id}] get status error: {error}'.format(task_id=task_id, error=e)
         logger.error(message)
-        result = {'result': False, 'message': message}
+        result = {
+            'result': False,
+            'message': message,
+            'code': err_code.UNKNOW_ERROR.code
+        }
         return JsonResponse(result)
 
     try:
@@ -400,11 +450,16 @@ def get_task_status(request, task_id, project_id):
     except Exception as e:
         message = 'task[id={task_id}] get status error: {error}'.format(task_id=task_id, error=e)
         logger.error(message)
-        result = {'result': False, 'message': message}
+        result = {
+            'result': False,
+            'message': message,
+            'code': err_code.UNKNOW_ERROR.code
+        }
         return JsonResponse(result)
     result = {
         'result': True,
-        'data': task_status
+        'data': task_status,
+        'code': err_code.SUCCESS.code
     }
     return JsonResponse(result)
 
@@ -428,7 +483,8 @@ def query_task_count(request, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
     project = request.project
     conditions = params.get('conditions', {})
@@ -436,18 +492,34 @@ def query_task_count(request, project_id):
     if not isinstance(conditions, dict):
         message = "query_task_list params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.REQUEST_PARAM_INVALID.code
+        })
     if group_by not in ['category', 'create_method', 'flow_type', 'status']:
         message = "query_task_list params group_by[%s] is invalid" % group_by
         logger.error(message)
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.REQUEST_PARAM_INVALID.code
+        })
 
     filters = {'project_id': project.id, 'is_deleted': False}
     filters.update(conditions)
     success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
-        return JsonResponse({'result': False, 'message': content})
-    return JsonResponse({'result': True, 'data': content})
+        return JsonResponse({
+            'result': False,
+            'message': content,
+            'code': err_code.UNKNOW_ERROR.code
+        })
+    return JsonResponse({
+        'result': True,
+        'data': content,
+        'code': err_code.SUCCESS.code
+    })
 
 
 def info_data_from_period_task(task, detail=True):
@@ -483,7 +555,11 @@ def get_periodic_task_list(request, project_id):
     for task in task_list:
         data.append(info_data_from_period_task(task, detail=False))
 
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({
+        'result': True,
+        'data': data,
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -499,11 +575,16 @@ def get_periodic_task_info(request, task_id, project_id):
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
-            'message': 'task(%s) does not exist' % task_id
+            'message': 'task(%s) does not exist' % task_id,
+            'code': err_code.CONTENT_NOT_EXIST.code
         })
 
     data = info_data_from_period_task(task)
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({
+        'result': True,
+        'data': data,
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -518,7 +599,8 @@ def create_periodic_task(request, template_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
     project = request.project
     template_source = params.get('template_source', PROJECT)
@@ -528,7 +610,7 @@ def create_periodic_task(request, template_id, project_id):
                                                                                         project_id=project.id,
                                                                                         params=params))
 
-    if template_source in {BUSINESS, PROJECT}:
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
         template_source = PROJECT
         try:
             template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
@@ -538,7 +620,9 @@ def create_periodic_task(request, template_id, project_id):
                 'message': 'template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] '
                            'does not exist'.format(template_id=template_id,
                                                    project_id=project.id,
-                                                   biz_id=project.bk_biz_id)}
+                                                   biz_id=project.bk_biz_id),
+                'code': err_code.CONTENT_NOT_EXIST.code
+            }
             return JsonResponse(result)
 
         if not request.is_trust:
@@ -554,7 +638,8 @@ def create_periodic_task(request, template_id, project_id):
         except CommonTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id),
+                'code': err_code.CONTENT_NOT_EXIST.code
             }
             return JsonResponse(result)
 
@@ -578,7 +663,11 @@ def create_periodic_task(request, template_id, project_id):
     except jsonschema.ValidationError as e:
         logger.warning("apigw create_periodic_task raise prams error: %s" % e)
         message = 'task params is invalid: %s' % e
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.REQUEST_PARAM_INVALID.code
+        })
 
     exclude_task_nodes_id = params['exclude_task_nodes_id']
     pipeline_tree = template.pipeline_tree
@@ -586,7 +675,11 @@ def create_periodic_task(request, template_id, project_id):
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': str(e)})
+        return JsonResponse({
+            'result': False,
+            'message': str(e),
+            'code': err_code.UNKNOW_ERROR.code
+        })
 
     for key, val in list(params['constants'].items()):
         if key in pipeline_tree['constants']:
@@ -599,7 +692,11 @@ def create_periodic_task(request, template_id, project_id):
         replace_template_id(TaskTemplate, pipeline_tree)
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': str(e)})
+        return JsonResponse({
+            'result': False,
+            'message': str(e),
+            'code': err_code.UNKNOW_ERROR.code
+        })
 
     try:
         task = PeriodicTask.objects.create(
@@ -613,12 +710,17 @@ def create_periodic_task(request, template_id, project_id):
         )
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': str(e)})
+        return JsonResponse({
+            'result': False,
+            'message': str(e),
+            'code': err_code.UNKNOW_ERROR.code
+        })
 
     data = info_data_from_period_task(task)
     return JsonResponse({
         'result': True,
-        'data': data
+        'data': data,
+        'code': err_code.SUCCESS.code
     })
 
 
@@ -638,7 +740,8 @@ def set_periodic_task_enabled(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     enabled = params.get('enabled', False)
@@ -648,7 +751,8 @@ def set_periodic_task_enabled(request, task_id, project_id):
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
-            'message': 'task(%s) does not exist' % task_id
+            'message': 'task(%s) does not exist' % task_id,
+            'code': err_code.CONTENT_NOT_EXIST.code
         })
 
     task.set_enabled(enabled)
@@ -657,6 +761,7 @@ def set_periodic_task_enabled(request, task_id, project_id):
         'data': {
             'enabled': task.enabled
         },
+        'code': err_code.SUCCESS.code
     })
 
 
@@ -675,7 +780,8 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     project = request.project
@@ -687,7 +793,8 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
-            'message': 'task(%s) does not exist' % task_id
+            'message': 'task(%s) does not exist' % task_id,
+            'code': err_code.CONTENT_NOT_EXIST.code
         })
 
     try:
@@ -695,14 +802,16 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
     except Exception as e:
         return JsonResponse({
             'result': False,
-            'message': str(e)
+            'message': str(e),
+            'code': err_code.UNKNOW_ERROR.code
         })
 
     return JsonResponse({
         'result': True,
         'data': {
             'cron': task.cron
-        }
+        },
+        'code': err_code.SUCCESS.code
     })
 
 
@@ -722,7 +831,8 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     constants = params.get('constants', {})
@@ -732,7 +842,8 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
-            'message': 'task(%s) does not exist' % task_id
+            'message': 'task(%s) does not exist' % task_id,
+            'code': err_code.CONTENT_NOT_EXIST.code
         })
 
     try:
@@ -740,12 +851,14 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
     except Exception as e:
         return JsonResponse({
             'result': False,
-            'message': str(e)
+            'message': str(e),
+            'code': err_code.UNKNOW_ERROR.code
         })
 
     return JsonResponse({
         'result': True,
-        'data': new_constants
+        'data': new_constants,
+        'code': err_code.SUCCESS.code
     })
 
 
@@ -774,10 +887,18 @@ def get_task_detail(request, task_id, project_id):
             project_id=project.id,
             biz_id=project.bk_biz_id)
         logger.exception(message)
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.CONTENT_NOT_EXIST.code
+        })
 
     data = task.get_task_detail()
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({
+        'result': True,
+        'data': data,
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -805,7 +926,11 @@ def get_task_node_detail(request, task_id, project_id):
             project_id=project.id,
             biz_id=project.bk_biz_id)
         logger.exception(message)
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.CONTENT_NOT_EXIST.code
+        })
 
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
@@ -815,7 +940,8 @@ def get_task_node_detail(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'subprocess_stack is not a valid array json'
+            'message': 'subprocess_stack is not a valid array json',
+            'code': err_code.UNKNOW_ERROR.code
         })
     result = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
     return JsonResponse(result)
@@ -836,7 +962,8 @@ def node_callback(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     project = request.project
@@ -849,7 +976,11 @@ def node_callback(request, task_id, project_id):
             project_id=project.id,
             biz_id=project.bk_biz_id)
         logger.exception(message)
-        return JsonResponse({'result': False, 'message': message})
+        return JsonResponse({
+            'result': False,
+            'message': message,
+            'code': err_code.CONTENT_NOT_EXIST.code
+        })
 
     node_id = params.get('node_id')
     callback_data = params.get('callback_data')
@@ -866,7 +997,8 @@ def import_common_template(request):
     if not request.is_trust:
         return JsonResponse({
             'result': False,
-            'message': 'you have no permission to call this api.'
+            'message': 'you have no permission to call this api.',
+            'code': err_code.REQUEST_FORBIDDEN_INVALID.code
         })
 
     try:
@@ -874,14 +1006,16 @@ def import_common_template(request):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     template_data = req_data.get('template_data', None)
     if not template_data:
         return JsonResponse({
             'result': False,
-            'message': 'template data can not be none'
+            'message': 'template data can not be none',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
     r = read_encoded_template_data(template_data)
     if not r['result']:
@@ -895,7 +1029,8 @@ def import_common_template(request):
         logger.exception(e)
         return JsonResponse({
             'result': False,
-            'message': 'invalid flow data or error occur, please contact administrator'
+            'message': 'invalid flow data or error occur, please contact administrator',
+            'code': err_code.UNKNOW_ERROR.code
         })
 
     return JsonResponse(import_result)
@@ -913,7 +1048,8 @@ def fast_create_task(request, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid json format'
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     project = request.project
@@ -941,7 +1077,8 @@ def fast_create_task(request, project_id):
         logger.exception(message)
         return JsonResponse({
             'result': False,
-            'message': message
+            'message': message,
+            'code': err_code.UNKNOW_ERROR.code
         })
 
     try:
@@ -954,7 +1091,8 @@ def fast_create_task(request, project_id):
     except (KeyError, ValueError) as e:
         return JsonResponse({
             'result': False,
-            'message': 'invalid params: %s' % str(e)
+            'message': 'invalid params: %s' % str(e),
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     try:
@@ -967,7 +1105,8 @@ def fast_create_task(request, project_id):
         logger.exception(message)
         return JsonResponse({
             'result': False,
-            'message': message
+            'message': message,
+            'code': err_code.UNKNOW_ERROR.code
         })
 
     taskflow_kwargs = {
@@ -993,7 +1132,9 @@ def fast_create_task(request, project_id):
             'task_id': task.id,
             'task_url': task.url,
             'pipeline_tree': task.pipeline_tree
-        }})
+        },
+        'code': err_code.SUCCESS.code
+    })
 
 
 @login_exempt
@@ -1016,4 +1157,8 @@ def get_plugin_list(request, project_id):
             'group_name': comp.group_name
         })
 
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({
+        'result': True,
+        'data': data,
+        'code': err_code.SUCCESS.code
+    })

@@ -11,292 +11,35 @@
 */
 <template>
     <div class="home-page">
-        <div>
-            <div class="summary-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
-                <HomeSummary
-                    :loading="loading"
-                    :project_id="project_id"
-                    :summary-data="summaryData">
-                </HomeSummary>
-            </div>
-            <div class="main-wrapper">
-                <QuickCreateTask
-                    :collect-loading="loading"
-                    :project_id="project_id"
-                    :quick-task-list="quickTaskList"
-                    :template-classify="templateClassify"
-                    :total-template="totalTemplate"
-                    @updateQuickTaskList="updateQuickTaskList">
-                </QuickCreateTask>
-                <div class="column-panel clearfix">
-                    <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
-                        <TaskFeeds
-                            v-if="!loading"
-                            :top-three-task-feeds="topThreeTaskFeeds"
-                            :project_id="project_id"
-                            :task-operations="taskOperations"
-                            :task-resource="taskResource">
-                        </TaskFeeds>
-                    </div>
-                    <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
-                        <TaskPercentChart
-                            v-if="!loading"
-                            :task-count="taskCount"
-                            :total-task="totalTask">
-                        </TaskPercentChart>
-                    </div>
-                </div>
-            </div>
-            <CopyrightFooter></CopyrightFooter>
-        </div>
+        <common-used></common-used>
+        <my-collection></my-collection>
+        <my-dynamic></my-dynamic>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-    import { errorHandler } from '@/utils/errorHandler.js'
-    import HomeSummary from './HomeSummary.vue'
-    import QuickCreateTask from './QuickCreateTask.vue'
-    import TaskFeeds from './TaskFeeds.vue'
-    import TaskPercentChart from './TaskPercentChart.vue'
-
+    import CommonUsed from './CommonlyUsed.vue'
+    import MyCollection from './MyCollection.vue'
+    import MyDynamic from './MyDynamic.vue'
     export default {
         name: 'HomePage',
         components: {
-            CopyrightFooter,
-            HomeSummary,
-            QuickCreateTask,
-            TaskFeeds,
-            TaskPercentChart
+            CommonUsed,
+            MyCollection,
+            MyDynamic
         },
-        props: ['project_id', 'template_id'],
         data () {
             return {
-                loading: true,
-                summaryData: {
-                    executeStatus: {},
-                    templateStatus: {},
-                    appmakerStatus: {}
-                },
-                quickTaskList: [],
-                topThreeTaskFeeds: [],
-                taskCount: [],
-                totalTask: 0,
-                templateClassify: [],
-                totalTemplate: 0,
-                taskOperations: [],
-                taskResource: {}
-            }
-        },
-        watch: {
-            'project_id' (val) {
-                this.getData()
             }
         },
         created () {
-            this.getData()
-        },
-        methods: {
-            ...mapActions('template/', [
-                'loadTemplateSummary',
-                'loadTemplateCollectList'
-            ]),
-            ...mapActions('appmaker/', [
-                'loadAppmakerSummary'
-            ]),
-            ...mapActions('task/', [
-                'loadTaskSummary',
-                'loadTaskTop3Data',
-                'loadTaskCount'
-            ]),
-            ...mapActions('taskList/', [
-                'loadTaskList'
-            ]),
-            async getData () {
-                this.loading = true
-                Promise.all([
-                    this.getAppmakerSummary(),
-                    this.getTaskTop3Data(),
-                    this.getTaskCountData(),
-                    this.getTaskExecuteData(),
-                    this.getTemplateCategorySummary(),
-                    this.getTemplateCollectList()
-                ]).then(values => {
-                    this.handleHomeData(values)
-                    this.loading = false
-                }).catch(e => {
-                    errorHandler(e, this)
-                    this.loading = false
-                })
-            },
-            async getAppmakerSummary () {
-                const query = {
-                    groupBy: 'category'
-                }
-                try {
-                    const appmakerData = await this.loadAppmakerSummary(query)
-                    return appmakerData.data
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            async getTaskTop3Data () {
-                try {
-                    const query = {
-                        limit: 3
-                    }
-                    const taskTop3Data = await this.loadTaskList(query)
-                    this.taskOperations = taskTop3Data.meta.auth_operations
-                    this.taskResource = taskTop3Data.meta.auth_resource
-                    return taskTop3Data.objects
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            async getTaskCountData () {
-                const query = {
-                    group_by: 'category'
-                }
-                try {
-                    const taskCountData = await this.loadTaskCount(query)
-                    if (taskCountData.result) {
-                        return taskCountData.data
-                    } else {
-                        errorHandler(taskCountData, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            async getTaskExecuteData () {
-                const query = {
-                    group_by: 'status'
-                }
-                try {
-                    const taskCountData = await this.loadTaskCount(query)
-                    if (taskCountData.result) {
-                        return taskCountData.data
-                    } else {
-                        errorHandler(taskCountData, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            /**
-             * 流程统计
-             */
-            async getTemplateCategorySummary () {
-                const query = {
-                    groupBy: 'category'
-                }
-                try {
-                    const categoryData = await this.loadTemplateSummary(query)
-                    if (categoryData.result) {
-                        return categoryData.data
-                    } else {
-                        errorHandler(categoryData, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            /**
-             * 用户收藏的模板
-             */
-            async getTemplateCollectList () {
-                try {
-                    const collectListData = await this.loadTemplateCollectList()
-                    if (collectListData.result) {
-                        return collectListData.data
-                    } else {
-                        errorHandler(collectListData, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            /**
-             * 默认流程模板分类数据
-             */
-            getDefaultGroup (list) {
-                const groupDefaultData = {}
-                list.forEach(item => {
-                    groupDefaultData[item.code] = {
-                        name: gettext(item.name),
-                        value: 0
-                    }
-                })
-                return groupDefaultData
-            },
-            handleHomeData (data) {
-                this.templateClassify = []
-                this.quickTaskList = data[5]
-                data[2].groups.forEach(item => {
-                    item.name = gettext(item.name)
-                    this.templateClassify.push({
-                        code: item.code,
-                        name: item.name
-                    })
-                })
-                data[3].groups.forEach(item => {
-                    item.name = gettext(item.name)
-                })
-                // 头部概览数据
-                this.summaryData = {
-                    executeStatus: {
-                        total: data[3].total,
-                        groups: data[3].groups
-                    },
-                    templateStatus: {
-                        total: data[4].total,
-                        groups: data[4].groups
-                    },
-                    appmakerStatus: {
-                        total: data[0].total,
-                        groups: data[0].groups
-                    }
-                }
-                // 任务的数量
-                this.totalTemplate = data[4].total
-                // 任务记录
-                this.topThreeTaskFeeds = data[1]
-                this.taskCount = data[2].groups
-                this.totalTask = data[2].total
-            },
-            updateQuickTaskList (data) {
-                this.quickTaskList = data
-            }
         }
     }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-.summary-info {
-    background: #2b74c6;
-    background: linear-gradient(to bottom, #2b74ca, #289dce);
-}
-.main-wrapper {
-    width: 1200px;
-    margin: 0 auto;
-}
-.col-item {
-    float: left;
-    margin-right: 20px;
-    width: 590px;
-    height: 480px;
-    border: 1px solid $commonBorderColor;
-    border-radius: 2px;
-    box-shadow: -1px 1px 8px rgba(180, 180, 180, .15), 1px -1px 8px rgba(180, 180, 180, .15);
-    background: $whiteDefault;
-    vertical-align: top;
-    &:nth-child(2n) {
-        margin-right: 0;
-    }
-}
-[v-cloak] {
-   display:none;
-
+.home-page {
+    padding: 0px 60px 0 60px;
+    min-width: 1320px;
 }
 </style>

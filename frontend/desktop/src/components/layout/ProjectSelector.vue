@@ -37,7 +37,17 @@
 
     export default {
         name: 'ProjectSelector',
-        props: ['disabled'],
+        props: {
+            disabled: {
+                type: Boolean,
+                default: false
+            },
+            // 切换项目后是否重定向
+            redirect: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 showList: false,
@@ -91,7 +101,7 @@
             },
             currentProject: {
                 get () {
-                    return Number(this.project_id)
+                    return Number(this.project_id) || ''
                 },
                 set (id) {
                     this.onProjectChange(id)
@@ -107,6 +117,9 @@
                 'changeDefaultProject'
             ]),
             async onProjectChange (id) {
+                if (this.project_id === id) {
+                    return false
+                }
                 try {
                     this.setProjectId(id)
                     await this.changeDefaultProject(id)
@@ -114,8 +127,14 @@
                     this.setTimeZone(timeZone)
                     
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
-
-                    this.$router.push({ path: `/home/${id}/` })
+                    if (!this.redirect) {
+                        return
+                    }
+                    if (this.$route.name === 'home') {
+                        this.$emit('reloadHome')
+                    } else {
+                        this.$router.push({ name: 'home' })
+                    }
                 } catch (err) {
                     errorHandler(err, this)
                 }

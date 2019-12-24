@@ -1,6 +1,6 @@
 /* eslint-disable */
 'use strict';
-module.exports = (() => {
+export default (() => {
   var months = ['january','february','march','april','may','june','july',
     'august','september','october','november','december'];
   var shortMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug',

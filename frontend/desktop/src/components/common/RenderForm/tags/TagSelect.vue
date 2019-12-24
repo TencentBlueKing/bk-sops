@@ -56,16 +56,31 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const selectAttrs = {
+    export const attrs = {
         value: {
+            type: [String, Array, Boolean, Number],
             required: false,
-            default: ''
+            default: '',
+            desc: gettext('下拉框的选中值，可输入 String、Boolean、Number 类型的值，若为多选请输入包含上述类型的数组格式数据')
         },
         items: {
             type: Array,
             required: false,
             default () {
-                return []
+                return [
+                    {
+                        text: gettext('选项1'),
+                        value: 'value1'
+                    },
+                    {
+                        text: gettext('选项2'),
+                        value: 'value2'
+                    },
+                    {
+                        text: gettext('选项3'),
+                        value: 'value3'
+                    }
+                ]
             },
             desc: "array like [{text: '', value: ''}, {text: '', value: ''}]"
         },
@@ -128,7 +143,7 @@
     }
     export default {
         name: 'TagSelect',
-        mixins: [getFormMixins(selectAttrs)],
+        mixins: [getFormMixins(attrs)],
         data () {
             return {
                 loading: false,

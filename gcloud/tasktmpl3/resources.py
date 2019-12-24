@@ -219,10 +219,16 @@ class TaskTemplateResource(GCloudModelResource):
             task_tmpl = TaskTemplate.objects.get(id=kwargs['pk'])
         except TaskTemplate.DoesNotExist:
             raise BadRequest('template does not exist')
-        referencer = task_tmpl.referencer()
-        if referencer:
-            flat = ','.join(['%s:%s' % (item['id'], item['name']) for item in referencer])
+        template_referencer = task_tmpl.referencer()
+        if template_referencer:
+            flat = ','.join(['%s:%s' % (item['id'], item['name']) for item in template_referencer])
             raise BadRequest('flow template are referenced by other templates[%s], please delete them first' % flat)
+
+        appmaker_referencer = task_tmpl.referencer_appmaker()
+        if appmaker_referencer:
+            flat = ','.join(['%s:%s' % (item['id'], item['name']) for item in appmaker_referencer])
+            raise BadRequest('flow template are referenced by mini apps[%s], please delete them first' % flat)
+
         result = super(TaskTemplateResource, self).obj_delete(bundle, **kwargs)
         if result:
             task_tmpl.set_deleted()

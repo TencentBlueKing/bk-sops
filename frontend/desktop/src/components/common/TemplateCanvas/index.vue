@@ -67,6 +67,7 @@
                     :is-node-check-open="isNodeCheckOpen"
                     :editable="editable"
                     :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+                    :has-admin-perm="hasAdminPerm"
                     @onConfigBtnClick="onShowNodeConfig"
                     @onInsertNode="onInsertNode"
                     @onAppendNode="onAppendNode"
@@ -76,11 +77,12 @@
                     @onNodeCheckClick="onNodeCheckClick"
                     @onNodeRemove="onNodeRemove"
                     @onRetryClick="onRetryClick"
+                    @onForceFail="onForceFail"
                     @onSkipClick="onSkipClick"
                     @onModifyTimeClick="onModifyTimeClick"
                     @onGatewaySelectionClick="onGatewaySelectionClick"
                     @onTaskNodeResumeClick="onTaskNodeResumeClick"
-                    @addNodesToDragSelection="addNodesToDragSelection"
+                    @addNodesToDragSelection="addNodeToSelectedList"
                     @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
                 </node-template>
             </template>
@@ -159,6 +161,10 @@
                 default: false
             },
             subAtomListLoading: {
+                type: Boolean,
+                default: false
+            },
+            hasAdminPerm: {
                 type: Boolean,
                 default: false
             },
@@ -277,29 +283,7 @@
             },
             nodeSelectedhandler (e) {
                 if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) { // ctrl + v
-                    const { locations, lines } = this.createCopyOfSelectedNodes(this.copyNodes)
-                    const selectedIds = []
-                    const { x: originX, y: originY } = this.selectionOriginPos
-                    const { x, y } = this.pasteMousePos
-                    locations.forEach(location => {
-                        location.x += (x - originX)
-                        location.y += (y - originY)
-                        selectedIds.push(location.id)
-                        this.$refs.jsFlow.createNode(location)
-                        this.$emit('onLocationChange', 'add', location)
-                    })
-                    // 需要先生成节点 DOM，才能连线
-                    lines.forEach(line => {
-                        this.$emit('onLineChange', 'add', line)
-                        this.$nextTick(() => {
-                            this.$refs.jsFlow.createConnector(line)
-                        })
-                    })
-                    this.$nextTick(() => {
-                        this.$refs.jsFlow.clearNodesDragSelection()
-                        this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
-                        this.selectedNodes = locations
-                    })
+                    this.onCopyNodes()
                 } else if ([37, 38, 39, 40].includes(e.keyCode)) { // 选中后支持上下左右移动节点
                     const typeMap = {
                         '37': 'left',
@@ -318,6 +302,42 @@
                     this.onCloseFrameSelect()
                 }
             },
+            /**
+             * 复制节点
+             * @description
+             * 生成新节点
+             * 生成新连线
+             * 选中新节点
+             * 复制基础信息
+             * 输入参数信息（勾选复用变量）
+             * 输出参数（勾选新建变量）
+             * 分支数据
+             */
+            onCopyNodes () {
+                const { locations, lines } = this.createCopyOfSelectedNodes(this.copyNodes)
+                const selectedIds = []
+                const { x: originX, y: originY } = this.selectionOriginPos
+                const { x, y } = this.pasteMousePos
+                locations.forEach(location => {
+                    location.x += (x - originX)
+                    location.y += (y - originY)
+                    selectedIds.push(location.id)
+                    this.$refs.jsFlow.createNode(location)
+                    this.$emit('onLocationChange', 'copy', location)
+                })
+                // 需要先生成节点 DOM，才能连线
+                lines.forEach(line => {
+                    this.$emit('onLineChange', 'add', line)
+                    this.$nextTick(() => {
+                        this.$refs.jsFlow.createConnector(line)
+                    })
+                })
+                this.$nextTick(() => {
+                    this.$refs.jsFlow.clearNodesDragSelection()
+                    this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                    this.selectedNodes = locations
+                })
+            },
             // 获取复制节点、连线数据
             createCopyOfSelectedNodes (nodes) {
                 const lines = []
@@ -334,6 +354,7 @@
                     if (location.type !== 'startpoint' && location.type !== 'endpoint') {
                         locations.push(location)
                         locationIdReplaceHash[node.id] = location.id = 'node' + uuid()
+                        location.oldSouceId = node.id
                     }
                 })
                 // 复制 line 数据
@@ -343,6 +364,7 @@
                         lineIdReplaceHash[line.id] = lineCopy.id = 'line' + uuid()
                         lineCopy.source.id = locationIdReplaceHash[line.source.id]
                         lineCopy.target.id = locationIdReplaceHash[line.target.id]
+                        lineCopy.oldSouceId = line.id
                         lines.push(lineCopy)
                     }
                 })
@@ -439,6 +461,8 @@
                 return true
             },
             onCreateNodeAfter (node) {
+                // copy 的节点不需要回调 add 方法
+                if (node.oldSouceId) return
                 this.$emit('onLocationChange', 'add', Object.assign({}, node))
                 if (node.type === 'startpoint') {
                     this.isDisableStartPoint = true
@@ -449,7 +473,7 @@
             // 拖拽到节点上自动连接
             onConnectionDragStop (source, targetId, event) {
                 if (source.id === targetId) {
-                    return false // 节点不可以连接自身
+                    return false // 非分支节点不可以连接自身
                 }
                 let arrow
                 const nodeEl = document.getElementById(targetId)
@@ -494,6 +518,7 @@
                 if (sourceId === targetId) {
                     return false
                 }
+
                 const data = {
                     source: {
                         id: sourceId,
@@ -704,7 +729,10 @@
             },
             // 创建连线
             createLine (source, target) {
-                if (source.id === target.id) return false
+                if (source.id === target.id) {
+                    return false
+                }
+                
                 const line = {
                     source,
                     target
@@ -727,6 +755,9 @@
             onSkipClick (id) {
                 this.$emit('onSkipClick', id)
             },
+            onForceFail (id) {
+                this.$emit('onForceFail', id)
+            },
             onModifyTimeClick (id) {
                 this.$emit('onModifyTimeClick', id)
             },
@@ -748,11 +779,20 @@
             /**
              * 单个添加选中节点
              */
-            addNodesToDragSelection (selectedNode) {
-                this.selectedNodes.push(selectedNode)
-                this.copyNodes.push(selectedNode)
-                const ids = this.selectedNodes.map(m => m.id)
-                this.$refs.jsFlow.addNodesToDragSelection(ids)
+            addNodeToSelectedList (selectedNode) {
+                const index = this.selectedNodes.findIndex(m => m.id === selectedNode.id)
+                if (index > -1) { // 已存在
+                    this.$refs.jsFlow.clearNodesDragSelection()
+                    this.$delete(this.selectedNodes, index)
+                    this.$delete(this.copyNodes, index)
+                    const ids = this.selectedNodes.map(m => m.id)
+                    this.$refs.jsFlow.addNodesToDragSelection(ids)
+                } else {
+                    this.selectedNodes.push(selectedNode)
+                    this.copyNodes.push(selectedNode)
+                    const ids = this.selectedNodes.map(m => m.id)
+                    this.$refs.jsFlow.addNodesToDragSelection(ids)
+                }
                 // 重新计算粘贴相对位置
                 this.selectionOriginPos = this.getNodesLocationOnLeftTop(this.selectedNodes)
                 document.addEventListener('keydown', this.nodeSelectedhandler)
@@ -1038,7 +1078,8 @@
             }
             .branch-condition {
                 padding: 4px 6px;
-                width: 60px;
+                min-width: 60px;
+                max-width: 86px;
                 min-height: 20px;
                 font-size: 12px;
                 text-align: center;

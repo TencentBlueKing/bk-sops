@@ -249,28 +249,19 @@
                 return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
-                let url = `/template/home/${this.project_id}/`
-                const entrance = this.$route.query.entrance || ''
-                const actions = [
-                    { key: 'template_business', url: `/template/home/${this.project_id}/` },
-                    { key: 'admin_common', url: '/admin/common/template/' }
-                ]
-                actions.forEach(action => {
-                    if (entrance.indexOf(action.key) > -1) {
-                        url = action.url
-                    }
-                })
+                const url = { name: 'process', params: { project_id: this.project_id } }
                 if (this.common) {
-                    url = '/admin/common/template/'
+                    url.name = 'commonProcessList'
                 }
                 return url
             },
             goToTaskUrl () {
                 this.$router.push({
-                    path: `/template/newtask/${this.project_id}/selectnode/`,
+                    name: 'taskStep',
+                    params: { step: 'selectnode', project_id: this.project_id },
                     query: {
                         template_id: this.template_id,
-                        common: this.common ? '1' : undefined,
+                        common: this.common || undefined,
                         entrance: 'templateEdit'
                     }
                 })

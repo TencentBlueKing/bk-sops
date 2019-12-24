@@ -30,7 +30,7 @@
                 @click="onNextStepClick">
                 {{ i18n.nextStep }}
             </bk-button>
-            <router-link to="/admin/manage/source_manage/" class="bk-button bk-default">{{ i18n.cancel }}</router-link>
+            <router-link :to="{ name: 'sourceManage' }" class="bk-button bk-default">{{ i18n.cancel }}</router-link>
         </div>
     </div>
 </template>
@@ -89,7 +89,7 @@
                 })
                 Promise.all(packageValidations).then(results => {
                     if (results.every(item => item)) {
-                        this.$router.push('/admin/manage/source_edit/cache_edit/')
+                        this.$router.push({ name: 'cacheEdit' })
                     }
                 })
             },

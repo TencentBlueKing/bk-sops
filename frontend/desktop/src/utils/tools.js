@@ -10,6 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import cloneDeepWith from 'lodash/cloneDeepWith'
+import isEqual from 'lodash/isEqual'
 import { checkDataType } from './checkDataType.js'
 
 const tools = {
@@ -68,36 +69,10 @@ const tools = {
         return cloneDeepWith(obj)
     },
     /**
-     * 对象比较
-     * @param {Object} a 对象 a
-     * @param {Object} b 对象 b
+     * 深比较函数
      */
-    isObjEqual (a, b) {
-        let p, t
-        for (p in a) {
-            if (typeof b[p] === 'undefined') {
-                return false
-            }
-            if (b[p] && !a[p]) {
-                return false
-            }
-            t = typeof a[p]
-            if (t === 'object' && !this.isObjEqual(a[p], b[p])) {
-                return false
-            }
-            if (t === 'function' && (typeof b[p] === 'undefined' || a[p].toString() !== b[p].toString())) {
-                return false
-            }
-            if (a[p] !== b[p]) {
-                return false
-            }
-        }
-        for (p in b) {
-            if (typeof a[p] === 'undefined') {
-                return false
-            }
-        }
-        return true
+    isDataEqual (a, b) {
+        return isEqual(a, b)
     },
     /**
      * 判断传入值是否为空

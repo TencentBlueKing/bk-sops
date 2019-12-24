@@ -26,8 +26,7 @@
                 :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
                 @onNewDraft="onNewDraft"
-                @onSaveTemplate="onSaveTemplate"
-                @onBackToList="onBackToList">
+                @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <TemplateCanvas
                 ref="templateCanvas"
@@ -36,7 +35,6 @@
                 :sub-atom-list-loading="subAtomListLoading"
                 :atom-type-list="atomTypeList"
                 :name="name"
-                :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"
@@ -94,6 +92,7 @@
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
                 @updateLocalTemplateData="updateLocalTemplateData"
+                @modifyTemplateData="modifyTemplateData"
                 @hideConfigPanel="hideConfigPanel"
                 @updataConditionData="updataConditionData">
             </TemplateSetting>
@@ -241,6 +240,9 @@
                     'subflow': subAtomGrouped
                 }
             },
+            projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
+                return this.common ? 'common' : this.project_id
+            },
             canvasData () {
                 const branchConditions = {}
                 for (const gKey in this.gateways) {
@@ -253,7 +255,7 @@
                     activities: this.activities,
                     lines: this.lines,
                     locations: this.locations.map(location => {
-                        let icon, group
+                        let icon, group, code
                         const atom = this.singleAtom.find(item => {
                             if (location.type === 'tasknode') {
                                 return this.activities[location.id].component.code === item.code
@@ -262,8 +264,9 @@
                         if (atom) {
                             icon = atom.group_icon
                             group = atom.group_name
+                            code = atom.code
                         }
-                        const data = { ...location, mode: 'edit', icon, group }
+                        const data = { ...location, mode: 'edit', icon, group, code }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
@@ -280,6 +283,10 @@
                     }),
                     branchConditions
                 }
+            },
+            // draftProjectId
+            draftProjectId () {
+                return this.common ? 'common' : this.project_id
             }
         },
         async created () {
@@ -295,24 +302,25 @@
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
+
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.project_id, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
+                draft.copyAndReplaceDraft(this.username, this.projectOrCommon, this.template_id, this.templateUUID)
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
             } else {
                 // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             }
             // 五分钟进行存储本地缓存
             const fiveMinutes = 1000 * 60 * 5
             this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
+                draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
             }, fiveMinutes)
 
             // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
             const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
             this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
@@ -527,7 +535,7 @@
                     this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.project_id, data.template_id, this.templateUUID)
+                        draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
                     }
                     this.$bkMessage({
                         message: i18n.saved,
@@ -536,7 +544,10 @@
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
+                        const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
+                        if (this.common) {
+                            url.name = 'commonTemplatePanel'
+                        }
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -763,6 +774,7 @@
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
+                            this.$refs.templateCanvas.onResetPosition()
                             this.variableDataChanged()
                             this.$bkMessage({
                                 message: i18n.layoutSave,
@@ -851,10 +863,11 @@
             // 跳转到节点选择页面
             goToTaskUrl (template_id) {
                 this.$router.push({
-                    path: `/template/newtask/${this.project_id}/selectnode/`,
+                    name: 'taskStep',
+                    params: { step: 'selectnode', project_id: this.project_id },
                     query: {
                         template_id,
-                        common: this.common ? '1' : undefined,
+                        common: this.common,
                         entrance: 'templateEdit'
                     }
                 })
@@ -939,9 +952,6 @@
                     this.saveTemplate()
                 }
             },
-            onBackToList () {
-                this.$router.push({ path: `/template/home/${this.project_id}/` })
-            },
             onLeaveConfirm () {
                 this.allowLeave = true
                 this.$router.push({ path: this.leaveToPath })
@@ -965,19 +975,19 @@
                     })
                 }
                 // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             },
             // 模板替换
             onReplaceTemplate (data) {
                 const { templateData, type } = data
                 if (type === 'replace') {
                     const nowTemplateSerializable = JSON.stringify(this.getLocalTemplateData())
-                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID()))
+                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID()))
                     const lastTemplate = lastDraft['template']
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
+                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
                     }
                     this.$bkMessage({
                         'message': i18n.replaceSuccess,
@@ -987,7 +997,7 @@
                 this.templateDataLoading = true
                 this.replaceTemplate(templateData)
                 // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                     this.$nextTick(() => {
@@ -1001,13 +1011,13 @@
             onNewDraft (message, isMessage = true) {
                 // 创建本地缓存
                 if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.project_id, this.templateUUID, this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.projectOrCommon, this.templateUUID, this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
+                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
                 } else {
-                    draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
+                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
                 }
                 if (isMessage) {
                     this.$bkMessage({
@@ -1107,6 +1117,14 @@
                     // actions[atom.code] = atom.version
                 })
                 this.setVersionMap(actions)
+            },
+            // 流程模板数据编辑更新
+            modifyTemplateData (data) {
+                this.templateDataLoading = true
+                this.setPipelineTree(data)
+                this.$nextTick(() => {
+                    this.templateDataLoading = false
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1117,7 +1135,7 @@
                 const template_id = this.getTemplateIdOrTemplateUUID()
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
+                    draft.deleteAllDraftByUUID(this.username, this.projectOrCommon, this.templateUUID)
                 }
                 this.clearAtomForm()
                 next()

@@ -13,7 +13,7 @@
     <div class="source-manage" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="operate-area">
             <router-link
-                to="/admin/manage/source_edit/package_edit/"
+                :to="{ name: 'packageEdit' }"
                 class="bk-button bk-primary">
                 {{ emptyData ? i18n.create : i18n.edit }}
             </router-link>
@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="empty-data" v-if="emptyData">
-            <p>{{i18n.noData}}<router-link to="/admin/manage/source_edit/package_edit/">{{i18n.create}}</router-link>{{i18n.sourceManage}}</p>
+            <p>{{i18n.noData}}<router-link :to="{ name: 'packageEdit' }">{{i18n.create}}</router-link>{{i18n.sourceManage}}</p>
         </div>
     </div>
 </template>
@@ -123,8 +123,8 @@
 </script>
 <style lang="scss" scoped>
     .source-manage {
-        padding: 20px 60px 60px;
-        min-height: calc(100% - 80px);
+        padding-top: 20px;
+        min-height: calc(100% - 140px);
         background: #f4f7fa;
     }
     .section-title {

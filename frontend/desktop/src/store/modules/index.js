@@ -15,6 +15,7 @@ import task from './task.js'
 import taskList from './taskList.js'
 import atomList from './atomList.js'
 import atomForm from './atomForm.js'
+import atomDev from './atomDev.js'
 import config from './config'
 import appmaker from './appmaker'
 import project from './project'
@@ -23,6 +24,7 @@ import auditTask from './audit.js'
 import periodic from './periodic.js'
 import manage from './manage.js'
 import member from './member.js'
+import admin from './admin.js'
 
 const modules = {
     template,
@@ -31,6 +33,7 @@ const modules = {
     taskList,
     atomList,
     atomForm,
+    atomDev,
     config,
     appmaker,
     functionTask,
@@ -38,7 +41,8 @@ const modules = {
     periodic,
     manage,
     project,
-    member
+    member,
+    admin
 }
 
 export default modules

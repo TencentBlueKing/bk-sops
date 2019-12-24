@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import { NODE_DICT } from '@/constants/index.js'
-import validator, { pipelineTreeSchema } from '@/constants/pipelineTreeSchema.js'
+import validator from '@/constants/pipelineTreeSchema.js'
 
 const NODE_RULE = {
     'startpoint': {
@@ -50,7 +50,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
     'parallelgateway': {
@@ -58,7 +58,7 @@ const NODE_RULE = {
         max_in: 1000,
         min_out: 1,
         max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway'],
         unique: false
     },
     'convergegateway': {
@@ -92,8 +92,9 @@ const validatePipeline = {
         let sourceLinesLinked = 0
         let targetLinesLinked = 0
         let isLoop = false
+
         if (source.id === target.id) {
-            const i18n_text = gettext('相同节点不能回连')
+            const i18n_text = gettext('节点不可连接自身')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
             return this.getMessage(false, message)
         }
@@ -124,7 +125,7 @@ const validatePipeline = {
             if (item.target.id === targetId) {
                 targetLinesLinked += 1
             }
-            if (item.source.id === targetId && item.target.id === sourceId) {
+            if (item.source.id === targetId && item.target.id === sourceId && sourceNode.type !== 'branchgateway') {
                 isLoop = true
             }
         })
@@ -218,10 +219,70 @@ const validatePipeline = {
         return this.getMessage()
     },
     /**
+     * 校验 activities、start_event、end_event、gateways 的 incoming、outging 和 flows 的 source、target 是否对应
+     * @params {String} node 节点数据
+     * @params {Object} flows 数据
+     */
+    isFlowValid (node, flows) {
+        let message = ''
+        const { id, incoming, outgoing } = node
+        const lineGroup = [incoming, outgoing]
+        const valid = !lineGroup.some((item, index) => {
+            const type = index === 0 ? 'target' : 'source'
+            const lines = Array.isArray(item) ? item : [item]
+            return lines.some(line => {
+                if (line === '') {
+                    return false
+                }
+                if (!flows[line]) {
+                    message = `flows.${line} data doesn't exist`
+                    return true
+                }
+                if (flows[line][type] !== id) {
+                    message = gettext(`flows.${line}.${type} doesn't equal to ${id}`)
+                    return true
+                }
+            })
+        })
+
+        return { valid, message }
+    },
+    /**
      * 画布pipeline_tree数据校验
      */
     isPipelineDataValid (data) {
-        return validator.validate(data, pipelineTreeSchema)
+        const { activities, start_event, end_event, gateways, flows } = data
+        let valid = validator(data)
+        let message = ''
+        if (!valid) {
+            console.log(validator.errors)
+            const error = validator.errors[0]
+            let nodeName = ''
+            const nodeReg = /^\.activities\['(\w+)'\]/
+            const matchResult = error.dataPath.match(nodeReg)
+            if (matchResult) {
+                nodeName = activities[matchResult[1]] ? activities[matchResult[1]].name : ''
+            }
+            message = `${nodeName} ${error.dataPath} ${error.message}`
+            return this.getMessage(valid, message)
+        }
+
+        const nodes = [
+            start_event,
+            end_event,
+            ...Object.keys(activities).map(id => activities[id]),
+            ...Object.keys(gateways).map(id => gateways[id])
+        ]
+
+        valid = !nodes.some(node => {
+            const result = this.isFlowValid(node, flows)
+            if (!result.valid) {
+                message = result.message
+                return true
+            }
+        })
+
+        return this.getMessage(valid, message)
     },
     getMessage (result = true, message = '') {
         return { result, message }

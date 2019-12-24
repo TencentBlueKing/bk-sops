@@ -106,7 +106,7 @@
             </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
-            <div class="bk-button-group">
+            <div class="button-group">
                 <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
                 <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
                 <bk-button theme="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
@@ -208,7 +208,7 @@
                 try {
                     const data = {
                         formData: new FormData(),
-                        common: this.common
+                        common: this.common || undefined
                     }
                     data.formData.append('data_file', this.file)
                     const resp = await this.templateUploadCheck(data)
@@ -236,7 +236,7 @@
                 formData.append('override', isOverride)
                 const data = {
                     formData: formData,
-                    common: this.common
+                    common: this.common || undefined
                 }
                 try {
                     const resp = await this.templateImport(data)
@@ -497,8 +497,7 @@
 }
 .common-wrapper-btn {
     .bk-button {
-        margin-left: 10px;
+        margin-left: 7px;
     }
 }
-
 </style>

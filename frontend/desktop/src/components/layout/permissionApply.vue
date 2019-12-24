@@ -125,7 +125,7 @@
                     if (isProjectValid) {
                         this.goToAuthCenter()
                     } else {
-                        this.$router.push('/project/home/')
+                        this.$router.push({ name: 'projectHome' })
                     }
                 } else {
                     this.goToAuthCenter()
@@ -146,7 +146,7 @@
                 if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
                     this.goToApply('create')
                 } else {
-                    this.$router.push('/project/home/')
+                    this.$router.push({ name: 'projectHome' })
                 }
             },
             goToApply (perm) {
@@ -155,11 +155,6 @@
                     auth_actions: this.authActions
                 }
                 this.applyForPermission([perm], resourceData, this.authOperations, this.authResource)
-            },
-            getResource (permission) {
-                return permission.resources.map(res => {
-                    return res.map(item => item.resource_name).join(',')
-                }).join(',')
             },
             async queryProjectCreatePerm () {
                 try {

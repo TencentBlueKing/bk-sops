@@ -14,6 +14,7 @@ import VeeValidate, { Validator } from 'vee-validate'
 import router from './routers/index.js'
 import store from './store/index.js'
 import './directives/index.js'
+import './config/login.js'
 import App from './App.vue'
 import './api/index.js'
 import bkMagicVue, { locale, lang } from 'bk-magic-vue'
@@ -26,7 +27,7 @@ import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
-const cron = require('@/assets/js/node-cron-valid/node-cron-vaild.js')
+import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
 Vue.use(VeeValidate)
 
 Vue.use(bkMagicVue)

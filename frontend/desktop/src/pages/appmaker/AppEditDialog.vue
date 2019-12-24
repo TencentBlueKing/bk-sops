@@ -119,7 +119,7 @@
             </div>
         </div>
         <div slot="footer" class="dialog-footer">
-            <div class="bk-button-group">
+            <div class="button-group">
                 <bk-button
                     theme="primary"
                     :class="{
@@ -144,7 +144,7 @@
         name: 'AppEditDialog',
         mixins: [permission],
         props: {
-            'project_id': String,
+            'project_id': [String, Number],
             'isCreateNewApp': Boolean,
             'isEditDialogShow': Boolean,
             'currentAppData': {
@@ -454,7 +454,7 @@
 }
 .dialog-footer {
     .bk-button {
-        margin-left: 10px;
+        margin-left: 7px;
         min-width: 90px;
     }
 }

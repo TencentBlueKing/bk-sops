@@ -151,7 +151,11 @@
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {
-                return `/taskflow/home/${this.project_id}/?template_id=${id}&create_method=app_maker`
+                return {
+                    name: 'taskList',
+                    params: { project_id: this.project_id },
+                    query: { template_id: id, create_method: 'app_maker' }
+                }
             }
         }
     }

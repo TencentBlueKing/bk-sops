@@ -216,7 +216,7 @@
                 this.isCheckedDisabled = true
                 try {
                     const data = {
-                        common: this.common
+                        common: this.common || undefined
                     }
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects

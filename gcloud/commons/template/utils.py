@@ -25,6 +25,7 @@ from guardian.shortcuts import (
     get_groups_with_perms,
 )
 
+from gcloud import err_code
 from gcloud.conf import settings
 
 logger = logging.getLogger("root")
@@ -62,7 +63,8 @@ def read_encoded_template_data(content):
     except Exception:
         return {
             'result': False,
-            'message': 'Template data is corrupt'
+            'message': 'Template data is corrupt',
+            'code': err_code.REQUEST_PARAM_INVALID.code
         }
 
     # check the validation of file
@@ -74,12 +76,14 @@ def read_encoded_template_data(content):
     if not is_data_valid:
         return {
             'result': False,
-            'message': 'Invalid template data'
+            'message': 'Invalid template data',
+            'code': err_code.VALIDATION_ERROR.code
         }
 
     return {
         'result': True,
-        'data': data
+        'data': data,
+        'code': err_code.SUCCESS.code
     }
 
 

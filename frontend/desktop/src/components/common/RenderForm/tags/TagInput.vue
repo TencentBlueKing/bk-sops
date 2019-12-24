@@ -47,7 +47,7 @@
 
     const VAR_REG = /\$\{\w*$/
 
-    const inputAttrs = {
+    export const attrs = {
         placeholder: {
             type: String,
             required: false,
@@ -61,12 +61,13 @@
         },
         showVarList: {
             type: Boolean,
-            default: false
+            default: false,
+            inner: true
         }
     }
     export default {
         name: 'TagInput',
-        mixins: [getFormMixins(inputAttrs)],
+        mixins: [getFormMixins(attrs)],
         data () {
             return {
                 isListOpen: false,
@@ -106,7 +107,7 @@
         created () {
             window.addEventListener('click', this.handleListShow, false)
         },
-        before () {
+        beforeDestroy () {
             window.removeEventListener('click', this.handleListShow, false)
         },
         methods: {

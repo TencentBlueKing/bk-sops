@@ -11,7 +11,7 @@
 */
 <template>
     <div class="param-fill-wrapper">
-        <div :class="['task-info', { 'functor-task-info': userType === 'functor' }]">
+        <div :class="['task-info', { 'functor-task-info': userRights.function }]">
             <div class="task-info-title">
                 <span>{{ i18n.taskInfo }}</span>
             </div>
@@ -33,7 +33,7 @@
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
-                        <div class="bk-button-group">
+                        <div class="button-group">
                             <bk-button
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
@@ -181,7 +181,7 @@
         computed: {
             ...mapState({
                 'templateName': state => state.template.name,
-                'userType': state => state.userType,
+                'userRights': state => state.userRights,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id
             }),
@@ -192,10 +192,10 @@
                 'appmakerDetail': state => state.appmakerDetail
             }),
             isTaskTypeShow () {
-                return this.userType !== 'functor' && this.isStartNow
+                return !this.userRights.function && this.isStartNow
             },
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
+                return !this.common && this.viewMode === 'app' && !this.userRights.function && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
             },
             isPeriodicSelectShow () {
                 return this.entrance.indexOf('periodicTask') > -1
@@ -220,7 +220,7 @@
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
-                return this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
+                return this.common || this.viewMode === 'appmaker' || this.userRights.function || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -256,6 +256,10 @@
                     }
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
+                    if (templateData.result === false) {
+                        throw (templateData)
+                    }
+
                     this.tplActions = templateData.auth_actions
                     this.tplResource = templateData.auth_resource
                     this.tplOperations = templateData.auth_operations
@@ -269,6 +273,10 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
+                    if (previewData.result === false) {
+                        throw (previewData)
+                    }
+
                     const pipelineTree = previewData.data.pipeline_tree
                     if (this.excludeNode.length > 0) {
                         const layoutedData = await this.getLayoutedPosition(pipelineTree)
@@ -317,19 +325,16 @@
             },
             onGotoSelectNode () {
                 this.$emit('setFunctionalStep', false)
-                if (this.viewMode === 'appmaker') {
-                    this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id } })
-                } else {
-                    if (this.common) {
-                        this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
-                    } else {
-                        if (this.entrance !== undefined) {
-                            this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
-                        } else {
-                            this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id } })
-                        }
-                    }
+                const url = {
+                    name: 'taskStep',
+                    params: { project_id: this.project_id, step: 'selectnode' },
+                    query: { 'template_id': this.template_id, common: this.common || undefined, entrance: this.entrance || undefined }
                 }
+                if (this.viewMode === 'appmaker') {
+                    url.name = 'appmakerTaskCreate'
+                    url.params.app_id = this.app_id
+                }
+                this.$router.push(url)
             },
             onCreateTask () {
                 if (!this.hasPermission(this.nextStepPerm, this.actions, this.operations)) {
@@ -361,7 +366,7 @@
 
                     this.isSubmit = true
                     let flowType
-                    if (this.userType === 'functor') {
+                    if (this.userRights.function) {
                         flowType = 'common_func'
                     } else {
                         flowType = this.isSelectFunctionalType ? 'common_func' : 'common'
@@ -377,26 +382,34 @@
                         }
                         try {
                             const taskData = await this.createTask(data)
-
+                            let url = {}
                             if (this.viewMode === 'appmaker') {
                                 if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
-                                    this.$router.push({ path: `/appmaker/${this.app_id}/task_home/${this.project_id}/` })
+                                    url = {
+                                        name: 'appmakerTaskHome',
+                                        params: { app_id: this.app_id, project_id: this.project_id }
+                                    }
                                 } else {
-                                    this.$router.push({ path: `/appmaker/${this.app_id}/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id } })
+                                    url = {
+                                        name: 'appmakerTaskExecute',
+                                        params: { app_id: this.app_id, project_id: this.project_id },
+                                        query: { instance_id: taskData.instance_id }
+                                    }
                                 }
                             } else if (this.isSelectFunctionalType) {
-                                if (this.common) { // 公共流程创建职能化任务
-                                    this.$router.push({ path: `/taskflow/home/${this.project_id}/`, query: { common: this.common } })
-                                } else {
-                                    this.$router.push({ path: `/taskflow/home/${this.project_id}/` })
+                                url = {
+                                    name: 'taskList',
+                                    params: { project_id: this.project_id },
+                                    query: { common: this.common } // 公共流程创建职能化任务
                                 }
                             } else {
-                                if (this.common) {
-                                    this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id, common: this.common } })
-                                } else {
-                                    this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id } })
+                                url = {
+                                    name: 'taskExecute',
+                                    params: { project_id: this.project_id },
+                                    query: { instance_id: this.instance_id, common: this.common } // 公共流程创建职能化任务
                                 }
                             }
+                            this.$router.push(url)
                         } catch (e) {
                             errorHandler(e, this)
                         } finally {
@@ -425,7 +438,7 @@
                                 'message': gettext('创建周期任务成功'),
                                 'theme': 'success'
                             })
-                            this.$router.push({ path: `/periodic/home/${this.project_id}/` })
+                            this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id } })
                         } catch (e) {
                             errorHandler(e, this)
                         } finally {

@@ -26,20 +26,37 @@
     import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
-    const radioAttrs = {
+    export const attrs = {
         items: {
             type: Array,
             required: true,
+            default () {
+                return [
+                    {
+                        name: gettext('选项1'),
+                        value: 'value1'
+                    },
+                    {
+                        name: gettext('选项2'),
+                        value: 'value2'
+                    },
+                    {
+                        name: gettext('选项3'),
+                        value: 'value3'
+                    }
+                ]
+            },
             desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
         },
         value: {
+            type: String,
             required: false,
             default: ''
         }
     }
     export default {
         name: 'TagRadio',
-        mixins: [getFormMixins(radioAttrs)],
+        mixins: [getFormMixins(attrs)],
         computed: {
             checkedValue: {
                 get () {

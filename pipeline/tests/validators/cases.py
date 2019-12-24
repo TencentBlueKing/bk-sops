@@ -11,11 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.builder.flow import *  # noqa
 from pipeline.builder import build_tree
-from pipeline.validators.gateway import *  # noqa
-
+from pipeline.builder.flow import *  # noqa
 from pipeline.tests.validators.utils import *  # noqa
+from pipeline.validators.gateway import *  # noqa
 
 
 def flow_valid_case(testcase):
@@ -384,6 +383,58 @@ def flow_valid_edge_case_2():
         'id': 'c986802cd1e23a5f920c85b005f16dc3'}
 
 
+def flow_valid_edge_case_3():
+
+    start = EmptyStartEvent()
+    end = EmptyEndEvent()
+    eg_1 = ExclusiveGateway(id=exclusive_gw_id(1), conditions={
+        0: '123',
+        1: '456',
+    })
+    eg_2 = ExclusiveGateway(id=exclusive_gw_id(2), conditions={
+        0: '123',
+        1: '456',
+    })
+    eg_3 = ExclusiveGateway(id=exclusive_gw_id(3), conditions={
+        0: '123',
+        1: '456',
+    })
+    eg_4 = ExclusiveGateway(id=exclusive_gw_id(4), conditions={
+        0: '123',
+        1: '456',
+    })
+    pg_1 = ParallelGateway(id=parallel_gw_id(1))
+    cg = ConvergeGateway(id=converge_gw_id(1))
+
+    start.connect(eg_1)
+    eg_1.connect(pg_1, end)
+    pg_1.connect(eg_2, eg_3)
+    eg_2.connect(eg_2, cg)
+    eg_3.connect(eg_4, eg_4)
+    eg_4.connect(eg_4, cg)
+    cg.connect(end)
+
+    return build_tree(start)
+
+
+def flow_valid_edge_case_4():
+    start = EmptyStartEvent(id=start_event_id)
+    pg = ParallelGateway(id=parallel_gw_id(1))
+    eg = ExclusiveGateway(id=exclusive_gw_id(1), conditions={
+        0: '123',
+        1: '456',
+        2: '789'
+    })
+    cg = ConvergeGateway(id=converge_gw_id(1))
+    end = EmptyEndEvent(id=end_event_id)
+
+    start.extend(pg).connect(cg, eg)
+    eg.connect(eg, cg)
+    cg.connect(end)
+
+    return build_tree(start)
+
+
 def flow_invalid_case_1():
     start = EmptyStartEvent(id=start_event_id)
     act_1 = ServiceActivity(id=act_id(1))
@@ -446,6 +497,12 @@ flow_valid_edge_cases = [
     },
     {
         'case': flow_valid_edge_case_2,
+    },
+    {
+        'case': flow_valid_edge_case_3,
+    },
+    {
+        'case': flow_valid_edge_case_4,
     }
 ]
 

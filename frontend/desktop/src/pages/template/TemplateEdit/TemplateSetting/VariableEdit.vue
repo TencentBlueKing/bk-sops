@@ -502,7 +502,7 @@
             saveVariable () {
                 return this.$validator.validateAll().then(result => {
                     let formValid = true
-                    const constantsLength = Object.keys(this.constants).length
+                    const allVarLength = Object.keys(this.constants).length
                         + (!this.isHideSystemVar ? Object.keys(this.systemConstants).length : 0)
             
                     // 名称、key等校验，renderform表单校验
@@ -510,7 +510,7 @@
                         formValid = this.$refs.renderForm.validate()
                     }
                     if (this.atomConfigLoading || !result || !formValid) {
-                        const index = this.isNewVariable ? constantsLength : this.theEditingData.index
+                        const index = this.isNewVariable ? allVarLength : this.theEditingData.index
                         this.$emit('scrollPanelToView', index + 1)
                         return false
                     }
@@ -535,7 +535,7 @@
                     
                     this.$emit('onChangeEdit', false)
                     if (this.isNewVariable) { // 新增变量
-                        variable.index = constantsLength
+                        variable.index = Object.keys(this.constants).length
                         variable.version = 'legacy'
                         variable.form_schema = formSchema.getSchema(
                             variable.custom_type,

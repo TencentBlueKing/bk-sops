@@ -51,7 +51,7 @@
             </div>
         </div>
         <div class="permission-footer" slot="footer">
-            <div class="bk-button-group">
+            <div class="button-group">
                 <bk-button theme="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
                 <bk-button theme="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
             </div>
@@ -112,16 +112,11 @@
                 this.list = data
             },
             getResource (permission) {
-                if (permission.resource_type === 'project' || permission.action_id === 'create') {
-                    return this.i18n.project
-                }
-
+                const type = permission.resource_type_name
                 if (permission.resources.length === 0) {
-                    console.error('资源实例为空')
-                    return
+                    return type
                 }
 
-                const type = permission.resources[0][0].resource_type_name
                 const names = permission.resources.map(res => {
                     return res.map(item => item.resource_name).join(',')
                 }).join(',')
@@ -201,9 +196,9 @@
             }
         }
     }
-    .bk-button-group {
+    .button-group {
         .bk-button {
-            margin-left: 10px;
+            margin-left: 7px;
         }
     }
     

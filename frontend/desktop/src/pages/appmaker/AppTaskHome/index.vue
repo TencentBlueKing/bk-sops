@@ -12,90 +12,13 @@
 <template>
     <div class="appmaker-container">
         <div class="list-wrapper">
-            <BaseTitle :title="i18n.taskRecord"></BaseTitle>
+            <base-title :title="i18n.taskRecord"></base-title>
             <div class="operation-area clearfix">
-                <div class="appmaker-search">
-                    <AdvanceSearch
-                        v-model="searchStr"
-                        :input-placeholader="i18n.placeholder"
-                        @onShow="onAdvanceShow"
-                        @input="onSearchInput">
-                    </AdvanceSearch>
-                </div>
-            </div>
-            <div class="app-search" v-show="isAdvancedSerachShow">
-                <fieldset class="task-fieldset">
-                    <div class="task-query-content">
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.startedTime}}</span>
-                            <bk-date-picker
-                                ref="bkRanger"
-                                v-model="timeRange"
-                                :placeholder="i18n.dateRange"
-                                :type="'daterange'">
-                            </bk-date-picker>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.task_type}}</span>
-                            <bk-select
-                                v-model="taskSync"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :is-loading="taskBasicInfoLoading"
-                                :placeholder="i18n.taskTypePlaceholder"
-                                @clear="onClearCategory">
-                                <bk-option
-                                    v-for="(option, index) in taskCategory"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.creator}}</span>
-                            <bk-input
-                                v-model="creator"
-                                class="bk-input-inline"
-                                :clearable="true"
-                                :placeholder="i18n.creatorPlaceholder">
-                            </bk-input>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.operator}}</span>
-                            <bk-input
-                                v-model="executor"
-                                class="bk-input-inline"
-                                :clearable="true"
-                                :placeholder="i18n.executorPlaceholder">
-                            </bk-input>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.status}}</span>
-                            <bk-select
-                                v-model="statusSync"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :is-loading="taskBasicInfoLoading"
-                                :placeholder="i18n.statusPlaceholder"
-                                @clear="onClearStatus"
-                                @selected="onSelectedStatus">
-                                <bk-option
-                                    v-for="(option, index) in statusList"
-                                    :key="index"
-                                    :id="option.id"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="query-button">
-                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
-                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
-                        </div>
-                    </div>
-                </fieldset>
+                <advance-search-form
+                    :search-form="searchForm"
+                    @onSearchInput="onSearchInput"
+                    @submit="onSearchFormSubmit">
+                </advance-search-form>
             </div>
             <div class="appmaker-table-content">
                 <bk-table
@@ -118,7 +41,11 @@
                                 v-else
                                 class="task-name"
                                 :title="props.row.name"
-                                :to="`/appmaker/${props.row.create_info}/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                :to="{
+                                    name: 'appmakerTaskExecute',
+                                    params: { app_id: props.row.create_info, project_id: props.row.project.id },
+                                    query: { instance_id: props.row.id }
+                                }">
                                 {{props.row.name}}
                             </router-link>
                         </template>
@@ -142,9 +69,9 @@
                     </bk-table-column>
                     <bk-table-column :label="i18n.status" width="100">
                         <template slot-scope="props">
-                            <div class="appmaker-status">
+                            <div class="ui-task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                <span class="task-status-text" v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
                             </div>
                         </template>
                     </bk-table-column>
@@ -162,20 +89,63 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
+    import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
-
+    import task from '@/mixins/task.js'
+    const searchForm = [
+        {
+            type: 'dateRange',
+            key: 'queryTime',
+            placeholder: gettext('选择日期时间范围'),
+            label: gettext('执行开始'),
+            value: []
+        },
+        {
+            type: 'select',
+            label: gettext('任务分类'),
+            key: 'category',
+            loading: false,
+            placeholder: gettext('请选择分类'),
+            list: []
+        },
+        {
+            type: 'input',
+            key: 'creator',
+            label: gettext('创建人'),
+            placeholder: gettext('请输入创建人'),
+            value: ''
+        },
+        {
+            type: 'input',
+            key: 'executor',
+            label: gettext('执行人'),
+            placeholder: gettext('请输入执行人'),
+            value: ''
+        },
+        {
+            type: 'select',
+            label: gettext('状态'),
+            key: 'statusSync',
+            loading: false,
+            placeholder: gettext('请选择状态'),
+            list: [
+                { 'value': 'nonExecution', 'name': gettext('未执行') },
+                { 'value': 'runing', 'name': gettext('未完成') },
+                { 'value': 'finished', 'name': gettext('完成') }
+            ]
+        }
+    ]
     export default {
         name: 'appmakerTaskHome',
         components: {
+            AdvanceSearchForm,
             CopyrightFooter,
             BaseTitle,
-            AdvanceSearch,
             NoData
         },
-        mixins: [permission],
+        mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -196,29 +166,16 @@
                     taskRecord: gettext('任务记录'),
                     query: gettext('搜索'),
                     reset: gettext('清空'),
-                    dateRange: gettext('选择日期时间范围'),
-                    task_type: gettext('任务分类'),
-                    creatorPlaceholder: gettext('请输入创建人'),
-                    executorPlaceholder: gettext('请输入执行人'),
-                    taskTypePlaceholder: gettext('请选择分类'),
                     statusPlaceholder: gettext('请选择状态')
                 },
                 listLoading: true,
                 isDeleteDialogShow: false,
                 taskBasicInfoLoading: true,
-                isAdvancedSerachShow: false,
                 theDeleteTemplateId: undefined,
                 pending: {
                     delete: false,
                     authority: false
                 },
-                searchStr: '',
-                taskSync: '',
-                creator: '',
-                executor: '',
-                statusSync: '',
-                isStarted: undefined,
-                isFinished: undefined,
                 appmakerList: [],
                 executeStatus: [], // 任务执行状态
                 taskCategory: [],
@@ -229,20 +186,33 @@
                     'limit-list': [15],
                     'show-limit': false
                 },
-                timeRange: [],
                 statusList: [
-                    { 'id': 'nonExecution', 'name': gettext('未执行') },
-                    { 'id': 'runing', 'name': gettext('未完成') },
-                    { 'id': 'finished', 'name': gettext('完成') }
+                    { 'value': 'nonExecution', 'name': gettext('未执行') },
+                    { 'value': 'runing', 'name': gettext('未完成') },
+                    { 'value': 'finished', 'name': gettext('完成') }
                 ],
                 taskOperations: [],
-                taskResource: {}
+                taskResource: {},
+                requestData: {
+                    queryTime: [],
+                    category: '',
+                    creator: '',
+                    executor: '',
+                    statusSync: '',
+                    flowName: ''
+                }
             }
         },
         computed: {
             ...mapState({
                 businessTimezone: state => state.businessTimezone
-            })
+            }),
+            searchForm () {
+                const value = searchForm
+                value[1].list = this.taskCategory
+                value[0].loading = this.taskBasicInfoLoading
+                return searchForm
+            }
         },
         created () {
             this.getAppmakerList()
@@ -265,22 +235,29 @@
             async getAppmakerList () {
                 this.listLoading = true
                 try {
+                    const { queryTime, category, creator, executor, statusSync, flowName } = this.requestData
+                    let pipeline_instance__is_started
+                    let pipeline_instance__is_finished
+                    if (statusSync) {
+                        pipeline_instance__is_started = statusSync !== 'nonExecution'
+                        pipeline_instance__is_finished = statusSync === 'finished'
+                    }
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: this.searchStr || undefined,
-                        category: this.taskSync || undefined,
-                        pipeline_instance__creator__contains: this.creator || undefined,
-                        pipeline_instance__executor__contains: this.executor || undefined,
-                        pipeline_instance__is_started: this.isStarted,
-                        pipeline_instance__is_finished: this.isFinished
+                        q: flowName,
+                        category: category || undefined,
+                        pipeline_instance__creator__contains: creator || undefined,
+                        pipeline_instance__executor__contains: executor || undefined,
+                        pipeline_instance__is_started,
+                        pipeline_instance__is_finished
                     }
                     
-                    if (this.timeRange.length && this.timeRange.every(m => m !== '')) {
-                        data['pipeline_instance__start_time__gte'] = moment.tz(this.timeRange[0], this.businessTimezone).format('YYYY-MM-DD')
-                        data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                    if (queryTime[0] && queryTime[1]) {
+                        data['pipeline_instance__start_time__gte'] = moment.tz(queryTime[0], this.businessTimezone).format('YYYY-MM-DD')
+                        data['pipeline_instance__start_time__lte'] = moment.tz(queryTime[1], this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
                     }
                     
                     const appmakerListData = await this.loadTaskList(data)
@@ -289,72 +266,18 @@
                     this.taskOperations = appmakerListData.meta.auth_operations
                     this.taskResource = appmakerListData.meta.auth_resource
                     this.pagination.count = appmakerListData.meta.total_count
-                    this.executeStatus = list.map((item, index) => {
-                        const status = {}
-                        if (item.is_finished) {
-                            status.cls = 'finished bk-icon icon-check-circle-shape'
-                            status.text = gettext('完成')
-                        } else if (item.is_revoked) {
-                            status.cls = 'revoke common-icon-dark-circle-shape'
-                            status.text = gettext('撤销')
-                        } else if (item.is_started) {
-                            status.cls = 'loading common-icon-loading'
-                            this.getExecuteDetail(item, index)
-                        } else {
-                            status.cls = 'created common-icon-dark-circle-shape'
-                            status.text = gettext('未执行')
-                        }
-                        return status
-                    })
+                    // mixins getExecuteStatus
+                    this.getExecuteStatus('executeStatus', list)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.listLoading = false
                 }
             },
-            async getExecuteDetail (task, index) {
-                const data = {
-                    instance_id: task.id,
-                    project_id: task.project.id
-                }
-                try {
-                    const detailInfo = await this.getInstanceStatus(data)
-                    if (detailInfo.result) {
-                        const state = detailInfo.data.state
-                        const status = {}
-                        switch (state) {
-                            case 'RUNNING':
-                            case 'BLOCKED':
-                                status.cls = 'running common-icon-dark-circle-ellipsis'
-                                status.text = gettext('执行中')
-                                break
-                            case 'SUSPENDED':
-                                status.cls = 'execute common-icon-dark-circle-pause'
-                                status.text = gettext('暂停')
-                                break
-                            case 'NODE_SUSPENDED':
-                                status.cls = 'execute'
-                                status.text = gettext('节点暂停')
-                                break
-                            case 'FAILED':
-                                status.cls = 'failed common-icon-dark-circle-close'
-                                status.text = gettext('失败')
-                                break
-                            default:
-                                status.text = gettext('未知')
-                        }
-                        this.executeStatus.splice(index, 1, status)
-                    } else {
-                        errorHandler(detailInfo, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
             async getBizBaseInfo () {
                 try {
                     const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
+                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ value: m.value, name: m.name }))
                     this.setProjectBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
@@ -365,59 +288,18 @@
                 this.pagination.current = page
                 this.getAppmakerList()
             },
-            onClearCategory () {
-                this.activeTaskCategory = ''
-            },
-            searchInputhandler () {
+            searchInputhandler (data) {
+                this.requestData.flowName = data
                 this.pagination.current = 1
-                this.getAppmakerList()
-            },
-            onAdvanceShow () {
-                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-            },
-            onClearStatus () {
-                this.isStarted = undefined
-                this.isFinished = undefined
-            },
-            onSelectedStatus (id) {
-                this.isStarted = id !== 'nonExecution'
-                this.isFinished = id === 'finished'
-            },
-            statusMethod (is_started, is_finished) {
-                let status = ''
-                if (is_finished) {
-                    status = gettext('完成')
-                } else if (is_started) {
-                    status = gettext('执行中')
-                } else {
-                    status = gettext('未执行')
-                }
-                return status
-            },
-            statusClass (is_started, is_finished) {
-                let statusClass = ''
-                if (is_finished) {
-                    statusClass = { success: true }
-                } else if (is_started) {
-                    statusClass = { warning: true }
-                } else {
-                    statusClass = { primary: true }
-                }
-                return statusClass
-            },
-            onResetForm () {
-                this.timeRange = []
-                this.taskSync = ''
-                this.creator = ''
-                this.executor = ''
-                this.statusSync = ''
-                this.isStarted = undefined
-                this.isFinished = undefined
                 this.getAppmakerList()
             },
             onTaskPermissonCheck (task, event) {
                 this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
                 event.preventDefault()
+            },
+            onSearchFormSubmit (data) {
+                this.requestData = data
+                this.getAppmakerList()
             }
         }
     }
@@ -425,6 +307,7 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/advancedSearch.scss';
+@import '@/scss/task.scss';
 .bk-select-inline,.bk-input-inline {
    display: inline-block;
     width: 260px;
@@ -440,35 +323,6 @@
 }
 .operation-area {
     margin: 20px 0;
-    .advanced-search {
-        margin: 0;
-    }
-    .search-input {
-        padding: 0 40px 0 10px;
-        width: 360px;
-        height: 32px;
-        line-height: 32px;
-        font-size: 14px;
-        background: $whiteDefault;
-        border: 1px solid $commonBorderColor;
-        border-radius: 4px;
-        outline: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: $blueDefault;
-            & + i {
-                color: $blueDefault;
-            }
-        }
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
-    }
 }
 .app-search {
     @include advancedSearch;
@@ -478,42 +332,11 @@
     a.task-name {
         color: $blueDefault;
     }
-    .appmaker-status {
-        .common-icon-dark-circle-shape {
-            display: inline-block;
-            transform: scale(0.9);
-            font-size: 12px;
-            color: #979BA5;
-        }
-            .common-icon-dark-circle-ellipsis {
-            color: #3c96ff;
-            font-size: 12px;
-        }
-        .icon-check-circle-shape {
-            color: $greenDefault;
-        }
-        .common-icon-dark-circle-close {
-            color: $redDefault;
-        }
-        &.revoke {
-            color: $blueDisable;
-        }
-        .common-icon-loading {
-            display: inline-block;
-            animation: bk-button-loading 1.4s infinite linear;
-        }
-        @keyframes bk-button-loading {
-            from {
-                -webkit-transform: rotate(0);
-                transform: rotate(0); }
-            to {
-                -webkit-transform: rotate(360deg);
-                transform: rotate(360deg);
-            }
-        }
-    }
     .empty-data {
         padding: 120px 0;
+    }
+    .ui-task-status {
+        @include ui-task-status;
     }
 }
 .success {

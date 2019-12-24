@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
+from pipeline.conf import default_settings
 from pipeline.core.data.hydration import hydrate_node_data
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.django_signal_valve import valve
@@ -49,8 +50,8 @@ class ServiceActivityHandler(FlowElementHandler):
             element.retry_at_current_exec()
 
         # set loop to data
-        element.data.inputs._loop = status.loop - 1
-        element.data.outputs._loop = status.loop - 1
+        element.data.inputs._loop = status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
+        element.data.outputs._loop = status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
 
         # pre output extract
         process.top_pipeline.context.extract_output(element, set_miss=False)

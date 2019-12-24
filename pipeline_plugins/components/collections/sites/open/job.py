@@ -37,20 +37,21 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    get_job_instance_url,
-    get_node_callback_url,
-    handle_api_error
-)
-
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
+from pipeline_plugins.components.utils import (
+    cc_get_ips_info_by_str,
+    get_job_instance_url,
+    get_node_callback_url,
+    loose_strip
+)
+
 from files.factory import ManagerFactory
 
 from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
 from gcloud.core.models import EnvironmentVariables
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
@@ -182,14 +183,15 @@ class JobExecuteTaskService(JobService):
         global_vars = []
         for _value in original_global_var:
             # 1-字符串，2-IP
+            val = loose_strip(_value['value'])
             if _value['type'] == 2:
                 var_ip = cc_get_ips_info_by_str(
                     username=executor,
                     biz_cc_id=biz_cc_id,
-                    ip_str=_value['value'],
+                    ip_str=val,
                     use_cache=False)
                 ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
-                if _value['value'].strip() and not ip_list:
+                if val and not ip_list:
                     data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
                     return False
                 if ip_list:
@@ -200,7 +202,7 @@ class JobExecuteTaskService(JobService):
             else:
                 global_vars.append({
                     'name': _value['name'],
-                    'value': _value['value'].strip(),
+                    'value': val,
                 })
 
         job_kwargs = {
@@ -286,7 +288,7 @@ class JobFastPushFileService(JobService):
                     'ip': _ip['InnerIP'],
                     'bk_cloud_id': _ip['Source']
                 } for _ip in ip_info['ip_result']],
-                'account': item['account'].strip(),
+                'account': loose_strip(item['account']),
             })
 
         original_ip_list = data.get_one_of_inputs('job_ip_list')
@@ -415,7 +417,7 @@ class JobFastExecuteScriptService(JobService):
         script_param = data.get_one_of_inputs('job_script_param')
         if script_param:
             job_kwargs.update({
-                'script_param': base64.b64encode(script_param.encode('utf-8'))
+                'script_param': base64.b64encode(script_param.encode('utf-8')).decode('utf-8')
             })
 
         script_source = data.get_one_of_inputs('job_script_source')
@@ -426,7 +428,8 @@ class JobFastExecuteScriptService(JobService):
         else:
             job_kwargs.update({
                 'script_type': data.get_one_of_inputs('job_script_type'),
-                'script_content': base64.b64encode(data.get_one_of_inputs('job_content').encode('utf-8')),
+                'script_content': base64.b64encode(
+                    data.get_one_of_inputs('job_content').encode('utf-8')).decode('utf-8'),
             })
 
         job_result = client.job.fast_execute_script(job_kwargs)
