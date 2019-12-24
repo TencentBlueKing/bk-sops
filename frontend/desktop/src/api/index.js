@@ -312,11 +312,14 @@ const api = {
     /**
      * 获取收藏列表
      */
-    getCollectList () {
+    getCollectList (data) {
         const prefixUrl = this.getPrefix('collectList')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}`
+            url: `${prefixUrl}`,
+            params: {
+                limit: 0
+            }
         }
         return request(opts)
     },
@@ -507,9 +510,8 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getTaskList (data) {
-        const { project_id } = store.state.project
         const { common, template_id } = data
-        const querystring = Object.assign({}, data, { 'project__id': project_id })
+        const querystring = Object.assign({}, data)
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
             querystring['template_source'] = 'project'
@@ -711,7 +713,7 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, project_id, subprocess_id } = data
+        const { instance_id, project_id, subprocess_id, cancelToken } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
@@ -719,7 +721,8 @@ const api = {
             params: {
                 instance_id,
                 subprocess_id
-            }
+            },
+            cancelToken
         }
 
         return request(opts)
@@ -1040,9 +1043,8 @@ const api = {
      * 加载轻应用数据
      */
     loadAppmaker (data) {
-        const { project_id } = store.state.project
         const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data, { 'project__id': project_id })
+        const querystring = Object.assign({}, data)
         const opts = {
             method: 'GET',
             url: prefixUrl,

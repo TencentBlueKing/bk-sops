@@ -135,3 +135,27 @@
     display: inline-block;
     width: 260px;
 }
+// 新手引导 Popover 主题
+.tippy-tooltip.guide-theme {
+    background-color: #444d62;
+    color: #d2d5dd;
+    padding: 0;
+    border-radius: 6px;
+    box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, .15);
+    .tippy-content {
+        border-radius: 6px;
+        overflow: hidden;
+    }
+}
+.tippy-tooltip.guide-theme[x-placement^='top'] .tippy-arrow {
+    border-top-color: #656e82;
+}
+.tippy-tooltip.guide-theme[x-placement^='bottom'] .tippy-arrow {
+    border-bottom-color: #656e82;
+}
+.tippy-tooltip.guide-theme[x-placement^='left'] .tippy-arrow {
+    border-left-color: #656e82;
+}
+.tippy-tooltip.guide-theme[x-placement^='right'] .tippy-arrow {
+    border-right-color: #656e82;
+}

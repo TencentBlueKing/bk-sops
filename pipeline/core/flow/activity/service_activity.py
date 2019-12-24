@@ -33,7 +33,7 @@ class Service(object, metaclass=ABCMeta):
                    key='_result',
                    type='bool',
                    schema=BooleanItemSchema(description=_("是否执行成功"))),
-        OutputItem(name=_("循环次数(起始为0)"),
+        OutputItem(name=_("循环次数"),
                    key='_loop',
                    type='int',
                    schema=IntItemSchema(description=_("循环执行次数")))

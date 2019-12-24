@@ -148,7 +148,16 @@
             DialogLoadingBtn
         },
         mixins: [permission],
-        props: ['isAddCollectionDialogShow'],
+        props: {
+            isAddCollectionDialogShow: {
+                type: Boolean,
+                default: false
+            },
+            collectionList: {
+                type: Array,
+                default: () => ([])
+            }
+        },
         data () {
             return {
                 i18n: {
@@ -162,6 +171,7 @@
                 selectError: false,
                 collectionPending: false,
                 tplOperations: [],
+                tplResource: {},
                 panelList: [],
                 selectedList: [],
                 dialogFooterData: [
@@ -206,6 +216,8 @@
         watch: {
             isAddCollectionDialogShow (val) {
                 if (val) {
+                    this.panelList = []
+                    this.selectedList = []
                     this.getData()
                 }
             }
@@ -260,7 +272,8 @@
                         default:
                             panelList = []
                     }
-                    this.panelList = this.getGroupData(panelList, reqType)
+                    const displayList = this.getFilterCollected(panelList)
+                    this.panelList = this.getGroupData(displayList, reqType)
                     this.collectionPending = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -279,11 +292,12 @@
                     pipeline_template__name__contains: searchStr || undefined
                 })
                 this.tplOperations = data.meta.auth_operations
+                this.tplResource = data.meta.auth_resource
                 return data.objects || []
             },
             async getAppMakerList (projectId, searchStr) {
                 const data = await this.loadAppmaker({
-                    project_id: projectId,
+                    project__id: projectId,
                     q: searchStr || undefined
                 })
                 return data.objects || []
@@ -313,6 +327,18 @@
                     }
                 })
                 return group
+            },
+            getFilterCollected (list) {
+                const filterList = list.filter(m => {
+                    for (let i = 0; i < this.collectionList.length; i++) {
+                        const collect = this.collectionList[i]
+                        if (m.id === collect.extra_info.id && m.name === collect.extra_info.name) {
+                            return false
+                        }
+                    }
+                    return true
+                })
+                return filterList
             },
             // 获取 icon
             getTemplateIcon (template) {
@@ -380,16 +406,22 @@
                     return false
                 }
                 this.dialogFooterData[0].loading = true
-                let projectId
                 const project = this.searchValue.find(m => m.id === 'project')
+                let projectId
                 if (project) {
                     projectId = project.values[0].id
                 }
                 const saveList = this.selectedList.map(template => {
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
+                    const saveCategoryMap = {
+                        'process': 'flow',
+                        'common': 'common_flow',
+                        'periodic': 'periodic_task',
+                        'app_maker': 'mini_app'
+                    }
                     return {
                         extra_info,
-                        category: template.collectType
+                        category: saveCategoryMap[template.collectType]
                     }
                 })
                 try {
@@ -400,7 +432,7 @@
                             message: gettext('保存成功'),
                             theme: 'success'
                         })
-                        this.$emit('onCloseDialog')
+                        this.$emit('onCloseDialog', true)
                     } else {
                         errorHandler(res, this)
                     }
@@ -583,7 +615,7 @@
         }
     }
     .empty-template {
-        padding-top: 40px;
+        padding-top: 104px;
     }
     .selected-wrapper {
         width: 292px;

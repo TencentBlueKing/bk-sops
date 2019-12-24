@@ -12,7 +12,7 @@
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <ul v-if="commonUsedList.length" class="card-list">
+        <div v-if="commonUsedList.length && !isScreenChange" class="card-list">
             <li
                 v-for="(item, index) in commonUsedList"
                 :key="index"
@@ -30,7 +30,7 @@
                     </p>
                 </div>
             </li>
-        </ul>
+        </div>
         <panel-nodata v-else>
             <span>{{ i18n.nodataDes1 }}</span>
             <span class="link-text" @click="openOtherApp('bk_iam_app')">{{ i18n.nodataDes2 }}</span>
@@ -68,6 +68,7 @@
 
                 },
                 commonlyUsedloading: false,
+                isScreenChange: false,
                 commonUsedList: []
             }
         },
@@ -100,6 +101,10 @@
             },
             onSwitchBusiness (id) {
                 this.setProjectId(id)
+                this.$router.push({
+                    name: 'process',
+                    params: { project_id: id }
+                })
             }
         }
     }
@@ -119,14 +124,21 @@
     .card-list {
         max-height: 95px;
         overflow: hidden;
-        @include scrollbar;
         .card-item {
             display: inline-block;
-            margin-right: 11px;
+            margin-right: 10px;
             padding: 14px;
-            width: 278px;
             background: #f0f1f5;
             cursor: pointer;
+            @media screen and (max-width: 1560px) {
+                width: 24%;
+            }
+            @media screen and (min-width: 1561px) and (max-width: 1919px) {
+                width: 19.2%;
+            }
+            @media screen and (min-width: 1920px) {
+                width: 16%;
+            }
             &:hover {
                 background: #e3e5e9;
             }
@@ -153,17 +165,6 @@
                         color: #313238;
                     }
                 }
-            }
-        }
-        @media screen and (max-width: 1626px){
-            .card-item {
-                width: 287px;
-            }
-        }
-        @media screen and (max-width: 1366px){
-            & {
-                overflow-x: scroll;
-                white-space: nowrap;
             }
         }
     }

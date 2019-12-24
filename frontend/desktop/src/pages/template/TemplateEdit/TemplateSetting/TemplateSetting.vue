@@ -19,7 +19,7 @@
                     @click="onTemplateSettingShow(tab.id)">
                     <div :class="['setting-menu-icon', {
                         'active-tab': activeTab === tab.id,
-                        'update': activeTab === 'globalVariableTab' && isGlobalVariableUpdate
+                        'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
                     }]">
                         <i :class="tab.icon" :title="tab.ti"></i>
                     </div>

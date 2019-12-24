@@ -472,8 +472,7 @@
             },
             // 拖拽到节点上自动连接
             onConnectionDragStop (source, targetId, event) {
-                const location = this.canvasData.locations.find(item => item.id === source.id)
-                if (source.id === targetId && location.type !== 'branchgateway') {
+                if (source.id === targetId) {
                     return false // 非分支节点不可以连接自身
                 }
                 let arrow
@@ -516,9 +515,7 @@
             // 拖拽到端点上连接
             onBeforeDrop (line) {
                 const { sourceId, targetId, connection, dropEndpoint } = line
-                const location = this.canvasData.locations.find(item => item.id === sourceId)
-
-                if (sourceId === targetId && location.type !== 'branchgateway') {
+                if (sourceId === targetId) {
                     return false
                 }
 
@@ -682,7 +679,7 @@
                 const bY = pageY - 50 - offsetY + 5
                 const type = endpoint.anchor.type
                 // 第二次点击
-                if (this.referenceLine.id) {
+                if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
                     this.createLine(
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
@@ -732,9 +729,7 @@
             },
             // 创建连线
             createLine (source, target) {
-                const location = this.canvasData.locations.find(item => item.id === source.id)
-
-                if (source.id === target.id && location.type !== 'branchgateway') {
+                if (source.id === target.id) {
                     return false
                 }
                 
@@ -1038,7 +1033,7 @@
         .tool-panel-wrap {
             top: 20px;
             left: 80px;
-            padding: 7px 0;
+            padding: 5px 0 7px 0;
             background: #c4c6cc;
             border-radius: 18px;
             opacity: 0.8;

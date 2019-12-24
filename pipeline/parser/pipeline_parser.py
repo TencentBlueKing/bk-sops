@@ -75,6 +75,7 @@ class PipelineParser(object):
     def __init__(self, pipeline_tree, cycle_tolerate=False):
         validate_pipeline_tree(pipeline_tree, cycle_tolerate=cycle_tolerate)
         self.pipeline_tree = deepcopy(pipeline_tree)
+        self.cycle_tolerate = cycle_tolerate
 
     def parse(self, root_pipeline_data=None, root_pipeline_context=None):
         """
@@ -157,7 +158,7 @@ class PipelineParser(object):
             elif act[PE.type] == PE.SubProcess:
                 sub_tree = act[PE.pipeline]
                 params = act[PE.params]
-                sub_parser = PipelineParser(pipeline_tree=sub_tree)
+                sub_parser = PipelineParser(pipeline_tree=sub_tree, cycle_tolerate=self.cycle_tolerate)
                 act_objs.append(act_cls(id=act[PE.id],
                                         pipeline=sub_parser._parse(
                                             root_pipeline_data=root_pipeline_data,

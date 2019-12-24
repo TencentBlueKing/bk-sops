@@ -458,14 +458,12 @@ const template = {
                             let name = evaluate
                             // copy 连线，需复制原来的分支条件信息
                             if (line.oldSouceId) {
-                                for (const key in state.gateways) {
-                                    const item = state.gateways[key]
-                                    const conditionsList = Object.keys(item.conditions)
-                                    if (conditionsList.indexOf(line.oldSouceId) > -1) {
-                                        evaluate = item.conditions[line.oldSouceId].evaluate
-                                        name = item.conditions[line.oldSouceId].name
-                                    }
-                                }
+                                const sourceNodeId = state.flows[line.oldSouceId].source
+                                const sourceGateWayNode = state.gateways[sourceNodeId]
+                                const sourceCondition = sourceGateWayNode.conditions[line.oldSouceId]
+
+                                evaluate = sourceCondition.evaluate || sourceCondition.name
+                                name = sourceCondition.name
                             }
                             const conditionItem = {
                                 evaluate: evaluate,
@@ -483,7 +481,7 @@ const template = {
                     gatewayNode.incoming = updateIncoming(gatewayNode.incoming, id, 'add')
                 }
                 state.line.push(newLine)
-            } else if (type === 'delete') { // async activities、flows、gateways、start_event、end_event
+            } else if (type === 'delete') { // sync activities、flows、gateways、start_event、end_event
                 let deletedLine
                 for (const item in state.flows) {
                     const flow = state.flows[item]
@@ -582,6 +580,17 @@ const template = {
                     }
                 })
             } else if (type === 'delete') {
+                for (const cKey in state.constants) {
+                    const constant = state.constants[cKey]
+                    const sourceInfo = constant.source_info
+                    if (sourceInfo && sourceInfo[location.id]) {
+                        if (Object.keys(sourceInfo).length > 1) {
+                            Vue.delete(sourceInfo, location.id)
+                        } else {
+                            Vue.delete(state.constants, constant.key)
+                        }
+                    }
+                }
                 Vue.delete(state.activities, location.id)
             } else if (type === 'copy') { // 复制节点
                 const oldSouceId = location.oldSouceId

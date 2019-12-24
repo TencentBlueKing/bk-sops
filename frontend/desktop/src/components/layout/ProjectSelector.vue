@@ -12,6 +12,8 @@
 <template>
     <div class="project-wrapper">
         <bk-select
+            v-bkloading="{ isLoading: isLoading, opacity: 0.8 }"
+            v-show="!disabled"
             class="project-select"
             v-model="currentProject"
             :disabled="disabled"
@@ -51,6 +53,7 @@
         data () {
             return {
                 showList: false,
+                isLoading: false,
                 searchStr: '',
                 i18n: {
                     biz: gettext('业务'),
@@ -111,30 +114,64 @@
         methods: {
             ...mapMutations('project', [
                 'setProjectId',
-                'setTimeZone'
+                'setTimeZone',
+                'setProjectName',
+                'setProjectActions'
             ]),
             ...mapActions('project', [
-                'changeDefaultProject'
+                'changeDefaultProject',
+                'loadProjectDetail'
             ]),
             async onProjectChange (id) {
                 if (this.project_id === id) {
                     return false
                 }
                 try {
+                    this.isLoading = true
+                    this.$emit('loading', true)
+
                     this.setProjectId(id)
                     await this.changeDefaultProject(id)
                     const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
                     this.setTimeZone(timeZone)
-                    
+
+                    const projectDetail = await this.loadProjectDetail(this.project_id)
+                    this.setProjectName(projectDetail.name)
+                    this.setProjectActions(projectDetail.auth_actions)
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
                     if (!this.redirect) {
+                        this.isLoading = false
+                        this.$emit('loading', false)
                         return
                     }
-                    if (this.$route.name === 'home') {
-                        this.$emit('reloadHome')
-                    } else {
-                        this.$router.push({ name: 'home' })
+                    // switch project go back this home list
+                    const redirectMap = {
+                        '/template': {
+                            name: 'process',
+                            params: { project_id: id }
+                        },
+                        '/taskflow': {
+                            name: 'taskList',
+                            params: { project_id: id }
+                        },
+                        '/appmaker': {
+                            name: 'appMakerList',
+                            params: { project_id: id }
+                        }
                     }
+                    const key = Object.keys(redirectMap).find(path => this.$route.path.indexOf(path) === 0)
+                    if (key) {
+                        if (this.$route.name === redirectMap[key].name) {
+                            this.$router.push(redirectMap[key])
+                            this.$nextTick(() => {
+                                this.$emit('reloadHome')
+                            })
+                        } else {
+                            this.$router.push(redirectMap[key])
+                        }
+                    }
+                    this.isLoading = false
+                    this.$emit('loading', false)
                 } catch (err) {
                     errorHandler(err, this)
                 }

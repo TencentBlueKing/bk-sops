@@ -37,10 +37,10 @@ class CollectionResources(ModelResource):
         queryset = Collection.objects.all()
         resource_name = 'collection'
         auth_resources = {
-            'process': task_template_resource,
-            'common': common_template_resource,
-            'app_maker': mini_app_resource,
-            'periodic': periodic_task_resource,
+            'flow': task_template_resource,
+            'common_flow': common_template_resource,
+            'mini_app': mini_app_resource,
+            'periodic_task': periodic_task_resource,
         }
         authorization = CollectionAuthorization()
         allowed_methods = ['get', 'post', 'delete', 'put']

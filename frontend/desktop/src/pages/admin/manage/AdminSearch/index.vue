@@ -28,6 +28,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import SearchResult from './SearchResult.vue'
 
     export default {

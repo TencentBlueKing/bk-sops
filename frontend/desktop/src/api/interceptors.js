@@ -28,6 +28,12 @@ axios.interceptors.response.use(
         return response
     },
     error => {
+        // 取消接口请求
+        if (error.message === 'cancelled') {
+            console.warn('cancelled')
+            return Promise.reject(error)
+        }
+
         const response = error.response
         console.log(response)
 

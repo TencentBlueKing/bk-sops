@@ -200,6 +200,7 @@
         width: 100px;
         font-size: 12px;
         z-index: 1;
+        word-break: break-all;
     }
     .node-options-icon {
         position: absolute;

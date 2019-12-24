@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from pipeline.conf import default_settings
 from pipeline.core.data.hydration import hydrate_data, hydrate_node_data
 from pipeline.core.flow.activity import SubProcess
 
@@ -37,7 +38,7 @@ class SubprocessHandler(FlowElementHandler):
             process.top_pipeline.context.recover_variable()
 
         # set loop count
-        element.data.outputs._loop = status.loop - 1
+        element.data.outputs._loop = status.loop + default_settings.PIPELINE_RERUN_INDEX_OFFSET
 
         # pre output extract
         process.top_pipeline.context.extract_output(element, set_miss=False)

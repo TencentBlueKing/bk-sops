@@ -92,7 +92,7 @@
             },
             displayList () {
                 return this.memberlist.map(m => {
-                    m.showName = `${m.username}(${m.display_name})`
+                    m.showName = m.display_name ? `${m.username}(${m.display_name})` : m.username
                     return m
                 })
             }
