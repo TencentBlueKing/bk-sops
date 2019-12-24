@@ -158,7 +158,6 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: 0,
-                        pipeline_instance__creator: this.username,
                         pipeline_instance__is_started: true,
                         creator_or_executor: this.username,
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
