@@ -81,7 +81,7 @@
             width: '300'
         },
         {
-            label: gettext('业务'),
+            label: gettext('项目'),
             prop: 'project'
         },
         {
