@@ -22,7 +22,7 @@ from pipeline.component_framework.component import Component
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
-from pipeline_plugins.components.utils import handle_api_error
+from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _(u"蓝鲸监控(BK)")
 
