@@ -13,12 +13,14 @@
     <div class="loop-rule-select">
         <div class="loop-rule-title bk-button-group">
             <bk-button
-                :class="['rule-btn', { 'active-btn': currentWay === 'selectGeneration' }]"
+                :theme="currentWay === 'selectGeneration' ? 'primary' : 'default'"
+                class="rule-btn"
                 @click="onSwitchWay('selectGeneration')">
                 {{ i18n.selectGeneration }}
             </bk-button>
             <bk-button
-                :class="['rule-btn', { 'active-btn': currentWay === 'manualInput' }]"
+                :theme="currentWay === 'manualInput' ? 'primary' : 'default'"
+                class="rule-btn"
                 @click="onSwitchWay('manualInput')">
                 {{ i18n.manualInput }}
             </bk-button>
@@ -551,10 +553,13 @@ $bgBlue: #3a84ff;
             width: 50%;
             border-radius: 0;
         }
-        .active-btn {
-            background-color: $blueBtnBg;
-            border-color: $blueDefault;
-            color: $blueDefault;
+        .bk-button.bk-primary {
+            position: relative;
+            z-index: 4;
+            color: #3a84ff;
+            background-color: #c7dcff;
+            border-radius: 2px;
+            border: 1px solid #3a84ff;
         }
     }
     // content

@@ -1033,7 +1033,7 @@
         .tool-panel-wrap {
             top: 20px;
             left: 80px;
-            padding: 7px 0;
+            padding: 5px 0 7px 0;
             background: #c4c6cc;
             border-radius: 18px;
             opacity: 0.8;

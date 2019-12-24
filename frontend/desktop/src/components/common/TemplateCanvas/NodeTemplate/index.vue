@@ -240,7 +240,6 @@
             right: -8px;
             font-size: 16px;
             color: #63656e;
-            background: #ffffff;
             border-radius: 50%;
             z-index: 2;
             cursor: pointer;
@@ -366,7 +365,7 @@
             right: -8px;
             width: 18px;
             height: 18px;
-            line-height: 18px;
+            line-height: 16px;
             font-size: 14px;
             border-radius: 50%;
             background: #f8b53f;
@@ -379,11 +378,9 @@
             }
             .common-icon-clock {
                 display: inline-block;
-                margin-top: 2px;
             }
             .common-icon-loading {
                 display: inline-block;
-                vertical-align: -1px;
                 animation: loading 1.4s infinite linear;
             }
             @keyframes loading {

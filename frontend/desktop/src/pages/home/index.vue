@@ -14,6 +14,7 @@
         <common-used></common-used>
         <my-collection></my-collection>
         <my-dynamic></my-dynamic>
+        <copyright-footer></copyright-footer>
     </div>
 </template>
 <script>
@@ -21,12 +22,14 @@
     import CommonUsed from './CommonlyUsed.vue'
     import MyCollection from './MyCollection.vue'
     import MyDynamic from './MyDynamic.vue'
+    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     export default {
         name: 'HomePage',
         components: {
             CommonUsed,
             MyCollection,
-            MyDynamic
+            MyDynamic,
+            CopyrightFooter
         },
         data () {
             return {
