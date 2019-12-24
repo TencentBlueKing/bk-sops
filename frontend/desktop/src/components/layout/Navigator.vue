@@ -117,8 +117,8 @@
             name: gettext('管理员入口'),
             children: [
                 {
-                    routerName: 'sourceManage',
-                    path: '/admin/manage',
+                    routerName: 'adminSearch',
+                    path: '/admin/manage/search',
                     name: gettext('后台管理')
                 },
                 {
