@@ -148,7 +148,16 @@
             DialogLoadingBtn
         },
         mixins: [permission],
-        props: ['isAddCollectionDialogShow'],
+        props: {
+            isAddCollectionDialogShow: {
+                type: Boolean,
+                default: false
+            },
+            collectionList: {
+                type: Array,
+                default: () => ([])
+            }
+        },
         data () {
             return {
                 i18n: {
@@ -207,6 +216,8 @@
         watch: {
             isAddCollectionDialogShow (val) {
                 if (val) {
+                    this.panelList = []
+                    this.selectedList = []
                     this.getData()
                 }
             }
@@ -261,7 +272,8 @@
                         default:
                             panelList = []
                     }
-                    this.panelList = this.getGroupData(panelList, reqType)
+                    const displayList = this.getFilterCollected(panelList)
+                    this.panelList = this.getGroupData(displayList, reqType)
                     this.collectionPending = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -315,6 +327,18 @@
                     }
                 })
                 return group
+            },
+            getFilterCollected (list) {
+                const filterList = list.filter(m => {
+                    for (let i = 0; i < this.collectionList.length; i++) {
+                        const collect = this.collectionList[i]
+                        if (m.id === collect.extra_info.id && m.name === collect.extra_info.name) {
+                            return false
+                        }
+                    }
+                    return true
+                })
+                return filterList
             },
             // 获取 icon
             getTemplateIcon (template) {

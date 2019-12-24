@@ -31,6 +31,7 @@
             <span>{{ i18n.noDataDesc }}</span>
         </panel-nodata>
         <add-collection-dialog
+            :collection-list="collectionList"
             :is-add-collection-dialog-show="isShowAdd"
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
