@@ -27,7 +27,7 @@
             </div>
             <div class="node-options-icon">
                 <template v-if="node.optional">
-                    <span v-if="node.mode === 'edit'" class="optional-icon"></span>
+                    <span v-if="node.mode === 'edit'" class="dark-circle common-icon-dark-circle-checkbox"></span>
                     <bk-checkbox
                         v-else-if="node.mode === 'select'"
                         :value="node.checked"
@@ -216,37 +216,12 @@
     }
     .node-options-icon {
         position: absolute;
-        top: -25px;
+        top: -23px;
         left: 0;
         .bk-form-checkbox,
         &>[class*="common-icon"] {
             display: inline-block;
             vertical-align: bottom;
-        }
-    }
-    .optional-icon {
-        display: inline-block;
-        position: relative;
-        width: 12px;
-        height: 12px;
-        line-height: 12px;
-        font-size: 13px;
-        color: #ffffff;
-        text-align: center;
-        border-radius: 100%;
-        background: #979ba5;
-        vertical-align: bottom;
-        &::after {
-            content: "";
-            position: absolute;
-            left: 3px;
-            top: 4px;
-            height: 2px;
-            width: 5px;
-            border-left: 1px solid;
-            border-bottom: 1px solid;
-            border-color: #ffffff;
-            transform: rotate(-45deg);
         }
     }
     .dark-circle {
