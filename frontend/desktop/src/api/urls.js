@@ -94,7 +94,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         syncTask: SITE_URL + 'api/v3/sync_task/',
         esbGetSystems: SITE_URL + 'develop/api/esb_get_systems/',
         esbGetComponents: SITE_URL + 'develop/api/esb_get_components/',
-        esbGetPluginInitialCode: SITE_URL + 'develop/api/esb_get_plugin_initial_code/',
+        esbGetPluginInitialCode: SITE_URL + 'develop/api/get_plugin_initial_code/',
         adminSearch: SITE_URL + 'admin/search/',
         adminTemplate: SITE_URL + 'admin/api/v3/template/',
         adminTemplateRestore: SITE_URL + 'admin/template/restore/',

@@ -54,15 +54,18 @@
             :quick-close="true"
             :width="600"
             :title="i18n.formSetting"
-            :before-close="onAtomSettingBeforeClose">
+            :before-close="closeSettingPanel">
             <atom-setting
                 slot="content"
                 ref="atomSetting"
                 v-if="showAtomSetting"
                 :editing-form="editingForm"
-                :tag-code-list="tagCodeList"
-                @onCloseSettingPanel="onCloseSettingPanel">
+                :atom-forms="atomForms">
             </atom-setting>
+            <div slot="footer" class="slider-footer">
+                <bk-button theme="primary" @click="onSaveAtomSetting">{{ i18n.confirm }}</bk-button>
+                <bk-button theme="default" @click="closeSettingPanel">{{ i18n.cancel }}</bk-button>
+            </div>
         </bk-sideslider>
         <bk-dialog
             v-model="showUploadDialog"
@@ -169,13 +172,20 @@
                     importTitle: gettext('导入文件'),
                     formCode: gettext('前端代码'),
                     apiCode: gettext('后台代码'),
-                    close: gettext('关闭')
+                    close: gettext('关闭'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
                 }
             }
         },
         computed: {
-            tagCodeList () {
-                return this.forms.map(item => item.config.tag_code)
+            atomForms () {
+                return this.forms.map(item => {
+                    return {
+                        tagCode: item.config.tag_code,
+                        name: item.config.attrs.name.value
+                    }
+                })
             }
         },
         watch: {
@@ -252,15 +262,6 @@
                 setTimeout(() => {
                     this.hideFormPanel = false
                 }, 0)
-            },
-            onAtomSettingBeforeClose () {
-                this.$refs.atomSetting && this.$refs.atomSetting.validate()
-            },
-            onCloseSettingPanel (form) {
-                this.showAtomSetting = false
-                const index = this.forms.findIndex(item => item.config.tag_code === this.editingForm.config.tag_code)
-                this.forms.splice(index, 1, form)
-                this.refreshFormPanel()
             },
             atomEditError (error) {
                 this.atomStringError = error
@@ -344,6 +345,18 @@
                     }
                     self.$refs.configPanel.scroll(type)
                 }
+            },
+            async onSaveAtomSetting () {
+                const form = await this.$refs.atomSetting.validate()
+                if (form) {
+                    this.closeSettingPanel()
+                    const index = this.forms.findIndex(item => item.config.tag_code === this.editingForm.config.tag_code)
+                    this.forms.splice(index, 1, form)
+                    this.refreshFormPanel()
+                }
+            },
+            closeSettingPanel () {
+                this.showAtomSetting = false
             }
         }
     }
@@ -385,6 +398,9 @@
         height: 100%;
         background: #ffffff;
         border-left: 1px solid #dde4eb;
+    }
+    .slider-footer {
+        padding: 0 20px;
     }
     .preview-panel {
         margin: 0 auto;
