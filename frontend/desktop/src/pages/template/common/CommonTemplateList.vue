@@ -166,7 +166,8 @@
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
         <ProjectSelectorModal
-            ref="ProjectSelectorModal">
+            ref="ProjectSelectorModal"
+            @confirm="selectedProjectToNewTask">
         </ProjectSelectorModal>
         <bk-dialog
             :mask-close="false"
@@ -590,11 +591,19 @@
                     template_id,
                     common: '1'
                 }
-                if (name === 'newTask' && !this.project_id) {
-                    this.$refs.ProjectSelectorModal.show(urlMap[name])
+                if (name === 'newTask') {
+                    this.$refs.ProjectSelectorModal.show(template_id)
                     return false
                 }
                 this.$router.push(url)
+            },
+            // 选完项目后新建任务
+            selectedProjectToNewTask (projectId, templateId) {
+                this.$router.push({
+                    name: 'taskStep',
+                    query: { template_id: templateId, common: '1' },
+                    params: { project_id: projectId, step: 'selectnode' }
+                })
             },
             getExecuteHistoryUrl (id) {
                 return {

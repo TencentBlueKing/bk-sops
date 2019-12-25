@@ -33,7 +33,7 @@
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
-                        <div class="button-group">
+                        <div class="bk-button-group">
                             <bk-button
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
@@ -348,8 +348,9 @@
                 }
 
                 const loopRule = !this.isStartNow ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
-                if (!loopRule.check) return
-                if (this.isSubmit) return
+                if (!loopRule.check || this.isSubmit) {
+                    return false
+                }
                 // 页面中是否有 TaskParamEdit 组件
                 const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
                 this.$validator.validateAll().then(async (result) => {
@@ -406,7 +407,7 @@
                                 url = {
                                     name: 'taskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: this.instance_id, common: this.common } // 公共流程创建职能化任务
+                                    query: { instance_id: taskData.instance_id, common: this.common } // 公共流程创建职能化任务
                                 }
                             }
                             this.$router.push(url)
@@ -515,7 +516,7 @@
 }
 .bk-button-group {
     .bk-button {
-        width: 150px;
+        width: 250px;
         margin: 0px;
     }
     .bk-button.bk-primary {

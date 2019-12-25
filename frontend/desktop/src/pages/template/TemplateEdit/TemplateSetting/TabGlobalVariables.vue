@@ -325,9 +325,9 @@
             onConfirm () {
                 const key = this.deleteVarKey
                 const index = this.deleteVarIndex
-                this.$emit('onDeleteConstant', key)
                 const len = this.constantsArray.length
-                if (len > 1) {
+                this.$emit('onDeleteConstant', key)
+                if (len - 1 > 1) {
                     const indexChangedVariable = this.constantsArray.slice(index + 1, len)
                     indexChangedVariable.forEach((item, index) => {
                         item.index -= 1

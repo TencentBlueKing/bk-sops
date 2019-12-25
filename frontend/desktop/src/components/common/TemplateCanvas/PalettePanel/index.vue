@@ -67,6 +67,7 @@
 <script>
     import '@/utils/i18n.js'
     import NodeMenu from './NodeMenu.vue'
+    import Guide from '@/utils/guide.js'
     import { mapState } from 'vuex'
     export default {
         name: 'PalattePanel',
@@ -129,6 +130,7 @@
         },
         mounted () {
             this.$emit('registerPaletteEvent')
+            this.renderGuide()
         },
         methods: {
             onMouseDown (e) {
@@ -169,11 +171,104 @@
                     this.showNodeMenu && !this.isMenuTypeChange ? this.onCloseNodeMenu() : this.onOpenNodeMenu()
                 }
                 document.removeEventListener('mouseup', this.mouseUpHandler)
+            },
+            renderGuide () {
+                const nodesGuide = [
+                    {
+                        el: '.entry-item[data-type=tasknode]',
+                        url: require('@/assets/images/left-tasknode-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('标准插件节点：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('已封装好的可用插件，可直接选中拖拽至画布中。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=subflow]',
+                        url: require('@/assets/images/left-subflow-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('子流程：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=parallelgateway]',
+                        url: require('@/assets/images/left-parallelgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('并行网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('有多个流出分支，并且多个流出分支都默认执行。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=branchgateway]',
+                        url: require('@/assets/images/left-branchgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('分支网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=convergegateway]',
+                        url: require('@/assets/images/left-convergegateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('汇聚网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
+                            }
+                        ]
+                    }
+                ]
+                const baseConfig = {
+                    el: '',
+                    width: 330,
+                    delay: 500,
+                    arrow: false,
+                    placement: 'right',
+                    trigger: 'mouseenter',
+                    img: {
+                        height: 155,
+                        url: ''
+                    },
+                    text: []
+                }
+                nodesGuide.forEach(m => {
+                    baseConfig.img.url = m.url
+                    baseConfig.text = m.text
+                    const guide = new Guide(baseConfig)
+                    guide.mount(document.querySelector(m.el))
+                })
             }
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
     .palette-panel {
         position: relative;
         width: 60px;

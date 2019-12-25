@@ -374,7 +374,8 @@
                         pipeline_instance__name__contains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
-                        create_method: createMethod || undefined
+                        create_method: createMethod || undefined,
+                        project__id: this.project_id
                     }
 
                     if (executeTime[0] && executeTime[1]) {
@@ -607,6 +608,7 @@
     .task-operation {
         width: 150px;
         .task-operation-clone {
+            padding: 5px;
             color: #3C96FF;
             font-size: 12px;
         }

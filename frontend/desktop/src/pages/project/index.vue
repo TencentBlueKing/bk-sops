@@ -52,7 +52,7 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.operation">
                         <template slot-scope="props">
                             <template
                                 v-for="(item, index) in OptBtnList">
@@ -570,7 +570,7 @@
     }
     .operate-btn {
         margin-right: 5px;
-        padding: 0;
+        padding: 5px;
         height: auto;
         line-height: 1;
         background: transparent;

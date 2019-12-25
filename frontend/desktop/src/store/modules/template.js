@@ -458,14 +458,12 @@ const template = {
                             let name = evaluate
                             // copy 连线，需复制原来的分支条件信息
                             if (line.oldSouceId) {
-                                for (const key in state.gateways) {
-                                    const item = state.gateways[key]
-                                    const conditionsList = Object.keys(item.conditions)
-                                    if (conditionsList.indexOf(line.oldSouceId) > -1) {
-                                        evaluate = item.conditions[line.oldSouceId].evaluate
-                                        name = item.conditions[line.oldSouceId].name
-                                    }
-                                }
+                                const sourceNodeId = state.flows[line.oldSouceId].source
+                                const sourceGateWayNode = state.gateways[sourceNodeId]
+                                const sourceCondition = sourceGateWayNode.conditions[line.oldSouceId]
+
+                                evaluate = sourceCondition.evaluate || sourceCondition.name
+                                name = sourceCondition.name
                             }
                             const conditionItem = {
                                 evaluate: evaluate,

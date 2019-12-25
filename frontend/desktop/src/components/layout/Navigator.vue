@@ -74,11 +74,6 @@
 
     const ROUTE_LIST = [
         {
-            routerName: 'commonProcessList',
-            name: gettext('公共流程'),
-            path: '/common'
-        },
-        {
             routerName: 'process',
             name: gettext('业务流程'),
             path: '/template/',
@@ -95,6 +90,11 @@
             name: gettext('轻应用'),
             path: '/appmaker/',
             params: ['project_id']
+        },
+        {
+            routerName: 'commonProcessList',
+            name: gettext('公共流程'),
+            path: '/common'
         },
         {
             routerName: 'functionHome',
@@ -117,8 +117,8 @@
             name: gettext('管理员入口'),
             children: [
                 {
-                    routerName: 'sourceManage',
-                    path: '/admin/manage',
+                    routerName: 'adminSearch',
+                    path: '/admin/manage/search',
                     name: gettext('后台管理')
                 },
                 {
@@ -127,19 +127,24 @@
                     name: gettext('运营数据')
                 }
             ]
+        },
+        {
+            routerName: 'atomDev',
+            path: '/atomdev',
+            name: gettext('插件开发')
         }
     ]
     const APPMAKER_ROUTER_LIST = [
         {
             routerName: 'appmakerTaskCreate',
-            path: 'appMakerList',
+            path: 'appmakerTaskCreate',
             params: ['app_id', 'project_id'],
             query: ['appmakerTemplateId'],
             name: gettext('新建任务')
         },
         {
-            routerName: 'appmakerTaskList',
-            path: 'appmakerTaskList',
+            routerName: 'appmakerTaskHome',
+            path: 'appmakerTaskHome',
             params: ['project_id'],
             name: gettext('任务记录')
         }
@@ -186,7 +191,8 @@
             },
             isProjectDisabled () {
                 const route = this.$route
-                return route.path.indexOf('/admin/') === 0
+                const disabledPathList = ['/home', '/common', '/admin', '/function', '/project', '/atomdev', '/audit']
+                return disabledPathList.some(path => route.path.indexOf(path) === 0)
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {
@@ -395,6 +401,9 @@ header {
             float: left;
             &:first-child {
                 margin-left: 141px;
+                @media screen and (max-width: 1420px){
+                    margin-left: 60px;
+                }
             }
             &:hover {
                 color: $whiteDefault;
