@@ -81,9 +81,6 @@
                 'loadAtomConfig'
             ]),
             ...mapMutations('atomForm/', [
-                'setAtomConfig'
-            ]),
-            ...mapMutations('atomForm/', [
                 'clearAtomForm'
             ]),
             /**

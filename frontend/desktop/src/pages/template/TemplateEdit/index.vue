@@ -398,7 +398,6 @@
                 'setPipelineTree'
             ]),
             ...mapMutations('atomForm/', [
-                'setAtomConfig',
                 'clearAtomForm',
                 'setVersionMap'
             ]),

@@ -184,7 +184,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
@@ -457,9 +457,6 @@
             ...mapActions('admin/', [
                 'taskflowNodeDetail',
                 'taskflowHistroyLog'
-            ]),
-            ...mapMutations('atomForm/', [
-                'setAtomConfig'
             ]),
             async loadNodeInfo () {
                 this.loading = true
