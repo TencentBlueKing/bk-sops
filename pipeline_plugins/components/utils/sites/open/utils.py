@@ -26,6 +26,7 @@ from pipeline_plugins.components.utils import (
     ip_pattern,
     format_sundry_ip
 )
+from pipeline_plugins.cmdb_ip_picker.utils import get_bk_cloud_id_for_host
 from gcloud.conf import settings
 
 logger = logging.getLogger('root')
@@ -79,7 +80,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                                  ip_info['host']['bk_host_innerip']) in set_module_ip:
                     ip_result.append({'InnerIP': ip_info['host']['bk_host_innerip'],
                                       'HostID': ip_info['host']['bk_host_id'],
-                                      'Source': ip_info['host']['bk_cloud_id'][0]['id'],
+                                      'Source': get_bk_cloud_id_for_host(ip_info['host'], 'bk_cloud_id'),
                                       'SetID': mod['bk_set_id'],
                                       'SetName': set_dict[mod['bk_set_id']]['bk_set_name'],
                                       'ModuleID': mod['bk_module_id'],
@@ -94,10 +95,11 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         ip_list = cc_get_ip_list_by_biz_and_user(username=username, biz_cc_id=biz_cc_id, use_cache=use_cache)
         for ip_info in ip_list:
-            if '%s:%s' % (ip_info['host']['bk_cloud_id'][0]['id'], ip_info['host']['bk_host_innerip']) in plat_ip:
+            if '%s:%s' % (get_bk_cloud_id_for_host(ip_info['host'], 'bk_cloud_id'),
+                          ip_info['host']['bk_host_innerip']) in plat_ip:
                 ip_result.append({'InnerIP': ip_info['host']['bk_host_innerip'],
                                   'HostID': ip_info['host']['bk_host_id'],
-                                  'Source': ip_info['host']['bk_cloud_id'][0]['id'],
+                                  'Source': get_bk_cloud_id_for_host(ip_info['host'], 'bk_cloud_id'),
                                   })
 
     else:
@@ -111,7 +113,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
             if ip_info['host']['bk_host_innerip'] in ip and ip_info['host']['bk_host_id'] not in host_id_list:
                 ip_result.append({'InnerIP': ip_info['host']['bk_host_innerip'],
                                   'HostID': ip_info['host']['bk_host_id'],
-                                  'Source': ip_info['host']['bk_cloud_id'][0]['id'],
+                                  'Source': get_bk_cloud_id_for_host(ip_info['host'], 'bk_cloud_id'),
                                   })
                 host_id_list.append(ip_info['host']['bk_host_id'])
 
