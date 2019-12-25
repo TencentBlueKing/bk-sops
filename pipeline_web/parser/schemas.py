@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 KEY_PATTERN = r"^((\$\{[a-zA-Z0-9_]+\})|([a-zA-Z0-9_]+))$"
+SYSTEM_KEY_PATTERN = r"^((\$\{[a-zA-Z0-9_\.]+\})|([a-zA-Z0-9_\.]+))$"
 ACT_MAX_LENGTH = 50
 CONSTANT_MAX_LENGTH = 30
 ONE_FLOW = {
@@ -231,7 +232,7 @@ WEB_PIPELINE_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "string",
-                "pattern": KEY_PATTERN
+                "pattern": SYSTEM_KEY_PATTERN
             }
         }
     },
