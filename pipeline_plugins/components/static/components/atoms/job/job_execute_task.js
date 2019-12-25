@@ -108,7 +108,7 @@
                     type: "click",
                     action: function (value) {
                         const job_id = this.get_parent().get_child("job_task_id").value;
-                        this.emit_event("job_task_id", "change", job_id)
+                        this.emit_event("job_global_var", "refresh", job_id)
                     }
                 }
             ]
@@ -158,10 +158,6 @@
                     source: "job_task_id",
                     type: "change",
                     action: function (value) {
-                        if ($.job_execute_task_data === undefined) {
-                            $.job_execute_task_data = {}
-                        }
-                        $.job_execute_task_data['current_job_task_id'] = value;
                         var $this = this;
                         this.changeHook(false);
                         if (value === '') {
@@ -175,11 +171,41 @@
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {
-                                if ($.job_execute_task_data[value] === undefined) {
-                                    $.job_execute_task_data[value] = resp.data.global_var;
-                                    $this._set_value(resp.data.global_var);
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
                                 } else {
-                                    var global_var = $.job_execute_task_data[value];
+                                    $this._set_value(resp.data.global_var)
+                                }
+                                
+                                $this.set_loading(false);
+                            },
+                            error: function () {
+                                $this._set_value([]);
+                                $this.set_loading(false);
+                                show_msg('request job detail error', 'error');
+                            }
+                        });
+                    }
+                },
+                {
+                    source: "job_global_var",
+                    type: "refresh",
+                    action: function (value) {
+                        var $this = this;
+                        this.changeHook(false);
+                        if (value === '') {
+                            this._set_value([]);
+                            return;
+                        }
+                        this.set_loading(true);
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        $.ajax({
+                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (resp) {
+                                var global_var = $this._get_value()
+                                if (global_var) {
                                     var new_global_var = resp.data.global_var.map(function (item) {
                                         var target = global_var.find(function (old_item) {
                                             return old_item.name === item.name;
@@ -202,14 +228,6 @@
                                 show_msg('request job detail error', 'error');
                             }
                         });
-                    }
-                },
-                {
-                    source: "job_global_var",
-                    type: "change",
-                    action: function (value) {
-                        var task_job_id = $.job_execute_task_data['current_job_task_id'];
-                        $.job_execute_task_data[task_job_id] = value;
                     }
                 }
             ]
