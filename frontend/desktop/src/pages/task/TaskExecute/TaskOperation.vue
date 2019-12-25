@@ -12,7 +12,7 @@
 <template>
     <div class="task-operation">
         <div class="operation-header clearfix">
-            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow">
+            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow && nodeNav.length > 1">
                 <span
                     :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
                     v-for="(path, index) in nodeNav"

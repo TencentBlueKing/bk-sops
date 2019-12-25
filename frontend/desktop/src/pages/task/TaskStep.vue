@@ -233,6 +233,10 @@
         }
     }
     .task-name {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        transform: translateX(-50%);
         font-size: 14px;
         font-weight: 600;
     }
