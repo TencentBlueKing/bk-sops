@@ -29,7 +29,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         periodic: SITE_URL + 'api/v3/periodic_task/',
         project: SITE_URL + 'api/v3/project/',
         collectList: SITE_URL + 'api/v3/collection/',
-        commonProject: SITE_URL + 'api/v3/common_project/',
+        commonProject: SITE_URL + 'api/v3/common_use_project/',
         subform: SITE_URL + 'template/api/form/' + PROJECT_ID + '/',
         // 有某模板权限的人员列表
         templatePersons: SITE_URL + 'template/api/get_perms/' + PROJECT_ID + '/',

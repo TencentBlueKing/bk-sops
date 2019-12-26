@@ -88,6 +88,7 @@ const routers = new VueRouter({
         {
             path: '/home/',
             name: 'home',
+            pathToRegexpOptions: { strict: true },
             component: Home,
             props: (route) => ({
                 project_id: route.params.project_id
@@ -95,7 +96,6 @@ const routers = new VueRouter({
         },
         {
             path: '/common',
-            name: 'commonProcess',
             component: CommonTemplate,
             children: [
                 {
@@ -105,6 +105,7 @@ const routers = new VueRouter({
                 {
                     path: 'home/',
                     name: 'commonProcessList',
+                    pathToRegexpOptions: { strict: true },
                     component: CommonTemplateList,
                     props: () => ({
                         common: '1'
@@ -114,6 +115,7 @@ const routers = new VueRouter({
                     path: ':type(new|edit|clone)/',
                     component: TemplatePanel,
                     name: 'commonTemplatePanel',
+                    pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
@@ -135,6 +137,7 @@ const routers = new VueRouter({
                 {
                     path: 'home/:project_id?/',
                     name: 'process',
+                    pathToRegexpOptions: { strict: true },
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
@@ -147,6 +150,7 @@ const routers = new VueRouter({
                     path: ':type(new|edit|clone)/:project_id/',
                     component: TemplatePanel,
                     name: 'templatePanel',
+                    pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
@@ -165,14 +169,15 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'manage/',
+                    path: 'home/',
                     component: TaskManage,
-                    name: 'TaskManage',
+                    name: 'taskHome',
                     children: [
                         {
                             path: 'list/:project_id?/',
                             component: TaskList,
                             name: 'taskList',
+                            pathToRegexpOptions: { strict: true },
                             props: (route) => ({
                                 project_id: route.params.project_id,
                                 common: route.query.common,
@@ -182,6 +187,7 @@ const routers = new VueRouter({
                         },
                         {
                             path: 'periodic/:project_id?/',
+                            pathToRegexpOptions: { strict: true },
                             component: periodicTemplateList,
                             name: 'periodicTemplate',
                             props: (route) => ({
@@ -196,6 +202,7 @@ const routers = new VueRouter({
                     path: 'newtask/:project_id/:step/',
                     component: TaskCreate,
                     name: 'taskStep',
+                    pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
                         step: route.params.step,
@@ -209,6 +216,7 @@ const routers = new VueRouter({
                     path: 'execute/:project_id/',
                     component: TaskExecute,
                     name: 'taskExecute',
+                    pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
@@ -221,14 +229,16 @@ const routers = new VueRouter({
             path: '/appmaker/home/:project_id?/',
             component: AppMaker,
             name: 'appMakerList',
+            pathToRegexpOptions: { strict: true },
             props: (route) => ({
                 project_id: route.params.project_id
             }),
             meta: { project: true }
         },
         {
-            path: '/appmaker/:app_id/newtask/:project_id/:step',
+            path: '/appmaker/:app_id/newtask/:project_id/:step/',
             name: 'appmakerTaskCreate',
+            pathToRegexpOptions: { strict: true },
             component: TaskCreate,
             props: (route) => ({
                 project_id: route.params.project_id,
@@ -240,6 +250,7 @@ const routers = new VueRouter({
         {
             path: '/appmaker/:app_id/execute/:project_id/',
             name: 'appmakerTaskExecute',
+            pathToRegexpOptions: { strict: true },
             component: TaskExecute,
             props: (route) => ({
                 project_id: route.params.project_id,
@@ -250,6 +261,7 @@ const routers = new VueRouter({
         {
             path: '/appmaker/:app_id/task_home/:project_id/',
             name: 'appmakerTaskHome',
+            pathToRegexpOptions: { strict: true },
             component: AppMakerTaskHome,
             props: (route) => ({
                 project_id: route.params.project_id,
@@ -260,11 +272,11 @@ const routers = new VueRouter({
         {
             path: '/project/home/',
             name: 'projectHome',
+            pathToRegexpOptions: { strict: true },
             component: ProjectHome
         },
         {
             path: '/function',
-            name: 'function',
             component: Functor,
             children: [
                 {
@@ -272,14 +284,16 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home',
+                    path: 'home/',
                     name: 'functionHome',
+                    pathToRegexpOptions: { strict: true },
                     component: FunctionHome
                 },
                 {
                     path: 'newtask/:project_id/:step/',
                     component: TaskCreate,
                     name: 'functionTemplateStep',
+                    pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
                         step: route.params.step,
@@ -293,6 +307,7 @@ const routers = new VueRouter({
                     path: 'execute/:project_id/',
                     component: TaskExecute,
                     name: 'functionTaskExecute',
+                    pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
@@ -304,7 +319,6 @@ const routers = new VueRouter({
         },
         {
             path: '/audit',
-            name: 'audit',
             component: Audit,
             children: [
                 {
@@ -312,14 +326,16 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home',
+                    path: 'home/',
                     name: 'auditHome',
+                    pathToRegexpOptions: { strict: true },
                     component: AuditHome
                 },
                 {
                     path: 'execute/:project_id/',
                     component: TaskExecute,
                     name: 'auditTaskExecute',
+                    pathToRegexpOptions: { strict: true },
                     props: (route) => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
@@ -344,21 +360,25 @@ const routers = new VueRouter({
                         {
                             path: 'template/',
                             name: 'statisticsTemplate',
+                            pathToRegexpOptions: { strict: true },
                             component: StatisticsTemplate
                         },
                         {
                             path: 'instance/',
                             name: 'statisticsInstance',
+                            pathToRegexpOptions: { strict: true },
                             component: StatisticsInstance
                         },
                         {
                             path: 'atom/',
                             name: 'statisticsAtom',
+                            pathToRegexpOptions: { strict: true },
                             component: StatisticsAtom
                         },
                         {
                             path: 'appmaker/',
                             name: 'statisticsAppmaker',
+                            pathToRegexpOptions: { strict: true },
                             component: StatisticsAppmaker
                         }
                     ]
@@ -370,16 +390,19 @@ const routers = new VueRouter({
                         {
                             path: 'search/',
                             name: 'adminSearch',
+                            pathToRegexpOptions: { strict: true },
                             component: AdminSearch
                         },
                         {
-                            path: 'periodic',
+                            path: 'periodic/',
                             name: 'adminPeriodic',
+                            pathToRegexpOptions: { strict: true },
                             component: AdminPeriodic
                         },
                         {
                             path: 'source_manage/',
                             name: 'sourceManage',
+                            pathToRegexpOptions: { strict: true },
                             component: SourceManage
                         },
                         {
@@ -389,11 +412,13 @@ const routers = new VueRouter({
                                 {
                                     path: 'package_edit/',
                                     name: 'packageEdit',
+                                    pathToRegexpOptions: { strict: true },
                                     component: PackageEdit
                                 },
                                 {
                                     path: 'cache_edit/',
                                     name: 'cacheEdit',
+                                    pathToRegexpOptions: { strict: true },
                                     component: CacheEdit
                                 }
                             ]
@@ -401,6 +426,7 @@ const routers = new VueRouter({
                         {
                             path: 'source_sync/',
                             name: 'sourceSync',
+                            pathToRegexpOptions: { strict: true },
                             component: SourceSync
                         }
                     ]
@@ -409,12 +435,15 @@ const routers = new VueRouter({
         },
         {
             path: '/atomdev/',
+            name: 'atomDev',
+            pathToRegexpOptions: { strict: true },
             component: AtomDev
         },
         {
             path: '/error/:code(401|403|405|406|500)/',
             component: ErrorPage,
             name: 'errorPage',
+            pathToRegexpOptions: { strict: true },
             props: (route) => ({
                 code: route.params.code
             })
