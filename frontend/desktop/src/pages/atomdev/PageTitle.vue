@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-title">{{ title }}</div>
+    <div class="page-title">{{ title }}<span class="sup-words">beta</span></div>
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -39,6 +39,13 @@
             width: 0;
             height: 20px;
             border-left: 2px solid #a3c5fd;
+        }
+        .sup-words {
+            position: absolute;
+            top: -4px;
+            right: -28px;
+            font-size: 12px;
+            color: #c4c6cc;
         }
     }
 </style>
