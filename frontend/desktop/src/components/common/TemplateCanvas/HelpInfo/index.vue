@@ -78,8 +78,6 @@
         },
         beforeDestroy () {
             document.body.removeEventListener('keydown', this.handlerKeyDown, false)
-            document.getElementById('canvas-flow').removeEventListener('mousewheel', this.onMouseWheel, false)
-            document.getElementById('canvas-flow').removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
         },
         methods: {
             onCloseHotkeyInfo () {
@@ -103,6 +101,7 @@
             },
             // 滚轮缩放
             onMouseWheel (e) {
+                console.log('11111')
                 const ev = e || window.event
                 let down = true
                 down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
