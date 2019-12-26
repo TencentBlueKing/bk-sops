@@ -323,8 +323,12 @@
             this.getSingleAtomList()
             this.getProjectBaseInfo()
             this.getCustomVarCollection()
+            window.onbeforeunload = function () {
+                return i18n.tips
+            }
         },
         beforeDestroy () {
+            window.onbeforeunload = null
             this.resetTemplateData()
         },
         methods: {
