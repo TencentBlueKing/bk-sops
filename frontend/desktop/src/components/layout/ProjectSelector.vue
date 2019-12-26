@@ -15,7 +15,7 @@
             v-show="!disabled"
             class="project-select"
             v-model="currentProject"
-            :disabled="disabled"
+            :disabled="disabled || isLoading"
             :clearable="false"
             :searchable="true">
             <bk-option-group
@@ -29,7 +29,7 @@
                 </bk-option>
             </bk-option-group>
         </bk-select>
-        <div v-if="isLoading" class="local-oading">
+        <div v-if="isLoading" class="local-loading">
             <i class="common-icon-loading-ring"></i>
         </div>
     </div>
@@ -195,7 +195,7 @@
         border-color: #445060;
         color: #c4c6cc;
     }
-    .local-oading {
+    .local-loading {
         position: absolute;
         left: 0;
         top: 0;
