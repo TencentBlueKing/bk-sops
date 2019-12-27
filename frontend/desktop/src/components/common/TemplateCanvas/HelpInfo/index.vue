@@ -101,7 +101,6 @@
             },
             // 滚轮缩放
             onMouseWheel (e) {
-                console.log('11111')
                 const ev = e || window.event
                 let down = true
                 down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
