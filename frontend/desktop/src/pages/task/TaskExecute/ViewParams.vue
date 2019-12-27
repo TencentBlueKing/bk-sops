@@ -37,7 +37,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -106,9 +106,6 @@
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
-            ]),
-            ...mapMutations('atomForm/', [
-                'setAtomConfig'
             ]),
             async loadNodeInfo () {
                 this.loading = true

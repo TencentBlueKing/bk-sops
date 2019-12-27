@@ -439,7 +439,7 @@
             renderOutputData () {
                 const outputData = []
                 const outputConfig = this.getOutputConfig()
-
+                
                 outputConfig.forEach(item => {
                     let hook = false
                     let key = item.key
@@ -619,7 +619,7 @@
             async getAtomConfig (atomType, version) {
                 this.atomConfigLoading = true
                 if (atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
-                    this.setNodeConfigData(atomType)
+                    this.setNodeConfigData(atomType, version)
                     this.$nextTick(() => {
                         this.atomConfigLoading = false
                     })
@@ -822,10 +822,11 @@
             getOutputConfig () {
                 const version = this.currentVersion
                 if (this.isSingleAtom) {
-                    if (this.atomFormOutput && this.currentAtom && this.atomFormOutput[this.currentAtom]) {
-                        return this.atomFormOutput[this.currentAtom][version]
-                    }
-                    return []
+                    return (this.atomFormOutput
+                        && this.currentAtom
+                        && this.atomFormOutput[this.currentAtom]
+                        && this.atomFormOutput[this.currentAtom][version])
+                        || []
                 } else {
                     return this.subAtomOutput || []
                 }
@@ -840,7 +841,7 @@
                             formKey: key,
                             id: this.nodeId,
                             tagCode: varKeyReg.test(key) ? key.match(varKeyReg)[1] : key,
-                            version: this.getVariableVersion(variableKey)
+                            version: this.getVariableVersion(variableKey, 'input')
                         })
                     }
                 }
@@ -922,7 +923,7 @@
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
-                            value: tools.deepClone(this.inputAtomData[key])
+                            value: tools.deepClone(this.inputAtomData[key]) || ''
                         }
                     }
                 } else {
@@ -1129,7 +1130,7 @@
                                 formKey: key,
                                 id: this.nodeId,
                                 tagCode: key,
-                                version: this.getVariableVersion(oldInputAtomHook[key])
+                                version: this.getVariableVersion(oldInputAtomHook[key], 'input')
                             }
                         ]
                         this.clearHookedVaribles(variable, [])
@@ -1157,14 +1158,14 @@
              * 2.[子流程]勾选对应 tag 版本取原始 tag 版本 || 没有设置为 legacy
              * @param {String} variableKey key
              */
-            getVariableVersion (variableKey) {
+            getVariableVersion (variableKey, type) {
                 if (this.isSingleAtom) {
                     return this.currentVersion
+                } else if (type === 'input') {
+                    return (this.subAtomConfigData.form[variableKey] && this.subAtomConfigData.form[variableKey].version) || 'legacy'
+                } else if (type === 'outinput') {
+                    return (this.subAtomConfigData.outputs[variableKey] && this.subAtomConfigData.outputs[variableKey].version) || 'legacy'
                 }
-                return (this.subAtomConfigData.form[variableKey]
-                    ? this.subAtomConfigData.form[variableKey].version
-                    : this.subAtomConfigData.outputs[variableKey].version)
-                    || 'legacy'
             },
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
@@ -1176,7 +1177,7 @@
                     return item.tag_code === tagCode
                 })[0]
                 const name = formConfig.attrs.name.replace(/\s/g, '')
-                const variableVersion = this.getVariableVersion(variableKey)
+                const variableVersion = this.getVariableVersion(variableKey, 'input')
                 if (this.isSingleAtom) {
                     key = tagCode
                     source_tag = this.nodeConfigData.component.code
@@ -1277,7 +1278,7 @@
                         source_tag: '',
                         custom_type: '',
                         show_type: 'hide',
-                        version: this.getVariableVersion(variableKey)
+                        version: this.getVariableVersion(key, 'output')
                     }
                     this.renderOutputData.some(item => {
                         if (item.key === key) {
@@ -1344,7 +1345,7 @@
                     const variableOpts = { name, key: varKey, source_tag, source_info, value }
                     // 全局变量添加 form_schema
                     const atomType = source_tag.split('.')[0]
-                    const version = this.getVariableVersion(key)
+                    const version = this.getVariableVersion(key, 'input')
                     variableOpts.form_schema = formSchema.getSchema(
                         key,
                         this.atomFormConfig[atomType][version]

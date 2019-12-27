@@ -1084,6 +1084,7 @@
                 }
                 this.treeNodeConfig = {
                     component_code: nodeActivities.component.code,
+                    version: nodeActivities.component.version,
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
