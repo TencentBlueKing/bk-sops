@@ -60,10 +60,7 @@
                                 <template v-else-if="col.prop === 'operation'">
                                     <span
                                         v-if="props.row.is_deleted"
-                                        v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, tplOperations) }"
-                                        :class="['table-link', {
-                                            'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, tplOperations)
-                                        }]"
+                                        class="table-link"
                                         @click="onRestoreTemplate(props.row)">
                                         {{ i18n.restore }}
                                     </span>
@@ -471,12 +468,8 @@
                 this.applyForPermission(required, data, operations, resource)
             },
             onRestoreTemplate (tpl) {
-                if (this.hasPermission(['edit'], tpl.auth_actions, this.tplOperations)) {
-                    this.isRestoreDialogShow = true
-                    this.restoreData = tpl
-                } else {
-                    this.onApplyPerm(['edit'], tpl, 'tpl')
-                }
+                this.isRestoreDialogShow = true
+                this.restoreData = tpl
             },
             async onRestoreConfirm () {
                 if (this.restorePending) {
