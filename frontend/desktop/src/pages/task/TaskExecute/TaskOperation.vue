@@ -1296,6 +1296,7 @@
             }
             /deep/ .bk-icon {
                 float: initial;
+                top: 0;
                 & + span {
                     margin-left: 0;
                 }

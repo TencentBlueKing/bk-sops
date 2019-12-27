@@ -414,4 +414,7 @@
 .el-select-dropdown .el-select-dropdown__item {
     font-size: 12px;
 }
+.el-input__icon {
+    line-height: 32px;
+}
 </style>
