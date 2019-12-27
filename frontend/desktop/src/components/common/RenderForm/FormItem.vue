@@ -255,6 +255,7 @@
                     case 'datatable':
                     case 'tree':
                     case 'upload':
+                    case 'cascader':
                         valueFormat = {
                             type: 'Array',
                             value: []
