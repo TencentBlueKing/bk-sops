@@ -325,9 +325,15 @@
         .scheme-header {
             margin: 20px;
             .scheme-form {
+                position: relative;
                 display: inline-block;
                 input {
                     width: 200px;
+                }
+                .error-msg {
+                    position: absolute;
+                    left: 0px;
+                    bottom: -16px;
                 }
             }
             .save-scheme-btn {

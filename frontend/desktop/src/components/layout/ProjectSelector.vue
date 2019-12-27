@@ -12,11 +12,10 @@
 <template>
     <div class="project-wrapper">
         <bk-select
-            v-bkloading="{ isLoading: isLoading, opacity: 0.8 }"
             v-show="!disabled"
             class="project-select"
             v-model="currentProject"
-            :disabled="disabled"
+            :disabled="disabled || isLoading"
             :clearable="false"
             :searchable="true">
             <bk-option-group
@@ -30,6 +29,9 @@
                 </bk-option>
             </bk-option-group>
         </bk-select>
+        <div v-if="isLoading" class="local-loading">
+            <i class="common-icon-loading-ring"></i>
+        </div>
     </div>
 </template>
 <script>
@@ -192,5 +194,27 @@
     .project-select {
         border-color: #445060;
         color: #c4c6cc;
+    }
+    .local-loading {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        cursor: not-allowed;
+        .common-icon-loading-ring {
+            display: inline-block;
+            font-size: 34px;
+            animation: loading 1.4s infinite linear;
+        }
+    }
+    @keyframes loading {
+        from {
+            transform: rotate(0);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>

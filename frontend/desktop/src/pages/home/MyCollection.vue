@@ -36,7 +36,7 @@
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
         <select-create-task-dialog
-            :tpl-resource="collectionResource"
+            :tpl-resource="collectionResource.common_flow"
             :tpl-operations="tplOperations"
             :create-task-item="createTaskItem"
             :is-create-task-dialog-show="isCreateTaskDialogShow"
@@ -113,7 +113,7 @@
                     const res = await this.getCollectList()
                     if (res.objects && res.objects.length > 0) {
                         this.tplOperations = res.meta.auth_operations
-                        this.collectionResource = { ...res.meta.auth_resource, ...res.meta.auth_resource.process }
+                        this.collectionResource = res.meta.auth_resource
                     }
                     this.collectionList = res.objects
                     this.collectionBodyLoading = false
@@ -193,7 +193,7 @@
              */
             getRourcePerm (item) {
                 if (item.category === 'flow') {
-                    return !this.hasPermission(['create_task', 'create_template'], item.auth_actions, this.tplOperations)
+                    return !this.hasPermission(['create_task'], item.auth_actions, this.tplOperations)
                 }
                 return false
             },
@@ -203,7 +203,7 @@
             checkForPermission (item) {
                 if (item.category === 'flow') {
                     item.name = item.extra_info.name
-                    this.applyForPermission(['create_task', 'create_template'], item, this.tplOperations, this.collectionResource)
+                    this.applyForPermission(['create_task'], item, this.tplOperations, this.collectionResource.flow)
                 }
             },
             onHideCreateTask () {
