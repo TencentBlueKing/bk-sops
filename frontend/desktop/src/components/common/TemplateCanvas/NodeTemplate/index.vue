@@ -27,11 +27,6 @@
             @onTaskNodeResumeClick="onTaskNodeResumeClick"
             @onForceFail="onForceFail"
             @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
-        <i
-            v-if="editable"
-            class="common-icon-dark-circle-close close-icon"
-            @click.stop="onNodeRemove">
-        </i>
         <ShortcutPanel
             :node="node"
             :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
@@ -40,7 +35,11 @@
             @onInsertNode="onInsertNode"
             @onConfigBtnClick="onConfigBtnClick">
         </ShortcutPanel>
-
+        <i
+            v-if="editable"
+            class="common-icon-dark-circle-close close-icon"
+            @click.stop="onNodeRemove">
+        </i>
     </div>
 </template>
 <script>

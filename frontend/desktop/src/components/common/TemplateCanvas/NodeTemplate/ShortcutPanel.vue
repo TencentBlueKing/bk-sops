@@ -179,6 +179,9 @@
     width: 120px;
     transform: translateX(-50%);
     cursor: default;
+    &:hover + .close-icon{
+        display: none !important;
+    }
     .shortcut-wrap {
         display: flex;
         align-items: center;
