@@ -2,9 +2,8 @@
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
 [![Release](https://img.shields.io/badge/release-3.3.27-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
-[![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
-[![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
+[![Build Status](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 
 Standard OPS is a product in the Tencent Blueking product system, designed to arrange task process and execution
  through a visual graphical interface.
@@ -26,6 +25,8 @@ The background uses Python as the development language and Django development fr
 - [Architecture Design (In Chinese)](docs/overview/architecture.md)
 - [Code Directory (In Chinese)](docs/overview/code_structure.md)
 - [Use Scenario (In Chinese)](docs/overview/usecase.md)
+- Overall View
+![](docs/resource/img/core_page_en.png)
 
 
 ## Features
@@ -41,7 +42,7 @@ The background uses Python as the development language and Django development fr
  flow templates.
 
 If you want to know more about the above features, please refer to the
- [Blueking Standard OPS White Paper (In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
+ [Blueking Standard OPS White Paper (In Chinese)](https://docs.bk.tencent.com/gcloud/)
 
 
 ## Getting started
@@ -53,14 +54,7 @@ If you want to know more about the above features, please refer to the
 - [Standard Plugin Development](docs/develop/dev_plugins.md)
 
 
-## Usage
-- [API Documents](docs/apidoc/readme.md)
-- [Standard Plugin Remote Importing](docs/features/remote_plugins.md)
-- [Variables Engine](docs/features/variables_engine.md)
-- [Mobile Documents](docs/features/mobile.md)
-
-
-## Version plan
+## Roadmap
 - [Release Notes](docs/release.md)
 
 
@@ -70,7 +64,21 @@ If you want to know more about the above features, please refer to the
 - [White paper(In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [BK forum](https://bk.tencent.com/s-mart/community)
 - [BK DevOps online video tutorial(In Chinese)](https://cloud.tencent.com/developer/edu/major-100008)
+- [BK community QQ group](https://jq.qq.com/?_wv=1027&k=5zk8F7G)
 - Contact us, technical exchange QQ group：878501914
+
+
+## BlueKing Community
+- [BK-CI](https://github.com/Tencent/bk-ci)：a continuous integration and continuous
+ delivery system that can easily present your R & D process to you.
+- [BK-BCS](https://github.com/Tencent/bk-bcs)：a basic container service platform which provides
+ orchestration and management for micro-service business.
+- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas)：a SaaS provides users with highly scalable
+, flexible and easy-to-use container products and services.
+- [BK-PaaS](https://github.com/Tencent/bk-PaaS)：an development platform that allows developers to create, develop, deploy and manage SaaS applications easily and quickly.
+- [BK-SOPS](https://github.com/Tencent/bk-sops)：an lightweight scheduling SaaS  for task flow
+ scheduling and execution through a visual graphical interface. 
+- [BK-CMDB](https://github.com/Tencent/bk-cmdb)：an enterprise-level configuration management platform for assets and applications.
 
 
 ## Contributing
@@ -80,6 +88,14 @@ If you have good ideas or suggestions, please let us know by Issues or Pull Requ
 
 If you are interested in contributing, check out the [CONTRIBUTING.md], also join our
  [Tencent OpenSource Plan](https://opensource.tencent.com/contribution).
+
+
+## Usage
+- [API Documents](docs/apidoc/readme.md)
+- [Standard Plugin Remote Importing](docs/features/remote_plugins.md)
+- [Variables Engine](docs/features/variables_engine.md)
+- [Mobile Documents](docs/features/mobile.md)
+
 
 ## FAQ
 [FAQ (In Chinese)](docs/wiki/faq.md)
