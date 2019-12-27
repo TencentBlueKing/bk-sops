@@ -24,8 +24,9 @@ npm run dev
 前端开发完成后，正式发布前需要先打包。还是在 frontend/desktop/ 目录下，执行如下命令打包，会自动在当前目录下生成 static/dist/ 目录，即打包好的前端资源。 
 
 ```bash
-npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod"
+npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod" [--VERSION={STATIC_VERSION}]
 ```
+其中 VERSION 是可选参数，建议正式打包加上该参数，{STATIC_VERSION} 是 config/default.py 中的 STATIC_VERSION 值。
 
 ## 收集静态资源  
 前端打包后，需要在工程目录下运行如下命令收集静态资源到 static 下。

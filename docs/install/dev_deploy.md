@@ -129,8 +129,9 @@ npm install
 2）本地打包
 在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 ```bash
-npm run build -- --STATIC_ENV=dev
+npm run build -- --STATIC_ENV=dev [--VERSION={STATIC_VERSION}]
 ```
+其中 VERSION 是可选参数，建议正式打包加上该参数，{STATIC_VERSION} 是 config/default.py 中的 STATIC_VERSION 值。
 
 3）收集静态资源
 回到项目根目录，执行以下命令收集前端静态资源到 static 目录下
