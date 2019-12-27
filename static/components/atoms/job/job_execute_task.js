@@ -101,17 +101,7 @@
                 size: "small",
                 cols: 1,
                 formViewHidden: true
-            },
-            events: [
-                {
-                    source: "button_refresh",
-                    type: "click",
-                    action: function (value) {
-                        const job_id = this.get_parent().get_child("job_task_id").value;
-                        this.emit_event("job_global_var", "refresh", job_id)
-                    }
-                }
-            ]
+            }
         },
         {
             tag_code: "job_global_var",
@@ -188,19 +178,20 @@
                     }
                 },
                 {
-                    source: "job_global_var",
-                    type: "refresh",
+                    source: "button_refresh",
+                    type: "click",
                     action: function (value) {
+                        const job_id = this.get_parent().get_child("job_task_id").value;
                         var $this = this;
                         this.changeHook(false);
-                        if (value === '') {
+                        if (job_id === '') {
                             this._set_value([]);
                             return;
                         }
                         this.set_loading(true);
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         $.ajax({
-                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
+                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + job_id + '/',
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {
