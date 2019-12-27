@@ -1,0 +1,39 @@
+default_stages: [commit]
+repos:
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v1.21.0
+    hooks:
+      - id: pyupgrade
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.1.0
+    hooks:
+    - id: check-merge-conflict
+  - repo: https://github.com/asottile/seed-isort-config
+    rev: v1.9.2
+    hooks:
+      - id: seed-isort-config
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v4.3.17
+    hooks:
+    - id: isort
+  - repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.4.3
+    hooks:
+    - id: autopep8
+      args: [-i, --global-config=.flake8, -v]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.1.0
+    hooks:
+    - id: flake8
+  - repo: local
+    hooks:
+      - id: check-migrate
+        name: check migrate
+        entry: python scripts/check_migrate/check_migrate.py
+        language: system
+        types: [python]
+      - id: check-commit-message
+        name: Check commit message
+        entry: python scripts/check_commit_message.py
+        language: system
+        stages: [commit-msg]
