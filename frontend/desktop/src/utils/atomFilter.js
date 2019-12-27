@@ -59,6 +59,7 @@ const atomFilter = {
                         case 'datatable':
                         case 'tree':
                         case 'upload':
+                        case 'cascader':
                             val = []
                             break
                         case 'select':
