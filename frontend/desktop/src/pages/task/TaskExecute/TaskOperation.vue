@@ -12,7 +12,7 @@
 <template>
     <div class="task-operation">
         <div class="operation-header clearfix">
-            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow">
+            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow && nodeNav.length > 1">
                 <span
                     :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
                     v-for="(path, index) in nodeNav"
@@ -220,7 +220,7 @@
     import permission from '@/mixins/permission.js'
 
     const CancelToken = axios.CancelToken
-    const source = CancelToken.source()
+    let source = CancelToken.source()
 
     const TASK_OPERATIONS = {
         execute: {
@@ -416,7 +416,9 @@
             window.addEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         beforeDestroy () {
-            source.cancel('cancelled')
+            if (source) {
+                source.cancel('cancelled')
+            }
             this.cancelTaskStatusTimer()
             window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
         },
@@ -440,23 +442,27 @@
             async loadTaskStatus () {
                 try {
                     this.$emit('taskStatusLoadChange', true)
-                    const data = {
-                        instance_id: this.taskId,
-                        project_id: this.project_id,
-                        cancelToken: source.token
-                    }
-                    if (this.selectedFlowPath.length > 1 && this.selectedFlowPath[1].type !== 'ServiceActivity') {
-                        data.instance_id = this.instance_id
-                        data.subprocess_id = this.taskId
-                    }
+
                     let instanceStatus = {}
                     if (['FINISHED', 'FAILED'].includes(this.state)
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
                     ) {
-                        source.cancel('cancelled') // 取消定时器里已经执行的请求
                         instanceStatus = await this.getCacheStatusData()
                     } else {
+                        if (source) {
+                            source.cancel('cancelled') // 取消定时器里已经执行的请求
+                        }
+                        source = CancelToken.source()
+                        const data = {
+                            instance_id: this.taskId,
+                            project_id: this.project_id,
+                            cancelToken: source.token
+                        }
+                        if (this.selectedFlowPath.length > 1 && this.selectedFlowPath[1].type !== 'ServiceActivity') {
+                            data.instance_id = this.instance_id
+                            data.subprocess_id = this.taskId
+                        }
                         instanceStatus = await this.getInstanceStatus(data)
                     }
                     if (instanceStatus.result) {
@@ -476,6 +482,7 @@
                         errorHandler(e, this)
                     }
                 } finally {
+                    source = null
                     this.$emit('taskStatusLoadChange', false)
                 }
             },
@@ -759,6 +766,7 @@
                         this.isNodeInfoPanelShow = false
                         this.nodeInfoType = ''
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                        this.cancelSelectedNode(this.selectedNodeId)
                     }
                 }
             },
@@ -1083,6 +1091,7 @@
                 }
                 this.treeNodeConfig = {
                     component_code: nodeActivities.component.code,
+                    version: nodeActivities.component.version,
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
@@ -1296,6 +1305,7 @@
             }
             /deep/ .bk-icon {
                 float: initial;
+                top: 0;
                 & + span {
                     margin-left: 0;
                 }

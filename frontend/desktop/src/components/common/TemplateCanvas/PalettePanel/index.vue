@@ -35,8 +35,7 @@
             <div
                 :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
                 data-type="tasknode"
-                @mousedown="onNodeMouseDown('tasknode', $event)"
-                @click="onOpenNodeMenu('tasknode', $event)">
+                @mousedown="onNodeMouseDown('tasknode', $event)">
                 <div class="node-type-icon common-icon-node-tasknode"></div>
             </div>
             <div
@@ -96,6 +95,7 @@
                 activeNodeListType: '',
                 showNodeMenu: false,
                 isFixedNodeMenu: false,
+                isMenuTypeChange: false,
                 nodeMouse: {
                     type: '',
                     startX: null,
@@ -158,6 +158,7 @@
             onNodeMouseDown (type, e) {
                 this.nodeMouse.startX = e.pageX
                 this.nodeMouse.startY = e.pageY
+                this.isMenuTypeChange = this.nodeMouse.type !== type
                 this.nodeMouse.type = type
                 document.addEventListener('mouseup', this.mouseUpHandler)
             },
@@ -167,7 +168,7 @@
                 const max = Math.max(endX - this.nodeMouse.startX, endY - this.nodeMouse.startY)
                 // 移动距离小于 3 像素，认为是点击事件
                 if (max < 3) {
-                    this.onOpenNodeMenu()
+                    this.showNodeMenu && !this.isMenuTypeChange ? this.onCloseNodeMenu() : this.onOpenNodeMenu()
                 }
                 document.removeEventListener('mouseup', this.mouseUpHandler)
             },

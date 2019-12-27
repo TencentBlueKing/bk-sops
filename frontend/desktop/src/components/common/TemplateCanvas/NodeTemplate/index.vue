@@ -15,23 +15,25 @@
         @mousedown="onMousedown"
         @click="onNodeClick"
         @dblclick="onNodeDblclick">
-        <component
-            :is="nodeTemplate"
-            :node="node"
-            :has-admin-perm="hasAdminPerm"
-            @onNodeCheckClick="onNodeCheckClick"
-            @onRetryClick="onRetryClick"
-            @onSkipClick="onSkipClick"
-            @onModifyTimeClick="onModifyTimeClick"
-            @onGatewaySelectionClick="onGatewaySelectionClick"
-            @onTaskNodeResumeClick="onTaskNodeResumeClick"
-            @onForceFail="onForceFail"
-            @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
-        <i
-            v-if="editable"
-            class="common-icon-dark-circle-close close-icon"
-            @click.stop="onNodeRemove">
-        </i>
+        <div class="canvas-node-content">
+            <component
+                :is="nodeTemplate"
+                :node="node"
+                :has-admin-perm="hasAdminPerm"
+                @onNodeCheckClick="onNodeCheckClick"
+                @onRetryClick="onRetryClick"
+                @onSkipClick="onSkipClick"
+                @onModifyTimeClick="onModifyTimeClick"
+                @onGatewaySelectionClick="onGatewaySelectionClick"
+                @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                @onForceFail="onForceFail"
+                @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
+            <i
+                v-if="editable"
+                class="common-icon-dark-circle-close close-icon"
+                @click.stop="onNodeRemove">
+            </i>
+        </div>
         <ShortcutPanel
             :node="node"
             :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
@@ -40,7 +42,6 @@
             @onInsertNode="onInsertNode"
             @onConfigBtnClick="onConfigBtnClick">
         </ShortcutPanel>
-
     </div>
 </template>
 <script>
@@ -220,7 +221,7 @@
         outline: 1px dashed #348af3;
     }
     .jsflow-node:not(.adding-node) {
-        &:hover {
+        & .canvas-node-item .canvas-node-content:hover {
             .close-icon {
                 display: inline-block;
             }

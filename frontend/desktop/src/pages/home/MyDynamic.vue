@@ -35,8 +35,7 @@
             class="tab-data-table"
             v-bkloading="{ isLoading: isTableLoading, opacity: 1 }"
             :data="dynamicData"
-            :pagination="pagination"
-            @page-change="handlePageChange">
+            :pagination="pagination">
             <bk-table-column
                 v-for="item in tableColumn"
                 :key="item.prop"
@@ -50,6 +49,27 @@
                             <span :class="executeStatus[props.$index].cls"></span>
                             <span>{{ executeStatus[props.$index].text }}</span>
                         </div>
+                    </template>
+                    <template v-else-if="item.prop === 'name'">
+                        <a
+                            v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                            v-cursor
+                            class="text-permission-disable"
+                            :title="props.row.name"
+                            @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                            {{ props.row[item.prop] }}
+                        </a>
+                        <router-link
+                            v-else
+                            class="task-name"
+                            :title="props.row.name"
+                            :to="{
+                                name: 'taskExecute',
+                                params: { project_id: props.row.project.id },
+                                query: { instance_id: props.row.id }
+                            }">
+                            {{ props.row[item.prop] }}
+                        </router-link>
                     </template>
                     <template v-else-if="item.prop === 'project'">
                         {{ props.row[item.prop].name }}
@@ -69,6 +89,7 @@
     import { mapState, mapActions } from 'vuex'
     import task from '@/mixins/task.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
     const tableColumn = [
         {
             label: 'ID',
@@ -108,7 +129,7 @@
         components: {
             NoData
         },
-        mixins: [task],
+        mixins: [permission, task],
         data () {
             return {
                 i18n: {
@@ -121,6 +142,8 @@
                 }],
                 dynamicData: [],
                 executeStatus: [],
+                taskOperations: [],
+                taskResource: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -166,6 +189,8 @@
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.objects)
                     this.dynamicData = res.objects
+                    this.taskOperations = res.meta.auth_operations
+                    this.taskResource = res.meta.auth_resource
                     this.isTableLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -186,8 +211,9 @@
                 this.currentMethod = val
                 this.getTaskList()
             },
-            handlePageChange () {
-
+            onTaskPermissonCheck (required, task, event) {
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
+                event.preventDefault()
             }
         }
     }
@@ -214,6 +240,9 @@
     }
     .ui-task-status {
         @include ui-task-status;
+    }
+    .task-name {
+        color: #3c96ff;
     }
 }
 </style>

@@ -131,6 +131,8 @@
                     this.formData.selectedProject = ''
                     this.isShowtaskError = false
                     this.isShowProjectError = false
+                    this.hasCreateTaskPer = true
+                    this.hasUseCommonTplPer = true
                 }
             }
         },

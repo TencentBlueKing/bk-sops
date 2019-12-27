@@ -170,7 +170,7 @@
         background: #ffffff;
         border: 1px solid #dde4eb;
         border-radius: 2px;
-        /deep/.bk-form-item {
+        .bk-form-item {
             margin: 20px 20px 0 0 !important;
             .bk-label {
                 min-width: 100px !important;

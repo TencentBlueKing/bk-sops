@@ -112,21 +112,10 @@
                                         @click.prevent="getJumpUrl('edit', props.row.id)">
                                         {{i18n.edit}}
                                     </a>
-                                    <a
-                                        v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
-                                        href="javascript:void(0);"
-                                        class="template-operate-btn"
-                                        :class="{
-                                            'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
-                                        }"
-                                        @click="onDeleteTemplate(props.row, $event)">
-                                        {{i18n.delete}}
-                                    </a>
                                     <bk-dropdown-menu>
                                         <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                             <li>
-                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
                                                 <a
                                                     v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
                                                     v-cursor
@@ -138,6 +127,16 @@
                                                     v-else
                                                     @click.prevent="getJumpUrl('clone', props.row.id)">
                                                     {{i18n.clone}}
+                                                </a>
+                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
+                                                <a
+                                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                                    href="javascript:void(0);"
+                                                    :class="{
+                                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                                    }"
+                                                    @click="onDeleteTemplate(props.row, $event)">
+                                                    {{i18n.delete}}
                                                 </a>
                                             </li>
                                         </ul>

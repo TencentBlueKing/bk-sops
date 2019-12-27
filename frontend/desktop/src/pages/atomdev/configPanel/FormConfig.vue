@@ -13,7 +13,6 @@
     <div class="form-config">
         <div class="code-area">
             <code-editor
-                language="javascript"
                 :value="value"
                 :options="options"
                 @changeContent="contentUpdate">

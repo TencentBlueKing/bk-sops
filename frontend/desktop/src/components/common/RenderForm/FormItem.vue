@@ -255,6 +255,7 @@
                     case 'datatable':
                     case 'tree':
                     case 'upload':
+                    case 'cascader':
                         valueFormat = {
                             type: 'Array',
                             value: []
@@ -413,5 +414,8 @@
 }
 .el-select-dropdown .el-select-dropdown__item {
     font-size: 12px;
+}
+.el-input__icon {
+    line-height: 32px;
 }
 </style>

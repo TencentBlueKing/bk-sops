@@ -331,9 +331,6 @@
             }
         },
         methods: {
-            ...mapMutations('atomForm/', [
-                'setAtomConfig'
-            ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
             ]),
