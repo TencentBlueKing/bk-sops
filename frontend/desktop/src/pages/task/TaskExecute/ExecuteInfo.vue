@@ -20,7 +20,7 @@
             <span>{{i18n.theTime}}</span>
             <bk-select
                 :clearable="false"
-                v-model="theExecuteTime"
+                :value="theExecuteTime"
                 @selected="onSelectExecuteTime">
                 <bk-option
                     v-for="index in loopTimes"
@@ -621,7 +621,8 @@
                 }
                 return output.name
             },
-            onSelectExecuteTime () {
+            onSelectExecuteTime (val) {
+                this.theExecuteTime = val
                 this.loadNodeInfo()
             },
             onHistoyExpand (row, expended) {
