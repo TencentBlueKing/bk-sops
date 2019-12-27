@@ -94,6 +94,7 @@
         },
         mounted () {
             this.initData()
+            this.limit = this.getLimit()
         },
         methods: {
             ...mapActions('template/', [
@@ -108,19 +109,12 @@
                     const res = await this.loadCommonProject()
                     this.commonUsedList = res.objects
                     this.commonlyUsedloading = false
-                    if (this.commonUsedList.length > 1) {
-                        this.$nextTick(() => {
-                            this.limit = this.getLimit()
-                        })
-                    }
                 } catch (e) {
                     errorHandler(e, this)
                 }
             },
             getLimit () {
-                const width = document.querySelector('.card-view .card-item')
-                const viewWith = document.querySelector('.scroll-body').offsetWidth
-                return Math.floor(viewWith / width) || 4
+                return document.body.clientWidth > 1920 ? 6 : 4
             },
             openOtherApp (url) {
                 if (self === top) {
@@ -161,6 +155,7 @@
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
+        margin: 20px 0;
         color: #313238;
         font-size: 16px;
         font-weight: 600;
@@ -223,7 +218,7 @@
     }
     .button-prev,.button-next {
         position: absolute;
-        top: 110px;
+        top: 120px;
         cursor: pointer;
         color: #979ba5;
         &:hover {

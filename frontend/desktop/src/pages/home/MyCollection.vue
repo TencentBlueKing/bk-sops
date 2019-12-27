@@ -11,22 +11,41 @@
 */
 <template>
     <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
-        <h3 class="panel-title">{{ i18n.title }}</h3>
-        <ul v-if="collectionList.length && !isScreenChange" class="card-list">
-            <base-card
-                v-for="(item, index) in collectionList"
-                :key="index"
-                :data="item"
-                :set-name="item.extra_info.name"
-                :is-apply-permission="getRourcePerm(item)"
-                :show-delete="!getRourcePerm(item)"
-                :icon-text="getCategoryChineseName(item.category)"
-                @onCardClick="onCardClick"
-                @onDeleteCard="onDeleteCard">
-            </base-card>
-            <li class="add-collection" @click="onAddCollection">+</li>
-        </ul>
-        <panel-nodata v-else>
+        <h3 class="panel-title">
+            {{ i18n.title }}
+            <span class="add-btn" @click="onAddCollection">{{ i18n.add }}</span>
+        </h3>
+        <div
+            v-for="(grounp, index) in collectionGrounpList"
+            :key="index"
+            class="category-item">
+            <h4 class="grounp-name">
+                {{ grounp.name }}
+                <span
+                    v-if="grounp.childrens.length > limit"
+                    :class="[
+                        'switch-btn',
+                        'common-icon-arrow-down',
+                        { 'flip-icon': categorySwitchMap[grounp.key] }
+                    ]"
+                    @click.stop="onSwitchCategory(grounp.key)">
+                </span>
+            </h4>
+            <ul
+                :class="['card-list', { 'show-all': categorySwitchMap[grounp.key] }]">
+                <base-card
+                    v-for="(item, i) in grounp.childrens"
+                    :key="i"
+                    :data="item"
+                    :set-name="item.extra_info.name"
+                    :is-apply-permission="getRourcePerm(item)"
+                    :show-delete="!getRourcePerm(item)"
+                    @onCardClick="onCardClick"
+                    @onDeleteCard="onDeleteCard">
+                </base-card>
+            </ul>
+        </div>
+        <panel-nodata v-if="!collectionGrounpList.length">
             <span class="link-text" @click="onAddCollection">{{ i18n.add }}</span>
             <span>{{ i18n.noDataDesc }}</span>
         </panel-nodata>
@@ -89,18 +108,19 @@
                 tplOperations: [],
                 collectionResource: {},
                 collectionList: [],
+                collectionGrounpList: [],
+                categorySwitchMap: {},
                 isShowAdd: false, // 显示添加收藏
                 isDeleteDialogShow: false, // 显示确认删除
                 deleteCollectLoading: false, // 确认删除按钮 loading
                 isCreateTaskDialogShow: false, // 显示创建任务 dialog
                 collectionBodyLoading: false, // 收藏 body
-                isScreenChange: false
+                limit: 4
             }
-        },
-        created () {
         },
         mounted () {
             this.initData()
+            this.limit = this.getLimit()
         },
         methods: {
             ...mapActions('template/', [
@@ -116,10 +136,45 @@
                         this.collectionResource = { ...res.meta.auth_resource, ...res.meta.auth_resource.process }
                     }
                     this.collectionList = res.objects
+                    this.collectionGrounpList = this.getGrounpList(res.objects)
                     this.collectionBodyLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
+            },
+            getLimit () {
+                return document.body.clientWidth > 1920 ? 6 : 4
+            },
+            getGrounpList (list) {
+                const grounp = []
+                const names = []
+                list.forEach(collect => {
+                    const index = names.indexOf(collect.category)
+                    if (index > -1) {
+                        grounp[index].childrens.push(collect)
+                    } else {
+                        grounp.push({
+                            name: this.getCategoryChineseName(collect.category),
+                            key: collect.category,
+                            childrens: [collect]
+                        })
+                        names.push(collect.category)
+                        this.$set(this.categorySwitchMap, collect.category, false)
+                    }
+                })
+                return grounp
+            },
+            getCategoryChineseName (enType) {
+                const categoryMap = {
+                    'flow': gettext('项目流程'),
+                    'common_flow': gettext('公共流程'),
+                    'mini_app': gettext('轻应用'),
+                    'periodic_task': gettext('周期任务')
+                }
+                return categoryMap[enType]
+            },
+            onSwitchCategory (key) {
+                this.categorySwitchMap[key] = !this.categorySwitchMap[key]
             },
             // 打开添加收藏
             onAddCollection () {
@@ -208,15 +263,6 @@
             },
             onHideCreateTask () {
                 this.isCreateTaskDialogShow = false
-            },
-            getCategoryChineseName (enType) {
-                const categoryMap = {
-                    'flow': gettext('项目流程'),
-                    'common_flow': gettext('公共流程'),
-                    'mini_app': gettext('轻应用'),
-                    'periodic_task': gettext('周期任务')
-                }
-                return categoryMap[enType]
             }
         }
     }
@@ -229,50 +275,56 @@
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
+        margin: 20px 0;
         color: #313238;
         font-size: 16px;
         font-weight: 600;
-    }
-    .card-list {
-        display: flex;
-        flex-wrap: wrap;
-        overflow: hidden;
-        margin-top: -20px;
-        /deep/ .card-item {
-            margin-right: 10px;
-            @media screen and (max-width: 1560px) {
-                width: 24%;
-            }
-            @media screen and (min-width: 1561px) and (max-width: 1919px) {
-                width: 19.2%;
-            }
-            @media screen and (min-width: 1920px) {
-                width: 16%;
-            }
-        }
-    }
-    .add-collection {
-        margin-top: 20px;
-        height: 60px;
-        line-height: 60px;
-        font-size: 18px;
-        color: #c4c6cc;
-        text-align: center;
-        background: #fcfcfc;
-        cursor: pointer;
-        border: 1px solid #f0f1f5;
-        @media screen and (max-width: 1560px) {
-            width: 24%;
-        }
-        @media screen and (min-width: 1561px) and (max-width: 1919px) {
-            width: 19.2%;
-        }
-        @media screen and (min-width: 1920px) {
-            width: 16%;
-        }
-        &:hover {
-            background: #e1ecff;
+        .add-btn {
+            float: right;
+            font-size: 12px;
             color: #3a84ff;
+            font-weight: normal;
+            cursor: pointer;
+        }
+    }
+    .category-item {
+        .grounp-name {
+            margin: 10px 0;
+            font-size: 12px;
+            color: #63656e;
+            font-weight: normal;
+            height: 18px;
+            line-height: 18px;
+            .switch-btn {
+                float: right;
+                cursor: pointer;
+                transition: all 0.3s;
+                &.flip-icon {
+                    transform: rotate(-180deg);
+                }
+            }
+        }
+        .card-list {
+            clear: both;
+            overflow: hidden;
+            margin-top: -20px;
+            margin-right: -16px;
+            max-height: 82px;
+            &.show-all {
+                max-height: none;
+            }
+            .card-item {
+                display: inline-block;
+                @media screen and (max-width: 1920px) {
+                    width: calc((100% - 64px) / 4);
+                    &:not(:nth-child(4n)) {
+                        margin-right: 16px;
+                    }
+                }
+                @media screen and (min-width: 1921px) {
+                    width: calc((100% - 64px) / 6);
+                }
+            }
         }
     }
     .link-text {

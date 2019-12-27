@@ -150,13 +150,14 @@
     }
      &.permission-disable {
         background: #f7f7f7;
+        border: 1px solid #dcdee5;
+        height: auto;
         .card-icon {
             color: #dcdee5;
             background: #f7f7f7;
-            border: 1px solid #dcdee5;
+            border-right: 1px solid #dcdee5;
         }
         .card-content {
-            border: 1px solid #dcdee5;
             border-left: none;
         }
         .text {
