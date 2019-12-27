@@ -48,7 +48,7 @@ axios.interceptors.response.use(
             case 401:
                 const data = response.data
                 if (data.has_plain) {
-                    window.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
+                    window.top.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
                 }
                 break
             case 403:
