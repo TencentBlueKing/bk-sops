@@ -12,24 +12,27 @@
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <div v-if="commonUsedList.length && !isScreenChange" class="card-list">
-            <li
-                v-for="(item, index) in commonUsedList"
-                :key="index"
-                class="card-item"
-                @click="onSwitchBusiness(item.project.id)">
-                <p class="business-name">{{ item.project.name }}</p>
-                <div class="business-info">
-                    <p class="info-item">
-                        <label class="label">{{ i18n.businessId }}</label>
-                        <span class="text">{{ item.project.id }}</span>
-                    </p>
-                    <p class="info-item">
-                        <label class="label">{{ i18n.timeZone }}</label>
-                        <span class="text">{{ item.project.create_at | getTimeZone }}</span>
-                    </p>
-                </div>
-            </li>
+        <div ref="cardView" v-if="commonUsedList.length && !isScreenChange" class="card-view">
+            <ul ref="cardList" class="card-list scroll-body">
+                <li
+                    v-for="(item, index) in commonUsedList"
+                    :key="index"
+                    class="card-item"
+                    @click="onSwitchBusiness(item.project.id)">
+                    <p class="business-name">{{ item.project.name }}</p>
+                    <div class="business-info">
+                        <p class="info-item">
+                            <label class="label">{{ i18n.businessId }}</label>
+                            <span class="text">{{ item.project.id }}</span>
+                        </p>
+                        <p class="info-item">
+                            <label class="label">{{ i18n.timeZone }}</label>
+                            <span class="text">{{ item.project.create_at | getTimeZone }}</span>
+                        </p>
+                    </div>
+                </li>
+            </ul>
+            
         </div>
         <panel-nodata v-else>
             <span>{{ i18n.nodataDes1 }}</span>
@@ -37,6 +40,16 @@
             <span>{{ i18n.nodataDes3 }}</span>
             <span class="link-text" @click="openOtherApp('bk_cmdb')">{{ i18n.nodataDes4 }}</span>
         </panel-nodata>
+        <span
+            v-if="viewIndex > 0"
+            class="button-prev common-icon-prev-triangle-shape"
+            @click="onShowPrevPage">
+        </span>
+        <span
+            v-if="isShowNextBtn"
+            class="button-next common-icon-next-triangle-shape"
+            @click="onShowNextPage">
+        </span>
     </div>
 </template>
 <script>
@@ -69,7 +82,14 @@
                 },
                 commonlyUsedloading: false,
                 isScreenChange: false,
-                commonUsedList: []
+                commonUsedList: [],
+                viewIndex: 0,
+                limit: 4
+            }
+        },
+        computed: {
+            isShowNextBtn () {
+                return ((this.commonUsedList.length - this.limit * (this.viewIndex + 1)) / this.limit) > 0
             }
         },
         mounted () {
@@ -88,9 +108,19 @@
                     const res = await this.loadCommonProject()
                     this.commonUsedList = res.objects
                     this.commonlyUsedloading = false
+                    if (this.commonUsedList.length > 1) {
+                        this.$nextTick(() => {
+                            this.limit = this.getLimit()
+                        })
+                    }
                 } catch (e) {
                     errorHandler(e, this)
                 }
+            },
+            getLimit () {
+                const width = document.querySelector('.card-view .card-item')
+                const viewWith = document.querySelector('.scroll-body').offsetWidth
+                return Math.floor(viewWith / width) || 4
             },
             openOtherApp (url) {
                 if (self === top) {
@@ -105,6 +135,19 @@
                     name: 'process',
                     params: { project_id: id }
                 })
+            },
+            onShowPrevPage () {
+                this.viewIndex -= 1
+                this.changeViewIndex()
+            },
+            onShowNextPage () {
+                this.viewIndex += 1
+                this.changeViewIndex()
+            },
+            changeViewIndex () {
+                const cardListDom = this.$refs.cardList
+                const baseW = this.$refs.cardView.offsetWidth
+                cardListDom.style.transform = `translateX(-${this.viewIndex * baseW}px)`
             }
         }
     }
@@ -113,6 +156,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .common-used {
+    position: relative;
     margin-top: 20px;
     padding: 20px 24px 28px 24px;
     background: #ffffff;
@@ -121,48 +165,53 @@
         font-size: 16px;
         font-weight: 600;
     }
-    .card-list {
-        max-height: 95px;
+    .card-view {
+        width: 100%;
         overflow: hidden;
-        .card-item {
-            display: inline-block;
-            margin-right: 10px;
-            padding: 14px;
-            background: #f0f1f5;
-            cursor: pointer;
-            @media screen and (max-width: 1560px) {
-                width: 24%;
-            }
-            @media screen and (min-width: 1561px) and (max-width: 1919px) {
-                width: 19.2%;
-            }
-            @media screen and (min-width: 1920px) {
-                width: 16%;
-            }
-            &:hover {
-                background: #e3e5e9;
-            }
-            .business-name {
-                font-size: 14px;
-                color: #313238;
-                font-weight: 600;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow: hidden;
-            }
-            .business-info {
-                margin-top: 6px;
-                .info-item {
-                    .label {
-                        display: inline-block;
-                        width: 60px;
-                        font-size: 12px;
-                        color: #63656e;
-                    }
-                    .text {
-                        margin-left: 10px;
-                        font-size: 12px;
-                        color: #313238;
+        .card-list {
+            max-height: 95px;
+            white-space: nowrap;
+            transition: all 0.5s;
+            .card-item {
+                display: inline-block;
+                height: 95px;
+                padding: 14px;
+                background: #f0f1f5;
+                cursor: pointer;
+                &:not(:nth-child(4n)) {
+                    margin-right: 10px;
+                }
+                @media screen and (max-width: 1920px) {
+                    width: calc((100% - 30px) / 4);
+                }
+                @media screen and (min-width: 1921px) {
+                    width: calc((100% - 40px) / 6);
+                }
+                &:hover {
+                    background: #e3e5e9;
+                }
+                .business-name {
+                    font-size: 14px;
+                    color: #313238;
+                    font-weight: 600;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
+                .business-info {
+                    margin-top: 6px;
+                    .info-item {
+                        .label {
+                            display: inline-block;
+                            width: 60px;
+                            font-size: 12px;
+                            color: #63656e;
+                        }
+                        .text {
+                            margin-left: 10px;
+                            font-size: 12px;
+                            color: #313238;
+                        }
                     }
                 }
             }
@@ -171,6 +220,21 @@
     .link-text {
         cursor: pointer;
         color: #3a84ff;
+    }
+    .button-prev,.button-next {
+        position: absolute;
+        top: 110px;
+        cursor: pointer;
+        color: #979ba5;
+        &:hover {
+            color: #63656e;
+        }
+    }
+    .button-prev {
+        left: 6px;
+    }
+    .button-next {
+        right: 6px;
     }
 }
 </style>
