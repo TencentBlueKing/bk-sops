@@ -66,7 +66,7 @@ class LoopActivityHistory(models.Model):
     loop = models.PositiveIntegerField(_(u"本次循环计数"))
     started_time = models.DateTimeField(_(u"开始时间"))
     archived_time = models.DateTimeField(_(u"结束时间"))
-    data = models.ForeignKey(HistoryData)
+    data = models.ForeignKey(HistoryData, db_constraint=False)
     state = models.CharField(_(u"执行状态"), max_length=10)
     schedule = models.ForeignKey(LoopActivityScheduleHistory, null=True)
 

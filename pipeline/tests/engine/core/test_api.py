@@ -24,7 +24,7 @@ from pipeline.engine.core import data
 from pipeline.conf import settings
 from pipeline.engine.core import api
 from pipeline.engine.models import FunctionSwitch
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 
 class EngineCoreApiTestCase(TestCase):
@@ -35,7 +35,7 @@ class EngineCoreApiTestCase(TestCase):
         FunctionSwitch.objects.freeze_engine.assert_called_once()
 
     @mock.patch('pipeline.engine.models.FunctionSwitch.objects.unfreeze_engine', mock.MagicMock())
-    @mock.patch('django_signal_valve.valve.open_valve', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.open_valve', mock.MagicMock())
     def test_unfreeze(self):
         class MockFrozenProcess(object):
             pass

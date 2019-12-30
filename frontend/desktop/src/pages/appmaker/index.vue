@@ -15,13 +15,13 @@
             <div class="appmaker-table-content">
                 <BaseTitle :title="i18n.title"></BaseTitle>
                 <div class="operation-wrapper">
-                    <bk-button type="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
-                    <BaseSearch
+                    <bk-button theme="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
+                    <AdvanceSearch
                         v-model="searchStr"
                         :input-placeholader="i18n.placeholder"
                         @onShow="onAdvanceShow"
                         @input="onSearchInput">
-                    </BaseSearch>
+                    </AdvanceSearch>
                 </div>
             </div>
             <div class="app-search" v-show="isAdvancedSerachShow">
@@ -29,21 +29,25 @@
                     <div class="advanced-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.editor}}</span>
-                            <input class="search-input" v-model="editor" :placeholder="i18n.editorPlaceholder" />
+                            <bk-input
+                                v-model="editor"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.editorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.editTime}}</span>
-                            <bk-date-range
-                                :range-separator="'-'"
-                                :quick-select="false"
-                                :start-date.sync="editStartTime"
-                                :end-date.sync="editEndTime"
+                            <bk-date-picker
+                                :placeholder="i18n.dateRange"
+                                :type="'daterange'"
+                                v-model="selectedTime"
                                 @change="onChangeEditTime">
-                            </bk-date-range>
+                            </bk-date-picker>
                         </div>
                         <div class="query-button">
                             <div class="query-button">
-                                <bk-button class="query-primary" type="primary" @click="loadData">{{i18n.query}}</bk-button>
+                                <bk-button class="query-primary" theme="primary" @click="loadData">{{i18n.query}}</bk-button>
                                 <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                             </div>
                         </div>
@@ -69,7 +73,6 @@
             </div>
         </div>
         <AppEditDialog
-            v-if="isEditDialogShow"
             :is-edit-dialog-show="isEditDialogShow"
             :is-create-new-app="isCreateNewApp"
             :cc_id="cc_id"
@@ -78,45 +81,46 @@
             @onEditCancel="onEditCancel">
         </AppEditDialog>
         <bk-dialog
-            :quick-close="false"
-            :has-header="true"
-            :ext-cls="'common-dialog'"
-            :title="i18n.delete"
             width="400"
-            padding="30px"
-            :is-show.sync="isDeleteDialogShow"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.delete"
+            :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div slot="content" class="delete-tips" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
                 {{i18n.deleteTips}}
             </div>
         </bk-dialog>
         <bk-dialog
-            :quick-close="false"
-            :ext-cls="'common-dialog'"
-            :title="i18n.jurisdiction"
             width="800"
-            padding="30px"
-            :is-show.sync="isPermissionsDialog"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.jurisdiction"
+            :value="isPermissionsDialog"
             @cancel="onCloseWindows">
-            <div slot="content" v-bkloading="{ isLoading: loadingAuthority, opacity: 1 }">
-                <p class="jurisdictionHint">{{i18n.jurisdictionHint}}</p>
-                <div class="box">
+            <div class="permission-content-dialog" v-bkloading="{ isLoading: loadingAuthority, opacity: 1 }">
+                <p class="jurisdiction-hint">{{i18n.jurisdictionHint}}</p>
+                <div class="permission-item">
                     <span class="addJurisdiction">{{i18n.addJurisdiction }}:</span>
                     <span>{{createdTaskPerList || '--'}}</span>
                 </div>
-                <div class="box">
+                <div class="permission-item">
                     <span class="getJurisdiction">{{i18n.getJurisdiction}}:</span>
                     <span>{{modifyParamsPerList || '--'}}</span>
                 </div>
-                <div>
+                <div class="permission-item">
                     <span class="executeJurisdiction">{{i18n.executeJurisdiction}}:</span>
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
             </div>
             <div slot="footer" class="exit-btn">
                 <bk-button
-                    type="default"
+                    theme="default"
                     @click="onCloseWindows">
                     {{i18n.close}}
                 </bk-button>
@@ -133,7 +137,7 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     export default {
@@ -143,7 +147,7 @@
             AppCard,
             NoData,
             AppEditDialog,
-            BaseSearch
+            AdvanceSearch
         },
         props: ['cc_id', 'common'],
         data () {
@@ -160,6 +164,7 @@
                 isDeleteDialogShow: false,
                 isAdvancedSerachShow: false,
                 editor: undefined,
+                selectedTime: [],
                 editStartTime: undefined,
                 editEndTime: undefined,
                 isPermissionsDialog: false,
@@ -186,7 +191,8 @@
                     editorPlaceholder: gettext('请输入更新人'),
                     editTime: gettext('更新时间'),
                     query: gettext('搜索'),
-                    reset: gettext('清空')
+                    reset: gettext('清空'),
+                    dateRange: gettext('选择日期时间范围')
                 }
             }
         },
@@ -331,25 +337,37 @@
             },
             onEditCancel () {
                 this.isEditDialogShow = false
+                this.currentAppData = {
+                    template_id: '',
+                    name: '',
+                    template_scheme_id: '',
+                    desc: '',
+                    logo_url: undefined
+                }
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
             },
-            onChangeEditTime (oldValue, newValue) {
-                const dateArray = newValue.split(' - ')
-                this.editStartTime = dateArray[0]
-                this.editEndTime = dateArray[1]
+            onChangeEditTime (value) {
+                this.editStartTime = value[0]
+                this.editEndTime = value[1]
             },
             onResetForm () {
                 this.editor = undefined
+                this.selectedTime = []
                 this.editStartTime = undefined
                 this.editEndTime = undefined
+                this.loadData()
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+.bk-select-inline,.bk-input-inline {
+    display: inline-block;
+    width: 260px;
+}
 .appmaker-page {
     .page-content {
         padding: 0 60px 40px 60px;
@@ -367,7 +385,7 @@
     }
     @media screen and (min-width: 1561px) and (max-width: 1919px) {
         .card-wrapper {
-            width: 24%;
+            width: 24.265%;
         }
         .card-wrapper:nth-child(4n) {
             margin-right: 0;
@@ -455,14 +473,6 @@
                     height: 32px;
                     line-height: 32px;
                 }
-                .bk-date-range:after {
-                    height: 32px;
-                    line-height: 32px;
-                }
-                /deep/ .bk-selector {
-                    max-width: 260px;
-                    display: inline-block;
-                }
                 input::-webkit-input-placeholder{
                     color: $formBorderColor;
                 }
@@ -529,10 +539,6 @@
                 margin-left: 5px;
             }
         }
-        /deep/.bk-button {
-            height: 32px;
-            line-height: 30px;
-        }
     }
     .card-wrapper {
         float: left;
@@ -542,16 +548,6 @@
         padding: 200px 0;
         background: $whiteDefault;
         border: 1px solid $commonBorderColor;
-    }
-    .jurisdictionHint {
-        padding: 0 10PX;
-        line-height: 32px;
-        background: #f0f1f5;
-        border-radius: 2px;
-        font-size: 12px;
-    }
-    .box {
-        margin: 20px 0px;
     }
     .exit-btn {
         float:right;
@@ -568,6 +564,22 @@
     }
     .advanced-search {
         margin: 0px;
+    }
+}
+.delete-tips-dialog {
+    padding: 30px;
+}
+.permission-content-dialog {
+    padding: 24px;
+    .jurisdiction-hint {
+        padding: 0 10PX;
+        line-height: 32px;
+        background: #f0f1f5;
+        border-radius: 2px;
+        font-size: 12px;
+    }
+    .permission-item {
+        margin: 20px 0px;
     }
 }
 </style>

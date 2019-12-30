@@ -10,6 +10,16 @@
   dest_path: /o/bk_sops/apigw/get_template_list/{bk_biz_id}/
   dest_http_method: GET
 
+- path: /v2/sops/get_common_template_list/
+  name: get_common_template_list
+  label: 查询公共模板列表
+  label_en: Query common templates list
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_common_template_list/
+  dest_http_method: GET
+
 - path: /v2/sops/get_template_info/
   name: get_template_info
   label: 查询单个模板详情
@@ -18,6 +28,16 @@
   api_type: query
   comp_codename: generic.v2.sops.sops_component
   dest_path: /o/bk_sops/apigw/get_template_info/{template_id}/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_common_template_info/
+  name: get_common_template_info
+  label: 查询单个公共流程模板详情
+  label_en: Query common template detail
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_common_template_info/{template_id}/
   dest_http_method: GET
 
 - path: /v2/sops/create_task/

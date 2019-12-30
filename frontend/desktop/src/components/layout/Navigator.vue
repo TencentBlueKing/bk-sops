@@ -64,9 +64,9 @@
             <div class="user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: username,
-                        placement: 'bottom-left',
+                        placement: 'bottom-end',
                         theme: 'light',
                         zIndex: 1001
                     }">
@@ -139,6 +139,12 @@
                 key: 'admin',
                 name: gettext('管理员入口'),
                 children: [
+                    {
+                        key: 'manage',
+                        parent: 'admin',
+                        name: gettext('后台管理'),
+                        path: '/admin/manage/source_manage/'
+                    },
                     {
                         key: 'statistics',
                         parent: 'admin',
@@ -249,7 +255,6 @@
             ]),
             isNavActived (route) {
                 const key = route.key
-
                 // 轻应用打开
                 if (this.view_mode === 'appmaker') {
                     if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {

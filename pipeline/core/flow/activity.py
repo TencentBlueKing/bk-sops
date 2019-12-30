@@ -174,21 +174,28 @@ class Service(object):
 
     ScheduleResultAttr = '__schedule_finish__'
     ScheduleDetermineAttr = '__need_schedule__'
+    InputItem = namedtuple('InputItem', 'name key type required')
     OutputItem = namedtuple('OutputItem', 'name key type')
     interval = None
-    _result_output = OutputItem(name=_(u'执行结果'), key='_result', type='bool')
+    _result_output = OutputItem(name=_(u"执行结果"), key='_result', type='bool')
 
     def __init__(self, name=None):
         self.name = name
+        self.interval = deepcopy(getattr(type(self), 'interval'))
 
     @abstractmethod
     def execute(self, data, parent_data):
         # get params from data
         pass
 
-    @abstractmethod
     def outputs_format(self):
-        pass
+        return []
+
+    def inputs_format(self):
+        return []
+
+    def inputs(self):
+        return self.inputs_format()
 
     def outputs(self):
         custom_format = self.outputs_format()

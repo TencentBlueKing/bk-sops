@@ -1,7 +1,7 @@
 ![](docs/resource/img/logo_en.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.3.18-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.3.27-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -49,8 +49,15 @@ If you want to know more about the above features, please refer to the
 - [Development Front-end Deployment (In Chinese)](docs/install/dev_web.md)
 - [Production Source Deployment (In Chinese)](docs/install/source_code_deploy.md)
 - [Production Upload Deployment (In Chinese)](docs/install/upload_pack_deploy.md)
+- [Mobile Deployment (In Chinese)](docs/install/mobile_deploy.md)
 - [Standard Plugin Development](docs/develop/dev_plugins.md)
+
+
+## Usage
 - [API Documents](docs/apidoc/readme.md)
+- [Standard Plugin Remote Importing](docs/features/remote_plugins.md)
+- [Variables Engine](docs/features/variables_engine.md)
+- [Mobile Documents](docs/features/mobile.md)
 
 
 ## Version plan

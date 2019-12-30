@@ -1,7 +1,7 @@
 ![](docs/resource/img/logo_zh.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.3.18-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.3.27-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -10,10 +10,10 @@
 
 标准运维（SOPS）是通过可视化的图形界面进行任务流程编排和执行的系统，是腾讯蓝鲸产品体系中一款轻量级的调度编排类SaaS产品。
 
-标准运维有两大核心服务。一个是流程编排服务：基于腾讯蓝鲸PaaS平台的API网关服务，对接企业内部各个系统 API的能力，将在多系统间切换的工作
-模式整合到一个流程中，实现一键自动化调度。另一个是自助化服务：标准运维屏蔽了底层系统之间的差异，让运维人员可以将业务日常的运维工作交给
-产品、开发、测试等人员执行，实现业务发布、变更等日常工作的自助化，除此之外，为降低非运维人员的操作成本，标准运维与蓝鲸PaaS平台深度整合，
-为用户提供了“轻应用”和“职能化”功能，提高自助率。
+标准运维有两大核心服务。一个是流程编排服务：基于腾讯蓝鲸PaaS平台的API网关服务，对接企业内部各个系统 API的能力，
+将在多系统间切换的工作模式整合到一个流程中，实现一键自动化调度。另一个是自助化服务：标准运维屏蔽了底层系统之间的差异，
+让运维人员可以将业务日常的运维工作交给产品、开发、测试等人员执行，实现业务发布、变更等日常工作的自助化，除此之外，为降低非运维人员的操作成本，
+标准运维与蓝鲸PaaS平台深度整合，为用户提供了“轻应用”和“职能化”功能，提高自助率。
 
 标准运维后台使用 Python 作为开发语言，使用 Django 开发框架；前端使用 Vue 开发页面，使用 jQuery 开发标准插件，通过配置式的开发模式，
 不断降低用户开发标准插件前端表单的难度。
@@ -26,8 +26,7 @@
 
 
 ## Features
-- 多元接入支持：标准运维对接了蓝鲸通知、作业平台、配置平台等服务，作为官方标准插件库提供服务，还支持用户自定义接入企业内部系统，定制
-开发标准插件。
+- 多元接入支持：标准运维对接了蓝鲸通知、作业平台、配置平台等服务，作为官方标准插件库提供服务，还支持用户自定义接入企业内部系统，定制开发标准插件。
 - 可视化流程编排：通过拖拽方式组合标准插件节点到一个流程模板。
 - 多种流程模式：支持标准插件节点的串行、并行，支持子流程，可以根据全局参数自动选择分支执行，节点失败处理机制可配置。
 - 参数引擎：支持参数共享，支持参数替换。
@@ -42,8 +41,15 @@
 - [开发环境前端部署](docs/install/dev_web.md)
 - [正式环境源码部署](docs/install/source_code_deploy.md)
 - [正式环境上传部署](docs/install/upload_pack_deploy.md)
+- [移动端部署](docs/install/mobile_deploy.md)
 - [标准插件开发](docs/develop/dev_plugins.md)
+
+
+## Usage
 - [API使用说明](docs/apidoc/readme.md)
+- [标准插件远程加载](docs/features/remote_plugins.md)
+- [变量引擎](docs/features/variables_engine.md)
+- [移动端使用说明](docs/features/mobile.md)
 
 
 ## Version plan

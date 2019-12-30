@@ -45,7 +45,18 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'taskStatus'],
+        props: [
+            'list',
+            'currentStep',
+            'allFinished',
+            'common',
+            'instanceName',
+            'cc_id',
+            'taskStatus',
+            'templateSource',
+            'template_id',
+            'isFunctional'
+        ],
         data () {
             return {
                 i18n: {
@@ -110,43 +121,59 @@
             },
             /**
              * 返回任务列表
+             * 目的：返回到【节点选择】上一个页面
              */
             getHomeUrl () {
+                const backObj = {
+                    'business': `/template/home/${this.cc_id}/`,
+                    'periodicTask': `/periodic/home/${this.cc_id}/`,
+                    'taskflow': `/taskflow/home/${this.cc_id}/`,
+                    'common': `/template/common/${this.cc_id}/`,
+                    'adminCommon': '/admin/common/template/',
+                    'templateEdit': `/template/edit/${this.cc_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
+                    'functor': `/function/home/`,
+                    'auditor': `/audit/home/`,
+                    'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.cc_id}/`
+                }
+                const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
+                const entrance = this.$route.query.entrance || ''
                 let url = '/'
-                const userType = this.userType // 用户类型
-                const path = this.$route.fullPath
-                const entrance = this.$route.query.entrance || '' // 入口参数
-                const ccId = this.$route.params.cc_id
-                const actions = [
-                    // 编辑模板
-                    { userType: 'maintainer', path: '/template/edit/', url: `/periodic/home/${this.cc_id}/` },
-                    // 任务记录
-                    { userType: 'maintainer', path: '/taskflow/execute/', url: `/taskflow/home/${this.cc_id}/` },
-                    // 新建-周期任务
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: '0', url: `/periodic/home/${this.cc_id}/` },
-                    // 新建-任务记录
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: '1', url: `/taskflow/home/${this.cc_id}/` },
-                    // 新建-业务流程
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'commonList', url: `/template/common/${this.cc_id}/` },
-                    // 新建-公共流程
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'businessList', url: `/template/home/${this.cc_id}/` },
-                    // maintainer 默认
-                    { userType: 'maintainer', path: 'default', url: `/template/home/${this.cc_id}/` },
-                    // 职能化
-                    { userType: 'functor', url: `/function/home/` },
-                    // 审计员
-                    { userType: 'auditor', url: `/audit/home/` },
-                    // 轻应用
-                    { view_mode: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${ccId}/` }
-                ]
-                actions.forEach(key => {
-                    const flag_view_mode = key.view_mode ? key.view_mode === this.view_mode : true
-                    const flag_userType = key.userType ? key.userType === userType : true
-                    const flag_path = key.path ? new RegExp(key.path).test(path) : true
-                    const flag_entrance = key.entrance ? key.entrance === entrance : true
-                    if (flag_view_mode && flag_userType && flag_path && flag_entrance) url = key.url
-                })
-                if (this.common && userType === 'maintainer') url += `?common=1&common_template=${this.common}`
+                switch (currentUser) {
+                    case 'maintainer':
+                        // 任务创建(节点选择+参数填写)
+                        if (this.currentStep === 'selectnode' || this.currentStep === 'paramfill') {
+                            /**
+                             * entrance
+                             * 1、periodicTask - 周期任务新建
+                             * 2、taskflow - 任务记录新建
+                             * 3、templateEdit - 模版编辑
+                             */
+                            if (entrance === 'periodicTask' || entrance === 'taskflow' || entrance === 'templateEdit') {
+                                url = backObj[entrance]
+                                break
+                            }
+                            if (this.common) {
+                                url = backObj['common']
+                                break
+                            }
+                            if (this.isFunctional) {
+                                url = backObj['taskflow']
+                                break
+                            }
+                            url = backObj['business']
+                        } else {
+                            // 任务执行页面
+                            url = backObj['taskflow']
+                        }
+                        break
+                    case 'functor':
+                    case 'auditor':
+                    case 'appmaker':
+                        url = backObj[currentUser]
+                        break
+                    default:
+                        url = '/'
+                }
                 this.$router.push(url)
             }
         }
@@ -203,7 +230,7 @@
         display: flex;
         margin: 0 0 16px 0;
         min-width: 1320px;
-            
+
     }
     .step-item {
         display: inline-block;

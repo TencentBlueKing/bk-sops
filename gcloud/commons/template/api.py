@@ -65,16 +65,17 @@ def form(request):
     return JsonResponse(ctx)
 
 
-@require_GET
+@require_POST
 @check_is_superuser()
 def export_templates(request):
-    try:
-        template_id_list = json.loads(request.GET.get('template_id_list'))
-    except Exception:
-        return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+    data = json.loads(request.body)
+    template_id_list = data['template_id_list']
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+
+    if not template_id_list:
+        return JsonResponse({'result': False, 'message': 'template_id_list can not be empty'})
 
     # wash
     try:

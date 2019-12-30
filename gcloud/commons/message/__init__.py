@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import importlib
-import json
 
+import ujson as json
 from django.conf import settings
 
 from gcloud.commons.message.common import (title_and_content_for_atom_failed,

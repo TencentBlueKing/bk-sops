@@ -11,16 +11,15 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
+        width="850"
+        :mask-close="false"
+        :header-position="'left'"
         :ext-cls="'common-dialog'"
         :title="i18n.addTasks"
-        width="850"
-        padding="0"
-        :is-show.sync="isShow"
+        v-model="isShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content" class="template-container">
+        <div class="template-container">
             <div
                 v-if="selectTemplateLoading || templateList.length" class="dialog-centent"
                 v-bkloading="{ isLoading: submitting || selectTemplateLoading, opacity: 1 }">

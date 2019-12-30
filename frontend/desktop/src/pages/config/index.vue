@@ -19,36 +19,33 @@
             <div class="common-form-item">
                 <label>{{i18n.executorLabel}}</label>
                 <div class="common-form-content">
-                    <BaseInput v-model="executor" />
-                    <bk-tooltip placement="right" width="400" class="desc-tooltip">
-                        <i class="bk-icon icon-info-circle"></i>
-                        <div slot="content" style="white-space: normal;">
-                            <div>{{i18n.executorTips}}</div>
-                        </div>
-                    </bk-tooltip>
+                    <bk-input class="bk-input-inline" :clearable="true" v-model="executor"></bk-input>
+                    <i
+                        class="common-icon-info desc-tooltip"
+                        v-bk-tooltips="{
+                            content: i18n.executorTips,
+                            width: 300,
+                            placements: ['right']
+                        }">
+                    </i>
                 </div>
             </div>
             <div class="common-form-item executor-switch">
                 <label>{{i18n.alwaysUseExecutorLabel}}</label>
                 <div class="common-form-content">
-                    <bk-switcher
-                        size="small"
-                        :selected="alwaysUseExecutor"
-                        :show-text="false"
-                        :is-square="false"
-                        @change="onSwitchChange">
-                    </bk-switcher>
-                    <bk-tooltip placement="right" width="280" class="desc-tooltip force-tooltip">
-                        <i class="bk-icon icon-info-circle"></i>
-                        <div slot="content" style="white-space: normal;">
-                            <div>{{i18n.alwaysUseTips}}</div>
-                        </div>
-                    </bk-tooltip>
+                    <bk-switcher v-model="alwaysUseExecutor" size="small"></bk-switcher>
+                    <i
+                        class="common-icon-info desc-tooltip"
+                        v-bk-tooltips="{
+                            content: i18n.alwaysUseTips,
+                            placements: ['right']
+                        }">
+                    </i>
                 </div>
             </div>
         </div>
         <div class="operation-wrapper">
-            <bk-button type="primary" @click="onSaveConfig" :loading="pending" :disabled="configLoading">{{i18n.save}}</bk-button>
+            <bk-button theme="primary" @click="onSaveConfig" :loading="pending" :disabled="configLoading">{{i18n.save}}</bk-button>
         </div>
     </div>
 </template>
@@ -56,13 +53,9 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
 
     export default {
         name: 'configPage',
-        components: {
-            BaseInput
-        },
         data () {
             return {
                 executor: undefined,
@@ -126,9 +119,6 @@
                 } finally {
                     this.pending = false
                 }
-            },
-            onSwitchChange (selected) {
-                this.alwaysUseExecutor = selected
             }
         }
     }
@@ -167,9 +157,10 @@
         margin: 30px 0 0 0;
     }
     .common-form-content {
-        margin-left: 180px;
+        margin-left: 160px;
     }
     .common-form-item > label {
+        width: 140px;
         text-align: left;
     }
     .desc-tooltip {
@@ -181,13 +172,17 @@
     .force-tooltip {
         position: relative;
     }
-    .icon-info-circle:hover {
+    .common-icon-info:hover {
         color: #f4aa1a
     }
     .bk-button {
         width:140px;
         height:32px;
         line-height: 32px;
+    }
+    .bk-input-inline {
+        display: inline-block;
+        width: 500px;
     }
 }
 </style>

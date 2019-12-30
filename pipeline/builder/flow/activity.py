@@ -21,11 +21,24 @@ __all__ = [
 
 
 class ServiceActivity(Element):
-    def __init__(self, component_code=None, *args, **kwargs):
+    def __init__(self,
+                 component_code=None,
+                 failure_handler=None,
+                 error_ignorable=False,
+                 timeout=None,
+                 skippable=True,
+                 can_retry=True,
+                 *args, **kwargs):
         self.component = FancyDict({
             'code': component_code,
             'inputs': FancyDict({})
         })
+        self.failure_handler = '{module}.{name}'.format(module=failure_handler.__module__,
+                                                        name=failure_handler.__name__) if failure_handler else None
+        self.error_ignorable = error_ignorable
+        self.timeout = timeout
+        self.skippable = skippable
+        self.can_retry = can_retry
         super(ServiceActivity, self).__init__(*args, **kwargs)
 
     def type(self):
@@ -40,11 +53,21 @@ class ServiceActivity(Element):
 
 class SubProcess(Element):
 
-    def __init__(self, start, data=None, params=None, global_outputs=None, *args, **kwargs):
+    def __init__(self,
+                 start=None,
+                 data=None,
+                 params=None,
+                 global_outputs=None,
+                 replace_id=False,
+                 template_id=None,
+                 *args,
+                 **kwargs):
         self.start = start
         self.data = data
         self.params = params or {}
+        self.replace_id = replace_id
         self.global_outputs = FancyDict(global_outputs or {})
+        self.template_id = template_id
         super(SubProcess, self).__init__(*args, **kwargs)
 
     def type(self):

@@ -18,6 +18,7 @@
             {{ i18n.add_text }}
         </bk-button>
         <el-table
+            v-if="Array.isArray(value)"
             style="width: 100%; font-size: 12px"
             :data="tableValue"
             :empty-text="empty_text"
@@ -90,7 +91,7 @@
             desc: 'show edit and delete button or not'
         },
         value: {
-            type: Array,
+            type: [Array, String],
             required: false,
             default () {
                 return []
@@ -224,7 +225,8 @@
                     showGroup: false,
                     showLabel: false,
                     editable: this.editRowNumber === index,
-                    formMode: this.editRowNumber === index
+                    formMode: this.editRowNumber === index,
+                    validateSet: ['required', 'custom', 'regex']
                 }
             },
             onEdit (index, row) {
@@ -297,7 +299,7 @@
              */
             setOutputParams (oldVal) {
                 const specialAtom = 'job_execute_task'
-                if (this.value) {
+                if (Array.isArray(this.value)) {
                     const atomOutput = this.atomForm.form[specialAtom].output.slice(0)
 
                     this.value.forEach(item => {

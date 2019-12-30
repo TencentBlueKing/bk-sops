@@ -24,12 +24,12 @@
             <div class="title-background" @click="onToggleUnreferenceShow">
                 <div :class="['unreferenced-variable', { 'unreference-show': isUnrefVarShow }]"></div>
                 <span class="title">{{i18n.title}}</span>
-                <bk-tooltip placement="bottom-end" width="400" class="desc-tooltip">
-                    <i class="bk-icon icon-info-circle"></i>
-                    <div slot="content" style="white-space: normal;">
-                        <div>{{i18n.executorTips}}</div>
-                    </div>
-                </bk-tooltip>
+                <i class="common-icon-info desc-tooltip"
+                    v-bk-tooltips="{
+                        content: i18n.executorTips,
+                        width: '400',
+                        placements: ['bottom-end'] }">
+                </i>
             </div>
             <TaskParamEdit
                 class="unreferenced"
@@ -68,16 +68,10 @@
         },
         computed: {
             isReferencedShow () {
-                if (this.taskMessageLoading) {
-                    return false
-                } else {
-                    return Object.keys(this.referencedVariable).filter(key => {
-                        return this.referencedVariable[key].show_type === 'show'
-                    }).length
-                }
+                return this.getReferencedStatus(this.referencedVariable)
             },
             isUnreferencedShow () {
-                return this.taskMessageLoading ? false : (Object.keys(this.unReferencedVariable).length > 0)
+                return this.getReferencedStatus(this.unReferencedVariable)
             },
             isParameterInfoLoading () {
                 return this.isRefVarLoading || this.isUnrefVarLoading
@@ -114,6 +108,13 @@
             // 获取 TaskParamEdit
             getTaskParamEdit () {
                 return this.$refs.TaskParamEdit
+            },
+            getReferencedStatus (variable) {
+                return this.taskMessageLoading
+                    ? false
+                    : (Object.keys(variable).some(key => {
+                        return variable[key].show_type === 'show'
+                    }))
             }
         }
     }
@@ -125,7 +126,7 @@
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
-    min-height: 324px;
+    min-height: 200px;
 }
 .variable-wrap {
     background: #f0f1f5;
@@ -133,6 +134,7 @@
        padding-bottom: 20px;
     }
     .title-background {
+        position: relative;
         padding-left: 20px;
         cursor: pointer;
         &:hover {
@@ -153,16 +155,13 @@
             transform: rotate(90deg);
         }
         .desc-tooltip {
-            float: right;
-            margin: 20px;
-        }
-        /deep/.bk-tooltip-inner {
-            background: #333;
-            border: 0px;
-        }
-        .icon-info-circle {
-            position: relative;
-            right: 12px;
+            position: absolute;
+            right: 20px;
+            top: 22px;
+            color: #c4c6cc;
+            &:hover {
+                color: #f4aa1a;
+            }
         }
         .title {
             font-weight: 600;

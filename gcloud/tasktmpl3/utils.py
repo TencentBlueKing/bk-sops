@@ -66,7 +66,7 @@ def get_notify_receivers(username, biz_cc_id, receiver_group, more_receiver):
     return notify_receivers
 
 
-def get_template_context(obj):
+def get_template_context(obj, data_type):
     try:
         from gcloud.tasktmpl3.models import TaskTemplate
         template = TaskTemplate.objects.get(pipeline_template=obj)

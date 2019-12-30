@@ -10,12 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="btn-wrapper">
+    <div class="common-dialog-footer-btn-wrapper">
         <bk-button
-            class="dialog-Btn"
+            class="dialog-btn"
             v-for="(item, index) in dialogFooterData"
             :key="index"
-            :type="item.type"
+            :theme="item.type"
             :icon="item.icon"
             :loading="item.loading"
             :disabled="item.disabled"
@@ -51,14 +51,12 @@
     }
 </script>
 <style lang="scss">
-.btn-wrapper {
-    float: right;
-    margin: 0 16px 2px 0;
-    .dialog-Btn {
-        min-width: 120px;
-        height: 32px;
-        margin-right: 10px;
-        line-height: 30px;
+.common-dialog-footer-btn-wrapper {
+    .dialog-btn {
+        min-width: 76px;
+        &:not(:last-child) {
+            margin-right: 10px;
+        }
     }
 }
 

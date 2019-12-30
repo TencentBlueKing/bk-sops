@@ -33,10 +33,16 @@
 ## 安装 python 和包
 在本地安装 python2.7 和 pip，目前暂不支持 py3，后续版本会兼容 py2 和 py3。
 通过 git 拉取源代码到工程目录后，并进入目录下运行 pip 命令安装 python 包。
+
 ```bash
 pip install -r requirements.txt
 ```
 
+部分 python 包需要安装依赖软件，如 libmagic，macOS 可以使用如下命令安装：
+
+```
+brew install libmagic
+```
 
 ## 配置本地环境变量和数据库
 
@@ -148,6 +154,7 @@ mac: 执行 “sudo vim /etc/hosts”，添加“127.0.0.1 dev.{BK_PAAS_HOST}”
 ## 启动进程
 ```bash
 python manage.py celery worker -l info
+python manage.py celery beat -l info
 python manage.py runserver 8000
 ```
 

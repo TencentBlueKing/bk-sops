@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import os
 import logging
 import traceback
 
@@ -38,4 +39,14 @@ class CoreConfig(AppConfig):
                     'db': EnvironmentVariables.objects.get_var('BKAPP_REDIS_DB'),
                 }
             except Exception:
-                logger.error(traceback.format_exc())
+                logger.warning(traceback.format_exc())
+                # first migrate, database may not have been migrated, so try get BKAPP_REDIS from env
+                if 'BKAPP_REDIS_HOST' in os.environ:
+                    settings.REDIS = {
+                        'host': os.getenv('BKAPP_REDIS_HOST'),
+                        'port': os.getenv('BKAPP_REDIS_PORT'),
+                        'password': os.getenv('BKAPP_REDIS_PASSWORD'),
+                        'service_name': os.getenv('BKAPP_REDIS_SERVICE_NAME'),
+                        'mode': os.getenv('BKAPP_REDIS_MODE'),
+                        'db': os.getenv('BKAPP_REDIS_DB'),
+                    }

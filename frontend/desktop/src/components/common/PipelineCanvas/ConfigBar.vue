@@ -39,20 +39,21 @@
         </div>
         <div class="canvas-operation-wrapper">
             <bk-button
-                type="primary"
-                class="save-canvas"
+                theme="primary"
+                class="canvas-btn"
                 :loading="templateSaving"
                 @click="onSaveTemplate(false)">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
-                type="primary"
-                class="task-btn"
+                v-if="isShowNewTask"
+                theme="primary"
+                class="canvas-btn"
                 :loading="createTaskSaving"
                 @click="onSaveTemplate(true)">
                 {{ createTaskBtnText }}
             </bk-button>
-            <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
+            <router-link class="bk-button bk-default canvas-btn" :to="getHomeUrl()">{{ i18n.return }}</router-link>
         </div>
     </div>
 </template>
@@ -95,8 +96,14 @@
             templateTitle () {
                 return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
             },
+            isSaveAndCreateTaskType () {
+                return this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone'
+            },
             createTaskBtnText () {
-                return (this.isTemplateDataChanged || this.type === 'new') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+                return this.isSaveAndCreateTaskType ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+            },
+            isShowNewTask () {
+                return !this.common
             }
         },
         watch: {
@@ -116,32 +123,31 @@
                     if (!result) return
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
-                    if (saveAndCreate && !this.isTemplateDataChanged && this.type !== 'new') {
-                        const taskUrl = this.getTaskUrl()
-                        this.$router.push(taskUrl)
+                    if (saveAndCreate && !this.isSaveAndCreateTaskType) {
+                        this.goToTaskUrl()
                     } else {
                         this.$emit('onSaveTemplate', saveAndCreate)
                     }
                 })
             },
             getHomeUrl () {
+                // 普通流程
                 let url = `/template/home/${this.cc_id}/`
-                const path = this.$route.fullPath
-                if (path.indexOf('/template/edit/') !== -1) {
-                    if (this.$route.query.entrance === 'businessList') url = `/template/home/${this.cc_id}/`
-                    if (this.$route.query.entrance === 'periodicTask') url = `/periodic/home/${this.cc_id}/`
-                }
+                // 公共流程
                 if (this.common) {
-                    url += '?common=1'
+                    url = '/admin/common/template/'
                 }
                 return url
             },
-            getTaskUrl () {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
-                if (this.common) {
-                    url += '&common=1'
-                }
-                return url
+            goToTaskUrl () {
+                this.$router.push({
+                    path: `/template/newtask/${this.cc_id}/selectnode/`,
+                    query: {
+                        template_id: this.template_id,
+                        common: this.common ? '1' : undefined,
+                        entrance: 'templateEdit'
+                    }
+                })
             },
             onNameEditing () {
                 this.isShowMode = false
@@ -238,22 +244,10 @@
         position: absolute;
         top: 14px;
         right: 20px;
-        .save-canvas {
-            width: 90px;
-            height: 32px;
-            line-height: 32px;
-            margin-left: 36px;
-        }
-        .bk-button-default {
-            width: 90px;
-            height: 32px;
-            line-height: 32px;
-            margin-left: 10px;
-        }
-        .bk-button.bk-primary {
-            height: 32px;
-            line-height: 32px;
-            margin-left: 10px;
+        .canvas-btn {
+            &:not(:last-child) {
+                margin-right: 10px;
+            }
         }
     }
 }

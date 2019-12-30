@@ -22,7 +22,7 @@ class EngineConfig(AppConfig):
         from pipeline.engine.signals import dispatch
         dispatch.dispatch()
 
-        from django_signal_valve import valve
+        from pipeline.django_signal_valve import valve
         from pipeline.engine.models import FunctionSwitch
         valve.set_valve_function(FunctionSwitch.objects.is_frozen)
         FunctionSwitch.objects.init_db()

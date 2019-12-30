@@ -2,7 +2,6 @@
 'use strict';
 module.exports = ( () => {
   function replaceWithRange(expression, text, init, end) {
-
     var numbers = [];
     var last = parseInt(end);
     var first = parseInt(init);
@@ -12,7 +11,7 @@ module.exports = ( () => {
       first = parseInt(end);
     }
 
-    for(var i = first; i <= last; i++) {
+    for(let i = first; i <= last; i++) {
       numbers.push(i);
     }
 
@@ -30,7 +29,7 @@ module.exports = ( () => {
   }
 
   function convertAllRanges(expressions){
-    for(var i = 0; i < expressions.length; i++){
+    for(let i in expressions){
       expressions[i] = convertRange(expressions[i]);
     }
     return expressions;

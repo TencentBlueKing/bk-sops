@@ -29,7 +29,22 @@ class Component(object):
         outputs = map(lambda oi: oi._asdict(), outputs)
         return outputs
 
+    @classmethod
+    def inputs_format(cls):
+        inputs = cls.bound_service().inputs()
+        inputs = map(lambda ii: ii._asdict(), inputs)
+        return inputs
+
+    @classmethod
+    def form_is_embedded(cls):
+        return getattr(cls, 'embedded_form', False)
+
     def clean_execute_data(self, context):
+        """
+        @summary: hook for subclass of Component to clean execute data with context
+        @param context:
+        @return:
+        """
         return self.data_dict
 
     def data_for_execution(self, context, pipeline_data):

@@ -11,33 +11,41 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
+        width="850"
         :ext-cls="'common-dialog'"
         :title="i18n.title"
-        width="850"
-        padding="0"
-        :is-show.sync="isExportDialogShow"
+        :mask-close="false"
+        :value="isExportDialogShow"
+        :header-position="'left'"
+        :auto-close="false"
+        @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content" class="export-container">
+        <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
             <div class="template-wrapper">
                 <div class="search-wrapper">
                     <div class="business-selector">
-                        <bk-selector
-                            setting-key="value"
-                            :list="taskCategories"
-                            :selected="filterCondition.classifyId"
+                        <bk-select
+                            v-model="filterCondition.classifyId"
+                            :clearable="false"
                             :disabled="exportPending"
-                            @item-selected="onSelectClassify">
-                        </bk-selector>
+                            @change="onSelectClassify">
+                            <bk-option
+                                v-for="(item, index) in taskCategories"
+                                :key="index"
+                                :id="item.value"
+                                :name="item.name">
+                            </bk-option>
+                        </bk-select>
                     </div>
                     <div class="template-search">
-                        <input
+                        <bk-input
                             class="search-input"
-                            :placeholder="i18n.placeholder"
                             v-model="filterCondition.keywords"
-                            @input="onSearchInput" />
-                        <i class="common-icon-search"></i>
+                            :clearable="true"
+                            :placeholder="i18n.placeholder"
+                            :right-icon="'icon-search'"
+                            @input="onSearchInput">
+                        </bk-input>
                     </div>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
@@ -94,20 +102,11 @@
                     </li>
                 </ul>
             </div>
-            <div class="template-checkbox" @click="onSelectAllClick">
-                <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
-                <span class="checkbox-name">{{ i18n.selectAll }}</span>
-            </div>
+            <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ i18n.selectAll }}</bk-checkbox>
             <div class="task-footer" v-if="selectError">
                 <span class="error-info">{{i18n.errorInfo}}</span>
             </div>
         </div>
-        <DialogLoadingBtn
-            slot="footer"
-            :dialog-footer-data="dialogFooterData"
-            @onConfirm="onConfirm"
-            @onCancel="onCancel">
-        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -115,12 +114,10 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
-            DialogLoadingBtn,
             NoData
         },
         props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
@@ -172,10 +169,7 @@
                 'businessBaseInfo': state => state.template.businessBaseInfo
             }),
             taskCategories () {
-                if (this.businessBaseInfo.task_categories.length === 0) {
-                    this.getCategorys()
-                }
-                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
+                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories || [])
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
             }
@@ -186,7 +180,7 @@
             }
         },
         created () {
-            this.getTemplateData()
+            this.getData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -196,6 +190,14 @@
             ...mapActions([
                 'getCategorys'
             ]),
+            async getData () {
+                if (this.businessBaseInfo.task_categories && this.businessBaseInfo.task_categories.length === 0) {
+                    await this.getCategorys()
+                    this.getTemplateData()
+                } else {
+                    this.getTemplateData()
+                }
+            },
             async getTemplateData () {
                 this.exportPending = true
                 this.isCheckedDisabled = true
@@ -217,7 +219,7 @@
             getGroupedList (list) {
                 const groups = []
                 const atomGrouped = []
-                this.businessBaseInfo.task_categories.forEach(item => {
+                this.taskCategories.forEach(item => {
                     groups.push(item.value)
                     atomGrouped.push({
                         name: item.name,
@@ -328,21 +330,33 @@
                 const idList = []
                 if (this.selectedTemplates.length === 0) {
                     this.selectError = true
+                    return false
                 } else {
                     this.selectedTemplates.forEach(item => {
                         idList.push(item.id)
                     })
                     this.$emit('onExportConfirm', idList)
+                    this.resetData()
                 }
             },
             onCancel () {
                 this.templateEmpty = false
+                this.resetData()
                 this.$emit('onExportCancel')
+            },
+            resetData () {
+                this.selectedTemplates = []
+                this.filterCondition = {
+                    classifyId: 'all',
+                    keywords: ''
+                }
+                this.isTplInPanelAllSelected = false
+                this.templateInPanel = this.templateList.slice(0)
             }
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
@@ -359,38 +373,8 @@
         height: 32px;
     }
     .template-search {
-        position: relative;
         margin-left: 265px;
         margin-bottom: 20px;
-        .search-input {
-            padding: 0 40px 0 10px;
-            width: 255px;
-            height: 32px;
-            line-height: 32px;
-            font-size: 14px;
-            background: $whiteDefault;
-            border: 1px solid #c3cdd7;
-            border-radius: 4px;
-            outline: none;
-            &:hover {
-                border-color: #c0c4cc;
-            }
-            &:focus {
-                border-color: $blueDefault;
-                & + i {
-                    color: $blueDefault;
-                }
-            }
-        }
-        .common-icon-search {
-            position: absolute;
-            right: 15px;
-            top: 9px;
-            color: $commonBorderColor;
-        }
-        .bk-selector {
-            width: 255px;
-        }
     }
     .template-wrapper {
         float: left;
@@ -419,8 +403,9 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border-radius: 4px;
         cursor: pointer;
+        border-radius: 2px;
+        overflow: hidden;
         &:nth-child(2n + 1) {
             margin-left: 0;
         }
@@ -433,12 +418,10 @@
             font-size: 24px;
             color: #ffffff;
             text-align: center;
-            border-radius: 4px 0 0 4px;
         }
         .template-item-name {
             color: #313238;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #dcdee5
@@ -456,7 +439,7 @@
         height: 56px;
         width: 195px;
         font-size: 12px;
-        border-radius: 0 4px 4px 0;
+        border-radius: 0 2px 2px 0;
     }
     .template-item-selected {
         .template-item-icon {
@@ -498,9 +481,10 @@
         .selected-item {
             position: relative;
             margin: 0 0 10px 14px;
-            width: 254px;
+            width: 252px;
             height: 56px;
             background: #838799;
+            border-radius: 2px;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -511,7 +495,7 @@
             height: 56px;
             line-height: 56px;
             background: #666a7c;
-            border-radius: 4px 0 0 4px;
+            border-radius: 2px;
             .selected-name {
                 display: flex;
                 justify-content: center;
@@ -523,7 +507,6 @@
         .selected-item-name {
             color: #ffffff;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #838799
@@ -535,7 +518,7 @@
             top: -7px;
             right: -7px;
             padding: 2px;
-            color: #cecece;
+            color: #838799;
             background: #ffffff;
             border-radius: 50%;
             cursor: pointer;
@@ -545,52 +528,6 @@
         position: absolute;
         left: 20px;
         bottom: -42px;
-        cursor: pointer;
-        .checkbox {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            color: $whiteDefault;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &:hover {
-                border-color: $greyDark;
-            }
-            &.checked {
-                background: $blueDefault;
-                border-color: $blueDefault;
-                &::after {
-                    content: "";
-                    position: absolute;
-                    left: 2px;
-                    top: 2px;
-                    height: 4px;
-                    width: 8px;
-                    border-left: 1px solid;
-                    border-bottom: 1px solid;
-                    border-color: $whiteDefault;
-                    transform: rotate(-45deg);
-                }
-            }
-        }
-        .checkbox-disabled {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            color: $greyDisable;
-            cursor: not-allowed;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &::after {
-                background: #545454;
-            }
-        }
     }
     .task-footer {
         position: absolute;

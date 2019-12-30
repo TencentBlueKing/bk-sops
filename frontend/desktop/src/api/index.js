@@ -209,10 +209,18 @@ const api = {
      */
     $getAtomForm (type, classify, isMeta) {
         return this.getAtomFormURL(type, classify, isMeta).then(response => {
-            const { output: outputData, form: url } = response.data
+            const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+
             store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
             store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
-            return $.getScript(url)
+
+            // 标准插件配置项内嵌到 form 字段
+            if (embedded) {
+                eval(formResource)
+                return Promise.resolve({ data: $.atoms[type] })
+            }
+
+            return $.getScript(formResource)
         }).catch(e => {
             return Promise.reject(e)
         })
@@ -375,10 +383,10 @@ const api = {
             prefixUrl = this.getPrefix('templateExport')
         }
         const opts = {
-            method: 'GET',
+            method: 'POST',
             url: `${prefixUrl}`,
             responseType: 'arraybuffer',
-            params: {
+            data: {
                 template_id_list: list
             }
         }
@@ -1328,6 +1336,109 @@ const api = {
         const opts = {
             method: 'GET',
             url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
+     * 加载插件包源配置
+     * @param {Object} fields 包源查询字段
+     */
+    loadPackageSource (fields) {
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                fields: JSON.stringify(fields)
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 新增插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    createPackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 删除所有插件包源
+     */
+    deletePackageSource (data) {
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'DELETE',
+            url: prefixUrl,
+            data
+        }
+        return request(opts)
+    },
+    /**
+     * 更新插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    updatePackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: {
+                'content-type': 'application/json',
+                'X-HTTP-Method-Override': 'PATCH'
+            },
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 加载远程包源同步任务列表
+     */
+    loadSyncTask (params) {
+        const { limit, offset } = params
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                limit,
+                offset
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 创建远程包源同步
+     */
+    createSyncTask () {
+        const creator = store.state.username
+        const create_method = 'manual'
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                creator,
+                create_method
+            }
         }
         return request(opts)
     }

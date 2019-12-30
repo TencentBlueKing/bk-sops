@@ -12,13 +12,20 @@
 <template>
     <div class="condition-item">
         <div class="select-field">
-            <bk-selector
-                :placeholder="i18n.select"
+            <bk-select
+                v-model="condition.field"
+                class="bk-select-inline"
+                :popover-width="260"
                 :disabled="!editable"
-                :selected.sync="condition.field"
-                :list="filedsData"
-                @item-selected="onConditionSelect">
-            </bk-selector>
+                :placeholder="i18n.select"
+                @selected="onConditionSelect">
+                <bk-option
+                    v-for="(option, i) in filedsData"
+                    :key="i"
+                    :id="option.id"
+                    :name="option.name">
+                </bk-option>
+            </bk-select>
             <span v-show="filedError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
         </div>
         <div class="condition-text-wrap">
@@ -138,7 +145,7 @@
     float: left;
     position: relative;
     margin: 0 10px;
-    width: calc(100% - 120px - 20px - 60px);
+    width: calc(100% - 190px);
     .textarea-mirror, textarea {
         padding: 9px 10px 0;
         line-height: 1.2;
@@ -195,6 +202,7 @@
 .operation-wrap {
     float: right;
     margin-top: 10px;
+    width: 50px;
     text-align: right;
     user-select: none;
     .operation-btn {

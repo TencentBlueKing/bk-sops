@@ -11,10 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import copy
-import json
 import logging
 import traceback
 
+import ujson as json
 from cryptography.fernet import Fernet
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
@@ -26,15 +26,30 @@ from pipeline.engine import exceptions, states
 from pipeline.engine.models import PipelineModel
 
 from gcloud.conf import settings
-from gcloud.taskflow3.constants import TASK_CREATE_METHOD
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.constants import PermNm
-from gcloud.taskflow3.decorators import check_user_perm_of_task
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.constants import TASK_CREATE_METHOD
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.decorators import check_user_perm_of_task
+from gcloud.taskflow3.context import TaskContext
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+
+
+@require_GET
+def context(request):
+    """
+    @summary: 返回流程中可以引用的任务全局变量
+    @param request:
+    @return:
+    """
+    ctx = {
+        'result': True,
+        'data': TaskContext.flat_details()
+    }
+    return JsonResponse(ctx)
 
 
 @require_GET

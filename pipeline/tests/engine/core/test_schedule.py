@@ -17,7 +17,7 @@ import itertools
 
 from django.test import TestCase
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from pipeline.engine import signals
 from pipeline.engine.models import Status, PipelineProcess, ScheduleService, Data
@@ -161,7 +161,8 @@ class ScheduleTestCase(TestCase):
         for timeout in (True, False):
             process = MockPipelineProcess()
             mock_ss = MockScheduleService(schedule_return=False, service_timeout=timeout)
-            with mock.patch(PIPELINE_PROCESS_GET, mock.MagicMock(return_value=process)):
+            with mock.patch(PIPELINE_PROCESS_SELECT_FOR_UPDATE,
+                            mock.MagicMock(return_value=MockQuerySet(get_return=process))):
                 with mock.patch(PIPELINE_SCHEDULE_SERVICE_GET, mock.MagicMock(return_value=mock_ss)):
                     process_id = uniqid()
 
@@ -199,7 +200,8 @@ class ScheduleTestCase(TestCase):
                                                        'activity_failed',
                                                        sender=process.root_pipeline,
                                                        pipeline_id=process.root_pipeline_id,
-                                                       pipeline_activity_id=mock_ss.service_act.id)
+                                                       pipeline_activity_id=mock_ss.service_act.id,
+                                                       subprocess_id_stack=process.subprocess_stack)
 
                     # reset mock
                     schedule.set_schedule_data.reset_mock()
@@ -250,7 +252,8 @@ class ScheduleTestCase(TestCase):
             mock_ss = MockScheduleService(schedule_exception=e, service_timeout=timeout)
             process = MockPipelineProcess()
 
-            with mock.patch(PIPELINE_PROCESS_GET, mock.MagicMock(return_value=process)):
+            with mock.patch(PIPELINE_PROCESS_SELECT_FOR_UPDATE,
+                            mock.MagicMock(return_value=MockQuerySet(get_return=process))):
                 with mock.patch(PIPELINE_SCHEDULE_SERVICE_GET, mock.MagicMock(return_value=mock_ss)):
                     process_id = uniqid()
 
@@ -283,7 +286,61 @@ class ScheduleTestCase(TestCase):
                                                        'activity_failed',
                                                        sender=process.root_pipeline,
                                                        pipeline_id=process.root_pipeline_id,
-                                                       pipeline_activity_id=mock_ss.service_act.id)
+                                                       pipeline_activity_id=mock_ss.service_act.id,
+                                                       subprocess_id_stack=process.subprocess_stack)
+
+                    signals.service_activity_timeout_monitor_end.send.reset_mock()
+                    Data.objects.write_node_data.reset_mock()
+                    signals.service_schedule_fail.send.reset_mock()
+                    valve.send.reset_mock()
+
+    @mock.patch(PIPELINE_SCHEDULE_SERVICE_FILTER, mock.MagicMock(return_value=MockQuerySet(exists_return=True)))
+    @mock.patch(PIPELINE_STATUS_TRANSIT, mock.MagicMock(return_value=MockActionResult(result=True)))
+    @mock.patch(PIPELINE_DATA_WRITE_NODE_DATA, mock.MagicMock())
+    @mock.patch(PIPELINE_STATUS_FILTER, mock.MagicMock(return_value=MockQuerySet(exists_return=True)))
+    @mock.patch(SCHEDULE_DELETE_PARENT_DATA, mock.MagicMock())
+    @mock.patch(SCHEDULE_GET_SCHEDULE_PARENT_DATA, mock.MagicMock(return_value=PARENT_DATA))
+    @mock.patch(SCHEDULE_SET_SCHEDULE_DATA, mock.MagicMock())
+    @mock.patch(ENGINE_SIGNAL_TIMEOUT_END_SEND, mock.MagicMock())
+    @mock.patch(ENGINE_SIGNAL_ACT_SCHEDULE_FAIL_SEND, mock.MagicMock())
+    @mock.patch(SIGNAL_VALVE_SEND, mock.MagicMock())
+    def test_schedule__schedule_raise_exception_and_process_is_not_alive(self):
+        for timeout in (True, False):
+            e = Exception()
+            mock_ss = MockScheduleService(schedule_exception=e, service_timeout=timeout)
+            process = MockPipelineProcess(is_alive=False)
+
+            with mock.patch(PIPELINE_PROCESS_SELECT_FOR_UPDATE,
+                            mock.MagicMock(return_value=MockQuerySet(get_return=process))):
+                with mock.patch(PIPELINE_SCHEDULE_SERVICE_GET, mock.MagicMock(return_value=mock_ss)):
+                    process_id = uniqid()
+
+                    schedule.schedule(process_id, mock_ss.id)
+
+                    mock_ss.service_act.schedule.assert_called_once_with(PARENT_DATA, mock_ss.callback_data)
+
+                    self.assertEqual(mock_ss.schedule_times, 1)
+
+                    mock_ss.destroy.assert_not_called()
+
+                    if timeout:
+                        signals.service_activity_timeout_monitor_end.send.assert_called_once_with(
+                            sender=mock_ss.service_act.__class__,
+                            node_id=mock_ss.service_act.id,
+                            version=mock_ss.version
+                        )
+                    else:
+                        signals.service_activity_timeout_monitor_end.send.assert_not_called()
+
+                    Data.objects.write_node_data.assert_called()
+
+                    process.adjust_status.assert_not_called()
+
+                    mock_ss.service_act.schedule_fail.assert_not_called()
+
+                    signals.service_schedule_fail.send.assert_not_called()
+
+                    valve.send.assert_not_called()
 
                     signals.service_activity_timeout_monitor_end.send.reset_mock()
                     Data.objects.write_node_data.reset_mock()

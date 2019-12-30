@@ -23,7 +23,7 @@ from pipeline.engine import signals
 from pipeline.engine.core import handlers
 from pipeline.engine.core.handlers import service_activity as service_act_h
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
@@ -105,7 +105,8 @@ class ServiceActivityHandlerTestCase(TestCase):
                                                    'activity_failed',
                                                    sender=process.root_pipeline,
                                                    pipeline_id=process.root_pipeline.id,
-                                                   pipeline_activity_id=service_act.id)
+                                                   pipeline_activity_id=service_act.id,
+                                                   subprocess_id_stack=process.subprocess_stack)
 
                 self.assertIsNone(hdl_result.next_node)
                 self.assertFalse(hdl_result.should_return)
@@ -274,7 +275,8 @@ class ServiceActivityHandlerTestCase(TestCase):
                                                    'activity_failed',
                                                    sender=process.root_pipeline,
                                                    pipeline_id=process.root_pipeline.id,
-                                                   pipeline_activity_id=service_act.id)
+                                                   pipeline_activity_id=service_act.id,
+                                                   subprocess_id_stack=process.subprocess_stack)
 
                 self.assertIsNone(hdl_result.next_node)
                 self.assertFalse(hdl_result.should_return)

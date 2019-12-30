@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.http.request import split_domain_port, validate_host
 from django.utils.module_loading import import_module
+from django.utils.deprecation import MiddlewareMixin
 
-from blueapps.conf import settings
 
-
-class UserAgentMiddleware(object):
+class UserAgentMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         request.is_mobile = lambda: bool(settings.RE_MOBILE.search(
@@ -32,7 +32,7 @@ class UserAgentMiddleware(object):
             request.META.get('HTTP_USER_AGENT', '')) and not request.is_rio())
 
 
-class SiteUrlconfMiddleware(object):
+class SiteUrlconfMiddleware(MiddlewareMixin):
     top_module = 'conf.sites'
 
     def process_request(self, request):
@@ -55,7 +55,7 @@ class SiteUrlconfMiddleware(object):
         request.urlconf = urlconf
 
 
-class SiteSettingsMiddleware(object):
+class SiteSettingsMiddleware(MiddlewareMixin):
     top_module = 'conf.sites'
 
     def _enter(self, module):

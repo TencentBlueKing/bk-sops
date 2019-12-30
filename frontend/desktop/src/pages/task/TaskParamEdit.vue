@@ -102,11 +102,11 @@
                 }
 
                 this.isNoData = !variableArray.length
-               
+
                 variableArray = variableArray.sort((a, b) => {
                     return a.index - b.index
                 })
-                
+
                 for (const variable of variableArray) {
                     const { key } = variable
                     const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
@@ -118,7 +118,7 @@
                     }
                     const atomConfig = this.atomFormConfig[atom]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                    
+
                     if (currentFormConfig) {
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {
@@ -131,6 +131,16 @@
                         currentFormConfig.tag_code = key
                         currentFormConfig.attrs.name = variable.name
                         currentFormConfig.attrs.desc = variable.desc
+                        if (
+                            variable.custom_type === 'input'
+                            && variable.validation !== ''
+                        ) {
+                            currentFormConfig.attrs.validation.push({
+                                type: 'regex',
+                                args: variable.validation,
+                                error_message: gettext('参数值不符合正则规则：') + variable.validation
+                            })
+                        }
                         this.renderConfig.push(currentFormConfig)
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
@@ -141,7 +151,7 @@
                 })
             },
             validate () {
-                return this.$refs.renderForm.validate()
+                return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
             getVariableData () {
                 const variables = tools.deepClone(this.constants)

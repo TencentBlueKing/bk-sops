@@ -15,10 +15,10 @@
             <div class="task-info-title">
                 <span>{{ i18n.taskInfo }}</span>
             </div>
-            <div v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
+            <div>
                 <div class="common-form-item">
                     <label class="required">{{ i18n.taskName }}</label>
-                    <div class="common-form-content">
+                    <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
                         <BaseInput
                             v-model="taskName"
                             v-validate="taskNameRule"
@@ -29,18 +29,18 @@
                     </div>
                 </div>
                 <div
-                    v-if="isStartNowShow"
+                    v-if="!isExecuteSchemeHide"
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                :type="!isStartNow ? 'default' : 'primary'"
+                                :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
                                 {{ i18n.startNow }}
                             </bk-button>
                             <bk-button
-                                :type="!isStartNow ? 'primary' : 'default'"
+                                :theme="!isStartNow ? 'primary' : 'default'"
                                 @click="onChangeStartNow(false)">
                                 {{ i18n.periodicStart }}
                             </bk-button>
@@ -54,12 +54,12 @@
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                :type="isSelectFunctionalType ? 'default' : 'primary'"
+                                :theme="isSelectFunctionalType ? 'default' : 'primary'"
                                 @click="onSwitchTaskType(false)">
                                 {{ i18n.defaultFlowType }}
                             </bk-button>
                             <bk-button
-                                :type="isSelectFunctionalType ? 'primary' : 'default'"
+                                :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                 @click="onSwitchTaskType(true)">
                                 {{ i18n.functionFlowType }}
                             </bk-button>
@@ -103,7 +103,7 @@
             </bk-button>
             <bk-button
                 class="next-step-button"
-                type="success"
+                theme="success"
                 :disabled="disabledButton"
                 :loading="isSubmit"
                 @click="onCreateTask">
@@ -184,8 +184,9 @@
             isTaskTypeShow () {
                 return this.userType !== 'functor' && this.isStartNow
             },
-            isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== '0' && this.entrance !== '1'
+            // 不显示【执行计划】的情况
+            isExecuteSchemeHide () {
+                return this.common || this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -207,7 +208,7 @@
                 'createPeriodic'
             ]),
             period () {
-                if (this.entrance === '0') {
+                if (this.entrance === 'periodicTask') {
                     this.isStartNow = false
                 }
             },
@@ -385,11 +386,12 @@
 <style lang="scss" scoped>
 @import "@/scss/config.scss";
 .param-fill-wrapper {
+    position: relative;
     padding-top: 50px;
+    padding-bottom: 72px;
+    box-sizing: border-box;
+    min-height: calc(100vh - 50px - 139px);
     background: #fff;
-    @media screen and (max-width: 1300px){
-        width: calc(100% - 40px);
-    }
     /deep/ .no-data-wrapper {
         position: relative;
         top: 122px;
@@ -492,6 +494,9 @@
     }
 }
 .action-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
     button {
@@ -509,6 +514,7 @@
         width: 140px;
         height: 32px;
         line-height: 32px;
+        color: #ffffff;
         background-color: #2dcb56;
         border-color: #2dcb56;
     }

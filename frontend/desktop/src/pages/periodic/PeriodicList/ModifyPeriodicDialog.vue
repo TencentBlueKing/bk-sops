@@ -11,20 +11,22 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
+        width="600"
         :ext-cls="'common-dialog'"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
         :title="i18n.modifyTask"
-        width="610"
-        :is-show.sync="isModifyDialogShow"
+        :value="isModifyDialogShow"
         @confirm="onModifyPeriodicConfirm"
         @cancel="onModifyPeriodicCancel">
-        <div slot="content" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="periodic-info">
                 <h3 class="local-section-title">{{ i18n.periodicInfo }}</h3>
                 <div class="common-form-item">
                     <LoopRuleSelect
                         ref="loopRuleSelect"
+                        class="loop-rule"
                         :manual-input-value="periodicCron" />
                 </div>
                 <div
@@ -133,6 +135,7 @@
                         return
                     }
                     if (!result || !formValid) {
+                        this.dialogFooterData[0].loading = false
                         return
                     }
                     const jsonCron = JSON.stringify({
@@ -222,7 +225,7 @@
     overflow-y: auto;
 }
 .periodic-info {
-    padding-bottom: 40px;
+    padding: 20px;
 }
 .local-section-title {
     font-size: 14px;
@@ -231,6 +234,9 @@
     color: #313238;
     border-bottom: 1px solid #cacedb;
     margin-bottom: 30px;
+}
+.loop-rule {
+    width: 530px;
 }
 .periodic-img-tooltip {
     float: right;

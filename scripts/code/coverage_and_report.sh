@@ -6,7 +6,7 @@ if [[ -d .cover ]]; then
     rm -rf .cover
 fi
 
-INCLUDE_PATH="django_signal_valve/*,gcloud/*,pipeline/*,pipeline_plugins/*"
+INCLUDE_PATH="gcloud/*,pipeline/*,pipeline_plugins/*,pipeline_web/*"
 OMIT_PATH="*/migrations/*,*/tests/*"
 
 exclude_tag=''

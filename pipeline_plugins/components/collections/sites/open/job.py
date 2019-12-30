@@ -143,7 +143,7 @@ class JobExecuteTaskService(JobService):
             else:
                 global_vars.append({
                     'name': _value['name'],
-                    'value': str(_value['value']).strip(),
+                    'value': _value['value'].strip(),
                 })
 
         job_kwargs = {
@@ -177,7 +177,7 @@ class JobExecuteTaskComponent(Component):
     name = _(u'执行作业')
     code = 'job_execute_task'
     bound_service = JobExecuteTaskService
-    form = '%scomponents/atoms/sites/%s/job/job_execute_task.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/job/job_execute_task.js' % settings.STATIC_URL
 
 
 class JobFastPushFileService(JobService):
@@ -199,12 +199,12 @@ class JobFastPushFileService(JobService):
                 ip_str=item['ip'],
                 use_cache=False)
             file_source.append({
-                'files': str(item['files']).strip().split("\n"),
+                'files': [_file.strip() for _file in item['files'].split('\n') if _file.strip()],
                 'ip_list': [{
                     'ip': _ip['InnerIP'],
                     'bk_cloud_id': _ip['Source']
                 } for _ip in ip_info['ip_result']],
-                'account': str(item['account']).strip(),
+                'account': item['account'].strip(),
             })
 
         original_ip_list = data.get_one_of_inputs('job_ip_list')
@@ -315,7 +315,7 @@ class JobFastExecuteScriptComponent(Component):
     name = _(u'快速执行脚本')
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
-    form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/job/job_fast_execute_script.js' % settings.STATIC_URL
 
 
 class JobCronTaskService(Service):
@@ -374,4 +374,4 @@ class JobCronTaskComponent(Component):
     name = _(u'新建定时作业')
     code = 'job_cron_task'
     bound_service = JobCronTaskService
-    form = '%scomponents/atoms/sites/%s/job/job_cron_task.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/job/job_cron_task.js' % settings.STATIC_URL

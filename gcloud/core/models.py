@@ -65,7 +65,7 @@ class Business(models.Model):
         return u"%s_%s" % (self.cc_id, self.cc_name)
 
     def available(self):
-        return self.status != 'disabled' and self.life_cycle not in [Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")]
+        return self.status != 'disabled'
 
 
 class UserBusiness(models.Model):

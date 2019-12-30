@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 0.8 }">
-        <div v-if="formMode" class="tag-ip-selector-wrap">
+        <div v-if="formMode && typeof ipValue === 'object'" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
                 :editable="editable"
@@ -41,7 +41,7 @@
             desc: 'checkbox or radio'
         },
         value: {
-            type: [Object],
+            type: [Object, String],
             required: false,
             default () {
                 return {
@@ -76,14 +76,12 @@
                 },
                 set (val) {
                     // 验证后更新
-                    if (this.customValidate()) {
-                        this.updateForm(val)
-                    }
+                    this.updateForm(val)
                 }
             },
             viewValue () {
                 let val = ''
-                this.ipValue.selectors.forEach(selector => {
+                this.ipValue.selectors && this.ipValue.selectors.forEach(selector => {
                     if (selector === 'ip') {
                         val += this.ipValue[selector].map(item => item.bk_host_innerip).join('; ')
                     }
@@ -127,13 +125,14 @@
                 })
             },
             customValidate () {
-                return this.$refs.ipSelector.validate()
+                return this.$refs.ipSelector && this.$refs.ipSelector.validate()
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
-    padding: 0 10px 10px;
+    padding: 10px;
+    border: 1px solid #ececec;
 }
 </style>

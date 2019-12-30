@@ -189,6 +189,9 @@
 }
 .el-tree {
     background: inherit;
+    /deep/ .el-tree-node__label {
+        padding-left: 4px;
+    }
 }
 .dynamic-ip-empty {
     height: 360px;

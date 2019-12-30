@@ -11,19 +11,21 @@
 */
 <template>
     <div class="rf-form-group" v-show="showForm">
+        <!-- 分组名称和描述 -->
         <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
             <h3 class="name">{{scheme.attrs.name}}</h3>
             <div v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: scheme.attrs.desc,
                         placements: ['right'],
                         zIndex: 2002
                     }"
-                    class="bk-icon icon-info-circle">
+                    class="common-icon-info">
                 </i>
             </div>
         </div>
+        <!-- 分组勾选 -->
         <div v-if="hook" class="rf-form-item rf-has-hook show-label">
             <label v-if="option.showLabel" class="rf-tag-label">
                 {{scheme.attrs.name}}
@@ -32,6 +34,7 @@
                 <el-input :disabled="true" :value="String(value)"></el-input>
             </div>
         </div>
+        <!-- 分组表单元素 -->
         <component
             v-else
             v-for="(form, index) in scheme.attrs.children"
@@ -44,29 +47,28 @@
             :parent-value="value"
             @change="updateForm">
         </component>
+        <!-- 变量勾选checkbox -->
         <div class="rf-tag-hook" v-if="showHook">
-            <BaseCheckbox
-                v-bktooltips="{
+            <bk-checkbox
+                v-bk-tooltips="{
                     content: hook ? i18n.hooked : i18n.cancelHook,
                     placements: ['left'],
                     customClass: 'offset-left-tooltip'
                 }"
-                :is-checked="hook"
-                @checkCallback="onHookForm">
-            </BaseCheckbox>
+                :value="hook"
+                @change="onHookForm">
+            </bk-checkbox>
         </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import FormItem from './FormItem.vue'
-    import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
 
     export default {
         name: 'FormGroup',
         components: {
-            FormItem,
-            BaseCheckbox
+            FormItem
         },
         props: {
             scheme: {
@@ -93,10 +95,19 @@
             }
         },
         data () {
+            let showForm = true
+            // 原子配置为默认隐藏
+            if ('hidden' in this.scheme.attrs) {
+                showForm = !this.scheme.attrs.hidden
+            }
+            // 原子配置为非编辑状态下隐藏，优先级高于 hidden
+            if ('formViewHidden' in this.scheme.attrs) {
+                showForm = !this.scheme.attrs.formViewHidden
+            }
+
             // 子 tag 配置项里 showHook 置为 false
             const groupOption = Object.assign({}, this.option, { showHook: false, showGroup: false })
-
-            const showForm = ('hidden' in this.scheme.attrs) ? !this.scheme.attrs.hidden : true
+            // 是否展示右侧变量勾选checkbox
             const showHook = ('hookable' in this.scheme.attrs)
                 ? (this.scheme.attrs.hookable && this.option.showHook)
                 : !!this.option.showHook
@@ -192,19 +203,22 @@
             },
             validate () {
                 let isValid = true
-                this.$children.forEach(childComp => {
-                    const compType = childComp.$options.name
+                if (!this.hook) {
+                    this.$children.forEach(childComp => {
+                        const compType = childComp.$options.name
 
-                    if (compType !== 'FormItem' && compType !== 'FormGroup') {
-                        return
-                    }
+                        if (compType !== 'FormItem' && compType !== 'FormGroup') {
+                            return
+                        }
 
-                    const singleItemValid = childComp.validate()
+                        const singleItemValid = childComp.validate()
 
-                    if (isValid) {
-                        isValid = singleItemValid
-                    }
-                })
+                        if (isValid) {
+                            isValid = singleItemValid
+                        }
+                    })
+                }
+                
                 return isValid
             }
         }
@@ -218,7 +232,7 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 3px;
+        top: 6px;
         right: 0;
         z-index: 1;
     }

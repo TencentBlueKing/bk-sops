@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import re
 import datetime
-import json
 import logging
 import traceback
 from copy import deepcopy
 
+import ujson as json
 from django.db import models, transaction
 from django.db.models import Count, Avg, Sum
 from django.utils.translation import ugettext_lazy as _
@@ -31,7 +31,7 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
-from pipeline.utils.context import get_pipeline_context
+from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import states
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.models import ComponentModel
@@ -51,15 +51,8 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from pipeline_web.parser.format import format_node_io_to_list
 
 from gcloud.conf import settings
-from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
 from gcloud.core.models import Business
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
-from gcloud.taskflow3.constants import (
-    TASK_CREATE_METHOD,
-    TEMPLATE_SOURCE,
-)
 from gcloud.core.utils import (
     convert_readable_username,
     strftime_with_timezone,
@@ -69,7 +62,14 @@ from gcloud.core.utils import (
     gen_day_dates,
     get_month_dates
 )
+from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.constants import (
+    TASK_CREATE_METHOD,
+    TEMPLATE_SOURCE,
+)
 from gcloud.taskflow3.signals import taskflow_started
+from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
@@ -92,9 +92,6 @@ NODE_ACTIONS = {
     'resume': pipeline_api.resume_node_appointment,
     'pause_subproc': pipeline_api.pause_pipeline,
     'resume_subproc': pipeline_api.resume_node_appointment,
-}
-GROUP_BY_DICT = {
-    'instance_details': 'instance_details'
 }
 
 
@@ -194,8 +191,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
             for incoming_id in incoming_id_list:
                 lines[incoming_id][PE.target]['id'] = next_node['id']
-        except Exception as e:
-            logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error:%s' % e)
+        except Exception:
+            logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error: %s' %
+                             traceback.format_exc())
 
     @staticmethod
     def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree):
@@ -941,14 +939,19 @@ class TaskFlowInstance(models.Model):
                 inputs = WebPipelineAdapter(instance_data).get_act_inputs(
                     act_id=node_id,
                     subprocess_stack=subprocess_stack,
-                    root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance')
+                    root_pipeline_data=get_pipeline_context(self.pipeline_instance,
+                                                            obj_type='instance',
+                                                            data_type='data'),
+                    root_pipeline_context=get_pipeline_context(self.pipeline_instance,
+                                                               obj_type='instance',
+                                                               data_type='context')
                 )
                 outputs = {}
             except Exception as e:
                 inputs = {}
                 result = False
-                message = 'parser pipeline tree error: %s' % e
-                logger.exception(message)
+                logger.exception(traceback.format_exc())
+                message = u"parser pipeline tree error: %s" % e
                 outputs = {'ex_data': message}
 
         if not isinstance(inputs, dict):
@@ -963,8 +966,8 @@ class TaskFlowInstance(models.Model):
                 outputs_format = component.outputs_format()
             except Exception as e:
                 result = False
-                message = 'get component[component_code=%s] format error: %s' % (component_code, e)
-                logger.exception(message)
+                message = u"get component[component_code=%s] format error: %s" % (component_code, e)
+                logger.exception(traceback.format_exc())
                 outputs = {'ex_data': message}
             else:
                 # for some special empty case e.g. ''
@@ -1086,33 +1089,31 @@ class TaskFlowInstance(models.Model):
                                                                                            e.message,
                                                                                            e.gateway_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except StreamValidateError as e:
                 message = u"task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, e.message, e.node_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except IsolateNodeError as e:
                 message = u"task[id=%s] has isolate structure, message: %s" % (self.id, e.message)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except ConnectionValidateError as e:
                 message = u"task[id=%s] connection check failed, message: %s, nodes: %s" % (self.id,
                                                                                             e.detail,
                                                                                             e.failed_nodes)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except TypeError:
+                message = 'redis connection error, please check redis configuration'
                 logger.exception(traceback.format_exc())
-                return {'result': False, 'message': 'redis connection error, check redis configuration please'}
 
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)
-                logger.exception(message)
-                return {'result': False, 'message': message}
+                logger.exception(traceback.format_exc())
+
+            return {'result': False, 'message': message}
+
         try:
             action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
             if action_result.result:
@@ -1121,7 +1122,7 @@ class TaskFlowInstance(models.Model):
                 return {'result': action_result.result, 'message': action_result.message}
         except Exception as e:
             message = u"task[id=%s] action failed:%s" % (self.id, e)
-            logger.exception(message)
+            logger.exception(traceback.format_exc())
             return {'result': False, 'message': message}
 
     def nodes_action(self, action, node_id, username, **kwargs):
@@ -1144,7 +1145,7 @@ class TaskFlowInstance(models.Model):
                 action_result = NODE_ACTIONS[action](node_id)
         except Exception as e:
             message = u"task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
-            logger.exception(message)
+            logger.exception(traceback.format_exc())
             return {'result': False, 'message': message}
         if action_result.result:
             return {'result': True, 'data': 'success'}
@@ -1176,9 +1177,9 @@ class TaskFlowInstance(models.Model):
             if name:
                 self.pipeline_instance.name = name
                 self.pipeline_instance.save()
-        except Exception as e:
+        except Exception:
             logger.exception('TaskFlow reset_pipeline_instance_data error:id=%s, constants=%s, error=%s' % (
-                self.pk, json.dumps(constants), e))
+                self.pk, json.dumps(constants), traceback.format_exc()))
             return {'result': False, 'message': 'constants is not valid'}
         return {'result': True, 'data': 'success'}
 

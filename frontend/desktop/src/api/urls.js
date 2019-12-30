@@ -64,10 +64,6 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         appmaker: SITE_URL + 'api/v3/appmaker/',
         appmakerEdit: SITE_URL + 'appmaker/save/' + BIZ_CC_ID + '/',
         appmakerSummary: SITE_URL + 'appmaker/get_appmaker_count/' + BIZ_CC_ID + '/',
-        analysisTemplate: SITE_URL + 'analysis/query_template_by_group/',
-        analysisAtom: SITE_URL + 'analysis/query_atom_by_group/',
-        analysisAppmaker: SITE_URL + 'analysis/query_appmaker_by_group/',
-        analysisInstance: SITE_URL + 'analysis/query_instance_by_group/',
         categorys: SITE_URL + 'analysis/get_task_category/',
         periodicEnable: SITE_URL + 'periodictask/api/enabled/' + BIZ_CC_ID + '/',
         periodicModifyCron: SITE_URL + 'periodictask/api/cron/' + BIZ_CC_ID + '/',
@@ -82,6 +78,13 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         taskCreateMethod: SITE_URL + 'taskflow/api/get_task_create_method/',
         cc_search_host: SITE_URL + 'pipeline/cc_search_host/' + BIZ_CC_ID + '/',
         cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + BIZ_CC_ID + '/',
-        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + BIZ_CC_ID + '/'
+        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + BIZ_CC_ID + '/',
+        // 管理员相关
+        analysisTemplate: SITE_URL + 'analysis/query_template_by_group/',
+        analysisAtom: SITE_URL + 'analysis/query_atom_by_group/',
+        analysisAppmaker: SITE_URL + 'analysis/query_appmaker_by_group/',
+        analysisInstance: SITE_URL + 'analysis/query_instance_by_group/',
+        packageSource: SITE_URL + 'api/v3/package_source/',
+        syncTask: SITE_URL + 'api/v3/sync_task/'
     }
 }

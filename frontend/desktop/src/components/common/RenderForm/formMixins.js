@@ -164,7 +164,7 @@ export function getFormMixins (attrs = {}) {
                     return this.customValidate()
                 }
                 if (!this.validation) return true
-                
+
                 const isValid = this.validation.every(item => {
                     const result = this.getValidateResult(item, this.value, this.parentValue)
                     this.validateInfo = result
@@ -220,7 +220,7 @@ export function getFormMixins (attrs = {}) {
                             break
                     }
                 }
-                
+
                 return { valid, message }
             },
             emit_event (name, type, data) {

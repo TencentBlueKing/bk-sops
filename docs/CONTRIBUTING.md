@@ -6,7 +6,7 @@
 我们用 Github Issues 去跟踪 public bugs 和 feature requests。
 
 
-### 查找已知的 Issue 优先
+### 优先查找已知的 Issue 
 请查找已存在或者相似的 Issue，避免重复。
 
 

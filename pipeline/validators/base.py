@@ -22,13 +22,16 @@ from pipeline.validators.gateway import validate_gateways, validate_stream
 
 def validate_pipeline_tree(pipeline_tree, cycle_tolerate=False):
     # 1. connection validation
-    validate_graph_connection(pipeline_tree)
+    try:
+        validate_graph_connection(pipeline_tree)
+    except exceptions.ConnectionValidateError as e:
+        raise exceptions.ParserException(e.detail)
 
     # do not tolerate circle in flow
     if not cycle_tolerate:
-        result = find_graph_circle(pipeline_tree)
-        if not result['result']:
-            raise exceptions.CycleErrorException(result['message'])
+        no_cycle = find_graph_circle(pipeline_tree)
+        if not no_cycle['result']:
+            raise exceptions.ParserException(no_cycle['message'])
 
     # 2. gateway validation
     validate_gateways(pipeline_tree)

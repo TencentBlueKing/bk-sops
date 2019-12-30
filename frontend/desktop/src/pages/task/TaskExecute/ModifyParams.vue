@@ -28,7 +28,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isParamsEmpty && paramsCanBeModify">
-            <bk-button type="success" @click="onModifyParams">{{ i18n.save }}</bk-button>
+            <bk-button theme="success" @click="onModifyParams">{{ i18n.save }}</bk-button>
         </div>
     </div>
 </template>

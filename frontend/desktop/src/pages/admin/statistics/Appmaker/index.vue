@@ -17,29 +17,29 @@
                     <div class="content-title">{{i18n.category}}</div>
                     <div class="content-date">
                         <div class="content-date-business">
-                            <bk-selector
-                                :list="businessList"
-                                :display-key="'cc_name'"
-                                :setting-name="'cc_id'"
-                                :search-key="'cc_name'"
-                                :setting-key="'cc_id'"
-                                :selected.sync="businessSelected"
+                            <bk-select
+                                v-model="businessSelected"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
-                                @item-selected="onAppMakerCategory">
-                            </bk-selector>
+                                @selected="onAppMakerCategory">
+                                <bk-option
+                                    v-for="(option, index) in businessList"
+                                    :key="index"
+                                    :id="option.cc_id"
+                                    :name="option.cc_name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="content-date-picker" @click="onDatePickerClick">
-                            <bk-date-range
+                            <bk-date-picker
                                 ref="datePickerRef"
-                                :quick-select="true"
-                                :start-date="categoryStartTime"
-                                :end-date="categoryEndTime"
-                                :end-date-max="endDateMax"
-                                @close="onShutTimeSelector"
+                                v-model="categoryTime"
+                                class="bk-date-picker-common"
+                                :placeholder="i18n.choice"
+                                :type="'daterange'"
                                 @change="onChangeCategoryTime">
-                            </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showClassifyDatePanel }]"></i>
+                            </bk-date-picker>
                         </div>
                     </div>
                 </div>
@@ -50,30 +50,30 @@
                     <div class="content-title">{{i18n.ownBusiness}}</div>
                     <div class="content-statistics">
                         <div class="content-business">
-                            <bk-selector
-                                :list="categoryList"
-                                :display-key="'name'"
-                                :setting-name="'value'"
-                                :search-key="'name'"
-                                :setting-key="'value'"
-                                :selected.sync="categorySelected"
+                            <bk-select
+                                v-model="categorySelected"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
-                                @item-selected="onAppMakerBizCcid">
-                            </bk-selector>
+                                :placeholder="i18n.choice"
+                                @selected="onAppMakerBizCcid">
+                                <bk-option
+                                    v-for="(option, index) in categoryList"
+                                    :key="index"
+                                    :id="option.value"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="content-business-picker" @click="onInstanceClick">
-                            <bk-date-range
+                            <bk-date-picker
                                 ref="businessPickerRef"
-                                position="bottom-left"
-                                :quick-select="true"
-                                :start-date="businessStartTime"
-                                :end-date="businessEndTime"
-                                :end-date-max="endDateMax"
-                                @close="onShutTimeSelector"
+                                v-model="businessTime"
+                                class="bk-date-picker-common"
+                                :placeholder="i18n.choice"
+                                :type="'daterange'"
                                 @change="onChangeBusinessTime">
-                            </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showBusinessDatePanel }]"></i>
+                            </bk-date-picker>
                         </div>
                     </div>
                 </div>
@@ -81,53 +81,55 @@
             </div>
         </div>
         <div class="content-process-detail">
-            <bk-tab :type="'fill'" :active-name="'applicationDetails'">
-                <bk-tabpanel name="applicationDetails" :title="i18n.applicationDetails">
+            <bk-tab :type="'card'" :active="'applicationDetails'">
+                <bk-tab-panel name="applicationDetails" :label="i18n.applicationDetails">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.applicationTime}}</label>
-                                <bk-date-range
-                                    :quick-select="true"
-                                    :start-date="tableStartTime"
-                                    :end-date="tableEndTime"
-                                    :end-date-max="endDateMax"
+                                <bk-date-picker
+                                    v-model="tableTime"
+                                    class="bk-date-picker-common"
+                                    :placeholder="i18n.choice"
+                                    :type="'daterange'"
                                     @change="onAppMakerInstance">
-                                </bk-date-range>
+                                </bk-date-picker>
                             </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-selector
-                                    :list="allBusinessList"
-                                    :display-key="'cc_name'"
-                                    :setting-name="'cc_id'"
-                                    :search-key="'cc_name'"
-                                    :setting-key="'cc_id'"
-                                    :selected.sync="selectedCcId"
-                                    :placeholder="i18n.choice"
+                                <bk-select
+                                    v-model="selectedCcId"
+                                    class="bk-select-inline"
+                                    :popover-width="260"
                                     :searchable="true"
-                                    :allow-clear="true"
-                                    @change="onAppMakerInstance"
+                                    :placeholder="i18n.choice"
                                     @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
-                                </bk-selector>
+                                    @selected="onSelectedBizCcId">
+                                    <bk-option
+                                        v-for="(option, index) in allBusinessList"
+                                        :key="index"
+                                        :id="option.cc_id"
+                                        :name="option.cc_name">
+                                    </bk-option>
+                                </bk-select>
                             </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceCategory}}</label>
-                                <bk-selector
-                                    :list="categorys"
-                                    :display-key="'name'"
-                                    :setting-name="'value'"
-                                    :search-key="'name'"
-                                    :setting-key="'value'"
-                                    :selected.sync="selectedCategory"
-                                    :placeholder="i18n.choice"
+                                <bk-select
+                                    v-model="selectedCategory"
+                                    class="bk-select-inline"
+                                    :popover-width="260"
                                     :searchable="true"
-                                    :allow-clear="true"
-                                    @change="onAppMakerInstance"
+                                    :placeholder="i18n.choice"
                                     @clear="onClearCategory"
-                                    @item-selected="onSelectedCategory">
-                                </bk-selector>
+                                    @selected="onSelectedCategory">
+                                    <bk-option
+                                        v-for="(option, index) in categorys"
+                                        :key="index"
+                                        :id="option.value"
+                                        :name="option.name">
+                                    </bk-option>
+                                </bk-select>
                             </div>
                         </div>
                         <data-table-pagination
@@ -141,7 +143,7 @@
                             @handleIndexChange="onAppmakerHandleIndexChange">
                         </data-table-pagination>
                     </div>
-                </bk-tabpanel>
+                </bk-tab-panel>
             </bk-tab>
         </div>
     </div>
@@ -274,15 +276,11 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: -1,
-                selectedCategory: -1,
-                categoryStartTime: undefined,
-                categoryEndTime: undefined,
+                selectedCcId: '',
+                selectedCategory: '',
+                categoryTime: [],
                 choiceBusiness: undefined,
-                tableStartTime: undefined,
-                tableEndTime: undefined,
-                businessStartTime: undefined,
-                businessEndTime: undefined,
+                tableTime: [],
                 choiceCategory: undefined,
                 endDateMax: '',
                 appmakerOrderBy: '-templateId',
@@ -319,6 +317,8 @@
             this.getDateTime()
             this.choiceBusinessName = this.i18n.choiceAllBusiness
             this.choiceCategoryName = this.i18n.choiceAllCategory
+            this.onChangeCategoryTime()
+            this.onChangeBusinessTime()
         },
         methods: {
             ...mapActions('appmaker/', [
@@ -361,7 +361,7 @@
                     }
                     this.choiceBusiness = business
                 }
-                const time = this.getUTCTime([this.categoryStartTime, this.categoryEndTime])
+                const time = this.getUTCTime([this.categoryTime[0], this.categoryTime[1]])
                 const data = {
                     group_by: 'category',
                     conditions: JSON.stringify({
@@ -385,7 +385,7 @@
                     }
                     this.choiceCategory = category
                 }
-                const time = this.getUTCTime([this.categoryStartTime, this.categoryEndTime])
+                const time = this.getUTCTime([this.categoryTime[0], this.categoryTime[1]])
                 const data = {
                     group_by: 'biz_cc_id',
                     conditions: JSON.stringify({
@@ -435,14 +435,12 @@
                     errorHandler(e, this)
                 }
             },
-            onAppMakerInstance (oldValue = null, newValue = null) {
-                if (newValue) {
-                    const dateArray = newValue.split(' - ')
-                    this.tableStartTime = dateArray[0]
-                    this.tableEndTime = dateArray[1]
+            onAppMakerInstance (value) {
+                if (value) {
+                    this.tableTime = value
                     this.resetPageIndex()
                 }
-                const time = this.getUTCTime([this.tableStartTime, this.tableEndTime])
+                const time = this.getUTCTime([this.tableTime[0], this.tableTime[1]])
                 const data = {
                     group_by: 'appmaker_instance',
                     conditions: JSON.stringify({
@@ -459,17 +457,15 @@
             },
             getDateTime () {
                 const date = new Date()
-                date.setHours(0, 0, 0)
-                const endTime = moment(date).format('YYYY-MM-DD')
-                this.tableEndTime = endTime
-                this.categoryEndTime = endTime
-                this.businessEndTime = endTime
-                this.endDateMax = endTime
+                const endTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
+                this.tableTime[1] = endTime
+                this.categoryTime[1] = endTime
+                this.businessTime[1] = endTime
                 date.setTime(date.getTime() - 3600 * 1000 * 24 * 30)
-                const startTime = moment(date).format('YYYY-MM-DD')
-                this.tableStartTime = startTime
-                this.categoryStartTime = startTime
-                this.businessStartTime = startTime
+                const startTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
+                this.tableTime[0] = startTime
+                this.categoryTime[0] = startTime
+                this.businessTime[0] = startTime
             },
             onShutTimeSelector () {
                 this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
@@ -498,30 +494,26 @@
                 this.onAppMakerInstance()
             },
             onClearBizCcId () {
-                this.selectedCcId = -1
+                this.selectedCcId = ''
                 this.bizCcId = undefined
                 this.resetPageIndex()
                 this.onAppMakerInstance()
             },
             onClearCategory () {
-                this.selectedCategory = -1
+                this.selectedCategory = ''
                 this.category = undefined
                 this.resetPageIndex()
                 this.onAppMakerInstance()
             },
-            onChangeCategoryTime (oldValue, newValue) {
-                if (newValue) {
-                    const dateArray = newValue.split(' - ')
-                    this.categoryStartTime = dateArray[0]
-                    this.categoryEndTime = dateArray[1]
+            onChangeCategoryTime (value) {
+                if (value) {
+                    this.categoryTime = value
                 }
                 this.onAppMakerCategory(null)
             },
-            onChangeBusinessTime (oldValue, newValue) {
-                if (newValue) {
-                    const dateArray = newValue.split(' - ')
-                    this.businessStartTime = dateArray[0]
-                    this.businessEndTime = dateArray[1]
+            onChangeBusinessTime (value) {
+                if (value) {
+                    this.businessTime = value
                 }
                 this.onAppMakerBizCcid(null)
             },
@@ -532,3 +524,17 @@
         }
     }
 </script>
+
+<style lang="scss">
+.bk-select-inline,.bk-input-inline {
+    display: inline-block;
+    width: 260px;
+    background-color: #ffffff;
+}
+.content-date-picker {
+    vertical-align: top;
+}
+.content-business-picker {
+    vertical-align: top;
+}
+</style>

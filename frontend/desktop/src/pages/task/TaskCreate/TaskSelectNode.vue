@@ -19,7 +19,10 @@
                     { 'scheme-toggle-right-header': !showPanel }
                 ]">
                 <div class="scheme-combine-shape" @click="togglePanel">
-                    <i class="common-icon-paper" v-bktooltips.top="i18n.schema"></i>
+                    <i class="common-icon-paper" v-bk-tooltips="{
+                        content: i18n.schema,
+                        placements: ['top']
+                    }"></i>
                 </div>
             </div>
             <div class="node-select-scheme" v-if="isSchemeShow && showPanel">
@@ -28,17 +31,19 @@
                 </div>
                 <div class="scheme-header">
                     <div class="scheme-form" v-if="taskActionShow">
-                        <BaseInput
-                            :placeholder="i18n.schemaName"
-                            name="schemeName"
+                        <bk-input
                             v-model="schemeName"
-                            v-validate="schemeNameRule">
-                        </BaseInput>
-                        <bk-button type="success" size="small" @click="onAddScheme">{{i18n.affirm}}</bk-button>
-                        <bk-button size="small" @click="onCancelScheme">{{i18n.actionCancel}}</bk-button>
+                            v-validate="schemeNameRule"
+                            name="schemeName"
+                            class="bk-input-inline"
+                            :clearable="true"
+                            :placeholder="i18n.schemaName">
+                        </bk-input>
+                        <bk-button theme="success" @click="onAddScheme">{{i18n.affirm}}</bk-button>
+                        <bk-button @click="onCancelScheme">{{i18n.actionCancel}}</bk-button>
                         <span v-if="errors.has('schemeName')" class="common-error-tip error-msg">{{ errors.first('schemeName') }}</span>
                     </div>
-                    <bk-button type="primary" v-else :class="['save-scheme-btn', { 'disabled-btn': isPreviewMode }]" @click="onShowSchemeDialog">{{ i18n.newSchema }}</bk-button>
+                    <bk-button theme="primary" v-else :class="['save-scheme-btn', { 'disabled-btn': isPreviewMode }]" @click="onShowSchemeDialog">{{ i18n.newSchema }}</bk-button>
                 </div>
                 <div class="scheme-content">
                     <ul class="schemeList">
@@ -61,11 +66,7 @@
                         <span>
                             {{i18n.previewMode}}
                         </span>
-                        <bk-switcher
-                            size="small"
-                            :selected="isPreviewMode"
-                            @change="onChangePreviewNode">
-                        </bk-switcher>
+                        <bk-switcher size="small" v-model="isPreviewMode" @change="onChangePreviewNode"></bk-switcher>
                     </div>
                 </div>
             </div>
@@ -110,14 +111,12 @@
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
     import formatPositionUtils from '@/utils/formatPosition.js'
     export default {
         name: 'TaskSelectNode',
         components: {
             PipelineCanvas,
-            BaseInput,
             NodePreview
         },
         props: ['cc_id', 'template_id', 'common', 'excludeNode', 'entrance'],
@@ -498,15 +497,14 @@
                             this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/paramfill/`, query: { 'template_id': this.template_id } })
                         }
                     } else {
-                        if (this.common) {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
-                        } else {
-                            if (this.entrance !== undefined) {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
-                            } else {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                        this.$router.push({
+                            path: `/template/newtask/${this.cc_id}/paramfill/`,
+                            query: {
+                                template_id: this.template_id,
+                                common: this.common || undefined,
+                                entrance: this.entrance
                             }
-                        }
+                        })
                     }
                 } catch (e) {
                     errorHandler(e, this)
@@ -861,7 +859,7 @@
             &:hover {
                 margin: 0;
                 padding: 0 20px;
-                background-color: #f0f1f5;
+                background-color: #d9e8f8;
                 .icon-close-circle-shape {
                     opacity: 1;
                 }
@@ -897,9 +895,12 @@
                 height: 12px;
                 text-align: center;
                 line-height: 12px;
-                color: #cecece;
+                color: #979ba5;
                 opacity: 0;
                 cursor: pointer;
+                &:hover {
+                    color: #cecece;
+                }
             }
         }
         li:first-child {
@@ -1031,5 +1032,8 @@
         left: 40px;
     }
 }
-
+.bk-input-inline {
+    display: inline-block;
+    width: 200px;
+}
 </style>

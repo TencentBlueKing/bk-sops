@@ -41,6 +41,7 @@ class PipelineElement(object):
     component = 'component'
     evaluate = 'evaluate'
     name = 'name'
+    failure_handler = 'failure_handler'
     inputs = 'inputs'
     outputs = 'outputs'
     source_act = 'source_act'

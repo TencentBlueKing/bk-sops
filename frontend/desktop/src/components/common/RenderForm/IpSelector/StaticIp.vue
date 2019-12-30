@@ -13,14 +13,14 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button type="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
+                <bk-button theme="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
                     v-if="isShowQuantity"
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
                     @hide="onDropdownHide">
-                    <bk-button type="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
+                    <bk-button theme="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
                         <span>{{i18n.moreOperations}}</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </bk-button>
@@ -34,7 +34,7 @@
                         </div>
                     </div>
                 </bk-dropdown-menu>
-                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch"></ip-search-input>
+                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch" :editable="editable"></ip-search-input>
             </div>
             <div v-if="isShowQuantity" class="selected-num">{{i18n.selected}}
                 <span class="total-ip">{{staticIps.length}}</span>
@@ -43,7 +43,7 @@
                 {{i18n.num}}
             </div>
             <div class="selected-ip-table-wrap">
-                <table class="ip-table">
+                <table :class="['ip-table', { 'disabled': !editable }]">
                     <thead>
                         <tr>
                             <th width="">{{i18n.cloudArea}}</th>
@@ -80,13 +80,14 @@
                     </tbody>
                 </table>
                 <div class="table-pagination" v-if="isPaginationShow">
-                    <bk-paging
-                        :size="small"
-                        :location="'right'"
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
+                    <bk-pagination
+                        :current="currentPage"
+                        :count="totalCount"
+                        :limit="listCountPerPage"
+                        :limit-list="[listCountPerPage]"
+                        :show-limit="false"
+                        @change="onPageChange">
+                    </bk-pagination>
                 </div>
                 <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
             </div>
@@ -143,9 +144,10 @@
                 isIpAddingPanelShow: false,
                 isSearchMode: false,
                 copyText: '',
+                searchResult: [],
                 isPaginationShow: totalPage > 1,
                 currentPage: 1,
-                totalPage: totalPage,
+                totalCount: this.staticIps.length,
                 listCountPerPage: listCountPerPage,
                 listInPage: this.staticIps.slice(0, listCountPerPage),
                 dataError: false,
@@ -176,6 +178,9 @@
             },
             isShowQuantity () {
                 return this.staticIps.length
+            },
+            list () {
+                return this.isSearchMode ? this.searchResult : this.staticIps
             }
         },
         watch: {
@@ -189,8 +194,9 @@
         methods: {
             setPanigation (list = []) {
                 this.listInPage = list.slice(0, this.listCountPerPage)
-                this.totalPage = Math.ceil(list.length / this.listCountPerPage)
-                this.isPaginationShow = this.totalPage > 1
+                const totalPage = Math.ceil(list.length / this.listCountPerPage)
+                this.isPaginationShow = totalPage > 1
+                this.totalCount = list.length
                 this.currentPage = 1
             },
             onAddPanelShow () {
@@ -234,10 +240,13 @@
             },
             onStaticIpSearch (keyword) {
                 if (keyword) {
-                    const keyArr = keyword.split(',')
+                    const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
+                        return item !== ''
+                    })
                     const list = this.staticIps.filter(item => {
                         return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
                     })
+                    this.searchResult = list
                     this.setPanigation(list)
                     this.isSearchMode = true
                 } else {
@@ -266,7 +275,7 @@
             },
             onPageChange (page) {
                 this.currentPage = page
-                this.listInPage = this.staticIps.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+                this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             validate () {
                 if (this.staticIps.length) {
@@ -292,10 +301,10 @@
 }
 .operation-btn {
     padding: 5px 8px;
-    color: #3a84ff;
     font-size: 14px;
     cursor: pointer;
     &:hover {
+        color: #3a84ff;
         background: #ebf4ff;
     }
 }
@@ -359,17 +368,13 @@
             cursor: pointer;
         }
     }
+    &.disabled {
+        th, td {
+            color: #cccccc;
+        }
+    }
 }
 .table-pagination {
     margin-top: 20px;
-    .bk-page {
-        justify-content: flex-end;
-        /deep/ .page-item {
-            min-width: 30px;
-            height: 30px;
-            line-height: 30px;
-            font-size: 12px;
-        }
-    }
 }
 </style>

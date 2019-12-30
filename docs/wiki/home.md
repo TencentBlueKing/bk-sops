@@ -48,6 +48,7 @@
 4、标准运维必须跟整个体系配合使用。
 
 开源产品链接  
-配置平台：https://github.com/Tencent/bk-cmdb  
-PaaS平台：https://github.com/Tencent/bk-PaaS  
 标准运维：https://github.com/Tencent/bk-sops  
+PaaS平台：https://github.com/Tencent/bk-PaaS  
+配置平台：https://github.com/Tencent/bk-cmdb  
+容器管理平台：https://github.com/Tencent/bk-bcs  

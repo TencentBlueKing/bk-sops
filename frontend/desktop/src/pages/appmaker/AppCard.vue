@@ -78,7 +78,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-
     export default {
         name: 'AppCard',
         props: ['appData', 'cc_id'],
@@ -214,7 +213,6 @@
             &:hover {
                 color: $blueDefault;
             }
-
         }
     }
     &:hover {

@@ -17,6 +17,8 @@ import Queue
 from pipeline.utils.uniqid import uniqid
 from pipeline.core.constants import PE
 from pipeline.builder.flow.data import Data, Params
+from pipeline.builder.flow.event import ExecutableEndEvent
+from pipeline.parser.utils import replace_all_id
 
 __all__ = [
     'build_tree'
@@ -67,7 +69,7 @@ __multiple_incoming_type = {
 __incoming = '__incoming'
 
 
-def build_tree(start_elem, id=None, data=None):
+def build_tree(start_elem, id=None, data=None, replace_id=False):
     tree = copy.deepcopy(__skeleton)
     elem_queue = Queue.Queue()
     processed_elem = set()
@@ -98,6 +100,8 @@ def build_tree(start_elem, id=None, data=None):
     tree[PE.id] = id or uniqid()
     user_data = data.to_dict() if isinstance(data, Data) else data
     tree[PE.data] = user_data or tree[PE.data]
+    if replace_id:
+        replace_all_id(tree)
     return tree
 
 
@@ -121,7 +125,7 @@ def __grow(tree, elem):
         next_elem = elem.outgoing[0]
         __grow_flow(tree, outgoing, elem, next_elem)
 
-    elif elem.type() in __end_elem:
+    elif elem.type() in __end_elem or isinstance(elem, ExecutableEndEvent):
         tree[PE.end_event] = {
             PE.incoming: tree[__incoming][elem.id],
             PE.outgoing: '',
@@ -139,9 +143,13 @@ def __grow(tree, elem):
             PE.type: elem.type(),
             PE.id: elem.id,
             PE.name: elem.name,
-            PE.error_ignorable: False,
+            PE.error_ignorable: elem.error_ignorable,
+            PE.timeout: elem.timeout,
+            PE.skippable: elem.skippable,
+            PE.can_retry: elem.can_retry,
             PE.component: elem.component_dict(),
-            PE.optional: False
+            PE.optional: False,
+            PE.failure_handler: elem.failure_handler
         }
 
         next_elem = elem.outgoing[0]
@@ -152,19 +160,26 @@ def __grow(tree, elem):
 
         subprocess_param = elem.params.to_dict() if isinstance(elem.params, Params) else elem.params
 
-        tree[PE.activities][elem.id] = {
+        subprocess = {
             PE.id: elem.id,
             PE.incoming: tree[__incoming][elem.id],
             PE.name: elem.name,
             PE.outgoing: outgoing,
             PE.type: elem.type(),
-            PE.pipeline: build_tree(
-                start_elem=elem.start,
-                id=elem.id,
-                data=elem.data
-            ),
             PE.params: subprocess_param
         }
+
+        if elem.template_id:
+            subprocess[PE.template_id] = elem.template_id
+        else:
+            subprocess[PE.pipeline] = build_tree(
+                start_elem=elem.start,
+                id=elem.id,
+                data=elem.data,
+                replace_id=elem.replace_id
+            )
+
+        tree[PE.activities][elem.id] = subprocess
 
         next_elem = elem.outgoing[0]
         __grow_flow(tree, outgoing, elem, next_elem)

@@ -14,8 +14,8 @@
         <div class="ip-added-number">{{i18n.add}}({{selectedIp.length}})</div>
         <div class="operation-area">
             <div class="ip-list-add">
-                <bk-button type="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
-                <bk-button type="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
+                <bk-button theme="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
+                <bk-button theme="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
             </div>
             <ip-search-input class="ip-search-wrap" @search="onIpSearch"></ip-search-input>
         </div>
@@ -57,13 +57,15 @@
                 </tbody>
             </table>
             <div class="table-pagination">
-                <bk-paging
+                <bk-pagination
                     v-if="isPaginationShow"
-                    :location="'right'"
-                    :cur-page.sync="currentPage"
-                    :total-page="totalPage"
-                    @page-change="onPageChange">
-                </bk-paging>
+                    :current="currentPage"
+                    :count="totalCount"
+                    :limit="listCountPerPage"
+                    :limit-list="[listCountPerPage]"
+                    :show-limit="false"
+                    @change="onPageChange">
+                </bk-pagination>
             </div>
         </div>
     </div>
@@ -98,11 +100,18 @@
                 listAllSelected: false,
                 isPaginationShow: totalPage > 1,
                 selectedIp: this.staticIps.slice(0),
+                isSearchMode: false,
+                searchResult: [],
                 currentPage: 1,
-                totalPage,
+                totalCount: this.staticIpList.length,
                 listCountPerPage,
                 listInPage,
                 i18n
+            }
+        },
+        computed: {
+            list () {
+                return this.isSearchMode ? this.searchResult : this.staticIpList
             }
         },
         watch: {
@@ -113,19 +122,25 @@
         methods: {
             setPanigation (list = []) {
                 this.listInPage = list.slice(0, this.listCountPerPage)
-                this.totalPage = Math.ceil(list.length / this.listCountPerPage)
-                this.isPaginationShow = this.totalPage > 1
+                const totalPage = Math.ceil(list.length / this.listCountPerPage)
+                this.isPaginationShow = totalPage > 1
+                this.totalCount = list.length
                 this.currentPage = 1
             },
             onIpSearch (keyword) {
                 if (keyword) {
-                    const keyArr = keyword.split(',')
+                    const keyArr = keyword.split(',').map(item => item.trim()).filter(item => {
+                        return item.trim() !== ''
+                    })
                     const list = this.staticIpList.filter(item => {
                         return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
                     })
+                    this.searchResult = list
                     this.setPanigation(list)
+                    this.isSearchMode = true
                 } else {
                     this.setPanigation(this.staticIpList)
+                    this.isSearchMode = false
                 }
             },
             onSelectAllClick () {
@@ -165,7 +180,7 @@
             onPageChange (page) {
                 this.currentPage = page
                 this.listAllSelected = false
-                this.listInPage = this.staticIpList.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+                this.listInPage = this.list.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
             },
             onAddIpConfirm () {
                 this.$emit('onAddIpConfirm', this.selectedIp.slice(0))
@@ -191,9 +206,9 @@
     }
     .ip-search-wrap {
         position: absolute;
-        top: -2px;
+        top: 0px;
         right: 0;
-        width: 70%;
+        width: calc(100% - 144px);
     }
     .bk-button {
         height: 32px;
@@ -277,14 +292,5 @@
 }
 .table-pagination {
     margin-top: 20px;
-    .bk-page {
-        justify-content: flex-end;
-        /deep/ .page-item {
-            min-width: 30px;
-            height: 30px;
-            line-height: 30px;
-            font-size: 12px;
-        }
-    }
 }
 </style>
