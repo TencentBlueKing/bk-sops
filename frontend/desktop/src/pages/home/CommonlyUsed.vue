@@ -12,7 +12,7 @@
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <div ref="cardView" v-if="commonUsedList.length && !isScreenChange" class="card-view">
+        <div ref="cardView" v-if="commonUsedList.length" class="card-view">
             <ul ref="cardList" class="card-list scroll-body">
                 <li
                     v-for="(item, index) in commonUsedList"
@@ -81,7 +81,6 @@
 
                 },
                 commonlyUsedloading: false,
-                isScreenChange: false,
                 commonUsedList: [],
                 viewIndex: 0,
                 limit: 4
