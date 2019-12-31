@@ -777,9 +777,6 @@
              * 单个添加选中节点
              */
             addNodeToSelectedList (selectedNode) {
-                if (this.selectedNodes && this.selectedNodes.length !== 0) {
-                    document.addEventListener('keydown', this.nodeLineDeletehandler)
-                }
                 const index = this.selectedNodes.findIndex(m => m.id === selectedNode.id)
                 if (index > -1) { // 已存在
                     this.$refs.jsFlow.clearNodesDragSelection()
