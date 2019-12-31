@@ -114,6 +114,7 @@
     .card-icon {
         display: table-cell;
         width: 60px;
+        min-width: 60px;
         height: 60px;
         line-height: 60px;
         text-align: center;
@@ -134,6 +135,7 @@
     .card-content {
         display: table-cell;
         padding: 12px 33px 12px 12px;
+        width: 100%;
         height: 60px;
         vertical-align: middle;
         .text {
