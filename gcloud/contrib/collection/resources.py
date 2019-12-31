@@ -97,8 +97,12 @@ class CollectionResources(ModelResource):
         inspect = getattr(self._meta, 'inspect', None)
         scope_id = inspect.scope_id(bundle) if inspect else None
 
-        resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource,
-                                                                  scope_id=scope_id)
+        resources_perms = search_all_resources_authorized_actions(
+            username=username,
+            resource_type=auth_resource.rtype,
+            auth_resource=auth_resource,
+            scope_id=scope_id
+        )
         obj_id = str(inspect.resource_id(bundle)) if inspect else str(json.loads(bundle.obj.extra_info)['id'])
         auth_actions = resources_perms.get(obj_id, [])
         bundle.data['auth_actions'] = auth_actions
