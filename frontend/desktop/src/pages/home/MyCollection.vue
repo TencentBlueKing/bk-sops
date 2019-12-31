@@ -291,7 +291,7 @@
         .grounp-name {
             margin: 10px 0;
             font-size: 12px;
-            color: #63656e;
+            color: #979ba5;
             font-weight: normal;
             height: 18px;
             line-height: 18px;
@@ -301,6 +301,9 @@
                 transition: all 0.3s;
                 &.flip-icon {
                     transform: rotate(-180deg);
+                }
+                &:hover {
+                    color: #63656e;
                 }
             }
         }
