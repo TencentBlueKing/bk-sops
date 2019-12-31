@@ -57,6 +57,7 @@
     import PanelNodata from './PanelNodata.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions, mapMutations } from 'vuex'
+    import toolsUtils from '@/utils/tools.js'
     export default {
         name: 'CommonlyUsed',
         components: {
@@ -91,9 +92,16 @@
                 return ((this.commonUsedList.length - this.limit * (this.viewIndex + 1)) / this.limit) > 0
             }
         },
+        created () {
+            this.onWindowResize = toolsUtils.debounce(this.handlerWindowResize, 300)
+        },
         mounted () {
             this.initData()
             this.limit = this.getLimit()
+            window.addEventListener('resize', this.onWindowResize, false)
+        },
+        beforeDestroy () {
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('template/', [
@@ -141,6 +149,16 @@
                 const cardListDom = this.$refs.cardList
                 const baseW = this.$refs.cardView.offsetWidth
                 cardListDom.style.transform = `translateX(-${this.viewIndex * baseW}px)`
+            },
+            handlerWindowResize () {
+                if (!this.commonUsedList || this.commonUsedList.length === 0) {
+                    return
+                }
+                const cardView = this.$refs.cardView.offsetWidth
+                const cardItemW = document.querySelector('.common-used .card-list .card-item').offsetWidth
+                this.limit = Math.floor(cardView / cardItemW)
+                this.viewIndex = 0
+                this.changeViewIndex()
             }
         }
     }
@@ -172,14 +190,23 @@
                 padding: 14px;
                 background: #f0f1f5;
                 cursor: pointer;
-                &:not(:nth-child(4n)) {
-                    margin-right: 10px;
+                @media screen and (max-width: 1560px) {
+                    width: calc( (100% - 48px) / 4 );
+                    &:not(:nth-child(4n)) {
+                        margin-right: 16px;
+                    }
                 }
-                @media screen and (max-width: 1920px) {
-                    width: calc((100% - 30px) / 4);
+                @media screen and (min-width: 1561px) and (max-width: 1919px) {
+                    width: calc( (100% - 64px) / 5 );
+                    &:not(:nth-child(5n)) {
+                        margin-right: 16px;
+                    }
                 }
-                @media screen and (min-width: 1921px) {
-                    width: calc((100% - 40px) / 6);
+                @media screen and (min-width: 1920px) {
+                    width: calc( (100% - 80px) / 6 );
+                    &:not(:nth-child(6n)) {
+                        margin-right: 16px;
+                    }
                 }
                 &:hover {
                     background: #e3e5e9;

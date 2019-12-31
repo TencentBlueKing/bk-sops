@@ -84,6 +84,7 @@
     import AddCollectionDialog from './AddCollectionDialog.vue'
     import SelectCreateTaskDialog from './SelectCreateTaskDialog.vue'
     import permission from '@/mixins/permission.js'
+    import toolsUtils from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions } from 'vuex'
     export default {
@@ -118,9 +119,16 @@
                 limit: 4
             }
         },
+        created () {
+            this.onWindowResize = toolsUtils.debounce(this.handlerWindowResize, 300)
+        },
         mounted () {
             this.initData()
             this.limit = this.getLimit()
+            window.addEventListener('resize', this.onWindowResize, false)
+        },
+        beforeDestroy () {
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('template/', [
@@ -263,6 +271,14 @@
             },
             onHideCreateTask () {
                 this.isCreateTaskDialogShow = false
+            },
+            handlerWindowResize () {
+                if (!this.collectionList || this.collectionList.length === 0) {
+                    return
+                }
+                const cardView = document.querySelector('.my-collection .card-list').offsetWidth
+                const cardItemW = document.querySelector('.common-used .card-list .card-item').offsetWidth
+                this.limit = Math.floor(cardView / cardItemW)
             }
         }
     }
@@ -311,21 +327,31 @@
             clear: both;
             overflow: hidden;
             margin-top: -20px;
-            margin-right: -16px;
             max-height: 82px;
+            padding-right: 6px;
             &.show-all {
                 max-height: none;
             }
             .card-item {
                 display: inline-block;
-                @media screen and (max-width: 1920px) {
-                    width: calc((100% - 64px) / 4);
+                margin-right: 0;
+                @media screen and (max-width: 1560px) {
                     &:not(:nth-child(4n)) {
                         margin-right: 16px;
                     }
+                    width: calc( (100% - 48px) / 4 );
                 }
-                @media screen and (min-width: 1921px) {
-                    width: calc((100% - 64px) / 6);
+                @media screen and (min-width: 1561px) and (max-width: 1919px) {
+                    &:not(:nth-child(5n)) {
+                        margin-right: 16px;
+                    }
+                    width: calc( (100% - 64px) / 5 );
+                }
+                @media screen and (min-width: 1920px) {
+                    &:not(:nth-child(6n)) {
+                        margin-right: 16px;
+                    }
+                   width: calc( (100% - 80px) / 6 );
                 }
             }
         }
