@@ -21,6 +21,7 @@
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
+                        <p class="text">Ctrl + {{i18n.zoom}}</p>
                         <p class="text" v-show="editable">{{commonCtrl}} + {{i18n.multiple}}</p>
                         <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
@@ -57,6 +58,7 @@
                     restore: gettext('：恢复'),
                     zoomIn: gettext('：放大'),
                     zoomOut: gettext('：缩小'),
+                    zoom: gettext(' 鼠标滚动：缩放'),
                     reduction: gettext('：还原'),
                     multiple: gettext('鼠标左键单击 ：连续选中（或取消）节点'),
                     selectAll: gettext('选中所有节点'),
@@ -68,18 +70,23 @@
                 isMac,
                 commonTitle: isMac ? 'Mac' : 'Windows',
                 commonCtrl: isMac ? 'Command' : 'Ctrl',
-                hotKeyTriggeringConditions
+                hotKeyTriggeringConditions,
+                zoomOriginPosition: {
+                    x: 0,
+                    y: 0
+                }
             }
         },
         mounted () {
             document.body.addEventListener('keydown', this.handlerKeyDown, false)
-            document.getElementById('canvas-flow').addEventListener('mousewheel', this.onMouseWheel, false)
-            document.getElementById('canvas-flow').addEventListener('DOMMouseScroll', this.onMouseWheel, false)
+            document.body.addEventListener('keyup', this.handlerKeyUp, false)
+            document.querySelector('.canvas-flow-wrap').addEventListener('mousewheel', this.onMouseWheel, false)
+            document.querySelector('.canvas-flow-wrap').addEventListener('DOMMouseScroll', this.onMouseWheel, false)
+            document.querySelector('.canvas-flow-wrap').addEventListener('mousemove', this.onCanvasMouseMove, false)
         },
         beforeDestroy () {
             document.body.removeEventListener('keydown', this.handlerKeyDown, false)
-            document.getElementById('canvas-flow').removeEventListener('mousewheel', this.onMouseWheel, false)
-            document.getElementById('canvas-flow').removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
+            document.body.addEventListener('keyup', this.handlerKeyUp, false)
         },
         methods: {
             onCloseHotkeyInfo () {
@@ -103,15 +110,23 @@
             },
             // 滚轮缩放
             onMouseWheel (e) {
+                if (!e.ctrlKey) {
+                    return false
+                }
+                e.preventDefault()
                 const ev = e || window.event
                 let down = true
                 down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
                 if (down) {
-                    this.$emit('onZoomOut')
+                    this.$emit('onZoomOut', this.zoomOriginPosition)
                 } else {
-                    this.$emit('onZoomIn')
+                    this.$emit('onZoomIn', this.zoomOriginPosition)
                 }
                 return false
+            },
+            onCanvasMouseMove (e) {
+                this.zoomOriginPosition.x = e.pageX - 60
+                this.zoomOriginPosition.y = e.pageY - 109
             }
         }
     }
