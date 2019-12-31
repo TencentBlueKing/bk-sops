@@ -243,11 +243,21 @@
             document.body.removeEventListener('click', this.handleReferenceLineHide, false)
         },
         methods: {
-            onZoomIn () {
-                this.$refs.jsFlow.zoomIn()
+            onZoomIn (pos) {
+                if (pos) {
+                    const { x, y } = pos
+                    this.$refs.jsFlow.zoomIn(1.1, x, y)
+                } else {
+                    this.$refs.jsFlow.zoomIn()
+                }
             },
-            onZoomOut () {
-                this.$refs.jsFlow.zoomOut()
+            onZoomOut (pos) {
+                if (pos) {
+                    const { x, y } = pos
+                    this.$refs.jsFlow.zoomOut(0.9, x, y)
+                } else {
+                    this.$refs.jsFlow.zoomOut()
+                }
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
@@ -780,6 +790,9 @@
              * 单个添加选中节点
              */
             addNodeToSelectedList (selectedNode) {
+                if (this.selectedNodes && this.selectedNodes.length !== 0) {
+                    document.addEventListener('keydown', this.nodeLineDeletehandler)
+                }
                 const index = this.selectedNodes.findIndex(m => m.id === selectedNode.id)
                 if (index > -1) { // 已存在
                     this.$refs.jsFlow.clearNodesDragSelection()
