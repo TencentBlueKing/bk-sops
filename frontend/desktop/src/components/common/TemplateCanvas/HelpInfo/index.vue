@@ -125,8 +125,9 @@
                 return false
             },
             onCanvasMouseMove (e) {
-                this.zoomOriginPosition.x = e.pageX - 60
-                this.zoomOriginPosition.y = e.pageY - 109
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                this.zoomOriginPosition.x = e.pageX - offsetX
+                this.zoomOriginPosition.y = e.pageY - offsetY
             }
         }
     }
