@@ -122,10 +122,10 @@
         created () {
             this.onWindowResize = toolsUtils.debounce(this.handlerWindowResize, 300)
         },
-        mounted () {
-            this.initData()
-            this.limit = this.getLimit()
+        async mounted () {
             window.addEventListener('resize', this.onWindowResize, false)
+            await this.initData()
+            this.handlerWindowResize()
         },
         beforeDestroy () {
             window.removeEventListener('resize', this.onWindowResize, false)
