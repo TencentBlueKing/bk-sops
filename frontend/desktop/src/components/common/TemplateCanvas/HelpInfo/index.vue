@@ -76,11 +76,9 @@
         },
         mounted () {
             document.body.addEventListener('keydown', this.handlerKeyDown, false)
-            document.body.addEventListener('keyup', this.handlerKeyUp, false)
         },
         beforeDestroy () {
             document.body.removeEventListener('keydown', this.handlerKeyDown, false)
-            document.body.addEventListener('keyup', this.handlerKeyUp, false)
         },
         methods: {
             onCloseHotkeyInfo () {
