@@ -24,6 +24,7 @@
                         <p class="text">Ctrl + {{i18n.zoom}}</p>
                         <p class="text" v-show="editable">{{commonCtrl}} + {{i18n.multiple}}</p>
                         <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
+                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] Delete {{ i18n.delNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                 </div>
@@ -92,7 +93,7 @@
             onCloseHotkeyInfo () {
                 this.$emit('onCloseHotkeyInfo')
             },
-            handerKeyDown (e) {
+            handlerKeyDown (e) {
                 const ctrl = window.event.ctrlKey
                 const action = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl)
                 if (action && this.isUsable(action.emit)) {

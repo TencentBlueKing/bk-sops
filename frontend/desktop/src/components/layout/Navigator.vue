@@ -75,7 +75,7 @@
     const ROUTE_LIST = [
         {
             routerName: 'process',
-            name: gettext('业务流程'),
+            name: gettext('项目流程'),
             path: '/template/',
             params: ['project_id']
         },
