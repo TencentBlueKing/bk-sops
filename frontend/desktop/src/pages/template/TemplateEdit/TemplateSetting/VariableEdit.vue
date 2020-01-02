@@ -208,13 +208,6 @@
                     max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                // 变量 Key 校验规则
-                variableKeyRule: {
-                    required: true,
-                    max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
-                    regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
-                    keyRepeat: true
-                },
                 // 正则校验规则
                 validationRule: {
                     validReg: true
@@ -259,6 +252,20 @@
                 } else {
                     return custom_type
                 }
+            },
+            // 变量 Key 校验规则
+            variableKeyRule () {
+                const rule = {
+                    required: true,
+                    max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
+                    regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
+                    keyRepeat: true
+                }
+                // 勾选的变量不做长度校验
+                if (this.isDisabledValType) {
+                    delete rule.max
+                }
+                return rule
             }
         },
         watch: {

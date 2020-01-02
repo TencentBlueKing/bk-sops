@@ -793,6 +793,8 @@
              * 单个添加选中节点
              */
             addNodeToSelectedList (selectedNode) {
+                document.removeEventListener('keydown', this.nodeLineDeletehandler)
+                document.addEventListener('keydown', this.nodeLineDeletehandler)
                 const index = this.selectedNodes.findIndex(m => m.id === selectedNode.id)
                 if (index > -1) { // 已存在
                     this.$refs.jsFlow.clearNodesDragSelection()
@@ -814,7 +816,7 @@
                 this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
             },
             /**
-             * 失焦时移出选中节点
+             * 失焦时移除选中节点
              */
             handleClearDragSelection () {
                 this.selectedNodes = []
@@ -822,6 +824,8 @@
                 this.$refs.jsFlow.clearNodesDragSelection()
                 document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
                 document.removeEventListener('keydown', this.nodeSelectedhandler)
+                document.removeEventListener('keydown', this.nodeLineDeletehandler)
+
                 this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
             },
             /**
