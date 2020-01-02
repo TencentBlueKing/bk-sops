@@ -70,19 +70,12 @@
                 isMac,
                 commonTitle: isMac ? 'Mac' : 'Windows',
                 commonCtrl: isMac ? 'Command' : 'Ctrl',
-                hotKeyTriggeringConditions,
-                zoomOriginPosition: {
-                    x: 0,
-                    y: 0
-                }
+                hotKeyTriggeringConditions
             }
         },
         mounted () {
             document.body.addEventListener('keydown', this.handlerKeyDown, false)
             document.body.addEventListener('keyup', this.handlerKeyUp, false)
-            document.querySelector('.canvas-flow-wrap').addEventListener('mousewheel', this.onMouseWheel, false)
-            document.querySelector('.canvas-flow-wrap').addEventListener('DOMMouseScroll', this.onMouseWheel, false)
-            document.querySelector('.canvas-flow-wrap').addEventListener('mousemove', this.onCanvasMouseMove, false)
         },
         beforeDestroy () {
             document.body.removeEventListener('keydown', this.handlerKeyDown, false)
@@ -107,27 +100,6 @@
                     return false
                 }
                 return true
-            },
-            // 滚轮缩放
-            onMouseWheel (e) {
-                if (!e.ctrlKey) {
-                    return false
-                }
-                e.preventDefault()
-                const ev = e || window.event
-                let down = true
-                down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
-                if (down) {
-                    this.$emit('onZoomOut', this.zoomOriginPosition)
-                } else {
-                    this.$emit('onZoomIn', this.zoomOriginPosition)
-                }
-                return false
-            },
-            onCanvasMouseMove (e) {
-                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
-                this.zoomOriginPosition.x = e.pageX - offsetX
-                this.zoomOriginPosition.y = e.pageY - offsetY
             }
         }
     }
