@@ -210,6 +210,10 @@
                     id: '',
                     arrow: ''
                 },
+                zoomOriginPosition: {
+                    x: 0,
+                    y: 0
+                },
                 flowData,
                 endpointOptions: combinedEndpointOptions,
                 connectorOptions
@@ -228,6 +232,11 @@
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
             document.body.addEventListener('click', this.handleShortcutPanelHide, false)
+            // 画布快捷键缩放
+            const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
+            canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
+            canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false)
+            canvasPaintArea.addEventListener('mousemove', this.onCanvasMouseMove, false)
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
@@ -235,13 +244,30 @@
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
             document.body.removeEventListener('click', this.handleReferenceLineHide, false)
+            // 画布快捷键缩放
+            const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
+            if (canvasPaintArea) {
+                canvasPaintArea.removeEventListener('mousewheel', this.onMouseWheel, false)
+                canvasPaintArea.removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
+                canvasPaintArea.removeEventListener('mousemove', this.onCanvasMouseMove, false)
+            }
         },
         methods: {
-            onZoomIn () {
-                this.$refs.jsFlow.zoomIn()
+            onZoomIn (pos) {
+                if (pos) {
+                    const { x, y } = pos
+                    this.$refs.jsFlow.zoomIn(1.1, x, y)
+                } else {
+                    this.$refs.jsFlow.zoomIn()
+                }
             },
-            onZoomOut () {
-                this.$refs.jsFlow.zoomOut()
+            onZoomOut (pos) {
+                if (pos) {
+                    const { x, y } = pos
+                    this.$refs.jsFlow.zoomOut(0.9, x, y)
+                } else {
+                    this.$refs.jsFlow.zoomOut()
+                }
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
@@ -1007,6 +1033,28 @@
                         ins.revalidate(el)
                     })
                 })
+            },
+            // 画布滚轮缩放
+            onMouseWheel (e) {
+                if (!e.ctrlKey) {
+                    return false
+                }
+                e.preventDefault()
+                const ev = e || window.event
+                let down = true
+                down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
+                if (down) {
+                    this.onZoomOut(this.zoomOriginPosition)
+                } else {
+                    this.onZoomIn(this.zoomOriginPosition)
+                }
+                return false
+            },
+            // 记录缩放点
+            onCanvasMouseMove (e) {
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                this.zoomOriginPosition.x = e.pageX - offsetX
+                this.zoomOriginPosition.y = e.pageY - offsetY
             }
         }
     }
