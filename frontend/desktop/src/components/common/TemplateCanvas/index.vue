@@ -279,11 +279,11 @@
                 this.isSelectionOpen = true
                 this.$refs.jsFlow.frameSelect()
             },
-            onFrameSelectEnd (nodes, x, y) {
+            onFrameSelectEnd (nodes) {
                 this.selectedNodes = nodes
                 this.copyNodes = tools.deepClone(nodes)
                 this.isSelectionOpen = false
-                this.selectionOriginPos = { x, y }
+                this.selectionOriginPos = this.getNodesLocationOnLeftTop(nodes)
                 this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
                 document.addEventListener('keydown', this.nodeSelectedhandler)
                 document.addEventListener('keydown', this.nodeLineDeletehandler, { once: true })
