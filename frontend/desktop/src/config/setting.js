@@ -35,6 +35,12 @@ export function setConfigContext (site_url, project) {
             }
             return ''
         },
+        getProjectId () { // 获取项目 id
+            if ($.context.project) {
+                return $.context.project.id
+            }
+            return ''
+        },
         canSelectBiz () { // 是否可以选择业务
             if ($.context.project) {
                 return !$.context.project.from_cmdb
