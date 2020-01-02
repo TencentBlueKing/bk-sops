@@ -20,6 +20,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import CodeEditor from '@/components/common/CodeEditor.vue'
     import { mapState, mapGetters } from 'vuex'
 

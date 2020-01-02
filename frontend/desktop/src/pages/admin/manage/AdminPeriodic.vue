@@ -15,6 +15,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import PeriodicList from '@/pages/task/PeriodicList/index.vue'
 
     export default {
