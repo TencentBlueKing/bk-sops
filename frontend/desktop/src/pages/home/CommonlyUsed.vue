@@ -12,24 +12,27 @@
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.title }}</h3>
-        <div v-if="commonUsedList.length && !isScreenChange" class="card-list">
-            <li
-                v-for="(item, index) in commonUsedList"
-                :key="index"
-                class="card-item"
-                @click="onSwitchBusiness(item.project.id)">
-                <p class="business-name">{{ item.project.name }}</p>
-                <div class="business-info">
-                    <p class="info-item">
-                        <label class="label">{{ i18n.businessId }}</label>
-                        <span class="text">{{ item.project.id }}</span>
-                    </p>
-                    <p class="info-item">
-                        <label class="label">{{ i18n.timeZone }}</label>
-                        <span class="text">{{ item.project.create_at | getTimeZone }}</span>
-                    </p>
-                </div>
-            </li>
+        <div ref="cardView" v-if="commonUsedList.length" class="card-view">
+            <ul ref="cardList" class="card-list scroll-body">
+                <li
+                    v-for="(item, index) in commonUsedList"
+                    :key="index"
+                    class="card-item"
+                    @click="onSwitchBusiness(item.project.id)">
+                    <p class="business-name">{{ item.project.name }}</p>
+                    <div class="business-info">
+                        <p class="info-item">
+                            <label class="label">{{ i18n.businessId }}</label>
+                            <span class="text">{{ item.project.id }}</span>
+                        </p>
+                        <p class="info-item">
+                            <label class="label">{{ i18n.timeZone }}</label>
+                            <span class="text">{{ item.project.create_at | getTimeZone }}</span>
+                        </p>
+                    </div>
+                </li>
+            </ul>
+            
         </div>
         <panel-nodata v-else>
             <span>{{ i18n.nodataDes1 }}</span>
@@ -37,6 +40,16 @@
             <span>{{ i18n.nodataDes3 }}</span>
             <span class="link-text" @click="openOtherApp('bk_cmdb')">{{ i18n.nodataDes4 }}</span>
         </panel-nodata>
+        <span
+            v-if="viewIndex > 0"
+            class="button-prev common-icon-prev-triangle-shape"
+            @click="onShowPrevPage">
+        </span>
+        <span
+            v-if="isShowNextBtn"
+            class="button-next common-icon-next-triangle-shape"
+            @click="onShowNextPage">
+        </span>
     </div>
 </template>
 <script>
@@ -44,6 +57,7 @@
     import PanelNodata from './PanelNodata.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions, mapMutations } from 'vuex'
+    import toolsUtils from '@/utils/tools.js'
     export default {
         name: 'CommonlyUsed',
         components: {
@@ -58,22 +72,36 @@
         data () {
             return {
                 i18n: {
-                    title: gettext('常用业务'),
-                    nodataDes1: gettext('业务，业务集的权限请前往'),
+                    title: gettext('常用项目'),
+                    nodataDes1: gettext('项目，项目集的权限请前往'),
                     nodataDes2: gettext('权限中心'),
-                    nodataDes3: gettext('进行申请；如需新建业务，业务集请前往'),
+                    nodataDes3: gettext('进行申请；如需新建项目，项目集请前往'),
                     nodataDes4: gettext('配置平台'),
-                    businessId: gettext('业务id：'),
+                    businessId: gettext('项目id：'),
                     timeZone: gettext('时区：')
 
                 },
                 commonlyUsedloading: false,
-                isScreenChange: false,
-                commonUsedList: []
+                commonUsedList: [],
+                viewIndex: 0,
+                limit: 4
             }
         },
-        mounted () {
-            this.initData()
+        computed: {
+            isShowNextBtn () {
+                return ((this.commonUsedList.length - this.limit * (this.viewIndex + 1)) / this.limit) > 0
+            }
+        },
+        created () {
+            this.onWindowResize = toolsUtils.debounce(this.handlerWindowResize, 300)
+        },
+        async mounted () {
+            window.addEventListener('resize', this.onWindowResize, false)
+            await this.initData()
+            this.handlerWindowResize()
+        },
+        beforeDestroy () {
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('template/', [
@@ -92,6 +120,9 @@
                     errorHandler(e, this)
                 }
             },
+            getLimit () {
+                return document.body.clientWidth > 1920 ? 6 : 4
+            },
             openOtherApp (url) {
                 if (self === top) {
                     window.open(url, '__blank')
@@ -105,6 +136,29 @@
                     name: 'process',
                     params: { project_id: id }
                 })
+            },
+            onShowPrevPage () {
+                this.viewIndex -= 1
+                this.changeViewIndex()
+            },
+            onShowNextPage () {
+                this.viewIndex += 1
+                this.changeViewIndex()
+            },
+            changeViewIndex () {
+                const cardListDom = this.$refs.cardList
+                const baseW = this.$refs.cardView.offsetWidth
+                cardListDom.style.transform = `translateX(-${this.viewIndex * baseW}px)`
+            },
+            handlerWindowResize () {
+                if (!this.commonUsedList || this.commonUsedList.length === 0) {
+                    return
+                }
+                const cardView = this.$refs.cardView.offsetWidth
+                const cardItemW = document.querySelector('.common-used .card-list .card-item').offsetWidth
+                this.limit = Math.floor(cardView / cardItemW)
+                this.viewIndex = 0
+                this.changeViewIndex()
             }
         }
     }
@@ -113,56 +167,72 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .common-used {
+    position: relative;
     margin-top: 20px;
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
+        margin: 20px 0;
         color: #313238;
         font-size: 16px;
         font-weight: 600;
     }
-    .card-list {
-        max-height: 95px;
+    .card-view {
+        width: 100%;
         overflow: hidden;
-        .card-item {
-            display: inline-block;
-            margin-right: 10px;
-            padding: 14px;
-            background: #f0f1f5;
-            cursor: pointer;
-            @media screen and (max-width: 1560px) {
-                width: 24%;
-            }
-            @media screen and (min-width: 1561px) and (max-width: 1919px) {
-                width: 19.2%;
-            }
-            @media screen and (min-width: 1920px) {
-                width: 16%;
-            }
-            &:hover {
-                background: #e3e5e9;
-            }
-            .business-name {
-                font-size: 14px;
-                color: #313238;
-                font-weight: 600;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow: hidden;
-            }
-            .business-info {
-                margin-top: 6px;
-                .info-item {
-                    .label {
-                        display: inline-block;
-                        width: 60px;
-                        font-size: 12px;
-                        color: #63656e;
+        .card-list {
+            max-height: 95px;
+            white-space: nowrap;
+            transition: all 0.5s;
+            .card-item {
+                display: inline-block;
+                height: 95px;
+                padding: 14px;
+                background: #f0f1f5;
+                cursor: pointer;
+                @media screen and (max-width: 1560px) {
+                    width: calc( (100% - 48px) / 4 );
+                    &:not(:nth-child(4n)) {
+                        margin-right: 16px;
                     }
-                    .text {
-                        margin-left: 10px;
-                        font-size: 12px;
-                        color: #313238;
+                }
+                @media screen and (min-width: 1561px) and (max-width: 1919px) {
+                    width: calc( (100% - 64px) / 5 );
+                    &:not(:nth-child(5n)) {
+                        margin-right: 16px;
+                    }
+                }
+                @media screen and (min-width: 1920px) {
+                    width: calc( (100% - 80px) / 6 );
+                    &:not(:nth-child(6n)) {
+                        margin-right: 16px;
+                    }
+                }
+                &:hover {
+                    background: #e3e5e9;
+                }
+                .business-name {
+                    font-size: 14px;
+                    color: #313238;
+                    font-weight: 600;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
+                .business-info {
+                    margin-top: 6px;
+                    .info-item {
+                        .label {
+                            display: inline-block;
+                            width: 60px;
+                            font-size: 12px;
+                            color: #63656e;
+                        }
+                        .text {
+                            margin-left: 10px;
+                            font-size: 12px;
+                            color: #313238;
+                        }
                     }
                 }
             }
@@ -171,6 +241,21 @@
     .link-text {
         cursor: pointer;
         color: #3a84ff;
+    }
+    .button-prev,.button-next {
+        position: absolute;
+        top: 120px;
+        cursor: pointer;
+        color: #979ba5;
+        &:hover {
+            color: #63656e;
+        }
+    }
+    .button-prev {
+        left: 6px;
+    }
+    .button-next {
+        right: 6px;
     }
 }
 </style>

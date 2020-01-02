@@ -114,6 +114,7 @@
     .card-icon {
         display: table-cell;
         width: 60px;
+        min-width: 60px;
         height: 60px;
         line-height: 60px;
         text-align: center;
@@ -134,6 +135,7 @@
     .card-content {
         display: table-cell;
         padding: 12px 33px 12px 12px;
+        width: 100%;
         height: 60px;
         vertical-align: middle;
         .text {
@@ -150,13 +152,14 @@
     }
      &.permission-disable {
         background: #f7f7f7;
+        border: 1px solid #dcdee5;
+        height: auto;
         .card-icon {
             color: #dcdee5;
             background: #f7f7f7;
-            border: 1px solid #dcdee5;
+            border-right: 1px solid #dcdee5;
         }
         .card-content {
-            border: 1px solid #dcdee5;
             border-left: none;
         }
         .text {

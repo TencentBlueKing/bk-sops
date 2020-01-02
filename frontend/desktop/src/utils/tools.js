@@ -112,6 +112,8 @@ const tools = {
             } else {
                 return parseFloat(val / 86400).toFixed(1) + gettext(' 天')
             }
+        } else if (val === 0) {
+            return 0
         } else {
             return '--'
         }

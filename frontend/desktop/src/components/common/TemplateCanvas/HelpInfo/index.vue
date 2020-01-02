@@ -21,8 +21,10 @@
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
+                        <p class="text">Ctrl + {{i18n.zoom}}</p>
                         <p class="text" v-show="editable">{{commonCtrl}} + {{i18n.multiple}}</p>
                         <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
+                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] Delete {{ i18n.delNode }}</p>
                         <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     </template>
                 </div>
@@ -57,6 +59,7 @@
                     restore: gettext('：恢复'),
                     zoomIn: gettext('：放大'),
                     zoomOut: gettext('：缩小'),
+                    zoom: gettext(' 鼠标滚动：缩放'),
                     reduction: gettext('：还原'),
                     multiple: gettext('鼠标左键单击 ：连续选中（或取消）节点'),
                     selectAll: gettext('选中所有节点'),
@@ -72,16 +75,16 @@
             }
         },
         mounted () {
-            document.body.addEventListener('keydown', this.handerKeyDown, false)
+            document.body.addEventListener('keydown', this.handlerKeyDown, false)
         },
         beforeDestroy () {
-            document.body.removeEventListener('keydown', this.handerKeyDown, false)
+            document.body.removeEventListener('keydown', this.handlerKeyDown, false)
         },
         methods: {
             onCloseHotkeyInfo () {
                 this.$emit('onCloseHotkeyInfo')
             },
-            handerKeyDown (e) {
+            handlerKeyDown (e) {
                 const ctrl = window.event.ctrlKey
                 const action = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl)
                 if (action && this.isUsable(action.emit)) {
