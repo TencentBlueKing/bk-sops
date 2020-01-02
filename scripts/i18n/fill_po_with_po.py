@@ -68,8 +68,8 @@ class ScanPoFile(object):
 
         # print ''.join(write_list)
         content = ''.join(write_list)
-        with open(po_file, 'w') as f:
-            f.write(content.encode('utf-8'))
+        with open(po_file, 'w', encoding='utf-8') as f:
+            f.write(content)
         pass
 
 
