@@ -38,7 +38,7 @@ class BKIAMClient(object):
     ):
         self.app_code = app_code or conf.APP_CODE
         self.app_secret = app_secret or conf.SECRET_KEY
-        self.bk_iam_host = (bk_iam_host or conf.BK_IAM_HOST).rstrip('/')
+        self.bk_iam_host = (bk_iam_host or conf.BK_IAM_INNER_HOST).rstrip('/')
         self.version = version or conf.BK_IAM_API_VERSION
         self.system_id = system_id or conf.SYSTEM_ID
         self.system_name = system_name or conf.SYSTEM_NAME

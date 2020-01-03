@@ -56,6 +56,8 @@ def mysetting(request):
         'BK_PAAS_HOST': settings.BK_PAAS_HOST,
         'BK_CC_HOST': settings.BK_CC_HOST,
         'BK_JOB_HOST': settings.BK_JOB_HOST,
+        'BK_IAM_HOST': settings.BK_IAM_HOST,
+        'BK_USER_MANAGE_HOST': settings.BK_USER_MANAGE_HOST,
         'APP_PATH': request.get_full_path(),  # 当前页面，主要为了login_required做跳转用
         'LOGIN_URL': settings.LOGIN_URL,  # 登录链接
         'RUN_MODE': settings.RUN_MODE,  # 运行模式
