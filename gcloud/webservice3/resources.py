@@ -18,24 +18,24 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from haystack.query import SearchQuerySet
 from tastypie import fields
-from tastypie.validation import FormValidation
-from tastypie.constants import ALL
-from tastypie.exceptions import NotFound, ImmediateHttpResponse
-from tastypie.resources import ModelResource
-from tastypie.exceptions import BadRequest
 from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.constants import ALL
+from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
 from tastypie.http import HttpForbidden
+from tastypie.resources import ModelResource
+from tastypie.validation import FormValidation
 
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization, BkSaaSReadOnlyAuthorization
 from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
-
-from pipeline.component_framework.library import ComponentLibrary
-from pipeline.component_framework.models import ComponentModel
-from pipeline.variable_framework.models import VariableModel
-from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+from auth_backend.plugins.utils import get_authorized_project_ids
 from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.core.permissions import project_resource
 from gcloud.webservice3.serializers import AppSerializer
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+from pipeline.component_framework.library import ComponentLibrary
+from pipeline.component_framework.models import ComponentModel
+from pipeline.variable_framework.models import VariableModel
+
 
 logger = logging.getLogger('root')
 
@@ -295,6 +295,28 @@ class CommonProjectResource(GCloudModelResource):
         }
         q_fields = ['id', 'username', 'count']
 
+    def get_default_projects(self, empty_query, username):
+        """初始化并返回用户有权限的项目"""
+
+        project_ids = get_authorized_project_ids(username)
+        if not len(project_ids):
+            return empty_query
+
+        # 初始化2个默认常用业务
+        ProjectCounter.objects.bulk_create([
+            ProjectCounter(username=username, project_id=project_id)
+            for project_id in project_ids[:2]
+        ])
+
+        return ProjectCounter.objects.filter(project_id__in=project_ids[:2])
+
     def get_object_list(self, request):
+
         query = super(GCloudModelResource, self).get_object_list(request)
-        return query.filter(username=request.user.username)
+        query = query.filter(username=request.user.username)
+
+        # 第一次访问或无被授权的项目
+        if not query.exists():
+            return self.get_default_projects(query, request.user.username)
+
+        return query

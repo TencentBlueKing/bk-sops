@@ -14,12 +14,14 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import, unicode_literals
 
 import logging
+from builtins import str
 
 import six
-from builtins import str
 
 from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
 from blueapps.utils.cache import with_cache
+from gcloud.core.permissions import project_resource
+
 
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')
@@ -121,3 +123,30 @@ def search_instance_authorized_actions(
             authorized_actions.append(action_info['action_id'])
 
     return authorized_actions
+
+
+@with_cache(seconds=10,
+            prefix='{}get_authorized_projects'.format(CACHE_PREFIX),
+            ex=['username'])
+def get_authorized_project_ids(username):
+    """
+    @summary: 获取用户有权限的项目列表
+    """
+
+    authorized_projects = project_resource.backend.search_authorized_resources(
+        resource=project_resource,
+        principal_type=PRINCIPAL_TYPE_USER,
+        principal_id=username,
+        action_ids=['view'],
+    )
+
+    if not authorized_projects['result']:
+        logger.error("Get authorized projects error: {error}".format(
+            error=authorized_projects['message']
+        ))
+        return []
+
+    return list(
+        map(lambda ap: ap[0]['resource_id'],
+            authorized_projects['data'][0]['resource_ids'])
+    )
