@@ -302,10 +302,10 @@ class CommonProjectResource(GCloudModelResource):
         if not len(project_ids):
             return empty_query
 
-        # 初始化2个默认常用业务
+        # 初始化用户有权限的项目
         ProjectCounter.objects.bulk_create([
             ProjectCounter(username=username, project_id=project_id)
-            for project_id in project_ids[:2]
+            for project_id in project_ids
         ])
 
         return ProjectCounter.objects.filter(project_id__in=project_ids[:2])
