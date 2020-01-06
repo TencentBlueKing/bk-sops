@@ -14,7 +14,7 @@
         <div v-if="formMode">
             <el-input
                 type="password"
-                :disabled="!editable"
+                :disabled="!editable || disabled"
                 :placeholder="i18n.placeholder"
                 v-model="password"
                 @focus="clearPassword"
@@ -33,6 +33,12 @@
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用组件')
+        },
         value: {
             type: [String, Boolean],
             required: false,

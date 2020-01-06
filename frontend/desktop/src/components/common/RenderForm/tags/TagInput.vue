@@ -16,7 +16,7 @@
                 <el-input
                     type="text"
                     v-model="inputValue"
-                    :disabled="!editable"
+                    :disabled="!editable || disabled"
                     :placeholder="placeholder"
                     @input="onInput">
                 </el-input>
@@ -53,6 +53,12 @@
             required: false,
             default: '',
             desc: 'placeholder'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: gettext('禁用表单输入')
         },
         value: {
             type: String,

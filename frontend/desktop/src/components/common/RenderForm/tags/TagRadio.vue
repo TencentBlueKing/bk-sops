@@ -14,7 +14,7 @@
         <div v-if="formMode">
             <el-radio-group v-model="checkedValue">
                 <div class="radio-item" v-for="item in items" :key="item.name">
-                    <el-radio :label="item.value" :disabled="!editable">{{item.name}}</el-radio>
+                    <el-radio :label="item.value" :disabled="!editable || disabled">{{item.name}}</el-radio>
                 </div>
             </el-radio-group>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
@@ -47,6 +47,12 @@
                 ]
             },
             desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'disable radio'
         },
         value: {
             type: String,
