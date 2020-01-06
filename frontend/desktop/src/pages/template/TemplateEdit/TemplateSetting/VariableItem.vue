@@ -87,7 +87,7 @@
             <i
                 v-if="!isSystemVar"
                 class="col-item-delete common-icon-dark-circle-close"
-                @click.stop="onDeleteVariable(constant.key, index)">
+                @click.stop="onDeleteVariable(constant.key, constant.index)">
             </i>
         </div>
         <div

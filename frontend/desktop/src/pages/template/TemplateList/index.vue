@@ -230,14 +230,11 @@
                                         :to="getJumpUrl('newTask', props.row.id)">
                                         {{i18n.newTemplate}}
                                     </router-link>
-                                    <bk-dropdown-menu>
-                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul class="bk-dropdown-list" slot="dropdown-content">
-                                            <li>
-                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
-                                            </li>
-                                        </ul>
-                                    </bk-dropdown-menu>
+                                    <router-link
+                                        class="template-operate-btn"
+                                        :to="getExecuteHistoryUrl(props.row.id)">
+                                        {{ i18n.executeHistory }}
+                                    </router-link>
                                 </template>
                                 <template v-else-if="common">
                                     <!-- 公共流程首页 -->
