@@ -75,9 +75,9 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         ip_list = cc_get_ip_list_by_biz_and_user(username=username, biz_cc_id=biz_cc_id, use_cache=use_cache)
         for ip_info in ip_list:
             set_dict = {s['bk_set_id']: s for s in ip_info['set']}
-            for module in ip_info['module']:
-                if '%s|%s|%s' % (set_dict[module['bk_set_id']]['bk_set_name'],
-                                 module['bk_module_name'],
+            for mod in ip_info['module']:
+                if '%s|%s|%s' % (set_dict[mod['bk_set_id']]['bk_set_name'],
+                                 mod['bk_module_name'],
                                  ip_info['host']['bk_host_innerip']) in set_module_ip:
                     ip_result.append({'InnerIP': ip_info['host']['bk_host_innerip'],
                                       'HostID': ip_info['host']['bk_host_id'],
