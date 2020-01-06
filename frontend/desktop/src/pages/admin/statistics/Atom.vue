@@ -81,7 +81,8 @@
                         :data="tableData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
-                        @page-change="handlePageChange">
+                        @page-change="handlePageChange"
+                        @page-limit-change="handlePageLimitChange">
                         <bk-table-column
                             v-for="item in tableColumn[activeTab]"
                             :key="item.prop"
@@ -284,8 +285,7 @@
                 pagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15],
-                    'show-limit': false,
+                    'limit-list': [15, 20, 30],
                     limit: 15
                 },
                 i18n: {
@@ -430,6 +430,11 @@
             },
             handlePageChange (val) {
                 this.pagination.current = val
+                this.getTableData()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
                 this.getTableData()
             }
         }
