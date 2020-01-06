@@ -17,7 +17,7 @@
                 type="datetime"
                 format="yyyy-MM-dd HH:mm:ss"
                 value-format="yyyy-MM-dd HH:mm:ss"
-                :disabled="!editable"
+                :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </el-date-picker>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
@@ -36,10 +36,16 @@
             default: gettext('请选择日期时间'),
             desc: 'placeholder'
         },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用选择器')
+        },
         value: {
             type: String,
             required: false,
-            default: ''
+            default: gettext('选中的时间')
         }
     }
     export default {

@@ -14,7 +14,7 @@
         <div v-if="formMode">
             <el-checkbox-group v-model="checkedValue">
                 <div class="checkbox-item" v-for="item in items" :key="item.name">
-                    <el-checkbox :label="item.value" :disabled="!editable">{{item.name}}</el-checkbox>
+                    <el-checkbox :label="item.value" :disabled="!editable || disabled">{{item.name}}</el-checkbox>
                 </div>
             </el-checkbox-group>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
@@ -31,6 +31,12 @@
             type: Array,
             required: true,
             desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
+        },
+        disabled: {
+            type: Array,
+            required: false,
+            default: false,
+            desc: 'disable checkbox'
         },
         value: {
             type: [Array, String],

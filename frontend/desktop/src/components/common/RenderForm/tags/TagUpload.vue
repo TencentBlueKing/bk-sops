@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-upload">
-        <div v-if="editable">
+        <div v-if="formMode">
             <el-upload
                 ref="upload"
                 :action="url"
@@ -19,6 +19,7 @@
                 :limit="limit"
                 :auto-upload="auto_upload"
                 :headers="headers"
+                :disabled="!editable || disabled"
                 :on-success="handleSuccess.bind(this)"
                 :on-remove="handleRemove.bind(this)"
                 :on-error="handleError.bind(this)"
@@ -78,6 +79,12 @@
             required: false,
             default: 100,
             desc: 'max of files'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'disable upload'
         },
         placeholder: {
             type: String,

@@ -14,7 +14,7 @@
         <div v-if="formMode && typeof ipValue === 'object'" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
-                :editable="editable"
+                :editable="editable && !disabled"
                 :is-multiple="isMultiple"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
@@ -39,6 +39,12 @@
             required: false,
             default: true,
             desc: 'checkbox or radio'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用组件')
         },
         value: {
             type: [Object, String],
