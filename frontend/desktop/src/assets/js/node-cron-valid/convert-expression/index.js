@@ -1,11 +1,10 @@
 /* eslint-disable */
 'use strict';
-
-var monthNamesConversion = require('./month-names-conversion');
-var weekDayNamesConversion = require('./week-day-names-conversion');
-var convertAsterisksToRanges = require('./asterisk-to-range-conversion');
-var convertRanges = require('./range-conversion');
-var convertSteps = require('./step-values-conversion');
+import monthNamesConversion from './month-names-conversion'
+import weekDayNamesConversion from './week-day-names-conversion'
+import convertAsterisksToRanges from './asterisk-to-range-conversion'
+import convertRanges from './range-conversion'
+import convertSteps from './step-values-conversion'
 
 export default (() => {
 
