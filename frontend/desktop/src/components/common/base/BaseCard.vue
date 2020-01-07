@@ -11,19 +11,22 @@
 */
 <template>
     <li
-        :class="['card-item', {
-            'permission-disable': isApplyPermission
-        }]"
+        :class="[
+            'card-item',
+            { 'permission-disable': isApplyPermission },
+            { 'selected': selected }]"
         @click="onCardClick">
-        <div v-if="!iconText" class="card-icon">
+        <div
+            v-if="!iconText"
+            class="card-icon">
             {{ displayName.trim().substr(0,1).toUpperCase() }}
         </div>
-        <div v-else
+        <div
+            v-else
             :class="[
                 'card-icon',
                 'type-icon',
-                { 'zh-en': lang === 'en' }
-            ]">
+                { 'zh-en': lang === 'en' }]">
             {{ iconText }}
         </div>
         <div class="card-content">
@@ -46,6 +49,10 @@
                 default: () => ({})
             },
             isApplyPermission: {
+                type: Boolean,
+                default: false
+            },
+            selected: {
                 type: Boolean,
                 default: false
             },
@@ -100,7 +107,7 @@
     cursor: pointer;
     background: #f0f1f5;
     border-radius: 2px;
-    &:not(.permission-disable):hover {
+    &:not(.permission-disable, .selected):hover {
         .card-icon {
             background: #b9bbc1;
         }
@@ -129,7 +136,7 @@
             padding: 8px;
         }
         &.zh-en {
-            font-size: 12px;
+            font-size: 14px;
         }
     }
     .card-content {
@@ -180,6 +187,23 @@
             display: block;
         }
     }
+    &.selected {
+        .card-icon {
+            background: #666a7c;
+        }
+        .text, .card-content {
+            background: #838799;
+            color: #ffffff;
+            &:after {
+                background: #838799;
+            }
+        }
+        &:hover {
+            .text::after {
+                background: #838799;
+            }
+        }
+    }
     &:hover {
         .card-delete {
             display: block;
@@ -200,7 +224,9 @@
         position: absolute;
         right: -8px;
         top: -8px;
+        font-size: 16px;
         color: #838799;
+        background: #ffffff;
         border-radius: 50%;
         border: 2px solid #ffffff;
     }
