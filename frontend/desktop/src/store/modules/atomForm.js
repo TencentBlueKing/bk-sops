@@ -19,22 +19,11 @@ const META_FORM_TYPE = {
 const atomForm = {
     namespaced: true,
     state: {
-        fetching: false,
-        SingleAtomVersionMap: {},
         form: {},
-        config: {
-        },
+        config: {},
         output: {}
     },
-    getters: {
-        SingleAtomVersionMap (state) {
-            return state.SingleAtomVersionMap
-        }
-    },
     mutations: {
-        setFetching (state, status) {
-            state.fetching = status
-        },
         setAtomForm (state, payload) {
             const atomType = payload.isMeta ? META_FORM_TYPE[payload.atomType] : payload.atomType
             const action = {}
@@ -73,7 +62,7 @@ const atomForm = {
             }
         },
         setVersionMap (state, payload) {
-            state.SingleAtomVersionMap = payload
+            state.atomVersionMap = payload
         },
         clearAtomForm (state, payload) {
             $.atoms = {}
@@ -83,6 +72,24 @@ const atomForm = {
         }
     },
     actions: {
+        /**
+         * 加载全量标准插件
+         */
+        loadSingleAtomList ({ commit }) {
+            return api.getSingleAtomList().then(response => response.data.objects)
+        },
+        /**
+         * 加载全量子流程
+         */
+        loadSubflowList ({ commit }, data) {
+            return api.getSubAtomList(data).then(response => response.data.objects)
+        },
+        /**
+         * 加载标准插件统计数据
+         */
+        queryAtomData ({ commit }, data) {
+            return api.queryAtom(data).then(response => response.data)
+        },
         /**
          * 加载标准插件配置项
          * @param {String} payload.atomType 节点类型
@@ -118,6 +125,12 @@ const atomForm = {
                 })
             })
         },
+        /**
+         * 加载子流程参数详情
+         * @param {String} payload.templateId 模板id
+         * @param {String} payload.version 模板版本
+         * @param {String} payload.common 是否为公共流程
+         */
         loadSubflowConfig ({ commit }, payload) {
             const { templateId, version, common } = payload
             return api.getFormByTemplateId(templateId, version, common).then(

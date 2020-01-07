@@ -440,7 +440,7 @@
              */
             setOutputParams (val, oldVal) {
                 const specialAtom = 'job_execute_task'
-                const version = this.atomForm.SingleAtomVersionMap[specialAtom]
+                const version = this.atomForm.atomVersionMap[specialAtom]
                 if (Array.isArray(this.value)) {
                     const atomOutput = this.atomForm.form[specialAtom][version].output.slice(0)
                     this.value.forEach(item => {

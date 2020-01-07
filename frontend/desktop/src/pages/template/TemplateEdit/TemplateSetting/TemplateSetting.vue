@@ -238,16 +238,14 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .setting-area-wrap {
-    position: absolute;
-    top: 59px;
-    right: 0px;
-    height: calc(100% - 50px);
-    z-index: 4;
+    float: right;
+    height: 100%;
 }
 .setting-tab-wrap {
-    position: absolute;
-    top: 0px;
-    right: 0px;
+    // position: absolute;
+    // top: 0px;
+    // right: 0px;
+    float: right;
     padding: 15px 0;
     width: 56px;
     height: 100%;
@@ -287,9 +285,10 @@
     }
 }
 .setting-panel {
-    position: absolute;
-    top: 0px;
-    right: 56px;
+    // position: absolute;
+    // top: 0px;
+    // right: 56px;
+    float: right;
     width: 420px;
     height: 100%;
     background: $whiteDefault;

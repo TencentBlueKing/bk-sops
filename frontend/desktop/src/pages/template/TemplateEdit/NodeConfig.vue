@@ -359,7 +359,7 @@
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormOutput': state => state.atomForm.output,
                 'subprocessInfo': state => state.template.subprocess_info,
-                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
+                'atomVersionMap': state => state.atomForm.atomVersionMap
             }),
             /**
              * 标准插件节点、子节点列表
@@ -584,7 +584,7 @@
                     this.getNodeFormData() // get template activity information
                     if (this.isSingleAtom) {
                         const component = this.nodeConfigData.component
-                        const version = component.version || this.SingleAtomVersionMap[component.code]
+                        const version = component.version || this.atomVersionMap[component.code]
                         if (version) {
                             this.getConfig(this.nodeConfigData.component.version)
                             this.currentVersion = version
@@ -1022,7 +1022,7 @@
             },
             onAtomSelect (id, data) {
                 this.isAtomChanged = true
-                const currentAtomlastVeriosn = this.SingleAtomVersionMap[id]
+                const currentAtomlastVeriosn = this.atomVersionMap[id]
                 let nodeName
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.currentAtom = id

@@ -51,10 +51,10 @@
                 @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
-            <NodeConfig
+            <!-- <NodeConfig
                 ref="nodeConfig"
-                :project_id="project_id"
                 v-show="isNodeConfigPanelShow"
+                :project_id="project_id"
                 :template_id="template_id"
                 :single-atom="singleAtom"
                 :sub-atom="subAtom"
@@ -65,38 +65,46 @@
                 @hideConfigPanel="hideConfigPanel"
                 @globalVariableUpdate="globalVariableUpdate"
                 @onUpdateNodeInfo="onUpdateNodeInfo">
-            </NodeConfig>
-            <ConditionEdit
-                ref="conditionEdit"
-                :condition-data="conditionData"
-                :is-setting-panel-show="isSettingPanelShow"
-                :is-show-condition-edit="isShowConditionEdit"
-                v-show="isShowConditionEdit"
-                @onCloseConditionEdit="onCloseConditionEdit">
-            </ConditionEdit>
-            <TemplateSetting
-                ref="templateSetting"
-                :draft-array="draftArray"
-                :is-global-variable-update="isGlobalVariableUpdate"
-                :project-info-loading="projectInfoLoading"
-                :is-template-config-valid="isTemplateConfigValid"
-                :is-setting-panel-show="isSettingPanelShow"
-                :variable-type-list="variableTypeList"
-                :local-template-data="localTemplateData"
-                :is-click-draft="isClickDraft"
-                @toggleSettingPanel="toggleSettingPanel"
-                @globalVariableUpdate="globalVariableUpdate"
-                @onDeleteConstant="onDeleteConstant"
-                @variableDataChanged="variableDataChanged"
-                @onSelectCategory="onSelectCategory"
-                @onDeleteDraft="onDeleteDraft"
-                @onReplaceTemplate="onReplaceTemplate"
-                @onNewDraft="onNewDraft"
-                @updateLocalTemplateData="updateLocalTemplateData"
-                @modifyTemplateData="modifyTemplateData"
-                @hideConfigPanel="hideConfigPanel"
-                @updataConditionData="updataConditionData">
-            </TemplateSetting>
+            </NodeConfig> -->
+            <div class="side-content">
+                <node-config
+                    v-if="isNodeConfigPanelShow"
+                    :node-id="idOfNodeInConfigPanel"
+                    :atom-list="atomList"
+                    :subflow-list="subflowList">
+                </node-config>
+                <ConditionEdit
+                    ref="conditionEdit"
+                    v-show="isShowConditionEdit"
+                    :condition-data="conditionData"
+                    :is-setting-panel-show="isSettingPanelShow"
+                    :is-show-condition-edit="isShowConditionEdit"
+                    @onCloseConditionEdit="onCloseConditionEdit">
+                </ConditionEdit>
+                <TemplateSetting
+                    ref="templateSetting"
+                    :draft-array="draftArray"
+                    :is-global-variable-update="isGlobalVariableUpdate"
+                    :project-info-loading="projectInfoLoading"
+                    :is-template-config-valid="isTemplateConfigValid"
+                    :is-setting-panel-show="isSettingPanelShow"
+                    :variable-type-list="variableTypeList"
+                    :local-template-data="localTemplateData"
+                    :is-click-draft="isClickDraft"
+                    @toggleSettingPanel="toggleSettingPanel"
+                    @globalVariableUpdate="globalVariableUpdate"
+                    @onDeleteConstant="onDeleteConstant"
+                    @variableDataChanged="variableDataChanged"
+                    @onSelectCategory="onSelectCategory"
+                    @onDeleteDraft="onDeleteDraft"
+                    @onReplaceTemplate="onReplaceTemplate"
+                    @onNewDraft="onNewDraft"
+                    @updateLocalTemplateData="updateLocalTemplateData"
+                    @modifyTemplateData="modifyTemplateData"
+                    @hideConfigPanel="hideConfigPanel"
+                    @updataConditionData="updataConditionData">
+                </TemplateSetting>
+            </div>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -125,7 +133,7 @@
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
-    import NodeConfig from './NodeConfig.vue'
+    import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
@@ -181,6 +189,8 @@
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
+                atomList: [],
+                subflowList: [],
                 subAtomGrouped: [],
                 draftArray: [],
                 intervalSaveTemplate: null,
@@ -217,9 +227,6 @@
         },
         computed: {
             ...mapState({
-                'singleAtom': state => state.atomList.singleAtom,
-                'subAtom': state => state.atomList.subAtom,
-                'searchAtomResult': state => state.atomList.searchAtomResult,
                 'atomConfig': state => state.atomForm.config,
                 'name': state => state.template.name,
                 'activities': state => state.template.activities,
@@ -231,17 +238,12 @@
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
-                'site_url': state => state.site_url,
-                'atomFormConfig': state => state.atomForm.config,
-                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
+                'site_url': state => state.site_url
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
                 'project_id': state => state.project_id
             }),
-            ...mapGetters('atomList/', [
-                'singleAtomGrouped'
-            ]),
             atomTypeList () {
                 const subAtomGrouped = tools.deepClone(this.subAtomGrouped)
                 if (this.type !== 'new') {
@@ -260,7 +262,7 @@
                     })
                 }
                 return {
-                    'tasknode': this.singleAtomGrouped,
+                    'tasknode': this.atomList,
                     'subflow': subAtomGrouped
                 }
             },
@@ -280,7 +282,7 @@
                     lines: this.lines,
                     locations: this.locations.map(location => {
                         let icon, group, code
-                        const atom = this.singleAtom.find(item => {
+                        const atom = this.atomList.find(item => {
                             if (location.type === 'tasknode') {
                                 return this.activities[location.id].component.code === item.code
                             }
@@ -360,10 +362,6 @@
             this.resetTemplateData()
         },
         methods: {
-            ...mapActions('atomList/', [
-                'loadSingleAtomList',
-                'loadSubAtomList'
-            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
                 'loadTemplateData',
@@ -374,13 +372,10 @@
                 'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
+                'loadSingleAtomList',
+                'loadSubflowList',
                 'loadAtomConfig',
                 'loadSubflowConfig'
-            ]),
-            ...mapMutations('atomList/', [
-                'setSingleAtom',
-                'setSubAtom',
-                'searchAtom'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -402,8 +397,7 @@
                 'setPipelineTree'
             ]),
             ...mapMutations('atomForm/', [
-                'clearAtomForm',
-                'setVersionMap'
+                'clearAtomForm'
             ]),
             ...mapGetters('template/', [
                 'getLocalTemplateData',
@@ -413,8 +407,23 @@
                 this.singleAtomListLoading = true
                 try {
                     const data = await this.loadSingleAtomList()
-                    this.setSingleAtom(data)
-                    this.updateStoreVersionMap(data)
+                    const atomList = []
+                    data.forEach(item => {
+                        const atom = atomList.find(atom => atom.code === item.code)
+                        if (atom) {
+                            atom.list.push(item)
+                        } else {
+                            atomList.push({
+                                code: item.code,
+                                type: item.group_name,
+                                group_name: item.group_name,
+                                group_icon: item.group_icon,
+                                name: item.name,
+                                list: [item]
+                            })
+                        }
+                    })
+                    this.atomList = atomList
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -424,26 +433,26 @@
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(data)
-                    const subAtomData = {
-                        project_id: this.project_id,
-                        common: this.common,
-                        templateId: this.template_id
-                    }
-                    this.getSubAtomList(subAtomData)
+                    const resp = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(resp)
+                    this.getSubflowList()
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.projectInfoLoading = false
                 }
             },
-            async getSubAtomList (subAtomData) {
+            async getSubflowList () {
                 this.subAtomListLoading = true
                 try {
-                    const data = await this.loadSubAtomList(subAtomData)
-                    this.setSubAtom(data)
-                    this.handleSubflowGroup()
+                    const data = {
+                        project_id: this.project_id,
+                        common: this.common,
+                        templateId: this.template_id
+                    }
+                    const resp = await this.loadSubflowList(data)
+                    this.subflowList = resp
+                    this.handleSubflowGroup(resp)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -498,17 +507,22 @@
                     this.templateDataLoading = false
                 }
             },
+            /**
+             * 新增节点时取输入参数配置项
+             * 优先取 store 里已保存的
+             */
             async getSingleAtomConfig (location) {
                 const atomType = location.atomId
-                const version = this.SingleAtomVersionMap[atomType]
-                if (this.atomConfig[atomType] && this.atomConfig[atomType][version]) {
-                    this.addSingleAtomActivities(location, this.atomConfig[atomType][version])
+                const atomConfig = this.atomConfig[atomType]
+                if (atomConfig) {
+                    // @todo 和后台确认插件版本最新的逻辑，暂时取第一个
+                    this.addSingleAtomActivities(location, atomConfig[0])
                     return
                 }
                 // 接口获取最新配置信息
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType, version })
+                    await this.loadAtomConfig({ atomType })
                     this.addSingleAtomActivities(location, $.atoms[atomType])
                 } catch (e) {
                     errorHandler(e, this)
@@ -526,10 +540,10 @@
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
+                        if (!atomFilter.isConfigExists(atomType, version, this.atomConfig)) {
                             await this.loadAtomConfig({ atomType, classify, saveName: atom })
                         }
-                        const atomConfig = this.atomFormConfig[atom][version]
+                        const atomConfig = this.atomConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                         if (currentFormConfig) {
@@ -601,8 +615,8 @@
                 this.setActivities({ type: 'edit', location: activities })
             },
             // 子流程分组
-            handleSubflowGroup () {
-                const primaryData = this.subAtom
+            handleSubflowGroup (data) {
+                const primaryData = data
                 const groups = []
                 const atomGrouped = []
                 this.projectBaseInfo.task_categories.forEach(item => {
@@ -740,16 +754,6 @@
                 this.onUpdateNodeInfo(id, { status: 'FAILED' })
             },
             /**
-             * 节点搜索
-             */
-            onSearchAtom (data) {
-                const payload = {
-                    ...data,
-                    exclude: this.type !== 'new' ? [Number(this.template_id)] : []
-                }
-                this.searchAtom(payload)
-            },
-            /**
              * 节点 Mousedown 回调
              */
             onNodeMousedown (id) {
@@ -768,9 +772,10 @@
                 })[0].type
                 if (nodeType === 'tasknode' || nodeType === 'subflow') {
                     if (this.isNodeConfigPanelShow) {
-                        this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
-                            this.showConfigPanel(id)
-                        })
+                        // this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
+                        //     this.showConfigPanel(id)
+                        // })
+                        this.showConfigPanel(id)
                     } else {
                         this.showConfigPanel(id)
                     }
@@ -1131,20 +1136,6 @@
             onSaveConditionData () {
                 return this.$refs.conditionEdit.checkCurrentConditionData()
             },
-            // 更新标准插件最新版本列表
-            updateStoreVersionMap (data) {
-                const actions = {}
-                data.forEach(atom => {
-                    const value = actions[atom.code]
-                    if (value) {
-                        if (value < atom.version || value === 'legacy') actions[atom.code] = atom.version
-                    } else {
-                        actions[atom.code] = atom.version
-                    }
-                    // actions[atom.code] = atom.version
-                })
-                this.setVersionMap(actions)
-            },
             // 流程模板数据编辑更新
             modifyTemplateData (data) {
                 this.templateDataLoading = true
@@ -1195,7 +1186,15 @@
         height: 100%;
     }
     .template-canvas {
+        position: relative;
         height: calc(100% - 60px);
+    }
+    .side-content {
+        position: absolute;
+        top: 59px;
+        right: 0px;
+        height: calc(100% - 60px);
+        z-index: 5;
     }
     .leave-tips {
         padding: 30px;
