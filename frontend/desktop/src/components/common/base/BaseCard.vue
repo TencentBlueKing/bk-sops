@@ -16,9 +16,7 @@
             { 'permission-disable': isApplyPermission },
             { 'selected': selected }]"
         @click="onCardClick">
-        <div
-            v-if="!iconText"
-            class="card-icon">
+        <div v-if="!iconText" class="card-icon">
             {{ displayName.trim().substr(0,1).toUpperCase() }}
         </div>
         <div
