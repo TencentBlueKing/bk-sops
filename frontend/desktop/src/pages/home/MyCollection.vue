@@ -277,7 +277,7 @@
                     return
                 }
                 const cardView = document.querySelector('.my-collection .card-list').offsetWidth
-                const cardItemW = document.querySelector('.common-used .card-list .card-item').offsetWidth
+                const cardItemW = document.querySelector('.my-collection .card-list .card-item').offsetWidth
                 this.limit = Math.floor(cardView / cardItemW)
             }
         }
