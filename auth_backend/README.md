@@ -39,7 +39,7 @@ BK_IAM_QUERY_INTERFACE = '' # 权限中心获取资源接口，目前填空即�
 BK_IAM_RELATED_SCOPE_TYPES = 'system' # 系统关联的作用域类型，多个作用域用 ; 分隔
 BK_IAM_SYSTEM_MANAGERS = 'admin' # 系统管理员，多个管理员用 ; 分隔
 BK_IAM_SYSTEM_CREATOR = 'admin' # 系统创建者
-BK_IAM_HOST = os.getenv('BK_IAM_HOST', '') # 权限中心的 HOST
+BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', '') # 权限中心的 HOST
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app') # 权限中心的 APP CODE
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BkIAMBackend') # 使用的鉴权后端类，默认使用权限中心作为鉴权后端
 ```

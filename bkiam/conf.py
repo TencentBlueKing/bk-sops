@@ -18,7 +18,7 @@ try:
     SECRET_KEY = settings.SECRET_KEY
     SYSTEM_ID = getattr(settings, 'BK_IAM_SYSTEM_ID', APP_CODE)
     SYSTEM_NAME = getattr(settings, 'BK_IAM_SYSTEM_NAME', APP_CODE)
-    BK_IAM_HOST = getattr(settings, 'BK_IAM_HOST', '')
+    BK_IAM_INNER_HOST = getattr(settings, 'BK_IAM_INNER_HOST', '')
     BK_IAM_API_VERSION = getattr(settings, 'BK_IAM_API_VERSION', 'v1')
 
 except Exception:
@@ -26,5 +26,5 @@ except Exception:
     SECRET_KEY = ''
     SYSTEM_ID = ''
     SYSTEM_NAME = ''
-    BK_IAM_HOST = ''
+    BK_IAM_INNER_HOST = ''
     BK_IAM_API_VERSION = 'v1'

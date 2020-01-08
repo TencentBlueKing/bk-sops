@@ -54,6 +54,10 @@ def mysetting(request):
         'MEDIA_URL': settings.MEDIA_URL,  # MEDIA_URL
         'STATIC_URL': settings.STATIC_URL,  # 本地静态文件访问
         'BK_PAAS_HOST': settings.BK_PAAS_HOST,
+        'BK_CC_HOST': settings.BK_CC_HOST,
+        'BK_JOB_HOST': settings.BK_JOB_HOST,
+        'BK_IAM_HOST': settings.BK_IAM_HOST,
+        'BK_USER_MANAGE_HOST': settings.BK_USER_MANAGE_HOST,
         'APP_PATH': request.get_full_path(),  # 当前页面，主要为了login_required做跳转用
         'LOGIN_URL': settings.LOGIN_URL,  # 登录链接
         'RUN_MODE': settings.RUN_MODE,  # 运行模式
@@ -78,7 +82,6 @@ def mysetting(request):
         'NICK': request.user.username,  # 用户昵称
         'AVATAR': request.session.get('avatar', ''),  # 用户头像
         'CUR_POS': cur_pos,
-        'BK_CC_HOST': settings.BK_CC_HOST,
         'RSA_PUB_KEY': settings.RSA_PUB_KEY,
         'STATIC_VER': settings.STATIC_VER[settings.RUN_MODE],
 

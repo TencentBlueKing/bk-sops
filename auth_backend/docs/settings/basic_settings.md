@@ -65,14 +65,14 @@ BK_IAM_SYSTEM_MANAGERS = 'admin'
 BK_IAM_SYSTEM_CREATOR = 'admin'
 ```
 
-## BK_IAM_HOST
+## BK_IAM_INNER_HOST
 
 权限中心的 HOST。
 
 示例：
 
 ```python
-BK_IAM_HOST = 'http://bkiamhost.consul'
+BK_IAM_INNER_HOST = 'http://bkiamhost.consul'
 ```
 
 ## BK_IAM_APP_CODE
