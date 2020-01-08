@@ -125,16 +125,16 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                    :label="i18n.start_time"
+                    :label="i18n.startTime"
                     prop="start_time">
                 </el-table-column>
                 <el-table-column
-                    :label="i18n.finish_time"
+                    :label="i18n.finishTime"
                     prop="finish_time">
                 </el-table-column>
                 <el-table-column
                     :width="'100'"
-                    :label="i18n.last_time"
+                    :label="i18n.lastTime"
                     prop="last_time">
                 </el-table-column>
             </el-table>
