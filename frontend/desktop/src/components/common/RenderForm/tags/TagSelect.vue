@@ -17,7 +17,7 @@
                 v-loading="loading"
                 clearable
                 filterable
-                :disabled="!selectEditable"
+                :disabled="!editable || disabled"
                 :remote="remote"
                 :multiple-limit="multiple_limit"
                 :multiple="multiple"
@@ -151,9 +151,6 @@
             }
         },
         computed: {
-            selectEditable () {
-                return this.editable && !this.disabled
-            },
             seletedValue: {
                 get () {
                     return this.value
