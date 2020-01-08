@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -325,7 +325,13 @@ def node_callback(request, token):
             'message': 'invalid request body'
         }, status=400)
 
-    return JsonResponse(TaskFlowInstance.objects.callback(node_id, callback_data))
+    callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
+    logger.info('result of callback call({}): {}'.format(
+        token,
+        callback_result
+    ))
+
+    return JsonResponse(callback_result)
 
 
 def get_taskflow_root_context(request, taskflow_id):

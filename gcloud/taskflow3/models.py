@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -743,6 +743,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         try:
             result = pipeline_api.activity_callback(activity_id=act_id, callback_data=data)
         except Exception as e:
+            logger.error('node({}) callback with data({}) error: {}'.format(
+                act_id,
+                data,
+                traceback.format_exc()
+            ))
             return {
                 'result': False,
                 'message': e.message
@@ -1205,7 +1210,9 @@ class TaskFlowInstance(models.Model):
                 if node_id == act_id:
                     return node_info
                 elif node_info['type'] == 'SubProcess':
-                    return get_act_of_pipeline(node_info['pipeline'])
+                    act = get_act_of_pipeline(node_info['pipeline'])
+                    if act:
+                        return act
 
         return get_act_of_pipeline(self.pipeline_tree)
 

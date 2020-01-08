@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -250,7 +250,7 @@
                         const schemeId = Number(appmakerData.template_scheme_id)
                         schemeId && this.onSelectScheme(schemeId)
                     }
-                
+
                     this.setTaskScheme(schemeData)
                     this.setTemplateData(templateData)
                     this.modifySelectedLocation()
@@ -484,11 +484,11 @@
                     if (!this.isPreview) {
                         await this.getPreviewNodeData(this.template_id)
                     }
-                
+
                     this.$emit('setExcludeNode', excludeNode)
                     this.updateSelectedLocation()
                     this.$emit('setPreviewData', this.pipelineData)
-                
+
                     this.loading = false
                     if (this.viewMode === 'appmaker') {
                         if (this.common) {
@@ -658,7 +658,7 @@
                                 if (lastLineSourceIndex !== -1) {
                                     line.splice(lastLineSourceIndex, 1)
                                 }
-                            
+
                                 if (frontLineSourceIndex === -1 && lastLineTargetIndex === -1 && lastLineSourceIndex === -1) {
                                     break
                                 }
