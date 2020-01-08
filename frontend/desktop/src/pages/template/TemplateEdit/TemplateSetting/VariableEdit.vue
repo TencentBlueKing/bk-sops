@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -379,7 +379,7 @@
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-                
+
                 const atomConfig = this.atomFormConfig[atom]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
@@ -493,7 +493,7 @@
                 return this.$validator.validateAll().then(result => {
                     let formValid = true
                     const constantsLength = Object.keys(this.constants).length
-                    
+
                     // 名称、key等校验，renderform表单校验
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
@@ -514,14 +514,14 @@
                     } else {
                         varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
                     }
-                    
+
                     // 变量key值格式统一
                     if (!/^\$\{\w+\}$/.test(variable.key)) {
                         variable.key = '${' + variable.key + '}'
                     }
 
                     this.theEditingData.value = varValue['customVariable']
-                    
+
                     this.$emit('onChangeEdit', false)
 
                     if (this.isNewVariable) { // 新增变量
