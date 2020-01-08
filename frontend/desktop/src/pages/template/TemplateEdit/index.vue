@@ -358,6 +358,7 @@
         beforeDestroy () {
             window.onbeforeunload = null
             this.resetTemplateData()
+            this.hideGuideTips()
         },
         methods: {
             ...mapActions('atomList/', [
@@ -1153,16 +1154,21 @@
                     this.templateDataLoading = false
                 })
             },
-            handlerGuideTip () {
+            handlerGuideTips () {
                 if (this.type === 'new') {
                     const config = this.nodeGuideConfig
-                    const guide = new Guide(config)
-                    guide.mount(document.querySelector('.task-node'))
-                    guide.instance.show(1000)
+                    this.nodeGuide = new Guide(config)
+                    this.nodeGuide.mount(document.querySelector('.task-node'))
+                    this.nodeGuide.instance.show(1000)
+                }
+            },
+            hideGuideTips () {
+                if (this.nodeGuide) {
+                    this.nodeGuide.instance.hide()
                 }
             },
             canvasMounted () {
-                this.handlerGuideTip()
+                this.handlerGuideTips()
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
