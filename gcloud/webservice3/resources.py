@@ -18,21 +18,21 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from haystack.query import SearchQuerySet
 from tastypie import fields
-from tastypie.validation import FormValidation
-from tastypie.constants import ALL
-from tastypie.exceptions import NotFound, ImmediateHttpResponse
-from tastypie.resources import ModelResource
-from tastypie.exceptions import BadRequest
 from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.constants import ALL
+from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
 from tastypie.http import HttpForbidden
+from tastypie.resources import ModelResource
+from tastypie.validation import FormValidation
 
+from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization, BkSaaSReadOnlyAuthorization
 from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
-
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
-from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+
 from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.core.permissions import project_resource
 from gcloud.webservice3.serializers import AppSerializer
@@ -129,7 +129,7 @@ class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
 class BusinessResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = Business.objects.exclude(status='disabled') \
-                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")])
+            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")])
         authorization = ReadOnlyAuthorization()
         resource_name = 'business'
         detail_uri_name = 'cc_id'
@@ -295,6 +295,45 @@ class CommonProjectResource(GCloudModelResource):
         }
         q_fields = ['id', 'username', 'count']
 
+    def get_default_projects(self, empty_query, username):
+        """初始化并返回用户有权限的项目"""
+
+        authorized_projects = project_resource.backend.search_authorized_resources(
+            resource=project_resource,
+            principal_type=PRINCIPAL_TYPE_USER,
+            principal_id=username,
+            action_ids=[project_resource.actions.view.id],
+        )
+
+        if not authorized_projects['result']:
+            logger.error("Get authorized projects error: {error}".format(
+                error=authorized_projects['message']
+            ))
+            project_ids = []
+        else:
+            project_ids = [
+                ap[0]['resource_id']
+                for ap in authorized_projects['data'][0]['resource_ids']
+            ]
+
+        if not len(project_ids):
+            return empty_query
+
+        # 初始化用户有权限的项目
+        ProjectCounter.objects.bulk_create([
+            ProjectCounter(username=username, project_id=project_id)
+            for project_id in project_ids
+        ])
+
+        return ProjectCounter.objects.filter(project_id__in=project_ids)
+
     def get_object_list(self, request):
+
         query = super(GCloudModelResource, self).get_object_list(request)
-        return query.filter(username=request.user.username)
+        query = query.filter(username=request.user.username)
+
+        # 第一次访问或无被授权的项目
+        if not query.exists():
+            query = self.get_default_projects(query, request.user.username)
+
+        return query
