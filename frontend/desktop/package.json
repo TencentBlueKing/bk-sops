@@ -14,7 +14,7 @@
     "ajv": "^6.10.2",
     "art-template": "^4.13.0",
     "axios": "^0.18.0",
-    "bk-magic-vue": "2.1.4",
+    "bk-magic-vue": "2.1.8",
     "element-ui": "^2.4.1",
     "file-saver": "^2.0.2",
     "jquery": "^3.3.1",

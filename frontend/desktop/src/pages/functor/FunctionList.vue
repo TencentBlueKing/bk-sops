@@ -504,7 +504,7 @@
                     this.template.loading = false
                 }
             },
-            onSelectedBusiness (id, data) {
+            onSelectedBusiness (id) {
                 this.business.id = id
                 this.getTemplateList()
                 this.business.empty = false

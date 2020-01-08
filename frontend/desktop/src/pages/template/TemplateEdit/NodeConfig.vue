@@ -1020,8 +1020,10 @@
                     }
                 })
             },
-            onAtomSelect (id, data) {
+            onAtomSelect (id) {
                 this.isAtomChanged = true
+                const optionList = this.isSingleAtom ? this.atomList : this.subAtom
+                const data = optionList.find(option => option.id === id)
                 const currentAtomlastVeriosn = this.SingleAtomVersionMap[id]
                 let nodeName
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
