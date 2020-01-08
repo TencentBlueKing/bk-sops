@@ -15,6 +15,7 @@
             <el-cascader
                 v-model="seletedValue"
                 :options="items"
+                :disabled="!editable || disabled"
                 :props="{
                     multiple,
                     lazy,
@@ -124,6 +125,12 @@
                 return []
             },
             desc: gettext('级联选择器的选中值')
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用选择器')
         },
         multiple: {
             type: Boolean,

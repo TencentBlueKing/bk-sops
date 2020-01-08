@@ -15,7 +15,7 @@
             type="textarea"
             v-model="textareaValue"
             :class="{ 'rf-view-textarea-value': !formMode }"
-            :disabled="!editable || !formMode"
+            :disabled="!editable || !formMode || disabled"
             :autosize="formMode ? { minRows: 2 } : true"
             resize="none"
             :placeholder="placeholder">
@@ -32,6 +32,12 @@
             type: String,
             required: false,
             default: ''
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用组件')
         },
         placeholder: {
             type: String,

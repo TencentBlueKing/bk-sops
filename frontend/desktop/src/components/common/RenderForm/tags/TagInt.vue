@@ -16,7 +16,7 @@
                 :min="min"
                 :max="max"
                 :controls="false"
-                :disabled="!editable"
+                :disabled="!editable || disable"
                 :placeholder="placeholder"
                 v-model="intValue">
             </el-input-number>
@@ -38,11 +38,21 @@
         },
         min: {
             type: Number,
-            default: -Infinity
+            required: false,
+            default: -Infinity,
+            desc: gettext('最大值')
         },
         max: {
             type: Number,
-            default: Infinity
+            required: false,
+            default: Infinity,
+            desc: gettext('最小值')
+        },
+        disable: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用组件')
         },
         value: {
             type: [Number, String],
