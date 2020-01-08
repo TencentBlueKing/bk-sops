@@ -25,9 +25,8 @@
                 <div class="search-wrapper">
                     <bk-search-select
                         ref="bkSearchSelect"
-                        :filter="true"
                         :show-condition="false"
-                        :data="showFilterList"
+                        :data="searchOptionalList"
                         v-model="searchValue"
                         @change="onSearchChange">
                     </bk-search-select>
@@ -199,7 +198,7 @@
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
             }),
-            showFilterList: {
+            searchOptionalList: {
                 get () {
                     return this.filterList.map(m => {
                         if (m.id === 'project') {
@@ -370,26 +369,26 @@
                 const list = baseList.filter(m => (m.id && (m.id === 'type' || m.id === 'project')))
                 switch (list.length) {
                     case 0:
-                        this.showFilterList = toolsUtils.deepClone(FILTER_LIST)
+                        this.searchOptionalList = toolsUtils.deepClone(FILTER_LIST)
                         break
                     case 1:
                         const item = list[0]
                         // type
                         if (item.id === 'type') {
                             if (item.values[0].id === 'common') {
-                                this.showFilterList = []
+                                this.searchOptionalList = []
                                 break
                             }
-                            this.showFilterList = [toolsUtils.deepClone(FILTER_LIST[1])]
+                            this.searchOptionalList = [toolsUtils.deepClone(FILTER_LIST[1])]
                             break
                         }
                         // project
                         const fList = toolsUtils.deepClone(FILTER_LIST[0])
                         fList.children.splice(0, 1)
-                        this.showFilterList = [fList]
+                        this.searchOptionalList = [fList]
                         break
                     default:
-                        this.showFilterList = []
+                        this.searchOptionalList = []
                 }
             },
             // 搜索值改变
