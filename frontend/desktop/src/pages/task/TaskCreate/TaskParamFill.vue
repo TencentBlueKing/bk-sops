@@ -25,7 +25,7 @@
                             class="step-form-content-size"
                             name="taskName">
                         </bk-input>
-                        <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+                        <span v-show="errors.has('taskName')" class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
                 <div
