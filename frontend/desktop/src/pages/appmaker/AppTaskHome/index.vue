@@ -25,7 +25,8 @@
                     :data="appmakerList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange">
+                    @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
@@ -183,8 +184,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 statusList: [
                     { 'value': 'nonExecution', 'name': gettext('未执行') },
@@ -300,6 +300,11 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.getAppmakerList()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
                 this.getAppmakerList()
             }
         }

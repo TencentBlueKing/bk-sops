@@ -25,7 +25,8 @@
                         v-bkloading="{ isLoading: tplDataLoading, opacity: 1 }"
                         :data="tplData"
                         :pagination="tplPagination"
-                        @page-change="handlePageChange($event, 'tpl')">
+                        @page-change="handlePageChange($event, 'tpl')"
+                        @page-limit-change="handlePageLimitChange($event, 'tpl')">
                         <bk-table-column
                             v-for="col in tplListColumn"
                             :key="col.props"
@@ -92,7 +93,8 @@
                         v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }"
                         :data="taskData"
                         :pagination="taskPagination"
-                        @page-change="handlePageChange($event, 'task')">
+                        @page-change="handlePageChange($event, 'task')"
+                        @page-limit-change="handlePageLimitChange($event, 'task')">
                         <bk-table-column
                             v-for="col in taskListColumn"
                             :key="col.props"
@@ -281,15 +283,13 @@
                 tplPagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15],
-                    'show-limit': false,
+                    'limit-list': [15, 20, 30],
                     limit: 15
                 },
                 taskPagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15],
-                    'show-limit': false,
+                    'limit-list': [15, 20, 30],
                     limit: 15
                 },
                 i18n: {
@@ -497,6 +497,17 @@
                     this.getAdminTemplate()
                 } else {
                     this.taskPagination.current = val
+                    this.getAdminTask()
+                }
+            },
+            handlePageLimitChange (val, type) {
+                if (type === 'tpl') {
+                    this.tplPagination.limit = val
+                    this.tplPagination.current = 1
+                    this.getAdminTemplate()
+                } else {
+                    this.taskPagination.limit = val
+                    this.taskPagination.current = 1
                     this.getAdminTask()
                 }
             }
