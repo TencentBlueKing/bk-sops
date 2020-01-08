@@ -60,27 +60,15 @@
                                     {{group.name}}
                                     (<span class="list-count">{{group.children.length}}</span>)
                                 </h5>
-                                <ul>
-                                    <li
-                                        v-for="template in group.children"
-                                        :key="template.id"
-                                        :title="template.name"
-                                        :class="[
-                                            'template-item',
-                                            {
-                                                'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission(['export'], template.auth_actions, tplOperations)
-                                            }
-                                        ]"
-                                        @click="onSelectTemplate(template)">
-                                        <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
-                                        <div class="item-name-box">
-                                            <div class="template-item-name">{{template.name}}</div>
-                                        </div>
-                                        <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
-                                        </div>
-                                    </li>
+                                <ul class="group-wrap">
+                                    <base-card
+                                        v-for="(template, i) in group.children"
+                                        :key="i"
+                                        :data="template"
+                                        :selected="getTplIndexInSelected(template) > -1"
+                                        :is-apply-permission="!hasPermission(['export'], template.auth_actions, tplOperations)"
+                                        @onCardClick="onSelectTemplate(template)">
+                                    </base-card>
                                 </ul>
                             </li>
                         </template>
@@ -95,18 +83,14 @@
                     {{i18n.num}}
                 </div>
                 <ul class="selected-list">
-                    <li
-                        class="selected-item"
-                        v-for="template in selectedTemplates"
-                        :key="template.id">
-                        <div class="selected-item-icon">
-                            <span class="selected-name" :title="template.name">{{getTemplateIcon(template)}}</span>
-                        </div>
-                        <div class="item-name-box">
-                            <div class="selected-item-name">{{template.name}}</div>
-                        </div>
-                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
-                    </li>
+                    <base-card
+                        v-for="(template, i) in selectedTemplates"
+                        :key="i"
+                        :data="template"
+                        :selected="true"
+                        :show-delete="true"
+                        @onDeleteCard="deleteTemplate(template)">
+                    </base-card>
                 </ul>
             </div>
             <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ i18n.selectAll }}</bk-checkbox>
@@ -123,11 +107,12 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
-
+    import BaseCard from '@/components/common/base/BaseCard.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
-            NoData
+            NoData,
+            BaseCard
         },
         mixins: [permission],
         props: ['isExportDialogShow', 'businessInfoLoading', 'projectInfoLoading', 'common', 'pending'],
@@ -423,100 +408,15 @@
             font-size: 12px;
         }
     }
-    .template-item {
-        position: relative;
-        display: inline-block;
-        margin: 0 0 7px 10px;
-        width: 252px;
-        background: #dcdee5;
-        border-radius: 2px;
+    .group-wrap {
+        width: 100%;
         overflow: hidden;
-        cursor: pointer;
-        &:nth-child(2n + 1) {
-            margin-left: 0;
-        }
-        .template-item-icon {
+        .card-item {
             float: left;
-            width: 56px;
-            height: 56px;
-            line-height: 56px;
-            background: #c4c6cc;
-            font-size: 24px;
-            color: #ffffff;
-            text-align: center;
-        }
-        .template-item-name {
-            color: #313238;
-            word-break: break-all;
-            @include multiLineEllipsis(14px, 2);
-            &:after {
-                background: #dcdee5
-            }
-        }
-        .apply-permission-mask {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            .bk-button {
-                margin-top: 12px;
-            }
-        }
-        &:nth-child(2n) {
+            width: calc(( 100% - 16px) / 2);
             margin-right: 0;
-        }
-        &.permission-disable {
-            background: #f7f7f7;
-            .template-item-icon {
-                color: #dcdee5;
-                background: #f7f7f7;
-                border: 1px solid #dcdee5;
-            }
-            .item-name-box {
-                border: 1px solid #dcdee5;
-                border-left: none;
-            }
-            .template-item-name {
-                color: #c4c6cc;
-                &:after {
-                    background: #f7f7f7;
-                }
-            }
-            .apply-permission-mask {
-                background: rgba(255, 255, 255, 0.6);
-                text-align: center;
-            }
-            .bk-button {
-                height: 32px;
-                line-height: 30px;
-            }
-            &:hover .apply-permission-mask {
-                display: block;
-            }
-        }
-    }
-    .item-name-box {
-        display: table-cell;
-        vertical-align: middle;
-        margin-left: 56px;
-        padding: 0 15px;
-        height: 56px;
-        width: 195px;
-        font-size: 12px;
-        border-radius: 0 2px 2px 0;
-    }
-    .template-item-selected {
-        .template-item-icon {
-            background: #666a7c;
-        }
-        .template-item-name, .item-name-box {
-            background: #838799;
-            color: #ffffff;
-            &:after {
-                background: #838799
+            &:not(:nth-child(2n)) {
+                margin-right: 16px;
             }
         }
     }
@@ -545,50 +445,9 @@
         height: 276px;
         overflow-y: auto;
         @include scrollbar;
-        .selected-item {
-            position: relative;
-            margin: 0 0 10px 14px;
+        .card-item {
             width: 252px;
-            height: 56px;
-            background: #838799;
-            border-radius: 2px;
-            &:hover .selected-delete {
-                display: inline-block;
-            }
-        }
-        .selected-item-icon {
-            float: left;
-            width: 56px;
-            height: 56px;
-            line-height: 56px;
-            background: #666a7c;
-            border-radius: 2px;
-            .selected-name {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-size: 24px;
-                color: #ffffff;
-            }
-        }
-        .selected-item-name {
-            color: #ffffff;
-            word-break: break-all;
-            @include multiLineEllipsis(14px, 2);
-            &:after {
-                background: #838799
-            }
-        }
-        .selected-delete {
-            display: none;
-            position: absolute;
-            top: -7px;
-            right: -7px;
-            padding: 2px;
-            color: #838799;
-            background: #ffffff;
-            border-radius: 50%;
-            cursor: pointer;
+            margin: 0 0 10px 14px;
         }
     }
     .template-checkbox {

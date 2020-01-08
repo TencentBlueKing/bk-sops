@@ -14,6 +14,7 @@
         <div v-if="formMode" class="tag-member-selector-wrap">
             <member-select
                 v-model="memberValue"
+                :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </member-select>
         </div>
@@ -30,6 +31,12 @@
             type: String,
             required: false,
             default: ''
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用组件')
         },
         placeholder: {
             type: String,

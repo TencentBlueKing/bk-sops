@@ -277,7 +277,7 @@
                     return
                 }
                 const cardView = document.querySelector('.my-collection .card-list').offsetWidth
-                const cardItemW = document.querySelector('.common-used .card-list .card-item').offsetWidth
+                const cardItemW = document.querySelector('.my-collection .card-list .card-item').offsetWidth
                 this.limit = Math.floor(cardView / cardItemW)
             }
         }
@@ -291,7 +291,8 @@
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
-        margin: 20px 0;
+        margin-top: 0;
+        margin-bottom: 20px;
         color: #313238;
         font-size: 16px;
         font-weight: 600;

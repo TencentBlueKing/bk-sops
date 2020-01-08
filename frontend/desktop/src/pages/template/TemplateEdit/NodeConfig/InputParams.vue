@@ -9,10 +9,61 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="input-params"></div>
+    <div class="input-params">
+        <render-form
+            ref="renderForm"
+            v-model="formData"
+            :scheme="scheme"
+            :form-option="option">
+        </render-form>
+        <reuse-var-dialog
+            :reuse-variable="reuseVariable"
+            :reuseable-var-list="reuseableVarList">
+        </reuse-var-dialog>
+    </div>
 </template>
 <script>
+    import tools from '@/utils/tools.js'
+    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import ReuseVarDialog from './ReuseVarDialog.vue'
+
     export default {
-        name: 'InputParams'
+        name: 'InputParams',
+        components: {
+            RenderForm,
+            ReuseVarDialog
+        },
+        props: {
+            scheme: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            value: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        },
+        data () {
+            return {
+                reuseVariable: {},
+                reuseableVarList: [],
+                formData: tools.deepClone(this.value),
+                option: {
+                    showGroup: false,
+                    showHook: true,
+                    showLabel: true,
+                    showVarList: true
+                }
+            }
+        },
+        watch: {
+            value (val) {
+                this.formData = tools.deepClone(val)
+            }
+        }
     }
 </script>

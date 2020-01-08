@@ -103,6 +103,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
   - `items`：：提供选择的级联选项，eg: [{label: '', value: '', children: [...]}, {label: '', value: '', children: [...]}]
   - `value`：级联选择器的选中值
+  - `disabled`：设置是否禁用组件
   - `multiple`：设置是否可多选
   - `filterable`：设置是否可搜索
   - `placeholder`：占位文本
@@ -120,6 +121,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 **属性**
 
   - `item`：提供选择的多选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+  - `disabled`：设置是否禁用组件
   - `value`：选中项的 value
 
 **方法**
@@ -178,6 +180,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：时间值
 
 **方法**
@@ -192,6 +195,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `placeholder`：占位文本
   - `min`：最小值，默认为 -Infinity
   - `max`：最大值，默认为 Infinity
+  - `disabled`：设置是否禁用组件
   - `value`：文本框值
 
 **方法**
@@ -205,6 +209,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：整数输入框值
 
 **方法**
@@ -218,6 +223,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 **属性**
 
   - `isMultiple`：ip 选择器是否为多选（单选为选择静态或者动态 ip，多选为同时选择静态、动态 ip）
+  - `disabled`：设置是否禁用组件
   - `value`：选择的 ip 值
 
 **方法**
@@ -231,7 +237,8 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 **属性**
 
-- `value`：加密后的密码值
+  - `disabled`：设置是否禁用组件
+  - `value`：加密后的密码值
 
 **方法**
 
@@ -244,6 +251,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 **属性**
 
   - `items`：提供选择的单选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+  - `disabled`：设置是否禁用组件
   - `value`：选中项的 value
 
 **方法**
@@ -262,6 +270,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remote_data_init`：远程加载后的数据处理函数
   - `placeholder`：占位文本
   - `empty_text`：无数据提示
+  - `disabled`：设置是否禁用组件
   - `value`：选中项的 value，多选框的值以 , 分隔
 
 **方法**
@@ -288,6 +297,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：文本框的值
 
 **方法**
@@ -354,6 +364,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `limit`：上传文件个数
   - `placeholder`：占位文本
   - `text`：上传按钮的文字
+  - `disabled`：设置是否禁用组件
   - `value`：上传的文件
 
 **方法**
@@ -372,6 +383,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：选择人员名字，名字间以 ',' 隔开。eg:"xiaoming,xiaozhang,xiaoli"
 
 **方法**

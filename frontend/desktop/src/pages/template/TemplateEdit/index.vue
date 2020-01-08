@@ -71,7 +71,8 @@
                     v-if="isNodeConfigPanelShow"
                     :node-id="idOfNodeInConfigPanel"
                     :atom-list="atomList"
-                    :subflow-list="subflowList">
+                    :subflow-list="subflowList"
+                    :common="common">
                 </node-config>
                 <ConditionEdit
                     ref="conditionEdit"
@@ -353,11 +354,13 @@
             this.getSingleAtomList()
             this.getProjectBaseInfo()
             this.getCustomVarCollection()
+            window.addEventListener('click', this.handleNodeConfigPanelShow, false)
             window.onbeforeunload = function () {
                 return i18n.tips
             }
         },
         beforeDestroy () {
+            window.removeEventListener('click', this.handleNodeConfigPanelShow, false)
             window.onbeforeunload = null
             this.resetTemplateData()
         },
@@ -413,12 +416,14 @@
                         if (atom) {
                             atom.list.push(item)
                         } else {
+                            const { code, desc, name, group_name, group_icon } = item
                             atomList.push({
-                                code: item.code,
-                                type: item.group_name,
-                                group_name: item.group_name,
-                                group_icon: item.group_icon,
-                                name: item.name,
+                                code,
+                                desc,
+                                name,
+                                group_name,
+                                group_icon,
+                                type: group_name,
                                 list: [item]
                             })
                         }
@@ -512,18 +517,23 @@
              * 优先取 store 里已保存的
              */
             async getSingleAtomConfig (location) {
-                const atomType = location.atomId
-                const atomConfig = this.atomConfig[atomType]
-                if (atomConfig) {
-                    // @todo 和后台确认插件版本最新的逻辑，暂时取第一个
-                    this.addSingleAtomActivities(location, atomConfig[0])
+                const code = location.atomId
+                const atoms = this.atomList.find(item => item.code === code).list
+
+                // @todo 和后台确认插件版本最新的逻辑，暂时取最后一个
+                const lastVersionAtom = atoms[atoms.length - 1]
+                const version = lastVersionAtom.version
+
+                const atomConfig = this.atomConfig[code]
+                if (atomConfig && atomConfig[version]) {
+                    this.addSingleAtomActivities(location, atomConfig[version])
                     return
                 }
                 // 接口获取最新配置信息
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType })
-                    this.addSingleAtomActivities(location, $.atoms[atomType])
+                    await this.loadAtomConfig({ atom: code, version })
+                    this.addSingleAtomActivities(location, $.atoms[code])
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -537,11 +547,11 @@
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
-                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+                        const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atomType, version, this.atomConfig)) {
-                            await this.loadAtomConfig({ atomType, classify, saveName: atom })
+                        if (!atomFilter.isConfigExists(atom, version, this.atomConfig)) {
+                            await this.loadAtomConfig({ name, atom, classify, version })
                         }
                         const atomConfig = this.atomConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
@@ -1154,6 +1164,23 @@
             },
             canvasMounted () {
                 this.handlerGuideTip()
+            },
+            handleNodeConfigPanelShow (e) {
+                if (!this.isNodeConfigPanelShow) {
+                    return
+                }
+
+                const sidePanel = document.querySelector('.side-content')
+                const { left, right, top, bottom } = sidePanel.getBoundingClientRect()
+                if (
+                    e.clientX > left
+                    && e.clientX < right
+                    && e.clientY > top
+                    && e.clientY < bottom
+                ) {
+                    return
+                }
+                this.isNodeConfigPanelShow = false
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

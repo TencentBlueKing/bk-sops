@@ -14,12 +14,13 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import, unicode_literals
 
 import logging
+from builtins import str
 
 import six
-from builtins import str
 
 from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
 from blueapps.utils.cache import with_cache
+
 
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')

@@ -119,11 +119,11 @@
 @import '@/scss/mixins/scrollbar.scss';
 .condition-edit {
     position: absolute;
-    top: 59px;
+    top: 0;
     right: 476px;
     padding: 20px;
     width: 420px;
-    height: calc(100% - 50px);
+    height: 100%;
     background: #ffffff;
     border-left: 1px solid #dddddd;
     box-shadow: -4px 0 6px -4px rgba(0, 0, 0, .15);

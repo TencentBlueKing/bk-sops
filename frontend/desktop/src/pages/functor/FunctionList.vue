@@ -34,7 +34,8 @@
                     :data="functorList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange">
+                    @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange">
                     <bk-table-column :label="i18n.business" prop="task.project.name" width="160"></bk-table-column>
                     <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
                     <bk-table-column :label="i18n.name">
@@ -347,8 +348,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 tplAuthResource: {},
                 commonTplAuthResource: {},
@@ -504,7 +504,7 @@
                     this.template.loading = false
                 }
             },
-            onSelectedBusiness (id, data) {
+            onSelectedBusiness (id) {
                 this.business.id = id
                 this.getTemplateList()
                 this.business.empty = false
@@ -601,6 +601,11 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.loadFunctionTask()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
                 this.loadFunctionTask()
             }
         }

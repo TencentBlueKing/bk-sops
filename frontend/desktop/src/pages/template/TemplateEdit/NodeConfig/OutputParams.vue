@@ -9,10 +9,41 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="output-params"></div>
+    <div class="output-params">
+        <bk-table :data="params" :border="true">
+            <bk-table-column :label="i18n.name" :width="250" align="center" prop="name"></bk-table-column>
+            <bk-table-column label="KEY" align="center" prop="key"></bk-table-column>
+            <bk-table-column :label="i18n.cite" :width="100" align="center">
+                <template slot-scope="props">
+                    <bk-checkbox @change="onToggleCheck(props)"></bk-checkbox>
+                </template>
+            </bk-table-column>
+        </bk-table>
+    </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
+
     export default {
-        name: 'OutputParams'
+        name: 'OutputParams',
+        props: {
+            params: {
+                type: Array,
+                default () {
+                    return []
+                }
+            }
+        },
+        data () {
+            return {
+                i18n: {
+                    name: gettext('名称'),
+                    cite: gettext('引用')
+                }
+            }
+        },
+        methods: {
+            onToggleCheck () {}
+        }
     }
 </script>

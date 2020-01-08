@@ -35,6 +35,7 @@
                     :data="periodicList"
                     :pagination="pagination"
                     @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.periodicName" prop="name">
@@ -296,8 +297,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 periodicOperations: [],
                 periodicResource: {}
@@ -502,6 +502,11 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.getPeriodicList()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
                 this.getPeriodicList()
             }
         }

@@ -16,6 +16,7 @@
         :list="displayList"
         :placeholder="placeholder"
         :has-delete-icon="hasDeleteIcon"
+        :disabled="disabled"
         :max-data="maxData"
         :max-result="maxResult"
         save-key="username"

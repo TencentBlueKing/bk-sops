@@ -26,7 +26,8 @@
                     :data="auditList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange">
+                    @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.business" prop="project.name" width="120"></bk-table-column>
                     <bk-table-column :label="i18n.name">
@@ -230,8 +231,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 taskOperations: [],
                 taskResource: {}
@@ -356,6 +356,11 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.loadAuditTask()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
                 this.loadAuditTask()
             }
         }

@@ -96,30 +96,29 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { atomType, classify, isMeta, saveName } = payload
+            const { name, atom, classify, isMeta, version } = payload
             const atomClassify = classify || 'component'
-            const setTypeName = saveName || atomType
-            let version = payload.version
-            version = atomClassify === 'variable' ? 'legacy' : version
+            const atomFile = name || atom
+            const atomVersion = atomClassify === 'variable' ? 'legacy' : version
 
-            await api.getAtomFormURL(atomType, atomClassify, version, isMeta).then(async response => {
+            await api.getAtomFormURL(atomFile, atomClassify, atomVersion, isMeta).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
-                commit('setAtomForm', { atomType: setTypeName, data: response.data, isMeta, version })
-                commit('setAtomOutput', { atomType: setTypeName, outputData, version })
+                commit('setAtomForm', { atomType: atom, data: response.data, isMeta, version: atomVersion })
+                commit('setAtomOutput', { atomType: atom, outputData, version: atomVersion })
 
                 // 标准插件配置项内嵌到 form 字段
                 if (embedded) {
                     /*eslint-disable */
                     eval(formResource)
                     /*eslint-disable */
-                    commit('setAtomConfig', { atomType: setTypeName, configData: $.atoms[setTypeName], version })
-                    return Promise.resolve({ data: $.atoms[setTypeName] })
+                    commit('setAtomConfig', { atomType: atom, configData: $.atoms[atom], version: atomVersion })
+                    return Promise.resolve({ data: $.atoms[atom] })
                 }
 
                 return await new Promise ((resolve, reject) => {
                     $.getScript(formResource, function(response) {
-                        commit('setAtomConfig', {atomType: setTypeName, configData: $.atoms[setTypeName], version })
+                        commit('setAtomConfig', {atomType: atom, configData: $.atoms[atom], version: atomVersion })
                         resolve(response)
                     })
                 })
