@@ -49,6 +49,7 @@
 
 开源产品链接  
 标准运维：https://github.com/Tencent/bk-sops  
+蓝鲸持续集成平台：https://github.com/Tencent/bk-ci  
 PaaS平台：https://github.com/Tencent/bk-PaaS  
 配置平台：https://github.com/Tencent/bk-cmdb  
 容器管理平台：https://github.com/Tencent/bk-bcs  

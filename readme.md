@@ -1,10 +1,9 @@
 ![](docs/resource/img/logo_zh.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.3.27-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
-[![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
-[![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
+[![Release](https://img.shields.io/badge/release-3.3.28-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
+[![Build Status](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 
 [(English Documents Available)](readme_en.md)
 
@@ -20,9 +19,11 @@
 
 
 ## Overview
+- [设计理念](docs/overview/design.md)
 - [架构设计](docs/overview/architecture.md)
 - [代码目录](docs/overview/code_structure.md)
-- [使用场景](docs/overview/usecase.md)
+- 整体视图
+![](docs/resource/img/core_page_zh.png)
 
 
 ## Features
@@ -33,7 +34,7 @@
 - 可交互的任务执行：任务执行中可以随时暂停、继续、撤销，节点失败后可以重试、跳过。
 - 通用权限管理：通过配置平台同步业务角色，支持流程模板的使用权限控制。
 
-了解更多功能，请参考[标准运维白皮书](http://docs.bk.tencent.com/product_white_paper/gcloud/)
+了解更多功能，请参考[标准运维白皮书](https://docs.bk.tencent.com/gcloud/)
 
 
 ## Getting started
@@ -45,14 +46,7 @@
 - [标准插件开发](docs/develop/dev_plugins.md)
 
 
-## Usage
-- [API使用说明](docs/apidoc/readme.md)
-- [标准插件远程加载](docs/features/remote_plugins.md)
-- [变量引擎](docs/features/variables_engine.md)
-- [移动端使用说明](docs/features/mobile.md)
-
-
-## Version plan
+## Roadmap
 - [版本日志](docs/release.md)
 
 
@@ -62,7 +56,18 @@
 - [白皮书](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [蓝鲸论坛](https://bk.tencent.com/s-mart/community)
 - [蓝鲸 DevOps 在线视频教程](https://cloud.tencent.com/developer/edu/major-100008)
+- [蓝鲸社区版交流1群](https://jq.qq.com/?_wv=1027&k=5zk8F7G)
 - 联系我们，加入腾讯蓝鲸运维开发交流群：878501914
+
+
+## BlueKing Community
+- [BK-CI](https://github.com/Tencent/bk-ci)：蓝鲸持续集成平台是一个开源的持续集成和持续交付系统，可以轻松将你的研发流程呈现到你面前。
+- [BK-BCS](https://github.com/Tencent/bk-bcs)：蓝鲸容器管理平台是以容器技术为基础，为微服务业务提供编排管理的基础服务平台。
+- [BK-BCS-SaaS](https://github.com/Tencent/bk-bcs-saas)：蓝鲸容器管理平台SaaS基于原生 Kubernetes 和 Mesos 自研的两种模式，提供给用户高度可扩展、灵活易用的容器产品服务。
+- [BK-PaaS](https://github.com/Tencent/bk-PaaS)：蓝鲸 PaaS 平台是一个开放式的开发平台，让开发者可以方便快捷地创建、开发、部署和管理SaaS应用。
+- [BK-SOPS](https://github.com/Tencent/bk-sops)：标准运维（SOPS
+）是通过可视化的图形界面进行任务流程编排和执行的系统，是蓝鲸体系中一款轻量级的调度编排类 SaaS 产品。
+- [BK-CMDB](https://github.com/Tencent/bk-cmdb)：蓝鲸配置平台是一个面向资产及应用的企业级配置管理平台。
 
 
 ## Contributing
@@ -70,6 +75,14 @@
 请阅读 [Contributing Guide](docs/CONTRIBUTING.md)。
 
 [腾讯开源激励计划](https://opensource.tencent.com/contribution) 鼓励开发者的参与和贡献，期待你的加入。
+
+
+## Usage
+- [API使用说明](docs/apidoc/readme.md)
+- [标准插件远程加载](docs/features/remote_plugins.md)
+- [变量引擎](docs/features/variables_engine.md)
+- [移动端使用说明](docs/features/mobile.md)
+
 
 ## FAQ
 [FAQ](docs/wiki/faq.md)
