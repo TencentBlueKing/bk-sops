@@ -193,7 +193,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
-
+    
     const EXECUTE_INFO_COL = [
         {
             title: gettext('开始时间'),
@@ -463,10 +463,13 @@
 
                 try {
                     const respData = await this.getTaskNodeDetail()
-                    const { execution_info, outputs, inputs, log, history } = respData
+                    const { execution_info, outputs, inputs, log, history, state } = respData
                     
                     const version = this.nodeDetailConfig.version
-
+                    // 添加插件输出表单所需上下文
+                    $.context.output_form.outputs = outputs
+                    $.context.output_form.state = state
+                    
                     // 任务节点需要加载标准插件
                     if (this.nodeDetailConfig.component_code) {
                         this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
