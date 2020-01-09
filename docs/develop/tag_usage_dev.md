@@ -44,6 +44,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - tree
 - upload
 - memberSelector
+- logDisplay
 # Tag 组件属性、方法
 
 标准插件中定义的配置项在页面渲染时，会作为属性传入到 Tag 组件中。Tag 组件根据不同的属性值，可以灵活的扩展多种表单配置，例如 `TagSelect` 组件可以通过 `multiple` 属性来区分下拉框为单选还是多选，`TagUpload` 组件可以通过 `remote_data_init` 属性来自定义加载数据后的处理逻辑。
@@ -385,6 +386,16 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `placeholder`：占位文本
   - `disabled`：设置是否禁用组件
   - `value`：选择人员名字，名字间以 ',' 隔开。eg:"xiaoming,xiaozhang,xiaoli"
+
+**方法**
+
+### 17. TagLogDisplay
+
+日志展示
+
+**属性**
+
+  - `value`：日志内容， \n 表示换行
 
 **方法**
 

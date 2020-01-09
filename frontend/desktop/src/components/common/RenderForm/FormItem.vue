@@ -246,6 +246,7 @@
                     case 'datetime':
                     case 'password':
                     case 'memberSelector':
+                    case 'logDisplay':
                         valueFormat = {
                             type: ['String', 'Number', 'Boolean'],
                             value: ''
