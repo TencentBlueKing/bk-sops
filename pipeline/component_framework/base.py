@@ -60,6 +60,9 @@ class ComponentMeta(type):
         if not getattr(new_class, 'form', None):
             setattr(new_class, 'form', None)
 
+        if not getattr(new_class, 'output_form', None):
+            setattr(new_class, 'output_form', None)
+        
         if not getattr(new_class, 'version', None):
             setattr(new_class, 'version', LEGACY_PLUGINS_VERSION)
 
