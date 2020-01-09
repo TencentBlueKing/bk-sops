@@ -236,6 +236,7 @@ class JobExecuteTaskComponent(Component):
     code = 'job_execute_task'
     bound_service = JobExecuteTaskService
     form = '%scomponents/atoms/job/job_execute_task.js' % settings.STATIC_URL
+    output_form = '%scomponents/atoms/job/job_execute_task_output.js' % settings.STATIC_URL
 
 
 class JobFastPushFileService(JobService):
