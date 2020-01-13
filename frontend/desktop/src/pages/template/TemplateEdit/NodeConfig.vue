@@ -36,7 +36,7 @@
                                 @selected="onAtomSelect">
                                 <bk-option
                                     v-for="(option, index) in atomList"
-                                    :key="index"
+                                    :key="option.id"
                                     :id="option.id"
                                     :name="option.name">
                                     <template v-if="!isSingleAtom">
