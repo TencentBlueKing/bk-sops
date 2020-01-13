@@ -24,7 +24,8 @@ const atomForm = {
         form: {},
         config: {
         },
-        output: {}
+        output: {},
+        outputConfig: {}
     },
     getters: {
         SingleAtomVersionMap (state) {
@@ -75,6 +76,19 @@ const atomForm = {
         setVersionMap (state, payload) {
             state.SingleAtomVersionMap = payload
         },
+        setOutputConfig (state, payload) {
+            const { atomType, version, configData } = payload
+            const action = {}
+            action[version] = configData
+            if (state.outputConfig[atomType]) {
+                Vue.set(state.outputConfig, atomType, {
+                    ...state.outputConfig[atomType],
+                    ...action
+                })
+            } else {
+                Vue.set(state.outputConfig, atomType, action)
+            }
+        },
         clearAtomForm (state, payload) {
             $.atoms = {}
             state.form = {}
@@ -94,29 +108,52 @@ const atomForm = {
             const setTypeName = saveName || atomType
             let version = payload.version
             version = atomClassify === 'variable' ? 'legacy' : version
-
+            const result = {
+                input: {},
+                output: {},
+                isRenderOutputForm: false
+            }
             await api.getAtomFormURL(atomType, atomClassify, version, isMeta).then(async response => {
-                const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+                const { output: outputData, form: formResource, form_is_embedded: embedded, output_form: outputForm, embedded_output_form } = response.data
 
                 commit('setAtomForm', { atomType: setTypeName, data: response.data, isMeta, version })
                 commit('setAtomOutput', { atomType: setTypeName, outputData, version })
 
-                // 标准插件配置项内嵌到 form 字段
+                // 加载[输出]渲染配置
+                if (outputForm) {
+                    const commitParam = { atomType: setTypeName, version }
+                    if (embedded_output_form) {
+                        eval(outputForm)
+                        commitParam.configData = $.atoms[setTypeName]
+                    } else {
+                        commitParam.configData = await new Promise((resolve, reject) => {
+                            $.getScript(outputForm, function (response) {
+                                resolve($.atoms[setTypeName])
+                            })
+                        })
+                    }
+                    commit('setOutputConfig', commitParam)
+                    result.output = commitParam.configData
+                    result.isRenderOutputForm = true
+                }
+
+                // 加载插件[输入]表单配置
                 if (embedded) {
                     /*eslint-disable */
                     eval(formResource)
                     /*eslint-disable */
                     commit('setAtomConfig', { atomType: setTypeName, configData: $.atoms[setTypeName], version })
-                    return Promise.resolve({ data: $.atoms[setTypeName] })
+                    result.input = $.atoms[setTypeName]
                 }
-
-                return await new Promise ((resolve, reject) => {
+                await new Promise ((resolve, reject) => {
                     $.getScript(formResource, function(response) {
                         commit('setAtomConfig', {atomType: setTypeName, configData: $.atoms[setTypeName], version })
                         resolve(response)
+                        result.input = $.atoms[setTypeName]
                     })
                 })
             })
+            return result
         },
         loadSubflowConfig ({ commit }, payload) {
             const { templateId, version, common } = payload

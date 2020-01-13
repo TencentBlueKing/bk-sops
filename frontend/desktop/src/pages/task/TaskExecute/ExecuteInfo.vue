@@ -84,7 +84,7 @@
         </section>
         <section class="info-section" v-if="!adminView">
             <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
-            <table class="operation-table outputs-table">
+            <table class="operation-table outputs-table" v-if="!isRenderOutputForm">
                 <thead>
                     <tr>
                         <th class="output-name">{{ i18n.name }}</th>
@@ -102,6 +102,15 @@
                     </tr>
                 </tbody>
             </table>
+            <div v-else>
+                <RenderForm
+                    v-if="outputRenderConfig && outputRenderConfig.length !== 0 && !loading"
+                    :scheme="outputRenderConfig"
+                    :form-option="outputRenderOption"
+                    v-model="outputRenderData">
+                </RenderForm>
+                <NoData v-else></NoData>
+            </div>
         </section>
         <section class="info-section" v-else>
             <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
@@ -377,6 +386,7 @@
                     loopTime: gettext('执行次数')
                 },
                 loading: true,
+                isRenderOutputForm: false,
                 executeInfo: {},
                 inputsInfo: {},
                 outputsInfo: [],
@@ -393,6 +403,15 @@
                     formMode: false
                 },
                 renderConfig: [],
+                outputRenderData: {},
+                outputRenderConfig: [],
+                outputRenderOption: {
+                    showGroup: false,
+                    showLabel: true,
+                    showHook: false,
+                    formEdit: false,
+                    formMode: true
+                },
                 renderData: {},
                 loop: 1,
                 theExecuteTime: undefined
@@ -400,7 +419,8 @@
         },
         computed: {
             ...mapState({
-                'atomFormConfig': state => state.atomForm.config
+                'atomFormConfig': state => state.atomForm.config,
+                'atomOutputConfig': state => state.atomForm.outputConfig
             }),
             isEmptyParams () {
                 return this.renderConfig && this.renderConfig.length === 0
@@ -469,12 +489,12 @@
                     // 添加插件输出表单所需上下文
                     $.context.output_form.outputs = outputs
                     $.context.output_form.state = state
-                    
+
                     // 任务节点需要加载标准插件
                     if (this.nodeDetailConfig.component_code) {
-                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+                        await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     }
-
+                    
                     if (this.adminView) {
                         this.executeInfo = execution_info
                         this.outputsInfo = outputs
@@ -506,7 +526,9 @@
                                 return true
                             })
                         }
-                        
+                        this.outputsInfo.forEach(out => {
+                            this.$set(this.outputRenderData, out.key, out.value)
+                        })
                         if (this.theExecuteTime === undefined) {
                             this.loop = respData.loop
                             this.theExecuteTime = respData.loop
@@ -556,12 +578,18 @@
                 }
             },
             async getNodeConfig (type, version) {
-                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
-                    return this.atomFormConfig[type][version]
+                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)
+                    && atomFilter.isConfigExists(type, version, this.atomOutputConfig)) {
+                    this.renderConfig = this.atomFormConfig[type][version]
+                    this.outputRenderConfig = this.atomOutputConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type, version })
-                        return this.atomFormConfig[type][version]
+                        const res = await this.loadAtomConfig({ atomType: type, version })
+                        this.renderConfig = this.atomFormConfig[type][version]
+                        if (res.isRenderOutputForm) {
+                            this.outputRenderConfig = this.atomOutputConfig[type][version]
+                        }
+                        this.isRenderOutputForm = res.isRenderOutputForm
                     } catch (e) {
                         this.$bkMessage({
                             message: e,
