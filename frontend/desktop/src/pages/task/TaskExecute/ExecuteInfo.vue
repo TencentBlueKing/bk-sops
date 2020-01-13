@@ -485,7 +485,7 @@
                     const respData = await this.getTaskNodeDetail()
                     const { execution_info, outputs, inputs, log, history, state } = respData
                     
-                    const version = this.nodeDetailConfig.version
+                    const version = this.nodeDetailConfig.version || 'legacy'
                     // 添加插件输出表单所需上下文
                     $.context.output_form.outputs = outputs
                     $.context.output_form.state = state
@@ -516,7 +516,7 @@
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
-                        
+
                         if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.outputsInfo.hasOwnProperty('job_global_var')) {
                             this.outputsInfo = this.outputsInfo.filter(output => {
                                 const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
