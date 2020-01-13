@@ -57,7 +57,7 @@
         disabled: {
             type: Boolean,
             required: false,
-            default: true,
+            default: false,
             desc: gettext('禁用表单输入')
         },
         value: {
