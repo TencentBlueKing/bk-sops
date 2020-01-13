@@ -49,64 +49,69 @@
                 </div>
             </div>
             <div class="advanced-search-form" v-if="isAdvancedSerachShow">
-                <bk-form form-type="inline">
-                    <bk-form-item :label="i18n.type">
-                        <bk-select
-                            style="width: 260px;"
-                            :placeholder="i18n.templateCategoryPlaceholder"
-                            :loading="categoryLoading"
-                            :clearable="true"
-                            :searchable="true"
-                            v-model="templateCategorySync"
-                            @clear="onClearCategory"
-                            @change="onSelectedCategory">
-                            <bk-option
-                                v-for="(option, index) in templateCategoryList"
-                                :key="index"
-                                :id="option.value"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </bk-form-item>
-                    <bk-form-item :label="i18n.updateTime">
-                        <bk-date-picker
-                            v-model="queryTime"
-                            :type="'daterange'"
-                            :placeholder="i18n.dateRange"
-                            @change="onChangeEditTime">
-                        </bk-date-picker>
-                    </bk-form-item>
-                    <bk-form-item v-if="!common_template" :label="i18n.subflowUpdate">
-                        <bk-select
-                            style="width: 260px;"
-                            :placeholder="i18n.select"
-                            :clearable="true"
-                            v-model="subprocessUpdateVal"
-                            @clear="onClearSubprocessUpdate"
-                            @selected="onSelectedSubprocessUpdate">
-                            <bk-option
-                                v-for="(option, index) in selectSubprocessUpdateList"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </bk-form-item>
-                    <bk-form-item :label="i18n.creator">
-                        <bk-input
-                            style="width: 260px;"
-                            class="search-input"
-                            clearable
-                            v-model="creator"
-                            :placeholder="i18n.creatorPlaceholder"
-                            @clear="creator = undefined">
-                        </bk-input>
-                    </bk-form-item>
-                    <bk-form-item class="query-button">
-                        <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
-                        <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
-                    </bk-form-item>
-                </bk-form>
+                <fieldset class="template-fieldset">
+                    <div class="template-query-content">
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.type}}</span>
+                            <bk-select
+                                class="bk-select-inline"
+                                :placeholder="i18n.templateCategoryPlaceholder"
+                                :loading="categoryLoading"
+                                :clearable="true"
+                                :searchable="true"
+                                v-model="templateCategorySync"
+                                @clear="onClearCategory"
+                                @change="onSelectedCategory">
+                                <bk-option
+                                    v-for="(option, index) in templateCategoryList"
+                                    :key="index"
+                                    :id="option.value"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.updateTime}}</span>
+                            <bk-date-picker
+                                v-model="queryTime"
+                                :type="'daterange'"
+                                :placeholder="i18n.dateRange"
+                                @change="onChangeEditTime">
+                            </bk-date-picker>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.subflowUpdate}}</span>
+                            <bk-select
+                                class="bk-select-inline"
+                                :placeholder="i18n.select"
+                                :clearable="true"
+                                v-model="subprocessUpdateVal"
+                                @clear="onClearSubprocessUpdate"
+                                @selected="onSelectedSubprocessUpdate">
+                                <bk-option
+                                    v-for="(option, index) in selectSubprocessUpdateList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.creator}}</span>
+                            <bk-input
+                                class="bk-input-inline"
+                                clearable
+                                v-model="creator"
+                                :placeholder="i18n.creatorPlaceholder"
+                                @clear="creator = undefined">
+                            </bk-input>
+                        </div>
+                        <div class="query-button">
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
+                        </div>
+                    </div>
+                </fieldset>
             </div>
             <div class="template-table-content">
                 <bk-table
@@ -795,94 +800,7 @@
     padding: 0 60px;
     min-height: calc(100vh - 240px);
 }
-.template-fieldset {
-    width: 100%;
-    margin: 0;
-    padding: 8px;
-    border: 1px solid $commonBorderColor;
-    background: $whiteDefault;
-    margin-bottom: 15px;
-    .template-query-content {
-        display: flex;
-        flex-wrap: wrap;
-        .query-content {
-            min-width: 420px;
-            @media screen and (max-width: 1420px){
-                min-width: 380px;
-            }
-            padding: 10px;
-            .query-span {
-                float: left;
-                min-width: 130px;
-                margin-right: 12px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                @media screen and (max-width: 1420px){
-                    min-width: 100px;
-                }
-                text-align: right;
-            }
-            input {
-                max-width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            input::-webkit-input-placeholder{
-                color: $formBorderColor;
-            }
-            input:-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input::-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input:-ms-input-placeholder {
-                color: $formBorderColor;
-            }
-            input{
-                min-width: 260px;
-            }
-            .bk-selector-search-item > input {
-                min-width: 249px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 10px 0 10px;
-                font-size: 14px;
-                color: $greyDefault;
-                border: 1px solid $formBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                }
-            }
-            .search-input.placeholder {
-                color: $formBorderColor;
-            }
-        }
-    }
-    .query-button {
-        padding: 10px;
-        min-width: 450px;
-        @media screen and (max-width: 1420px) {
-            min-width: 390px;
-        }
-        text-align: center;
-        .query-cancel {
-            margin-left: 5px;
-        }
-    }
-    .bk-button {
-        height: 32px;
-        line-height: 32px;
-    }
-}
+
 .operation-area {
     margin: 20px 0;
     .create-template {
@@ -903,23 +821,73 @@
         }
     }
 }
-.advanced-search-form {
-    margin-bottom: 20px;
-    padding: 0px 30px 20px;
+.template-fieldset {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid $commonBorderColor;
     background: #ffffff;
-    border: 1px solid #dde4eb;
-    border-radius: 2px;
-    /deep/.bk-form-item {
-        margin: 20px 20px 0 0 !important;
-        .bk-label {
-            min-width: 100px !important;
+    padding: 8px;
+    .template-query-content {
+        display: flex;
+        flex-wrap: wrap;
+        .query-content {
+            min-width: 420px;
+            padding: 10px;
+            @media screen and (max-width: 1420px){
+                min-width: 380px;
+            }
+            .query-span {
+                float: left;
+                min-width: 130px;
+                margin-right: 12px;
+                height: 32px;
+                line-height: 32px;
+                font-size: 14px;
+                text-align: right;
+                @media screen and (max-width: 1420px){
+                    min-width: 100px;
+                }
+            }
+            .bk-select-inline {
+                display: inline-block;
+                width: 260px;
+            }
+            .bk-input-inline {
+                display: inline-block;
+                width: 260px;
+            }
+            // 浏览兼容样式
+            input::-webkit-input-placeholder{
+                color: $formBorderColor;
+            }
+            input:-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input::-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input:-ms-input-placeholder {
+                color: $formBorderColor;
+            }
+            .bk-selector-search-item > input {
+                min-width: 249px;
+            }
         }
     }
-    .query-button {
-        padding-left: 30px;
-        .query-cancel {
-            margin-left: 5px;
-        }
+}
+.query-button {
+    padding: 10px;
+    min-width: 450px;
+    @media screen and (max-width: 1420px) {
+        min-width: 390px;
+    }
+    text-align: center;
+    .bk-button {
+        height: 32px;
+        line-height: 32px;
+    }
+    .query-cancel {
+        margin-left: 5px;
     }
 }
 .template-table-content {
