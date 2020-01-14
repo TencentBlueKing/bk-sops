@@ -450,10 +450,12 @@ def cc_get_business(request):
 
     data = []
     for biz in business:
-        data.append({
-            'text': biz['bk_biz_name'],
-            'value': int(biz['bk_biz_id'])
-        })
+        # archive data filter
+        if biz.get('bk_data_status') != 'disabled':
+            data.append({
+                'text': biz['bk_biz_name'],
+                'value': int(biz['bk_biz_id'])
+            })
 
     return JsonResponse({
         'result': True,
