@@ -26,6 +26,9 @@ export function setConfigContext (site_url, project) {
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
         instance: site_url + 'api/v3/taskflow/',
+        input_form: {
+            inputs: undefined
+        },
         output_form: {
             outputs: undefined,
             state: undefined
@@ -62,6 +65,12 @@ export function setConfigContext (site_url, project) {
                     return v.value
                 }
                 return null
+            }
+            return null
+        },
+        getInput (key) { // 获取输入表单对应值
+            if ($.context.input_form.inputs && $.context.input_form.inputs[key]) {
+                return $.context.input_form.inputs[key]
             }
             return null
         },

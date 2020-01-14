@@ -487,6 +487,7 @@
                     
                     const version = this.nodeDetailConfig.version || 'legacy'
                     // 添加插件输出表单所需上下文
+                    $.context.input_form.inputs = inputs
                     $.context.output_form.outputs = outputs
                     $.context.output_form.state = state
 
