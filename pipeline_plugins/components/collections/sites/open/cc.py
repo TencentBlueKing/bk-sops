@@ -837,6 +837,14 @@ class CCUpdateSetService(Service):
                 data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
                 return False
 
+        elif cc_set_property == "bk_capacity":
+            try:
+                cc_set_prop_value = int(data.get_one_of_inputs('cc_set_prop_value'))
+            except Exception:
+                self.logger.error(traceback.format_exc())
+                data.set_outputs('ex_data', _(u"集群容量必须为整数"))
+                return False
+
         else:
             cc_set_prop_value = data.get_one_of_inputs('cc_set_prop_value')
 
