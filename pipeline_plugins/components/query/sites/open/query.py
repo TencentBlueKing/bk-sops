@@ -515,6 +515,51 @@ def file_upload(request, project_id):
     })
 
 
+def job_get_instance_log(request, biz_cc_id, task_id):
+    client = get_client_by_user(request.user.username)
+    log_kwargs = {
+        "bk_biz_id": biz_cc_id,
+        "job_instance_id": task_id
+    }
+    job_result = client.job.get_job_instance_log(log_kwargs)
+    if not job_result['result']:
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
+            biz_cc_id, job_result['message'])
+
+        if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=job_result.get('permission', []))
+
+        logger.error(message)
+
+    if not job_result['result']:
+        return JsonResponse({
+            'result': False,
+            'message': 'job instance log fetch error: {}'.format(job_result['message'])
+        })
+
+    ip_logs = {}
+    for step in job_result['data']:
+        for step_result in step['step_results']:
+            for ip_log in step_result['ip_logs']:
+                ip_logs.setdefault(
+                    ip_log['ip'],
+                    []
+                ).append(ip_log['log_content'])
+
+    log_data = []
+    for ip, log in ip_logs.items():
+        log_data.append({
+            'ip': ip,
+            'log': ''.join(log)
+        })
+
+    return JsonResponse({
+        'result': True,
+        'data': log_data
+    })
+
+
 urlpatterns = [
     url(r'^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_object_attribute),
     url(r'^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_create_object_attribute),
@@ -522,9 +567,9 @@ urlpatterns = [
     url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cc_get_host_by_module_id),
     url(r'^job_get_script_list/(?P<biz_cc_id>\d+)/$', job_get_script_list),
     url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
-    url(r'^file_upload/(?P<project_id>\d+)/$', file_upload),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
     url(r'^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_job_task_detail),
+    url(r'^job_get_instance_log/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_instance_log),
 
     # IP selector
     url(r'^cc_search_topo_tree/(?P<project_id>\d+)/$', cc_search_topo_tree),
@@ -532,4 +577,6 @@ urlpatterns = [
     url(r'^cc_get_mainline_object_topo/(?P<project_id>\d+)/$', cc_get_mainline_object_topo),
 
     url(r'^cc_get_business_list/$', cc_get_business),
+
+    url(r'^file_upload/(?P<project_id>\d+)/$', file_upload),
 ]

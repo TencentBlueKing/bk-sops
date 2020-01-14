@@ -12,29 +12,60 @@
 [
     {
         tag_code: "job_id",
-        type: "input",
+        type: "text",
         attrs: {
             name: gettext("JOB 任务 ID"),
-            disabled: true,
-            value: $.context.getOuput("job_inst_id")
+            value: $.context.getOutput("job_inst_id")
         }
     },
     {
         tag_code: "job_url",
-        type: "input",
+        type: "text",
         attrs: {
             name: gettext("JOB 任务链接"),
-            disabled: true,
-            value: $.context.getOuput("job_inst_url")
+            value: $.context.getOutput("job_inst_url")
         }
     },
     {
         tag_code: "node_status",
-        type: "input",
+        type: "text",
         attrs: {
             name: gettext("任务状态展示"),
-            disabled: true,
             value: $.context.getNodeStatus()
         }
+    },
+    {
+        tag_code: "job_task_ip_list",
+        type: "select",
+        attrs: {
+            name: gettext("执行 IP 列表"),
+            remote_data_init: function (resp) {
+                var ipList = resp.data.map(x => x.ip)
+                this.logDict = {}
+                for (i in data) {
+                    this.logDict[data[i].ip] = data[i].log
+                }
+
+                return ipList
+            },
+            remote_url: $.context.get("site_url") + "pipeline/job_get_instance_log/" + $.context.getInput("bk_biz_id") || $.context.getBkBizId() + "/" + $.context.getOutput("job_inst_id") + "/"
+        }
+    },
+    {
+        tag_code: "job_log",
+        type: "logDisplay",
+        attrs: {
+            value: ""
+        },
+        events: [
+            {
+                source: "job_task_ip_list",
+                type: "change",
+                action: function (value) {
+                    var logs = this.get_parent().get_child('job_task_ip_list').logDict[value]
+                    this._set_value(logs)
+                }
+            }
+        ]
     }
 ]
