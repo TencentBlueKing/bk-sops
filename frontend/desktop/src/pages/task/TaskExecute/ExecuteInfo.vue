@@ -578,8 +578,10 @@
                 }
             },
             async getNodeConfig (type, version) {
-                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)
-                    && atomFilter.isConfigExists(type, version, this.atomOutputConfig)) {
+                if (
+                    atomFilter.isConfigExists(type, version, this.atomFormConfig)
+                    && atomFilter.isConfigExists(type, version, this.atomOutputConfig)
+                ) {
                     this.renderConfig = this.atomFormConfig[type][version]
                     this.outputRenderConfig = this.atomOutputConfig[type][version]
                 } else {

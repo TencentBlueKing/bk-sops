@@ -54,7 +54,7 @@ export function setConfigContext (site_url, project) {
         getConstants () { // 获取流程模板下的全局变量
             return store.state.template.constants
         },
-        getOuput (key) { // 输出表单渲染-根据提供的 key 从节点的输出中获取相应的值，若不存在则返回 null
+        getOutput (key) { // 输出表单渲染-根据提供的 key 从节点的输出中获取相应的值，若不存在则返回 null
             const outputs = $.context.output_form.outputs
             if (outputs && Array.isArray(outputs)) {
                 const v = $.context.output_form.outputs.find(item => item.key === key)

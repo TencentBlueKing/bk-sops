@@ -127,14 +127,14 @@
     .log-virtual-scroll {
         width: 100%;
         height: 100%;
-        color: #ffffff;
-        font-weight: normal;
-        cursor: text;
-        white-space: nowrap;
-        letter-spacing: 0px;
-        font-size: 12px;
         line-height: 16px;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: normal;
+        letter-spacing: 0px;
+        white-space: nowrap;
         background: #1c2026;
+        cursor: text;
         .item-txt {
             padding: 0 20px;
         }
