@@ -842,7 +842,7 @@ class CCUpdateSetService(Service):
                 cc_set_prop_value = int(data.get_one_of_inputs('cc_set_prop_value'))
             except Exception:
                 self.logger.error(traceback.format_exc())
-                data.set_outputs('ex_data', _(u"集群容量必须为整数"))
+                data.set_outputs('ex_data', _("集群容量必须为整数"))
                 return False
 
         else:
