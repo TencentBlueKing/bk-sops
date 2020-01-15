@@ -14,6 +14,6 @@ desktop:
   height: 720
   is_max: True
 container:
-    memory: 2048
+    memory: 4096
 yums:
   - git
