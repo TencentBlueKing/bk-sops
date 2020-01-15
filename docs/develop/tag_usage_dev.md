@@ -162,6 +162,8 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   ]
   - `editable`：是否显示编辑、删除按钮列
   - `add_btn`： 是否显示添加按钮
+  - `open_tab`: 是否开启分页
+  - `limit`: 每页展示条数,默认 5 条
   - `empty_text`：无数据提示
   - `remote_url`：表格数据远程加载，支持 url 和方法
   - `remote_data_init`：加载数据后的处理函数
@@ -172,7 +174,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `validateSubCom`：校验表格内的数据是否符合规则（规则由对应的列的标准插件配置项指定）
   - `set_loading`：传入布尔类型参数来设置表格是否为 loading 状态
   - `remoteMethod`：远程加载数据
-
+  - `onRowClick`: 单行点击回调，参数为 **row**, eg: {key1:'value1',key2:'value2'}； **column**, eg: {label: 'name', property: 'key1'}； **event**
 ### 5. TagDatetime
 
 日期时间选择器。
