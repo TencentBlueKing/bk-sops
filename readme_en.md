@@ -1,7 +1,7 @@
 ![](docs/resource/img/logo_en.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.3.28-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.3.29-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
 [![Build Status](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 

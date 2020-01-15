@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-17 18:32+0800\n"
+"POT-Creation-Date: 2020-01-15 19:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgid "HTTP状态码："
 msgstr "HTTP Status:"
 
 #: frontend/desktop/src/components/common/Individualization/IpLogContent.vue:61
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:241
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:242
 msgid "错误码"
 msgstr "ErrorCode"
 
@@ -38,109 +38,109 @@ msgstr "ErrorCode"
 msgid "请输入 IP"
 msgstr "Please enter IP"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:124
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:125
 msgid "分钟"
 msgstr "minute"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:139
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:140
 msgid "小时"
 msgstr "hour"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:154
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:155
 msgid "星期"
 msgstr "week"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:169
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:170
 #: frontend/desktop/src/pages/admin/statistics/verticalBarChart/index.vue:54
 msgid "日期"
 msgstr "date"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:184
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:185
 msgid "月份"
 msgstr "month"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:202
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:203
 msgid "循环"
 msgstr "Cycle"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:203
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:204
 msgid "从第"
 msgstr "From"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:204
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:205
 msgid "从星期"
 msgstr "From day"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:205
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:206
 msgid "开始，每隔"
 msgstr ", execute once every"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:206
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:207
 msgid "执行一次"
 msgstr " "
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:209
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:210
 msgid "指定"
 msgstr "Specify"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:213
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:214
 msgid "星期一"
 msgstr "Monday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:214
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:215
 msgid "星期二"
 msgstr "Tuesday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:215
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:216
 msgid "星期三"
 msgstr "Wednesday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:216
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:217
 msgid "星期四"
 msgstr "Thursday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:217
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:218
 msgid "星期五"
 msgstr "Friday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:218
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:219
 msgid "星期六"
 msgstr "Saturday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:219
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:220
 msgid "星期天"
 msgstr "Sunday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:240
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:241
 #: frontend/desktop/src/pages/admin/statistics/Instance/index.vue:302
 msgid "天"
 msgstr "day"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:242
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:243
 msgid "表达式："
 msgstr "Expression:"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:243
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:244
 msgid "手动输入"
 msgstr "Enter Manually"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:244
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:245
 msgid "清空已选"
 msgstr "Empty"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:245
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:246
 msgid "选择生成"
 msgstr "Selection"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:246
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:247
 msgid "0 12 * 10-17 */11"
 msgstr "0 12 * 10-17 */11"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:247
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:248
 msgid "0 表示星期天，6 表示星期六"
 msgstr "0 means Sunday, 6 means Saturday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:254
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:255
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:88
 #: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:167
 msgid "task-zh"
@@ -384,7 +384,7 @@ msgstr "Cloud Area"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:178
 #: frontend/desktop/src/pages/audit/index.vue:207
 #: frontend/desktop/src/pages/functor/index.vue:252
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:219
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:223
 #: frontend/desktop/src/pages/task/TaskList/index.vue:289
 msgid "状态"
 msgstr "Status"
@@ -401,7 +401,7 @@ msgstr "Exceptions"
 #: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:122
 #: frontend/desktop/src/pages/audit/index.vue:208
 #: frontend/desktop/src/pages/functor/index.vue:253
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:206
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:210
 #: frontend/desktop/src/pages/task/TaskList/index.vue:290
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:288
 msgid "操作"
@@ -443,26 +443,30 @@ msgstr "Host"
 msgid "取消"
 msgstr "Cancel"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:67
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:75
 msgid "静态IP"
 msgstr "Static IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:68
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:76
 msgid "动态IP"
 msgstr "Dynamic IP"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:69
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:77
 msgid "筛选条件"
 msgstr "Filter Condition"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:70
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:78
 msgid "排除条件"
 msgstr "Exclusion condition"
+
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/index.vue:79
+msgid "变量值是否带云区域："
+msgstr "Var value with cloud id: "
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:150
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:74
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:90
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:209
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:213
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:290
 msgid "编辑"
 msgstr "Edit"
@@ -472,7 +476,7 @@ msgstr "Edit"
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:263
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:91
 #: frontend/desktop/src/pages/appmaker/index.vue:187
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:208
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:212
 #: frontend/desktop/src/pages/task/TaskList/index.vue:292
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:109
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:143
@@ -520,7 +524,7 @@ msgid "选择文件"
 msgstr "Select"
 
 #: frontend/desktop/src/components/common/base/AdvanceSearch.vue:39
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:204
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:208
 #: frontend/desktop/src/pages/task/TaskList/index.vue:310
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:317
 msgid "高级搜索"
@@ -643,7 +647,7 @@ msgstr "Audit"
 #: frontend/desktop/src/components/layout/Navigator.vue:104
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:92
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:173
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:223
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:227
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:223
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:342
 msgid "流程模板"
@@ -666,7 +670,7 @@ msgid "公共流程"
 msgstr "Common Flow"
 
 #: frontend/desktop/src/components/layout/Navigator.vue:121
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:203
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:207
 msgid "周期任务"
 msgstr "Periodic Tasks"
 
@@ -749,8 +753,8 @@ msgstr "Executing"
 #: frontend/desktop/src/pages/audit/index.vue:216
 #: frontend/desktop/src/pages/audit/index.vue:357
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:128
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:210
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:239
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:214
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:243
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:182
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:190
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:712
@@ -1147,7 +1151,7 @@ msgstr "Add Local Caches"
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:264
 #: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:65
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:110
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:220
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:224
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:230
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:200
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:106
@@ -1273,7 +1277,7 @@ msgstr "Module"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:73
 #: frontend/desktop/src/pages/appmaker/index.vue:180
 #: frontend/desktop/src/pages/functor/index.vue:256
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:199
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:203
 #: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:127
 #: frontend/desktop/src/pages/task/TaskList/index.vue:313
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:199
@@ -1326,7 +1330,7 @@ msgstr "Trigger"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:179
 #: frontend/desktop/src/pages/audit/index.vue:210
 #: frontend/desktop/src/pages/functor/index.vue:260
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:212
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:216
 #: frontend/desktop/src/pages/task/TaskList/index.vue:294
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:299
 msgid "共"
@@ -1336,7 +1340,7 @@ msgstr " "
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:180
 #: frontend/desktop/src/pages/audit/index.vue:211
 #: frontend/desktop/src/pages/functor/index.vue:261
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:213
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:217
 #: frontend/desktop/src/pages/task/TaskList/index.vue:295
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:300
 msgid "条记录"
@@ -1346,7 +1350,7 @@ msgstr "records"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:181
 #: frontend/desktop/src/pages/audit/index.vue:212
 #: frontend/desktop/src/pages/functor/index.vue:262
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:214
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:218
 #: frontend/desktop/src/pages/task/TaskList/index.vue:296
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:301
 msgid "，"
@@ -1356,7 +1360,7 @@ msgstr ","
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:182
 #: frontend/desktop/src/pages/audit/index.vue:213
 #: frontend/desktop/src/pages/functor/index.vue:264
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:215
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:219
 #: frontend/desktop/src/pages/task/TaskList/index.vue:297
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:302
 msgid "当前第"
@@ -1366,7 +1370,7 @@ msgstr "current"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:183
 #: frontend/desktop/src/pages/audit/index.vue:214
 #: frontend/desktop/src/pages/functor/index.vue:265
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:216
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:220
 #: frontend/desktop/src/pages/task/TaskList/index.vue:298
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:303
 msgid "页"
@@ -1451,7 +1455,7 @@ msgstr "Standard Plugins"
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:138
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:146
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:144
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:176
+#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:173
 msgid "全部分类"
 msgstr "All Categories"
 
@@ -1558,7 +1562,7 @@ msgstr "Task Name"
 #: frontend/desktop/src/pages/admin/statistics/Template/index.vue:227
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:176
 #: frontend/desktop/src/pages/audit/index.vue:205
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:205
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:209
 #: frontend/desktop/src/pages/task/TaskList/index.vue:287
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:287
 msgid "创建人"
@@ -1632,7 +1636,7 @@ msgstr "Business"
 
 #: frontend/desktop/src/pages/admin/statistics/Template/index.vue:229
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:96
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:224
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:228
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:294
 msgid "执行历史"
 msgstr "History"
@@ -1751,7 +1755,7 @@ msgstr "Executor"
 #: frontend/desktop/src/pages/appmaker/index.vue:193
 #: frontend/desktop/src/pages/audit/index.vue:218
 #: frontend/desktop/src/pages/functor/index.vue:269
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:225
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:229
 #: frontend/desktop/src/pages/task/TaskList/index.vue:304
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:314
 msgid "搜索"
@@ -1761,7 +1765,7 @@ msgstr "Search"
 #: frontend/desktop/src/pages/appmaker/index.vue:194
 #: frontend/desktop/src/pages/audit/index.vue:219
 #: frontend/desktop/src/pages/functor/index.vue:270
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:226
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:230
 #: frontend/desktop/src/pages/task/TaskList/index.vue:305
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:315
 msgid "清空"
@@ -1778,7 +1782,7 @@ msgstr "Select a datetime"
 
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:189
 #: frontend/desktop/src/pages/audit/index.vue:221
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:218
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:222
 #: frontend/desktop/src/pages/task/TaskList/index.vue:301
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:310
 msgid "请输入创建人"
@@ -1800,7 +1804,7 @@ msgstr "Choose category please"
 
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:192
 #: frontend/desktop/src/pages/audit/index.vue:223
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:222
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:226
 #: frontend/desktop/src/pages/task/TaskList/index.vue:303
 msgid "请选择状态"
 msgstr "Choose status please"
@@ -2066,7 +2070,7 @@ msgid "修改周期任务"
 msgstr "Modify Periodic Task"
 
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:80
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:202
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:206
 msgid "周期规则"
 msgstr "Corntab"
 
@@ -2107,34 +2111,34 @@ msgstr "Modify Periodic task failed, contact admin please"
 msgid "修改周期任务表达式成功"
 msgstr "Modify crontab success"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:200
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:204
 msgid "新建周期任务"
 msgstr "New Periodic Task"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:201
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:205
 msgid "上次运行时间"
 msgstr "Last run at"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:207
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:238
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:211
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:242
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:91
 msgid "启动"
 msgstr "Activate"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:211
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:215
 msgid "运行次数"
 msgstr "Number of runs"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:217
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:221
 #: frontend/desktop/src/pages/task/TaskList/index.vue:299
 msgid "请输入任务名称"
 msgstr "Please enter ID or task name"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:221
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:225
 msgid "请暂停任务后再执行编辑操作"
 msgstr "Deactivate task before edit it"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:379
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:383
 msgid "删除周期任务成功"
 msgstr "Task delete success"
 

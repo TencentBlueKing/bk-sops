@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-09-17 18:32+0800\n"
+"POT-Creation-Date: 2020-01-15 19:32+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 #: blueapps/account/admin.py:25
 msgid "Personal info"
@@ -171,7 +171,7 @@ msgid "流程超时时间(分钟)"
 msgstr "流程超时时间(分钟)"
 
 #: gcloud/commons/template/models.py:155 gcloud/contrib/appmaker/models.py:296
-#: gcloud/taskflow3/models.py:784 pipeline/models.py:284
+#: gcloud/taskflow3/models.py:789 pipeline/models.py:284
 msgid "是否删除"
 msgstr "是否删除"
 
@@ -682,7 +682,7 @@ msgstr "部署自动触发"
 msgid "执行者"
 msgstr "执行者"
 
-#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:773
+#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:778
 msgid "创建方式"
 msgstr "创建方式"
 
@@ -708,7 +708,7 @@ msgstr "同步详情信息"
 msgid "远程包源同步任务 SyncTask"
 msgstr "远程包源同步任务 SyncTask"
 
-#: gcloud/periodictask/models.py:75 gcloud/taskflow3/models.py:759
+#: gcloud/periodictask/models.py:75 gcloud/taskflow3/models.py:764
 msgid "业务"
 msgstr "业务"
 
@@ -716,7 +716,7 @@ msgstr "业务"
 msgid "pipeline 层周期任务"
 msgstr "pipeline 层周期任务"
 
-#: gcloud/periodictask/models.py:80 gcloud/taskflow3/models.py:769
+#: gcloud/periodictask/models.py:80 gcloud/taskflow3/models.py:774
 msgid "创建任务所用的模板ID"
 msgstr "创建任务所用的模板ID"
 
@@ -819,27 +819,27 @@ msgstr "任务名称"
 msgid "未执行"
 msgstr "未执行"
 
-#: gcloud/taskflow3/models.py:767
+#: gcloud/taskflow3/models.py:772
 msgid "任务类型，继承自模板"
 msgstr "任务类型，继承自模板"
 
-#: gcloud/taskflow3/models.py:770
+#: gcloud/taskflow3/models.py:775
 msgid "流程模板来源"
 msgstr "流程模板来源"
 
-#: gcloud/taskflow3/models.py:777
+#: gcloud/taskflow3/models.py:782
 msgid "创建任务额外信息（App maker ID或者APP CODE）"
 msgstr "创建任务额外信息（App maker ID或者APP CODE）"
 
-#: gcloud/taskflow3/models.py:779
+#: gcloud/taskflow3/models.py:784
 msgid "任务流程类型"
 msgstr "任务流程类型"
 
-#: gcloud/taskflow3/models.py:783
+#: gcloud/taskflow3/models.py:788
 msgid "当前任务流程阶段"
 msgstr "当前任务流程阶段"
 
-#: gcloud/taskflow3/models.py:792 gcloud/taskflow3/models.py:793
+#: gcloud/taskflow3/models.py:797 gcloud/taskflow3/models.py:798
 msgid "流程实例 TaskFlowInstance"
 msgstr "流程实例 TaskFlowInstance"
 
@@ -1643,8 +1643,8 @@ msgstr "变量是否可用"
 msgid "Variable变量"
 msgstr "Variable变量"
 
-#: pipeline_plugins/cmdb_ip_picker/query.py:74
-#: pipeline_plugins/cmdb_ip_picker/query.py:132
+#: pipeline_plugins/cmdb_ip_picker/query.py:73
+#: pipeline_plugins/cmdb_ip_picker/query.py:131
 #: pipeline_plugins/cmdb_ip_picker/utils.py:51
 #: pipeline_plugins/cmdb_ip_picker/utils.py:276
 #: pipeline_plugins/cmdb_ip_picker/utils.py:282
@@ -1652,7 +1652,7 @@ msgstr "Variable变量"
 msgid "配置平台(CMDB)"
 msgstr "配置平台(CMDB)"
 
-#: pipeline_plugins/cmdb_ip_picker/query.py:100
+#: pipeline_plugins/cmdb_ip_picker/query.py:99
 msgid "管控平台(GSE)"
 msgstr "管控平台(GSE)"
 
