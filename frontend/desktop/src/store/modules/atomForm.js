@@ -133,10 +133,12 @@ const atomForm = {
             if (outputForm) {
                 result.output = await asyncGetAtomConfig(outputForm, isOutputFormEmbedded, type)
                 commit('setOutputConfig', { atomType: type, version, configList: result.output })
+                $.atoms[atomType] = null
             }
             if (inputForm) {
                 result.input = await asyncGetAtomConfig(inputForm, isInputFormEmbedded, type)
                 commit('setInputConfig', { atomType: type, version, configList: result.input })
+                $.atoms[atomType] = null
             }
             return result
         },
