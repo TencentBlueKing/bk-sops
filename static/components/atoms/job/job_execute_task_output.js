@@ -45,7 +45,7 @@
                         tag_code: "exit_code",
                         type: "text",
                         attrs: {
-                            name: "退出码",
+                            name: gettext("退出码"),
                         }
                     },
                 ]
