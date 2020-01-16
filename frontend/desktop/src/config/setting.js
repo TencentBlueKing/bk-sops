@@ -26,6 +26,13 @@ export function setConfigContext (site_url, project) {
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
         instance: site_url + 'api/v3/taskflow/',
+        input_form: {
+            inputs: undefined
+        },
+        output_form: {
+            outputs: undefined,
+            state: undefined
+        },
         get (attr) { // 获取 $.context 对象上属性
             return $.context[attr]
         },
@@ -49,6 +56,30 @@ export function setConfigContext (site_url, project) {
         },
         getConstants () { // 获取流程模板下的全局变量
             return store.state.template.constants
+        },
+        getOutput (key) { // 输出表单渲染-根据提供的 key 从节点的输出中获取相应的值，若不存在则返回 null
+            const outputs = $.context.output_form.outputs
+            if (outputs && Array.isArray(outputs)) {
+                const v = $.context.output_form.outputs.find(item => item.key === key)
+                if (v) {
+                    return v.value
+                }
+                return null
+            }
+            return null
+        },
+        getInput (key) { // 获取输入表单对应值
+            if ($.context.input_form.inputs && $.context.input_form.inputs[key]) {
+                return $.context.input_form.inputs[key]
+            }
+            return null
+        },
+        getNodeStatus () { // 输出表单渲染-获取当前节点的执行状态
+            const state = $.context.output_form.state
+            if (state) {
+                return state
+            }
+            return null
         }
     }
 }
