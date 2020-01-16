@@ -94,7 +94,7 @@
         </el-table>
         <div class="table-pagination">
             <el-pagination
-                v-if="open_tab"
+                v-if="show_pagination"
                 layout="prev, pager, next"
                 :current-page="pagination.current"
                 :page-size="limit"
@@ -195,17 +195,23 @@
             },
             desc: 'dataTable buttons setting'
         },
-        open_tab: {
+        show_pagination: {
             type: Boolean,
             require: false,
             default: false,
-            desc: 'open table tab or not'
+            desc: 'show table pagination or not'
         },
         limit: {
             type: Number,
             require: false,
             default: 5,
-            desc: 'table limit number'
+            desc: 'the number of per page'
+        },
+        row_click_handler_name: {
+            type: String,
+            require: false,
+            default: '',
+            desc: 'on table row click callback function name'
         }
     }
     export default {
@@ -252,7 +258,7 @@
                 'constants': state => state.template.constants
             }),
             currPageValue () {
-                if (this.open_tab) {
+                if (this.show_pagination) {
                     const start = (this.pagination.current - 1) * this.limit
                     const end = start + this.limit
                     return this.tableValue.slice(start, end)
@@ -515,6 +521,10 @@
             },
             // 表格单行点击
             onRowClick (row, column, event) {
+                const handlerName = this.row_click_handler_name
+                if (handlerName && typeof this[handlerName] === 'function') {
+                    this[handlerName](row, column, event)
+                }
             }
         }
     }
