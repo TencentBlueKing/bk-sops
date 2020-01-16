@@ -515,7 +515,7 @@ def file_upload(request, project_id):
     })
 
 
-def job_get_instance_log(request, biz_cc_id, task_id):
+def job_get_instance_detail(request, biz_cc_id, task_id):
     client = get_client_by_user(request.user.username)
     log_kwargs = {
         "bk_biz_id": biz_cc_id,
@@ -538,25 +538,29 @@ def job_get_instance_log(request, biz_cc_id, task_id):
             'message': 'job instance log fetch error: {}'.format(job_result['message'])
         })
 
-    ip_logs = {}
+    ip_details = {}
     for step in job_result['data']:
         for step_result in step['step_results']:
             for ip_log in step_result['ip_logs']:
-                ip_logs.setdefault(
-                    ip_log['ip'],
-                    []
-                ).append(ip_log['log_content'])
+                detail = ip_details.setdefault(ip_log['ip'], {})
 
-    log_data = []
-    for ip, log in ip_logs.items():
-        log_data.append({
+                detail.setdefault('log', []).extend([
+                    'step: {}\n'.format(step['step_instance_id']),
+                    ip_log['log_content']
+                ])
+                detail['exit_code'] = ip_log['exit_code']
+
+    data = []
+    for ip, detail in ip_details.items():
+        data.append({
             'ip': ip,
-            'log': ''.join(log)
+            'log': ''.join(detail['log']),
+            'exit_code': detail['exit_code']
         })
 
     return JsonResponse({
         'result': True,
-        'data': log_data
+        'data': data
     })
 
 
@@ -569,7 +573,7 @@ urlpatterns = [
     url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
     url(r'^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_job_task_detail),
-    url(r'^job_get_instance_log/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_instance_log),
+    url(r'^job_get_instance_detail/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_instance_detail),
 
     # IP selector
     url(r'^cc_search_topo_tree/(?P<project_id>\d+)/$', cc_search_topo_tree),
