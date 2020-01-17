@@ -14,20 +14,20 @@ specific language governing permissions and limitations under the License.
 from django.utils.translation import ugettext as _
 
 
-def title_and_content_for_atom_failed(taskflow, pipeline_inst, atom_node_name, executor):
+def title_and_content_for_atom_failed(taskflow, pipeline_inst, node_name, executor):
     title = _("【标准运维APP通知】执行失败")
     content = _("您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，"
                 "操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！").format(
         cc_name=taskflow.project.name,
         task_name=pipeline_inst.name,
-        node_name=atom_node_name,
+        node_name=node_name,
         executor=executor,
         url=taskflow.url
     )
     return title, content
 
 
-def title_and_content_for_flow_finished(taskflow, pipeline_inst, atom_node_name, executor):
+def title_and_content_for_flow_finished(taskflow, pipeline_inst, node_name, executor):
     title = _("【标准运维APP通知】执行完成")
     content = _("您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，"
                 "请前往标准运维APP( {url} )查看详情！").format(
