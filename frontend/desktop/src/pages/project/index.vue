@@ -285,6 +285,9 @@
             ...mapMutations('project', [
                 'setTimeZone'
             ]),
+            ...mapMutations('atomForm', [
+                'clearAtomForm'
+            ]),
             ...mapActions([
                 'queryUserPermission'
             ]),
@@ -447,8 +450,8 @@
                 await this.changeDefaultProject(id)
                 const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
                 this.setTimeZone(timeZone)
-                $.atoms = {}
-
+                this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
+                
                 this.$router.push({
                     name: 'process',
                     params: { project_id: id }

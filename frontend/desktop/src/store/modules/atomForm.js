@@ -17,21 +17,25 @@ const META_FORM_TYPE = {
 }
 /**
  * 异步获取插件配置列表
- * @param {*} atomUrl 配置文件 js 地址
- * @param {*} isEmbedded 是为否嵌入式
- * @param {*} atomType 插件类型
+ * @param {String} atomUrl 配置文件 js 地址
+ * @param {Boolean} isEmbedded 是为否嵌入式
+ * @param {String} atomType 插件类型
+ * @param {Boolean} atomType 是否输出类型
  */
-const asyncGetAtomConfig = async function (atomUrl, isEmbedded, atomType) {
+const asyncGetAtomConfig = async function (atomUrl, isEmbedded, atomType, isOutput = false) {
+    // 输入表单挂载名为 code
+    // 输出表单挂载名为 code_output
+    const type = isOutput ? atomType + '_output' : atomType
     if (!atomUrl) {
         return []
     }
     if (isEmbedded) {
         eval(atomUrl)
-        return $.atoms[atomType]
+        return $.atoms[type]
     } else {
         const list = await new Promise((resolve, reject) => {
             $.getScript(atomUrl, function (response) {
-                resolve($.atoms[atomType])
+                resolve($.atoms[type])
             })
         })
         return list
@@ -101,6 +105,7 @@ const atomForm = {
             state.form = {}
             state.config = {}
             state.output = {}
+            state.outputConfig = {}
         }
     },
     actions: {
@@ -131,14 +136,12 @@ const atomForm = {
             commit('setAtomForm', { atomType: type, data: atomRes.data, isMeta, version })
             commit('setAtomOutputData', { atomType: type, outputData, version })
             if (outputForm) {
-                result.output = await asyncGetAtomConfig(outputForm, isOutputFormEmbedded, type)
+                result.output = await asyncGetAtomConfig(outputForm, isOutputFormEmbedded, type, true)
                 commit('setOutputConfig', { atomType: type, version, configList: result.output })
-                $.atoms[atomType] = null
             }
             if (inputForm) {
                 result.input = await asyncGetAtomConfig(inputForm, isInputFormEmbedded, type)
                 commit('setInputConfig', { atomType: type, version, configList: result.input })
-                $.atoms[atomType] = null
             }
             return result
         },
