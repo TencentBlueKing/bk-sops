@@ -912,8 +912,8 @@
                 nodeData.optional = this.nodeCouldBeSkipped
                 
                 if (this.isSingleAtom) {
-                    nodeData.skippable = this.isSkip
-                    nodeData.retryable = this.isRetry
+                    nodeData.skippable = this.isSkip || false // 兼容脏数据该字段不存在
+                    nodeData.retryable = this.isRetry || false // 兼容脏数据改字段不存在
                     nodeData.error_ignorable = this.errorCouldBeIgnored
                     nodeData.component.version = this.currentVersion
                     // can_retry、isSkipped 为就数据字段，点开编辑保存时删除
