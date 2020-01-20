@@ -770,8 +770,10 @@
                 const bX = pageX - offsetX
                 const bY = pageY - offsetY
                 const endPos = { x: bX, y: bY }
-                const animationFrame = window.requestAnimationFrame || function (fn) {
-                    setTimeout(fn, 16)
+                const animationFrame = () => {
+                    return window.requestAnimationFrame || function (fn) {
+                        setTimeout(fn, 1000 / 60)
+                    }
                 }
                 animationFrame(this.updataReferenceLinePositon(this.referenceLine, endPos))
             },
