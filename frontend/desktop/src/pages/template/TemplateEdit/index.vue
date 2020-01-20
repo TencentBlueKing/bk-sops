@@ -575,6 +575,7 @@
                         if (this.common) {
                             url.name = 'commonTemplatePanel'
                         }
+                        this.$router.push(url)
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
