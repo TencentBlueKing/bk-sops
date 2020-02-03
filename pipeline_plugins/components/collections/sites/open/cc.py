@@ -704,36 +704,36 @@ class CCCreateSetService(Service):
         cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_parent_select'))
         cc_set_info = data.get_one_of_inputs('cc_set_info')
 
+        bk_set_env = cc_format_prop_data(executor,
+                                         'set',
+                                         'bk_set_env',
+                                         parent_data.get_one_of_inputs('language'),
+                                         supplier_account)
+        if not bk_set_env['result']:
+            data.set_outputs('ex_data', bk_set_env['message'])
+            return False
+
+        bk_service_status = cc_format_prop_data(executor,
+                                                'set',
+                                                'bk_service_status',
+                                                parent_data.get_one_of_inputs('language'),
+                                                supplier_account)
+        if not bk_service_status['result']:
+            data.set_outputs('ex_data', bk_service_status['message'])
+            return False
+
         set_list = []
         for set_params in cc_set_info:
             set_property = {}
             for key, value in list(set_params.items()):
                 if value:
                     if key == "bk_set_env":
-                        bk_set_env = cc_format_prop_data(executor,
-                                                         'set',
-                                                         'bk_set_env',
-                                                         parent_data.get_one_of_inputs('language'),
-                                                         supplier_account)
-                        if not bk_set_env['result']:
-                            data.set_outputs('ex_data', bk_set_env['message'])
-                            return False
-
                         value = bk_set_env['data'].get(value)
                         if not value:
                             data.set_outputs('ex_data', _(u"环境类型校验失败，请重试并修改为正确的环境类型"))
                             return False
 
                     elif key == "bk_service_status":
-                        bk_service_status = cc_format_prop_data(executor,
-                                                                'set',
-                                                                'bk_service_status',
-                                                                parent_data.get_one_of_inputs('language'),
-                                                                supplier_account)
-                        if not bk_service_status['result']:
-                            data.set_outputs('ex_data', bk_service_status['message'])
-                            return False
-
                         value = bk_service_status['data'].get(value)
                         if not value:
                             data.set_outputs('ex_data', _(u"服务状态校验失败，请重试并修改为正确的服务状态"))
