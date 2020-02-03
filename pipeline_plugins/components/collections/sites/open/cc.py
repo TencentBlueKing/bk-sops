@@ -703,63 +703,70 @@ class CCCreateSetService(Service):
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_parent_select'))
         cc_set_info = data.get_one_of_inputs('cc_set_info')
-        cc_kwargs = {
-            'bk_biz_id': biz_cc_id,
-            'bk_supplier_account': supplier_account,
-            'data': {}
-        }
+
+        set_list = []
+        for set_params in cc_set_info:
+            set_property = {}
+            for key, value in list(set_params.items()):
+                if value:
+                    if key == "bk_set_env":
+                        bk_set_env = cc_format_prop_data(executor,
+                                                         'set',
+                                                         'bk_set_env',
+                                                         parent_data.get_one_of_inputs('language'),
+                                                         supplier_account)
+                        if not bk_set_env['result']:
+                            data.set_outputs('ex_data', bk_set_env['message'])
+                            return False
+
+                        value = bk_set_env['data'].get(value)
+                        if not value:
+                            data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
+                            return False
+
+                    elif key == "bk_service_status":
+                        bk_service_status = cc_format_prop_data(executor,
+                                                                'set',
+                                                                'bk_service_status',
+                                                                parent_data.get_one_of_inputs('language'),
+                                                                supplier_account)
+                        if not bk_service_status['result']:
+                            data.set_outputs('ex_data', bk_service_status['message'])
+                            return False
+
+                        value = bk_service_status['data'].get(value)
+                        if not value:
+                            data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
+                            return False
+
+                    elif key == "bk_capacity":
+                        try:
+                            value = int(value)
+                        except Exception:
+                            self.logger.error(traceback.format_exc())
+                            data.set_outputs('ex_data', _("集群容量必须为整数"))
+                            return False
+
+                    set_property[key] = value
+            set_list.append(set_property)
 
         for parent_id in cc_set_parent_select:
-            cc_kwargs['data']['bk_parent_id'] = parent_id
-            for set_params in cc_set_info:
-                for key, value in list(set_params.items()):
-                    if value:
-                        if key == "bk_set_env":
-                            bk_set_env = cc_format_prop_data(executor,
-                                                             'set',
-                                                             'bk_set_env',
-                                                             parent_data.get_one_of_inputs('language'),
-                                                             supplier_account)
-                            if not bk_set_env['result']:
-                                data.set_outputs('ex_data', bk_set_env['message'])
-                                return False
-
-                            value = bk_set_env['data'].get(value)
-                            if not value:
-                                data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
-                                return False
-
-                        elif key == "bk_service_status":
-                            bk_service_status = cc_format_prop_data(executor,
-                                                                    'set',
-                                                                    'bk_service_status',
-                                                                    parent_data.get_one_of_inputs('language'),
-                                                                    supplier_account)
-                            if not bk_service_status['result']:
-                                data.set_outputs('ex_data', bk_service_status['message'])
-                                return False
-
-                            value = bk_service_status['data'].get(value)
-                            if not value:
-                                data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
-                                return False
-
-                        elif key == "bk_capacity":
-                            try:
-                                value = int(value)
-                            except Exception:
-                                self.logger.error(traceback.format_exc())
-                                data.set_outputs('ex_data', _("集群容量必须为整数"))
-                                return False
-
-                        cc_kwargs['data'][key] = value
-
+            for set_data in set_list:
+                cc_kwargs = {
+                    'bk_biz_id': biz_cc_id,
+                    'bk_supplier_account': supplier_account,
+                    'data': {
+                        'bk_parent_id': parent_id
+                    }
+                }
+                cc_kwargs['data'].update(set_data)
                 cc_result = client.cc.create_set(cc_kwargs)
                 if not cc_result['result']:
                     message = cc_handle_api_error('cc.create_set', cc_kwargs, cc_result)
                     self.logger.error(message)
                     data.set_outputs('ex_data', message)
                     return False
+
         return True
 
 
