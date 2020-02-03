@@ -1,0 +1,140 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'version_log/css/version-log-page.css' %}">
+<link rel="stylesheet" href="{% static 'version_log/css/jquery.mCustomScrollbar.css' %}">
+<script src="{% static 'version_log/js/jquery.mCustomScrollbar.concat.min.js' %}"></script>
+<div>
+    <div class="vlog">
+        <div class="vlog-nav">
+            <div class='vlog-nav-btn' id="btn_up" onclick="log_list_move(false)" style="top: 0;border-bottom: 1px solid #ddd;">
+                <img class="logo-direction" src="{% static 'version_log/images/up.svg' %}" style="width:20px;height:13px;opacity:0.4;" />
+            </div>
+            <div class="vlog-list">
+                <ul class="nav vlog-nav-ul" id="version_log_list">
+                    <!-- version logs list  -->
+                </ul>
+                <div id="vlog-line" style="border-right: 1px solid #ddd; float: right;"></div>
+            </div>
+            <div class='vlog-nav-btn' id="btn_down" onclick="log_list_move(true)" style="bottom: 0;border-top: 1px solid #ddd;">
+                <img class="logo-direction" src="{% static 'version_log/images/down.svg' %}" style="width:20px;height:13px;opacity:0.4;" />
+            </div>
+        </div>
+        <div id="vlog-detail" class="vlog-content tab-content">
+            <div class="tab-pane active" id="log_pane">
+                <div id="version_log_detail">
+                    <!-- detail version log -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    let is_btn_show = false;
+    $(function() {
+        // load version logs list
+        $.ajax({
+            url: "{{SITE_URL}}"+ window.version_log_url +"version_logs_list/",
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                if (data.code == 0) {
+                    data = data.data;
+                    var nav_ul = $('#version_log_list');
+                    data.forEach(function(item, i) {
+                        nav_ul.append('<li data-toggle="pill"><a href="#" onclick="log_detail(this);"> <span>' + item[0]
+                        + '</span><br><span style="font-size:12px;">'+ item[1] +'</span></a></li>');
+                    });
+                    // load the lastest version log
+                    if (data.length > 0) {
+                        nav_ul.find('a').get(0).click();
+                        const line_height = 600-65*data.length+'px';
+                        $("#vlog-line").css({'height': line_height});
+                    } else {
+                        show_error_page('暂无版本日志');
+                    }
+                } else {
+                    show_error_page('页面异常，请稍后重试');
+                }
+            }
+        });
+        $("#log_pane").mCustomScrollbar({
+            setHeight:600,
+            theme:"minimal-dark"
+        });
+
+        // control buttons when the mouse move into the list
+        $(".vlog-nav").hover(
+            function () {
+                is_btn_show = true;
+                show_nav_btn();
+            },
+            function () {
+                is_btn_show = false;
+                show_nav_btn();
+            }
+        );
+
+        // control buttons when scroll the list
+        $(".vlog-list").scroll(function(event){
+            show_nav_btn();
+        });
+    });
+
+    // determine the buttons show or hide
+    function show_nav_btn() {
+        const top = $(".vlog-list").scrollTop();
+        const window_height = $(".vlog-list").height();
+        const list_height = $("#version_log_list").height();
+        if (top > 0 && is_btn_show) {
+            $("#btn_up").show();
+        } else {
+            $("#btn_up").hide();
+        }
+        if (top+window_height < list_height && is_btn_show) {
+            $("#btn_down").show();
+        } else {
+            $("#btn_down").hide();
+        }
+    }
+
+    // load detail version log
+    function log_detail(element) {
+        var log_version = $(element).find("span").first().text();
+        $.ajax({
+            url: "{{SITE_URL}}"+ window.version_log_url +"version_log_detail/?log_version="+log_version,
+            type: "GET",
+            dataType: "json",
+            success: function(data) {
+                if (data.code == 0) {
+                    data = data.data;
+                    $("#version_log_detail").html(data);
+                } else {
+                    show_error_page('页面异常，请稍后重试');
+                }
+
+            }
+        });
+    }
+
+    // button event to scroll the log list
+    function log_list_move(isNext) {
+        if (isNext === true) {
+            $(".vlog-list").animate({
+                'scrollTop' : "+=300px"
+            }, 500);
+        } else {
+            $(".vlog-list").animate({
+                'scrollTop' : "-=300px"
+            }, 500);
+        }
+    }
+
+    function show_error_page(text) {
+        html_tpl = `
+        <div class="bk-exception" style="text-align: center;height:100%;padding:10%">
+            <img src="{% static 'version_log/images/error.png' %}" >
+            <h2 class="exception-text">` + text + `</h2>
+        </div>
+        `;
+        $(".vlog").html(html_tpl);
+    }
+</script>

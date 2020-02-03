@@ -1,0 +1,60 @@
+.logs-list {
+    width: 200px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+}
+
+.log-body {
+    position: absolute;
+    left: 200px;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    overflow-y: auto;
+}
+
+.page-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.logs-list ul {
+    padding-inline-start: 0px;
+}
+
+.logs-list li {
+    list-style-type: none;
+    border-top: 1px solid #ddd;
+    cursor: pointer;
+    padding: 20px 40px;
+}
+
+.logs-list li:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.logs-list li:first-child {
+    border-top: 0px;
+}
+
+.logs-list span {
+    color: #979BA5;
+    font-size: 16px;
+}
+
+.logs-list .active span{
+    color: #3A84FF !important;
+}
+
+.logs-list li:hover span{
+    color: #63656E;
+}
+
+#log-detail {
+    font-size: 16px;
+}
+
