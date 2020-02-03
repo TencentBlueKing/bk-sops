@@ -165,7 +165,9 @@
                         return item
                     } else if (item.children) {
                         item.children = this.filterTreeItem(item.children)
-                        return item
+                        if (item.children.length > 0) {
+                            return item
+                        }
                     }
                 })
             }
