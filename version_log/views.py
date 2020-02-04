@@ -53,7 +53,7 @@ def version_logs_list(request):
     version_list = get_version_list()
     if version_list is None:
         logger.error('MD_FILES_DIR not found. Current path is {}'.format(config.MD_FILES_DIR))
-        return JsonResponse({'result': False, 'code': -1, 'message': '访问出错，请联系管理员。', 'data': None})
+        return JsonResponse({'result': False, 'code': -1, 'message': _('访问出错，请联系管理员。'), 'data': None})
     response = {'result': True, 'code': 0, 'message': _(u'日志列表获取成功'), 'data': version_list}
     return JsonResponse(response)
 
@@ -64,7 +64,7 @@ def get_version_log_detail(request):
     html_text = get_parsed_html(log_version)
     if html_text is None:
         logger.error('md file not found or log version not valid. Log version is {}'.format(log_version))
-        response = {'result': False, 'code': -1, 'message': '日志版本文件没找到，请联系管理员', 'data': None}
+        response = {'result': False, 'code': -1, 'message': _('日志版本文件没找到，请联系管理员'), 'data': None}
         return JsonResponse(response)
     response = {'result': True, 'code': 0, 'message': _(u'日志详情获取成功'), 'data': html_text}
     return JsonResponse(response)
