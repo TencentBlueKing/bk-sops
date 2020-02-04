@@ -87,7 +87,26 @@
                         value: default_val,
                         empty_text: empty_text,
                         editable: true,
-                        add_btn: true,
+                        table_buttons: [
+                            {
+                                type: "add_row",
+                                text: gettext("添加"),
+                                callback: function(){
+                                    this.add_row()
+                                }
+                            },
+                            {
+                                type: "export",
+                                text: gettext("导出"),
+                                callback: function() {
+                                    this.export2Excel()
+                                }
+                            },
+                            {
+                                type: "import",
+                                text: gettext("导入")
+                            }
+                        ],
                         remote_data_init: function (data) {
                             return data
                         },
