@@ -44,14 +44,15 @@
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="help-doc">
+            <li class="right-icon help-doc">
                 <a
                     class="common-icon-dark-circle-question"
                     href="http://docs.bk.tencent.com/product_white_paper/gcloud/"
                     target="_blank">
                 </a>
             </li>
-            <li class="user-avatar">
+            <li class="right-icon version-log"><i class="common-icon-info" @click="onOpenVersion"></i></li>
+            <li class="right-icon user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
                     v-bk-tooltips="{
@@ -170,6 +171,7 @@
         },
         computed: {
             ...mapState({
+                site_url: state => state.site_url,
                 view_mode: state => state.view_mode,
                 username: state => state.username,
                 app_id: state => state.app_id,
@@ -356,6 +358,10 @@
                     errorHandler(err, this)
                 })
             },
+            /* 打开版本日志 */
+            onOpenVersion () {
+                window.open(`${this.site_url}version_log/`, '_blank')
+            },
             isNavActived (route) {
                 if (this.view_mode === 'appmaker') {
                     return this.$route.name === route.path
@@ -472,30 +478,31 @@ header {
         .project-select {
             float: left;
         }
-        .help-doc {
+        .right-icon {
             float: left;
-            margin-left: 25px;
             height: 50px;
             font-size: 16px;
-            .common-icon-dark-circle-question {
+            & > [class^='common-icon'] {
                 margin-top: 17px;
                 display: inline-block;
                 color: #63656e;
+                cursor: pointer;
                 &:hover {
                     color: #616d7d;
                 }
             }
         }
-        .user-avatar {
-            float: left;
-            margin-left: 25px;
-            height: 50px;
-            font-size: 16px;
-            color: #63656e;
-            .common-icon-dark-circle-avatar {
-                display: inline-block;
-                margin-top: 17px;
+        .help-doc {
+            margin-left: 18px;
+        }
+        .version-log {
+            margin-left: 10px;
+            & > .common-icon-info {
+                font-size: 18px;
             }
+        }
+        .user-avatar {
+            margin-left: 10px;
         }
         /deep/ .bk-select.is-disabled {
             background: none;
