@@ -198,6 +198,17 @@ const template = {
                 if (key !== 'constants') {
                     val = nodeFilter.convertInvalidIdData(key, val) // convert old invalid data =_=!
                 }
+                if (key === 'activities') { // 兼容脏数据 can_retry、isSkipped 字段不存在问题
+                    for (const nodeId in val) {
+                        const item = val[nodeId]
+                        if (!item.hasOwnProperty('can_retry') && !item.hasOwnProperty('retryable')) {
+                            item.can_retry = true
+                        }
+                        if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
+                            item.isSkipped = true
+                        }
+                    }
+                }
                 if (key === 'location') {
                     val = val.map(item => {
                         if (item.type === 'tasknode' || item.type === 'subflow') {

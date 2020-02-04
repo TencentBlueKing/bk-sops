@@ -806,8 +806,8 @@
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
-                nodeData.isSkipped = this.isSkip
-                nodeData.can_retry = this.isRetry
+                nodeData.isSkipped = this.isSkip || false // 兼容脏数据该字段不存在
+                nodeData.can_retry = this.isRetry || false // 兼容脏数据改字段不存在
                 if (this.isSingleAtom) {
                     nodeData.error_ignorable = this.errorCouldBeIgnored
                     for (const key in this.inputAtomData) {
