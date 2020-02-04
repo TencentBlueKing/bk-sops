@@ -79,6 +79,7 @@ INSTALLED_APPS += (
     'auth_backend.contrib.consistency',
     'weixin.core',
     'weixin',
+    'version_log',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -350,3 +351,8 @@ ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER
 for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
+
+# version log config
+VERSION_LOG = {
+    'PAGE_STYLE': 'gitbook'
+}

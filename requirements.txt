@@ -35,3 +35,6 @@ django-timezone-field==3.0
 mock==2.0.0
 factory_boy==2.11.1
 boto3==1.9.130
+
+# version log
+mistune==0.8.4
