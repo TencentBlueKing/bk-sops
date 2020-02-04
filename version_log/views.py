@@ -1,8 +1,21 @@
 # -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import logging
 
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.utils.translation import ugettext_lazy as _
 
 from version_log import config
 from version_log.utils import get_version_list, get_parsed_html
@@ -41,7 +54,7 @@ def version_logs_list(request):
     if version_list is None:
         logger.error('MD_FILES_DIR not found. Current path is {}'.format(config.MD_FILES_DIR))
         return JsonResponse({'result': False, 'code': -1, 'message': '访问出错，请联系管理员。', 'data': None})
-    response = {'result': True, 'code': 0, 'message': '日志列表获取成功', 'data': version_list}
+    response = {'result': True, 'code': 0, 'message': _(u'日志列表获取成功'), 'data': version_list}
     return JsonResponse(response)
 
 
@@ -53,5 +66,5 @@ def get_version_log_detail(request):
         logger.error('md file not found or log version not valid. Log version is {}'.format(log_version))
         response = {'result': False, 'code': -1, 'message': '日志版本文件没找到，请联系管理员', 'data': None}
         return JsonResponse(response)
-    response = {'result': True, 'code': 0, 'message': '日志详情获取成功', 'data': html_text}
+    response = {'result': True, 'code': 0, 'message': _(u'日志详情获取成功'), 'data': html_text}
     return JsonResponse(response)

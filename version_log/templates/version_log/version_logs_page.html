@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -23,8 +24,8 @@
     </div>
     <div class="log-body">
         <div class="page-head" style="margin-top: 5px; padding: 5px 10px;">
-            <img onclick="back()" src="{% static 'version_log/images/back.svg' %}" title="返回" style="width:18px;height:18px; cursor:pointer; margin-left:10px;" />
-            <img onclick="home()" src="{% static 'version_log/images/homepage.svg' %}" title="首页" style="width:18px;height:18px; cursor:pointer; margin-left:10px;" />
+            <img onclick="back()" src="{% static 'version_log/images/back.svg' %}" title="{% trans '返回' %}" style="width:18px;height:18px; cursor:pointer; margin-left:10px;" />
+            <img onclick="home()" src="{% static 'version_log/images/homepage.svg' %}" title="{% trans '首页' %}" style="width:18px;height:18px; cursor:pointer; margin-left:10px;" />
         </div>
         <div class="page-inner">
             <div id="log-detail">
@@ -44,7 +45,7 @@
             log_detail(versions[0].version);
             $('.logs-list li:first-child').addClass('active');
         } else {
-            show_error_page('暂无版本日志');
+            show_error_page(gettext('暂无版本日志'));
         }
 
         $(".logs-list").mCustomScrollbar({
@@ -68,7 +69,7 @@
                     data = data.data;
                     $("#log-detail").html(data);
                 } else {
-                    show_error_page('页面异常，请稍后重试');
+                    show_error_page(gettext('页面异常，请稍后重试'));
                 }
 
             }

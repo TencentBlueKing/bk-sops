@@ -49,10 +49,10 @@
                         const line_height = 600-65*data.length+'px';
                         $("#vlog-line").css({'height': line_height});
                     } else {
-                        show_error_page('暂无版本日志');
+                        show_error_page(gettext('暂无版本日志'));
                     }
                 } else {
-                    show_error_page('页面异常，请稍后重试');
+                    show_error_page(gettext('页面异常，请稍后重试'));
                 }
             }
         });
@@ -108,7 +108,7 @@
                     data = data.data;
                     $("#version_log_detail").html(data);
                 } else {
-                    show_error_page('页面异常，请稍后重试');
+                    show_error_page(gettext('页面异常，请稍后重试'));
                 }
 
             }

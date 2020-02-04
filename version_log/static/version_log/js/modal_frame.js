@@ -12,7 +12,7 @@ function load_modal_frame(url) {
             var d = dialog({
                 height: 600,
                 width: 1105,
-                title: '版本日志',
+                title: gettext('版本日志'),
                 content: data,
             });
             d.showModal();
