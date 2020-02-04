@@ -117,7 +117,6 @@ const routers = new VueRouter({
                     name: 'commonTemplatePanel',
                     pathToRegexpOptions: { strict: true },
                     props: (route) => ({
-                        project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: route.params.type,
                         common: '1'

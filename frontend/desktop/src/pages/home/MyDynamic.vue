@@ -226,6 +226,8 @@
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
+        margin-top: 0;
+        margin-bottom: 20px;
         .panel-name {
             color: #313238;
             font-size: 16px;

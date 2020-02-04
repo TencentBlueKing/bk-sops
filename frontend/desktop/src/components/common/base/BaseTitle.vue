@@ -36,6 +36,7 @@
     import '@/utils/i18n.js'
     export default {
         name: 'BaseTitle',
+        inject: ['reload'],
         props: {
             title: {
                 type: String,
@@ -79,17 +80,21 @@
             }
         },
         methods: {
-            tabChange (tabTtem) {
-                if (tabTtem.routerName) {
-                    this.$router.push({ name: tabTtem.routerName, params: tabTtem.params, query: tabTtem.query })
+            tabChange (tabItem) {
+                if (this.$route.name === tabItem.routerName) {
+                    this.reload()
+                    return false
                 }
-                this.$emit('tabChange', tabTtem.key)
+                if (tabItem.routerName) {
+                    this.$router.push({ name: tabItem.routerName, params: tabItem.params, query: tabItem.query })
+                }
+                this.$emit('tabChange', tabItem.key)
             },
-            isActive (tabTtem) {
-                if (this.type === 'router' && tabTtem.routerName) {
-                    return this.$route.name === tabTtem.routerName
+            isActive (tabItem) {
+                if (this.type === 'router' && tabItem.routerName) {
+                    return this.$route.name === tabItem.routerName
                 }
-                return this.active === tabTtem.key
+                return this.active === tabItem.key
             }
         }
     }
