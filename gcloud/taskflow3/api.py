@@ -366,11 +366,17 @@ def node_callback(request, token):
             'message': 'invalid request body'
         }, status=400)
 
-    callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
-    logger.info('result of callback call({}): {}'.format(
-        token,
-        callback_result
-    ))
+    passed = False
+    times = 1
+
+    while (not passed and times <= 3):
+        callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
+        logger.info('result of callback call({}): {}'.format(
+            token,
+            callback_result
+        ))
+        times += 1
+        passed = callback_result['result']
 
     return JsonResponse(callback_result)
 
