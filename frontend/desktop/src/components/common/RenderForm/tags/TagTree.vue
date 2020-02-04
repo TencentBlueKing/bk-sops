@@ -149,7 +149,7 @@
                         }
 
                         self.items = treeData
-                        self.$refs.tree.setCheckedKeys(self.value)
+                        self.$refs.tree && self.$refs.tree.setCheckedKeys(self.value) // 兼容组件勾选的情况
 
                         self.loading = false
                     },
