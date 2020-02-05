@@ -66,6 +66,12 @@ const store = new Vuex.Store({
         }
     },
     actions: {
+        getVersionList () {
+            return api.getVersionList().then(response => response.data)
+        },
+        getVersionDetail ({ commit }, data) {
+            return api.getVersionDetail(data).then(response => response.data)
+        },
         getCategorys ({ commit }) {
             api.getCategorys().then(response => {
                 commit('setCategorys', response.data.data)

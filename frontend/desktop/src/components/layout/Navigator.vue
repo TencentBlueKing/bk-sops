@@ -64,14 +64,22 @@
                 </span>
             </li>
         </ul>
+        <version-log
+            ref="versionLog"
+            :log-list="logList"
+            :log-detail="logDetail"
+            :loading="logListLoading || logDetailLoading"
+            @active-change="handleVersionChange">
+        </version-log>
     </header>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import bus from '@/utils/bus.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
-    import bus from '@/utils/bus.js'
+    import VersionLog from './VersionLog.vue'
 
     const ROUTE_LIST = [
         {
@@ -154,7 +162,8 @@
         inject: ['reload'],
         name: 'Navigator',
         components: {
-            ProjectSelector
+            ProjectSelector,
+            VersionLog
         },
         props: ['appmakerDataLoading'],
         data () {
@@ -164,6 +173,10 @@
                     help: gettext('帮助文档'),
                     title: gettext('标准运维')
                 },
+                logList: [],
+                logDetail: '',
+                logListLoading: false,
+                logDetailLoading: false,
                 routerList: ROUTE_LIST,
                 appmakerRouterList: APPMAKER_ROUTER_LIST,
                 hasAdminPerm: false // 管理员入口权限
@@ -222,7 +235,9 @@
                 'setAdminPerm'
             ]),
             ...mapActions([
-                'queryUserPermission'
+                'queryUserPermission',
+                'getVersionList',
+                'getVersionDetail'
             ]),
             onLogoClick () {
                 if (this.view_mode !== 'app') {
@@ -359,14 +374,38 @@
                 })
             },
             /* 打开版本日志 */
-            onOpenVersion () {
-                window.open(`${this.site_url}version_log/`, '_blank')
+            async onOpenVersion () {
+                this.$refs.versionLog.show()
+                try {
+                    this.logListLoding = true
+                    const res = await this.getVersionList()
+                    this.logList = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.logListLoding = false
+                }
+            },
+            async loadLogDetail (version) {
+                try {
+                    this.logDetailLoding = true
+                    const res = await this.getVersionDetail({ version })
+                    this.logDetail = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.logDetailLoding = false
+                }
             },
             isNavActived (route) {
                 if (this.view_mode === 'appmaker') {
                     return this.$route.name === route.path
                 }
                 return this.$route.path.indexOf(route.path) > -1
+            },
+            handleVersionChange (data) {
+                const version = data[0]
+                this.loadLogDetail(version)
             },
             reloadHome () {
                 this.reload()
