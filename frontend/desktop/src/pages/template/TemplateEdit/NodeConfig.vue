@@ -772,14 +772,15 @@
                 // 处理在面板区域里的 popup 上的点击，eg: select、tooltip
                 const settingPanel = document.querySelector('.setting-area-wrap')
                 const nodeConfig = document.querySelector('.node-config')
-                const clinetX = document.body.clientWidth
+                const clientX = document.body.clientWidth
                 const { left, right, top, bottom } = this.$refs.nodeConfigPanel.getBoundingClientRect()
-                const baseRight = this.isSettingPanelShow ? clinetX : right
+                const baseRight = this.isSettingPanelShow ? clientX : right
                 if (
-                    e.clientX > left
+                    (e.clientX === 0 || e.clientY === 0)
+                    || (e.clientX > left
                     && e.clientX < baseRight
                     && e.clientY > top
-                    && e.clientY < bottom
+                    && e.clientY < bottom)
                 ) {
                     return
                 }

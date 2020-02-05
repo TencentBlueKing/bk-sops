@@ -11,27 +11,30 @@
 */
 <template>
     <div class="tag-datatable">
-        <template v-if="editable && formMode">
+        <div class="button-area" v-if="editable && formMode">
             <bk-button
                 v-if="add_btn"
-                class="add-column"
+                class="add-column button-item"
                 size="small"
                 @click="add_row">
                 {{ i18n.add_text }}
             </bk-button>
-            <div v-for="btn in table_buttons" :key="btn.type" class="table-buttons">
+            <template v-for="btn in table_buttons">
                 <bk-button
                     v-if="btn.type !== 'import'"
+                    class="button-item"
                     type="default"
                     size="small"
-                    @click="onBtnClick(btn.callback)">
+                    :key="btn.type"
+                    @click.stop="onBtnClick(btn.callback)">
                     {{ btn.text}}
                 </bk-button>
                 <el-upload
                     v-else
                     ref="upload"
-                    class="upload-btn"
+                    class="upload-btn button-item"
                     action="/"
+                    :key="btn.type"
                     :show-file-list="false"
                     :on-change="importExcel"
                     :auto-upload="false">
@@ -42,8 +45,8 @@
                         {{ btn.text }}
                     </bk-button>
                 </el-upload>
-            </div>
-        </template>
+            </template>
+        </div>
         <el-table
             v-if="Array.isArray(value)"
             style="width: 100%; font-size: 12px"
@@ -102,7 +105,8 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
-    import errorHandler from '@/utils/errorHandler.js'
+    import TableToExcel from '@/assets/js/table-to-excel'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const datatableAttrs = {
         columns: {
@@ -234,7 +238,6 @@
             },
             export2Excel () {
                 require.ensure([], () => {
-                    const TableToExcel = require('table-to-excel')
                     const tableToExcel = new TableToExcel()
                     const tableHeader = []
                     const tableData = []
@@ -340,7 +343,7 @@
                 }
             },
             onBtnClick (callback) {
-                typeof callback === 'function' && callback()
+                typeof callback === 'function' && callback.bind(this)()
             },
             onEdit (index, row) {
                 this.editRowNumber = index
@@ -461,17 +464,17 @@
             margin: 0;
         }
     }
-    .add-column {
+    .button-area {
         margin-bottom: 10px;
+        overflow: hidden;
+        .button-item {
+            float: left;
+            margin-right: 10px;
+        }
     }
     .operate-btn {
         color: $blueDefault;
         white-space: nowrap;
         cursor: pointer;
-    }
-    .table-buttons{
-        display: inline-block;
-        margin-left: 10px;
-        margin-bottom: 15px;
     }
 </style>
