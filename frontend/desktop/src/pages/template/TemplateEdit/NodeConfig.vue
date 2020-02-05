@@ -36,7 +36,7 @@
                                 @selected="onAtomSelect">
                                 <bk-option
                                     v-for="(option, index) in atomList"
-                                    :key="index"
+                                    :key="option.id"
                                     :id="option.id"
                                     :name="option.name">
                                     <template v-if="!isSingleAtom">
@@ -71,7 +71,7 @@
                             <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
                         </div>
                     </div>
-                    <div v-show="isSingleAtom" class="form-item">
+                    <div v-if="isSingleAtom" class="form-item">
                         <label class="required">{{ i18n.version_name }}</label>
                         <div class="form-content">
                             <bk-select
@@ -81,8 +81,8 @@
                                 :clearable="false"
                                 @selected="onVersionSelect">
                                 <bk-option
-                                    v-for="(option, index) in currentVersionList"
-                                    :key="index"
+                                    v-for="option in currentVersionList"
+                                    :key="option.version"
                                     :id="option.version"
                                     :name="option.version">
                                 </bk-option>
@@ -876,14 +876,15 @@
                 // 处理在面板区域里的 popup 上的点击，eg: select、tooltip
                 const settingPanel = document.querySelector('.setting-area-wrap')
                 const nodeConfig = document.querySelector('.node-config')
-                const clinetX = document.body.clientWidth
+                const clientX = document.body.clientWidth
                 const { left, right, top, bottom } = this.$refs.nodeConfigPanel.getBoundingClientRect()
-                const baseRight = this.isSettingPanelShow ? clinetX : right
+                const baseRight = this.isSettingPanelShow ? clientX : right
                 if (
-                    e.clientX > left
+                    (e.clientX === 0 || e.clientY === 0)
+                    || (e.clientX > left
                     && e.clientX < baseRight
                     && e.clientY > top
-                    && e.clientY < bottom
+                    && e.clientY < bottom)
                 ) {
                     return
                 }
@@ -912,8 +913,8 @@
                 nodeData.optional = this.nodeCouldBeSkipped
                 
                 if (this.isSingleAtom) {
-                    nodeData.skippable = this.isSkip
-                    nodeData.retryable = this.isRetry
+                    nodeData.skippable = this.isSkip || false // 兼容脏数据该字段不存在
+                    nodeData.retryable = this.isRetry || false // 兼容脏数据改字段不存在
                     nodeData.error_ignorable = this.errorCouldBeIgnored
                     nodeData.component.version = this.currentVersion
                     // can_retry、isSkipped 为就数据字段，点开编辑保存时删除
@@ -1023,7 +1024,7 @@
             onAtomSelect (id) {
                 this.isAtomChanged = true
                 const optionList = this.isSingleAtom ? this.atomList : this.subAtom
-                const data = optionList.find(option => option.id === id)
+                const data = tools.deepClone(optionList.find(option => option.id === id))
                 const currentAtomlastVeriosn = this.SingleAtomVersionMap[id]
                 let nodeName
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
