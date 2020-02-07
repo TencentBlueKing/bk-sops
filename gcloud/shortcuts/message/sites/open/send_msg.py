@@ -21,7 +21,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 logger = logging.getLogger("root")
 
 
-def send_message(biz_cc_id, executor, notify_type, receivers, title, content):
+def send_message(executor, notify_type, receivers, title, content):
     client = get_client_by_user(executor)
     if 'weixin' in notify_type:
         kwargs = {

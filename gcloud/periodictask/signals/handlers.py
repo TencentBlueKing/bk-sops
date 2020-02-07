@@ -20,7 +20,7 @@ from gcloud.constants import PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTaskHistory
-from gcloud.commons.message import send_periodic_task_message
+from gcloud.shortcuts.message import send_periodic_task_message
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.signals import pre_periodic_task_start, periodic_task_start_failed

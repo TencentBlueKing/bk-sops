@@ -391,7 +391,7 @@ class CommonTemplate(BaseTemplate):
         verbose_name = _("公共流程模板 CommonTemplate")
         verbose_name_plural = _("公共流程模板 CommonTemplate")
 
-    def get_notify_receivers_list(self, executor):
+    def get_notify_receivers_list(self, addtional_user):
         return []
 
 
