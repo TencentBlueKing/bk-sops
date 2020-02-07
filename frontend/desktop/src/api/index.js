@@ -76,6 +76,31 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取版本日志列表
+     */
+    getVersionList () {
+        const prefixUrl = this.getPrefix('versionLog')
+        const opts = {
+            method: 'GET',
+            url: `${prefixUrl}version_logs_list/`
+        }
+        return request(opts)
+    },
+    /**
+     * 获取版本日志详情
+     */
+    getVersionDetail (data) {
+        const prefixUrl = this.getPrefix('versionLog')
+        const opts = {
+            method: 'GET',
+            url: `${prefixUrl}version_log_detail/`,
+            params: {
+                log_version: data.version
+            }
+        }
+        return request(opts)
+    },
+    /**
      * 获取项目基础配置信息
      */
     getProjectBaseInfo () {
