@@ -101,5 +101,10 @@ class VarCmdbIpSelector(LazyVariable):
 
         ip_selector = self.value
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
-        ip = ','.join([host['bk_host_innerip'] for host in ip_result['data']])
+
+        # get for old value compatible
+        if self.value.get('with_cloud_id', False):
+            ip = ','.join(['{}:{}'.format(host['bk_cloud_id'], host['bk_host_innerip']) for host in ip_result['data']])
+        else:
+            ip = ','.join([host['bk_host_innerip'] for host in ip_result['data']])
         return ip
