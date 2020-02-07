@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-02 15:23+0800\n"
+"POT-Creation-Date: 2020-02-07 14:53+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -108,11 +108,11 @@ msgstr "user properties"
 msgid "标准运维"
 msgstr "标准运维"
 
-#: config/default.py:186
+#: config/default.py:187
 msgid "English"
 msgstr "English"
 
-#: config/default.py:187
+#: config/default.py:188
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -131,30 +131,6 @@ msgstr "异常"
 #: gcloud/exceptions.py:51
 msgid "请联系第三方系统负责人处理"
 msgstr "请联系第三方系统负责人处理"
-
-#: gcloud/commons/message/common.py:18
-msgid "【标准运维APP通知】执行失败"
-msgstr "【标准运维APP通知】执行失败"
-
-#: gcloud/commons/message/common.py:19
-msgid "您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
-msgstr "您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
-
-#: gcloud/commons/message/common.py:31
-msgid "【标准运维APP通知】执行完成"
-msgstr "【标准运维APP通知】执行完成"
-
-#: gcloud/commons/message/common.py:32
-msgid "您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
-msgstr "您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
-
-#: gcloud/commons/message/common.py:43
-msgid "【标准运维APP通知】周期任务启动失败"
-msgstr "【标准运维APP通知】周期任务启动失败"
-
-#: gcloud/commons/message/common.py:44
-msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
-msgstr "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
 
 #: gcloud/commons/template/models.py:177
 msgid "模板类型"
@@ -292,7 +268,7 @@ msgid "删除失败：%s"
 msgstr "删除失败：%s"
 
 #: gcloud/contrib/appmaker/models.py:259 gcloud/periodictask/models.py:84
-#: gcloud/taskflow3/models.py:766 gcloud/tasktmpl3/models.py:365
+#: gcloud/taskflow3/models.py:766 gcloud/tasktmpl3/models.py:366
 msgid "所属项目"
 msgstr "所属项目"
 
@@ -370,7 +346,7 @@ msgid "周期任务"
 msgstr "周期任务"
 
 #: gcloud/contrib/collection/models.py:25 gcloud/core/models.py:202
-#: gcloud/core/models.py:226
+#: gcloud/core/models.py:226 version_log/models.py:42
 msgid "用户名"
 msgstr "用户名"
 
@@ -405,7 +381,7 @@ msgid "已执行"
 msgstr "已执行"
 
 #: gcloud/contrib/function/models.py:27 gcloud/taskflow3/models.py:410
-#: gcloud/tasktmpl3/models.py:131
+#: gcloud/tasktmpl3/models.py:132
 msgid "已完成"
 msgstr "已完成"
 
@@ -836,7 +812,7 @@ msgid "FS远程包源 FileSystemOriginalSource"
 msgstr "FS远程包源 FileSystemOriginalSource"
 
 #: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:404
-#: gcloud/tasktmpl3/models.py:125
+#: gcloud/tasktmpl3/models.py:126
 #: gcloud/tests/external_plugins/models/test_sync_task.py:38
 msgid "执行中"
 msgstr "执行中"
@@ -940,6 +916,30 @@ msgstr "开始时间"
 msgid "是否启动成功"
 msgstr "是否启动成功"
 
+#: gcloud/shortcuts/message/common.py:18
+msgid "【标准运维APP通知】执行失败"
+msgstr "【标准运维APP通知】执行失败"
+
+#: gcloud/shortcuts/message/common.py:19
+msgid "您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
+msgstr "您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
+
+#: gcloud/shortcuts/message/common.py:31
+msgid "【标准运维APP通知】执行完成"
+msgstr "【标准运维APP通知】执行完成"
+
+#: gcloud/shortcuts/message/common.py:32
+msgid "您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
+msgstr "您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，请前往标准运维APP( {url} )查看详情！"
+
+#: gcloud/shortcuts/message/common.py:43
+msgid "【标准运维APP通知】周期任务启动失败"
+msgstr "【标准运维APP通知】周期任务启动失败"
+
+#: gcloud/shortcuts/message/common.py:44
+msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
+msgstr "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
+
 #: gcloud/taskflow3/api.py:133
 #: pipeline_plugins/components/query/sites/open/query.py:305
 #, python-format
@@ -994,7 +994,7 @@ msgstr "任务ID"
 msgid "任务名称"
 msgstr "任务名称"
 
-#: gcloud/taskflow3/models.py:399 gcloud/tasktmpl3/models.py:120
+#: gcloud/taskflow3/models.py:399 gcloud/tasktmpl3/models.py:121
 msgid "未执行"
 msgstr "未执行"
 
@@ -1038,7 +1038,7 @@ msgstr "克隆"
 msgid "无法删除未进入完成或撤销状态的流程"
 msgstr "无法删除未进入完成或撤销状态的流程"
 
-#: gcloud/tasktmpl3/models.py:376 gcloud/tasktmpl3/models.py:377
+#: gcloud/tasktmpl3/models.py:377 gcloud/tasktmpl3/models.py:378
 msgid "流程模板 TaskTemplate"
 msgstr "流程模板 TaskTemplate"
 
@@ -1067,6 +1067,8 @@ msgid ""
 "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
 " details:params={params}, error={error}"
 msgstr ""
+"调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}"
 "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
 " details:params={params}, error={error}"
 
@@ -1822,7 +1824,7 @@ msgid "集群"
 msgstr "集群"
 
 #: pipeline_plugins/cmdb_ip_picker/utils.py:292
-#: pipeline_plugins/components/collections/sites/open/cc.py:875
+#: pipeline_plugins/components/collections/sites/open/cc.py:890
 msgid "模块"
 msgstr "模块"
 
@@ -1983,11 +1985,11 @@ msgstr "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 #: pipeline_plugins/components/collections/sites/open/cc.py:565
 #: pipeline_plugins/components/collections/sites/open/cc.py:617
 #: pipeline_plugins/components/collections/sites/open/cc.py:675
-#: pipeline_plugins/components/collections/sites/open/cc.py:776
-#: pipeline_plugins/components/collections/sites/open/cc.py:871
-#: pipeline_plugins/components/collections/sites/open/cc.py:961
-#: pipeline_plugins/components/collections/sites/open/cc.py:1018
-#: pipeline_plugins/components/collections/sites/open/cc.py:1071
+#: pipeline_plugins/components/collections/sites/open/cc.py:783
+#: pipeline_plugins/components/collections/sites/open/cc.py:886
+#: pipeline_plugins/components/collections/sites/open/cc.py:976
+#: pipeline_plugins/components/collections/sites/open/cc.py:1033
+#: pipeline_plugins/components/collections/sites/open/cc.py:1086
 #: pipeline_plugins/components/collections/sites/open/job.py:150
 #: pipeline_plugins/components/collections/sites/open/job.py:340
 #: pipeline_plugins/components/collections/sites/open/job.py:464
@@ -2076,11 +2078,11 @@ msgstr "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当�
 #: pipeline_plugins/components/collections/sites/open/cc.py:568
 #: pipeline_plugins/components/collections/sites/open/cc.py:620
 #: pipeline_plugins/components/collections/sites/open/cc.py:678
-#: pipeline_plugins/components/collections/sites/open/cc.py:779
-#: pipeline_plugins/components/collections/sites/open/cc.py:874
-#: pipeline_plugins/components/collections/sites/open/cc.py:964
-#: pipeline_plugins/components/collections/sites/open/cc.py:1021
-#: pipeline_plugins/components/collections/sites/open/cc.py:1074
+#: pipeline_plugins/components/collections/sites/open/cc.py:786
+#: pipeline_plugins/components/collections/sites/open/cc.py:889
+#: pipeline_plugins/components/collections/sites/open/cc.py:979
+#: pipeline_plugins/components/collections/sites/open/cc.py:1036
+#: pipeline_plugins/components/collections/sites/open/cc.py:1089
 #: pipeline_plugins/components/collections/sites/open/job.py:153
 #: pipeline_plugins/components/collections/sites/open/job.py:343
 #: pipeline_plugins/components/collections/sites/open/job.py:467
@@ -2100,7 +2102,7 @@ msgstr "待转移的主机内网 IP，以 \",\" 分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:159
 #: pipeline_plugins/components/collections/sites/open/cc.py:163
-#: pipeline_plugins/components/collections/sites/open/cc.py:879
+#: pipeline_plugins/components/collections/sites/open/cc.py:894
 msgid "模块 ID"
 msgstr "模块 ID"
 
@@ -2187,7 +2189,7 @@ msgstr "故障机替换"
 #: pipeline_plugins/components/collections/sites/open/cc.py:519
 #: pipeline_plugins/components/collections/sites/open/cc.py:569
 #: pipeline_plugins/components/collections/sites/open/cc.py:621
-#: pipeline_plugins/components/collections/sites/open/cc.py:780
+#: pipeline_plugins/components/collections/sites/open/cc.py:787
 msgid "集群列表"
 msgstr "集群列表"
 
@@ -2200,7 +2202,7 @@ msgstr "需要清空的集群 ID 列表"
 #: pipeline_plugins/components/collections/sites/open/cc.py:523
 #: pipeline_plugins/components/collections/sites/open/cc.py:573
 #: pipeline_plugins/components/collections/sites/open/cc.py:625
-#: pipeline_plugins/components/collections/sites/open/cc.py:784
+#: pipeline_plugins/components/collections/sites/open/cc.py:791
 msgid "集群 ID"
 msgstr "集群 ID"
 
@@ -2248,100 +2250,101 @@ msgstr "新集群信息对象列表"
 msgid "集群信息描述对象"
 msgstr "集群信息描述对象"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:729
-#: pipeline_plugins/components/collections/sites/open/cc.py:837
+#: pipeline_plugins/components/collections/sites/open/cc.py:733
+#: pipeline_plugins/components/collections/sites/open/cc.py:844
 msgid "环境类型校验失败，请重试并修改为正确的环境类型"
 msgstr "环境类型校验失败，请重试并修改为正确的环境类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:744
-#: pipeline_plugins/components/collections/sites/open/cc.py:822
+#: pipeline_plugins/components/collections/sites/open/cc.py:739
+#: pipeline_plugins/components/collections/sites/open/cc.py:829
 msgid "服务状态校验失败，请重试并修改为正确的服务状态"
 msgstr "服务状态校验失败，请重试并修改为正确的服务状态"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:752
+#: pipeline_plugins/components/collections/sites/open/cc.py:747
+#: pipeline_plugins/components/collections/sites/open/cc.py:852
 msgid "集群容量必须为整数"
 msgstr "集群容量必须为整数"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:767
+#: pipeline_plugins/components/collections/sites/open/cc.py:774
 msgid "创建集群"
 msgstr "创建集群"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:783
+#: pipeline_plugins/components/collections/sites/open/cc.py:790
 msgid "集群 ID 列表"
 msgstr "集群 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:785
+#: pipeline_plugins/components/collections/sites/open/cc.py:792
 msgid "集群属性"
 msgstr "集群属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:788
+#: pipeline_plugins/components/collections/sites/open/cc.py:795
 msgid "需要修改的集群属性"
 msgstr "需要修改的集群属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:789
-#: pipeline_plugins/components/collections/sites/open/cc.py:884
+#: pipeline_plugins/components/collections/sites/open/cc.py:796
+#: pipeline_plugins/components/collections/sites/open/cc.py:899
 msgid "属性值"
 msgstr "属性值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:792
+#: pipeline_plugins/components/collections/sites/open/cc.py:799
 msgid "集群属性更新后的值"
 msgstr "集群属性更新后的值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:862
+#: pipeline_plugins/components/collections/sites/open/cc.py:877
 msgid "更新集群属性"
 msgstr "更新集群属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:878
+#: pipeline_plugins/components/collections/sites/open/cc.py:893
 msgid "模块 ID 列表"
 msgstr "模块 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:880
+#: pipeline_plugins/components/collections/sites/open/cc.py:895
 msgid "模块属性"
 msgstr "模块属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:883
+#: pipeline_plugins/components/collections/sites/open/cc.py:898
 msgid "需要修改的模块属性"
 msgstr "需要修改的模块属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:887
+#: pipeline_plugins/components/collections/sites/open/cc.py:902
 msgid "模块属性更新后的值"
 msgstr "模块属性更新后的值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:927
+#: pipeline_plugins/components/collections/sites/open/cc.py:942
 msgid "模块类型校验失败，请重试并填写正确的模块类型"
 msgstr "模块类型校验失败，请重试并填写正确的模块类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:952
+#: pipeline_plugins/components/collections/sites/open/cc.py:967
 msgid "更新模块属性"
 msgstr "更新模块属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:965
-#: pipeline_plugins/components/collections/sites/open/cc.py:1022
-#: pipeline_plugins/components/collections/sites/open/cc.py:1075
+#: pipeline_plugins/components/collections/sites/open/cc.py:980
+#: pipeline_plugins/components/collections/sites/open/cc.py:1037
+#: pipeline_plugins/components/collections/sites/open/cc.py:1090
 msgid "主机 IP"
 msgstr "主机 IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:968
+#: pipeline_plugins/components/collections/sites/open/cc.py:983
 msgid "转移到空闲机的主机内网 IP，多个以 \",\" 分隔"
 msgstr "转移到空闲机的主机内网 IP，多个以 \",\" 分隔"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1009
+#: pipeline_plugins/components/collections/sites/open/cc.py:1024
 msgid "转移主机至空闲机"
 msgstr "转移主机至空闲机"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1025
+#: pipeline_plugins/components/collections/sites/open/cc.py:1040
 msgid "转移到故障机的主机内网 IP，多个以 \",\" 分隔"
 msgstr "转移到故障机的主机内网 IP，多个以 \",\" 分隔"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1062
+#: pipeline_plugins/components/collections/sites/open/cc.py:1077
 msgid "转移主机到业务的故障机模块"
 msgstr "转移主机到业务的故障机模块"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1078
+#: pipeline_plugins/components/collections/sites/open/cc.py:1093
 msgid "转移到资源池的主机内网 IP，多个以 \",\" 分隔"
 msgstr "转移到资源池的主机内网 IP，多个以 \",\" 分隔"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1115
+#: pipeline_plugins/components/collections/sites/open/cc.py:1130
 msgid "转移主机至资源池"
 msgstr "转移主机至资源池"
 
@@ -2791,6 +2794,34 @@ msgstr "IP选择器(即将下线，请用新版)"
 #: pipeline_plugins/variables/collections/sites/open/cc.py:90
 msgid "IP选择器"
 msgstr "IP选择器"
+
+#: version_log/config.py:31
+msgid "版本日志"
+msgstr "版本日志"
+
+#: version_log/models.py:43
+msgid "访问版本"
+msgstr "访问版本"
+
+#: version_log/models.py:48
+msgid "版本日志访问记录"
+msgstr "版本日志访问记录"
+
+#: version_log/views.py:56
+msgid "访问出错，请联系管理员。"
+msgstr "访问出错，请联系管理员。"
+
+#: version_log/views.py:57
+msgid "日志列表获取成功"
+msgstr "日志列表获取成功"
+
+#: version_log/views.py:67
+msgid "日志版本文件没找到，请联系管理员"
+msgstr "日志版本文件没找到，请联系管理员"
+
+#: version_log/views.py:69
+msgid "日志详情获取成功"
+msgstr "日志详情获取成功"
 
 #: weixin/core/accounts.py:125
 #, python-format
