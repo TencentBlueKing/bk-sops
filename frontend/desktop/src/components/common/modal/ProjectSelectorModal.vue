@@ -84,7 +84,7 @@
                 this.templateId = templateId
             },
             onCreateTask () {
-                if (!Number(this.project_id)) {
+                if (isNaN(Number(this.project_id))) {
                     return
                 }
                 this.$emit('confirm', this.project_id, this.templateId)
