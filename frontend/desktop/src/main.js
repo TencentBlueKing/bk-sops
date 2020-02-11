@@ -17,8 +17,8 @@ import './directives/index.js'
 import './config/login.js'
 import App from './App.vue'
 import './api/index.js'
-import bkMagicVue, { locale, lang } from '@tencent/bk-magic-vue'
-import '@tencent/bk-magic-vue/dist/bk-magic-vue.min.css'
+import bkMagicVue, { locale, lang } from 'bk-magic-vue'
+import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, InputNumber, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
