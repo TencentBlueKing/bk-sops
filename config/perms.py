@@ -16,6 +16,7 @@ from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.contrib.appmaker.permissions import mini_app_resource
+from gcloud.contrib.function.permissions import function_center_resource
 from gcloud.periodictask.permissions import periodic_task_resource
 
 bk_iam_perm_templates = [
@@ -204,6 +205,7 @@ bk_iam_perm_templates = [
                 'resource': task_template_resource,
                 'actions': [
                     task_template_resource.actions.view,
+                    task_template_resource.actions.create_task
                 ]
             },
             {
@@ -213,6 +215,12 @@ bk_iam_perm_templates = [
                     taskflow_resource.actions.edit,
                     taskflow_resource.actions.operate,
                     taskflow_resource.actions.claim,
+                ]
+            },
+            {
+                'resource': function_center_resource,
+                'actions': [
+                    function_center_resource.actions.view
                 ]
             }
         ]
