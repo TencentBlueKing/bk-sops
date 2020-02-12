@@ -419,7 +419,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__pipeline_instance__name__contains: this.searchStr || undefined,
                         creator: this.creator,
-                        project__id: this.projectId,
+                        task__project__id: this.projectId,
                         status: this.status
                     }
                     if (this.executeEndTime) {
