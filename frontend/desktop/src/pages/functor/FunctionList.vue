@@ -401,7 +401,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__pipeline_instance__name__contains: flowName || undefined,
                         creator: creator || undefined,
-                        project__id: selectedProject || undefined,
+                        task__project__id: selectedProject || undefined,
                         status: statusSync || undefined
                     }
                     if (executeTime[0] && executeTime[1]) {
