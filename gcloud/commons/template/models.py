@@ -169,9 +169,9 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             'code': err_code.SUCCESS.code
         }
 
-    def check_templates_subprocess_expired(self, templ_and_pipeline_id):
+    def check_templates_subprocess_expired(self, tmpl_and_pipeline_id):
         # fetch all template relationship in template_ids
-        pipeline_tmpl_ids = [item['pipeline_template_id'] for item in templ_and_pipeline_id]
+        pipeline_tmpl_ids = [item['pipeline_template_id'] for item in tmpl_and_pipeline_id]
         subproc_infos = TemplateRelationship.objects.filter(ancestor_template_id__in=pipeline_tmpl_ids)
 
         # get all subprocess reference template's version
@@ -180,7 +180,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         # comparison data prepare
         tmpl_version_map = {ver.template_id: ver.current_version for ver in tmpl_versions}
-        tmpl_id_map = {item['pipeline_template_id']: item['id'] for item in templ_and_pipeline_id}
+        tmpl_id_map = {item['pipeline_template_id']: item['id'] for item in tmpl_and_pipeline_id}
 
         # compare
         subproc_expired_templ = set()
