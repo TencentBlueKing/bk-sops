@@ -229,4 +229,17 @@
         color: #979ba5;
         margin-left: -2px;
     }
+    #node-tooltip-content {
+        overflow: hidden;
+        .bk-button {
+            float: left;
+            padding: 0 8px;
+            &:not(:last-child) {
+                border-right: 1px solid #63656e;
+            }
+        }
+    }
+</style>
+<style lang="scss">
+
 </style>
