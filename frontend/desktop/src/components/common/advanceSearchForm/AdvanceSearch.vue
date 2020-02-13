@@ -11,10 +11,10 @@
 */
 <template>
     <div class="advanced-search">
-        <span v-if="!hideAdvance" class="search-content" @click="onShow">
+        <span class="search-content" @click="onShow">
             {{i18n.advancedSearch}}
             <div class="advanced-shape">
-                <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
+                <i class="bk-icon icon-down-shape search-shape" v-if="!isAdvanceOpen"></i>
                 <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
             </div>
         </span>
@@ -38,7 +38,7 @@
                 type: String,
                 default: ''
             },
-            hideAdvance: {
+            isAdvanceOpen: {
                 type: Boolean,
                 default: false
             },
@@ -64,8 +64,7 @@
         },
         methods: {
             onShow () {
-                this.$emit('onShow', this.isAdvancedSerachShow)
-                this.shapeShow = !this.shapeShow
+                this.$emit('update:isAdvanceOpen', !this.isAdvanceOpen)
             },
             onInput (value) {
                 const exportValue = typeof value === 'string' ? value : value.target.value

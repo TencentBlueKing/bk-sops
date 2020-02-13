@@ -12,9 +12,14 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.projectFlow"></base-title>
+            <list-page-tips-title
+                :title="i18n.projectFlow"
+                :num="expiredSubflowTplList.length"
+                @viewClick="handleSubflowFilter">
+            </list-page-tips-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    ref="advanceSearch"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -188,16 +193,17 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import toolsUtils from '@/utils/tools.js'
+    import tools from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    import ListPageTipsTitle from '../ListPageTipsTitle.vue'
+
     const searchForm = [
         {
             type: 'select',
@@ -223,7 +229,8 @@
                 { 'value': 1, name: gettext('是') },
                 { 'value': -1, name: gettext('否') },
                 { 'value': 0, name: gettext('无子流程') }
-            ]
+            ],
+            value: ''
         },
         {
             type: 'input',
@@ -239,8 +246,8 @@
             CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
+            ListPageTipsTitle,
             AdvanceSearchForm,
-            BaseTitle,
             NoData
         },
         mixins: [permission],
@@ -288,7 +295,8 @@
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
-                totalPage: 1,
+                searchForm: tools.deepClone(searchForm),
+                expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isExportDialogShow: false,
@@ -300,7 +308,6 @@
                     export: false, // 导出
                     delete: false // 删除
                 },
-                templateCategoryList: [],
                 editEndTime: undefined,
                 isSubprocessUpdated: undefined,
                 isHasSubprocess: undefined,
@@ -312,6 +319,7 @@
                     creator: '',
                     flowName: ''
                 },
+                totalPage: 1,
                 pagination: {
                     current: 1,
                     count: 0,
@@ -337,18 +345,13 @@
                 'authOperations': state => state.authOperations,
                 'authResource': state => state.authResource,
                 'projectName': state => state.projectName
-            }),
-            searchForm () {
-                const value = searchForm
-                value[0].list = this.templateCategoryList
-                value[0].loading = this.categoryLoading
-                return searchForm
-            }
+            })
         },
         created () {
             this.getTemplateList()
             this.getProjectBaseInfo()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            this.getExpiredSubflowData()
+            this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions([
@@ -362,7 +365,8 @@
                 'deleteTemplate',
                 'saveTemplatePersons',
                 'templateImport',
-                'templateExport'
+                'templateExport',
+                'getExpiredSubProcess'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -431,12 +435,24 @@
                 try {
                     const data = await this.loadProjectBaseInfo()
                     this.setProjectBaseInfo(data)
-                    this.templateCategoryList = data.task_categories
+                    this.searchForm[0].list = data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.projectInfoLoading = false
-                    this.categoryLoading = false
+                    this.searchForm[0].loading = false
+                }
+            },
+            async getExpiredSubflowData () {
+                try {
+                    const resp = await this.getExpiredSubProcess({ project_id: this.project_id })
+                    if (resp.result) {
+                        this.expiredSubflowTplList = resp.data
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
                 }
             },
             checkCreatePermission () {
@@ -592,7 +608,7 @@
                     query: { template_id: id }
                 }
             },
-            // 获得子流程展示内容
+            // 获得表格中“子流程更新”列展示内容
             getSubflowContent (item) {
                 if (!item.has_subprocess) {
                     return '--'
@@ -603,6 +619,12 @@
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.getTemplateList()
+            },
+            handleSubflowFilter () {
+                const searchComp = this.$refs.advanceSearch
+                searchComp.onAdvanceOpen(true)
+                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.submit()
             }
         }
     }

@@ -463,6 +463,19 @@ const api = {
         })
     },
     /**
+     * 获取项目下的子流程有更新的模板
+     * @param {*} data 项目参数 
+     */
+    getExpiredSubProcess (data) {
+        const prefixUrl = this.getPrefix('templateExpiredSubProcess')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: data
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程模板表单配置数据
      * @param {String} template_id 模板id
      * @param {String} version 版本
