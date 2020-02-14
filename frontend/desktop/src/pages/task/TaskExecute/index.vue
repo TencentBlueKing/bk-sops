@@ -13,18 +13,6 @@
     <div :class="['task-execute-container', { 'task-function-container': currentStep === 'functionalization' }]"
         v-if="!exception.code"
         v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <TaskStep
-            :list="stepList"
-            :current-step="currentStep"
-            :task-status="'TaskExecute'"
-            :is-functional="isFunctional"
-            :common="common"
-            :project_id="project_id"
-            :instance-name="instanceName"
-            :template-source="templateSource"
-            :async-template-id="templateId"
-            :all-finished="isAllStepsFinished">
-        </TaskStep>
         <TaskFunctionalization
             v-if="isFunctional && !loading"
             :project_id="project_id"
@@ -54,7 +42,6 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import TaskStep from '../TaskStep.vue'
     import TaskOperation from './TaskOperation.vue'
     import TaskFunctionalization from './TaskFunctionalization.vue'
     const STEP_DICT = [
@@ -74,7 +61,6 @@
     export default {
         name: 'TaskExecute',
         components: {
-            TaskStep,
             TaskOperation,
             TaskFunctionalization
         },
