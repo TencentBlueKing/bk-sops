@@ -18,7 +18,8 @@ from django.dispatch import receiver
 
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.signals import taskflow_finished
-from gcloud.commons.message import send_task_flow_message, ATOM_FAILED, TASK_FINISHED
+from gcloud.taskflow3.tasks import send_taskflow_message
+from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
 from pipeline.models import PipelineInstance
 
 logger = logging.getLogger('celery')
@@ -47,9 +48,11 @@ def taskflow_node_failed_handler(sender, pipeline_id, pipeline_activity_id, **kw
 
     try:
         activity_name = taskflow.get_act_web_info(pipeline_activity_id)['name']
-        send_task_flow_message(taskflow, ATOM_FAILED, activity_name)
+        send_taskflow_message.delay(taskflow=taskflow,
+                                    msg_type=ATOM_FAILED,
+                                    atom_node_name=activity_name)
     except Exception as e:
-        logger.error('taskflow_node_failed_handler[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
+        logger.exception('taskflow_node_failed_handler[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
     return
 
 
@@ -57,7 +60,8 @@ def taskflow_node_failed_handler(sender, pipeline_id, pipeline_activity_id, **kw
 def taskflow_finished_handler(sender, username, **kwargs):
     try:
         taskflow = sender
-        send_task_flow_message(taskflow, TASK_FINISHED)
+        send_taskflow_message.delay(taskflow=taskflow,
+                                    msg_type=TASK_FINISHED)
     except Exception as e:
-        logger.error('taskflow_finished_handler[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
+        logger.exception('taskflow_finished_handler[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
     return

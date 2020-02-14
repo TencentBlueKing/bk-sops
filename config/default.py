@@ -79,6 +79,7 @@ INSTALLED_APPS += (
     'auth_backend.contrib.consistency',
     'weixin.core',
     'weixin',
+    'version_log',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -129,7 +130,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.5.1'
+STATIC_VERSION = '3.5.2'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -352,3 +353,8 @@ ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER
 for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
+
+# version log config
+VERSION_LOG = {
+    'PAGE_STYLE': 'gitbook'
+}

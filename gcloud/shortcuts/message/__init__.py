@@ -11,56 +11,64 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import importlib
 
 import ujson as json
 from django.conf import settings
 
-from gcloud.commons.message.common import (
+from gcloud.shortcuts.message.common import (
     title_and_content_for_atom_failed,
     title_and_content_for_flow_finished,
     title_and_content_for_periodic_task_start_fail
 )
 
-_message_module = importlib.import_module('gcloud.commons.message.sites.%s.send_msg' % settings.RUN_VER)
+logger = logging.getLogger('root')
+_message_module = importlib.import_module('gcloud.shortcuts.message.sites.%s.send_msg' % settings.RUN_VER)
 
 ATOM_FAILED = 'atom_failed'
 TASK_FINISHED = 'task_finished'
 
 
-def send_task_flow_message(taskflow, msg_type, atom_node_name=''):
+def send_task_flow_message(taskflow, msg_type, node_name=''):
     template = taskflow.template
     pipeline_inst = taskflow.pipeline_instance
     executor = pipeline_inst.executor
 
-    notify_type = json.loads(template.notify_type)  # noqa
+    notify_type = json.loads(template.notify_type)
     receivers_list = template.get_notify_receivers_list(executor)
-    receivers = ','.join(receivers_list)  # noqa
+    receivers = ','.join(receivers_list)
 
     if msg_type == 'atom_failed':
-        title, content = title_and_content_for_atom_failed(taskflow, pipeline_inst, atom_node_name, executor)  # noqa
+        title, content = title_and_content_for_atom_failed(taskflow, pipeline_inst, node_name, executor)
     elif msg_type == 'task_finished':
-        title, content = title_and_content_for_flow_finished(taskflow, pipeline_inst, atom_node_name, executor)  # noqa
+        title, content = title_and_content_for_flow_finished(taskflow, pipeline_inst, node_name, executor)
     else:
         return False
 
-    # 目前支持向从 CMDB 同步过来的业务发送通知
-    if taskflow.project.from_cmdb:
-        _message_module.send_message(taskflow.project.bk_biz_id, executor, notify_type, receivers, title, content)  # noqa
+    logger.info('taskflow[id={flow_id}] will send {msg_type} message({notify_type}) to: {receivers}'.format(
+        flow_id=taskflow.id,
+        msg_type=msg_type,
+        notify_type=notify_type,
+        receivers=receivers
+    ))
+    _message_module.send_message(executor, notify_type, receivers, title, content)
 
     return True
 
 
 def send_periodic_task_message(template, periodic_task, history):
-    notify_type = json.loads(template.notify_type)  # noqa
+    notify_type = json.loads(template.notify_type)
     receivers_list = template.get_notify_receivers_list(periodic_task.creator)
-    receivers = ','.join(receivers_list)  # noqa
+    receivers = ','.join(receivers_list)
 
-    title, content = title_and_content_for_periodic_task_start_fail(template, periodic_task, history)  # noqa
+    title, content = title_and_content_for_periodic_task_start_fail(template, periodic_task, history)
 
-    # TODO 弱化业务后发送通知功能改造
-    if periodic_task.project.from_cmdb:
-        _message_module.send_message(template.project.bk_biz_id, periodic_task.creator, notify_type,
-                                     receivers, title, content)
+    logger.info('periodic task of template[id={template_id}] will send message({notify_type}) to: {receivers}'.format(
+        template_id=template.id,
+        notify_type=notify_type,
+        receivers=receivers
+    ))
+    _message_module.send_message(periodic_task.creator, notify_type, receivers, title, content)
 
     return True

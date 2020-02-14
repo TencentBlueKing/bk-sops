@@ -19,6 +19,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         // 更改默认项目
         projectDefaultChange: SITE_URL + 'core/api/change_default_project/',
         projectBaseInfo: SITE_URL + 'core/api/get_basic_info/',
+        versionLog: SITE_URL + 'version_log/',
         homelist: SITE_URL + 'taskflow/home/' + PROJECT_ID + '/',
         business: SITE_URL + 'api/v3/business/',
         component: SITE_URL + 'api/v3/component/',
