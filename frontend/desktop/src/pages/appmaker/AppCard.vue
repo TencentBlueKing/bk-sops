@@ -42,14 +42,26 @@
                     :title="i18n.executive"
                     :to="getExecuteHistoryUrl(appData.template_id)">
                 </router-link>
-                <span
-                    :class="['common-icon-ashcan-delete', 'operate-btn', {
-                        'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
-                    }]"
-                    :title="i18n.delete"
-                    v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
-                    @click="onCardDelete">
-                </span>
+                <bk-dropdown-menu align="left" ext-cls="operate-dropdown">
+                    <span slot="dropdown-trigger" class="common-icon-circle-ellipsis operate-btn"></span>
+                    <ul class="operate-list" slot="dropdown-content">
+                        <li
+                            v-cursor="{ active: !hasPermission(['view'], appData.auth_actions, appOperations) }"
+                            href="javascript:void(0);"
+                            :class="{
+                                'text-permission-disable': !hasPermission(['view'], appData.auth_actions, appOperations)
+                            }"
+                            @click="onCollectAppMaker(appData, $event)">
+                            {{ isCollected(appData.id) ? i18n.cancelCollection : i18n.collect }}
+                        </li>
+                        <li
+                            :class="{ 'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations) }"
+                            v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
+                            @click="onCardDelete">
+                            {{i18n.delete}}
+                        </li>
+                    </ul>
+                </bk-dropdown-menu>
             </div>
         </div>
         <div class="card-particular">
@@ -72,7 +84,9 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
+    import { mapActions } from 'vuex'
 
     export default {
         name: 'AppCard',
@@ -86,6 +100,10 @@
                 i18n: {
                     edit: gettext('编辑'),
                     delete: gettext('删除'),
+                    collect: gettext('收藏'),
+                    cancelCollection: gettext('取消收藏'),
+                    addCollectSuccess: gettext('添加收藏成功！'),
+                    cancelCollectSuccess: gettext('取消收藏成功！'),
                     template: gettext('流程模板'),
                     appDesc: gettext('应用简介'),
                     editor: gettext('更新人'),
@@ -93,7 +111,8 @@
                     executive: gettext('执行历史'),
                     modifier: gettext('修改轻应用'),
                     jurisdiction: gettext('使用权限')
-                }
+                },
+                collectionList: []
             }
         },
         computed: {
@@ -101,7 +120,23 @@
                 return this.isLogoLoadingError || !this.appData.logo_url
             }
         },
+        created () {
+            this.getCollectList()
+        },
         methods: {
+            ...mapActions('template/', [
+                'addToCollectList',
+                'deleteCollect',
+                'loadCollectList'
+            ]),
+            async getCollectList () {
+                try {
+                    const res = await this.loadCollectList()
+                    this.collectionList = res.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
             useDefaultLogo () {
                 this.isLogoLoadingError = true
             },
@@ -156,6 +191,39 @@
                     params: { project_id: this.project_id },
                     query: { template_id: id, create_method: 'app_maker' }
                 }
+            },
+            // 添加/取消收藏模板
+            async onCollectAppMaker (data, event) {
+                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
+                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+                    return
+                }
+                try {
+                    if (!this.isCollected(data.id)) { // add
+                        const res = await this.addToCollectList([{
+                            extra_info: {
+                                template_id: data.template_id,
+                                name: data.name,
+                                id: data.id
+                            },
+                            category: 'common_flow'
+                        }])
+                        if (res.objects.length) {
+                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                        }
+                    } else { // cancel
+                        const delId = this.collectionList.find(m => m.extra_info.id === data.id && m.category === 'common_flow').id
+                        await this.deleteCollect(delId)
+                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                    }
+                    this.getCollectList()
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            // 判断是否已在收藏列表
+            isCollected (id) {
+                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'common_flow')
             }
         }
     }
@@ -177,7 +245,8 @@
     font-size: 24px;
     color: #979ba5;
     text-align: center;
-    transform: translateY(120%);
+    opacity: 0;
+    transform: translateY(110%);
     transition-duration: 0.25s;
     .operate-btn {
         padding: 5px;
@@ -190,13 +259,28 @@
             background: #979ba5;
         }
     }
+    .operate-list {
+        width: 120px;
+        font-size: 12px;
+        li {
+            padding: 0 12px;
+            width: 100%;
+            height: 32px;
+            line-height: 32px;
+            color: #63656e;
+            cursor: pointer;
+            &:hover {
+                color: #3ab4ff;
+                background: #ebf4ff;
+            }
+        }
+    }
 }
 .card-basic {
     float: left;
     width: 40%;
     height: 100%;
     padding: 20px 15px;
-    overflow: hidden;
     border-right: 1px solid $commonBorderColor;
     .logo {
         width: 60px;
@@ -240,10 +324,15 @@
         }
     }
     &:hover {
+        background: #f0f1f5;
+        .app-name::after {
+            background: #f0f1f5;
+        }
         .card-operation {
             transform: translateY(-10%);
             transition-duration: 0.25s;
             z-index: 1;
+            opacity: 1;
         }
     }
 }

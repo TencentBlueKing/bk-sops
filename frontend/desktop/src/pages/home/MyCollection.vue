@@ -133,12 +133,12 @@
         methods: {
             ...mapActions('template/', [
                 'deleteCollect',
-                'getCollectList'
+                'loadCollectList'
             ]),
             async initData () {
                 try {
                     this.collectionBodyLoading = true
-                    const res = await this.getCollectList()
+                    const res = await this.loadCollectList()
                     if (res.objects && res.objects.length > 0) {
                         this.tplOperations = res.meta.auth_operations
                         this.collectionResource = res.meta.auth_resource
