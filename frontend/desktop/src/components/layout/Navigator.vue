@@ -127,12 +127,12 @@
             children: [
                 {
                     routerName: 'adminSearch',
-                    path: '/admin/manage/search',
+                    path: '/admin/manage/',
                     name: gettext('后台管理')
                 },
                 {
                     routerName: 'statisticsTemplate',
-                    path: '/admin/statistics/template',
+                    path: '/admin/statistics/',
                     name: gettext('运营数据')
                 }
             ]
@@ -401,7 +401,7 @@
                 if (this.view_mode === 'appmaker') {
                     return this.$route.name === route.path
                 }
-                return this.$route.path.indexOf(route.path) > -1
+                return this.$route.path.indexOf(route.path) === 0
             },
             handleVersionChange (data) {
                 const version = data[0]
