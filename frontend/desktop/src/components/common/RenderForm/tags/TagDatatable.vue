@@ -105,7 +105,6 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
-    import TableToExcel from '@/assets/js/table-to-excel'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export const attrs = {
@@ -264,28 +263,29 @@
                 return jsonData.map(v => filterVal.map(j => v[j]))
             },
             export2Excel () {
-                require.ensure([], () => {
-                    const tableToExcel = new TableToExcel()
-                    const tableHeader = []
-                    const tableData = []
-                    const filterVal = []
-                    for (let i = 0; i < this.columns.length; i++) {
-                        const tagCode = this.columns[i].tag_code
-                        const name = this.columns[i].attrs.name
-                        tableHeader.push(name)
-                        filterVal.push(tagCode)
+                const tableHeader = []
+                const tableData = []
+                const filterVal = []
+                for (let i = 0; i < this.columns.length; i++) {
+                    const tagCode = this.columns[i].tag_code
+                    const name = this.columns[i].attrs.name
+                    tableHeader.push(name)
+                    filterVal.push(tagCode)
+                }
+                tableData.push(tableHeader)
+                const list = this.tableValue
+                for (let i = 0; i < list.length; i++) {
+                    const row = []
+                    for (let j = 0; j < filterVal.length; j++) {
+                        row.push(list[i][filterVal[j]])
                     }
-                    tableData.push(tableHeader)
-                    const list = this.tableValue
-                    for (let i = 0; i < list.length; i++) {
-                        const row = []
-                        for (let j = 0; j < filterVal.length; j++) {
-                            row.push(list[i][filterVal[j]])
-                        }
-                        tableData.push(row)
-                    }
-                    tableToExcel.render(tableData)
-                })
+                    tableData.push(row)
+                }
+                const wsName = 'Sheet1'
+                const wb = XLSX.utils.book_new()
+                const ws = XLSX.utils.aoa_to_sheet(tableData)
+                XLSX.utils.book_append_sheet(wb, ws, wsName)
+                XLSX.writeFile(wb, 'tableData.xlsx')
             },
             importExcel (file) {
                 const types = file.name.split('.')[1]
