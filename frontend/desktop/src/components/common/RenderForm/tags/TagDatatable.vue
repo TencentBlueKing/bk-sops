@@ -310,7 +310,7 @@
                                 delete excelValue[i][key]
                             }
                         }
-                        this.tableValue = tabJson[0]['sheet']
+                        this._set_value(tabJson[0]['sheet'])
                     }
                 })
             },
