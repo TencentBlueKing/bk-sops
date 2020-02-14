@@ -89,7 +89,7 @@
                     </div>
                     <div v-else>
                         <a class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
-                        <a v-if="add_btn" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
+                        <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
                     </div>
                 </template>
             </el-table-column>
@@ -145,6 +145,12 @@
             required: false,
             default: true,
             desc: 'show edit and delete button or not'
+        },
+        deleteable: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'show delete button in a row'
         },
         value: {
             type: [Array, String],
