@@ -22,11 +22,12 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
+
 from pipeline_plugins.components.collections.sites.open.cc import (
     cc_format_tree_mode_id,
     cc_format_prop_data
 )
-from pipeline_plugins.components.utils import supplier_account_for_business
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error

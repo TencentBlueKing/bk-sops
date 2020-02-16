@@ -19,8 +19,8 @@ from urllib.parse import urlencode
 from cryptography.fernet import Fernet
 from django.core.cache import cache
 
+from pipeline_plugins.base.utils.inject import supplier_account_inject
 from pipeline_plugins.components.utils import (
-    supplier_account_inject,
     get_ip_by_regex,
     ip_re,
     ip_pattern,
@@ -35,7 +35,6 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 __all__ = [
     'cc_get_ips_info_by_str',
     'cc_get_ip_list_by_biz_and_user',
-    'cc_get_inner_ip_by_module_id',
     'get_job_instance_url',
     'get_node_callback_url'
 ]
@@ -180,57 +179,6 @@ def cc_get_ip_list_by_biz_and_user(username, biz_cc_id, supplier_account, use_ca
     if not data:
         return []
     return data
-
-
-def cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_account=0):
-    """
-    @summary: 根据模块ID查询主机内网ip
-    :param username:
-    :param biz_cc_id:
-    :param module_id_list:
-    :param supplier_account: 开发商 ID，暂不使用
-    :return:
-    """
-    client = get_client_by_user(username)
-    cc_kwargs = {
-        "bk_biz_id": biz_cc_id,
-        "bk_supplier_account": supplier_account,
-        "condition": [
-            {
-                "bk_obj_id": "host",
-                "fields": ["bk_host_innerip"],
-            },
-            {
-                "bk_obj_id": "module",
-                "fields": [],
-                "condition": [
-                    {
-                        "field": "bk_module_id",
-                        "operator": "$in",
-                        "value": module_id_list
-                    }
-                ]
-            },
-            {
-                "bk_obj_id": "set",
-                "fields": [],
-                "condition": []
-            },
-            {
-                "bk_obj_id": "biz",
-                "fields": [],
-                "condition": []
-            }
-        ]
-    }
-    cc_result = client.cc.search_host(cc_kwargs)
-    result = []
-    if cc_result['result']:
-        result = cc_result['data']['info']
-    else:
-        logger.warning("client.cc.search_host ERROR###biz_cc_id=%s"
-                       "###cc_result=%s" % (biz_cc_id, json.dumps(cc_result)))
-    return result
 
 
 def get_job_instance_url(biz_cc_id, job_instance_id):
