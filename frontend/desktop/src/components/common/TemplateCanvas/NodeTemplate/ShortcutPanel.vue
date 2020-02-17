@@ -83,12 +83,12 @@
              * 添加节点
              * @param {String} type -添加节点类型
              */
-            onAppendNode (type, isfillParam = false) {
+            onAppendNode (type, isFillParam = false) {
                 const { x, y, id, type: currType } = this.currentLocation
                 const endX = x + 200
                 const newNodeId = 'node' + uuid()
                 let location = {}
-                if (isfillParam) {
+                if (isFillParam) {
                     location = tools.deepClone(this.node)
                     location.oldSouceId = id
                     location.id = newNodeId
@@ -138,7 +138,7 @@
                         startNodeId: id,
                         endNodeId,
                         location,
-                        isfillParam
+                        isFillParam
                     })
                 } else {
                     if (['parallelgateway', 'branchgateway'].indexOf(currType) > -1 && isHaveNodeBehind) {
@@ -147,7 +147,7 @@
                         location.y = parallelY + 100
                         location.x = parallelX
                     }
-                    this.$emit('onAppendNode', { location, line, isfillParam })
+                    this.$emit('onAppendNode', { location, line, isFillParam })
                 }
             },
             // 是不是网关节点
