@@ -428,6 +428,7 @@
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
+                this.$emit('update:nodeMemuOpen', val)
             },
             updateCanvas () {
                 const { locations: nodes, lines } = this.canvasData
@@ -1067,6 +1068,14 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
+            },
+            /**
+             * 设置画布偏移量
+             * @param {Number} x 画布向右偏移量
+             * @param {Number} y 画布向下偏移量
+             */
+            setCanvasPosition (x, y) {
+                this.$refs.jsFlow.setCanvasPosition(x, y)
             }
         }
     }

@@ -26,8 +26,7 @@
         name: 'NotifyInfo',
         props: {
             content: {
-                type: String,
-                required: true
+                type: String
             },
             show: {
                 type: Boolean,

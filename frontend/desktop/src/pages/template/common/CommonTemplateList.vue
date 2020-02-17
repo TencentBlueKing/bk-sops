@@ -359,7 +359,7 @@
             this.getTemplateList()
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
-            this.getExpiredSubflowData()
+            // this.getExpiredSubflowData() 公共流程暂时不显示子流程更新提示
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {

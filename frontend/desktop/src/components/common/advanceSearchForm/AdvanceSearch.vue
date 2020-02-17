@@ -95,15 +95,15 @@
         cursor: pointer;
         &:hover {
             color: #3c96ff;
+            .advanced-shape {
+                color: #3c96ff;
+            }
         }
         .advanced-shape {
             display: inline-block;
             margin-left: 5px;
             font-size: 12px;
             color:#cccccc;
-            &:hover {
-                color: #3c96ff;
-            }
         }
     }
 
