@@ -22,6 +22,10 @@
                 class="shortcut-item common-icon-gear"
                 @click.stop="onConfigBtnClick"></li>
             <li
+                v-if="isShowConfigIcon"
+                class="shortcut-item common-icon-double-paper-2"
+                @click.stop="onCopyBtnClick"></li>
+            <li
                 v-for="(name, index) in nodeTypeList"
                 :key="index"
                 :class="['shortcut-item', `common-icon-node-${name}-shortcut`]"
@@ -32,6 +36,7 @@
 <script>
     import '@/utils/i18n.js'
     import { uuid } from '@/utils/uuid.js'
+    import tools from '@/utils/tools.js'
     export default {
         name: 'ShortcutPanel',
         props: {
@@ -78,16 +83,24 @@
              * 添加节点
              * @param {String} type -添加节点类型
              */
-            onAppendNode (type) {
+            onAppendNode (type, isfillParam = false) {
                 const { x, y, id, type: currType } = this.currentLocation
                 const endX = x + 200
                 const newNodeId = 'node' + uuid()
-                const location = {
-                    type,
-                    y,
-                    x: endX,
-                    mode: 'edit',
-                    id: newNodeId
+                let location = {}
+                if (isfillParam) {
+                    location = tools.deepClone(this.node)
+                    location.oldSouceId = id
+                    location.id = newNodeId
+                    location.x = endX
+                } else {
+                    location = {
+                        type,
+                        y,
+                        x: endX,
+                        mode: 'edit',
+                        id: newNodeId
+                    }
                 }
                 const line = {
                     source: {
@@ -124,7 +137,8 @@
                     this.$emit('onInsertNode', {
                         startNodeId: id,
                         endNodeId,
-                        location
+                        location,
+                        isfillParam
                     })
                 } else {
                     if (['parallelgateway', 'branchgateway'].indexOf(currType) > -1 && isHaveNodeBehind) {
@@ -133,7 +147,7 @@
                         location.y = parallelY + 100
                         location.x = parallelX
                     }
-                    this.$emit('onAppendNode', { location, line })
+                    this.$emit('onAppendNode', { location, line, isfillParam })
                 }
             },
             // 是不是网关节点
@@ -167,6 +181,10 @@
                     }
                 })
                 return needNodeLocation
+            },
+            // 克隆当前节点
+            onCopyBtnClick () {
+                this.onAppendNode(this.node.type, true)
             }
         }
     }
@@ -190,11 +208,17 @@
         border-radius: 4px;
         background: rgba(255, 255, 255, .9);
         .shortcut-item {
-            font-size: 27px;
             margin-bottom: 11px;
-            margin-right: 4px;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            font-size: 24px;
             color: #52699d;
             cursor: pointer;
+            &:not(:nth-child(3n)) {
+                margin-right: 11px;
+            }
             &:hover {
                 color: #3a84ff;
             }
