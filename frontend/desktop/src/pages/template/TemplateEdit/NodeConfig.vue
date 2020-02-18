@@ -586,7 +586,7 @@
                         const component = this.nodeConfigData.component
                         const version = component.version || this.SingleAtomVersionMap[component.code]
                         if (version) {
-                            this.getConfig(this.nodeConfigData.component.version)
+                            this.getConfig(version)
                             this.currentVersion = version
                         }
                     } else {
