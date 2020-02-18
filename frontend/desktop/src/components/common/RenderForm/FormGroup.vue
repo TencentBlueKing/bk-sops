@@ -171,6 +171,9 @@
             onHookForm (val) {
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
+            get_parent () {
+                return this.$parent
+            },
             /**
              * 获取 combine 类型组件的子组件实例
              * @param {String} tagCode 标准插件 tag_code，值空时，返回全部子组件
