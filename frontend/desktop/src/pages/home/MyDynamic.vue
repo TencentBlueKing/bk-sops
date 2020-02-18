@@ -162,11 +162,9 @@
                 username: state => state.username
             })
         },
-        created () {
-        },
-        mounted () {
+        async created () {
+            await this.getCreateMethos()
             this.getTaskList()
-            this.getCreateMethos()
         },
         methods: {
             ...mapActions('taskList/', [
@@ -188,7 +186,14 @@
                     const res = await this.loadTaskList(data)
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.objects)
+                    
                     this.dynamicData = res.objects
+                    this.dynamicData.forEach(m => {
+                        const item = this.createMethods.find(method => method.value === m.create_method)
+                        if (item) {
+                            m.create_method = item.name
+                        }
+                    })
                     this.taskOperations = res.meta.auth_operations
                     this.taskResource = res.meta.auth_resource
                     this.isTableLoading = false
@@ -196,13 +201,12 @@
                     errorHandler(e, this)
                 }
             },
-            getCreateMethos () {
+            async getCreateMethos () {
                 try {
                     this.isCreateMethosLoading = true
-                    this.loadCreateMethod().then(res => {
-                        this.createMethods = [...this.createMethods, ...res.data]
-                        this.isCreateMethosLoading = false
-                    })
+                    const res = await this.loadCreateMethod()
+                    this.createMethods = [...this.createMethods, ...res.data]
+                    this.isCreateMethosLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
