@@ -22,6 +22,7 @@ django-nose==1.4.5
 coverage==4.5.1
 python-magic==0.4.15
 cryptography==2.3.1
+gitdb2==2.0.6
 GitPython==2.1.11
 PyJWT==1.6.1
 future==0.18.1
