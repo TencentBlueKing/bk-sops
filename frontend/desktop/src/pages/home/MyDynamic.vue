@@ -163,7 +163,7 @@
             })
         },
         async created () {
-            await this.getCreateMethos()
+            await this.getCreateMethods()
             this.getTaskList()
         },
         methods: {
@@ -201,7 +201,7 @@
                     errorHandler(e, this)
                 }
             },
-            async getCreateMethos () {
+            async getCreateMethods () {
                 try {
                     this.isCreateMethosLoading = true
                     const res = await this.loadCreateMethod()
