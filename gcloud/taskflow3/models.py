@@ -71,6 +71,7 @@ from gcloud.taskflow3.constants import (
 )
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
 
@@ -1384,3 +1385,21 @@ class TaskFlowInstance(models.Model):
             }
 
         return TaskFlowInstance.objects.callback(act_id, data)
+
+    def get_stakeholders(self):
+        notify_receivers = json.loads(self.template.notify_receivers)
+        receiver_group = notify_receivers.get('receiver_group', [])
+        receivers = [self.executor]
+
+        if self.project.from_cmdb:
+            group_members = get_business_group_members(
+                self.project.bk_biz_id,
+                receiver_group
+            )
+
+            receivers.extend(group_members)
+
+        return receivers
+
+    def get_notify_type(self):
+        return json.loads(self.template.notify_type)

@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import ujson as json
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Count
@@ -31,7 +30,6 @@ from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.constant import TASK_CATEGORY, AE
 from gcloud.core.models import Project
 from gcloud.core.utils import format_datetime
-from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
 
@@ -383,19 +381,3 @@ class TaskTemplate(BaseTemplate):
     class Meta(BaseTemplate.Meta):
         verbose_name = _("流程模板 TaskTemplate")
         verbose_name_plural = _("流程模板 TaskTemplate")
-
-    def get_notify_receivers_list(self, addtional_user):
-        notify_receivers = json.loads(self.notify_receivers)
-        receiver_group = notify_receivers.get('receiver_group', [])  # noqa
-        more_receiver = notify_receivers.get('more_receiver', '')  # noqa
-        receivers = [addtional_user]
-
-        if self.project.from_cmdb:
-            group_members = get_business_group_members(
-                self.project.bk_biz_id,
-                json.loads(self.notify_receivers)['receiver_group']
-            )
-
-            receivers.extend(group_members)
-
-        return receivers
