@@ -40,6 +40,7 @@
         <ul class="nav-right">
             <li v-if="showProjectSelect" class="project-select">
                 <ProjectSelector
+                    :show="!isProjectHidden"
                     :disabled="isProjectDisabled"
                     @reloadHome="reloadHome">
                 </ProjectSelector>
@@ -202,12 +203,19 @@
                 authResource: state => state.authResource
             }),
             showProjectSelect () {
-                return this.view_mode !== 'appmaker' && this.projectList.length > 0
+                if (this.view_mode === 'appmaker') {
+                    return this.$route.name !== 'appmakerTaskHome'
+                }
+                return this.projectList.length > 0
             },
-            isProjectDisabled () {
+            isProjectHidden () {
                 const route = this.$route
                 const disabledPathList = ['/home', '/common', '/admin', '/function', '/project', '/atomdev', '/audit']
                 return disabledPathList.some(path => route.path.indexOf(path) === 0)
+            },
+            isProjectDisabled () {
+                const routerName = this.$route.name
+                return ['appmakerTaskCreate', 'appmakerTaskExecute'].includes(routerName)
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {

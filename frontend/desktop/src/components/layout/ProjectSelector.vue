@@ -10,9 +10,9 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="project-wrapper">
+    <div :class="['project-wrapper', { 'disabled': disabled }]">
         <bk-select
-            v-show="!disabled"
+            v-show="show"
             class="project-select"
             v-model="currentProject"
             :disabled="disabled || isLoading"
@@ -42,6 +42,10 @@
     export default {
         name: 'ProjectSelector',
         props: {
+            show: {
+                type: Boolean,
+                default: false
+            },
             disabled: {
                 type: Boolean,
                 default: false
@@ -66,15 +70,30 @@
         },
         computed: {
             ...mapState({
-                site_url: state => state.site_url
+                site_url: state => state.site_url,
+                viewMode: state => state.view_mode
+                
             }),
             ...mapState('project', {
-                project_id: state => state.project_id
+                project_id: state => state.project_id,
+                projectName: state => state.projectName
             }),
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
             }),
             projects () {
+                if (this.viewMode === 'appmaker') {
+                    return [
+                        {
+                            name: this.i18n.biz,
+                            id: 1,
+                            children: [{
+                                name: this.projectName,
+                                id: this.project_id
+                            }]
+                        }
+                    ]
+                }
                 const projects = []
                 const projectsGroup = [
                     {
@@ -190,6 +209,9 @@
         width: 200px;
         color: #979ba5;
         font-size: 14px;
+        &.disabled {
+            background: #252f43;
+        }
     }
     .project-select {
         border-color: #445060;
