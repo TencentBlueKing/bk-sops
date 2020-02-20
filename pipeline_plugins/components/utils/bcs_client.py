@@ -136,10 +136,8 @@ class BCSClient(object):
             return result
 
         access_token = result['data']['access_token']
-        if method in {'get'}:
-            params['access_token'] = access_token
-        else:
-            data['access_token'] = access_token
+        params['access_token'] = access_token
+        data['access_token'] = access_token
 
         _headers = {
             "Content-Type": "application/json"
@@ -271,8 +269,7 @@ class BCSClient(object):
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
-            )),
-            params=params
+            ))
         )
 
     def create_instance(

@@ -71,13 +71,12 @@ class BcsMesosCreateService(Service):
 
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
-            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
         bk_biz_id = parent_data.inputs.bk_biz_id
-        project_id = data.inputs.bcs_create_project_id
-        bcs_create_set = data.inputs.bcs_create_set
-        bcs_create_vars = data.inputs.bcs_create_vars
+        project_id = data.inputs.bcs_create_data['bcs_create_project_id']
+        bcs_create_set = data.inputs.bcs_create_data['bcs_create_set']
+        bcs_create_vars = data.inputs.bcs_create_data['bcs_create_vars']
 
         # assemble cluster_ns_info
         cluster_ns_info = {
@@ -89,13 +88,13 @@ class BcsMesosCreateService(Service):
                 {}
             ).update({var['key']: var['value']})
 
-        bcs_create_muster_ver = data.inputs.bcs_create_muster_ver
+        bcs_create_muster_ver = data.inputs.bcs_create_data['bcs_create_muster_ver']
         version_id, show_version_id = bcs_create_muster_ver.split('_', 1)
         version_id = int(version_id)
         show_version_id = int(show_version_id)
 
-        obj_type = data.inputs.bcs_create_obj_type
-        templates = data.inputs.bcs_create_template
+        obj_type = data.inputs.bcs_create_data['bcs_create_obj_type']
+        templates = data.inputs.bcs_create_data['bcs_create_template']
         # assemble instance_entity
         instance_entity = {
             obj_type: []
@@ -121,12 +120,12 @@ class BcsMesosCreateService(Service):
         if not bcs_result['result']:
             message = bcs_handle_api_error('bcs.create_instance', bcs_kwargs, bcs_result)
             self.logger.error(message)
-            self.outputs.ex_data = message
+            data.outputs.ex_data = message
             return False
 
-        self.outputs.version_id = bcs_result['data']['version_id']
-        self.outputs.template_id = bcs_result['data']['template_id']
-        self.outputs.instance_id_list = bcs_result['data']['inst_id_list']
+        data.outputs.version_id = bcs_result['data']['version_id']
+        data.outputs.template_id = bcs_result['data']['template_id']
+        data.outputs.instance_id_list = bcs_result['data']['inst_id_list']
 
         return True
 
@@ -137,7 +136,7 @@ class BcsMesosCreateService(Service):
         for instance_id in data.outputs.instance_id_list:
             bcs_kwargs = dict(
                 bk_biz_id=parent_data.inputs.bk_biz_id,
-                project_id=data.inputs.bk_biz_id,
+                project_id=data.inputs.bcs_create_data['bcs_create_project_id'],
                 instance_id=instance_id
             )
             bcs_result = client.get_instance_status(**bcs_kwargs)
@@ -150,12 +149,12 @@ class BcsMesosCreateService(Service):
             self.finish_schedule()
 
         if data.get_one_of_outputs('schedule_count') is None:
-            data.outpus.schedule_count = 0
+            data.outputs.schedule_count = 0
 
-        data.outpus.schedule_count += 1
+        data.outputs.schedule_count += 1
 
-        if data.outpus.schedule_count >= BCS_MAX_SCHEDULE_TIMES:
-            data.outpus.ex_data = 'bcs instance status wait timeout'
+        if data.outputs.schedule_count >= BCS_MAX_SCHEDULE_TIMES:
+            data.outputs.ex_data = 'bcs instance status wait timeout'
             return False
 
         return True
@@ -181,15 +180,14 @@ class BcsMesosRollingUpdateService(Service):
 
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
-            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
         bk_biz_id = parent_data.inputs.bk_biz_id
-        project_id = data.inputs.bcs_create_project_id
-        instance_id = data.inputs.bcs_rollingupdate_app
-        instance_num = data.inputs.bcs_rollingupdate_inst_num
-        version_id = int(data.inputs.bcs_rollingupdate_app_ver)
-        user_vars = data.inputs.bcs_rollingupdate_vars
+        project_id = data.inputs.bcs_rollingupdate_data['bcs_rollingupdate_project_id']
+        instance_id = data.inputs.bcs_rollingupdate_data['bcs_rollingupdate_app']
+        instance_num = data.inputs.bcs_rollingupdate_data['bcs_rollingupdate_inst_num']
+        version_id = int(data.inputs.bcs_rollingupdate_data['bcs_rollingupdate_app_ver'])
+        user_vars = data.inputs.bcs_rollingupdate_data['bcs_rollingupdate_vars']
 
         # assemble varaibles
         variable = {var['key']: var['value'] for var in user_vars}
@@ -208,10 +206,10 @@ class BcsMesosRollingUpdateService(Service):
         if not bcs_result['result']:
             message = bcs_handle_api_error('bcs.update_instance', bcs_kwargs, bcs_result)
             self.logger.error(message)
-            self.outputs.ex_data = message
+            data.outputs.ex_data = message
             return False
 
-        self.outputs.instance_id = instance_id
+        data.outputs.instance_id = instance_id
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -219,7 +217,7 @@ class BcsMesosRollingUpdateService(Service):
 
         bcs_kwargs = dict(
             bk_biz_id=parent_data.inputs.bk_biz_id,
-            project_id=data.inputs.bk_biz_id,
+            project_id=data.inputs.bcs_rollingupdate_data['bcs_rollingupdate_project_id'],
             instance_id=data.outputs.instance_id
         )
         bcs_result = client.get_instance_status(**bcs_kwargs)
@@ -231,12 +229,12 @@ class BcsMesosRollingUpdateService(Service):
             self.finish_schedule()
 
         if data.get_one_of_outputs('schedule_count') is None:
-            data.outpus.schedule_count = 0
+            data.outputs.schedule_count = 0
 
-        data.outpus.schedule_count += 1
+        data.outputs.schedule_count += 1
 
-        if data.outpus.schedule_count >= BCS_MAX_SCHEDULE_TIMES:
-            data.outpus.ex_data = 'bcs instance status wait timeout'
+        if data.outputs.schedule_count >= BCS_MAX_SCHEDULE_TIMES:
+            data.outputs.ex_data = 'bcs instance status wait timeout'
             return False
 
         return True
@@ -267,24 +265,23 @@ class BcsMesosCommandService(Service):
 
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
-            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
         bk_biz_id = parent_data.inputs.bk_biz_id
-        project_id = data.inputs.bcs_create_project_id
-        instance_id = data.inputs.bcs_command_app
-        username = data.inputs.bcs_command_user.strip()
-        work_dir = data.inputs.bcs_command_work_dir.strip()
-        reserve_time = data.inputs.bcs_command_task_ttl
-        privileged = data.inputs.bcs_command_has_privilege
-        user_vars = data.inputs.bcs_rollingupdate_vars
+        project_id = data.inputs.bcs_command_data['bcs_command_project_id']
+        instance_id = data.inputs.bcs_command_data['bcs_command_app']
+        username = data.inputs.bcs_command_data['bcs_command_user'].strip()
+        work_dir = data.inputs.bcs_command_data['bcs_command_work_dir'].strip()
+        reserve_time = data.inputs.bcs_command_data['bcs_command_task_ttl']
+        privileged = data.inputs.bcs_command_data['bcs_command_has_privilege']
+        user_vars = data.inputs.bcs_command_data['bcs_rollingupdate_vars']
 
         # env assemble
-        env = ['{key}={value}'.format(var['key'], var['value']) for var in user_vars]
+        env = ['{key}={value}'.format(key=var['key'], value=var['value']) for var in user_vars]
 
         # command assemble
-        command_base = data.inputs.bcs_command_cmd.strip()
-        command_param = data.inputs.bcs_command_param.strip()
+        command_base = data.inputs.bcs_command_data['bcs_command_cmd'].strip()
+        command_param = data.inputs.bcs_command_data['bcs_command_param'].strip()
         command = [command_base]
         command.extend(command_param.split(' '))
 
@@ -305,7 +302,7 @@ class BcsMesosCommandService(Service):
         if not bcs_result['result']:
             message = bcs_handle_api_error('bcs.send_command', bcs_kwargs, bcs_result)
             self.logger.error(message)
-            self.outputs.ex_data = message
+            data.outputs.ex_data = message
             return False
 
         data.outputs.task_id = bcs_result['data']['task_id']
@@ -317,7 +314,7 @@ class BcsMesosCommandService(Service):
         bcs_kwargs = dict()
         bcs_result = client.get_command_status(
             bk_biz_id=parent_data.inputs.bk_biz_id,
-            project_id=data.inputs.project_id,
+            project_id=data.inputs.bcs_command_data['bcs_command_project_id'],
             task_id=data.outputs.task_id
         )
 

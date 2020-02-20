@@ -72,28 +72,6 @@
                         },
                         "tag_code": "bcs_command_obj_type"
                     },
-                    // {
-                    //     "type": "select",
-                    //     "attrs": {
-                    //         "name": gettext("所属命名空间"),
-                    //         "default": "",
-                    //         "value": "",
-                    //         "validation": [
-                    //             {
-                    //                 type: "required"
-                    //             }
-                    //         ],
-                    //         "items": [
-                    //         ],
-                    //         "remote": false,
-                    //         "remote_url": "",
-                    //         "remote_data_init": function (e) { return e },
-                    //         "placeholder": gettext("请选择命名空间"),
-                    //     },
-                    //     "events": [],
-                    //     "methods": {},
-                    //     "tag_code": "bcs_command_namespace"
-                    // },
                     {
                         "type": "select",
                         "attrs": {
@@ -114,6 +92,9 @@
                                     return ''
                                 }
                                 var category = this.get_parent().get_child('bcs_command_obj_type').value
+                                if (!category) {
+                                    return ''
+                                }
                                 return this.instances_url($.context.getBkBizId(), project_id, category)
                             },
                             "remote_data_init": function (resp) {
@@ -133,6 +114,9 @@
                                         return
                                     }
                                     var category = this.get_parent().get_child('bcs_command_obj_type').value
+                                    if (!category) {
+                                        return ''
+                                    }
                                     this.remote_url = this.instances_url($.context.getBkBizId(), value, category)
                                     this.remoteMethod()
                                 }
@@ -145,6 +129,9 @@
                                         return
                                     }
                                     var project_id = this.get_parent().get_child('bcs_command_project_id').value
+                                    if (!project_id) {
+                                        return ''
+                                    }
                                     this.remote_url = this.instances_url($.context.getBkBizId(), project_id, value)
                                     this.remoteMethod()
                                 }

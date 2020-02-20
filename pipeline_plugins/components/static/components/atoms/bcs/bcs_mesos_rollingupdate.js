@@ -157,7 +157,25 @@
                                         return
                                     }
                                     var category = this.get_parent().get_child('bcs_rollingupdate_obj_type').value
+                                    if (!category) {
+                                        return
+                                    }
                                     this.remote_url = this.instances_url($.context.getBkBizId(), value, category)
+                                    this.remoteMethod()
+                                }
+                            },
+                            {
+                                source: "bcs_rollingupdate_obj_type",
+                                type: "change",
+                                action: function (value) {
+                                    if (!value) {
+                                        return
+                                    }
+                                    var project_id = this.get_parent().get_child('bcs_rollingupdate_project_id').value
+                                    if (!project_id) {
+                                        return
+                                    }
+                                    this.remote_url = this.instances_url($.context.getBkBizId(), project_id, value)
                                     this.remoteMethod()
                                 }
                             }
@@ -175,7 +193,7 @@
                         "tag_code": "bcs_rollingupdate_app"
                     },
                     {
-                        "type": "input",
+                        "type": "select",
                         "attrs": {
                             "name": gettext("应用实例版本"),
                             "default": "",

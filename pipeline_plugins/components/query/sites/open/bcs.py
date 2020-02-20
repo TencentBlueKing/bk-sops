@@ -89,6 +89,7 @@ def bcs_get_version_template(request):
     project_id = request.GET['project_id']
     bk_biz_id = request.GET['bk_biz_id']
     version_id = request.GET['version_id']
+    obj_type = request.GET['obj_type'].lower()
 
     # decompose {id}_{show_id}
     if '_' in version_id:
@@ -105,14 +106,14 @@ def bcs_get_version_template(request):
         return JsonResponse(result)
 
     data = []
-    for version_tmpl in result['data']:
-        data.append({
-            'text': version_tmpl['name'],
-            'value': '{id}_{name}'.format(
-                id=version_tmpl['id'],
-                name=version_tmpl['name']
-            )
-        })
+    for version_tmpl in result['data'].get(obj_type, []):
+            data.append({
+                'text': version_tmpl['name'],
+                'value': '{id}_{name}'.format(
+                    id=version_tmpl['id'],
+                    name=version_tmpl['name']
+                )
+            })
 
     result['data'] = data
     return JsonResponse(result)

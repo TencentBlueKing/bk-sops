@@ -196,7 +196,7 @@
                                 if (!muster_id) {
                                     return ''
                                 }
-                                return this.muster_versions_url($.context.getBkBizId(), value, muster_id)
+                                return this.muster_versions_url($.context.getBkBizId(), project_id, muster_id)
                             },
                             "remote_data_init": function (resp) {
                                 if (resp.result === false) {
@@ -215,11 +215,7 @@
                                     if (!project_id) {
                                         return ''
                                     }
-                                    var muster_id = this.get_parent().get_child('bcs_create_muster').value
-                                    if (!muster_id) {
-                                        return ''
-                                    }
-                                    this.remote_url = this.muster_versions_url($.context.getBkBizId(), value, muster_id)
+                                    this.remote_url = this.muster_versions_url($.context.getBkBizId(), project_id, value)
                                     this.remoteMethod()
                                 }
                             }
@@ -239,7 +235,7 @@
                     {
                         "type": "select",
                         "attrs": {
-                            "name": gettext("模板"),
+                            "name": gettext("资源"),
                             "default": "",
                             "value": "",
                             "validation": [
@@ -250,6 +246,7 @@
                             "items": [
                             ],
                             "remote": true,
+                            "multiple": true,
                             "remote_url": function () {
                                 var project_id = this.get_parent().get_child('bcs_create_project_id').value
                                 if (!project_id) {
@@ -259,7 +256,8 @@
                                 if (!version_id) {
                                     return ''
                                 }
-                                return this.version_templates_url($.context.getBkBizId(), value, version_id)
+                                var obj_type = this.get_parent().get_child('bcs_create_obj_type').value
+                                return this.version_templates_url($.context.getBkBizId(), project_id, version_id, obj_type)
                             },
                             "remote_data_init": function (resp) {
                                 if (resp.result === false) {
@@ -267,7 +265,7 @@
                                 }
                                 return resp.data
                             },
-                            "placeholder": gettext("请选择模板"),
+                            "placeholder": gettext("请选择资源"),
                         },
                         "events": [
                             {
@@ -278,19 +276,29 @@
                                     if (!project_id) {
                                         return ''
                                     }
-                                    var version_id = this.get_parent().get_child('bcs_create_muster_ver').value
-                                    if (!version_id) {
+                                    var obj_type = this.get_parent().get_child('bcs_create_obj_type').value
+                                    this.remote_url = this.version_templates_url($.context.getBkBizId(), project_id, value, obj_type)
+                                    this.remoteMethod()
+                                }
+                            },
+                            {
+                                source: "bcs_create_obj_type",
+                                type: "change",
+                                action: function (value) {
+                                    var project_id = this.get_parent().get_child('bcs_create_project_id').value
+                                    if (!project_id) {
                                         return ''
                                     }
-                                    this.remote_url = this.version_templates_url($.context.getBkBizId(), value, version_id)
+                                    var version_id = this.get_parent().get_child('bcs_create_muster_ver').value
+                                    this.remote_url = this.version_templates_url($.context.getBkBizId(), project_id, version_id, value)
                                     this.remoteMethod()
                                 }
                             }
                         ],
                         "methods": {
-                            version_templates_url: function (bk_biz_id, project_id, version_id) {
+                            version_templates_url: function (bk_biz_id, project_id, version_id, obj_type) {
                                 url = $.context.get('site_url') + 'pipeline/bcs_get_version_templates/'
-                                url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id + '&version_id=' + version_id
+                                url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id + '&version_id=' + version_id + '&obj_type=' + obj_type
                                 return url
                             }
                         },
