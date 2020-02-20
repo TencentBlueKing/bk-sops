@@ -587,3 +587,18 @@ class BKIAMClient(object):
                 'resource_types_actions': resource_types_actions
             }
         )
+
+    def get_access_token(self, grant_type, id_provider, bk_token=None):
+        data = {
+            'grant_type': grant_type,
+            'id_provider': id_provider
+        }
+
+        if bk_token:
+            data['bk_token'] = bk_token
+
+        return self._request(
+            method='post',
+            url=self._request_url(path='auth/access-tokens/'),
+            data=data
+        )
