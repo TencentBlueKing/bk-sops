@@ -318,7 +318,7 @@ class BCSClient(object):
             data['variable'] = variable
 
         return self._request(
-            method='put',
+            method='post',
             url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/update/').format(
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
