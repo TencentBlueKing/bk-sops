@@ -16,5 +16,7 @@ import importlib
 from pipeline.conf import settings
 
 query_module = importlib.import_module('pipeline_plugins.components.query.sites.%s.query' % settings.RUN_VER)
+bcs_query_module = importlib.import_module('pipeline_plugins.components.query.sites.%s.bcs' % settings.RUN_VER)
 
 urlpatterns = query_module.urlpatterns
+urlpatterns.extend(bcs_query_module.urlpatterns)
