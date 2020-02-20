@@ -166,8 +166,15 @@ class TaskTemplateManager(BaseTemplateManager):
             # 总数不能通过查询获得，需要通过循环计数
         groups = []
         # 循环聚合信息
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get("code")
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
