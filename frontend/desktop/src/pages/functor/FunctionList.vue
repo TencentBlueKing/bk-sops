@@ -568,13 +568,13 @@
                     this.$router.push({
                         name: 'functionTemplateStep',
                         params: { project_id: this.business.id, step: 'selectnode' },
-                        query: { template_id: this.template.id, common: 1 }
+                        query: { template_id: this.template.id, common: 1, entrance: 'function' }
                     })
                 } else {
                     this.$router.push({
                         name: 'functionTemplateStep',
                         params: { project_id: this.business.id, step: 'selectnode' },
-                        query: { template_id: this.template.id }
+                        query: { template_id: this.template.id, entrance: 'function' }
                     })
                 }
             },
