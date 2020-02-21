@@ -84,7 +84,7 @@
                             {{props.row.enabled ? i18n.start : i18n.pause}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="120">
+                    <bk-table-column :label="i18n.operation" width="180">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <template v-if="!adminView">
@@ -116,12 +116,29 @@
                                     @click="onRecordView(props.row, $event)">
                                     {{ i18n.bootRecord }}
                                 </a>
+                                <router-link
+                                    :to="{
+                                        name: 'taskList',
+                                        params: { project_id: project_id },
+                                        query: { template_id: props.row.template_id, create_method: 'periodic' }
+                                    }">
+                                    {{ i18n.executeHistory }}
+                                </router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul
                                         slot="dropdown-content"
                                         class="bk-dropdown-list">
                                         <li>
+                                            <a
+                                                v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, periodicOperations) }"
+                                                href="javascript:void(0);"
+                                                :class="{
+                                                    'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, periodicOperations)
+                                                }"
+                                                @click="onCollectTask(props.row, $event)">
+                                                {{ isCollected(props.row.id) ? i18n.cancelCollection : i18n.collect }}
+                                            </a>
                                             <a
                                                 v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, periodicOperations) }"
                                                 href="javascript:void(0);"
@@ -131,16 +148,6 @@
                                                 @click="onDeletePeriodic(props.row, $event)">
                                                 {{ i18n.delete }}
                                             </a>
-                                        </li>
-                                        <li>
-                                            <router-link
-                                                :to="{
-                                                    name: 'taskList',
-                                                    params: { project_id: project_id },
-                                                    query: { template_id: props.row.template_id, create_method: 'periodic' }
-                                                }">
-                                                {{ i18n.executeHistory }}
-                                            </router-link>
                                         </li>
                                     </ul>
                                 </bk-dropdown-menu>
@@ -254,6 +261,10 @@
                     delete: gettext('删除'),
                     edit: gettext('编辑'),
                     pause: gettext('暂停'),
+                    collect: gettext('收藏'),
+                    cancelCollection: gettext('取消收藏'),
+                    addCollectSuccess: gettext('添加收藏成功！'),
+                    cancelCollectSuccess: gettext('取消收藏成功！'),
                     totalRunCount: gettext('运行次数'),
                     total: gettext('共'),
                     item: gettext('条记录'),
@@ -281,6 +292,7 @@
                 isBootRecordDialogShow: false,
                 selectedPeriodicId: undefined,
                 periodicList: [],
+                collectionList: [],
                 selectedCron: undefined,
                 constants: {},
                 modifyDialogLoading: false,
@@ -314,6 +326,7 @@
         created () {
             this.getPeriodicList()
             this.getBizBaseInfo()
+            this.getCollectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -324,7 +337,10 @@
                 'deletePeriodic'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'addToCollectList',
+                'deleteCollect',
+                'loadCollectList'
             ]),
             async getPeriodicList () {
                 this.listLoading = true
@@ -364,6 +380,14 @@
                 try {
                     const projectBasicInfo = await this.loadProjectBaseInfo()
                     this.taskCategory = projectBasicInfo.task_categories
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            async getCollectList () {
+                try {
+                    const res = await this.loadCollectList()
+                    this.collectionList = res.objects
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -508,6 +532,40 @@
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.getPeriodicList()
+            },
+            // 添加/取消收藏模板
+            async onCollectTask (template, event) {
+                if (!this.hasPermission(['view'], template.auth_actions, this.periodicOperations)) {
+                    this.onTemplatePermissonCheck(['view'], template, event)
+                    return
+                }
+                try {
+                    if (!this.isCollected(template.id)) { // add
+                        const res = await this.addToCollectList([{
+                            extra_info: {
+                                project_id: template.project.id,
+                                template_id: template.template_id,
+                                name: template.name,
+                                id: template.id
+                            },
+                            category: 'periodic_task'
+                        }])
+                        if (res.objects.length) {
+                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                        }
+                    } else { // cancel
+                        const delId = this.collectionList.find(m => m.extra_info.id === template.id && m.category === 'periodic_task').id
+                        await this.deleteCollect(delId)
+                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                    }
+                    this.getCollectList()
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            // 判断是否已在收藏列表
+            isCollected (id) {
+                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'periodic_task')
             }
         }
     }
