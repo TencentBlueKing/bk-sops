@@ -1,16 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
-
 import io
 import json
 import os
@@ -37,6 +25,9 @@ class Command(TemplateCommand):
     def handle(self, **options):
         target = options.pop('directory')
         # 先获取原内容
+        if not path.exists('config/default.py'):
+            raise CommandError("config/default.py does not exist,"
+                               " please init a django project first.")
         if PY_VER[0] == '2':
             old_file = open('config/default.py')
         else:
@@ -64,7 +55,11 @@ class Command(TemplateCommand):
 
         template_dir = path.join(blueapps.__path__[0], 'conf', base_subdir)
         run_ver = None
-        conf_file = open(path.join(os.getcwd(), 'config', '__init__.py'))
+        if PY_VER[0] == '2':
+            conf_file = open(path.join(os.getcwd(), 'config', '__init__.py'))
+        else:
+            conf_file = open(path.join(os.getcwd(), 'config', '__init__.py'), encoding='utf-8')
+
         for line in conf_file.readlines():
             if line.startswith('RUN_VER'):
                 run_ver = line[11:-2]
@@ -83,8 +78,8 @@ class Command(TemplateCommand):
             flag = root.endswith('sites')
             for dirname in dirs[:]:
                 if (
-                        dirname.startswith('.') or  # noqa
-                        dirname == '__pycache__' or  # noqa
+                        dirname.startswith('.') or
+                        dirname == '__pycache__' or
                         (flag and dirname != run_ver)
                 ):
                     dirs.remove(dirname)
@@ -124,54 +119,63 @@ class Command(TemplateCommand):
 # 获取原先的 default 文件并对其进行追加和覆盖
 def modify_default_file(old_file):
     # 打开覆盖前的文件和替换的 json 文件
-    with open(
-            "%s/conf/weixin_template/config/default.json" % blueapps.__path__[
-                0], 'r') as json_file:
-        with old_file as old_file:
-            # 获取 json 数据内容
-            result_content = old_file.read()
-            json_dict = json.load(json_file)
-            # 根据 key 进行替换会追加内容
-            for replace_property in json_dict:
-                # 获得 key 值
-                propertys = json_dict.get(replace_property)
-                # 寻找 key 值所在位置
-                start_index = result_content.find(str(replace_property))
-                # 获得 key 的 content 内容
-                content = propertys.get('content')
-                # mode 为 add 追加内容
-                if propertys.get('mode') == 'add':
-                    end_index = result_content.find(')', start_index) - 1
-                    temp_content = result_content[start_index:end_index]
-                    # 检查最后一个是不是,结尾
-                    if temp_content[-1] == ',' or temp_content[-1] == '(':
-                        temp_content += '\n'
-                    else:
-                        temp_content += ',\n'
-                    # 内容替换 content 需要进行 str 方法转换
-                    result_content = ''.join(
-                        [result_content[:start_index], temp_content,
-                         str(content),
-                         result_content[end_index:]])
-                # mode 为 cover 进行覆盖内容
-                elif propertys.get('mode') == 'cover':
-                    end_index = result_content.find('False', start_index)
-                    # 即最后一个是 True 不需要做任何覆盖
-                    if end_index == -1:
-                        continue
-                    # 需要位移 start_index 防止覆盖变量名称
-                    start_index += len(replace_property)
-                    # 内容覆盖
-                    result_content = ''.join(
-                        [result_content[:start_index], str(content),
-                         result_content[end_index + 5:]])
+    if PY_VER[0] == '2':
+        with open("%s/conf/weixin_template/config/default.json" % blueapps.__path__[0],
+                  'r') as json_file:
+            get_default_content(old_file, json_file)
+    else:
+        with open("%s/conf/weixin_template/config/default.json" % blueapps.__path__[0],
+                  'r', encoding='utf-8') as json_file:
+            get_default_content(old_file, json_file)
+
+
+def get_default_content(old_file, json_file):
+    with old_file as old_file:
+        # 获取 json 数据内容
+        result_content = old_file.read()
+        json_dict = json.load(json_file)
+        # 根据 key 进行替换会追加内容
+        for replace_property in json_dict:
+            # 获得 key 值
+            propertys = json_dict.get(replace_property)
+            # 寻找 key 值所在位置
+            start_index = result_content.find(str(replace_property))
+            # 获得 key 的 content 内容
+            content = propertys.get('content')
+            # mode 为 add 追加内容
+            if propertys.get('mode') == 'add':
+                end_index = result_content.find(')', start_index) - 1
+                temp_content = result_content[start_index:end_index]
+                # 检查最后一个是不是,结尾
+                if temp_content[-1] == ',' or temp_content[-1] == '(':
+                    temp_content += '\n'
                 else:
-                    # 其他情况
-                    break
-            if PY_VER[0] == '2':
-                with open('config/default.py', 'w') as default_file:
-                    default_file.write(result_content)
+                    temp_content += ',\n'
+                # 内容替换 content 需要进行 str 方法转换
+                result_content = ''.join(
+                    [result_content[:start_index], temp_content,
+                     str(content),
+                     result_content[end_index:]])
+            # mode 为 cover 进行覆盖内容
+            elif propertys.get('mode') == 'cover':
+                end_index = result_content.find('\n', start_index)
+                # 即最后一个是 True 不需要做任何覆盖
+                if result_content[start_index: end_index].strip() == 'IS_USE_CELERY = False':
+                    continue
+                # 需要位移 start_index 防止覆盖变量名称
+                start_index += len(replace_property)
+                # 内容覆盖
+                result_content = ''.join(
+                    [result_content[:start_index],
+                     '%s' % str(content),
+                     result_content[end_index:]])
             else:
-                with open('config/default.py', 'w',
-                          encoding='utf-8') as default_file:
-                    default_file.write(result_content)
+                # 其他情况
+                break
+        if PY_VER[0] == '2':
+            with open('config/default.py', 'w') as default_file:
+                default_file.write(result_content)
+        else:
+            with open('config/default.py', 'w',
+                      encoding='utf-8') as default_file:
+                default_file.write(result_content)

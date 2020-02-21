@@ -1,15 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-
 全平台 esb-sdk 封装，依赖于 esb-sdk 包，但不依赖 sdk 的版本。
 sdk 中有封装好 cc.get_app_by_user 方法时，可直接按以前 sdk 的习惯调用
 
@@ -34,7 +24,7 @@ from blueapps.core.exceptions import AccessForbidden, MethodError
 from blueapps.utils.request_provider import get_request
 
 __all__ = [
-    'client', 'backend_client', 'get_client_by_user', 'get_client_by_request'
+    'client', 'backend_client', 'get_client_by_user', 'get_client_by_request', 'CustomComponentAPI'
 ]
 
 
@@ -237,9 +227,9 @@ def get_client_by_user(user_or_username):
         username = user_or_username.username
     else:
         username = user_or_username
-    get_client = import_string(
+    get_client_by_user = import_string(
         ".".join([ESB_SDK_NAME, 'shortcuts', 'get_client_by_user']))
-    return get_client(username)
+    return get_client_by_user(username)
 
 
 def get_client_by_request(request=None):

@@ -1,16 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
-
 import logging
 import traceback
 
@@ -59,13 +47,16 @@ class TokenBackend(ModelBackend):
                               value=user_info.get('wx_userid', ''))
             user.set_property(key='chname', value=user_info.get('chname', ''))
 
-            # 用户权限更新,保持与平台同步
-            role = str(user_info.get('role', ''))
-            is_admin = True if role == ROLE_TYPE_ADMIN else False
-            user.is_superuser = is_admin
-            user.is_staff = is_admin
-            user.save()
+            # 用户如果不是管理员，则需要判断是否存在平台权限，如果有则需要加上
+            if not user.is_superuser and not user.is_staff:
+                role = user_info.get('role', '')
+                is_admin = True if str(role) == ROLE_TYPE_ADMIN else False
+                user.is_superuser = is_admin
+                user.is_staff = is_admin
+                user.save()
+
             return user
+
         except IntegrityError:
             logger.exception(traceback.format_exc())
             logger.exception(

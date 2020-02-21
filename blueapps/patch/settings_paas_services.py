@@ -1,19 +1,22 @@
-# -*- coding: utf-8 -*-
-"""
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
-
+# coding=utf-8
 import os
 
 from config.default import *  # noqa
+
+if not REMOTE_STATIC_URL.endswith('/'):
+    REMOTE_STATIC_URL = '%s/' % REMOTE_STATIC_URL
+
+# saas访问统计js 路径
+REMOTE_ANALYSIS_URL = '%sanalysis.js' % REMOTE_STATIC_URL
+
+# paas提供的前端api.js 路径
+REMOTE_API_URL = '%sbk_api/api.js' % REMOTE_STATIC_URL
+
+# 从 apigw jwt 中获取 app_code 的 键
+APIGW_APP_CODE_KEY = 'app_code'
+
+# 从 apigw jwt 中获取 username 的 键
+APIGW_USER_USERNAME_KEY = 'username'
 
 # sentry support
 
@@ -48,3 +51,6 @@ if APM_ID and APM_TOKEN:
         patch(requests=True, pymysql=False)
     except Exception as e:
         print("patch fail for requests and pymysql: %s" % e)
+
+# 非open环境使用页面的语言切换按钮来控制语言
+IS_DISPLAY_LANGUAGE_CHANGE = 'block'

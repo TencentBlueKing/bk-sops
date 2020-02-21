@@ -1,21 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
-Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
-
 import json
 import logging
 import traceback
 
 import requests
+from django.utils.translation import gettext_lazy as _
 from django.shortcuts import resolve_url
 from django.http import QueryDict
 from django.utils.six.moves.urllib.parse import urlparse, urlunparse
@@ -52,9 +41,9 @@ def send(url, method, params, timeout=None, **kwargs):
                                        data=json.dumps(params),
                                        timeout=timeout, **kwargs)
         else:
-            raise Exception(u"异常请求方式，%s" % method)
+            raise Exception(_(u"异常请求方式，%s") % method)
     except requests.exceptions.Timeout:
-        err_msg = (u"请求超时，url=%s，method=%s，params=%s，timeout=%s" % (
+        err_msg = (_(u"请求超时，url=%s，method=%s，params=%s，timeout=%s") % (
             url, method, params, timeout))
         raise ApiNetworkError(err_msg)
 
@@ -62,18 +51,18 @@ def send(url, method, params, timeout=None, **kwargs):
         url, method, params, response))
 
     if response.status_code != requests.codes.ok:
-        err_msg = (u"返回异常状态码，status_code=%s，url=%s，method=%s，"
-                   u"params=%s" % (response.status_code, url, method,
-                                   json.dumps(params)))
+        err_msg = (_(u"返回异常状态码，status_code=%s，url=%s，method=%s，"
+                   u"params=%s") % (response.status_code, url, method,
+                                    json.dumps(params)))
         raise ApiResultError(err_msg)
 
     try:
         return response.json()
     except Exception:
-        err_msg = (u"返回内容不符合 JSON 格式，url=%s，method=%s，params=%s，error=%s，"
-                   u"response=%s" % (url, method, json.dumps(params),
-                                     traceback.format_exc(),
-                                     response.text[:1000]))
+        err_msg = (_(u"返回内容不符合 JSON 格式，url=%s，method=%s，params=%s，error=%s，"
+                   u"response=%s") % (url, method, json.dumps(params),
+                                      traceback.format_exc(),
+                                      response.text[:1000]))
         raise ApiResultError(err_msg)
 
 
