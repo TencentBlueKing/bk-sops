@@ -64,60 +64,6 @@
                         "methods": {},
                         "tag_code": "bcs_rollingupdate_obj_type"
                     },
-                    // {
-                    //     "type": "select",
-                    //     "attrs": {
-                    //         "name": gettext("所属命名空间"),
-                    //         "default": "",
-                    //         "value": "",
-                    //         "validation": [
-                    //             {
-                    //                 type: "required"
-                    //             }
-                    //         ],
-                    //         "items": [
-                    //         ],
-                    //         "remote": true,
-                    //         "remote_url": function () {
-                    //             var project_id = this.get_parent().get_child('bcs_rollingupdate_project_id').value
-                    //             if (!project_id) {
-                    //                 return ''
-                    //             }
-                    //             return this.namespaces_url($.context.getBkBizId(), project_id)
-                    //         },
-                    //         "remote_data_init": function (resp) {
-                    //             if (resp.result === false) {
-                    //                 show_msg(resp.message, 'error');
-                    //             }
-                    //             return resp.data
-                    //         },
-                    //         "placeholder": gettext("请选择命名空间"),
-                    //     },
-                    //     "events": [
-                    //         {
-                    //             source: "bcs_rollingupdate_project_id",
-                    //             type: "change",
-                    //             action: function (value) {
-                    //                 if (!value) {
-                    //                     return
-                    //                 }
-                    //                 this.remote_url = this.namespaces_url($.context.getBkBizId(), value)
-                    //                 this.remoteMethod()
-                    //             }
-                    //         }
-                    //     ],
-                    //     "methods": {
-                    //         _tag_init: function () {
-                    //             this.emit_event(this.tagCode, "change", this.value)
-                    //         },
-                    //         namespaces_url: function (bk_biz_id, project_id) {
-                    //             url = $.context.get('site_url') + 'pipeline/bcs_get_namespaces/'
-                    //             url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id
-                    //             return url
-                    //         }
-                    //     },
-                    //     "tag_code": "bcs_rollingupdate_namespace"
-                    // },
                     {
                         "type": "select",
                         "attrs": {
@@ -134,7 +80,7 @@
                             "remote": true,
                             "remote_url": function () {
                                 var project_id = this.get_parent().get_child('bcs_rollingupdate_project_id').value
-                                if (!project_id) {
+                                if (!project_id || project_id.length != 32) {
                                     return ''
                                 }
                                 var category = this.get_parent().get_child('bcs_rollingupdate_obj_type').value
@@ -153,7 +99,7 @@
                                 source: "bcs_rollingupdate_project_id",
                                 type: "change",
                                 action: function (value) {
-                                    if (!value) {
+                                    if (!value || value.length != 32) {
                                         return
                                     }
                                     var category = this.get_parent().get_child('bcs_rollingupdate_obj_type').value
@@ -172,7 +118,7 @@
                                         return
                                     }
                                     var project_id = this.get_parent().get_child('bcs_rollingupdate_project_id').value
-                                    if (!project_id) {
+                                    if (!project_id || project_id.length != 32) {
                                         return
                                     }
                                     this.remote_url = this.instances_url($.context.getBkBizId(), project_id, value)
@@ -208,7 +154,7 @@
                             "remote": true,
                             "remote_url": function () {
                                 var project_id = this.get_parent().get_child('bcs_rollingupdate_project_id').value
-                                if (!project_id) {
+                                if (!project_id || project_id.length != 32) {
                                     return ''
                                 }
                                 var instance_id = this.get_parent().get_child('bcs_rollingupdate_app').value
@@ -231,6 +177,9 @@
                                         return
                                     }
                                     var project_id = this.get_parent().get_child('bcs_rollingupdate_project_id').value
+                                    if (!project_id || project_id.length != 32) {
+                                        return ''
+                                    }
                                     this.remote_url = this.instance_versions_url($.context.getBkBizId(), project_id, value)
                                     this.remoteMethod()
                                 }

@@ -309,7 +309,8 @@ class BCSClient(object):
         version_id,
         variable=None
     ):
-        data = {
+        data = {}
+        params = {
             'instance_num': instance_num,
             'version_id': version_id,
         }
@@ -324,7 +325,8 @@ class BCSClient(object):
                 project_id=project_id,
                 instance_id=instance_id
             ),
-            data=data
+            data=data,
+            params=params
         )
 
     def send_command(

@@ -84,7 +84,7 @@
                             "remote": true,
                             "remote_url": function () {
                                 var project_id = this.get_parent().get_child('bcs_create_project_id').value
-                                if (!project_id) {
+                                if (!project_id || project_id.length != 32) {
                                     return ''
                                 }
                                 return this.clusters_url(project_id)
@@ -102,7 +102,7 @@
                                 source: "bcs_create_project_id",
                                 type: "change",
                                 action: function (value) {
-                                    if (!value) {
+                                    if (!value || value.length != 32) {
                                         return
                                     }
                                     this.remote_url = this.clusters_url(value)
@@ -135,7 +135,7 @@
                             "remote": true,
                             "remote_url": function () {
                                 var project_id = this.get_parent().get_child('bcs_create_project_id').value
-                                if (!project_id) {
+                                if (!project_id || project_id.length != 32) {
                                     return ''
                                 }
                                 return this.musters_url($.context.getBkBizId(), value)
@@ -153,7 +153,7 @@
                                 source: "bcs_create_project_id",
                                 type: "change",
                                 action: function (value) {
-                                    if (!value) {
+                                    if (!value || value.length != 32) {
                                         return
                                     }
                                     this.remote_url = this.musters_url($.context.getBkBizId(), value)
@@ -189,7 +189,7 @@
                             "remote": true,
                             "remote_url": function () {
                                 var project_id = this.get_parent().get_child('bcs_create_project_id').value
-                                if (!project_id) {
+                                if (!project_id || project_id.length != 32) {
                                     return ''
                                 }
                                 var muster_id = this.get_parent().get_child('bcs_create_muster').value
@@ -212,7 +212,7 @@
                                 type: "change",
                                 action: function (value) {
                                     var project_id = this.get_parent().get_child('bcs_create_project_id').value
-                                    if (!project_id) {
+                                    if (!project_id || project_id.length != 32) {
                                         return ''
                                     }
                                     this.remote_url = this.muster_versions_url($.context.getBkBizId(), project_id, value)
@@ -249,7 +249,7 @@
                             "multiple": true,
                             "remote_url": function () {
                                 var project_id = this.get_parent().get_child('bcs_create_project_id').value
-                                if (!project_id) {
+                                if (!project_id || project_id.length != 32) {
                                     return ''
                                 }
                                 var version_id = this.get_parent().get_child('bcs_create_muster_ver').value
@@ -272,8 +272,11 @@
                                 source: "bcs_create_muster_ver",
                                 type: "change",
                                 action: function (value) {
+                                    if (!value) {
+                                        return
+                                    }
                                     var project_id = this.get_parent().get_child('bcs_create_project_id').value
-                                    if (!project_id) {
+                                    if (!project_id || project_id.length != 32) {
                                         return ''
                                     }
                                     var obj_type = this.get_parent().get_child('bcs_create_obj_type').value
@@ -286,10 +289,13 @@
                                 type: "change",
                                 action: function (value) {
                                     var project_id = this.get_parent().get_child('bcs_create_project_id').value
-                                    if (!project_id) {
+                                    if (!project_id || project_id.length != 32) {
                                         return ''
                                     }
                                     var version_id = this.get_parent().get_child('bcs_create_muster_ver').value
+                                    if (!version_id) {
+                                        return ''
+                                    }
                                     this.remote_url = this.version_templates_url($.context.getBkBizId(), project_id, version_id, value)
                                     this.remoteMethod()
                                 }
