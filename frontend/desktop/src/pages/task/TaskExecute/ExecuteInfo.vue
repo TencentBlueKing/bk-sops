@@ -84,7 +84,7 @@
         </section>
         <section class="info-section" v-if="!adminView">
             <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
-            <table class="operation-table outputs-table" v-if="!isRenderOutputForm">
+            <table class="operation-table outputs-table">
                 <thead>
                     <tr>
                         <th class="output-name">{{ i18n.name }}</th>
@@ -102,20 +102,21 @@
                     </tr>
                 </tbody>
             </table>
-            <div v-else>
-                <RenderForm
-                    v-if="outputRenderConfig && outputRenderConfig.length !== 0 && !loading"
-                    :scheme="outputRenderConfig"
-                    :form-option="outputRenderOption"
-                    v-model="outputRenderData">
-                </RenderForm>
-                <NoData v-else></NoData>
-            </div>
         </section>
         <section class="info-section" v-else>
             <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
             <div class="code-block-wrap">
                 <VueJsonPretty :data="outputsInfo"></VueJsonPretty>
+            </div>
+        </section>
+        <section class="info-section" v-if="isRenderOutputForm && outputRenderConfig && outputRenderConfig.length !== 0 && !loading">
+            <h4 class="common-section-title">{{ i18n.outputsForm }}</h4>
+            <div class="code-block-wrap">
+                <RenderForm
+                    :scheme="outputRenderConfig"
+                    :form-option="outputRenderOption"
+                    v-model="outputRenderData">
+                </RenderForm>
             </div>
         </section>
         <section class="info-section" v-if="executeInfo.ex_data">
@@ -368,6 +369,7 @@
                     lastTime: gettext('耗时'),
                     inputsParams: gettext('输入参数'),
                     outputsParams: gettext('输出参数'),
+                    outputsForm: gettext('输出表单'),
                     name: gettext('参数名'),
                     value: gettext('参数值'),
                     exception: gettext('异常信息'),
@@ -409,7 +411,7 @@
                     showGroup: false,
                     showLabel: true,
                     showHook: false,
-                    formEdit: false,
+                    formEdit: true,
                     formMode: true
                 },
                 renderData: {},
@@ -585,6 +587,7 @@
                 ) {
                     this.renderConfig = this.atomFormConfig[type][version]
                     this.outputRenderConfig = this.atomOutputConfig[type][version]
+                    this.isRenderOutputForm = true
                 } else {
                     try {
                         const res = await this.loadAtomConfig({ atomType: type, version })

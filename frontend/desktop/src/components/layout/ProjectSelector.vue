@@ -114,6 +114,9 @@
             }
         },
         methods: {
+            ...mapMutations('atomForm', [
+                'clearAtomForm'
+            ]),
             ...mapMutations('project', [
                 'setProjectId',
                 'setTimeZone',
@@ -140,7 +143,7 @@
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
-                    $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
+                    this.clearAtomForm() // notice: 清除标准插件配置项里的全局变量缓存
                     if (!this.redirect) {
                         this.isLoading = false
                         this.$emit('loading', false)

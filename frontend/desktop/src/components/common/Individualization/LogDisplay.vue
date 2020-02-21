@@ -90,7 +90,7 @@
         methods: {
             initData () {
                 const list = this.getDisplayList()
-                this.$refs.logVirtualScroll.addListData(list)
+                this.$refs.logVirtualScroll.setListData(list)
                 this.$refs.logVirtualScroll.getListData()
             },
             getDisplayList () {
@@ -114,7 +114,7 @@
                 return cutList
             },
             clearData () {
-                this.$refs.logVirtualScroll.addListData([])
+                this.$refs.logVirtualScroll.setListData([])
                 this.$refs.logVirtualScroll.getListData()
             }
         }

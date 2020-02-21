@@ -509,7 +509,7 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atomType, version })
-                    this.addSingleAtomActivities(location, $.atoms[atomType])
+                    this.addSingleAtomActivities(location, this.atomConfig[atomType][version])
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

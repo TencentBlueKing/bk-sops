@@ -204,31 +204,6 @@ const api = {
         return request(opts)
     },
     /**
-     * 获取标准插件配置项，挂载到$.atom对象上
-     * @param {String} type 标准插件code
-     * @param {String} classify 标准插件分类
-     */
-    $getAtomForm (type, classify, isMeta, version) {
-        return this.getAtomFormURL(type, classify, version, isMeta).then(response => {
-            const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
-            if (classify === 'variable') {
-                version = 'legacy'
-            }
-            store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta, version })
-            store.commit('atomForm/setAtomOutput', { atomType: type, outputData, version })
-            // 标准插件配置项内嵌到 form 字段
-            if (embedded) {
-                /*eslint-disable */
-                eval(formResource)
-                /*eslint-disable */
-                return Promise.resolve({ data: $.atoms[type] })
-            }
-            return $.getScript(formResource)
-        }).catch(e => {
-            return Promise.reject(e)
-        })
-    },
-    /**
      * 获取模板数据
      * @param {String} template_id 模板id
      */
@@ -349,7 +324,7 @@ const api = {
         const opts = {
             method: 'DELETE',
             url: `${prefixUrl}`,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            headers: { 'content-type': 'application/x-www-form-urlencoded' }
         }
         return request(opts)
     },
