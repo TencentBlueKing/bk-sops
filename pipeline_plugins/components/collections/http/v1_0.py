@@ -85,7 +85,7 @@ class HttpRequestService(Service):
         url = data.inputs.bk_http_request_url
         body = data.inputs.bk_http_request_body
         request_header = data.inputs.bk_http_request_header
-        timeout = abs(data.inputs.bk_http_timeout)
+        timeout = abs(int(data.inputs.bk_http_timeout))
         success_exp = data.inputs.bk_http_success_exp.strip()
         other = {"headers": {}}
 
