@@ -48,7 +48,7 @@
             <li class="right-icon help-doc">
                 <a
                     class="common-icon-dark-circle-question"
-                    href="http://docs.bk.tencent.com/product_white_paper/gcloud/"
+                    href="https://bk.tencent.com/docs/document/5.1/3/22"
                     target="_blank">
                 </a>
             </li>
