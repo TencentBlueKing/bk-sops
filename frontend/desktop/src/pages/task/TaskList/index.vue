@@ -71,19 +71,23 @@
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.task_type" prop="category_name"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.executor" width="100">
+                    <bk-table-column :label="i18n.task_type" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120">
                         <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
+                            <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.createMethod">
+                    <bk-table-column :label="i18n.executor" width="120">
+                        <template slot-scope="props">
+                            <span :title="props.row.executor_name || '--'">{{ props.row.executor_name || '--' }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.createMethod" width="100">
                         <template slot-scope="props">
                             {{ transformCreateMethod(props.row.create_method) }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="120">
+                    <bk-table-column :label="i18n.status" width="100">
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -91,9 +95,19 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="120">
+                    <bk-table-column :label="i18n.operation" width="160">
                         <template slot-scope="props">
                             <div class="task-operation">
+                                <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <router-link
+                                    class="template-operate-btn"
+                                    :to="{
+                                        name: 'taskStep',
+                                        query: { template_id: props.row.template_id },
+                                        params: { project_id: project_id, step: 'selectnode' }
+                                    }">
+                                    {{i18n.recreate}}
+                                </router-link>
                                 <a
                                     v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
                                     :class="['task-operation-clone', {
@@ -274,6 +288,7 @@
                     executor: gettext('执行人'),
                     status: gettext('状态'),
                     operation: gettext('操作'),
+                    recreate: gettext('再创建'),
                     clone: gettext('克隆'),
                     delete: gettext('删除'),
                     deleleTip: gettext('确认删除'),
