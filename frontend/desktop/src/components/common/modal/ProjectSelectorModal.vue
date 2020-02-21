@@ -11,7 +11,7 @@
 */
 <template>
     <bk-dialog
-        width="670"
+        width="600"
         :title="title"
         :value="isModalShow"
         :header-position="'left'"
@@ -19,11 +19,16 @@
         :has-header="false"
         :mask-close="false">
         <div class="select-wrapper">
-            <label class="label-project">{{ i18n.select }}</label>
-            <project-selector
-                :redirect="false"
-                @loading="onLoading">
-            </project-selector>
+            <div class="common-form-item">
+                <label class="required">{{ i18n.select }}</label>
+                <div class="common-form-content">
+                    <project-selector
+                        :redirect="false"
+                        @loading="onLoading">
+                    </project-selector>
+                </div>
+                <span v-if="!Number(project_id)" class="common-error-tip error-msg">{{ i18n.required }}</span>
+            </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="bk-button-group">
@@ -57,8 +62,9 @@
         data () {
             return {
                 i18n: {
-                    select: gettext('选择项目：'),
-                    cancel: gettext('取消')
+                    select: gettext('选择项目'),
+                    cancel: gettext('取消'),
+                    required: gettext('请选择项目')
                 },
                 isModalShow: false,
                 isLoading: false,
@@ -78,6 +84,9 @@
                 this.templateId = templateId
             },
             onCreateTask () {
+                if (isNaN(Number(this.project_id))) {
+                    return
+                }
                 this.$emit('confirm', this.project_id, this.templateId)
                 this.isModalShow = false
             },
@@ -96,13 +105,8 @@
 .select-wrapper {
     padding: 30px;
     overflow: hidden;
-    .label-project {
-        display: block;
-        float: left;
-        width: 180px;
-        height: 30px;
-        line-height: 30px;
-        text-align: left;
+    .error-msg {
+        margin-left: 120px;
     }
     /deep/ {
         .project-wrapper {
