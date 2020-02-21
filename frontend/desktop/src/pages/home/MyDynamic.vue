@@ -17,7 +17,7 @@
                 <bk-select
                     class="bk-select-inline"
                     v-model="currentMethod"
-                    :loading="isCreateMethosLoading"
+                    :loading="isCreateMethodsLoading"
                     :popover-width="260"
                     :clearable="false"
                     :placeholder="i18n.methodsPlaceholder"
@@ -153,7 +153,7 @@
                 },
                 tableColumn: tableColumn,
                 isTableLoading: false,
-                isCreateMethosLoading: false,
+                isCreateMethodsLoading: false,
                 currentMethod: 'all'
             }
         },
@@ -203,10 +203,10 @@
             },
             async getCreateMethods () {
                 try {
-                    this.isCreateMethosLoading = true
+                    this.isCreateMethodsLoading = true
                     const res = await this.loadCreateMethod()
                     this.createMethods = [...this.createMethods, ...res.data]
-                    this.isCreateMethosLoading = false
+                    this.isCreateMethodsLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
