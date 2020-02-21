@@ -47,8 +47,9 @@
         <el-table
             v-if="Array.isArray(value)"
             style="width: 100%; font-size: 12px"
-            :data="tableValue"
+            :data="currPageValue"
             :empty-text="empty_text"
+            @row-click="onRowClick"
             v-loading="loading"
             border>
             <template v-for="(item, cIndex) in columns">
@@ -91,6 +92,16 @@
                 </template>
             </el-table-column>
         </el-table>
+        <div class="table-pagination">
+            <el-pagination
+                v-if="show_pagination"
+                layout="prev, pager, next"
+                :current-page="pagination.current"
+                :page-size="limit"
+                :total="tableValue.length"
+                @current-change="handlerPageChange">
+            </el-pagination>
+        </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
@@ -183,6 +194,24 @@
                 return []
             },
             desc: 'dataTable buttons setting'
+        },
+        show_pagination: {
+            type: Boolean,
+            require: false,
+            default: false,
+            desc: 'show table pagination or not'
+        },
+        limit: {
+            type: Number,
+            require: false,
+            default: 5,
+            desc: 'the number of per page'
+        },
+        row_click_handler_name: {
+            type: String,
+            require: false,
+            default: '',
+            desc: 'on table row click callback function name'
         }
     }
     export default {
@@ -214,6 +243,9 @@
                     operate_text: gettext('操作'),
                     delete_text: gettext('删除'),
                     add_text: gettext('添加')
+                },
+                pagination: {
+                    current: 1
                 }
             }
         },
@@ -224,7 +256,15 @@
             ...mapState({
                 'atomForm': state => state.atomForm,
                 'constants': state => state.template.constants
-            })
+            }),
+            currPageValue () {
+                if (this.show_pagination) {
+                    const start = (this.pagination.current - 1) * this.limit
+                    const end = start + this.limit
+                    return this.tableValue.slice(start, end)
+                }
+                return this.tableValue
+            }
         },
         watch: {
             remote_url (value) {
@@ -475,6 +515,16 @@
                         }
                     })
                 }
+            },
+            handlerPageChange (val) {
+                this.pagination.current = val
+            },
+            // 表格单行点击
+            onRowClick (row, column, event) {
+                const handlerName = this.row_click_handler_name
+                if (handlerName && typeof this[handlerName] === 'function') {
+                    this[handlerName](row, column, event)
+                }
             }
         }
     }
@@ -501,5 +551,8 @@
         display: inline-block;
         margin-left: 10px;
         margin-bottom: 15px;
+    }
+    .table-pagination {
+        margin-top: 20px;
     }
 </style>
