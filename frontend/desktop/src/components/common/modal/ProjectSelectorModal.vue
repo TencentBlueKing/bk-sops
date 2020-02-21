@@ -23,6 +23,7 @@
                 <label class="required">{{ i18n.select }}</label>
                 <div class="common-form-content">
                     <project-selector
+                        :show="true"
                         :redirect="false"
                         @loading="onLoading">
                     </project-selector>

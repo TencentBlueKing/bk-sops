@@ -128,7 +128,11 @@
                                                     @click.prevent="getJumpUrl('clone', props.row.id)">
                                                     {{i18n.clone}}
                                                 </a>
-                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
+                                                <router-link
+                                                    v-if="project_id"
+                                                    :to="getExecuteHistoryUrl(props.row.id)">
+                                                    {{ i18n.executeHistory }}
+                                                </router-link>
                                                 <a
                                                     v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
                                                     href="javascript:void(0);"
