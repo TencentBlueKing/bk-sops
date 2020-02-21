@@ -54,25 +54,27 @@ def chunk_table_data(column):
     multiple_keys = []
     for key, value in column.items():
         if not isinstance(value, str):
-            return False, _("数据[%s]格式错误，请改为字符串") % value
+            return {'result': False, 'message': _("数据[%s]格式错误，请改为字符串") % value, 'data': []}
         value = value.strip()
         if BREAK_LINE in value:
             multiple_keys.append(key)
             value = value.split(BREAK_LINE)
             if len(value) != count and count != 1:
-                return False, _("单行数据[%s]的各列换行符个数不一致，请改为一致或者去掉换行符") % value
+                return {'result': False,
+                        'message': _("单行数据[%s]的各列换行符个数不一致，请改为一致或者去掉换行符") % value,
+                        'data': []}
             count = len(value)
         column[key] = value
 
     if count == 1:
-        return True, [column]
+        return {'result': True, 'data': [column], 'message': ''}
 
     for i in range(count):
         item = deepcopy(column)
         for key in multiple_keys:
             item[key] = column[key][i]
         chunk_data.append(item)
-    return True, chunk_data
+    return {'result': True, 'data': chunk_data, 'message': ''}
 
 
 class CCCreateSetService(Service):
@@ -130,12 +132,12 @@ class CCCreateSetService(Service):
 
         set_list = []
         for set_params in cc_set_info:
-            chunk_result, data_or_message = chunk_table_data(set_params)
-            if not chunk_result:
-                data.set_outputs('ex_data', data_or_message)
+            chunk_result = chunk_table_data(set_params)
+            if not chunk_result['result']:
+                data.set_outputs('ex_data', chunk_result['message'])
                 return False
 
-            for property_data in data_or_message:
+            for property_data in chunk_result['data']:
                 set_property = {}
                 for key, value in property_data.items():
                     if value:
@@ -154,7 +156,7 @@ class CCCreateSetService(Service):
                         elif key == "bk_capacity":
                             try:
                                 value = int(value)
-                            except Exception:
+                            except ValueError:
                                 self.logger.error(traceback.format_exc())
                                 data.set_outputs('ex_data', _("集群容量必须为整数"))
                                 return False
