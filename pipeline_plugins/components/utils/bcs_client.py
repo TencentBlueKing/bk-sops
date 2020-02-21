@@ -153,7 +153,7 @@ class BCSClient(object):
             ))
 
         try:
-            response = method_func(url, data=json.dumps(data or {}), headers=_headers, params=params or {})
+            response = method_func(url, data=json.dumps(data), headers=_headers, params=params)
         except Exception as e:
             message = 'bcs request({url}) error: {e}'.format(url=url, e=e)
             logger.error(message)
