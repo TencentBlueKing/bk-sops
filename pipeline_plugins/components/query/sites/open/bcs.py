@@ -107,13 +107,13 @@ def bcs_get_version_template(request):
 
     data = []
     for version_tmpl in result['data'].get(obj_type, []):
-            data.append({
-                'text': version_tmpl['name'],
-                'value': '{id}_{name}'.format(
-                    id=version_tmpl['id'],
-                    name=version_tmpl['name']
-                )
-            })
+        data.append({
+            'text': version_tmpl['name'],
+            'value': '{id}_{name}'.format(
+                id=version_tmpl['id'],
+                name=version_tmpl['name']
+            )
+        })
 
     result['data'] = data
     return JsonResponse(result)

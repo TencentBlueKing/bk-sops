@@ -12,14 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import traceback
 from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     handle_api_error,
@@ -240,7 +239,7 @@ class BcsMesosRollingUpdateService(Service):
         return True
 
 
-class BcsMesosCreateComponent(Component):
+class BcsMesosRollingupdateComponent(Component):
     name = _(u'Mesos Rollingupdate')
     code = 'bcs_mesos_rollingupdate'
     bound_service = BcsMesosRollingUpdateService
@@ -341,7 +340,7 @@ class BcsMesosCommandService(Service):
         return True
 
 
-class BcsMesosCreateComponent(Component):
+class BcsMesosCommandComponent(Component):
     name = _(u'Mesos Command')
     code = 'bcs_mesos_command'
     bound_service = BcsMesosCommandService

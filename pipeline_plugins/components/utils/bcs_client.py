@@ -97,7 +97,8 @@ class BCSClient(object):
 
         if not (username and password):
             return {
-                'message': 'make sure BKAPP_BCS_PLUGINS_USERNAME and BKAPP_BCS_PLUGINS_PASSWORD is config in enviroments',
+                'message': 'make sure BKAPP_BCS_PLUGINS_USERNAME and BKAPP_BCS_PLUGINS_PASSWORD'
+                ' is config in enviroments',
                 'result': False
             }
 
@@ -221,7 +222,7 @@ class BCSClient(object):
     def get_muster_versions(self, bk_biz_id, project_id, muster_id):
         return self._request(
             method='get',
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/musters/{muster_id}/versions/'.format(
+            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/musters/{muster_id}/versions/'.format(  # noqa
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 muster_id=muster_id
@@ -240,7 +241,7 @@ class BCSClient(object):
     def get_version_templates(self, bk_biz_id, project_id, version_id):
         return self._request(
             method='get',
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/versions/{version_id}/templates/'.format(
+            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/versions/{version_id}/templates/'.format(  # noqa
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 version_id=version_id
@@ -265,7 +266,7 @@ class BCSClient(object):
     def get_instance_versions(self, bk_biz_id, project_id, instance_id):
         return self._request(
             method='get',
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/versions/'.format(
+            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/versions/'.format(  # noqa
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -320,7 +321,7 @@ class BCSClient(object):
 
         return self._request(
             method='post',
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/update/').format(
+            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/update/').format(  # noqa
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -357,7 +358,7 @@ class BCSClient(object):
 
         return self._request(
             method='post',
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/'.format(
+            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/'.format(  # noqa
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -368,7 +369,7 @@ class BCSClient(object):
     def get_instance_status(self, bk_biz_id, project_id, instance_id):
         return self._request(
             method='get',
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/status/'.format(
+            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/status/'.format(  # noqa
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -378,7 +379,7 @@ class BCSClient(object):
     def get_command_status(self, bk_biz_id, project_id, instance_id, task_id):
         return self._request(
             method='get',
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/status/'.format(
+            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/status/'.format(  # noqa
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
