@@ -606,3 +606,8 @@ class CollectionsCC(object):
             path='/api/c/compapi{bk_api_ver}/cc/batch_update_host/',
             description='批量更新主机属性'
         )
+        self.list_biz_hosts = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/cc/list_biz_hosts/',
+            description='查询业务下的主机'
+        )

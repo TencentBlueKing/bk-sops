@@ -514,8 +514,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             execute_data[component['component_code']] = value
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+
+            processed_components.add(code)
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -536,8 +543,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         failed_dict = {item['component_code']: item['failed_times'] for item in component_failed_data}
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -563,8 +577,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             execute_data[component['component_code']] = value
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -596,8 +617,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 )
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),

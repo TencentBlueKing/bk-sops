@@ -109,6 +109,7 @@
             attrs: {
                 name: gettext("全局变量"),
                 hookable: true,
+                deleteable: false,
                 empty_text: gettext("没选中作业模板或当前作业模板全局变量为空"),
                 columns: [
                     {

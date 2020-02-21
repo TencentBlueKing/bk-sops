@@ -17,14 +17,13 @@ import re
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    cc_get_inner_ip_by_module_id,
-    supplier_account_for_project
-)
-from pipeline_plugins.components.utils.common import ip_re
 from pipeline.core.data.var import LazyVariable
+
+from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
+from pipeline_plugins.base.utils.inject import supplier_account_for_project
+from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str
+from pipeline_plugins.components.utils.common import ip_re
 
 from gcloud.core.models import Project
 
