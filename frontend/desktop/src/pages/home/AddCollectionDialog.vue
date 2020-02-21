@@ -25,8 +25,10 @@
                 <div class="search-wrapper">
                     <bk-search-select
                         ref="bkSearchSelect"
+                        :popover-zindex="2002"
                         :show-condition="false"
                         :data="searchOptionalList"
+                        :show-popover-tag-change="searchOptionalList.length !== 0"
                         v-model="searchValue"
                         @change="onSearchChange">
                     </bk-search-select>
