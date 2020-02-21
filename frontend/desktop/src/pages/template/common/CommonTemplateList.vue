@@ -86,7 +86,6 @@
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
-                                    <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                     <a
                                         v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
                                         v-cursor
@@ -606,7 +605,7 @@
             },
             getExecuteHistoryUrl (id) {
                 return {
-                    name: 'commonProcessList',
+                    name: 'taskList',
                     params: { project_id: this.project_id },
                     query: { template_id: id }
                 }
