@@ -13,7 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.contrib import admin
 
-from .models import ComponentInTemplate, ComponentExecuteData, TemplateInPipeline, InstanceInPipeline
+from .models import (ComponentExecuteData, ComponentInTemplate,
+                     InstanceInPipeline, TemplateInPipeline)
 
 
 @admin.register(ComponentInTemplate)
@@ -24,6 +25,7 @@ class ComponentInTemplateAdmin(admin.ModelAdmin):
         'template_id',
         'node_id',
         'is_sub',
+        'version'
     )
     search_fields = (
         'template_id',
@@ -45,7 +47,8 @@ class ComponentExecuteDataAdmin(admin.ModelAdmin):
         'elapsed_time',
         'status',
         'is_skip',
-        'is_retry'
+        'is_retry',
+        'version'
     )
     search_fields = (
         'instance_id',
