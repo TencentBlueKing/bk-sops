@@ -314,6 +314,7 @@ class BcsMesosCommandService(Service):
         bcs_result = client.get_command_status(
             bk_biz_id=parent_data.inputs.bk_biz_id,
             project_id=data.inputs.bcs_command_data['bcs_command_project_id'],
+            instance_id=data.inputs.bcs_command_data['bcs_command_app'],
             task_id=data.outputs.task_id
         )
 
@@ -324,7 +325,7 @@ class BcsMesosCommandService(Service):
         statuses = set()
         exitcodes = set()
 
-        for task_group in bcs_result['data']['taskgroups']:
+        for task_group in bcs_result['data']['status']['taskgroups']:
             for task in task_group['tasks']:
                 statuses.add(task['status'])
                 exitcodes.add(task['commInspect']['exitCode'])
@@ -333,9 +334,13 @@ class BcsMesosCommandService(Service):
             data.outputs.ex_data = 'bcs command task failed'
             return False
 
-        if statuses == {BCS_TASK_STATUS_FINISH} and exitcodes == {0}:
-            self.finish_schedule()
-            return True
+        if statuses == {BCS_TASK_STATUS_FINISH}:
+            if exitcodes == {0}:
+                self.finish_schedule()
+                return True
+            else:
+                data.outputs.ex_data = 'bcs command task failed: {}'.format(bcs_result['data']['status'])
+                return False
 
         return True
 
