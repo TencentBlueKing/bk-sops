@@ -814,7 +814,7 @@
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
-                            value: tools.deepClone(this.inputAtomData[key])
+                            value: this.inputAtomData[key] !== undefined ? tools.deepClone(this.inputAtomData[key]) : ''
                         }
                     }
                 } else {
