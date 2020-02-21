@@ -31,6 +31,8 @@ class DataTableValue(object):
                 item_values.setdefault(key, []).append(val)
         for attr, attr_val in item_values.items():
             setattr(self, attr, attr_val)
+            flat_val = '\n'.join(map(str, attr_val))
+            setattr(self, 'flat_{}'.format(attr), flat_val)
 
 
 class DataTable(LazyVariable):
