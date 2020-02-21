@@ -11,29 +11,30 @@
 */
 <template>
     <header>
-        <router-link to="" class="nav-logo" @click.native="onLogoClick()">
+        <a href="javascript:void(0);" class="nav-logo" @click.prevent="onLogoClick()">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
-        </router-link>
+        </a>
         <ul class="nav-left" v-if="!appmakerDataLoading">
             <li
                 v-for="(item, index) in showRouterList"
                 :key="index"
                 :class="['nav-item', { 'active': isNavActived(item) }]">
-                <router-link to="" @click.native="onGoToPath(item)">
+                <a href="javascript:void(0);" @click.prevent="onGoToPath(item)">
                     {{ item.name }}
-                </router-link>
+                </a>
                 <div
                     v-if="item.children"
                     class="sub-nav">
-                    <router-link
+                    <a
+                        href="javascript:void(0);"
                         v-for="(sub, subIndex) in item.children"
                         :key="subIndex"
                         to=""
                         :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
-                        @click.native="onGoToPath(sub)">
+                        @click.prevent="onGoToPath(sub)">
                         {{ sub.name }}
-                    </router-link>
+                    </a>
                 </div>
             </li>
         </ul>
@@ -148,7 +149,6 @@
             routerName: 'appmakerTaskCreate',
             path: 'appmakerTaskCreate',
             params: ['app_id', 'project_id'],
-            query: ['appmakerTemplateId'],
             name: gettext('新建任务')
         },
         {
@@ -365,6 +365,10 @@
                 route.query && route.query.forEach(m => {
                     query[m] = this[m] || undefined
                 })
+                if (route.routerName === 'appmakerTaskCreate') {
+                    params['step'] = 'selectnode'
+                    query['template_id'] = this.appmakerTemplateId
+                }
                 this.$router.push({
                     name: route.routerName,
                     params,
