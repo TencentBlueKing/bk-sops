@@ -13,8 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.http import JsonResponse
 import ujson as json
+from django.http import JsonResponse
+from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 
@@ -46,3 +47,31 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
                                           host_fields)
 
     return JsonResponse({'result': True, 'data': module_hosts, 'message': ''})
+
+
+@supplier_account_inject
+def cc_search_module(request, biz_cc_id, supplier_account):
+    """
+    查询集群下的模块
+    :param request:
+    :param biz_cc_id:
+    :return:
+    """
+    try:
+        bk_set_id = int(request.GET.get('bk_set_id'))
+        module_fields = json.loads(request.GET.get('module_fields', '[]'))
+    except ValueError as e:
+        return JsonResponse({'result': False, 'data': {}, 'message': _('请求参数格式错误: %s') % e})
+    client = get_client_by_user(request.user.username)
+    cc_kwargs = {
+        'bk_biz_id': biz_cc_id,
+        'bk_supplier_account': supplier_account,
+        'bk_set_id': bk_set_id,
+        'fields': module_fields
+    }
+    cc_result = client.cc.search_module(cc_kwargs)
+    if not cc_result['result']:
+        logger.warning("client.cc.search_module ERROR###biz_cc_id=%s"
+                       "###cc_result=%s" % (biz_cc_id, json.dumps(cc_result)))
+        return JsonResponse({'result': False, 'data': {}, 'message': cc_result['message']})
+    return JsonResponse({'result': True, 'data': cc_result['data'], 'message': ''})

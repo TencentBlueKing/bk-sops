@@ -18,4 +18,5 @@ from pipeline_plugins.base.query import cmdb
 
 urlpatterns = [
     url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cmdb.cc_get_host_by_module_id),
+    url(r'^cc_search_module/(?P<biz_cc_id>\d+)/$', cmdb.cc_search_module),
 ]
