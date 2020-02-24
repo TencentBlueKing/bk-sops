@@ -67,7 +67,7 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
-    import TabGlobalVariables from './TabGlobalVariables.vue'
+    import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabLocalDraft from './TabLocalDraft.vue'
     import PipelineTreeDialog from './PipelineTreeEditDialog.vue'
@@ -290,7 +290,7 @@
     position: absolute;
     top: 0px;
     right: 56px;
-    width: 420px;
+    width: 800px;
     height: 100%;
     background: $whiteDefault;
     border-left: 1px solid $commonBorderColor;
