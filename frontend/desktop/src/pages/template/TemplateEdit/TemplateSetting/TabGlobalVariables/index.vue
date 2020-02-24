@@ -12,7 +12,8 @@
 <template>
     <div class="global-variable-panel">
         <div class="global-title">
-            <span>{{i18n.global_varibles}}</span>
+            <span class="close-panel-icon"></span>
+            <span class="global-variable-text">{{i18n.global_varibles}}</span>
             <i
                 class="common-icon-info global-variable-tootip"
                 v-bk-tooltips="{
@@ -56,8 +57,11 @@
                 <span class="col-key t-head">KEY</span>
                 <span class="col-attributes t-head">{{ i18n.attributes }}</span>
                 <span class="col-output t-head">{{ i18n.outputs }}</span>
+                <span class="col-quote t-head">{{ i18n.quote }}</span>
+                <span class="col-operation t-head">{{ i18n.operation }}</span>
                 <span class="col-delete t-head"></span>
             </div>
+            <div v-if="status" class="variable-operation-tips"> {{ operationTips }} </div>
             <ul class="variable-list" ref="variableList">
                 <template v-if="!isHideSystemVar">
                     <VariableItem
@@ -150,10 +154,13 @@
                 i18n: {
                     global_varibles: gettext('全局变量'),
                     new: gettext('新建'),
+                    edit: gettext('编辑'),
                     hideSystemVar: gettext('隐藏系统变量'),
                     name: gettext('名称'),
                     attributes: gettext('属性'),
                     outputs: gettext('输出'),
+                    quote: gettext('引用'),
+                    operation: gettext('操作'),
                     outputsTitle: gettext('输出：'),
                     attr: gettext('属性'),
                     attrTitle: gettext('属性：'),
@@ -167,6 +174,7 @@
                     tips: gettext('删除变量'),
                     confirm: gettext('确认删除该变量？')
                 },
+                status: '',
                 theKeyOfEditing: '',
                 constantsArray: [],
                 deleteConfirmDialogShow: false
@@ -212,6 +220,15 @@
                 })
                 list.sort((a, b) => b.index - a.index)
                 return list
+            },
+            operationTips () {
+                if (this.status === 'new') {
+                    return this.i18n.new + this.i18n.global_varibles
+                }
+                if (this.status === 'edit') {
+                    return this.i18n.edit + this.i18n.global_varibles
+                }
+                return ''
             }
         },
         watch: {
@@ -353,7 +370,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-$localBorderColor: #d8e2e7;
+$localBorderColor: #dcdee5;
 /deep/ .common-dialog .bk-dialog-body{
     padding: 20px;
 }
@@ -368,18 +385,26 @@ $localBorderColor: #d8e2e7;
 .global-variable-panel {
     height: 100%;
     .global-title {
-        height: 35px;
-        line-height: 35px;
-        margin: 20px;
+        display: flex;
+        align-items: center;
+        height: 54px;
+        line-height: 54px;
         border-bottom: 1px solid #cacecb;
-        span {
+        .close-panel-icon {
+            display: inline-block;
+            width: 30px;
+            height: 100%;
+            background: #3a84ff;
+        }
+        .global-variable-text {
+            margin-left: 21px;
             font-size: 14px;
             font-weight:600;
             color:#313238;
         }
     }
     .add-variable {
-        margin: 20px;
+        margin: 30px 30px 20px 28px;
         .add-variable-btn {
             width: 90px;
         }
@@ -398,21 +423,23 @@ $localBorderColor: #d8e2e7;
         }
     }
     .global-variable-content {
-        height: calc(100% - 120px);
-        border-top: 1px solid $localBorderColor;
+        margin: 0 28px 30px;
+        height: calc(100% - 145px);
+        border: 1px solid $localBorderColor;
     }
     .variable-header, .variable-list {
         position: relative;
         font-size: 12px;
         .col-name {
-            width: 100px;
+            margin-left: 50px;
+            width: 242px;
         }
         .col-key {
-            width: 128px;
+            width: 174px;
         }
         .col-attributes {
             padding-left: 4px;
-            width: 70px;
+            width: 77px;
             .icon-wrap {
                 vertical-align: middle;
                 line-height: 1;
@@ -436,18 +463,30 @@ $localBorderColor: #d8e2e7;
             }
         }
         .col-output {
-            width: 50px;
+            width: 58px;
+        }
+        .col-quote {
+            width: 54px;
         }
     }
     .variable-header {
-        padding: 0 20px 0 45px;
-        background: #ecf0f4;
+        height: 42px;
+        line-height: 42px;
+        background: #fafbfd;
         border-bottom: 1px solid $localBorderColor;
         .t-head {
             float: left;
             height: 40px;
             line-height: 40px;
         }
+    }
+    .variable-operation-tips {
+        padding-left: 47px;
+        height: 43px;
+        line-height: 43px;
+        color: #63656e;
+        font-size: 12px;
+        background: #f0f1f5;
     }
     .variable-list {
         width: 100%;

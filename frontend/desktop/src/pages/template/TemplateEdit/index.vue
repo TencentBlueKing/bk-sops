@@ -124,7 +124,7 @@
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
-    import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
+    import TemplateSetting from './TemplateSetting/index.vue'
     import NodeConfig from './NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import draft from '@/utils/draft.js'
