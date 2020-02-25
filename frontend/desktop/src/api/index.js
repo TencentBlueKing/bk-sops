@@ -337,7 +337,7 @@ const api = {
     /**
      * 获取收藏列表
      */
-    getCollectList (data) {
+    loadCollectList (data) {
         const prefixUrl = this.getPrefix('collectList')
         const opts = {
             method: 'GET',
@@ -352,7 +352,7 @@ const api = {
      * 添加收藏
      * @param {String} list 列表
      */
-    collectSelect (list) {
+    addToCollectList (list) {
         const prefixUrl = this.getPrefix('collectList')
         const data = {
             objects: list
@@ -1260,14 +1260,6 @@ const api = {
     },
     loadCreateMethod () {
         const prefixUrl = this.getPrefix('taskCreateMethod')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
-    loadCollectList () {
-        const prefixUrl = this.getPrefix('loadCollectList')
         const opts = {
             method: 'GET',
             url: prefixUrl

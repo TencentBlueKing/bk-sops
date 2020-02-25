@@ -26,4 +26,5 @@ urlpatterns = [
     url(r'^api/import_and_replace_job_id/(?P<project_id>\d+)/$', api.import_preset_template_and_replace_job_id),
     url(r'^api/get_template_count/(?P<project_id>\d+)/$', api.get_template_count),
     url(r'^api/get_collect_template/(?P<project_id>\d+)/$', api.get_collect_template),
+    url(r'^api/get_templates_with_expired_subprocess/(?P<project_id>\d+)/$', api.get_templates_with_expired_subprocess)
 ]

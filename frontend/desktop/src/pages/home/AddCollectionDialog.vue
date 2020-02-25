@@ -223,8 +223,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadCollectList',
-                'collectSelect'
+                'addToCollectList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
@@ -424,7 +423,7 @@
                     }
                 })
                 try {
-                    const res = await this.collectSelect(saveList)
+                    const res = await this.addToCollectList(saveList)
                     this.dialogFooterData[0].loading = false
                     if (res.objects) {
                         this.$bkMessage({

@@ -18,16 +18,15 @@ import ujson as json
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from pipeline.engine import states
-from pipeline.engine.api import get_status_tree, get_activity_histories
-from pipeline.models import PipelineTemplate, PipelineInstance
-from pipeline.contrib.statistics.models import (
-    ComponentInTemplate,
-    ComponentExecuteData,
-    TemplateInPipeline,
-    InstanceInPipeline
-)
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+from pipeline.contrib.statistics.models import (ComponentExecuteData,
+                                                ComponentInTemplate,
+                                                InstanceInPipeline,
+                                                TemplateInPipeline)
 from pipeline.core.constants import PE
+from pipeline.engine import states
+from pipeline.engine.api import get_activity_histories, get_status_tree
+from pipeline.models import PipelineInstance, PipelineTemplate
 
 logger = logging.getLogger('root')
 
@@ -45,7 +44,7 @@ def template_post_save_handler(sender, instance, created, **kwargs):
     """
     模板执行保存处理
     :param sender:
-    :param instance: 任务实例 Instance.Ojbect对象
+    :param instance: 任务实例 Instance.Object对象
     :param created: 是否是创建（可为更新）
     :param kwargs: 参数序列
     :return:
@@ -64,13 +63,15 @@ def template_post_save_handler(sender, instance, created, **kwargs):
                 component_code=act['component']['code'],
                 template_id=template_id,
                 node_id=act_id,
+                version=act['component'].get('version', LEGACY_PLUGINS_VERSION)
             )
             component_list.append(component)
         # 子流程节点间接引用
         else:
             components = ComponentInTemplate.objects.filter(template_id=act['template_id']).values('subprocess_stack',
                                                                                                    'component_code',
-                                                                                                   'node_id')
+                                                                                                   'node_id',
+                                                                                                   'version')
             for component_sub in components:
                 # 子流程的执行堆栈（子流程的执行过程）
                 stack = json.loads(component_sub['subprocess_stack'])
@@ -81,7 +82,8 @@ def template_post_save_handler(sender, instance, created, **kwargs):
                     template_id=template_id,
                     node_id=component_sub['node_id'],
                     is_sub=True,
-                    subprocess_stack=json.dumps(stack)
+                    subprocess_stack=json.dumps(stack),
+                    version=component_sub['version']
                 )
                 component_list.append(component)
     ComponentInTemplate.objects.bulk_create(component_list)
@@ -129,6 +131,7 @@ def recursive_collect_components(activities, status_tree, instance_id, stack=Non
                         'is_skip': exec_act["skip"],
                         'is_retry': False,
                         'status': exec_act['state'] == 'FINISHED',
+                        'version': act['component'].get('version', LEGACY_PLUGINS_VERSION)
                     }
                     component_list.append(ComponentExecuteData(**create_kwargs))
                     if exec_act['retry'] > 0:
