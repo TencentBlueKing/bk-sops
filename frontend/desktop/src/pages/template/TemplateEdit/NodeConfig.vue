@@ -1437,12 +1437,15 @@
             top: 8px;
             color: #c4c6cc;
             cursor: pointer;
-            &:not(.disabled):hover {
-                color: #f4aa1a;
-            }
             &.disabled {
                 color: #c4c6cc;
                 cursor: not-allowed;
+            }
+        }
+        .desc-tooltip,
+        .error-ingored-tootip {
+            &:not(.disabled):hover {
+                color: #f4aa1a;
             }
         }
         .error-ingored-tootip {
@@ -1523,6 +1526,7 @@
         .update-tooltip {
             right: 0;
             top: 9px;
+            color: #3a84ff;
         }
     }
 }

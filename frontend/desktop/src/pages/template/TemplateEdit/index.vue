@@ -34,7 +34,8 @@
                 :list="subflowShouldUpdated"
                 :locations="locations"
                 :node-menu-open="nodeMenuOpen"
-                @viewClick="moveSubflowToView">
+                @viewClick="moveSubflowToView"
+                @foldClick="clearDotAnimation">
             </SubflowUpdateTips>
             <TemplateCanvas
                 ref="templateCanvas"
@@ -1196,8 +1197,26 @@
                 const { x, y } = this.locations.find(item => item.id === id)
                 const offsetX = 200 - x
                 const offsetY = 200 - y
-                this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY)
-                this.$refs.templateCanvas.addNodeToSelectedList({ id })
+                this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
+                this.showDotAnimation(id)
+            },
+            // 开启子流程更新的小红点动画效果
+            showDotAnimation (id) {
+                this.clearDotAnimation()
+                if (!Array.isArray(id)) {
+                    id = [id]
+                }
+                id.forEach(item => {
+                    const nodeDot = document.querySelector(`#${item} .updated-dot`)
+                    nodeDot.classList.add('show-animation')
+                })
+            },
+            // 关闭所有子流程更新的小红点动画效果
+            clearDotAnimation () {
+                const updateNodesDot = document.querySelectorAll('.subflow-node .updated-dot')
+                updateNodesDot.forEach(item => {
+                    item.classList.remove('show-animation')
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

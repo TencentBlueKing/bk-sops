@@ -18,7 +18,7 @@
                 :content="tips">
                 <template v-slot:buttons>
                     <bk-button :text="true" size="small" @click="onViewClick">{{ i18n.view }}</bk-button>
-                    <bk-button :text="true" size="small" @click="showDetail = false">{{ i18n.hide }}</bk-button>
+                    <bk-button :text="true" size="small" @click="onFoldClick">{{ i18n.hide }}</bk-button>
                 </template>
             </notify-info>
         </div>
@@ -70,6 +70,9 @@
         methods: {
             onToggleDetail () {
                 this.showDetail = !this.showDetail
+                if (!this.showDetail) {
+                    this.$emit('foldClick')
+                }
             },
             onViewClick () {
                 let id
@@ -90,6 +93,10 @@
                 if (id) {
                     this.$emit('viewClick', id)
                 }
+            },
+            onFoldClick () {
+                this.showDetail = false
+                this.$emit('foldClick')
             }
         }
     }
