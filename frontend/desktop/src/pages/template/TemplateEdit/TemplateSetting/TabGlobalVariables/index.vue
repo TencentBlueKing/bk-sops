@@ -11,123 +11,132 @@
 */
 <template>
     <div class="global-variable-panel">
-        <div class="global-title">
-            <span class="close-panel-icon"></span>
-            <span class="global-variable-text">{{i18n.global_varibles}}</span>
-            <i
-                class="common-icon-info global-variable-tootip"
-                v-bk-tooltips="{
-                    allowHtml: true,
-                    content: '#var-desc',
-                    placement: 'bottom-end',
-                    duration: 0,
-                    width: 400
-                }">
-            </i>
-            <div id="var-desc">
-                <div class="tips-item">
-                    <h4>{{ i18n.attrTitle }}</h4>
-                    <p>
-                        {{ i18n.attrDesc1 }}
-                        <i class="common-icon-show-left" style="color: #219f42"></i>
-                        {{ i18n.attrDesc2 }}
-                        <i class="common-icon-hide-right" style="color: #de9524"></i>
-                        {{ i18n.attrDesc3 }}
-                        <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
-                        {{ i18n.attrDesc4 }}
-                        <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
-                        {{ i18n.attrDesc5 }}
-                    </p>
+        <bk-sideslider
+            ext-cls="common-template-setting-sideslider"
+            :width="800"
+            :is-show="isShow"
+            :before-close="onBeforeClose"
+            :quick-close="true">
+            <div slot="header">
+                <span class="close-panel-icon"></span>
+                <span class="global-variable-text">{{i18n.global_varibles}}</span>
+                <i
+                    class="common-icon-info global-variable-tootip"
+                    v-bk-tooltips="{
+                        allowHtml: true,
+                        content: '#var-desc',
+                        placement: 'bottom-end',
+                        duration: 0,
+                        width: 400
+                    }">
+                </i>
+                <div id="var-desc">
+                    <div class="tips-item">
+                        <h4>{{ i18n.attrTitle }}</h4>
+                        <p>
+                            {{ i18n.attrDesc1 }}
+                            <i class="common-icon-show-left" style="color: #219f42"></i>
+                            {{ i18n.attrDesc2 }}
+                            <i class="common-icon-hide-right" style="color: #de9524"></i>
+                            {{ i18n.attrDesc3 }}
+                            <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
+                            {{ i18n.attrDesc4 }}
+                            <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
+                            {{ i18n.attrDesc5 }}
+                        </p>
+                    </div>
+                    <div class="tips-item">
+                        <h4>{{ i18n.outputsTitle }}</h4>
+                        <p>{{ i18n.outputsDesc }}</p>
+                    </div>
                 </div>
-                <div class="tips-item">
-                    <h4>{{ i18n.outputsTitle }}</h4>
-                    <p>{{ i18n.outputsDesc }}</p>
+            </div>
+            <div slot="content">
+                <div class="add-variable">
+                    <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
+                    <div class="toggle-system-var">
+                        <bk-checkbox v-model="isHideSystemVar">{{ i18n.hideSystemVar }}</bk-checkbox>
+                    </div>
                 </div>
+                <div class="global-variable-content">
+                    <div class="variable-header clearfix">
+                        <span class="col-name t-head">{{ i18n.name }}</span>
+                        <span class="col-key t-head">KEY</span>
+                        <span class="col-attributes t-head">{{ i18n.attributes }}</span>
+                        <span class="col-output t-head">{{ i18n.outputs }}</span>
+                        <span class="col-quote t-head">{{ i18n.quote }}</span>
+                        <span class="col-operation t-head">{{ i18n.operation }}</span>
+                        <span class="col-delete t-head"></span>
+                    </div>
+                    <div v-if="status" class="variable-operation-tips"> {{ operationTips }} </div>
+                    <ul class="variable-list" ref="variableList">
+                        <template v-if="!isHideSystemVar">
+                            <VariableItem
+                                v-for="(constant, index) in systemConstantsList"
+                                class="system-constants-item"
+                                :key="index"
+                                :outputs="outputs"
+                                :is-variable-editing="isVariableEditing"
+                                :constant="constant"
+                                :variable-data="variableData"
+                                :variable-type-list="variableTypeList"
+                                :the-key-of-editing="theKeyOfEditing"
+                                :is-system-var="true"
+                                @onEditVariable="onEditVariable"
+                                @onChangeVariableOutput="onChangeVariableOutput"
+                                @onDeleteVariable="onDeleteVariable" />
+                        </template>
+                        <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
+                            <VariableItem
+                                v-for="(constant, index) in constantsArray"
+                                :ref="`variableKey_${constant.key}`"
+                                :key="index"
+                                :outputs="outputs"
+                                :is-variable-editing="isVariableEditing"
+                                :constant="constant"
+                                :variable-data="variableData"
+                                :variable-type-list="variableTypeList"
+                                :the-key-of-editing="theKeyOfEditing"
+                                :is-hide-system-var="isHideSystemVar"
+                                :system-constants="systemConstants"
+                                @onChangeEdit="onChangeEdit"
+                                @onEditVariable="onEditVariable"
+                                @onChangeVariableOutput="onChangeVariableOutput"
+                                @onDeleteVariable="onDeleteVariable" />
+                        </draggable>
+                        <!-- 新建变量 -->
+                        <li v-if="isVariableEditing && theKeyOfEditing === ''">
+                            <VariableEdit
+                                ref="addVariablePanel"
+                                :system-constants="systemConstants"
+                                :variable-data="variableData"
+                                :variable-type-list="variableTypeList"
+                                :is-new-variable="true"
+                                @scrollPanelToView="scrollPanelToView"
+                                @onChangeEdit="onChangeEdit">
+                            </VariableEdit>
+                        </li>
+                        <li v-if="isShowNodata" class="empty-variable-tip">
+                            <NoData>
+                                <p>{{i18n.emptyVariableTip}}</p>
+                            </NoData>
+                        </li>
+                    </ul>
+                </div>
+                <bk-dialog
+                    width="400"
+                    ext-cls="common-dialog"
+                    :theme="'primary'"
+                    :mask-close="false"
+                    :header-position="'left'"
+                    :title="i18n.tips"
+                    :value="deleteConfirmDialogShow"
+                    @confirm="onConfirm"
+                    @cancel="onCancel">
+                    <div>{{ i18n.confirm }}</div>
+                </bk-dialog>
             </div>
-        </div>
-        <div class="add-variable">
-            <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
-            <div class="toggle-system-var">
-                <bk-checkbox v-model="isHideSystemVar">{{ i18n.hideSystemVar }}</bk-checkbox>
-            </div>
-        </div>
-        <div class="global-variable-content">
-            <div class="variable-header clearfix">
-                <span class="col-name t-head">{{ i18n.name }}</span>
-                <span class="col-key t-head">KEY</span>
-                <span class="col-attributes t-head">{{ i18n.attributes }}</span>
-                <span class="col-output t-head">{{ i18n.outputs }}</span>
-                <span class="col-quote t-head">{{ i18n.quote }}</span>
-                <span class="col-operation t-head">{{ i18n.operation }}</span>
-                <span class="col-delete t-head"></span>
-            </div>
-            <div v-if="status" class="variable-operation-tips"> {{ operationTips }} </div>
-            <ul class="variable-list" ref="variableList">
-                <template v-if="!isHideSystemVar">
-                    <VariableItem
-                        v-for="(constant, index) in systemConstantsList"
-                        class="system-constants-item"
-                        :key="index"
-                        :outputs="outputs"
-                        :is-variable-editing="isVariableEditing"
-                        :constant="constant"
-                        :variable-data="variableData"
-                        :variable-type-list="variableTypeList"
-                        :the-key-of-editing="theKeyOfEditing"
-                        :is-system-var="true"
-                        @onEditVariable="onEditVariable"
-                        @onChangeVariableOutput="onChangeVariableOutput"
-                        @onDeleteVariable="onDeleteVariable" />
-                </template>
-                <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
-                    <VariableItem
-                        v-for="(constant, index) in constantsArray"
-                        :ref="`variableKey_${constant.key}`"
-                        :key="index"
-                        :outputs="outputs"
-                        :is-variable-editing="isVariableEditing"
-                        :constant="constant"
-                        :variable-data="variableData"
-                        :variable-type-list="variableTypeList"
-                        :the-key-of-editing="theKeyOfEditing"
-                        :is-hide-system-var="isHideSystemVar"
-                        :system-constants="systemConstants"
-                        @onChangeEdit="onChangeEdit"
-                        @onEditVariable="onEditVariable"
-                        @onChangeVariableOutput="onChangeVariableOutput"
-                        @onDeleteVariable="onDeleteVariable" />
-                </draggable>
-                <!-- 新建变量 -->
-                <li v-if="isVariableEditing && theKeyOfEditing === ''">
-                    <VariableEdit
-                        ref="addVariablePanel"
-                        :system-constants="systemConstants"
-                        :variable-data="variableData"
-                        :variable-type-list="variableTypeList"
-                        :is-new-variable="true"
-                        @scrollPanelToView="scrollPanelToView"
-                        @onChangeEdit="onChangeEdit">
-                    </VariableEdit>
-                </li>
-                <li v-if="isShowNodata" class="empty-variable-tip">
-                    <NoData>
-                        <p>{{i18n.emptyVariableTip}}</p>
-                    </NoData>
-                </li>
-            </ul>
-        </div>
-        <bk-dialog
-            width="400"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="i18n.tips"
-            :value="deleteConfirmDialogShow"
-            @confirm="onConfirm"
-            @cancel="onCancel">
-            <div>{{ i18n.confirm }}</div>
-        </bk-dialog>
+        </bk-sideslider>
     </div>
 </template>
 
@@ -147,7 +156,7 @@
             draggable,
             NoData
         },
-        props: ['isVariableEditing', 'variableTypeList'],
+        props: ['isVariableEditing', 'variableTypeList', 'isShow'],
         data () {
             return {
                 isHideSystemVar: false,
@@ -362,6 +371,9 @@
             },
             onChangeEdit (val) {
                 this.$emit('changeVariableEditing', val)
+            },
+            onBeforeClose () {
+                this.$emit('onColseTab', 'globalVariableTab')
             }
         }
     }
@@ -384,25 +396,6 @@ $localBorderColor: #dcdee5;
 }
 .global-variable-panel {
     height: 100%;
-    .global-title {
-        display: flex;
-        align-items: center;
-        height: 54px;
-        line-height: 54px;
-        border-bottom: 1px solid #cacecb;
-        .close-panel-icon {
-            display: inline-block;
-            width: 30px;
-            height: 100%;
-            background: #3a84ff;
-        }
-        .global-variable-text {
-            margin-left: 21px;
-            font-size: 14px;
-            font-weight:600;
-            color:#313238;
-        }
-    }
     .add-variable {
         margin: 30px 30px 20px 28px;
         .add-variable-btn {
@@ -438,7 +431,6 @@ $localBorderColor: #dcdee5;
             width: 174px;
         }
         .col-attributes {
-            padding-left: 4px;
             width: 77px;
             .icon-wrap {
                 vertical-align: middle;
@@ -500,16 +492,6 @@ $localBorderColor: #dcdee5;
         /deep/ .no-data-wording {
             font-size: 12px;
         }
-    }
-}
-.tooltip-content {
-    margin-bottom: 20px;
-    &:last-child {
-        margin-bottom: 0;
-    }
-    h4 {
-        margin-top: 0;
-        margin-bottom: 10px;
     }
 }
 </style>

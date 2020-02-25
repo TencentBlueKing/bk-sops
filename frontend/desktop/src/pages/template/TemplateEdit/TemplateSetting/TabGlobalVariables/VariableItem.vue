@@ -18,26 +18,12 @@
         ]">
         <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
             <i v-if="!isSystemVar && !isShowVariableEdit" class="col-item-drag bk-icon icon-sort"></i>
-            <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
-            <span class="col-item col-name">
-                <p
-                    class="col-constant-name"
-                    :title="constant.name">
-                    {{constant.name}}
-                </p>
+            <i v-else class="common-icon-lock-disable"></i>
+            <span :title="constant.name" class="col-item col-name">
+                {{ constant.name }}
             </span>
             <span class="col-item col-key">
-                <p class="col-constant-key">{{constant.key}}</p>
-                <a
-                    class="col-key-copy"
-                    href="javascript:void(0)"
-                    v-bk-tooltips.click="{
-                        content: i18n.copied,
-                        placements: ['bottom']
-                    }"
-                    @click.stop="onCopyKey(constant.key)">
-                    {{ i18n.copy }}
-                </a>
+                {{ constant.key }}
             </span>
             <span class="col-item col-attributes">
                 <span class="icon-wrap">
@@ -84,11 +70,23 @@
                     </bk-switcher>
                 </div>
             </span>
-            <i
-                v-if="!isSystemVar"
-                class="col-item-delete common-icon-dark-circle-close"
-                @click.stop="onDeleteVariable(constant.key, constant.index)">
-            </i>
+            <span class="col-item col-quote">122</span>
+            <span class="col-item col-operation">
+                <span class="col-operation-item"
+                    v-bk-tooltips.click="{
+                        content: i18n.copied,
+                        placements: ['bottom']
+                    }"
+                    @click.stop="onCopyKey(constant.key)">
+                    {{ i18n.copy }}
+                </span>
+                <span
+                    v-if="!isSystemVar"
+                    class="col-operation-item"
+                    @click.stop="onDeleteVariable(constant.key, constant.index)">
+                    删除
+                </span>
+            </span>
         </div>
         <div
             v-if="isShowVariableEdit"
@@ -178,15 +176,36 @@ $localBorderColor: #d8e2e7;
 .variable-header, .variable-list {
     position: relative;
     font-size: 12px;
+}
+.variable-item {
+    position: relative;
+    cursor: pointer;
+    border-bottom: 1px solid #ebebeb;
+    &:hover {
+        background: $blueStatus;
+    }
+    &.variable-editing {
+        background: $blueStatus;
+    }
+    .variable-content {
+        padding-left: 50px;
+        display: flex;
+        height: 42px;
+        line-height: 42px;
+        &:hover {
+            .col-item-drag {
+                display: inline-block;
+            }
+        }
+    }
     .col-name {
-        width: 100px;
+        width: 242px;
     }
     .col-key {
-        width: 128px;
+        width: 174px;
     }
     .col-attributes {
-        padding-left: 4px;
-        width: 70px;
+        width: 77px;
         .icon-wrap {
             vertical-align: middle;
             line-height: 1;
@@ -201,7 +220,7 @@ $localBorderColor: #d8e2e7;
             .common-icon-eye-show {
                 margin-left: 8px;
                 color: #219f42;
-                font-size: 15px;
+                font-size: 12px;
             }
             .common-icon-eye-hide {
                 margin-left: 8px;
@@ -213,61 +232,18 @@ $localBorderColor: #d8e2e7;
         }
     }
     .col-output {
-        width: 50px;
+        width: 58px;
     }
-}
-.variable-header {
-    padding: 0 20px 0 45px;
-    background: #ecf0f4;
-    border-bottom: 1px solid $localBorderColor;
-    .t-head {
-        float: left;
-        height: 40px;
-        line-height: 40px;
-        font-size: 14px;
-    }
-}
-
-.variable-item {
-    position: relative;
-    cursor: pointer;
-    &:hover {
-        background: $blueStatus;
-        .col-key-copy {
-            display: inline-block;
-        }
-    }
-    &.variable-editing {
-        background: $blueStatus;
-    }
-    .variable-content {
-        display: table;
-        padding: 0 20px 0 45px;
-        height: 40px;
-        line-height: 40px;
-        &:hover {
-            .col-item-drag {
-                display: inline-block;
-            }
-            .col-item-delete {
-                display: inline-block;
-            }
-        }
-        .col-item-delete {
-            color: #c4c6cc;
-            &:hover {
-                color: #979ba5;
-            }
-        }
+    .col-quote {
+        width: 54px;
     }
 }
 .col-item {
-    display: table-cell;
+    display: inline-block;
     font-size: 12px;
     vertical-align: middle;
     word-break: break-all;
     text-align: left;
-    border-bottom: 1px solid #ebebeb;
 }
 .col-item-drag {
     display: none;
@@ -281,30 +257,16 @@ $localBorderColor: #d8e2e7;
         color: #348aff;
     }
 }
-.col-item-delete {
-    display: none;
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 14px;
-    color: #979ba5;
-}
 .col-name {
-    .col-constant-name {
-        width: 90px;
-        overflow: hidden;
-        text-overflow:ellipsis;
-        white-space: nowrap;
-    }
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
 }
 .col-key {
     position: relative;
-    .col-constant-key {
-        display: inline-block;
-        width: 90px;
-        vertical-align: middle;
-        line-height: 2;
-    }
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
     .col-key-copy {
         display: none;
         margin-left: 2px;
@@ -330,21 +292,13 @@ $localBorderColor: #d8e2e7;
         margin-left: -15px;
     }
 }
-.variable-edit-td {
-    padding: 0;
-    width: 412px;
-}
-.empty-variable-tip {
-    margin-top: 120px;
-}
-.tooltip-content {
-    margin-bottom: 20px;
-    &:last-child {
-        margin-bottom: 0;
-    }
-    h4 {
-        margin-top: 0;
-        margin-bottom: 10px;
+.col-operation {
+    .col-operation-item {
+        color: #3a84ff;
+        cursor: pointer;
+        &:not(:first-child) {
+            margin-left: 10px;
+        }
     }
 }
 .common-icon-lock-disable {
@@ -353,8 +307,5 @@ $localBorderColor: #d8e2e7;
     left: 20px;
     transform: translate(0, -50%);
     color: #979ba5;
-}
-.system-constants-item {
-    cursor: default;
 }
 </style>

@@ -1400,8 +1400,7 @@
 .node-config-panel {
     position: absolute;
     top: 59px;
-    right: 476px;
-    padding: 20px;
+    right: 856px;
     width: 694px;
     height: calc(100% - 50px);
     background: $whiteDefault;
@@ -1412,8 +1411,9 @@
     transition: right 0.5s ease-in-out;
     @include scrollbar;
     .node-title {
-        height: 35px;
-        border-bottom: 1px solid #cacecb;
+        height: 54px;
+        line-height: 54px;
+        border-bottom: 1px solid #dcdee5;
         span {
             font-size: 14px;
             font-weight:600;

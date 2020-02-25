@@ -29,6 +29,7 @@
         <div class="setting-panel" v-show="showPanel">
             <div class="panel-content">
                 <TabGlobalVariables
+                    :is-show="activeTab === 'globalVariableTab'"
                     v-show="activeTab === 'globalVariableTab'"
                     ref="globalVariable"
                     class="panel-item"
@@ -36,19 +37,24 @@
                     :variable-type-list="variableTypeList"
                     @changeVariableEditing="onVariableEditingChange"
                     @variableDataChanged="onVariableDataChange"
-                    @onDeleteConstant="onDeleteConstant">
+                    @onDeleteConstant="onDeleteConstant"
+                    @onColseTab="onColseTab">
                 </TabGlobalVariables>
                 <TabTemplateConfig
                     class="panel-item"
+                    :is-show="activeTab === 'templateConfigTab'"
                     v-show="activeTab === 'templateConfigTab'"
                     :is-template-config-valid="isTemplateConfigValid"
                     :project-info-loading="projectInfoLoading"
-                    @onSelectCategory="onSelectCategory">
+                    @onSelectCategory="onSelectCategory"
+                    @onColseTab="onColseTab">
                 </TabTemplateConfig>
                 <TabLocalDraft
                     class="panel-item"
+                    :is-show="activeTab === 'localDraftTab'"
                     v-show="activeTab === 'localDraftTab'"
                     :draft-array="draftArray"
+                    @onColseTab="onColseTab"
                     @onDeleteDraft="onDeleteDraft"
                     @onReplaceTemplate="onReplaceTemplate"
                     @onNewDraft="onNewDraft"
@@ -230,6 +236,11 @@
             onDataModify (data) {
                 this.isPipelineTreeDialogShow = false
                 this.$emit('modifyTemplateData', data)
+            },
+            // 关闭面板
+            onColseTab (tabName) {
+                this.activeTab = undefined
+                this.togglePanel(false)
             }
         }
     }
@@ -290,7 +301,7 @@
     position: absolute;
     top: 0px;
     right: 56px;
-    width: 800px;
+    width: auto;
     height: 100%;
     background: $whiteDefault;
     border-left: 1px solid $commonBorderColor;
