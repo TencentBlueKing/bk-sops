@@ -24,6 +24,7 @@ urlpatterns_custom = [
     url(r'^', include('gcloud.webservice3.urls')),
     url(r'^appmaker/', include('gcloud.contrib.appmaker.urls')),
     url(r'^develop/', include('gcloud.contrib.develop.urls')),
+    url(r'^pipeline/', include('pipeline_plugins.base.urls')),
     url(r'^pipeline/', include('pipeline_plugins.components.urls')),
     url(r'^pipeline/', include('pipeline_plugins.variables.urls')),
     url(r'^analysis/', include('gcloud.contrib.analysis.urls')),
