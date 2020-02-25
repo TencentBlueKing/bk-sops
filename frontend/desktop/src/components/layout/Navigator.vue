@@ -41,7 +41,7 @@
             <li v-if="showProjectSelect" class="project-select">
                 <ProjectSelector
                     :show="!isProjectHidden"
-                    :disabled="isProjectDisabled"
+                    :read-only="isProjectReadOnly"
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
@@ -210,12 +210,14 @@
             },
             isProjectHidden () {
                 const route = this.$route
-                const disabledPathList = ['/home', '/common', '/admin', '/function', '/project', '/atomdev', '/audit']
-                return disabledPathList.some(path => route.path.indexOf(path) === 0)
+                const hiddenPathList = ['/home', '/common', '/admin', '/project', '/atomdev', '/audit', '/appmaker']
+                const hiddenRouteNames = ['appmakerTaskHome', 'functionHome']
+                return hiddenPathList.some(path => route.path.indexOf(path) === 0 || hiddenRouteNames.includes(route.name))
             },
-            isProjectDisabled () {
-                const routerName = this.$route.name
-                return ['appmakerTaskCreate', 'appmakerTaskExecute'].includes(routerName)
+            isProjectReadOnly () {
+                const currPath = this.$route.path
+                const readOnlyPathList = ['/appmaker', '/function']
+                return readOnlyPathList.some(path => currPath.indexOf(path) === 0)
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {

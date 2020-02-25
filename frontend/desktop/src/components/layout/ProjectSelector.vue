@@ -10,8 +10,17 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['project-wrapper', { 'disabled': disabled }]">
+    <div
+        :class="[
+            'project-wrapper',
+            { 'disabled': disabled },
+            { 'read-only': readOnly }
+        ]">
+        <div v-if="readOnly" :title="projectName" class="project-name">
+            {{ projectName }}
+        </div>
         <bk-select
+            v-else
             v-show="show"
             class="project-select"
             v-model="currentProject"
@@ -43,6 +52,10 @@
         name: 'ProjectSelector',
         props: {
             show: {
+                type: Boolean,
+                default: false
+            },
+            readOnly: {
                 type: Boolean,
                 default: false
             },
@@ -82,18 +95,6 @@
                 projectList: 'userCanViewProjects'
             }),
             projects () {
-                if (this.viewMode === 'appmaker') {
-                    return [
-                        {
-                            name: this.i18n.biz,
-                            id: 1,
-                            children: [{
-                                name: this.projectName,
-                                id: this.project_id
-                            }]
-                        }
-                    ]
-                }
                 const projects = []
                 const projectsGroup = [
                     {
@@ -211,6 +212,20 @@
         font-size: 14px;
         &.disabled {
             background: #252f43;
+        }
+        &.read-only {
+            margin-top: 0;
+            width: auto;
+            height: 50px;
+            line-height: 50px;
+            .project-name {
+                max-width: 200px;
+                color: #979ba5;
+                font-size: 14px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
         }
     }
     .project-select {
