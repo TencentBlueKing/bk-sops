@@ -11,58 +11,67 @@
 */
 <template>
     <div class="config-wrapper" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
-        <div class="config-title">
-            <span>{{i18n.basic_information}}</span>
-        </div>
-        <div class="common-form-item">
-            <label>{{ i18n.type }}</label>
-            <div class="common-form-content">
-                <bk-select
-                    class="category-select"
-                    v-model="category"
-                    @change="onChangeTaskCategories">
-                    <bk-option
-                        v-for="(item, index) in taskCategories"
-                        :key="index"
-                        :id="item.id"
-                        :name="item.name">
-                    </bk-option>
-                </bk-select>
-                <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ i18n.categoryTip}}</span>
+        <bk-sideslider
+            ext-cls="common-template-setting-sideslider"
+            :width="800"
+            :is-show="isShow"
+            :before-close="onBeforeClose"
+            :quick-close="true">
+            <div slot="header">
+                <span>{{i18n.basic_information}}</span>
             </div>
-        </div>
-        <div class="common-form-item">
-            <label> {{i18n.notify_type}} </label>
-            <div class="common-form-content">
-                <bk-checkbox-group v-model="notifyType">
-                    <bk-checkbox
-                        v-for="item in notifyTypeList"
-                        :key="item.id"
-                        :value="item.id">
-                        {{item.name}}
-                    </bk-checkbox>
-                </bk-checkbox-group>
+            <div slot="content">
+                <div class="common-form-item">
+                    <label>{{ i18n.type }}</label>
+                    <div class="common-form-content">
+                        <bk-select
+                            class="category-select"
+                            v-model="category"
+                            @change="onChangeTaskCategories">
+                            <bk-option
+                                v-for="(item, index) in taskCategories"
+                                :key="index"
+                                :id="item.id"
+                                :name="item.name">
+                            </bk-option>
+                        </bk-select>
+                        <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ i18n.categoryTip}}</span>
+                    </div>
+                </div>
+                <div class="common-form-item">
+                    <label> {{i18n.notify_type}} </label>
+                    <div class="common-form-content">
+                        <bk-checkbox-group v-model="notifyType">
+                            <bk-checkbox
+                                v-for="item in notifyTypeList"
+                                :key="item.id"
+                                :value="item.id">
+                                {{item.name}}
+                            </bk-checkbox>
+                        </bk-checkbox-group>
+                    </div>
+                </div>
+                <div class="common-form-item hide">
+                    <label>{{ i18n.timeout }}</label>
+                    <div class="common-form-content">
+                        <bk-input :value="timeout" @input="onChangeTimeout" />
+                    </div>
+                </div>
+                <div class="common-form-item">
+                    <label>{{ i18n.receiver_group }}</label>
+                    <div class="common-form-content">
+                        <bk-checkbox-group v-model="receiverGroup">
+                            <bk-checkbox
+                                v-for="item in notifyGroup"
+                                :key="item.id"
+                                :value="item.id">
+                                {{item.name}}
+                            </bk-checkbox>
+                        </bk-checkbox-group>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="common-form-item hide">
-            <label>{{ i18n.timeout }}</label>
-            <div class="common-form-content">
-                <bk-input :value="timeout" @input="onChangeTimeout" />
-            </div>
-        </div>
-        <div class="common-form-item">
-            <label>{{ i18n.receiver_group }}</label>
-            <div class="common-form-content">
-                <bk-checkbox-group v-model="receiverGroup">
-                    <bk-checkbox
-                        v-for="item in notifyGroup"
-                        :key="item.id"
-                        :value="item.id">
-                        {{item.name}}
-                    </bk-checkbox>
-                </bk-checkbox-group>
-            </div>
-        </div>
+        </bk-sideslider>
     </div>
 </template>
 
@@ -71,7 +80,7 @@
     import { mapState, mapMutations } from 'vuex'
     export default {
         name: 'TabTemplateConfig',
-        props: ['projectInfoLoading', 'isTemplateConfigValid'],
+        props: ['projectInfoLoading', 'isTemplateConfigValid', 'isShow'],
         data () {
             return {
                 i18n: {
@@ -162,6 +171,9 @@
             },
             onChangeTaskCategories (id) {
                 this.selectedTaskCategory = id
+            },
+            onBeforeClose () {
+                this.$emit('onColseTab', 'templateConfigTab')
             }
         }
     }
@@ -171,20 +183,10 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .config-wrapper {
+    width: 800px;
     height: 100%;
     background: none;
     border: none;
-    .config-title {
-        height: 35px;
-        line-height: 35px;
-        margin: 20px;
-        border-bottom: 1px solid #cacecb;
-        span {
-            font-size: 14px;
-            font-weight:600;
-            color:#313238;
-        }
-    }
     .common-form-item {
        margin: 20px
     }
