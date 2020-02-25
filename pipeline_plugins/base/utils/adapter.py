@@ -32,33 +32,33 @@ def cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_a
     """
     client = get_client_by_user(username)
     cc_kwargs = {
-        "bk_biz_id": biz_cc_id,
-        "bk_supplier_account": supplier_account,
-        "condition": [
+        'bk_biz_id': biz_cc_id,
+        'bk_supplier_account': supplier_account,
+        'condition': [
             {
-                "bk_obj_id": "host",
-                "fields": host_fields or ["bk_host_innerip"],
+                'bk_obj_id': 'host',
+                'fields': host_fields or ['bk_host_innerip'],
             },
             {
-                "bk_obj_id": "module",
-                "fields": [],
-                "condition": [
+                'bk_obj_id': 'module',
+                'fields': [],
+                'condition': [
                     {
-                        "field": "bk_module_id",
-                        "operator": "$in",
-                        "value": module_id_list
+                        'field': 'bk_module_id',
+                        'operator': '$in',
+                        'value': module_id_list
                     }
                 ]
             },
             {
-                "bk_obj_id": "set",
-                "fields": [],
-                "condition": []
+                'bk_obj_id': 'set',
+                'fields': [],
+                'condition': []
             },
             {
-                "bk_obj_id": "biz",
-                "fields": [],
-                "condition": []
+                'bk_obj_id': 'biz',
+                'fields': [],
+                'condition': []
             }
         ]
     }
@@ -67,8 +67,8 @@ def cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_a
     if cc_result['result']:
         result = cc_result['data']['info']
     else:
-        logger.warning("client.cc.search_host ERROR###biz_cc_id=%s"
-                       "###cc_result=%s" % (biz_cc_id, json.dumps(cc_result)))
+        logger.warning('client.cc.search_host ERROR###biz_cc_id=%s'
+                       '###cc_result=%s' % (biz_cc_id, json.dumps(cc_result)))
     return result
 
 
