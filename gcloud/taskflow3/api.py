@@ -325,11 +325,16 @@ def node_callback(request, token):
             'message': 'invalid request body'
         }, status=400)
 
-    callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
-    logger.info('result of callback call({}): {}'.format(
-        token,
-        callback_result
-    ))
+    # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
+    # 增加失败重试机制
+    for i in range(3):
+        callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
+        logger.info('result of callback call({}): {}'.format(
+            token,
+            callback_result
+        ))
+        if callback_result['result']:
+            break
 
     return JsonResponse(callback_result)
 
