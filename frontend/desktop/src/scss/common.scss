@@ -102,6 +102,11 @@
 .common-template-setting-sideslider {
     position: absolute !important;
     background: none !important;
+    .bk-sideslider-content {
+        max-height: none !important;
+        height: calc(100vh - 168px);
+        overflow: hidden;
+    }
 }
 
 .panagation {

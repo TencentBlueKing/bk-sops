@@ -13,7 +13,7 @@
     <div class="local-draft-panel">
         <bk-sideslider
             ext-cls="common-template-setting-sideslider"
-            :width="800"
+            :width="420"
             :is-show="isShow"
             :before-close="onBeforeClose"
             :quick-close="true">
@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            <div slot="content">
+            <div class="content-wrap" slot="content">
                 <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
                     <div class="draft-form" v-if="newDraftShow">
                         <bk-input
@@ -182,8 +182,10 @@
     }
 }
 .local-draft-panel {
-    width: 800px;
     height: 100%;
+    .content-wrap {
+        height: 100%;
+    }
     .add-draft {
         margin: 20px;
         .draft-form {

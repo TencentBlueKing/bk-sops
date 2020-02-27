@@ -70,7 +70,7 @@
                     </bk-switcher>
                 </div>
             </span>
-            <span class="col-item col-quote">122</span>
+            <span class="col-item col-quote">{{ constantsCited[constant.key] || 0 }}</span>
             <span class="col-item col-operation">
                 <span class="col-operation-item"
                     v-bk-tooltips.click="{
@@ -89,12 +89,13 @@
             </span>
         </div>
         <div
-            v-if="isShowVariableEdit"
+            v-if="isShowVariableEdit && !isSystemVar"
             :key="`${constant.key}-edit`">
             <VariableEdit
                 ref="editVariablePanel"
                 :variable-data="variableData"
                 :variable-type-list="variableTypeList"
+                :is-system-var="isSystemVar"
                 :is-new-variable="false"
                 :is-hide-system-var="isHideSystemVar"
                 :system-constants="systemConstants"
@@ -102,17 +103,25 @@
                 @onChangeEdit="onChangeEdit">
             </VariableEdit>
         </div>
+        <div
+            v-if="isShowVariableEdit && isSystemVar">
+            <SystemVariableEdit
+                :variable-data="variableData">
+            </SystemVariableEdit>
+        </div>
     </li>
 </template>
 <script>
     import '@/utils/i18n.js'
     import VariableEdit from './VariableEdit.vue'
+    import SystemVariableEdit from './SystemVariableEdit.vue'
     export default {
         name: 'VariableItem',
         components: {
-            VariableEdit
+            VariableEdit,
+            SystemVariableEdit
         },
-        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList', 'isHideSystemVar', 'systemConstants'],
+        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList', 'isHideSystemVar', 'systemConstants', 'constantsCited'],
         data () {
             return {
                 i18n: {
@@ -128,7 +137,7 @@
         },
         computed: {
             isShowVariableEdit () {
-                return this.isVariableEditing && this.theKeyOfEditing === this.constant.key && !this.isSystemVar
+                return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
             }
         },
         methods: {
@@ -157,7 +166,6 @@
                 this.$emit('onDeleteVariable', { key, index })
             },
             onEditVariable (key, index) {
-                if (this.isSystemVar) return
                 this.$emit('onEditVariable', key, index)
             },
             scrollPanelToView (index) {

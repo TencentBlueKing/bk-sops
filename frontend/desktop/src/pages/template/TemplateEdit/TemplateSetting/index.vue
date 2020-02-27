@@ -61,11 +61,11 @@
                     @hideConfigPanel="hideConfigPanel"
                     @updateLocalTemplateData="updateLocalTemplateData">
                 </TabLocalDraft>
-                <PipelineTreeDialog
-                    :is-show="isPipelineTreeDialogShow"
+                <TabPipelineTreeEdit
+                    :is-show="activeTab === 'templateDataEditTab'"
                     @confirm="onDataModify"
-                    @cancel="isPipelineTreeDialogShow = false">
-                </PipelineTreeDialog>
+                    @onColseTab="onColseTab">
+                </TabPipelineTreeEdit>
             </div>
         </div>
     </div>
@@ -76,7 +76,7 @@
     import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabLocalDraft from './TabLocalDraft.vue'
-    import PipelineTreeDialog from './PipelineTreeEditDialog.vue'
+    import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
 
     const SETTING_TABS = [
         {
@@ -107,7 +107,7 @@
             TabGlobalVariables,
             TabTemplateConfig,
             TabLocalDraft,
-            PipelineTreeDialog
+            TabPipelineTreeEdit
         },
         props: [
             'projectInfoLoading',
@@ -177,7 +177,7 @@
                 'setCategory'
             ]),
             togglePanel (val) {
-                this.$emit('toggleSettingPanel', val)
+                this.$emit('toggleSettingPanel', val, this.activeTab)
             },
             // 变量编辑是否展开
             isEditPanelOpen () {
@@ -220,11 +220,6 @@
                 this.isVariableEditing = val
             },
             onTemplateSettingShow (val) {
-                if (val === 'templateDataEditTab') {
-                    this.isPipelineTreeDialogShow = true
-                    return
-                }
-
                 if (this.activeTab === val) {
                     this.togglePanel(false)
                 } else {

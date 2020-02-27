@@ -15,6 +15,7 @@ import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
+import { checkDataType } from '@/utils/checkDataType.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
@@ -171,6 +172,7 @@ const template = {
         start_event: {},
         template_id: '',
         constants: {},
+        constantsCited: {},
         projectBaseInfo: {},
         notify_receivers: {
             receiver_group: [],
@@ -638,6 +640,7 @@ const template = {
                     }
                 }
             }
+            this.commit('template/setConstantsCited', payload)
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {
@@ -725,6 +728,31 @@ const template = {
         // 设置内置变量
         setInternalVariable (state, payload) {
             state.systemConstants = payload
+        },
+        // 更新变量引用此次
+        setConstantsCited (state, payload) {
+            // 更新变量引用次数
+            const { location } = payload
+            const constantsCited = {}
+            const codeReg = /\$\{[a-zA-Z\._]+}/g
+            if (state.activities[location.id]) {
+                const item = state.activities[location.id]
+                const nodeData = item.component.data
+                if (checkDataType(nodeData) === 'Object') {
+                    for (const code in nodeData) {
+                        const value = nodeData[code].value
+                        const matchArr = checkDataType(value) === 'String' ? value.match(codeReg) || [] : []
+                        matchArr.forEach(matchItem => {
+                            if (constantsCited[matchItem]) {
+                                constantsCited[matchItem] += 1
+                            } else {
+                                constantsCited[matchItem] = 1
+                            }
+                        })
+                    }
+                }
+            }
+            Vue.set(state.constantsCited, location.id, constantsCited)
         }
     },
     actions: {
@@ -865,6 +893,20 @@ const template = {
                 outputs,
                 start_event
             }
+        },
+        constantsCited: state => {
+            const constantsCitedMap = {}
+            for (const nodeId in state.constantsCited) {
+                const obj = state.constantsCited[nodeId]
+                for (const key in obj) {
+                    if (constantsCitedMap[key]) {
+                        constantsCitedMap[key] += obj[key]
+                    } else {
+                        constantsCitedMap[key] = obj[key]
+                    }
+                }
+            }
+            return constantsCitedMap
         }
     }
 }

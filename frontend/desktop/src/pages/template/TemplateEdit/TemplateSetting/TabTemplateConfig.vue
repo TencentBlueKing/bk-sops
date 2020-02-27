@@ -13,7 +13,7 @@
     <div class="config-wrapper" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
         <bk-sideslider
             ext-cls="common-template-setting-sideslider"
-            :width="800"
+            :width="420"
             :is-show="isShow"
             :before-close="onBeforeClose"
             :quick-close="true">
@@ -183,7 +183,6 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .config-wrapper {
-    width: 800px;
     height: 100%;
     background: none;
     border: none;

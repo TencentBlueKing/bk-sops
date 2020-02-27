@@ -55,6 +55,8 @@
                 ref="nodeConfig"
                 :project_id="project_id"
                 v-show="isNodeConfigPanelShow"
+                :is-show="isNodeConfigPanelShow"
+                :setting-active-tab="settingActiveTab"
                 :template_id="template_id"
                 :single-atom="singleAtom"
                 :sub-atom="subAtom"
@@ -178,6 +180,7 @@
                 customVarCollectionLoading: false,
                 allowLeave: false,
                 isShowConditionEdit: false,
+                settingActiveTab: 'globalVariableTab',
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
@@ -626,8 +629,9 @@
 
                 this.subAtomGrouped = atomGrouped
             },
-            toggleSettingPanel (isSettingPanelShow) {
+            toggleSettingPanel (isSettingPanelShow, activeTab) {
                 this.isSettingPanelShow = isSettingPanelShow
+                this.settingActiveTab = activeTab
             },
             showConfigPanel (id) {
                 this.variableDataChanged()

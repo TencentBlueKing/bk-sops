@@ -51,7 +51,7 @@
                     </div>
                 </div>
             </div>
-            <div slot="content">
+            <template slot="content">
                 <div class="add-variable">
                     <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
                     <div class="toggle-system-var">
@@ -68,7 +68,6 @@
                         <span class="col-operation t-head">{{ i18n.operation }}</span>
                         <span class="col-delete t-head"></span>
                     </div>
-                    <div v-if="status" class="variable-operation-tips"> {{ operationTips }} </div>
                     <ul class="variable-list" ref="variableList">
                         <template v-if="!isHideSystemVar">
                             <VariableItem
@@ -78,6 +77,7 @@
                                 :outputs="outputs"
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
+                                :constants-cited="constantsCited"
                                 :variable-data="variableData"
                                 :variable-type-list="variableTypeList"
                                 :the-key-of-editing="theKeyOfEditing"
@@ -94,6 +94,7 @@
                                 :outputs="outputs"
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
+                                :constants-cited="constantsCited"
                                 :variable-data="variableData"
                                 :variable-type-list="variableTypeList"
                                 :the-key-of-editing="theKeyOfEditing"
@@ -135,14 +136,14 @@
                     @cancel="onCancel">
                     <div>{{ i18n.confirm }}</div>
                 </bk-dialog>
-            </div>
+            </template>
         </bk-sideslider>
     </div>
 </template>
 
 <script>
     import '@/utils/i18n.js'
-    import { mapMutations, mapState } from 'vuex'
+    import { mapMutations, mapState, mapGetters } from 'vuex'
     import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
     import VariableEdit from './VariableEdit.vue'
@@ -183,7 +184,6 @@
                     tips: gettext('删除变量'),
                     confirm: gettext('确认删除该变量？')
                 },
-                status: '',
                 theKeyOfEditing: '',
                 constantsArray: [],
                 deleteConfirmDialogShow: false
@@ -197,9 +197,12 @@
                 'systemConstants': state => state.template.systemConstants,
                 'timeout': state => state.template.time_out
             }),
+            ...mapGetters('template/', [
+                'constantsCited'
+            ]),
             variableData () {
                 if (this.theKeyOfEditing) {
-                    return this.constants[this.theKeyOfEditing]
+                    return this.constants[this.theKeyOfEditing] || this.systemConstants[this.theKeyOfEditing]
                 } else {
                     return {
                         custom_type: 'input',
@@ -231,13 +234,10 @@
                 return list
             },
             operationTips () {
-                if (this.status === 'new') {
+                if (!this.theKeyOfEditing) {
                     return this.i18n.new + this.i18n.global_varibles
                 }
-                if (this.status === 'edit') {
-                    return this.i18n.edit + this.i18n.global_varibles
-                }
-                return ''
+                return this.i18n.edit + this.i18n.global_varibles
             }
         },
         watch: {
@@ -285,7 +285,7 @@
                 if (index > 0) {
                     this.$nextTick(() => {
                         const itemHeight = document.querySelector('.variable-content').offsetHeight
-                        this.$refs.variableList.scrollTop = itemHeight * index
+                        this.$refs.variableList.scrollTop = itemHeight * (index + 1)
                     })
                 }
             },
@@ -417,7 +417,7 @@ $localBorderColor: #dcdee5;
     }
     .global-variable-content {
         margin: 0 28px 30px;
-        height: calc(100% - 145px);
+        height: calc(100% - 82px);
         border: 1px solid $localBorderColor;
     }
     .variable-header, .variable-list {
