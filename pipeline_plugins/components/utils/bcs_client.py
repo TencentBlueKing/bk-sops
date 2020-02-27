@@ -205,21 +205,13 @@ class BCSClient(object):
     def get_clusters(self, project_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('projects/{project_id}/clusters/'.format(project_id=project_id))
-=======
-            url=self._url('bk_bcs_app/cd_api/projects/{project_id}/clusters/'.format(project_id=project_id))
->>>>>>> V3.4.X_feature_bcs_plugins
         )
 
     def get_musters(self, bk_biz_id, project_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/musters/'.format(
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/musters/'.format(
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id
             ))
@@ -228,11 +220,7 @@ class BCSClient(object):
     def get_muster_versions(self, bk_biz_id, project_id, muster_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/musters/{muster_id}/versions/'.format(  # noqa
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/musters/{muster_id}/versions/'.format(  # noqa
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 muster_id=muster_id
@@ -242,11 +230,7 @@ class BCSClient(object):
     def get_namespaces(self, bk_biz_id, project_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('ns/cc_app_ids/{cc_app_id}/projects/{project_id}/namespaces/'.format(
-=======
-            url=self._url('bk_bcs_app/cd_api/ns/cc_app_ids/{cc_app_id}/projects/{project_id}/namespaces/'.format(
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id
             ))
@@ -255,11 +239,7 @@ class BCSClient(object):
     def get_version_templates(self, bk_biz_id, project_id, version_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/versions/{version_id}/templates/'.format(  # noqa
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/versions/{version_id}/templates/'.format(  # noqa
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 version_id=version_id
@@ -274,11 +254,7 @@ class BCSClient(object):
             params['namespace'] = namespace
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/'.format(
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/'.format(
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id
             )),
@@ -288,11 +264,7 @@ class BCSClient(object):
     def get_instance_versions(self, bk_biz_id, project_id, instance_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/versions/'.format(  # noqa
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/versions/'.format(  # noqa
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -320,11 +292,7 @@ class BCSClient(object):
 
         return self._request(
             method='post',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/').format(
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/').format(
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id
             ),
@@ -351,11 +319,7 @@ class BCSClient(object):
 
         return self._request(
             method='post',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/update/').format(  # noqa
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/update/').format(  # noqa
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -392,11 +356,7 @@ class BCSClient(object):
 
         return self._request(
             method='post',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/'.format(  # noqa
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/'.format(  # noqa
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -407,11 +367,7 @@ class BCSClient(object):
     def get_instance_status(self, bk_biz_id, project_id, instance_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/status/'.format(  # noqa
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/status/'.format(  # noqa
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
@@ -421,11 +377,7 @@ class BCSClient(object):
     def get_command_status(self, bk_biz_id, project_id, instance_id, task_id):
         return self._request(
             method='get',
-<<<<<<< HEAD
             url=self._url('apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/status/'.format(  # noqa
-=======
-            url=self._url('bk_bcs_app/cd_api/apps/cc_app_ids/{cc_app_id}/projects/{project_id}/instances/{instance_id}/command/status/'.format(  # noqa
->>>>>>> V3.4.X_feature_bcs_plugins
                 cc_app_id=bk_biz_id,
                 project_id=project_id,
                 instance_id=instance_id
