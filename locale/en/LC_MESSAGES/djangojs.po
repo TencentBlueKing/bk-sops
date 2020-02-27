@@ -4,12 +4,12 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #: gcloud/core/static/remote/jquery/jquery-1.7.2.min.js:2
-#, fuzzy
+#: staticfiles/remote/jquery/jquery-1.7.2.min.js:2
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-07 14:53+0800\n"
+"POT-Creation-Date: 2020-02-27 19:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -160,9 +160,9 @@ msgstr "Check to adding the parameter to Global Variables"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:50
 #: frontend/desktop/src/components/layout/ProjectSelector.vue:63
 #: frontend/desktop/src/pages/home/MyDynamic.vue:137
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:221
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:281
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:222
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:220
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:280
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:225
 msgid "请选择"
 msgstr "Please select"
 
@@ -184,7 +184,7 @@ msgstr "Required"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:49
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:116
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:165
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:167
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:137
 msgid "已选择"
 msgstr " Selected"
@@ -200,14 +200,14 @@ msgstr "Search Nodes"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:52
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:127
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:83
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:166
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:171
 #: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:140
 #: frontend/desktop/src/components/common/base/NoData.vue:37
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:80
 #: frontend/desktop/src/pages/task/TaskExecute/ViewParams.vue:88
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:154
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:276
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:277
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:275
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:280
 msgid "无数据"
 msgstr "No Data"
 
@@ -241,7 +241,7 @@ msgstr "Remove Not Installed IP"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:114
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:79
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:220
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:225
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:275
 #: frontend/desktop/src/pages/home/MyCollection.vue:103
 msgid "添加"
@@ -289,7 +289,7 @@ msgid "异常"
 msgstr "Exceptions"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:122
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:218
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:223
 #: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:197
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:274
 #: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:121
@@ -298,13 +298,14 @@ msgstr "Exceptions"
 #: frontend/desktop/src/pages/project/index.vue:247
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:252
 #: frontend/desktop/src/pages/task/TaskList/index.vue:276
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:259
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:260
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:258
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:263
 msgid "操作"
 msgstr "Operation"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:123
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:83
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:83
 msgid "移除"
 msgstr "Remove"
 
@@ -322,16 +323,16 @@ msgid "服务器"
 msgstr "Host"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:85
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:216
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:221
 #: frontend/desktop/src/components/common/base/DialogLoadingBtn.vue:40
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:82
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:61
+#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:67
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheEdit.vue:65
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageEdit.vue:60
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:205
 #: frontend/desktop/src/pages/atomdev/index.vue:177
 #: frontend/desktop/src/pages/functor/FunctionList.vue:304
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:183
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:185
 #: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:96
 #: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:151
 #: frontend/desktop/src/pages/task/TaskExecute/ModifyTime.vue:52
@@ -490,23 +491,26 @@ msgstr "Item2"
 msgid "选项3"
 msgstr "Item3"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:121
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:118
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:120
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:119
+#: staticfiles/components/atoms/job/job_execute_task.js:118
 msgid "参数名称"
 msgstr "Name"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:128
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:125
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:127
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:126
+#: staticfiles/components/atoms/job/job_execute_task.js:125
 msgid "参数类型"
 msgstr "Type"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:136
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:135
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:363
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:133
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:134
+#: staticfiles/components/atoms/job/job_execute_task.js:133
 msgid "参数值"
 msgstr "Value"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:215
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:220
 #: frontend/desktop/src/pages/config/index.vue:71
 #: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:150
 #: frontend/desktop/src/pages/task/TaskExecute/ModifyParams.vue:75
@@ -516,35 +520,35 @@ msgstr "Value"
 msgid "保存"
 msgstr "Save"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:217
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:222
 #: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:303
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:76
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:87
 #: frontend/desktop/src/pages/project/index.vue:179
 #: frontend/desktop/src/pages/project/index.vue:254
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:255
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:261
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:262
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:260
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:265
 msgid "编辑"
 msgstr "Edit"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:219
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:224
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:173
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:263
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:88
 #: frontend/desktop/src/pages/appmaker/index.vue:180
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:164
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:166
 #: frontend/desktop/src/pages/home/MyCollection.vue:104
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:254
 #: frontend/desktop/src/pages/task/TaskList/index.vue:278
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:109
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:140
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:263
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:264
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:262
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:267
 msgid "删除"
 msgstr "Delete"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:294
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:300
 msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
 msgstr "Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv"
 
@@ -688,6 +692,7 @@ msgstr "Start"
 #: frontend/desktop/src/pages/task/TaskList/index.vue:291
 #: frontend/mobile/src/views/task/canvas.vue:89
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:154
+#: staticfiles/components/atoms/job/job_cron_task.js:154
 msgid "暂停"
 msgstr "Suspend"
 
@@ -800,8 +805,8 @@ msgstr "Shortcuts"
 #: frontend/desktop/src/components/common/advanceSearchForm/AdvanceSearch.vue:53
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:250
 #: frontend/desktop/src/pages/task/TaskList/index.vue:289
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:285
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:285
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:284
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:288
 msgid "高级搜索"
 msgstr "Advanced Search"
 
@@ -812,8 +817,8 @@ msgstr "Advanced Search"
 #: frontend/desktop/src/pages/audit/AuditList.vue:204
 #: frontend/desktop/src/pages/functor/FunctionList.vue:301
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:270
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:282
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:282
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:281
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:285
 msgid "搜索"
 msgstr "Search"
 
@@ -823,13 +828,13 @@ msgstr "Search"
 #: frontend/desktop/src/pages/audit/AuditList.vue:205
 #: frontend/desktop/src/pages/functor/FunctionList.vue:302
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:271
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:283
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:283
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:282
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:286
 msgid "清空"
 msgstr "Empty"
 
 #: frontend/desktop/src/components/common/base/BaseCard.vue:73
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:167
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:169
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:132
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:143
 msgid "申请权限"
@@ -839,7 +844,7 @@ msgstr "Apply Permissions"
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:204
 #: frontend/desktop/src/pages/atomdev/index.vue:176
 #: frontend/desktop/src/pages/functor/FunctionList.vue:303
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:180
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:182
 #: frontend/desktop/src/pages/project/index.vue:261
 #: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:93
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:128
@@ -959,36 +964,48 @@ msgstr "Apply"
 #: frontend/desktop/src/pages/project/index.vue:431
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:247
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:252
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:445
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:444
 msgid "项目"
 msgstr "Project"
 
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:60
-msgid "选择项目："
+#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:66
+#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:73
+#: frontend/desktop/src/pages/functor/FunctionList.vue:291
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:140
+msgid "选择项目"
 msgstr "Choose project please"
 
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:66
+#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:68
+#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:185
+#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:206
+#: frontend/desktop/src/pages/admin/statistics/Atom.vue:270
+#: frontend/desktop/src/pages/admin/statistics/Atom.vue:297
+#: frontend/desktop/src/pages/admin/statistics/Instance.vue:128
+#: frontend/desktop/src/pages/admin/statistics/Instance.vue:252
+#: frontend/desktop/src/pages/admin/statistics/Instance.vue:292
+#: frontend/desktop/src/pages/admin/statistics/Template.vue:217
+#: frontend/desktop/src/pages/admin/statistics/Template.vue:238
+#: frontend/desktop/src/pages/functor/FunctionList.vue:231
+#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:83
+msgid "请选择项目"
+msgstr "Choose project please"
+
+#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:73
 #: frontend/desktop/src/components/layout/Navigator.vue:152
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:125
 #: frontend/desktop/src/pages/task/TaskStep.vue:62
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:145
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:260
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:261
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:259
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:264
 #: frontend/mobile/src/views/task/create.vue:153
 msgid "新建任务"
 msgstr "NewTask"
 
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:66
-#: frontend/desktop/src/pages/functor/FunctionList.vue:291
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:138
-msgid "选择项目"
-msgstr "Choose project please"
-
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:67
+#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:74
 msgid "去新建"
 msgstr "New"
 
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:67
+#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:74
 #: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:124
 #: frontend/desktop/src/pages/task/TaskExecute/ModifyTime.vue:51
 #: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:51
@@ -1013,66 +1030,66 @@ msgstr "Blueking Forum"
 msgid "蓝鲸智云 版权所有"
 msgstr " "
 
-#: frontend/desktop/src/components/layout/Navigator.vue:87
+#: frontend/desktop/src/components/layout/Navigator.vue:88
 #: frontend/desktop/src/pages/functor/FunctionList.vue:322
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:124
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:126
 #: frontend/desktop/src/pages/home/MyCollection.vue:177
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:144
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:252
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:251
 msgid "项目流程"
 msgstr "Project Flow"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:93
+#: frontend/desktop/src/components/layout/Navigator.vue:94
 #: frontend/desktop/src/pages/task/TaskManage.vue:33
 msgid "任务管理"
 msgstr "Tasks"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:99
+#: frontend/desktop/src/components/layout/Navigator.vue:100
 #: frontend/desktop/src/pages/appmaker/index.vue:172
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:132
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:134
 #: frontend/desktop/src/pages/home/MyCollection.vue:179
 #: frontend/desktop/src/pages/task/TaskList/index.vue:288
 msgid "轻应用"
 msgstr "Mini-APP"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:105
+#: frontend/desktop/src/components/layout/Navigator.vue:106
 #: frontend/desktop/src/pages/functor/FunctionList.vue:326
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:120
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:122
 #: frontend/desktop/src/pages/home/MyCollection.vue:178
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:148
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:253
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:449
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:256
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:452
 msgid "公共流程"
 msgstr "Common Flow"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:111
+#: frontend/desktop/src/components/layout/Navigator.vue:112
 msgid "职能化"
 msgstr "Functional"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:116
+#: frontend/desktop/src/components/layout/Navigator.vue:117
 msgid "操作审计"
 msgstr "Audit"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:121
+#: frontend/desktop/src/components/layout/Navigator.vue:122
 #: frontend/desktop/src/pages/project/index.vue:239
 msgid "项目管理"
 msgstr "Project Management"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:126
+#: frontend/desktop/src/components/layout/Navigator.vue:127
 msgid "管理员入口"
 msgstr "Admin Entrance"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:131
+#: frontend/desktop/src/components/layout/Navigator.vue:132
 #: frontend/desktop/src/pages/admin/manage/index.vue:53
 msgid "后台管理"
 msgstr "Backend Manage"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:136
+#: frontend/desktop/src/components/layout/Navigator.vue:137
 #: frontend/desktop/src/pages/admin/statistics/index.vue:78
 msgid "运营数据"
 msgstr "Analysis"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:143
+#: frontend/desktop/src/components/layout/Navigator.vue:144
 #: frontend/desktop/src/pages/atomdev/index.vue:167
 msgid "插件开发"
 msgstr "Plugin Dev"
@@ -1133,6 +1150,23 @@ msgstr "Page not found!"
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:7
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:18
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:19
+#: staticfiles/components/atoms/bk/notify.js:18
+#: staticfiles/components/atoms/cc/cc_batch_delete_set.js:18
+#: staticfiles/components/atoms/cc/cc_create_set.js:18
+#: staticfiles/components/atoms/cc/cc_empty_set_hosts.js:18
+#: staticfiles/components/atoms/cc/cc_replace_fault_machine.js:18
+#: staticfiles/components/atoms/cc/cc_transfer_host_module.js:18
+#: staticfiles/components/atoms/cc/cc_transfer_to_idle.js:18
+#: staticfiles/components/atoms/cc/cc_update_host.js:18
+#: staticfiles/components/atoms/cc/cc_update_module.js:18
+#: staticfiles/components/atoms/cc/cc_update_set.js:18
+#: staticfiles/components/atoms/cc/cc_update_set_service_status.js:18
+#: staticfiles/components/atoms/job/job_cron_task.js:18
+#: staticfiles/components/atoms/job/job_execute_task.js:18
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:18
+#: staticfiles/components/atoms/job/job_push_local_files.js:7
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:18
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:19
 msgid "业务"
 msgstr "Business"
 
@@ -1569,18 +1603,18 @@ msgstr "ID"
 #: frontend/desktop/src/pages/admin/statistics/Atom.vue:150
 #: frontend/desktop/src/pages/admin/statistics/Template.vue:121
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:153
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:254
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:255
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:253
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:258
 msgid "流程名称"
 msgstr "Flow Name"
 
 #: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:187
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:92
 #: frontend/desktop/src/pages/appmaker/index.vue:128
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:214
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:256
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:215
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:257
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:213
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:255
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:218
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:260
 msgid "更新时间"
 msgstr "Date Updated"
 
@@ -1639,10 +1673,10 @@ msgstr "Execution finished"
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:251
 #: frontend/desktop/src/pages/task/TaskList/index.vue:195
 #: frontend/desktop/src/pages/task/TaskList/index.vue:273
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:231
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:258
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:232
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:259
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:230
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:257
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:235
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:262
 msgid "创建人"
 msgstr "Creator"
 
@@ -1683,12 +1717,13 @@ msgstr "No content found"
 #: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:89
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:367
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:156
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:223
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:274
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:224
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:275
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:222
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:273
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:227
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:278
 #: frontend/mobile/src/views/task/nodes.vue:110
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:173
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:173
 msgid "是"
 msgstr "Yes"
 
@@ -1696,12 +1731,13 @@ msgstr "Yes"
 #: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:90
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:368
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:157
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:224
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:275
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:225
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:276
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:223
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:274
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:228
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:279
 #: frontend/mobile/src/views/task/nodes.vue:111
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:174
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:174
 msgid "否"
 msgstr "No"
 
@@ -1737,8 +1773,8 @@ msgstr "Add Local Caches"
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:106
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:114
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableEdit.vue:179
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:284
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:284
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:283
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:287
 msgid "名称"
 msgstr "Name"
 
@@ -1748,6 +1784,7 @@ msgstr "Name"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:111
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableEdit.vue:185
 #: pipeline_plugins/variables/static/variables/select.js:54
+#: staticfiles/variables/select.js:54
 msgid "类型"
 msgstr "Type"
 
@@ -1756,7 +1793,8 @@ msgstr "Type"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:67
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
 #: frontend/desktop/src/pages/project/index.vue:260
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:141
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:142
+#: staticfiles/components/atoms/job/job_execute_task.js:141
 msgid "描述"
 msgstr "Desc"
 
@@ -1872,8 +1910,8 @@ msgstr "Module"
 #: frontend/desktop/src/pages/task/TaskList/index.vue:292
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:152
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:105
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:253
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:254
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:252
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:257
 msgid "新建"
 msgstr "New"
 
@@ -1930,8 +1968,8 @@ msgstr "Trigger"
 #: frontend/desktop/src/pages/project/index.vue:248
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:258
 #: frontend/desktop/src/pages/task/TaskList/index.vue:280
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:269
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:270
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:268
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:273
 msgid "共"
 msgstr " "
 
@@ -1942,8 +1980,8 @@ msgstr " "
 #: frontend/desktop/src/pages/project/index.vue:249
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:259
 #: frontend/desktop/src/pages/task/TaskList/index.vue:281
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:270
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:271
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:269
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:274
 msgid "条记录"
 msgstr "records"
 
@@ -1954,8 +1992,8 @@ msgstr "records"
 #: frontend/desktop/src/pages/project/index.vue:250
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:260
 #: frontend/desktop/src/pages/task/TaskList/index.vue:282
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:271
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:272
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:270
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:275
 msgid "，"
 msgstr ","
 
@@ -1966,8 +2004,8 @@ msgstr ","
 #: frontend/desktop/src/pages/project/index.vue:251
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:261
 #: frontend/desktop/src/pages/task/TaskList/index.vue:283
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:272
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:273
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:271
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:276
 msgid "当前第"
 msgstr "current"
 
@@ -1978,8 +2016,8 @@ msgstr "current"
 #: frontend/desktop/src/pages/project/index.vue:252
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:262
 #: frontend/desktop/src/pages/task/TaskList/index.vue:284
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:273
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:274
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:272
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:277
 msgid "页"
 msgstr "page"
 
@@ -1997,7 +2035,7 @@ msgstr "Automation"
 
 #: frontend/desktop/src/pages/admin/manage/index.vue:32
 #: frontend/desktop/src/pages/admin/statistics/Template.vue:169
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:128
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:130
 #: frontend/desktop/src/pages/home/MyCollection.vue:180
 #: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:92
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:249
@@ -2027,10 +2065,10 @@ msgstr "App Name"
 #: frontend/desktop/src/pages/admin/statistics/Instance.vue:171
 #: frontend/desktop/src/pages/admin/statistics/Template.vue:129
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:79
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:204
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:255
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:205
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:256
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:203
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:254
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:208
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:259
 msgid "分类"
 msgstr "Category"
 
@@ -2058,24 +2096,10 @@ msgstr "Number Of Tasks Created"
 #: frontend/desktop/src/pages/audit/AuditList.vue:142
 #: frontend/desktop/src/pages/functor/FunctionList.vue:300
 #: frontend/desktop/src/pages/task/TaskList/index.vue:181
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:207
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:208
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:206
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:211
 msgid "请选择分类"
 msgstr "Choose category please"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:185
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:206
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:270
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:297
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:128
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:252
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:292
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:217
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:238
-#: frontend/desktop/src/pages/functor/FunctionList.vue:231
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:83
-msgid "请选择项目"
-msgstr "Choose project please"
 
 #: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:201
 #: frontend/desktop/src/pages/admin/statistics/Instance.vue:286
@@ -2180,6 +2204,7 @@ msgstr "All"
 #: frontend/desktop/src/pages/atomdev/index.vue:175
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/PipelineTreeEditDialog.vue:67
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:98
+#: staticfiles/components/atoms/cc/cc_update_set_service_status.js:98
 msgid "关闭"
 msgstr "Close"
 
@@ -2279,8 +2304,8 @@ msgstr "Editor"
 
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:93
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:269
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:264
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:265
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:263
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:268
 msgid "执行历史"
 msgstr "History"
 
@@ -2334,8 +2359,8 @@ msgstr "Size cannot exceed 100K"
 #: frontend/desktop/src/pages/audit/AuditList.vue:206
 #: frontend/desktop/src/pages/functor/FunctionList.vue:237
 #: frontend/desktop/src/pages/task/TaskList/index.vue:172
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:213
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:214
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:212
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:217
 msgid "选择日期时间范围"
 msgstr "Select a datetime"
 
@@ -2353,8 +2378,8 @@ msgstr "Task Category"
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:205
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:264
 #: frontend/desktop/src/pages/task/TaskList/index.vue:196
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:232
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:233
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:231
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:236
 msgid "请输入创建人"
 msgstr "Input creator please"
 
@@ -2383,8 +2408,8 @@ msgstr "Unfinished"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:154
 #: frontend/desktop/src/pages/audit/AuditList.vue:185
 #: frontend/desktop/src/pages/functor/FunctionList.vue:276
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:251
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:252
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:250
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:255
 msgid "请输入ID或流程名称"
 msgstr "Please enter ID or flow name"
 
@@ -2503,8 +2528,8 @@ msgid "下载"
 msgstr "Download"
 
 #: frontend/desktop/src/pages/atomdev/index.vue:171
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:268
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:269
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:267
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:272
 msgid "导入"
 msgstr "Import"
 
@@ -2537,7 +2562,7 @@ msgid "开启后，所有任务都使用任务执行者身份来执行"
 msgstr "All tasks will be executed using identity of the task executor if opened"
 
 #: frontend/desktop/src/pages/config/index.vue:111
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:431
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:433
 #: frontend/desktop/src/pages/template/TemplateEdit/index.vue:138
 msgid "保存成功"
 msgstr "Saved successfully"
@@ -2594,21 +2619,21 @@ msgstr "If there is no flow you want, please contact project maintainers to add 
 msgid "已驳回"
 msgstr "Rejected"
 
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:116
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:191
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:118
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:193
 msgid "选择类型"
 msgstr "Select type"
 
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:163
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:165
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:138
 msgid "项"
 msgstr " "
 
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:166
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:168
 msgid "请选择收藏项"
 msgstr "Select a collection please"
 
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:168
+#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:170
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:127
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:134
 msgid "搜索结果为空"
@@ -2758,8 +2783,8 @@ msgstr "No exception"
 
 #: frontend/desktop/src/pages/task/PeriodicList/DeletePeriodicDialog.vue:37
 #: frontend/desktop/src/pages/task/TaskList/index.vue:279
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:265
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:266
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:264
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:269
 msgid "确认删除"
 msgstr "Are you sure to delete "
 
@@ -2820,6 +2845,7 @@ msgstr "Modify crontab success"
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:215
 #: frontend/desktop/src/pages/task/PeriodicList/index.vue:253
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:155
+#: staticfiles/components/atoms/job/job_cron_task.js:155
 msgid "启动"
 msgstr "Activate"
 
@@ -2883,7 +2909,7 @@ msgstr "Crontab"
 msgid "执行计划"
 msgstr "Execution Plan"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:439
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:449
 msgid "创建周期任务成功"
 msgstr "Periodic task create success"
 
@@ -3194,8 +3220,8 @@ msgid "请输入ID或任务名称"
 msgstr "Please enter ID or task name"
 
 #: frontend/desktop/src/pages/task/TaskList/index.vue:277
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:262
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:263
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:261
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:266
 msgid "克隆"
 msgstr "Clone"
 
@@ -3348,6 +3374,7 @@ msgstr "Flow data"
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:151
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:79
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:110
+#: staticfiles/components/atoms/job/job_execute_task.js:110
 msgid "全局变量"
 msgstr "Global Variable"
 
@@ -3438,6 +3465,7 @@ msgstr "Reset template"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:80
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:45
+#: staticfiles/components/atoms/bk/notify.js:45
 msgid "通知方式"
 msgstr "Notification Method"
 
@@ -3448,6 +3476,8 @@ msgstr "Timeout(s) "
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:82
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:75
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:82
+#: staticfiles/components/atoms/bk/notify.js:75
+#: staticfiles/components/atoms/bk/notify.js:82
 msgid "通知分组"
 msgstr "Notification Group"
 
@@ -3472,6 +3502,7 @@ msgstr "Description"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableEdit.vue:181
 #: pipeline_plugins/variables/static/variables/select.js:69
+#: staticfiles/variables/select.js:69
 msgid "默认值"
 msgstr "Default"
 
@@ -3584,8 +3615,8 @@ msgid "请选择需要导出的流程"
 msgstr "Please select flows to export"
 
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:136
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:277
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:278
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:276
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:281
 msgid "请输入流程名称"
 msgstr "Please enter flow name"
 
@@ -3665,45 +3696,45 @@ msgstr "Keep both and submit"
 msgid "条流程与项目已有流程ID存在冲突"
 msgstr " conflict with IDs of existing flows"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:219
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:257
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:220
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:258
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:218
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:256
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:223
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:261
 msgid "子流程更新"
 msgstr "Subprocess Updated"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:225
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:226
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:224
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:229
 msgid "无子流程"
 msgstr "Has No Subprocess"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:266
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:267
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:265
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:270
 msgid "导入 V1 模板"
 msgstr "Import From V1"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:267
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:268
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:266
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:271
 msgid "导出"
 msgstr "Export"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:278
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:279
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:277
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:282
 msgid "请选择子流程更新"
 msgstr "Choose subprocess status"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:279
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:280
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:278
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:283
 msgid "来源"
 msgstr "Source"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:280
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:281
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:279
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:284
 msgid "请选择来源"
 msgstr "Choose source please"
 
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:286
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:286
+#: frontend/desktop/src/pages/template/TemplateList/index.vue:285
+#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:289
 #: frontend/mobile/src/views/template/index.vue:81
 msgid "搜索流程名称"
 msgstr "Search by flow name"
@@ -3763,6 +3794,7 @@ msgstr "t equal to ${id}`)"
 
 #: frontend/desktop/test/unit/components/RenderForm/combinePlugin.js:85
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:140
+#: staticfiles/components/atoms/bk/notify.js:140
 msgid "通知主题"
 msgstr "Title"
 
@@ -3855,11 +3887,13 @@ msgstr "Execution Task"
 
 #: frontend/mobile/src/views/task/timing.vue:39
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:19
+#: staticfiles/components/atoms/bk/timer.js:19
 msgid "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"
 msgstr "Seconds(s) or Datetime(%Y-%m-%d %H:%M:%S)"
 
 #: frontend/mobile/src/views/task/timing.vue:42
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:18
+#: staticfiles/components/atoms/bk/timer.js:18
 msgid "定时时间"
 msgstr "Timing"
 
@@ -3873,84 +3907,107 @@ msgstr "Collect"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http.js:18
 #: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:18
+#: staticfiles/components/atoms/bk/http.js:18
+#: staticfiles/components/atoms/bk/v1.0/http.js:18
 msgid "请求方式"
 msgstr "Method"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http.js:55
 #: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:55
+#: staticfiles/components/atoms/bk/http.js:55
+#: staticfiles/components/atoms/bk/v1.0/http.js:55
 msgid "请输入正确的 URL"
 msgstr "Input a valid url please"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:48
+#: staticfiles/components/atoms/bk/notify.js:48
 msgid "微信"
 msgstr "Wechat"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:49
+#: staticfiles/components/atoms/bk/notify.js:49
 msgid "邮件"
 msgstr "Email"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:50
+#: staticfiles/components/atoms/bk/notify.js:50
 msgid "短信"
 msgstr "SMS"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:63
+#: staticfiles/components/atoms/bk/notify.js:63
 msgid "请至少选择一种通知方式"
 msgstr "Please select one notify method at lease"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:84
+#: staticfiles/components/atoms/bk/notify.js:84
 msgid "运维人员"
 msgstr "Maintainer"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:85
+#: staticfiles/components/atoms/bk/notify.js:85
 msgid "产品人员"
 msgstr "Productor"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:86
+#: staticfiles/components/atoms/bk/notify.js:86
 msgid "开发人员"
 msgstr "Developer"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:87
+#: staticfiles/components/atoms/bk/notify.js:87
 msgid "测试人员"
 msgstr "Tester"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:109
+#: staticfiles/components/atoms/bk/notify.js:109
 msgid "附加人员"
 msgstr "More Receivers"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:110
+#: staticfiles/components/atoms/bk/notify.js:110
 msgid "填写用户名，多个用户名用 , 分隔"
 msgstr "Enter username, multiple are separated by ,"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:125
+#: staticfiles/components/atoms/bk/notify.js:125
 msgid "通知分组与附加人员不可同时为空"
 msgstr "Notification Group and More Receivers cannot be empty at the same time"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:153
+#: staticfiles/components/atoms/bk/notify.js:153
 msgid "通知内容"
 msgstr "Content"
 
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:27
+#: staticfiles/components/atoms/bk/timer.js:27
 msgid "请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)"
 msgstr "Fill in seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
 
 #: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:70
+#: staticfiles/components/atoms/bk/v1.0/http.js:70
 msgid "请求头，一行填写一个头部的信息"
 msgstr "Request Headers, one header per line"
 
 #: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:101
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:344
+#: staticfiles/components/atoms/bk/v1.0/http.js:101
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:344
 msgid "超时时间"
 msgstr "Timeout(s) "
 
 #: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:103
+#: staticfiles/components/atoms/bk/v1.0/http.js:103
 msgid "请求超时时间"
 msgstr "Timeout(s) "
 
-#: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:111
+#: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:112
+#: staticfiles/components/atoms/bk/v1.0/http.js:111
 msgid "成功条件"
 msgstr "Success condition"
 
-#: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:113
+#: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:114
+#: staticfiles/components/atoms/bk/v1.0/http.js:113
 msgid "根据返回的 JSON 的数据来控制节点的成功或失败，使用 resp 引用返回的 JSON 对象，例 resp.result==True"
 msgstr "Control node's success by response JSON data, use 'resp' to reference respomse JSON: resp.result==True"
 
@@ -3958,35 +4015,47 @@ msgstr "Control node's success by response JSON data, use 'resp' to reference re
 #: pipeline_plugins/components/static/components/atoms/cc/cc_empty_set_hosts.js:45
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:45
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:45
+#: staticfiles/components/atoms/cc/cc_batch_delete_set.js:45
+#: staticfiles/components/atoms/cc/cc_empty_set_hosts.js:45
+#: staticfiles/components/atoms/cc/cc_update_set.js:45
+#: staticfiles/components/atoms/cc/cc_update_set_service_status.js:45
 msgid "集群"
 msgstr "Set"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:45
+#: staticfiles/components/atoms/cc/cc_create_set.js:45
 msgid "父实例"
 msgstr "Parent Instance"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:94
+#: staticfiles/components/atoms/cc/cc_create_set.js:94
 msgid "集群信息"
 msgstr "Set Instance"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:45
+#: staticfiles/components/atoms/cc/cc_replace_fault_machine.js:45
 msgid "主机详情"
 msgstr "Host Detail"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:46
+#: staticfiles/components/atoms/cc/cc_replace_fault_machine.js:46
 msgid "请至少添加一条数据"
 msgstr "Please add one at least"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:54
+#: staticfiles/components/atoms/cc/cc_replace_fault_machine.js:54
 msgid "故障机IP"
 msgstr "Fault Host IP"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:67
+#: staticfiles/components/atoms/cc/cc_replace_fault_machine.js:67
 msgid "替换机IP"
 msgstr "Replacement Host IP"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:45
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:45
+#: staticfiles/components/atoms/cc/cc_transfer_host_module.js:45
+#: staticfiles/components/atoms/cc/cc_update_module.js:45
 msgid "模块"
 msgstr "Module"
 
@@ -3995,6 +4064,11 @@ msgstr "Module"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:95
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:18
+#: staticfiles/components/atoms/cc/cc_transfer_host_module.js:95
+#: staticfiles/components/atoms/cc/cc_transfer_to_idle.js:45
+#: staticfiles/components/atoms/cc/cc_update_host.js:95
+#: staticfiles/components/atoms/cc/cmdb_transfer_fault_host.js:18
+#: staticfiles/components/atoms/cc/cmdb_transfer_host_resource.js:18
 msgid "主机内网IP"
 msgstr "Host Inner IP"
 
@@ -4003,134 +4077,177 @@ msgstr "Host Inner IP"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:96
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:19
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:19
+#: staticfiles/components/atoms/cc/cc_transfer_host_module.js:96
+#: staticfiles/components/atoms/cc/cc_transfer_to_idle.js:46
+#: staticfiles/components/atoms/cc/cc_update_host.js:96
+#: staticfiles/components/atoms/cc/cmdb_transfer_fault_host.js:19
+#: staticfiles/components/atoms/cc/cmdb_transfer_host_resource.js:19
 msgid "请输入主机内网IP，多个用换行符分隔"
 msgstr "Please enter host inner IP, multiple are separated by Line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:109
+#: staticfiles/components/atoms/cc/cc_transfer_host_module.js:109
 msgid "转移方式"
 msgstr "Transfer Type"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:112
+#: staticfiles/components/atoms/cc/cc_transfer_host_module.js:112
 msgid "覆盖"
 msgstr "cover"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:113
+#: staticfiles/components/atoms/cc/cc_transfer_host_module.js:113
 msgid "追加"
 msgstr "increment"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:45
+#: staticfiles/components/atoms/cc/cc_update_host.js:45
 msgid "主机属性"
 msgstr "Host Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:46
+#: staticfiles/components/atoms/cc/cc_update_host.js:46
 msgid "请选择需要更新的主机属性"
 msgstr "Please select a host attribute to update"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:109
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:145
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:145
+#: staticfiles/components/atoms/cc/cc_update_host.js:109
+#: staticfiles/components/atoms/cc/cc_update_module.js:145
+#: staticfiles/components/atoms/cc/cc_update_set.js:145
 msgid "属性值"
 msgstr "Attribute Value"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:110
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:146
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:146
+#: staticfiles/components/atoms/cc/cc_update_host.js:110
+#: staticfiles/components/atoms/cc/cc_update_module.js:146
+#: staticfiles/components/atoms/cc/cc_update_set.js:146
 msgid "请输入更新后的属性值"
 msgstr "Please enter a new attribute value"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:95
+#: staticfiles/components/atoms/cc/cc_update_module.js:95
 msgid "模块属性"
 msgstr "Module Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:96
+#: staticfiles/components/atoms/cc/cc_update_module.js:96
 msgid "请选择需要更新的模块属性"
 msgstr "Please select a module attribute to update"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:95
+#: staticfiles/components/atoms/cc/cc_update_set.js:95
 msgid "集群属性"
 msgstr "Set Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:96
+#: staticfiles/components/atoms/cc/cc_update_set.js:96
 msgid "请选择需要更新的集群属性"
 msgstr "Please select a set attribute to update"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:94
+#: staticfiles/components/atoms/cc/cc_update_set_service_status.js:94
 msgid "服务状态"
 msgstr "Service Status"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:97
+#: staticfiles/components/atoms/cc/cc_update_set_service_status.js:97
 msgid "开放"
 msgstr "Open"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:45
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:45
+#: staticfiles/components/atoms/job/job_cron_task.js:45
+#: staticfiles/components/atoms/job/job_execute_task.js:45
 msgid "作业模板"
 msgstr "JOB"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:96
+#: staticfiles/components/atoms/job/job_cron_task.js:96
 msgid "定时作业名称"
 msgstr "JOB Name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:98
+#: staticfiles/components/atoms/job/job_cron_task.js:98
 msgid "请填写定时作业名称"
 msgstr "Please enter timed job name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:137
+#: staticfiles/components/atoms/job/job_cron_task.js:137
 msgid "定时规则"
 msgstr "Timing Rules"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:139
+#: staticfiles/components/atoms/job/job_cron_task.js:139
 msgid "Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"
 msgstr "Crontab rules, the meaning of each field is: second minute hour day month week year(optional).For example: 0 0/5 * * * ? means to execute every 5 minutes, 0 0 12 * * ? 2015 means trigger every day at 12 noon in 2015"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:151
+#: staticfiles/components/atoms/job/job_cron_task.js:151
 msgid "定时作业状态"
 msgstr "Timing Status"
 
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:112
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:113
+#: staticfiles/components/atoms/job/job_execute_task.js:112
 msgid "没选中作业模板或当前作业模板全局变量为空"
 msgstr "No job selected or global variable are empty"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:45
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:45
 msgid "脚本来源"
 msgstr "Script Source"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:48
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:48
 msgid "手工录入"
 msgstr "Manual"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:49
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:49
 msgid "业务脚本"
 msgstr "Business Script"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:50
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:50
 msgid "公共脚本"
 msgstr "Common Script"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:73
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:73
 msgid "脚本类型"
 msgstr "Script Type"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:97
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:101
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:97
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:101
 msgid "请选择脚本类型"
 msgstr "Choose script Type"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:127
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:127
 msgid "脚本内容"
 msgstr "Script Content"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:129
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:129
 msgid "填写执行脚本内容"
 msgstr "Please enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:144
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:148
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:144
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:148
 msgid "请输入脚本内容"
 msgstr "Please enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:174
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:253
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:174
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:253
 msgid "脚本列表"
 msgstr "Script List"
 
@@ -4138,22 +4255,30 @@ msgstr "Script List"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:205
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:280
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:284
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:201
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:205
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:280
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:284
 msgid "请选择脚本"
 msgstr "Choose script please"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:335
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:335
 msgid "脚本参数"
 msgstr "Script Parameter"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:336
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:336
 msgid "可为空"
 msgstr "Empty is valid"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:345
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:345
 msgid "单位为秒，为空时使用 JOB 默认值"
 msgstr "The unit is second, empty is valid, defaulted as same with JOB"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:357
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:357
 msgid "请输入数字"
 msgstr "Please enter a number"
 
@@ -4161,6 +4286,10 @@ msgstr "Please enter a number"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:78
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:71
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:105
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:369
+#: staticfiles/components/atoms/job/job_fast_push_file.js:78
+#: staticfiles/components/atoms/job/job_push_local_files.js:71
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:105
 msgid "目标IP"
 msgstr "Target IP"
 
@@ -4169,6 +4298,11 @@ msgstr "Target IP"
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:72
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:106
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:370
+#: staticfiles/components/atoms/job/job_fast_push_file.js:79
+#: staticfiles/components/atoms/job/job_push_local_files.js:72
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:106
+#: staticfiles/variables/sites/open/var_ip_picker.js:77
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
 
@@ -4176,281 +4310,597 @@ msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] o
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:92
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:80
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:119
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:383
+#: staticfiles/components/atoms/job/job_fast_push_file.js:92
+#: staticfiles/components/atoms/job/job_push_local_files.js:80
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:119
 msgid "目标账户"
 msgstr "Target Account"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:384
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:93
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:120
+#: staticfiles/components/atoms/job/job_fast_execute_script.js:384
+#: staticfiles/components/atoms/job/job_fast_push_file.js:93
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:120
 msgid "请输入在蓝鲸作业平台上注册的账户名"
 msgstr "Please enter the account name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:18
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:45
+#: staticfiles/components/atoms/job/job_fast_push_file.js:18
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:45
 msgid "源文件"
 msgstr "Source File"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:26
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:53
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:76
+#: staticfiles/components/atoms/job/job_fast_push_file.js:26
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:53
+#: staticfiles/variables/sites/open/var_ip_picker.js:76
 msgid "IP"
 msgstr "IP"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:40
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:67
+#: staticfiles/components/atoms/job/job_fast_push_file.js:40
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:67
 msgid "文件路径"
 msgstr "File"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:41
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:68
+#: staticfiles/components/atoms/job/job_fast_push_file.js:41
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:68
 msgid "多个请用换行分隔"
 msgstr "Multiple are separated by line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:55
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:82
+#: staticfiles/components/atoms/job/job_fast_push_file.js:55
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:82
 msgid "执行账户"
 msgstr "Account"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:106
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:88
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:133
+#: staticfiles/components/atoms/job/job_fast_push_file.js:106
+#: staticfiles/components/atoms/job/job_push_local_files.js:88
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:133
 msgid "目标路径"
 msgstr "Target Path"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:107
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:89
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:134
+#: staticfiles/components/atoms/job/job_fast_push_file.js:107
+#: staticfiles/components/atoms/job/job_push_local_files.js:89
+#: staticfiles/components/atoms/sites/open/job/job_fast_push_file.js:134
 msgid "请输入绝对路径"
 msgstr "Please enter absolute path"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:34
+#: staticfiles/components/atoms/job/job_push_local_files.js:34
 msgid "本地文件"
 msgstr "Local file"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:38
+#: staticfiles/components/atoms/job/job_push_local_files.js:38
 msgid "公共流程在编辑状态下无法直接上传文件，请勾选为全局变量后，在新建任务的参数填写阶段上传"
 msgstr "Can not upload file at common flow edit state, please upload at param fill stage"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:38
+#: staticfiles/components/atoms/job/job_push_local_files.js:38
 msgid "文件名不能包含中文和特殊字符且大小不能超过2G"
 msgstr "File name can not contain chinese and size can not over 2G"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:46
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:46
 msgid "云区域ID"
 msgstr "Cloud ID"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:59
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:59
 msgid "节点类型"
 msgstr "Node type"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:62
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:62
 msgid "直连区域AGENT"
 msgstr "Direct Connect AGENT"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:63
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:63
 msgid "PROXY"
 msgstr "PROXY"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:64
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:64
 msgid "非直连区域AGENT"
 msgstr "Non Direct Connect AGENT"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:78
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:78
 msgid "操作类型"
 msgstr "Operation type"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:80
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:80
 msgid "安裝"
 msgstr "Install"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:81
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:81
 msgid "重新安装"
 msgstr "Reinstall"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:82
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:82
 msgid "卸载"
 msgstr "Uninstall"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:84
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:84
 msgid "升级"
 msgstr "Upgrate"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:98
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:98
 msgid "主机"
 msgstr "Host"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:106
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:106
 msgid "通信IP"
 msgstr "Communication IP"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:107
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:107
 msgid "多个用,隔开"
 msgstr "multiple items are seperated by ','"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:121
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:121
 msgid "登录IP"
 msgstr "Login IP"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:122
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:132
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:122
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:132
 msgid "可为空，适配复杂网络时填写"
 msgstr "Use in complex network adaption"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:131
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:131
 msgid "数据IP"
 msgstr "Data IP"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:142
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:142
 msgid "级联IP"
 msgstr "Cascade IP"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:143
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:143
 msgid "可为空，节点类型是 PROXY 时必填"
 msgstr "must provide when node type is PROXY"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:152
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:152
 msgid "操作系统类型"
 msgstr "OS Type"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:155
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:155
 msgid "LINUX"
 msgstr "LINUX"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:156
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:156
 msgid "WINDOWS"
 msgstr "WINDOWS"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:157
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:157
 msgid "AIX"
 msgstr "AIX"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:171
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:171
 msgid "是否安装cygwin"
 msgstr "Install cygwin"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:189
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:189
 msgid "端口号"
 msgstr "Port"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:203
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:203
 msgid "登录账号"
 msgstr "Login account"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:212
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:212
 msgid "认证方式"
 msgstr "Auth type"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:215
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:215
 msgid "PASSWORD"
 msgstr "PASSWORD"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:216
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:216
 msgid "KEY"
 msgstr "KEY"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:230
+#: staticfiles/components/atoms/sites/open/nodeman/nodeman_create_task.js:230
 msgid "认证密钥"
 msgstr "Auth key"
 
 #: pipeline_plugins/variables/static/variables/bk_manage_user_selector.js:18
+#: staticfiles/variables/bk_manage_user_selector.js:18
 msgid "选择人员"
 msgstr "Select member"
 
 #: pipeline_plugins/variables/static/variables/bk_manage_user_selector.js:19
+#: staticfiles/variables/bk_manage_user_selector.js:19
 msgid "多个用 , 分隔"
 msgstr "mutiple item seperated by ','"
 
 #: pipeline_plugins/variables/static/variables/datetime.js:18
+#: staticfiles/variables/datetime.js:18
 msgid "日期时间"
 msgstr "Datetime"
 
 #: pipeline_plugins/variables/static/variables/input.js:18
+#: staticfiles/variables/input.js:18
 msgid "输入框"
 msgstr "Input"
 
 #: pipeline_plugins/variables/static/variables/int.js:18
+#: staticfiles/variables/int.js:18
 msgid "整数"
 msgstr "Integer"
 
 #: pipeline_plugins/variables/static/variables/password.js:18
+#: staticfiles/variables/password.js:18
 msgid "密码"
 msgstr "Password"
 
 #: pipeline_plugins/variables/static/variables/select.js:18
 #: pipeline_plugins/variables/static/variables/select.js:119
+#: staticfiles/variables/select.js:18 staticfiles/variables/select.js:119
 msgid "下拉框"
 msgstr "Select"
 
 #: pipeline_plugins/variables/static/variables/select.js:25
+#: staticfiles/variables/select.js:25
 msgid "数据源"
 msgstr "Data source"
 
 #: pipeline_plugins/variables/static/variables/select.js:27
+#: staticfiles/variables/select.js:27
 msgid "自定义"
 msgstr "custom"
 
 #: pipeline_plugins/variables/static/variables/select.js:27
+#: staticfiles/variables/select.js:27
 msgid "远程数据源"
 msgstr "remote"
 
 #: pipeline_plugins/variables/static/variables/select.js:40
+#: staticfiles/variables/select.js:40
 msgid "选项"
 msgstr "Type"
 
 #: pipeline_plugins/variables/static/variables/select.js:42
+#: staticfiles/variables/select.js:42
 msgid "请输入数据源信息，自定义数据源格式为 [{\"text\": \"\", \"value\": \"\"}...]，若是远程数据源则填写返回该格式数据的 URL"
 msgstr "Please enter data source, custom data should be like [{\"text\": \"\", \"value\": \"\"}...], remote data requires a url that returns the format data."
 
 #: pipeline_plugins/variables/static/variables/select.js:56
+#: staticfiles/variables/select.js:56
 msgid "单选"
 msgstr "single"
 
 #: pipeline_plugins/variables/static/variables/select.js:56
+#: staticfiles/variables/select.js:56
 msgid "多选"
 msgstr "multiple"
 
 #: pipeline_plugins/variables/static/variables/select.js:70
+#: staticfiles/variables/select.js:70
 msgid "请输入下拉框的默认值，单选为 value 的格式，多选为 value,value,... 的格式"
 msgstr "Please enter the default value, \"value\" format if single, \"value, value...\" format if multiple"
 
 #: pipeline_plugins/variables/static/variables/select.js:94
 #: pipeline_plugins/variables/static/variables/select.js:98
+#: staticfiles/variables/select.js:94 staticfiles/variables/select.js:98
 msgid "非法下拉框数据源，请检查您的配置"
 msgstr "Data source is invalid, please check the config"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_cmdb_ip_selector.js:18
+#: staticfiles/variables/sites/open/var_cmdb_ip_selector.js:18
 msgid "选择服务器"
 msgstr "IP"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:42
+#: staticfiles/variables/sites/open/var_ip_picker.js:42
 msgid "填参方式"
 msgstr "Method"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:44
+#: staticfiles/variables/sites/open/var_ip_picker.js:44
 msgid "自定义输入"
 msgstr "Custom Enter"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:45
+#: staticfiles/variables/sites/open/var_ip_picker.js:45
 msgid "通过配置平台拓扑获取"
 msgstr "Select from CMDB topology"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:110
+#: staticfiles/variables/sites/open/var_ip_picker.js:110
 msgid "拓扑树"
 msgstr "Topology"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:179
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:232
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:239
+#: staticfiles/variables/sites/open/var_ip_picker.js:179
+#: staticfiles/variables/sites/open/var_ip_picker.js:232
+#: staticfiles/variables/sites/open/var_ip_picker.js:239
 msgid "请求后台接口异常:"
 msgstr "Server API error:"
 
 #: pipeline_plugins/variables/static/variables/textarea.js:18
+#: staticfiles/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
 
+#: staticfiles/admin/js/SelectFilter2.js:47
+#, javascript-format
+msgid "Available %s"
+msgstr "Available %s"
+
+#: staticfiles/admin/js/SelectFilter2.js:53
+#, javascript-format
+msgid "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
+msgstr "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
+
+#: staticfiles/admin/js/SelectFilter2.js:69
+#, javascript-format
+msgid "Type into this box to filter down the list of available %s."
+msgstr "Type into this box to filter down the list of available %s."
+
+#: staticfiles/admin/js/SelectFilter2.js:74
+msgid "Filter"
+msgstr "Filter"
+
+#: staticfiles/admin/js/SelectFilter2.js:78
+msgid "Choose all"
+msgstr "Choose all"
+
+#: staticfiles/admin/js/SelectFilter2.js:78
+#, javascript-format
+msgid "Click to choose all %s at once."
+msgstr "Click to choose all %s at once."
+
+#: staticfiles/admin/js/SelectFilter2.js:84
+msgid "Choose"
+msgstr "Choose"
+
+#: staticfiles/admin/js/SelectFilter2.js:86
+msgid "Remove"
+msgstr "Remove"
+
+#: staticfiles/admin/js/SelectFilter2.js:92
+#, javascript-format
+msgid "Chosen %s"
+msgstr "Chosen %s"
+
+#: staticfiles/admin/js/SelectFilter2.js:98
+#, javascript-format
+msgid "This is the list of chosen %s. You may remove some by selecting them in the box below and then clicking the \"Remove\" arrow between the two boxes."
+msgstr "This is the list of chosen %s. You may remove some by selecting them in the box below and then clicking the \"Remove\" arrow between the two boxes."
+
+#: staticfiles/admin/js/SelectFilter2.js:108
+msgid "Remove all"
+msgstr "Remove all"
+
+#: staticfiles/admin/js/SelectFilter2.js:108
+#, javascript-format
+msgid "Click to remove all chosen %s at once."
+msgstr "Click to remove all chosen %s at once."
+
+#: staticfiles/admin/js/actions.js:48 staticfiles/admin/js/actions.min.js:2
+msgid "%(sel)s of %(cnt)s selected"
+msgid_plural "%(sel)s of %(cnt)s selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: staticfiles/admin/js/actions.js:117 staticfiles/admin/js/actions.min.js:4
+msgid "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
+msgstr "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
+
+#: staticfiles/admin/js/actions.js:129 staticfiles/admin/js/actions.min.js:5
+msgid "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
+msgstr "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
+
+#: staticfiles/admin/js/actions.js:131 staticfiles/admin/js/actions.min.js:5
+msgid "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
+msgstr "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:74
+#, javascript-format
+msgid "Note: You are %s hour ahead of server time."
+msgid_plural "Note: You are %s hours ahead of server time."
+msgstr[0] ""
+msgstr[1] ""
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:82
+#, javascript-format
+msgid "Note: You are %s hour behind server time."
+msgid_plural "Note: You are %s hours behind server time."
+msgstr[0] ""
+msgstr[1] ""
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:109
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:160
+msgid "Now"
+msgstr "Now"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:127
+msgid "Choose a Time"
+msgstr "Choose a Time"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:157
+msgid "Choose a time"
+msgstr "Choose a time"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:165
+msgid "Midnight"
+msgstr "Midnight"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:170
+msgid "6 a.m."
+msgstr "6 a.m."
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:175
+msgid "Noon"
+msgstr "Noon"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:180
+msgid "6 p.m."
+msgstr "6 p.m."
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:188
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:348
+msgid "Cancel"
+msgstr "Cancel"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:253
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:333
+msgid "Today"
+msgstr "Today"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:270
+msgid "Choose a Date"
+msgstr "Choose a Date"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:327
+msgid "Yesterday"
+msgstr "Yesterday"
+
+#: staticfiles/admin/js/admin/DateTimeShortcuts.js:339
+msgid "Tomorrow"
+msgstr "Tomorrow"
+
+#: staticfiles/admin/js/calendar.js:12
+msgid "January"
+msgstr "January"
+
+#: staticfiles/admin/js/calendar.js:13
+msgid "February"
+msgstr "February"
+
+#: staticfiles/admin/js/calendar.js:14
+msgid "March"
+msgstr "March"
+
+#: staticfiles/admin/js/calendar.js:15
+msgid "April"
+msgstr "April"
+
+#: staticfiles/admin/js/calendar.js:16
+msgid "May"
+msgstr "May"
+
+#: staticfiles/admin/js/calendar.js:17
+msgid "June"
+msgstr "June"
+
+#: staticfiles/admin/js/calendar.js:18
+msgid "July"
+msgstr "July"
+
+#: staticfiles/admin/js/calendar.js:19
+msgid "August"
+msgstr "August"
+
+#: staticfiles/admin/js/calendar.js:20
+msgid "September"
+msgstr "September"
+
+#: staticfiles/admin/js/calendar.js:21
+msgid "October"
+msgstr "October"
+
+#: staticfiles/admin/js/calendar.js:22
+msgid "November"
+msgstr "November"
+
+#: staticfiles/admin/js/calendar.js:23
+msgid "December"
+msgstr "December"
+
+#: staticfiles/admin/js/calendar.js:26
+msgctxt "one letter Sunday"
+msgid "S"
+msgstr "S"
+
+#: staticfiles/admin/js/calendar.js:27
+msgctxt "one letter Monday"
+msgid "M"
+msgstr "M"
+
+#: staticfiles/admin/js/calendar.js:28
+msgctxt "one letter Tuesday"
+msgid "T"
+msgstr "T"
+
+#: staticfiles/admin/js/calendar.js:29
+msgctxt "one letter Wednesday"
+msgid "W"
+msgstr "W"
+
+#: staticfiles/admin/js/calendar.js:30
+msgctxt "one letter Thursday"
+msgid "T"
+msgstr "T"
+
+#: staticfiles/admin/js/calendar.js:31
+msgctxt "one letter Friday"
+msgid "F"
+msgstr "F"
+
+#: staticfiles/admin/js/calendar.js:32
+msgctxt "one letter Saturday"
+msgid "S"
+msgstr "S"
+
+#: staticfiles/admin/js/collapse.js:10 staticfiles/admin/js/collapse.js:21
+#: staticfiles/admin/js/collapse.min.js:1
+msgid "Show"
+msgstr "Show"
+
+#: staticfiles/admin/js/collapse.js:18 staticfiles/admin/js/collapse.min.js:1
+msgid "Hide"
+msgstr "Hide"
+
+#: staticfiles/version_log/js/modal_frame.js:26
 #: version_log/static/version_log/js/modal_frame.js:26
 msgid "版本日志"
 msgstr "Version log"
+
+#~ msgid "选择项目："
+#~ msgstr "Choose project please"
 
 #~ msgid "请求表头数据失败，使用预置表头"
 #~ msgstr "Requesting table titles failed, please config columns"
