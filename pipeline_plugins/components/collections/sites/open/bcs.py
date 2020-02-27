@@ -142,7 +142,11 @@ class BcsMesosCreateService(Service):
             if not bcs_result['result']:
                 self.logger.error(bcs_handle_api_error('bcs.get_instance_status', bcs_kwargs, bcs_result))
                 return True
-            statuses.append(bcs_result['data']['status'])
+            try:
+                statuses.append(bcs_result['data']['status'])
+            except Exception:
+                self.logger.error(bcs_handle_api_error('bcs.get_instance_status', bcs_kwargs, bcs_result))
+                return True
 
         if all([s == BCS_INSTANTCE_STATUS_RUNNING for s in statuses]):
             self.finish_schedule()
