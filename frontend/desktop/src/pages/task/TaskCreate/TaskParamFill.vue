@@ -371,10 +371,15 @@
 
                     this.isSubmit = true
                     let flowType
-                    if (this.userRights.function) {
+                    if (
+                        (this.$route.name === 'functionTemplateStep'
+                        && this.entrance === 'function')
+                        || this.isSelectFunctionalType) {
+                        // 职能化任务
                         flowType = 'common_func'
                     } else {
-                        flowType = this.isSelectFunctionalType ? 'common_func' : 'common'
+                        // 普通任务
+                        flowType = 'common'
                     }
                     if (this.isStartNow) {
                         const data = {
