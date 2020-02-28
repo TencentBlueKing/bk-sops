@@ -82,6 +82,7 @@ const store = new Vuex.Store({
                 commit('setSingleAtomList', response.data.objects)
             })
         },
+        // ip 选择器接口 start --->
         getHostInCC ({ commmit }, fields) {
             return api.loadHostInCC(fields).then(response => response.data)
         },
@@ -91,6 +92,24 @@ const store = new Vuex.Store({
         getTopoModelInCC ({ commit }) {
             return api.loadTopoModelInCC().then(response => response.data)
         },
+        // <--- ip 选择器接口 end
+        // 开区资源选择器接口 start --->
+        getCCSearchTopoSet () {
+            return api.getCCSearchTopoSet().then(response => response.data)
+        },
+        getCCSearchTopoResource () {
+            return api.getCCSearchTopoResource().then(response => response.data)
+        },
+        getCCSearchModule ({ commit }, data) {
+            return api.getCCSearchModule(data).then(response => response.data)
+        },
+        getCCSearchObjAttrHost () {
+            return api.getCCSearchObjAttrHost().then(response => response.data)
+        },
+        getCCSearchColAttrSet () {
+            return api.getCCSearchColAttrSet().then(response => response.data)
+        },
+        // <--- 开区资源选择器接口 end
         getPermissionUrl ({ commit }, data) {
             return api.getPermissionUrl(data).then(response => response.data)
         },
