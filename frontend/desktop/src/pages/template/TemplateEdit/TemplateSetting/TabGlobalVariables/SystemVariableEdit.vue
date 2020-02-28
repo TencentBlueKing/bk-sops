@@ -41,10 +41,10 @@
                     <bk-select
                         :clearable="false">
                         <bk-option
-                            v-for="(option, index) in constantCitedList"
+                            v-for="(option, index) in currConstantsCited"
                             :key="index"
-                            :id="option"
-                            :name="option">
+                            :id="option.name"
+                            :name="`${option.name}（${option.numbers}）`">
                         </bk-option>
                     </bk-select>
                 </div>
@@ -54,7 +54,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-
+    import { mapState } from 'vuex'
     export default {
         name: 'SystemVariableEdit',
         props: ['variableData'],
@@ -66,6 +66,27 @@
                     cited: gettext('引用节点')
                 },
                 constantCitedList: ['name', 'fdsfdsfds']
+            }
+        },
+        computed: {
+            ...mapState({
+                'constantsCited': state => state.template.constantsCited
+            }),
+            // 当前变量引用的节点信息
+            currConstantsCited () {
+                const cuurKey = this.variableData.key
+                const nodes = []
+                for (const node in this.constantsCited) {
+                    for (const key in this.constantsCited[node]) {
+                        if (cuurKey === key) {
+                            nodes.push({
+                                name: node,
+                                numbers: this.constantsCited[node][key]
+                            })
+                        }
+                    }
+                }
+                return nodes
             }
         }
     }
