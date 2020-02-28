@@ -495,6 +495,11 @@
     height: 340px;
     .search-wrapper {
         padding: 0 18px 0 20px;
+        // 目前最新版 magicbox@2.1.9 searchSelect 组件点击 x 并不能同步更新待选面板数据，
+        // 为保证功能正常，暂时隐藏 x ，只能使用键盘 delete 键删除已选条件，待 magicbox 修复后删除
+        /deep/ .bk-icon.icon-close {
+            display: none;
+        }
     }
     .template-wrapper {
         float: left;
