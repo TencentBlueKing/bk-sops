@@ -281,6 +281,7 @@
 
                 return this.$refs.addVariablePanel.saveVariable()
             },
+            // 滚动到可视区域
             scrollPanelToView (index) {
                 if (index > 0) {
                     this.$nextTick(() => {

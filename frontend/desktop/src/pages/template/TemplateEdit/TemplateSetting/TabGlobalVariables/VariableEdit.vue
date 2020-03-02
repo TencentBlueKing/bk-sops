@@ -206,7 +206,6 @@
                 varType: '', // 变量类型，general、meta
                 renderData,
                 renderConfig: [],
-                constantCitedList: ['ssss'],
                 renderOption: {
                     showHook: false,
                     showGroup: false,

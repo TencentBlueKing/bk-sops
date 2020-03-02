@@ -64,8 +64,7 @@
                     name: gettext('名称'),
                     desc: gettext('说明'),
                     cited: gettext('引用节点')
-                },
-                constantCitedList: ['name', 'fdsfdsfds']
+                }
             }
         },
         computed: {

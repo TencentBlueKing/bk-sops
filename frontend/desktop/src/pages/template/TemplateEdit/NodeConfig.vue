@@ -1451,7 +1451,7 @@
     }
     &.position-right-tempalte-data-edit{
         @media screen and (min-width: 1920px) {
-            left: calc(100% - 1606px);
+            left: calc(100% - 1608px);
         }
     }
     .node-title {
