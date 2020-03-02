@@ -30,7 +30,8 @@
                         :data="searchOptionalList"
                         :show-popover-tag-change="searchOptionalList.length !== 0"
                         v-model="searchValue"
-                        @change="onSearchChange">
+                        @change="onSearchChange"
+                        @chip-del="onChipDel">
                     </bk-search-select>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
@@ -482,6 +483,16 @@
             },
             onCancel () {
                 this.$emit('onCloseDialog')
+            },
+            onChipDel (name) {
+                /**
+                 * 兼容方法，待 magicbox 版本 2.1.9 稳定更新后删除、
+                 * 解决：当前版本 magicbox 2.1.9-beta.5，searchSelect 组件点击 x 并不能同步更新待选面板数据
+                 */
+                const instance = this.$refs.bkSearchSelect
+                this.$nextTick(() => {
+                    instance && instance.showMenu()
+                })
             }
         }
     }
@@ -495,11 +506,6 @@
     height: 340px;
     .search-wrapper {
         padding: 0 18px 0 20px;
-        // 目前最新版 magicbox@2.1.9 searchSelect 组件点击 x 并不能同步更新待选面板数据，
-        // 为保证功能正常，暂时隐藏 x ，只能使用键盘 delete 键删除已选条件，待 magicbox 修复后删除
-        /deep/ .bk-icon.icon-close {
-            display: none;
-        }
     }
     .template-wrapper {
         float: left;
