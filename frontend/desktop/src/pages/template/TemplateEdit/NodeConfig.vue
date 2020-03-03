@@ -1436,10 +1436,15 @@
     z-index: 5;
     box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.15);
     transition: left 0.3s ease-in-out;
-    /deep/ .bk-sideslider-content {
-        padding: 20px;
-        overflow: scroll;
-        @include scrollbar;
+    /deep/ {
+        .bk-sideslider-wrapper {
+            overflow: hidden;
+        }
+        .bk-sideslider-content {
+            padding: 20px;
+            overflow: scroll;
+            @include scrollbar;
+        }
     }
     &.position-right-var {
         @media screen and (min-width: 1920px) {

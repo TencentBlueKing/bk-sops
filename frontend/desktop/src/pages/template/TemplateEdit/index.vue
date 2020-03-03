@@ -94,6 +94,7 @@
                 @onDeleteDraft="onDeleteDraft"
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
+                @onCitedNodeClick="onCitedNodeClick"
                 @updateLocalTemplateData="updateLocalTemplateData"
                 @modifyTemplateData="modifyTemplateData"
                 @hideConfigPanel="hideConfigPanel"
@@ -181,6 +182,7 @@
                 allowLeave: false,
                 isShowConditionEdit: false,
                 settingActiveTab: 'globalVariableTab',
+                lastOpenPanelName: '', // 最近一次打开的面板名
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
@@ -357,11 +359,13 @@
             window.onbeforeunload = function () {
                 return i18n.tips
             }
+            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             window.onbeforeunload = null
             this.resetTemplateData()
             this.hideGuideTips()
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('atomList/', [
@@ -630,6 +634,14 @@
                 this.subAtomGrouped = atomGrouped
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
+                const clientX = document.body.clientWidth
+                // 分辨率 1920 以下，显示 setting 面板时需隐藏节点配置面板
+                if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
+                    this.hideConfigPanel()
+                }
+                if (isSettingPanelShow) {
+                    this.lastOpenPanelName = 'settingPanel'
+                }
                 this.isSettingPanelShow = isSettingPanelShow
                 this.settingActiveTab = activeTab
             },
@@ -637,10 +649,42 @@
                 this.variableDataChanged()
                 this.isNodeConfigPanelShow = true
                 this.idOfNodeInConfigPanel = id
+                this.lastOpenPanelName = 'nodeConfigPanel'
             },
             hideConfigPanel () {
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
+            },
+            onWindowResize () {
+                const clientX = document.body.clientWidth
+                // 在配置面板和setting面板双开时，屏幕突然改变保留最近打开的面板
+                if (clientX < 1920
+                    && this.isNodeConfigPanelShow
+                    && this.isSettingPanelShow
+                    && ['templateDataEditTab', 'globalVariableTab'].includes(this.settingActiveTab)) {
+                    if (this.lastOpenPanelName === 'settingPanel') {
+                        this.hideConfigPanel()
+                    } else {
+                        this.toggleSettingPanel(false)
+                    }
+                }
+            },
+            // 全局变量引用节点点击回调
+            onCitedNodeClick (nodeId) {
+                if (this.idOfNodeInConfigPanel === nodeId) {
+                    const nodeType = this.locations.filter(item => {
+                        return item.id === nodeId
+                    })[0].type
+                    if ((nodeType === 'tasknode' || nodeType === 'subflow') && this.isNodeConfigPanelShow) {
+                        if (this.isNodeConfigPanelShow) {
+                            this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
+                                this.hideConfigPanel()
+                            })
+                        }
+                    }
+                } else {
+                    this.onShowNodeConfig(nodeId, false)
+                }
             },
             /**
              * 标识模板是否被编辑
@@ -764,11 +808,13 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
+            onShowNodeConfig (id, hideSettingPanel = true) {
                 if (this.isShowConditionEdit) {
                     this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
                 }
-                this.toggleSettingPanel(false)
+                if (hideSettingPanel) {
+                    this.toggleSettingPanel(false)
+                }
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
                 })[0].type

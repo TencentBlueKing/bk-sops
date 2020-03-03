@@ -30,20 +30,20 @@
             <div class="panel-content">
                 <TabGlobalVariables
                     :is-show="activeTab === 'globalVariableTab'"
-                    v-show="activeTab === 'globalVariableTab'"
                     ref="globalVariable"
                     class="panel-item"
+                    :is-fixed-var-menu.sync="isFixedVarMenu"
                     :is-variable-editing="isVariableEditing"
                     :variable-type-list="variableTypeList"
                     @changeVariableEditing="onVariableEditingChange"
                     @variableDataChanged="onVariableDataChange"
                     @onDeleteConstant="onDeleteConstant"
+                    @onCitedNodeClick="onCitedNodeClick"
                     @onColseTab="onColseTab">
                 </TabGlobalVariables>
                 <TabTemplateConfig
                     class="panel-item"
                     :is-show="activeTab === 'templateConfigTab'"
-                    v-show="activeTab === 'templateConfigTab'"
                     :is-template-config-valid="isTemplateConfigValid"
                     :project-info-loading="projectInfoLoading"
                     @onSelectCategory="onSelectCategory"
@@ -52,7 +52,6 @@
                 <TabLocalDraft
                     class="panel-item"
                     :is-show="activeTab === 'localDraftTab'"
-                    v-show="activeTab === 'localDraftTab'"
                     :draft-array="draftArray"
                     @onColseTab="onColseTab"
                     @onDeleteDraft="onDeleteDraft"
@@ -122,6 +121,7 @@
         data () {
             return {
                 showPanel: true,
+                isFixedVarMenu: false,
                 isVariableEditing: false,
                 isPipelineTreeDialogShow: false,
                 activeTab: 'globalVariableTab'
@@ -215,6 +215,9 @@
             },
             updateLocalTemplateData () {
                 this.$emit('updateLocalTemplateData')
+            },
+            onCitedNodeClick (nodeId) {
+                this.$emit('onCitedNodeClick', nodeId)
             },
             onVariableEditingChange (val) {
                 this.isVariableEditing = val

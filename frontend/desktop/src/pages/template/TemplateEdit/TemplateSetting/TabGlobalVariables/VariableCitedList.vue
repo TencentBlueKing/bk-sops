@@ -10,31 +10,70 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div>
-
+    <div class="variable-cited-wrap">
+        <ul class="variable-cited-list">
+            <li
+                v-for="item in citedList"
+                :key="item.id"
+                class="variable-cited-item">
+                <span class="cited-name"
+                    @click.stop="onCitedNodeClick(item.id)">
+                    {{ item.name }}
+                </span>
+            </li>
+        </ul>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-
+    import { mapState } from 'vuex'
     export default {
         name: 'VariableCitedList',
-        props: [],
-        data () {
-        },
+        props: ['constant'],
         computed: {
-        },
-        watch: {
-        },
-        created () {
-        },
-        mounted () {
+            ...mapState({
+                'constantsCited': state => state.template.constantsCited,
+                'activities': state => state.template.activities
+            }),
+            citedList () {
+                const list = []
+                for (const node in this.constantsCited) {
+                    const codes = this.constantsCited[node]
+                    for (const code in codes) {
+                        console.log(code, this.constant.key, 'sss')
+                        if (code === this.constant.key) {
+                            list.push({
+                                name: this.activities[node].name,
+                                id: node
+                            })
+                        }
+                    }
+                }
+                return list
+            }
         },
         methods: {
+            // 引用节点点击
+            onCitedNodeClick (nodeId) {
+                this.$emit('onCitedNodeClick', nodeId)
+            }
         }
     }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-
+.variable-cited-list {
+    .variable-cited-item {
+        padding-left: 50px;
+        width: 100%;
+        height: 42px;
+        line-height: 42px;
+        color: #3a84ff;
+        background: #fafbfd;
+        border-top: 1px solid #ebebeb;
+        .cited-name {
+            cursor: pointer;
+        }
+    }
+}
 </style>

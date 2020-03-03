@@ -70,7 +70,11 @@
                     </bk-switcher>
                 </div>
             </span>
-            <span class="col-item col-quote">{{ constantsCited[constant.key] || 0 }}</span>
+            <span
+                class="col-item col-quote"
+                @click.stop="onViewCitedList(constantsCited[constant.key])">
+                {{ constantsCited[constant.key] || 0 }}
+            </span>
             <span class="col-item col-operation">
                 <span class="col-operation-item"
                     v-bk-tooltips.click="{
@@ -112,16 +116,23 @@
                 :var-operating-tips="varOperatingTips">
             </SystemVariableEdit>
         </div>
+        <VariableCitedList
+            v-if="isShowVariableCited"
+            :constant="constant"
+            @onCitedNodeClick="onCitedNodeClick">
+        </VariableCitedList>
     </li>
 </template>
 <script>
     import '@/utils/i18n.js'
     import VariableEdit from './VariableEdit.vue'
+    import VariableCitedList from './VariableCitedList.vue'
     import SystemVariableEdit from './SystemVariableEdit.vue'
     export default {
         name: 'VariableItem',
         components: {
             VariableEdit,
+            VariableCitedList,
             SystemVariableEdit
         },
         props: [
@@ -132,6 +143,7 @@
             'constantsCited',
             'varOperatingTips',
             'theKeyOfEditing',
+            'theKeyOfViewCited',
             'isHideSystemVar',
             'systemConstants',
             'variableTypeList',
@@ -156,6 +168,9 @@
             },
             isShowVariableEdit () {
                 return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
+            },
+            isShowVariableCited () {
+                return this.theKeyOfViewCited === this.constant.key
             }
         },
         methods: {
@@ -177,6 +192,10 @@
                 e.clipboardData.setData('text/plain', this.copyText)
                 e.preventDefault()
             },
+            // 查看引用节点信息
+            onViewCitedList (nums) {
+                this.$emit('onViewCitedList', this.constant.key, nums)
+            },
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })
             },
@@ -191,6 +210,9 @@
             },
             onChangeEdit (val) {
                 this.$emit('onChangeEdit', val)
+            },
+            onCitedNodeClick (nodeId) {
+                this.$emit('onCitedNodeClick', nodeId)
             }
         }
     }
@@ -205,7 +227,6 @@ $localBorderColor: #d8e2e7;
 }
 .variable-item {
     position: relative;
-    cursor: pointer;
     border-bottom: 1px solid #ebebeb;
     &:hover {
         background: $blueStatus;
@@ -214,10 +235,12 @@ $localBorderColor: #d8e2e7;
         background: $blueStatus;
     }
     .variable-content {
+        position: relative;
         padding-left: 50px;
         display: flex;
         height: 42px;
         line-height: 42px;
+        cursor: pointer;
         &:hover {
             .col-item-drag {
                 display: inline-block;
@@ -262,6 +285,10 @@ $localBorderColor: #d8e2e7;
     }
     .col-quote {
         width: 54px;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+        }
     }
 }
 .col-item {

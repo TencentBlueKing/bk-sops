@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
+    <div class="config-wrapper">
         <bk-sideslider
             ext-cls="common-template-setting-sideslider"
             :width="420"
@@ -20,7 +20,7 @@
             <div slot="header">
                 <span>{{i18n.basic_information}}</span>
             </div>
-            <div slot="content">
+            <div slot="content" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
                 <div class="common-form-item">
                     <label>{{ i18n.type }}</label>
                     <div class="common-form-content">

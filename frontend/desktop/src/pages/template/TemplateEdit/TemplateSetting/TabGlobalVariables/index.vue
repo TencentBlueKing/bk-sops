@@ -50,6 +50,9 @@
                         <p>{{ i18n.outputsDesc }}</p>
                     </div>
                 </div>
+                <div :class="['panel-fixed-pin', { 'actived': isFixedVarMenu }]" @click.stop="onClickPin">
+                    <i class="common-icon-pin"></i>
+                </div>
             </div>
             <template slot="content">
                 <div class="add-variable">
@@ -64,7 +67,19 @@
                         <span class="col-key t-head">KEY</span>
                         <span class="col-attributes t-head">{{ i18n.attributes }}</span>
                         <span class="col-output t-head">{{ i18n.outputs }}</span>
-                        <span class="col-quote t-head">{{ i18n.quote }}</span>
+                        <span class="col-quote t-head">
+                            {{ i18n.cited }}
+                            <i
+                                class="common-icon-info global-variable-tootip quote-info"
+                                v-bk-tooltips="{
+                                    allowHtml: true,
+                                    content: i18n.citedTips,
+                                    placement: 'bottom-end',
+                                    duration: 0,
+                                    width: 200
+                                }">
+                            </i>
+                        </span>
                         <span class="col-operation t-head">{{ i18n.operation }}</span>
                         <span class="col-delete t-head"></span>
                     </div>
@@ -83,11 +98,14 @@
                                 :variable-list="variableList"
                                 :variable-type-list="variableTypeList"
                                 :the-key-of-editing="theKeyOfEditing"
+                                :the-key-of-view-cited="theKeyOfViewCited"
                                 :is-hide-system-var="isHideSystemVar"
                                 :system-constants="systemConstants"
                                 :var-operating-tips="varOperatingTips"
                                 @onChangeEdit="onChangeEdit"
+                                @onCitedNodeClick="onCitedNodeClick"
                                 @onEditVariable="onEditVariable"
+                                @onViewCitedList="onViewCitedList"
                                 @onChangeVariableOutput="onChangeVariableOutput"
                                 @onDeleteVariable="onDeleteVariable" />
                         </draggable>
@@ -99,6 +117,7 @@
                                 :variable-data="variableData"
                                 :variable-type-list="variableTypeList"
                                 :is-new-variable="true"
+                                :var-operating-tips="varOperatingTips"
                                 @scrollPanelToView="scrollPanelToView"
                                 @onChangeEdit="onChangeEdit">
                             </VariableEdit>
@@ -143,7 +162,7 @@
             draggable,
             NoData
         },
-        props: ['isVariableEditing', 'variableTypeList', 'isShow'],
+        props: ['isVariableEditing', 'variableTypeList', 'isShow', 'isFixedVarMenu'],
         data () {
             return {
                 isHideSystemVar: false,
@@ -155,7 +174,8 @@
                     name: gettext('名称'),
                     attributes: gettext('属性'),
                     outputs: gettext('输出'),
-                    quote: gettext('引用'),
+                    cited: gettext('引用'),
+                    citedTips: gettext('引用全局变量的节点数量，点击数量可展开显示具体有哪些节点'),
                     operation: gettext('操作'),
                     outputsTitle: gettext('输出：'),
                     attr: gettext('属性'),
@@ -171,6 +191,7 @@
                     confirm: gettext('确认删除该变量？')
                 },
                 theKeyOfEditing: '',
+                theKeyOfViewCited: '',
                 constantsArray: [],
                 deleteConfirmDialogShow: false,
                 isVarTipsShow: false
@@ -246,12 +267,6 @@
                 })
                 list.sort((a, b) => b.index - a.index)
                 return list
-            },
-            operationTips () {
-                if (!this.theKeyOfEditing) {
-                    return this.i18n.new + this.i18n.global_varibles
-                }
-                return this.i18n.edit + this.i18n.global_varibles
             }
         },
         watch: {
@@ -305,6 +320,14 @@
                 }
             },
             /**
+             * 获取变量在 variableList 中的 index
+             * 注意:非 item.index
+             * @param {String} key 变量的 key
+             */
+            getSortIndex (key) {
+                return this.variableList.findIndex(m => m.key === key)
+            },
+            /**
              * 编辑变量
              * @param {String} key 变量key值
              * @param {String} version 变量版本
@@ -317,10 +340,10 @@
                     this.theKeyOfEditing = key
                     this.theVersionOfEditing = version
                 }
-
                 this.$emit('variableDataChanged')
-                const sysVarLen = !this.isHideSystemVar ? this.systemConstantsList.length : 0
-                this.scrollPanelToView(sysVarLen + index)
+
+                const sortIndex = this.getSortIndex(key)
+                this.scrollPanelToView(sortIndex)
             },
             /**
              * 变量顺序拖拽
@@ -344,7 +367,7 @@
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
                 // 滚到到底部
-                const allVarLen = (!this.isHideSystemVar ? this.systemConstantsList.length : 0) + this.constantsArray.length
+                const allVarLen = this.variableList.length - 1
                 this.scrollPanelToView(allVarLen)
             },
             /**
@@ -397,7 +420,7 @@
             // 变量列表滚动监听
             handleVariableListScroll (event) {
                 setTimeout(() => {
-                    const itemHeight = document.querySelector('.global-variable-content .variable-item').getBoundingClientRect().height
+                    const itemHeight = document.querySelector('.global-variable-content .variable-item .variable-content').getBoundingClientRect().height
                     let sortIndex = 0
                     if (!this.theKeyOfEditing) { // new var
                         sortIndex = this.variableList.length
@@ -416,13 +439,38 @@
                 this.$emit('changeVariableEditing', val)
                 // 编辑变量、新建变量监听滚动判断是否显示浮动 title
                 if (val) {
+                    this.theKeyOfViewCited = ''
                     this.addContentScroll()
                 } else {
+                    this.isVarTipsShow = false
                     this.removeContentScroll()
                 }
             },
             onBeforeClose () {
                 this.$emit('onColseTab', 'globalVariableTab')
+            },
+            onCitedNodeClick (nodeId) {
+                this.$emit('onCitedNodeClick', nodeId)
+            },
+            /**
+             * 展示引用节点列表
+             * @param {String} key 变量 key
+             * @param {Number} nums 变量被引用次数
+             */
+            onViewCitedList (key, nums) {
+                if (!nums) {
+                    this.theKeyOfViewCited = ''
+                    return
+                }
+                if (this.theKeyOfViewCited === key) {
+                    this.theKeyOfViewCited = ''
+                    return
+                }
+                this.onChangeEdit(false)
+                this.theKeyOfViewCited = key
+            },
+            onClickPin () {
+                this.$emit('update:isFixedVarMenu', !this.isFixedVarMenu)
             }
         }
     }
@@ -462,6 +510,30 @@ $localBorderColor: #dcdee5;
         cursor: pointer;
         &:hover {
             color:#f4aa1a;
+        }
+        &.quote-info {
+            margin-left: 0px;
+        }
+    }
+    .panel-fixed-pin {
+        position: absolute;
+        top: 16px;
+        right: 30px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        font-size: 14px;
+        text-align: center;
+        color: #999999;
+        cursor: pointer;
+        z-index: 1;
+        &:hover {
+            color: #707379;
+        }
+        &.actived {
+            color: #52699d;
         }
     }
     .global-variable-content {
