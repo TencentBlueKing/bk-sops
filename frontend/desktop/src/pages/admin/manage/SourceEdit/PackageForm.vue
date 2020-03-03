@@ -168,14 +168,15 @@
                                             <td
                                                 :class="{ 'error-border': errors.first('modules' + index) }"
                                                 class="td-with-input">
-                                                <input
-                                                    type="text"
-                                                    class="table-input"
+                                                <textarea
+                                                    class="table-textarea"
+                                                    row="3"
                                                     :name="'modules' + index"
                                                     :placeholder="i18n.importPlaceholder"
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
+                                                </textarea>
                                                 <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td>
@@ -267,7 +268,7 @@
                     detail: gettext('详细信息'),
                     module: gettext('模块配置'),
                     placeholder: gettext('请输入'),
-                    importPlaceholder: gettext('请输入模块绝对路径，如a.b.c，多个用,分隔'),
+                    importPlaceholder: gettext('请输入模块绝对路径，如a.b.c，多个用,或换行符分隔'),
                     subModule: gettext('子模块名称'),
                     version: gettext('版本'),
                     importModule: gettext('导入模块'),
@@ -331,7 +332,7 @@
                     values.push({
                         key: key,
                         version: pkg.version,
-                        modules: Array.isArray(pkg.modules) ? pkg.modules.join(',') : pkg.modules
+                        modules: Array.isArray(pkg.modules) ? pkg.modules.join('\n') : pkg.modules
                     })
                 }
                 return values
@@ -342,10 +343,16 @@
             getPackages () {
                 const packages = {}
                 this.packageValues.forEach(item => {
+                    let modules
+                    if (Array.isArray(item.modules)) {
+                        modules = item.modules
+                    } else {
+                        modules = item.modules.replace('/\,/g', '\n').split('\n').filter(item => item.trim() !== '')
+                    }
                     if (item.key) {
                         packages[item.key] = {
                             version: item.version,
-                            modules: Array.isArray(item.modules) ? item.modules : item.modules.split(',')
+                            modules
                         }
                     }
                 })
@@ -422,6 +429,7 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/scrollbar.scss';
     @import '@/scss/mixins/input-error.scss';
     /deep/ .bk-select {
         background-color: #ffffff;
@@ -632,7 +640,8 @@
                 width: 50%;
             }
         }
-        input[aria-invalid="true"] + .common-error-tip {
+        input[aria-invalid="true"] + .common-error-tip,
+        textarea[aria-invalid="true"] + .common-error-tip {
             display: inline-block;
         }
         .common-error-tip {
@@ -660,6 +669,14 @@
         color: #333333;
         border: none;
         outline: none;
+    }
+    .table-textarea {
+        width: 100%;
+        color: #333333;
+        border: none;
+        outline: none;
+        resize: vertical;
+        @include scrollbar;
     }
     .add-module {
         height: 40px;
