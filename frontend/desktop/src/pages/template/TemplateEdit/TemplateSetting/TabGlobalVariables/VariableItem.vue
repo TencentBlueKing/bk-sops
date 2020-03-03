@@ -94,11 +94,13 @@
             <VariableEdit
                 ref="editVariablePanel"
                 :variable-data="variableData"
+                :variable-list="variableList"
                 :variable-type-list="variableTypeList"
                 :is-system-var="isSystemVar"
                 :is-new-variable="false"
                 :is-hide-system-var="isHideSystemVar"
                 :system-constants="systemConstants"
+                :var-operating-tips="varOperatingTips"
                 @scrollPanelToView="scrollPanelToView"
                 @onChangeEdit="onChangeEdit">
             </VariableEdit>
@@ -106,7 +108,8 @@
         <div
             v-if="isShowVariableEdit && isSystemVar">
             <SystemVariableEdit
-                :variable-data="variableData">
+                :variable-data="variableData"
+                :var-operating-tips="varOperatingTips">
             </SystemVariableEdit>
         </div>
     </li>
@@ -121,7 +124,19 @@
             VariableEdit,
             SystemVariableEdit
         },
-        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList', 'isHideSystemVar', 'systemConstants', 'constantsCited'],
+        props: [
+            'outputs',
+            'constant',
+            'variableList',
+            'variableData',
+            'constantsCited',
+            'varOperatingTips',
+            'theKeyOfEditing',
+            'isHideSystemVar',
+            'systemConstants',
+            'variableTypeList',
+            'isVariableEditing'
+        ],
         data () {
             return {
                 i18n: {
@@ -136,6 +151,9 @@
             }
         },
         computed: {
+            isSystemVar () {
+                return this.constant.source_type === 'system'
+            },
             isShowVariableEdit () {
                 return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
             }

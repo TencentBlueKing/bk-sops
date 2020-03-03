@@ -10,46 +10,50 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="variable-edit-wrapper" @click="e => e.stopPropagation()">
-        <ul class="form-list">
-            <!-- 名称 -->
-            <li class="form-item clearfix">
-                <label class="required">{{ i18n.name }}</label>
-                <div class="form-content">
-                    <bk-input
-                        name="variableName"
-                        :value="variableData.name"
-                        :disabled="true">
-                    </bk-input>
-                </div>
-            </li>
-            <!-- key -->
-            <li class="form-item clearfix">
-                <label class="required">KEY</label>
-                <div class="form-content">
-                    <bk-input
-                        name="variableKey"
-                        :value="variableData.key"
-                        :disabled="true">
-                    </bk-input>
-                </div>
-            </li>
-            <!-- 引用节点 -->
-            <li class="form-item clearfix">
-                <label class="form-label">{{ i18n.cited }}</label>
-                <div class="form-content">
-                    <bk-select
-                        :clearable="false">
-                        <bk-option
-                            v-for="(option, index) in currConstantsCited"
-                            :key="index"
-                            :id="option.name"
-                            :name="`${option.name}（${option.numbers}）`">
-                        </bk-option>
-                    </bk-select>
-                </div>
-            </li>
-        </ul>
+    <div>
+        <div class="variable-operation-tips"> {{ varOperatingTips }} </div>
+        <div class="variable-edit-wrapper" @click="e => e.stopPropagation()">
+            <ul class="form-list">
+                <!-- 名称 -->
+                <li class="form-item clearfix">
+                    <label class="required">{{ i18n.name }}</label>
+                    <div class="form-content">
+                        <bk-input
+                            name="variableName"
+                            :value="variableData.name"
+                            :disabled="true">
+                        </bk-input>
+                    </div>
+                </li>
+                <!-- key -->
+                <li class="form-item clearfix">
+                    <label class="required">KEY</label>
+                    <div class="form-content">
+                        <bk-input
+                            name="variableKey"
+                            :value="variableData.key"
+                            :disabled="true">
+                        </bk-input>
+                    </div>
+                </li>
+                <!-- 显示/隐藏 -->
+                <li class="form-item clearfix">
+                    <label class="required">{{ i18n.show }}</label>
+                    <div class="form-content">
+                        <bk-select
+                            :value="variableData.show_type"
+                            :disabled="true">
+                            <bk-option
+                                v-for="(option, index) in showTypeList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 <script>
@@ -57,14 +61,18 @@
     import { mapState } from 'vuex'
     export default {
         name: 'SystemVariableEdit',
-        props: ['variableData'],
+        props: ['variableData', 'varOperatingTips'],
         data () {
             return {
                 i18n: {
                     name: gettext('名称'),
-                    desc: gettext('说明'),
+                    show: gettext('显示'),
                     cited: gettext('引用节点')
-                }
+                },
+                showTypeList: [
+                    { id: 'show', name: gettext('显示') },
+                    { id: 'hide', name: gettext('隐藏') }
+                ]
             }
         },
         computed: {
@@ -102,6 +110,16 @@ $localBorderColor: #d8e2e7;
     background: $whiteThinBg;
     border-bottom: 1px solid $localBorderColor;
     cursor: auto;
+}
+.variable-operation-tips {
+    height: 43px;
+    line-height: 43px;
+    color: #63656e;
+    font-size: 12px;
+    text-align: center;
+    background: #f0f1f5;
+    border-top: 1px solid #dcdee5;
+    border-bottom: 1px solid #dcdee5;
 }
 .error-msg {
     margin-top: 10px;

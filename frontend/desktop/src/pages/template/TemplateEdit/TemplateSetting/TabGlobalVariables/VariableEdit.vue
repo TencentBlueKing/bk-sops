@@ -11,7 +11,7 @@
 */
 <template>
     <div class="variable-edit-wrapper" @click="e => e.stopPropagation()">
-        <div class="variable-operation-tips"> {{ isNewVariable ? i18n.newTips : i18n.editTips }} </div>
+        <div class="variable-operation-tips"> {{ varOperatingTips }} </div>
         <div class="variable-edit-content">
             <ul class="form-list">
                 <!-- 名称 -->
@@ -179,7 +179,16 @@
         components: {
             RenderForm
         },
-        props: ['variableData', 'isNewVariable', 'variableTypeList', 'systemConstants', 'isHideSystemVar', 'isSystemVar'],
+        props: [
+            'variableData',
+            'variableList',
+            'isNewVariable',
+            'isSystemVar',
+            'variableTypeList',
+            'systemConstants',
+            'isHideSystemVar',
+            'varOperatingTips'
+        ],
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
@@ -194,8 +203,6 @@
                     show: gettext('显示'),
                     save: gettext('保存'),
                     cancel: gettext('取消'),
-                    newTips: gettext('新建全局变量'),
-                    editTips: gettext('编辑全局变量'),
                     cited: gettext('引用节点')
                 },
                 atomConfigLoading: false,
@@ -263,7 +270,7 @@
                 }
             },
             version () {
-                return this.isNewVariable ? 'legacy' : this.variableData.version
+                return this.isNewVariable ? 'legacy' : (this.variableData.version || 'legacy')
             },
             // 变量 Key 校验规则
             variableKeyRule () {
@@ -583,11 +590,11 @@ $localBorderColor: #d8e2e7;
     padding-bottom: 40px;
 }
 .variable-operation-tips {
-    padding-left: 47px;
     height: 43px;
     line-height: 43px;
     color: #63656e;
     font-size: 12px;
+    text-align: center;
     background: #f0f1f5;
     border-top: 1px solid #dcdee5;
     border-bottom: 1px solid #dcdee5;

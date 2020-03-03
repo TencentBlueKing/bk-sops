@@ -68,27 +68,11 @@
                         <span class="col-operation t-head">{{ i18n.operation }}</span>
                         <span class="col-delete t-head"></span>
                     </div>
+                    <div v-if="isVarTipsShow" class="variable-operating-tips">{{ varOperatingTips }}</div>
                     <ul class="variable-list" ref="variableList">
-                        <template v-if="!isHideSystemVar">
+                        <draggable class="variable-drag" v-model="variableList" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
                             <VariableItem
-                                v-for="(constant, index) in systemConstantsList"
-                                class="system-constants-item"
-                                :key="index"
-                                :outputs="outputs"
-                                :is-variable-editing="isVariableEditing"
-                                :constant="constant"
-                                :constants-cited="constantsCited"
-                                :variable-data="variableData"
-                                :variable-type-list="variableTypeList"
-                                :the-key-of-editing="theKeyOfEditing"
-                                :is-system-var="true"
-                                @onEditVariable="onEditVariable"
-                                @onChangeVariableOutput="onChangeVariableOutput"
-                                @onDeleteVariable="onDeleteVariable" />
-                        </template>
-                        <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
-                            <VariableItem
-                                v-for="(constant, index) in constantsArray"
+                                v-for="(constant, index) in variableList"
                                 :ref="`variableKey_${constant.key}`"
                                 :key="index"
                                 :outputs="outputs"
@@ -96,10 +80,12 @@
                                 :constant="constant"
                                 :constants-cited="constantsCited"
                                 :variable-data="variableData"
+                                :variable-list="variableList"
                                 :variable-type-list="variableTypeList"
                                 :the-key-of-editing="theKeyOfEditing"
                                 :is-hide-system-var="isHideSystemVar"
                                 :system-constants="systemConstants"
+                                :var-operating-tips="varOperatingTips"
                                 @onChangeEdit="onChangeEdit"
                                 @onEditVariable="onEditVariable"
                                 @onChangeVariableOutput="onChangeVariableOutput"
@@ -186,7 +172,8 @@
                 },
                 theKeyOfEditing: '',
                 constantsArray: [],
-                deleteConfirmDialogShow: false
+                deleteConfirmDialogShow: false,
+                isVarTipsShow: false
             }
         },
         computed: {
@@ -225,6 +212,33 @@
                 }
                 return this.constantsArray.length === 0 ? (this.isHideSystemVar || this.systemConstants.length === 0) : false
             },
+            /**
+             * 变量列表（系统变量+普通变量）
+             * 系统变量：index范围 （-1 => -n）
+             * 普通变量：index范围 （0 => n）
+             */
+            variableList: {
+                get () {
+                    if (this.isHideSystemVar) {
+                        return this.getConstantsArray(this.constants)
+                    }
+                    return [
+                        ...this.getConstantsArray(this.systemConstants),
+                        ...this.getConstantsArray(this.constants)
+                    ]
+                },
+                set (val) {
+                    this.constantsArray = val
+                }
+            },
+            // 操作变量提示 title
+            varOperatingTips () {
+                const { new: newText, edit, global_varibles } = this.i18n
+                if (this.theKeyOfEditing) {
+                    return edit + global_varibles
+                }
+                return newText + global_varibles
+            },
             systemConstantsList () {
                 const list = []
                 Object.keys(this.systemConstants).forEach(key => {
@@ -244,14 +258,14 @@
             constants: {
                 handler () {
                     this.theKeyOfEditing = ''
-                    this.constantsArray = this.getConstantsArray()
+                    this.constantsArray = this.getConstantsArray(this.constants)
                     this.onChangeEdit(false)
                 },
                 deep: true
             }
         },
         created () {
-            this.constantsArray = this.getConstantsArray()
+            this.constantsArray = this.getConstantsArray(this.constants)
         },
         methods: {
             ...mapMutations('template/', [
@@ -263,10 +277,10 @@
                 'setOvertime',
                 'setCategory'
             ]),
-            getConstantsArray () {
+            getConstantsArray (obj) {
                 const arrayList = []
-                for (const cKey in this.constants) {
-                    const constant = tools.deepClone(this.constants[cKey])
+                for (const cKey in obj) {
+                    const constant = tools.deepClone(obj[cKey])
                     arrayList.push(constant)
                 }
                 const sortedList = arrayList.sort((a, b) => a.index - b.index)
@@ -370,8 +384,42 @@
             onCancel () {
                 this.deleteConfirmDialogShow = false
             },
+            // 添加滚动监听
+            addContentScroll () {
+                const variableList = document.querySelector('.global-variable-content .variable-list')
+                variableList && variableList.addEventListener('scroll', this.handleVariableListScroll)
+            },
+            // 移除滚动监听
+            removeContentScroll () {
+                const variableList = document.querySelector('.global-variable-content .variable-list')
+                variableList && variableList.removeEventListener('scroll', this.handleVariableListScroll)
+            },
+            // 变量列表滚动监听
+            handleVariableListScroll (event) {
+                setTimeout(() => {
+                    const itemHeight = document.querySelector('.global-variable-content .variable-item').getBoundingClientRect().height
+                    let sortIndex = 0
+                    if (!this.theKeyOfEditing) { // new var
+                        sortIndex = this.variableList.length
+                    } else { // edit var
+                        this.variableList.forEach((m, i) => {
+                            if (m.key === this.variableData.key) {
+                                sortIndex = i + 1
+                                return true
+                            }
+                        })
+                    }
+                    this.isVarTipsShow = event.srcElement.scrollTop > sortIndex * itemHeight
+                }, 100)
+            },
             onChangeEdit (val) {
                 this.$emit('changeVariableEditing', val)
+                // 编辑变量、新建变量监听滚动判断是否显示浮动 title
+                if (val) {
+                    this.addContentScroll()
+                } else {
+                    this.removeContentScroll()
+                }
             },
             onBeforeClose () {
                 this.$emit('onColseTab', 'globalVariableTab')
@@ -417,6 +465,7 @@ $localBorderColor: #dcdee5;
         }
     }
     .global-variable-content {
+        position: relative;
         margin: 0 28px 30px;
         height: calc(100% - 82px);
         border: 1px solid $localBorderColor;
@@ -473,12 +522,18 @@ $localBorderColor: #dcdee5;
             line-height: 40px;
         }
     }
-    .variable-operation-tips {
-        padding-left: 47px;
+    .variable-operating-tips {
+        position: absolute;
+        left: 0;
+        top: 42px;
+        z-index: 1;
+        width: 100%;
         height: 43px;
         line-height: 43px;
         color: #63656e;
         font-size: 12px;
+        text-align: center;
+        border-bottom: 1px solid #dcdee5;
         background: #f0f1f5;
     }
     .variable-list {
