@@ -19,12 +19,15 @@
         <div class="data-table">
             <bk-table :data="colsData">
                 <bk-table-column
-                    v-for="item in tbCols"
-                    :key="item.tag_code"
-                    :label="item.tag_code"
-                    :prop="item.tag_code">
+                    v-for="item in cols"
+                    :key="item.config.tag_code"
+                    :label="item.config.attrs.name"
+                    :width="item.width"
+                    :prop="item.config.tag_code"
+                    :fixed="item.config.tag_code === 'tb_btns' ? 'right' : false"
+                    :align="item.config.tag_code === 'tb_btns' ? 'center' : 'left'">
                     <template slot-scope="props">
-                        <template v-if="item.tag_code === 'tb_btns'">
+                        <template v-if="item.config.tag_code === 'tb_btns'">
                             <render-form
                                 :scheme="props.row.config"
                                 :form-option="cellOption"
@@ -43,6 +46,9 @@
                         </template>
                     </template>
                 </bk-table-column>
+                <template v-slot:empty>
+                    <no-data></no-data>
+                </template>
             </bk-table>
         </div>
     </div>
@@ -50,22 +56,25 @@
 <script >
     import '@/utils/i18n.js'
     import RenderForm from '../RenderForm.vue'
-    import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ResourceList',
         components: {
-            RenderForm
+            RenderForm,
+            NoData
         },
         props: {
+            cols: {
+                type: Array
+            },
             config: { // 资源筛选表单值
                 type: Object,
                 default () {
                     return {}
                 }
             },
-            tableData: { // 表格值
+            value: { // 表格值
                 type: Array,
                 default () {
                     return []
@@ -79,9 +88,8 @@
                     showHook: false,
                     showLabel: false
                 },
-                originalCols: [], // 表格列原始配置项
-                tbCols: [], // 增加模块列后的表格配置项
                 editRow: '',
+                colsData: this.value,
                 i18n: {
                     resourceFilter: gettext('资源筛选'),
                     export: gettext('导出'),
@@ -93,79 +101,60 @@
                 }
             }
         },
-        mounted () {
-            this.getColsConfig()
-        },
+        watch: {},
+        mounted () {},
         methods: {
-            ...mapActions([
-                'getCCSearchColAttrSet'
-            ]),
-            async getColsConfig () {
-                try {
-                    this.colsLoading = true
-                    const resp = await this.getCCSearchColAttrSet()
-                    if (resp.result) {
-                        this.originalCols = resp.data
-                    } else {
-                        errorHandler(resp, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
-                } finally {
-                    this.colsLoading = false
-                }
-            },
             exportData () {
-                const tableHeader = []
-                const tableData = []
-                const filterVal = []
-                for (let i = 0; i < this.columns.length; i++) {
-                    const tagCode = this.columns[i].tag_code
-                    const name = this.columns[i].attrs.name
-                    tableHeader.push(name)
-                    filterVal.push(tagCode)
-                }
-                tableData.push(tableHeader)
-                const list = this.tableValue
-                for (let i = 0; i < list.length; i++) {
-                    const row = []
-                    for (let j = 0; j < filterVal.length; j++) {
-                        row.push(list[i][filterVal[j]])
-                    }
-                    tableData.push(row)
-                }
-                const wsName = 'Sheet1'
-                const wb = XLSX.utils.book_new()
-                const ws = XLSX.utils.aoa_to_sheet(tableData)
-                XLSX.utils.book_append_sheet(wb, ws, wsName)
-                XLSX.writeFile(wb, 'tableData.xlsx')
+                // const tableHeader = []
+                // const tableData = []
+                // const filterVal = []
+                // for (let i = 0; i < this.columns.length; i++) {
+                //     const tagCode = this.columns[i].tag_code
+                //     const name = this.columns[i].attrs.name
+                //     tableHeader.push(name)
+                //     filterVal.push(tagCode)
+                // }
+                // tableData.push(tableHeader)
+                // const list = this.tableValue
+                // for (let i = 0; i < list.length; i++) {
+                //     const row = []
+                //     for (let j = 0; j < filterVal.length; j++) {
+                //         row.push(list[i][filterVal[j]])
+                //     }
+                //     tableData.push(row)
+                // }
+                // const wsName = 'Sheet1'
+                // const wb = XLSX.utils.book_new()
+                // const ws = XLSX.utils.aoa_to_sheet(tableData)
+                // XLSX.utils.book_append_sheet(wb, ws, wsName)
+                // XLSX.writeFile(wb, 'tableData.xlsx')
             },
             importData () {
-                const types = file.name.split('.')[1]
-                const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
-                if (!fileType) {
-                    errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
-                    return
-                }
-                this.file2Xce(file).then(tabJson => {
-                    if (tabJson && tabJson.length > 0) {
-                        // 首先做一个name与tag_code的对应字典
-                        const nameToTagCode = {}
-                        for (let i = 0; i < this.columns.length; i++) {
-                            nameToTagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
-                        }
-                        // 循环进行对比，如果发现与表头一致的name，就将其替换成tag_code
-                        const excelValue = tabJson[0]['sheet']
-                        for (let i = 0; i < excelValue.length; i++) {
-                            for (const key in excelValue[i]) {
-                                const newKey = nameToTagCode[key]
-                                excelValue[i][newKey] = excelValue[i][key]
-                                delete excelValue[i][key]
-                            }
-                        }
-                        this._set_value(tabJson[0]['sheet'])
-                    }
-                })
+                // const types = file.name.split('.')[1]
+                // const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
+                // if (!fileType) {
+                //     errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
+                //     return
+                // }
+                // this.file2Xce(file).then(tabJson => {
+                //     if (tabJson && tabJson.length > 0) {
+                //         // 首先做一个name与tag_code的对应字典
+                //         const nameToTagCode = {}
+                //         for (let i = 0; i < this.columns.length; i++) {
+                //             nameToTagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
+                //         }
+                //         // 循环进行对比，如果发现与表头一致的name，就将其替换成tag_code
+                //         const excelValue = tabJson[0]['sheet']
+                //         for (let i = 0; i < excelValue.length; i++) {
+                //             for (const key in excelValue[i]) {
+                //                 const newKey = nameToTagCode[key]
+                //                 excelValue[i][newKey] = excelValue[i][key]
+                //                 delete excelValue[i][key]
+                //             }
+                //         }
+                //         this._set_value(tabJson[0]['sheet'])
+                //     }
+                // })
             },
             rowEditClick (row) {
                 this.editRow = row.index

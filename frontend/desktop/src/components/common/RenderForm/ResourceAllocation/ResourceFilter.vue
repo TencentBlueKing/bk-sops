@@ -14,7 +14,7 @@
         <header>
             <span class="title">{{ i18n.title }}</span>
             <div class="btns">
-                <bk-button theme="primary">{{ i18n.confirm }}</bk-button>
+                <bk-button theme="primary" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
                 <bk-button
                     theme="default"
                     @click="$emit('update:showFilter', false)">
@@ -28,7 +28,11 @@
                     <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
                 </bk-form-item>
                 <bk-form-item :label="i18n.set" :required="true" property="set">
-                    <bk-select ref="setSelect" :value="formData.set.id" ext-popover-cls="common-bk-select-hide-option">
+                    <bk-select
+                        ref="setSelect"
+                        :value="formData.set.id"
+                        :clearable="false"
+                        ext-popover-cls="common-bk-select-hide-option">
                         <template v-if="formData.set.id">
                             <bk-option
                                 v-for="item in [formData.set]"
@@ -53,7 +57,8 @@
                     <bk-select
                         multiple
                         ext-popover-cls="common-bk-select-hide-option"
-                        :value="formData.resource|filterResourceId">
+                        :value="formData.resource|filterResourceId"
+                        @clear="onResourceClear">
                         <template v-if="formData.resource.length > 0">
                             <bk-option
                                 v-for="item in formData.resource"
@@ -63,8 +68,8 @@
                             </bk-option>
                         </template>
                         <el-tree
+                            ref="resourceTree"
                             node-key="id"
-                            v-model="formData.resouce"
                             default-expand-all
                             show-checkbox
                             check-strictly
@@ -75,30 +80,56 @@
                     </bk-select>
                 </bk-form-item>
             </bk-form>
-            <bk-tab class="module-tabs">
-                <bk-tab-panel
-                    v-for="(moduleItem, moduleIndex) in moduleList"
-                    :key="moduleItem.name"
-                    :active.sync="activeTab">
-                    <bk-form :model="formData.modules[moduleIndex]">
-                        <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
-                            <bk-input v-model="formData.modules[moduleIndex].count" type="number" :min="0"></bk-input>
-                        </bk-form-item>
-                        <bk-form-item :label="i18n.reuse" property="isReuse">
-                            <bk-switcher v-model="formData.modules[moduleIndex].isReuse"></bk-switcher>
-                        </bk-form-item>
-                        <bk-form-item :label="i18n.reuseModule" property="reuseModule">
-                            <bk-select v-model="formData.modules[moduleIndex]">
-                                <bk-option
-                                    v-for="item in reuseModules"
-                                    :key="item.name"
-                                    :id="item.name">
-                                </bk-option>
-                            </bk-select>
-                        </bk-form-item>
-                    </bk-form>
-                </bk-tab-panel>
-            </bk-tab>
+            <div class="module-wrapper" v-bkloading="{ isLoading: pending.module, opacity: 1 }">
+                <bk-tab v-if="moduleList.length > 0" class="module-tabs" :active.sync="activeTab">
+                    <bk-tab-panel
+                        v-for="(moduleItem, moduleIndex) in moduleList"
+                        :key="moduleItem.name"
+                        :name="moduleItem.bk_module_id"
+                        :label="moduleItem.bk_module_name">
+                        <bk-form :model="formData.modules[moduleIndex]">
+                            <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
+                                <bk-input v-model="formData.modules[moduleIndex].count" type="number" :min="0"></bk-input>
+                            </bk-form-item>
+                            <bk-form-item :label="i18n.reuse" property="isReuse">
+                                <bk-switcher
+                                    v-model="formData.modules[moduleIndex].isReuse"
+                                    theme="primary"
+                                    size="small"
+                                    @change="onChangeReuse($event, formData.modules[moduleIndex])">
+                                </bk-switcher>
+                            </bk-form-item>
+                            <bk-form-item :label="i18n.reuseModule" property="reuse" v-if="formData.modules[moduleIndex].isReuse">
+                                <bk-select v-model="formData.modules[moduleIndex].reuse">
+                                    <bk-option
+                                        v-for="item in canReusedModules"
+                                        :key="item.bk_module_id"
+                                        :name="item.bk_module_name"
+                                        :id="item.bk_module_id">
+                                    </bk-option>
+                                </bk-select>
+                            </bk-form-item>
+                            <div class="condition-wrapper" v-else>
+                                <select-condition
+                                    ref="filterConditions"
+                                    :label="i18n.filter"
+                                    :condition-fields="conditions"
+                                    :conditions="formData.modules[moduleIndex].filters"
+                                    @change="updateCondition('filters', $event, formData.modules[moduleIndex])">
+                                </select-condition>
+                                <select-condition
+                                    ref="excludeConditions"
+                                    :label="i18n.exclude"
+                                    :condition-fields="conditions"
+                                    :conditions="formData.modules[moduleIndex].excludes"
+                                    @change="updateCondition('excludes', $event, formData.modules[moduleIndex])">
+                                </select-condition>
+                            </div>
+                        </bk-form>
+                    </bk-tab-panel>
+                </bk-tab>
+                <no-data class="module-empty" v-else></no-data>
+            </div>
         </section>
     </div>
 </template>
@@ -106,6 +137,8 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import SelectCondition from '../IpSelector/SelectCondition.vue'
 
     export default {
         name: 'ResourceFilter',
@@ -114,10 +147,19 @@
                 return data.map(item => item.id)
             }
         },
+        components: {
+            SelectCondition,
+            NoData
+        },
+        props: {
+            config: {
+                type: Object
+            }
+        },
         data () {
             return {
                 formData: {
-                    clusterCount: '',
+                    clusterCount: 0,
                     set: {},
                     resource: [],
                     modules: []
@@ -143,14 +185,22 @@
                     resourceNum: gettext('主机数量'),
                     reuse: gettext('复用其他模块机器'),
                     reuseModule: gettext('复用模块'),
-                    filter: gettext('主机筛选条件（同时满足）'),
-                    exclude: gettext('主机排除条件（同时满足）')
+                    filter: gettext('主机筛选条件'),
+                    exclude: gettext('主机排除条件')
                 }
             }
         },
         computed: {
-            reuseModules () {
-                return this.moduleList
+            canReusedModules (id) {
+                return this.moduleList.filter((item, index) => {
+                    if (
+                        item.bk_module_id === this.activeTab
+                        || this.formData.modules[index].reuse === this.activeTab
+                    ) {
+                        return false
+                    }
+                    return true
+                })
             }
         },
         mounted () {
@@ -200,7 +250,18 @@
                     this.pending.set = true
                     const resp = await this.getCCSearchModule()
                     if (resp.result) {
-                        this.moduleList = resp.data
+                        this.moduleList = resp.data.info
+                        resp.data.info.forEach((item, index) => {
+                            this.$set(this.formData.modules, index, {
+                                count: 0,
+                                name: item.bk_module_name,
+                                id: item.bk_module_id,
+                                isReuse: false,
+                                reuse: '',
+                                filters: [],
+                                excludes: []
+                            })
+                        })
                     } else {
                         errorHandler(resp, this)
                     }
@@ -215,7 +276,12 @@
                     this.pending.condition = true
                     const resp = await this.getCCSearchObjAttrHost()
                     if (resp.result) {
-                        this.conditions = resp.data
+                        this.conditions = resp.data.map(item => {
+                            return {
+                                id: item.value,
+                                name: item.text
+                            }
+                        })
                     } else {
                         errorHandler(resp, this)
                     }
@@ -229,9 +295,55 @@
                 this.formData.set = checked
                 this.$refs.setTree.setCheckedNodes([checked])
                 this.$refs.setSelect.close()
+                this.getModule({
+                    bk_set_id: checked.id
+                })
+            },
+            // 清空所选主机资源
+            onResourceClear () {
+                this.$refs.resourceTree.setCheckedNodes([])
             },
             onResourceSelect (checked, data) {
                 this.formData.resource = data.checkedNodes
+            },
+            onChangeReuse (val, data) {
+                if (val) {
+                    data.filters = []
+                    data.excludes = []
+                } else {
+                    data.reuse = ''
+                }
+            },
+            updateCondition (type, value, data) {
+                data[type] = value
+            },
+            onConfigConfirm () {
+                // @todo 校验
+                const { clusterCount, modules, resource, set } = this.formData
+                const hostResources = resource.map(item => {
+                    return {
+                        bk_module_id: item.id,
+                        bk_module_name: item.name
+                    }
+                })
+                const moduleDetail = modules.map(item => {
+                    const { count, name, reuse, filters, excludes } = item
+                    return {
+                        name,
+                        filters,
+                        excludes,
+                        host_count: count,
+                        reuse_module: reuse
+                    }
+                })
+                const config = {
+                    set_count: clusterCount,
+                    set_template_id: set.id,
+                    host_resources: hostResources,
+                    module_detail: moduleDetail
+                }
+                this.$emit('update', config)
+                this.$emit('update:showFilter', false)
             }
         }
     }
@@ -256,9 +368,13 @@
         padding: 20px;
         border: 1px solid #dcdee5;
         border-radius: 2px;
-        .module-tabs {
+        .module-wrapper {
             margin-top: 20px;
+            min-height: 450px;
         }
+    }
+    .module-empty {
+        padding-top: 185px;
     }
 </style>
 <style lang="scss">
