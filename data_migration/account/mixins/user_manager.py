@@ -11,13 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
+from blueapps.account.models import User
 
-from django.conf import settings
 
-ver_settings = importlib.import_module(
-    'data_migration.conf.sites.%s.ver_settings' % settings.RUN_VER)
+class UserManagerMixin:
+    def update_or_create(self, defaults=None, **kwargs):
+        props = []
 
-for _setting in dir(ver_settings):
-    if _setting.upper() == _setting:
-        locals()[_setting] = getattr(ver_settings, _setting)
+        for k in defaults.keys():
+            if k in User.custom_fields:
+                props.append({'key': k, 'value': defaults.pop(k)})
+        obj, created = super(UserManagerMixin, self).update_or_create(
+            defaults, **kwargs)
+        for p in props:
+            obj.set_property(p['key'], p['value'])
+        return obj, created

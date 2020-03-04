@@ -11,13 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
 
-from django.conf import settings
+from blueapps.account import models
 
-ver_settings = importlib.import_module(
-    'data_migration.conf.sites.%s.ver_settings' % settings.RUN_VER)
+from data_migration.account.mixins import UserCompatibleMixin, UserManagerMixin
 
-for _setting in dir(ver_settings):
-    if _setting.upper() == _setting:
-        locals()[_setting] = getattr(ver_settings, _setting)
+
+def patch():
+    models.User.__bases__ = (
+        models.AbstractBaseUser,
+        models.PermissionsMixin,
+        UserCompatibleMixin
+    )
+
+    models.UserManager.__bases__ = (
+        UserManagerMixin,
+        models.BaseUserManager,
+    )

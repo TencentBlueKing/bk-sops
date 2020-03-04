@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
 
 from django.conf import settings
+from django.utils.module_loading import import_string
 
-ver_settings = importlib.import_module(
-    'data_migration.conf.sites.%s.ver_settings' % settings.RUN_VER)
+from data_migration.account.mixins.user_manager import UserManagerMixin  # noqa
 
-for _setting in dir(ver_settings):
-    if _setting.upper() == _setting:
-        locals()[_setting] = getattr(ver_settings, _setting)
+compatible_mixin_path = 'data_migration.account.mixins.sites.{VER}.user.BkUserCompatibleMixin'.format(
+    VER=settings.RUN_VER)
+
+UserCompatibleMixin = import_string(compatible_mixin_path)  # noqa

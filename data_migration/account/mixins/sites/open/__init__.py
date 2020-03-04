@@ -10,14 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-import importlib
-
-from django.conf import settings
-
-ver_settings = importlib.import_module(
-    'data_migration.conf.sites.%s.ver_settings' % settings.RUN_VER)
-
-for _setting in dir(ver_settings):
-    if _setting.upper() == _setting:
-        locals()[_setting] = getattr(ver_settings, _setting)
