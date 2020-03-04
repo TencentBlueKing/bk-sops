@@ -1,21 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
-
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.account.forms import UserCreationForm
-from blueapps.account.models import User, UserProperty
+from blueapps.account.models import User
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -39,11 +27,4 @@ class UserAdmin(admin.ModelAdmin):
                     'is_superuser', 'last_login']
 
 
-class UserPropertyAdmin(admin.ModelAdmin):
-    list_display = ['user', 'key', 'value']
-    list_filter = ['user__username']
-    search_fields = ['user__username', 'key']
-
-
 admin.site.register(User, UserAdmin)
-admin.site.register(UserProperty, UserPropertyAdmin)

@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+"""
+发送短信工具文件，开发者可以直接调用此处的send_sms函数，屏蔽环境之间的差异
+"""
+
+
+from blueapps.utils import client
+from blueapps.account.conf import ConfFixture
+from blueapps.utils.esbclient import CustomComponentAPI
+
+
+def send_sms(user_list, content):
+    """
+    发送短信给指定的用户，
+    :param user_list: 用户列表，list
+    :param content: 消息内容
+    :return: True | raise Exception
+    """
+
+    # 1. 获取发送短信的函数实际句柄
+    sms_module = client.__getattr__(ConfFixture.SMS_CLIENT_MODULE)
+    sms_func = sms_module.__getattr__(ConfFixture.SMS_CLIENT_FUNC)
+
+    # 2. 拼接发送函数的内容
+    request_args = {
+        ConfFixture.SMS_CLIENT_USER_ARGS_NAME: ','.join(user_list),
+        ConfFixture.SMS_CLIENT_CONTENT_ARGS_NAME: content
+    }
+
+    # 3. 发送短信
+    if type(sms_func) == CustomComponentAPI:
+        result = sms_func.post(request_args)
+
+    else:
+        result = sms_func(request_args)
+
+    return result
