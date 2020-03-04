@@ -42,8 +42,12 @@ class Command(migrate.Command):
 
         if settings.RUN_VER == 'open' and not is_auth_finish:
             sys.stdout.write('remove init for auth is not finish.\n')
-            os.remove(target_init_path)
-            os.remove(target_init_pyc_path)
+            try:
+                os.remove(target_init_path)
+                os.remove(target_init_pyc_path)
+            except FileNotFoundError:
+                pass
+                
 
         sys.stdout.write('ready to execute the true migrate\n')
         super(Command, self).handle(*args, **options)
