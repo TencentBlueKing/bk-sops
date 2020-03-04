@@ -20,7 +20,7 @@ import django.utils.timezone
 import django.core.validators
 from django.conf import settings as django_settings
 from django.db import migrations, connection, transaction, models
-from django.db.migrations.recorder import MigrationRecorder
+from django.db.migrations.state import ModelState
 
 from data_migration.conf import settings
 from data_migration.utils import dictfetchall, old_uer_table_exist
@@ -244,13 +244,10 @@ class Migration(migrations.Migration):
     operations = []
 
     def apply(self, project_state, schema_editor, collect_sql=False):
-        with connection.cursor() as cursor:
-            recorder = MigrationRecorder(connection)
-            applied = recorder.applied_migrations()
-            for migration in applied:
-                if migration[0] == 'account' and migration[1] == '0001_initial':
-                    sys.stdout.write('add account model initial operations')
-                    self.operations.extend(self.model_operations)
+        tables = set(connection.introspection.table_names())
+        if 'account_user' not in tables:
+                sys.stdout.write('add account model initial operations\n')
+                self.operations.extend(self.model_operations)
 
         self.operations.extend(self.data_operations)
         return super(Migration, self).apply(project_state, schema_editor, collect_sql)
