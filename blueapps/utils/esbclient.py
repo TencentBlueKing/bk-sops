@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-全平台 esb-sdk 封装，依赖于 esb-sdk 包，但不依赖 sdk 的版本。
-sdk 中有封装好 cc.get_app_by_user 方法时，可直接按以前 sdk 的习惯调用
-
-from blueapps.utils import client
-client.cc.get_app_by_user()
-
-from blueapps.utils import backend_client
-b_client = backend_client(access_token="SfgcGlBHmPWttwlGd7nOLAbOP3TAOG")
-b_client.cc.get_app_by_user()
-
-当前版本 sdk 中未封装好，但 api 已经有 get_app_by_user 的时候。需要指定请求方法
-client.cc.get_app_by_user.get()
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
+Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
 """
 
 import collections
