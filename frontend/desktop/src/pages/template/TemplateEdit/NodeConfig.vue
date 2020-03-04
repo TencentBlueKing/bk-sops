@@ -909,15 +909,7 @@
                     return
                 }
                 if (settingPanel && this.isNodeConfigPanelShow) {
-                    // 节点配置面板 和 settingPanel 重叠
-                    if (clientX < 1920 && !dom.nodeContains(nodeConfig, e.target)) {
-                        this.subflowHasUpdate = false
-                        this.syncNodeDataToActivities()
-                    }
-                    // 节点配置面板 和 settingPanel 并排
-                    if (clientX >= 1920
-                        && !dom.nodeContains(settingPanel, e.target)
-                        && !dom.nodeContains(nodeConfig, e.target)) {
+                    if (!dom.nodeContains(settingPanel, e.target) && !dom.nodeContains(nodeConfig, e.target)) {
                         this.subflowHasUpdate = false
                         this.syncNodeDataToActivities()
                     }

@@ -26,12 +26,12 @@
                 </div>
             </template>
         </div>
-        <div class="setting-panel" v-show="showPanel">
+        <div class="setting-panel">
             <div class="panel-content">
                 <TabGlobalVariables
                     :is-show="activeTab === 'globalVariableTab'"
                     ref="globalVariable"
-                    class="panel-item"
+                    :class="['panel-item', { 'active-tab': activeTab === 'globalVariableTab' }]"
                     :is-fixed-var-menu.sync="isFixedVarMenu"
                     :is-variable-editing="isVariableEditing"
                     :variable-type-list="variableTypeList"
@@ -42,7 +42,7 @@
                     @onColseTab="onColseTab">
                 </TabGlobalVariables>
                 <TabTemplateConfig
-                    class="panel-item"
+                    :class="['panel-item', { 'active-tab': activeTab === 'templateConfigTab' }]"
                     :is-show="activeTab === 'templateConfigTab'"
                     :is-template-config-valid="isTemplateConfigValid"
                     :project-info-loading="projectInfoLoading"
@@ -50,7 +50,7 @@
                     @onColseTab="onColseTab">
                 </TabTemplateConfig>
                 <TabLocalDraft
-                    class="panel-item"
+                    :class="['panel-item', { 'active-tab': activeTab === 'localDraftTab' }]"
                     :is-show="activeTab === 'localDraftTab'"
                     :draft-array="draftArray"
                     @onColseTab="onColseTab"
@@ -61,6 +61,7 @@
                     @updateLocalTemplateData="updateLocalTemplateData">
                 </TabLocalDraft>
                 <TabPipelineTreeEdit
+                    :class="['panel-item', { 'active-tab': activeTab === 'templateDataEditTab' }]"
                     :is-show="activeTab === 'templateDataEditTab'"
                     @confirm="onDataModify"
                     @onColseTab="onColseTab">
@@ -113,6 +114,7 @@
             'businessInfoLoading',
             'isGlobalVariableUpdate',
             'isTemplateConfigValid',
+            'isNodeConfigPanelShow',
             'isSettingPanelShow',
             'draftArray',
             'variableTypeList',
@@ -160,11 +162,16 @@
         },
         watch: {
             isSettingPanelShow (val) {
-                this.showPanel = val
                 if (!val) {
                     this.activeTab = undefined
                 }
             }
+        },
+        mounted () {
+            document.body.addEventListener('click', this.handleSettingPanelShow, false)
+        },
+        beforeDestroy () {
+            document.body.removeEventListener('click', this.handleSettingPanelShow, false)
         },
         methods: {
             ...mapMutations('template/', [
@@ -239,6 +246,32 @@
             onColseTab (tabName) {
                 this.activeTab = undefined
                 this.togglePanel(false)
+            },
+            // 处理配置面板以外点击事件
+            handleSettingPanelShow (e) {
+                // 配置面板、删除变量弹窗遮罩、全局变量铆钉
+                const delVarDialog = document.querySelector('.delete-variable-dialog .bk-dialog')
+                if (
+                    !this.isSettingPanelShow
+                    || (delVarDialog && delVarDialog.style.display !== 'none')
+                    || (this.isFixedVarMenu && this.activeTab === 'globalVariableTab')) {
+                    return
+                }
+                const clientX = document.body.clientWidth
+                const nodeConfig = document.querySelector('.node-config .bk-sideslider-wrapper')
+                const activeTabPanel = document.querySelector('.setting-area-wrap .panel-item.active-tab .bk-sideslider-wrapper')
+                const { left, top, bottom } = activeTabPanel.getBoundingClientRect()
+                const baseLeft = this.isNodeConfigPanelShow ? nodeConfig.getBoundingClientRect().left : left
+                if (
+                    (e.clientX === 0 || e.clientY === 0)
+                    || (e.clientX > baseLeft
+                    && e.clientX < clientX
+                    && e.clientY > top
+                    && e.clientY < bottom)
+                ) {
+                    return
+                }
+                this.onColseTab()
             }
         }
     }

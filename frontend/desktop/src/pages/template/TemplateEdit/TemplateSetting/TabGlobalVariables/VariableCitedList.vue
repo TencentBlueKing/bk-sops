@@ -40,7 +40,6 @@
                 for (const node in this.constantsCited) {
                     const codes = this.constantsCited[node]
                     for (const code in codes) {
-                        console.log(code, this.constant.key, 'sss')
                         if (code === this.constant.key) {
                             list.push({
                                 name: this.activities[node].name,

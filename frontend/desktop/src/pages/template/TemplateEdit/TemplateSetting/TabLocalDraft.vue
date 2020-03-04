@@ -253,6 +253,7 @@
             display: block;
             height: calc(100% - 40px);
             overflow: auto;
+            @include scrollbar;
             tr:not(.empty-draft-tip):hover {
                 background: $blueStatus;
                 cursor: pointer;

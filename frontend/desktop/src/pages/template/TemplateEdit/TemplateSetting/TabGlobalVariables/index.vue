@@ -131,7 +131,7 @@
                 </div>
                 <bk-dialog
                     width="400"
-                    ext-cls="common-dialog"
+                    ext-cls="common-dialog delete-variable-dialog"
                     :theme="'primary'"
                     :mask-close="false"
                     :header-position="'left'"

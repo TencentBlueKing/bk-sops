@@ -83,6 +83,7 @@
                 :project-info-loading="projectInfoLoading"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
+                :is-node-config-panel-show="isNodeConfigPanelShow"
                 :variable-type-list="variableTypeList"
                 :local-template-data="localTemplateData"
                 :is-click-draft="isClickDraft"
@@ -812,7 +813,7 @@
                 if (this.isShowConditionEdit) {
                     this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
                 }
-                if (hideSettingPanel) {
+                if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
                 const nodeType = this.locations.filter(item => {
