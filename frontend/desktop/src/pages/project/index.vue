@@ -594,7 +594,7 @@
         background: transparent;
         border: none;
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
         &.bk-button {
             min-width: unset;
         }

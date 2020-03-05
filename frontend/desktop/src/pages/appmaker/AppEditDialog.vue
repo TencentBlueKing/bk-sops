@@ -390,8 +390,8 @@
         text-align: center;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
-            border-color: #3c96ff;
+            color: #3a84ff;
+            border-color: #3a84ff;
         }
         .common-icon-add {
             font-size: 38px;

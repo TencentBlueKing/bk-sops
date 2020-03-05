@@ -95,7 +95,7 @@
         font-weight: 400;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
         }
         .advanced-shape {
             display: inline-block;
@@ -103,7 +103,7 @@
             font-size: 12px;
             color:#cccccc;
             &:hover {
-                color: #3c96ff;
+                color: #3a84ff;
             }
         }
     }

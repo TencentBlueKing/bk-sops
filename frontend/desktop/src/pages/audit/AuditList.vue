@@ -411,7 +411,7 @@
         @include ui-task-status;
     }
     .audit-operation-btn {
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .empty-data {
         padding: 120px 0;

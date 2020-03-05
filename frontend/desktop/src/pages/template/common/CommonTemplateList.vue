@@ -738,14 +738,14 @@ a {
     }
     .template-operate-btn {
         padding: 5px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .drop-icon-ellipsis {
         font-size: 18px;
         vertical-align: -3px;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
         }
     }
     .empty-data {

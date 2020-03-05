@@ -639,7 +639,7 @@
         vertical-align: -3px;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
         }
     }
     .empty-data {
