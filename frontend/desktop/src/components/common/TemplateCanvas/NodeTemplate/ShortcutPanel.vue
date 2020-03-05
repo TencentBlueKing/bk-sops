@@ -110,10 +110,10 @@
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (isGatewayCurrNode && !isGatewayAppendNode) {
-                    location.y -= 5
+                    location.y -= 10
                 }
                 if (!isGatewayCurrNode && isGatewayAppendNode) {
-                    location.y += 5
+                    location.y += 10
                 }
                 /**
                  * 添加规则
