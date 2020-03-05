@@ -78,10 +78,18 @@
                             {{ props.row.claimant || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="140">
+                    <bk-table-column :label="i18n.claimStatus" width="140">
                         <template slot-scope="props">
                             <span :class="statusClass(props.row.status)"></span>
                             {{statusMethod(props.row.status, props.row.status_name)}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.taskStatus" width="140">
+                        <template slot-scope="props">
+                            <div class="task-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                            </div>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.operation" width="100">
@@ -227,6 +235,7 @@
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
+    import task from '@/mixins/task.js'
     const searchForm = [
         {
             type: 'select',
@@ -272,7 +281,7 @@
             BaseTitle,
             NoData
         },
-        mixins: [permission],
+        mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -288,7 +297,8 @@
                     billTimePlaceholder: gettext('请选择时间'),
                     creator: gettext('提单人'),
                     claimant: gettext('认领人'),
-                    status: gettext('状态'),
+                    claimStatus: gettext('认领状态'),
+                    taskStatus: gettext('任务状态'),
                     operation: gettext('操作'),
                     claim: gettext('认领'),
                     view: gettext('查看'),
@@ -315,6 +325,7 @@
                 isShowNewTaskDialog: false,
                 functorBasicInfoLoading: true,
                 functorList: [],
+                executeStatus: [], // 任务执行状态
                 business: {
                     list: [],
                     loading: false,
@@ -423,10 +434,13 @@
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
+                    const taskList = functorListData.objects.map(m => m.task)
                     this.tplAuthOperations = functorListData.meta.auth_operations
                     this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.pagination.count = functorListData.meta.total_count
+                    // mixins getExecuteStatus
+                    this.getExecuteStatus('executeStatus', taskList)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -648,6 +662,7 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/task.scss';
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
@@ -685,6 +700,9 @@
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .task-status {
+       @include ui-task-status;
     }
 }
 .panagation {
