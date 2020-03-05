@@ -36,9 +36,13 @@
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
-                    <bk-table-column :label="i18n.business" prop="task.project.name" width="160"></bk-table-column>
-                    <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.business" width="160">
+                        <template slot-scope="props">
+                            <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.taskId" prop="task.id" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
@@ -73,7 +77,7 @@
                             {{ props.row.claimant || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="140">
+                    <bk-table-column :label="i18n.status" width="100">
                         <template slot-scope="props">
                             <span :class="statusClass(props.row.status)"></span>
                             {{statusMethod(props.row.status, props.row.status_name)}}

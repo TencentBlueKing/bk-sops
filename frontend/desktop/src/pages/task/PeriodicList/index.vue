@@ -38,12 +38,12 @@
                     @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.periodicName" prop="name">
+                    <bk-table-column :label="i18n.periodicName" prop="name" min-width="200">
                         <template slot-scope="props">
                             <span :title="props.row.name">{{props.row.name}}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.periodicTemplate">
+                    <bk-table-column :label="i18n.periodicTemplate" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, periodicOperations)"
@@ -61,22 +61,22 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column v-if="adminView" :label="i18n.project" :width="140">
+                    <bk-table-column v-if="adminView" :label="i18n.project" width="140">
                         <template slot-scope="props">
                             <span :title="props.row.project.name">{{ props.row.project.name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.periodicRule">
+                    <bk-table-column :label="i18n.periodicRule" width="150">
                         <template slot-scope="props">
                             <div :title="splitPeriodicCron(props.row.cron)">{{ splitPeriodicCron(props.row.cron) }}</div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.lastRunAt">
+                    <bk-table-column :label="i18n.lastRunAt" width="200">
                         <template slot-scope="props">
                             <div>{{ props.row.last_run_at || '--' }}</div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
                     <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="100"></bk-table-column>
                     <bk-table-column :label="i18n.enabled" width="100">
                         <template slot-scope="props" class="periodic-status">
@@ -84,7 +84,7 @@
                             {{props.row.enabled ? i18n.start : i18n.pause}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="180">
+                    <bk-table-column :label="i18n.operation" width="240">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <template v-if="!adminView">
@@ -124,12 +124,17 @@
                                     }">
                                     {{ i18n.executeHistory }}
                                 </router-link>
-                                <bk-dropdown-menu>
-                                    <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                    <ul
-                                        slot="dropdown-content"
-                                        class="bk-dropdown-list">
-                                        <li>
+                                <bk-popover
+                                    theme="light"
+                                    placement="right-top"
+                                    ext-cls="common-dropdown-btn-popver"
+                                    :z-index="2000"
+                                    :distance="0"
+                                    :arrow="false"
+                                    :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                    <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                    <ul slot="content">
+                                        <li class="opt-btn">
                                             <a
                                                 v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, periodicOperations) }"
                                                 href="javascript:void(0);"
@@ -139,6 +144,8 @@
                                                 @click="onCollectTask(props.row, $event)">
                                                 {{ isCollected(props.row.id) ? i18n.cancelCollection : i18n.collect }}
                                             </a>
+                                        </li>
+                                        <li class="opt-btn">
                                             <a
                                                 v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, periodicOperations) }"
                                                 href="javascript:void(0);"
@@ -150,7 +157,7 @@
                                             </a>
                                         </li>
                                     </ul>
-                                </bk-dropdown-menu>
+                                </bk-popover>
                             </div>
                         </template>
                     </bk-table-column>
@@ -603,8 +610,6 @@
     margin-top: 25px;
     background: #ffffff;
     /deep/ .bk-table {
-        overflow: visible;
-        .bk-table-body-wrapper,.is-scrolling-none,
         td.is-last .cell {
             overflow: visible;
         }
@@ -630,9 +635,8 @@
         font-size: 12px;
     }
     .drop-icon-ellipsis {
-        position: absolute;
-        top: -13px;
         font-size: 18px;
+        vertical-align: -3px;
         cursor: pointer;
         &:hover {
             color: #3c96ff;
@@ -641,30 +645,5 @@
     .empty-data {
         padding: 120px 0;
     }
-}
-
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #fafbfd;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 14px;
-    }
-    .bk-page {
-        display: inline-block;
-    }
-}
-.btn-size-mini {
-    height: 24px;
-    line-height: 22px;
-    padding: 0 11px;
-    font-size: 12px;
-}
-.bk-dropdown-menu .bk-dropdown-list > li > a {
-    font-size: 12px;
 }
 </style>

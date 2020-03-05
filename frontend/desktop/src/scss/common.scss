@@ -159,3 +159,21 @@
 .tippy-tooltip.guide-theme[x-placement^='right'] .tippy-arrow {
     border-right-color: #656e82;
 }
+
+// 列表页展开操作项
+.common-dropdown-btn-popver {
+    .tippy-tooltip.light-theme[data-animatefill] {
+        background: #ffffff;
+    }
+    .opt-btn {
+        padding: 0 6px;
+        line-height: 32px;
+        a {
+            color: #63656e;
+            cursor: pointer;
+            &:hover {
+                color: #3c96ff;
+            }
+        }
+    }
+}
