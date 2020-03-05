@@ -17,6 +17,7 @@
                 <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
                 <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
             </div>
+            <slot name="extend"></slot>
         </span>
         <bk-input
             class="search-input"
@@ -80,6 +81,8 @@
  .advanced-search {
     position: relative;
     float: right;
+    display: flex;
+    align-items: center;
     .search-input {
         display: inline-block;
         width: 360px;
@@ -89,7 +92,7 @@
       }
     }
     .search-content {
-        margin: 30px;
+        margin: 0 30px;
         color:#313238;
         font-size: 14px;
         font-weight: 400;

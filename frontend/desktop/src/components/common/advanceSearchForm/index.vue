@@ -22,6 +22,9 @@
                     @onShow="onAdvanceShow"
                     :value="searchConfig.value"
                     :input-placeholader="searchConfig.placeholder">
+                    <template slot="extend">
+                        <slot name="search-extend"></slot>
+                    </template>
                 </advance-search>
             </div>
         </div>

@@ -27,6 +27,11 @@
                             {{i18n.new}}
                         </bk-button>
                     </template>
+                    <template v-slot:search-extend>
+                        <span class="auto-redraw" @click.stop>
+                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ i18n.autoRedraw }}</bk-checkbox>
+                        </span>
+                    </template>
                 </advance-search-form>
             </div>
             <div class="functor-table-content">
@@ -301,7 +306,8 @@
                     query: gettext('搜索'),
                     reset: gettext('清空'),
                     confirm: gettext('确认'),
-                    cancel: gettext('取消')
+                    cancel: gettext('取消'),
+                    autoRedraw: gettext('实时刷新')
                 },
                 listLoading: true,
                 functorSync: 0,
@@ -335,6 +341,8 @@
                     disabled: false
                 },
                 isCommonTemplate: false,
+                isAutoRedraw: false,
+                autoRedrawTimer: null,
                 status: undefined,
                 functorCategory: [],
                 requestData: {
@@ -428,6 +436,8 @@
             onPageChange (page) {
                 this.pagination.current = page
                 this.loadFunctionTask()
+                // 重置自动刷新时间
+                this.onOpenAutoRedraw()
             },
             searchInputhandler (data) {
                 this.requestData.flowName = data
@@ -603,9 +613,34 @@
                 this.requestData = data
                 this.loadFunctionTask()
             },
+            onAutoRedrawChange (val) {
+                if (val) {
+                    return this.onOpenAutoRedraw()
+                }
+                this.clearAutoRedraw()
+            },
+            // 开启自动刷新
+            onOpenAutoRedraw () {
+                if (!this.isAutoRedraw) {
+                    return this.clearAutoRedraw()
+                }
+                clearTimeout(this.autoRedrawTimer)
+                this.autoRedrawTimer = setTimeout(() => {
+                    console.log(new Date().getSeconds())
+                    this.loadFunctionTask()
+                    this.onOpenAutoRedraw()
+                }, 15000)
+            },
+            // 关闭自动刷新
+            clearAutoRedraw () {
+                clearTimeout(this.autoRedrawTimer)
+                this.autoRedrawTimer = null
+                this.isAutoRedraw = false
+            },
             handlePageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.onOpenAutoRedraw() // 重置自动刷新时间
                 this.loadFunctionTask()
             }
         }
@@ -630,6 +665,10 @@
     margin: 20px 0;
     .task-create-btn {
         min-width: 120px;
+    }
+    .auto-redraw {
+        margin-left: 30px;
+        display: inline-block;
     }
 }
 .advanced-search {
