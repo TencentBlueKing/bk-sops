@@ -17,7 +17,7 @@
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
                     <template>
-                        <p class="text title">{{ commonTitle }}</p>
+                        <p class="text title">{{ commonTitle + i18n.shortcuts }}</p>
                         <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                         <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                         <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
@@ -57,6 +57,7 @@
                 i18n: {
                     reset: gettext('：撤销'),
                     restore: gettext('：恢复'),
+                    shortcuts: gettext('快捷键列表'),
                     zoomIn: gettext('：放大'),
                     zoomOut: gettext('：缩小'),
                     zoom: gettext(' 鼠标滚动：缩放'),
@@ -117,9 +118,10 @@
         top: 124px;
         padding: 20px;
         width: 304px;
-        border-radius: 10px;
-        background-color: #777A85;
+        border-radius: 4px;
+        background-color: #fafbfd;
         transition: all 0.5s ease;
+        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
         &.min-top {
             left: 40px;
             top: 70px;
@@ -130,7 +132,7 @@
         .text {
             font-size: 12px;
             line-height: 17px;
-            color: #FFFFFF;
+            color: #63656e;
         }
         .close {
             display: inline-block;
@@ -143,7 +145,7 @@
             text-align: center;
             cursor: pointer;
             .common-icon-dark-circle-close {
-                color: #ffffff;
+                color: #c4c6cc;
             }
         }
     }

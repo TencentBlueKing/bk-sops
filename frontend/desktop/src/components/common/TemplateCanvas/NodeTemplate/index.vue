@@ -276,8 +276,8 @@
             &:before {
                 content: '';
                 position: absolute;
-                top: 1px;
-                left: 2px;
+                top: 2px;
+                left: 3px;
                 width: 28px;
                 height: 28px;
                 background: #ffffff;
