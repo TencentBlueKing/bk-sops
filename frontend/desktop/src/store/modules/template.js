@@ -352,6 +352,15 @@ const template = {
             const vIndex = state.outputs.indexOf(key)
             vIndex > -1 && state.outputs.splice(vIndex, 1)
             Vue.delete(state.constants, key)
+            // 删除变量引用节点信息
+            for (const node in state.constantsCited) {
+                const citedInfo = state.constantsCited[node]
+                for (const varKey in citedInfo) {
+                    if (varKey === key) {
+                        Vue.delete(citedInfo, varKey)
+                    }
+                }
+            }
         },
         // 配置全局变量 source_info 字段
         setVariableSourceInfo (state, payload) {
@@ -640,7 +649,7 @@ const template = {
                     }
                 }
             }
-            this.commit('template/setConstantsCited', payload)
+            this.commit('template/setConstantsCited', { nodeId: location.id })
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {
@@ -732,11 +741,11 @@ const template = {
         // 更新变量引用此次
         setConstantsCited (state, payload) {
             // 更新变量引用次数
-            const { location } = payload
+            const { nodeId } = payload
             const constantsCited = {}
-            const codeReg = /\$\{[1-9a-zA-Z_.]*\}/g
-            if (state.activities[location.id]) {
-                const item = state.activities[location.id]
+            const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
+            if (state.activities[nodeId]) {
+                const item = state.activities[nodeId]
                 const nodeData = item.component.data
                 if (checkDataType(nodeData) === 'Object') {
                     for (const code in nodeData) {
@@ -752,7 +761,22 @@ const template = {
                     }
                 }
             }
-            Vue.set(state.constantsCited, location.id, constantsCited)
+            // 输出变量
+            for (const key in state.constants) {
+                const constant = state.constants[key]
+                if (constant.source_type === 'component_outputs') {
+                    for (const node in constant.source_info) {
+                        if (node === nodeId) {
+                            if (constantsCited[constant.key]) {
+                                constantsCited[constant.key] += 1
+                            } else {
+                                constantsCited[constant.key] = 1
+                            }
+                        }
+                    }
+                }
+            }
+            Vue.set(state.constantsCited, nodeId, constantsCited)
         }
     },
     actions: {

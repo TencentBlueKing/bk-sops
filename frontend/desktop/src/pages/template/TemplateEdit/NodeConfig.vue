@@ -1285,6 +1285,8 @@
                     if (variable && !Object.keys(variable.source_info).length) {
                         this.removeFromGlobal(variableKey)
                     }
+                    // 更新数据节点数据，从而更新变量引用节点信息
+                    this.updateActivities()
                 }
             },
             onOutputHookChange (name, key, checked) {
@@ -1338,6 +1340,8 @@
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))
                 this.$emit('globalVariableUpdate', true)
+                // 更新数据节点数据，从而更新变量引用节点信息
+                this.updateActivities()
             },
             removeFromGlobal (key) {
                 this.deleteVariable(key)
@@ -1378,6 +1382,8 @@
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
                     this.setVariableSourceInfo({ type: 'add', id: this.nodeId, key: varKey, tagCode: key, value })
+                    // 更新数据节点数据，从而更新变量引用节点信息
+                    this.updateActivities()
                 }
 
                 this.isReuseVarDialogShow = false
