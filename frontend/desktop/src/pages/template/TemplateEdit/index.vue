@@ -87,10 +87,12 @@
                 :variable-type-list="variableTypeList"
                 :local-template-data="localTemplateData"
                 :is-click-draft="isClickDraft"
+                :is-fixed-var-menu="isFixedVarMenu"
                 @toggleSettingPanel="toggleSettingPanel"
                 @globalVariableUpdate="globalVariableUpdate"
                 @onDeleteConstant="onDeleteConstant"
                 @variableDataChanged="variableDataChanged"
+                @fixedVarMenuChange="fixedVarMenuChange"
                 @onSelectCategory="onSelectCategory"
                 @onDeleteDraft="onDeleteDraft"
                 @onReplaceTemplate="onReplaceTemplate"
@@ -178,6 +180,7 @@
                 isSettingPanelShow: true,
                 isNodeConfigPanelShow: false,
                 isLeaveDialogShow: false,
+                isFixedVarMenu: false, // 全局变量面板铆钉
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
@@ -652,9 +655,34 @@
                 this.idOfNodeInConfigPanel = id
                 this.lastOpenPanelName = 'nodeConfigPanel'
             },
-            hideConfigPanel () {
-                this.isNodeConfigPanelShow = false
-                this.idOfNodeInConfigPanel = ''
+            // 关闭配置面板
+            hideConfigPanel (asyncData = true) {
+                if (this.idOfNodeInConfigPanel && asyncData) {
+                    const nodeType = this.locations.filter(item => {
+                        return item.id === this.idOfNodeInConfigPanel
+                    })[0].type
+                    if ((nodeType === 'tasknode' || nodeType === 'subflow') && this.isNodeConfigPanelShow) {
+                        // 同步面板数据
+                        this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
+                            this.isNodeConfigPanelShow = false
+                            this.idOfNodeInConfigPanel = ''
+                            this.reopenGlobalVarPanel()
+                        })
+                    }
+                } else {
+                    this.isNodeConfigPanelShow = false
+                    this.idOfNodeInConfigPanel = ''
+                    this.reopenGlobalVarPanel()
+                }
+            },
+            /**
+             * 1920 分辨率一下，在全局变量面板 isFixedVarMenu = true 的情况下:
+             * 切换到节点配置面板(会自动关闭变量面板)，保留状态，待节点配置面板关闭后重新打开
+             */
+            reopenGlobalVarPanel () {
+                if (this.isFixedVarMenu && document.body.clientWidth < 1920) {
+                    this.$refs.templateSetting.setErrorTab('globalVariableTab')
+                }
             },
             onWindowResize () {
                 const clientX = document.body.clientWidth
@@ -673,16 +701,7 @@
             // 全局变量引用节点点击回调
             onCitedNodeClick (nodeId) {
                 if (this.idOfNodeInConfigPanel === nodeId) {
-                    const nodeType = this.locations.filter(item => {
-                        return item.id === nodeId
-                    })[0].type
-                    if ((nodeType === 'tasknode' || nodeType === 'subflow') && this.isNodeConfigPanelShow) {
-                        if (this.isNodeConfigPanelShow) {
-                            this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
-                                this.hideConfigPanel()
-                            })
-                        }
-                    }
+                    this.hideConfigPanel()
                 } else {
                     this.onShowNodeConfig(nodeId, false)
                 }
@@ -1221,6 +1240,9 @@
             },
             canvasMounted () {
                 this.handlerGuideTips()
+            },
+            fixedVarMenuChange (val) {
+                this.isFixedVarMenu = val
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

@@ -39,6 +39,7 @@
                     @variableDataChanged="onVariableDataChange"
                     @onDeleteConstant="onDeleteConstant"
                     @onCitedNodeClick="onCitedNodeClick"
+                    @onClickVarPin="onClickVarPin"
                     @onColseTab="onColseTab">
                 </TabGlobalVariables>
                 <TabTemplateConfig
@@ -118,12 +119,12 @@
             'isSettingPanelShow',
             'draftArray',
             'variableTypeList',
-            'isClickDraft'
+            'isClickDraft',
+            'isFixedVarMenu'
         ],
         data () {
             return {
                 showPanel: true,
-                isFixedVarMenu: false,
                 isVariableEditing: false,
                 isPipelineTreeDialogShow: false,
                 activeTab: 'globalVariableTab'
@@ -162,8 +163,11 @@
         },
         watch: {
             isSettingPanelShow (val) {
-                if (!val) {
+                if (val) {
+                    document.body.addEventListener('click', this.handleSettingPanelShow, false)
+                } else {
                     this.activeTab = undefined
+                    document.body.removeEventListener('click', this.handleSettingPanelShow, false)
                 }
             }
         },
@@ -226,6 +230,9 @@
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
             },
+            onClickVarPin (val) {
+                this.$emit('fixedVarMenuChange', val)
+            },
             onVariableEditingChange (val) {
                 this.isVariableEditing = val
             },
@@ -236,6 +243,7 @@
                     this.activeTab = val
                     this.togglePanel(true)
                 }
+                this.$emit('fixedVarMenuChange', false)
                 this.$emit('globalVariableUpdate', false)
             },
             onDataModify (data) {
@@ -284,7 +292,7 @@
     top: 59px;
     right: 0px;
     height: calc(100% - 50px);
-    z-index: 4;
+    z-index: 6;
 }
 .setting-tab-wrap {
     position: absolute;
@@ -296,7 +304,7 @@
     background: $whiteDefault;
     border-left: 1px solid $commonBorderColor;
     border-bottom: 1px solid $commonBorderColor;
-    z-index: 1;
+    z-index: 2551;
     .setting-panel-tab {
         padding: 15px 11px;
         color: #546a9e;

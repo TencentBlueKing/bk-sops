@@ -50,7 +50,7 @@
                         <p>{{ i18n.outputsDesc }}</p>
                     </div>
                 </div>
-                <div :class="['panel-fixed-pin', { 'actived': isFixedVarMenu }]" @click.stop="onClickPin">
+                <div :class="['panel-fixed-pin', { 'actived': isFixedVarMenu }]" @click.stop="onClickVarPin">
                     <i class="common-icon-pin"></i>
                 </div>
             </div>
@@ -469,8 +469,8 @@
                 this.onChangeEdit(false)
                 this.theKeyOfViewCited = key
             },
-            onClickPin () {
-                this.$emit('update:isFixedVarMenu', !this.isFixedVarMenu)
+            onClickVarPin () {
+                this.$emit('onClickVarPin', !this.isFixedVarMenu)
             }
         }
     }
@@ -513,6 +513,8 @@ $localBorderColor: #dcdee5;
         }
         &.quote-info {
             margin-left: 0px;
+            vertical-align: initial;
+            font-size: 16px;
         }
     }
     .panel-fixed-pin {

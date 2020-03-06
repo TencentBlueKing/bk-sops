@@ -88,7 +88,7 @@
                     v-if="!isSystemVar"
                     class="col-operation-item"
                     @click.stop="onDeleteVariable(constant.key, constant.index)">
-                    删除
+                    {{ i18n.delete }}
                 </span>
             </span>
         </div>
@@ -157,7 +157,8 @@
                     outputs: gettext('输出'),
                     show: gettext('显示'),
                     hide: gettext('隐藏'),
-                    copy: gettext('复制')
+                    copy: gettext('复制'),
+                    delete: gettext('删除')
                 },
                 copyText: ''
             }

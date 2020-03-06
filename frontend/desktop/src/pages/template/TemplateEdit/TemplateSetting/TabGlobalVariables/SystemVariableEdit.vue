@@ -81,11 +81,11 @@
             }),
             // 当前变量引用的节点信息
             currConstantsCited () {
-                const cuurKey = this.variableData.key
+                const curKey = this.variableData.key
                 const nodes = []
                 for (const node in this.constantsCited) {
                     for (const key in this.constantsCited[node]) {
-                        if (cuurKey === key) {
+                        if (curKey === key) {
                             nodes.push({
                                 name: node,
                                 numbers: this.constantsCited[node][key]

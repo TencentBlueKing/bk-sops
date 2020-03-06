@@ -734,7 +734,7 @@ const template = {
             // 更新变量引用次数
             const { location } = payload
             const constantsCited = {}
-            const codeReg = /\$\{[a-zA-Z\._]+}/g
+            const codeReg = /\$\{[1-9a-zA-Z_.]*\}/g
             if (state.activities[location.id]) {
                 const item = state.activities[location.id]
                 const nodeData = item.component.data

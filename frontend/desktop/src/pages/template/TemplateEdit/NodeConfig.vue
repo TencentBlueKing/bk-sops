@@ -1000,7 +1000,7 @@
                     this.subAtomInput = []
                     this.subAtomOutput = []
 
-                    this.$emit('hideConfigPanel')
+                    this.$emit('hideConfigPanel', false)
                     return isValid
                 })
             },
@@ -1426,7 +1426,6 @@
     left: calc(100% - 767px);
     width: 711px;
     z-index: 5;
-    box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.15);
     transition: left 0.3s ease-in-out;
     /deep/ {
         .bk-sideslider-wrapper {

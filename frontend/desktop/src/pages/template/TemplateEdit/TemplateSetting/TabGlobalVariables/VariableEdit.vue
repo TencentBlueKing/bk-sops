@@ -124,21 +124,6 @@
                         </bk-select>
                     </div>
                 </li>
-                <!-- 引用节点 -->
-                <li class="form-item clearfix">
-                    <label class="form-label">{{ i18n.cited }}</label>
-                    <div class="form-content">
-                        <bk-select
-                            :clearable="false">
-                            <bk-option
-                                v-for="(option, index) in currConstantsCited"
-                                :key="index"
-                                :id="option.name"
-                                :name="`${option.name}（${option.numbers}）`">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                </li>
             </ul>
             <div class="action-wrapper">
                 <bk-button
@@ -202,8 +187,7 @@
                     type: gettext('类型'),
                     show: gettext('显示'),
                     save: gettext('保存'),
-                    cancel: gettext('取消'),
-                    cited: gettext('引用节点')
+                    cancel: gettext('取消')
                 },
                 atomConfigLoading: false,
                 bkMessageInstance: null,
@@ -236,8 +220,7 @@
         computed: {
             ...mapState({
                 'atomFormConfig': state => state.atomForm.config,
-                'constants': state => state.template.constants,
-                'constantsCited': state => state.template.constantsCited
+                'constants': state => state.template.constants
             }),
             isDisabledValType () {
                 const { source_type } = this.theEditingData
@@ -285,22 +268,6 @@
                     delete rule.max
                 }
                 return rule
-            },
-            // 当前变量引用的节点信息
-            currConstantsCited () {
-                const cuurKey = this.theEditingData.key
-                const nodes = []
-                for (const node in this.constantsCited) {
-                    for (const key in this.constantsCited[node]) {
-                        if (cuurKey === key) {
-                            nodes.push({
-                                name: node,
-                                numbers: this.constantsCited[node][key]
-                            })
-                        }
-                    }
-                }
-                return nodes
             }
         },
         watch: {
