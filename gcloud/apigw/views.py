@@ -127,7 +127,6 @@ def dispatch_pipeline_plugin_query(request):
     view_func = ''
 
     # recover request and other params
-    request = ''
     params = ''
 
     # get view func data
