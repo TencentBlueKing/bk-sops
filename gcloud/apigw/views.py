@@ -117,6 +117,30 @@ def format_template_data(template, project=None):
 
 
 @login_exempt
+@require_POST
+@apigw_required
+@mark_request_whether_is_trust
+def dispatch_pipeline_plugin_query(request):
+    """转发插件表单渲染资源请求"""
+
+    # parse view func
+    view_func = ''
+
+    # recover request and other params
+    request = ''
+    params = ''
+
+    # get view func data
+    data = view_func(request, params)
+
+    return JsonResponse({
+        'result': True,
+        'data': data,
+        'code': err_code.SUCCESS.code
+    })
+
+
+@login_exempt
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
