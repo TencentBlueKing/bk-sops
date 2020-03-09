@@ -5,7 +5,6 @@
     vertical-align: middle;
 }
 @mixin ui-task-status {
-    width: 105px;
     text-align: left;
     .common-icon-dark-circle-shape {
         @include status-icon-style(#979BA5);

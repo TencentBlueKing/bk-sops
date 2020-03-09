@@ -13,8 +13,6 @@
     <div class="task-container">
         <div class="list-wrapper">
             <div class="operation-area">
-                <div class="operation-area clearfix">
-                </div>
                 <advance-search-form
                     :search-config="{ placeholder: i18n.taskNamePlaceholder }"
                     :search-form="searchForm"
@@ -612,11 +610,6 @@
     font-size: 14px;
     vertical-align: middle;
 }
-.operation-area {
-    .bk-button {
-        min-width: 120px;
-    }
-}
 .task-table-content {
     background: #ffffff;
     a.task-name {
@@ -626,7 +619,6 @@
        @include ui-task-status;
     }
     .task-operation {
-        width: 150px;
         .task-operation-clone {
             padding: 5px;
             color: #3a84ff;
