@@ -256,7 +256,7 @@
                 }
             },
             version () {
-                return this.isNewVariable ? 'legacy' : this.variableData.version
+                return this.isNewVariable ? 'legacy' : (this.variableData.version || 'legacy')
             },
             // 变量 Key 校验规则
             variableKeyRule () {

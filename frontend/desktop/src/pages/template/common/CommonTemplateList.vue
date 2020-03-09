@@ -86,7 +86,6 @@
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
-                                    <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                     <a
                                         v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
                                         v-cursor
@@ -141,6 +140,11 @@
                                                     @click.prevent="getJumpUrl('edit', props.row.id)">
                                                     {{i18n.edit}}
                                                 </a>
+                                                <router-link
+                                                    v-if="project_id"
+                                                    :to="getExecuteHistoryUrl(props.row.id)">
+                                                    {{ i18n.executeHistory }}
+                                                </router-link>
                                                 <a
                                                     v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
                                                     href="javascript:void(0);"
@@ -634,7 +638,7 @@
             },
             getExecuteHistoryUrl (id) {
                 return {
-                    name: 'commonProcessList',
+                    name: 'taskList',
                     params: { project_id: this.project_id },
                     query: { template_id: id }
                 }
