@@ -39,11 +39,11 @@ def title_and_content_for_flow_finished(taskflow, pipeline_inst, node_name, exec
     return title, content
 
 
-def title_and_content_for_periodic_task_start_fail(template, periodic_task, history):
+def title_and_content_for_periodic_task_start_fail(periodic_task, history):
     title = _("【标准运维APP通知】周期任务启动失败")
     content = _("您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，"
                 "错误信息：【{ex_data}】").format(
-        cc_name=template.project.name,
+        cc_name=periodic_task.project.name,
         start_time=history.start_at,
         task_name=periodic_task.name,
         ex_data=history.ex_data
