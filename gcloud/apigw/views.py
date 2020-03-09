@@ -36,7 +36,7 @@ from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     api_verify_perms,
     api_verify_proj_perms,
-    project_inject
+    project_inject,
 )
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
 from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
@@ -130,13 +130,20 @@ def dispatch_pipeline_plugin_query(request):
     params = ''
 
     # get view func data
-    data = view_func(request, params)
-
-    return JsonResponse({
-        'result': True,
-        'data': data,
-        'code': err_code.SUCCESS.code
-    })
+    try:
+        data = view_func(request, params)
+        return JsonResponse({
+            'result': True,
+            'data': data,
+            'code': err_code.SUCCESS.code
+        })
+    except Exception as e:
+        logger.warning('dispatch_pipeline_plugin_query exception: {}'.format(e))
+        return JsonResponse({
+            'result': False,
+            'data': None,
+            'code': err_code.REQUEST_PARAM_INVALID.code
+        })
 
 
 @login_exempt
