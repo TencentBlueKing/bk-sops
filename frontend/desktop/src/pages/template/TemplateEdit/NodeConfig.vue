@@ -605,7 +605,7 @@
                         const component = this.nodeConfigData.component
                         const version = component.version || this.SingleAtomVersionMap[component.code]
                         if (version) {
-                            this.getConfig(this.nodeConfigData.component.version)
+                            this.getConfig(version)
                             this.currentVersion = version
                         }
                     } else {
@@ -769,7 +769,9 @@
             setNodeConfigData (atomType, version) {
                 const data = {}
                 const config = this.atomFormConfig[atomType][version]
-                if (atomType === this.activities[this.nodeId].component.code) {
+                if (
+                    atomType === this.activities[this.nodeId].component.code
+                    && version === this.activities[this.nodeId].component.version) {
                     this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 } else {
                     config.forEach(item => {
@@ -943,7 +945,7 @@
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
-                            value: tools.deepClone(this.inputAtomData[key]) || ''
+                            value: this.inputAtomData[key] !== undefined ? tools.deepClone(this.inputAtomData[key]) : ''
                         }
                     }
                 } else {
@@ -956,7 +958,6 @@
                 // 任务节点参数编辑时，可能会修改输入输出连线，取最新的连线数据，防止被节点参数编辑时保存的旧数据覆盖
                 const { incoming, outgoing } = this.activities[this.nodeId]
                 Object.assign(nodeData, { incoming, outgoing })
-
                 this.setActivities({ type: 'edit', location: nodeData })
             },
             /**
@@ -1085,7 +1086,6 @@
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.inputAtomHook = {}
                 this.inputAtomData = {}
-                this.updateActivities()
                 this.getConfig(id)
                 this.$nextTick(() => {
                     this.isAtomChanged = false

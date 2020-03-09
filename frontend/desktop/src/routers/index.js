@@ -79,7 +79,7 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: function () {
-                const viewMode = store.state.viewMode
+                const viewMode = store.state.view_mode
                 return viewMode === 'appmaker'
                     ? `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
                     : '/home/'

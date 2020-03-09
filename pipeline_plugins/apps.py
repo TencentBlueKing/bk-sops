@@ -12,14 +12,25 @@ specific language governing permissions and limitations under the License.
 """
 
 import sys
+import logging
 
 from django.conf import settings
 from django.apps import AppConfig
+
+logger = logging.getLogger('root')
+
+DJANGO_MANAGE_CMD = 'manage.py'
+INIT_PASS_TRIGGER = {'migrate'}
 
 
 class PipelinePluginsConfig(AppConfig):
     name = 'pipeline_plugins'
 
     def ready(self):
+
+        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD and sys.argv[1] in INIT_PASS_TRIGGER:
+            logger.info("ignore pipeline plugins init for command: {}".format(sys.argv))
+            return
+
         for old_path, new_path in list(getattr(settings, 'COMPATIBLE_MODULE_MAP', {}).items()):
             sys.modules[old_path] = sys.modules[new_path]

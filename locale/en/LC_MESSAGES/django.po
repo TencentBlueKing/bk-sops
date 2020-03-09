@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-02-07 14:53+0800\n"
+"POT-Creation-Date: 2020-02-27 20:54+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -153,7 +153,7 @@ msgid "流程超时时间(分钟)"
 msgstr "Time-out"
 
 #: gcloud/commons/template/models.py:200 gcloud/contrib/appmaker/models.py:272
-#: gcloud/taskflow3/models.py:791 pipeline/models.py:284
+#: gcloud/taskflow3/models.py:820 pipeline/models.py:284
 msgid "是否删除"
 msgstr "Deleted"
 
@@ -161,11 +161,11 @@ msgstr "Deleted"
 msgid "公共流程模板 CommonTemplate"
 msgstr "Common Template"
 
-#: gcloud/commons/template/models.py:402 gcloud/commons/template/models.py:403
+#: gcloud/commons/template/models.py:399 gcloud/commons/template/models.py:400
 msgid "通用流程模板ID"
 msgstr "Common Template ID"
 
-#: gcloud/commons/template/models.py:408 gcloud/commons/template/models.py:409
+#: gcloud/commons/template/models.py:405 gcloud/commons/template/models.py:406
 msgid "公共流程模板权限 CommonTmplPerm"
 msgstr "Common Template Permission"
 
@@ -267,8 +267,8 @@ msgstr "Mini-App of current operation does not exist or has been deleted!"
 msgid "删除失败：%s"
 msgstr "Delete failed: %s"
 
-#: gcloud/contrib/appmaker/models.py:259 gcloud/periodictask/models.py:84
-#: gcloud/taskflow3/models.py:766 gcloud/tasktmpl3/models.py:366
+#: gcloud/contrib/appmaker/models.py:259 gcloud/periodictask/models.py:86
+#: gcloud/taskflow3/models.py:795 gcloud/tasktmpl3/models.py:371
 msgid "所属项目"
 msgstr "Belong to project"
 
@@ -339,7 +339,7 @@ msgstr "Audit Center"
 msgid "项目流程"
 msgstr "Project Flow"
 
-#: gcloud/contrib/collection/models.py:22 gcloud/periodictask/models.py:194
+#: gcloud/contrib/collection/models.py:22 gcloud/periodictask/models.py:221
 #: gcloud/periodictask/permissions.py:26 gcloud/taskflow3/constants.py:23
 #: pipeline/contrib/periodic_task/models.py:399
 msgid "周期任务"
@@ -380,8 +380,8 @@ msgstr "Rejected"
 msgid "已执行"
 msgstr "Executed"
 
-#: gcloud/contrib/function/models.py:27 gcloud/taskflow3/models.py:410
-#: gcloud/tasktmpl3/models.py:132
+#: gcloud/contrib/function/models.py:27 gcloud/taskflow3/models.py:411
+#: gcloud/tasktmpl3/models.py:130
 msgid "已完成"
 msgstr "Finished"
 
@@ -811,8 +811,8 @@ msgstr "FileSystem Path"
 msgid "FS远程包源 FileSystemOriginalSource"
 msgstr "FileSystemOriginalSource"
 
-#: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:404
-#: gcloud/tasktmpl3/models.py:126
+#: gcloud/external_plugins/models/sync.py:25 gcloud/taskflow3/models.py:405
+#: gcloud/tasktmpl3/models.py:124
 #: gcloud/tests/external_plugins/models/test_sync_task.py:38
 msgid "执行中"
 msgstr "Executing"
@@ -837,7 +837,7 @@ msgstr "Deployment Trigger"
 msgid "执行者"
 msgstr "Executor"
 
-#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:780
+#: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:809
 msgid "创建方式"
 msgstr "Creation method"
 
@@ -863,55 +863,55 @@ msgstr "Sync Details"
 msgid "远程包源同步任务 SyncTask"
 msgstr "SyncTask"
 
-#: gcloud/periodictask/models.py:88
+#: gcloud/periodictask/models.py:90
 msgid "pipeline 层周期任务"
 msgstr "Periodic task in pipeline"
 
-#: gcloud/periodictask/models.py:89 gcloud/taskflow3/models.py:776
+#: gcloud/periodictask/models.py:91 gcloud/taskflow3/models.py:805
 msgid "创建任务所用的模板ID"
 msgstr "Template ID for task creation"
 
-#: gcloud/periodictask/models.py:90 gcloud/taskflow3/models.py:777
+#: gcloud/periodictask/models.py:92 gcloud/taskflow3/models.py:806
 msgid "流程模板来源"
 msgstr "Template source"
 
-#: gcloud/periodictask/models.py:97 gcloud/periodictask/models.py:98
+#: gcloud/periodictask/models.py:99 gcloud/periodictask/models.py:100
 msgid "周期任务 PeriodicTask"
 msgstr "Periodic Task"
 
-#: gcloud/periodictask/models.py:143
+#: gcloud/periodictask/models.py:145
 msgid "流程模板[project={project}, id={template_id}]不存在"
 msgstr "Template[project={project}, id={template_id}] not exists"
 
-#: gcloud/periodictask/models.py:151
+#: gcloud/periodictask/models.py:153
 msgid "公共流程模板[id={template_id}]不存在"
 msgstr "Common template[id={template_id}] not exists"
 
-#: gcloud/periodictask/models.py:180
+#: gcloud/periodictask/models.py:207
 #, python-format
 msgid "获取周期任务历史相关任务实例失败：%s"
 msgstr "Get task history of periodic task failed: %s"
 
-#: gcloud/periodictask/models.py:193
+#: gcloud/periodictask/models.py:220
 msgid "pipeline 层周期任务历史"
 msgstr "Periodic task history in pipeline"
 
-#: gcloud/periodictask/models.py:195
+#: gcloud/periodictask/models.py:222
 msgid "流程实例"
 msgstr "Flow Instance"
 
-#: gcloud/periodictask/models.py:196
+#: gcloud/periodictask/models.py:223
 #: pipeline/contrib/periodic_task/models.py:409 pipeline/log/models.py:46
 msgid "异常信息"
 msgstr "Exception"
 
-#: gcloud/periodictask/models.py:197
+#: gcloud/periodictask/models.py:224
 #: pipeline/contrib/periodic_task/models.py:410
 #: pipeline/engine/models/core.py:846 pipeline/engine/models/core.py:945
 msgid "开始时间"
 msgstr "Date Started"
 
-#: gcloud/periodictask/models.py:198
+#: gcloud/periodictask/models.py:225
 #: pipeline/contrib/periodic_task/models.py:411
 msgid "是否启动成功"
 msgstr "Start Success"
@@ -994,27 +994,27 @@ msgstr "Task ID"
 msgid "任务名称"
 msgstr "Task Name"
 
-#: gcloud/taskflow3/models.py:399 gcloud/tasktmpl3/models.py:121
+#: gcloud/taskflow3/models.py:400 gcloud/tasktmpl3/models.py:119
 msgid "未执行"
 msgstr "Created"
 
-#: gcloud/taskflow3/models.py:774
+#: gcloud/taskflow3/models.py:803
 msgid "任务类型，继承自模板"
 msgstr "Task type, inherited from flow"
 
-#: gcloud/taskflow3/models.py:784
+#: gcloud/taskflow3/models.py:813
 msgid "创建任务额外信息（App maker ID或者APP CODE）"
 msgstr "Create additional task data (App maker ID or APP CODE)"
 
-#: gcloud/taskflow3/models.py:786
+#: gcloud/taskflow3/models.py:815
 msgid "任务流程类型"
 msgstr "Task flow type"
 
-#: gcloud/taskflow3/models.py:790
+#: gcloud/taskflow3/models.py:819
 msgid "当前任务流程阶段"
 msgstr "Current task flow phase"
 
-#: gcloud/taskflow3/models.py:799 gcloud/taskflow3/models.py:800
+#: gcloud/taskflow3/models.py:828 gcloud/taskflow3/models.py:829
 msgid "流程实例 TaskFlowInstance"
 msgstr "TaskFlowInstance"
 
@@ -1038,7 +1038,7 @@ msgstr "Clone"
 msgid "无法删除未进入完成或撤销状态的流程"
 msgstr "You cannot delete flow which is not successful or revoked"
 
-#: gcloud/tasktmpl3/models.py:377 gcloud/tasktmpl3/models.py:378
+#: gcloud/tasktmpl3/models.py:382 gcloud/tasktmpl3/models.py:383
 msgid "流程模板 TaskTemplate"
 msgstr "TaskTemplate"
 
@@ -1092,7 +1092,7 @@ msgid "子流程引用链中存在循环引用：%s"
 msgstr "Subprocess reference has circle: %s"
 
 #: pipeline/contrib/statistics/models.py:20
-#: pipeline/contrib/statistics/models.py:56 pipeline/models.py:272
+#: pipeline/contrib/statistics/models.py:58 pipeline/models.py:272
 #: pipeline/models.py:463
 msgid "模板ID"
 msgstr "Template ID"
@@ -1173,8 +1173,8 @@ msgstr "Schema Name"
 msgid "方案数据"
 msgstr "Schema Data"
 
-#: pipeline/contrib/statistics/models.py:35
-#: pipeline/contrib/statistics/models.py:70 pipeline/models.py:613
+#: pipeline/contrib/statistics/models.py:36
+#: pipeline/contrib/statistics/models.py:72 pipeline/models.py:613
 msgid "实例ID"
 msgstr "Instance ID"
 
@@ -1220,7 +1220,7 @@ msgstr "Pipeline Instance"
 
 #: pipeline/component_framework/models.py:41
 #: pipeline/contrib/statistics/models.py:19
-#: pipeline/contrib/statistics/models.py:34
+#: pipeline/contrib/statistics/models.py:35
 msgid "组件编码"
 msgstr "Component Code"
 
@@ -1424,83 +1424,88 @@ msgid "Pipeline 实例"
 msgstr "Pipeline instance"
 
 #: pipeline/contrib/statistics/models.py:21
-#: pipeline/contrib/statistics/models.py:36
+#: pipeline/contrib/statistics/models.py:37
 msgid "节点ID"
 msgstr "Node ID"
 
 #: pipeline/contrib/statistics/models.py:22
-#: pipeline/contrib/statistics/models.py:37
+#: pipeline/contrib/statistics/models.py:38
 msgid "是否子流程引用"
 msgstr "Subprocess referred"
 
 #: pipeline/contrib/statistics/models.py:23
-#: pipeline/contrib/statistics/models.py:38
+#: pipeline/contrib/statistics/models.py:39
 msgid "子流程堆栈"
 msgstr "Subprocess stack"
 
 #: pipeline/contrib/statistics/models.py:23
-#: pipeline/contrib/statistics/models.py:38
+#: pipeline/contrib/statistics/models.py:39
 msgid "JSON 格式的列表"
 msgstr "JSON format of list"
 
-#: pipeline/contrib/statistics/models.py:26
+#: pipeline/contrib/statistics/models.py:24
+#: pipeline/contrib/statistics/models.py:46
+msgid "插件版本"
+msgstr "Plugin version"
+
 #: pipeline/contrib/statistics/models.py:27
+#: pipeline/contrib/statistics/models.py:28
 msgid "Pipeline标准插件被引用数据"
 msgstr "Pipeline standard plugins reference"
 
-#: pipeline/contrib/statistics/models.py:39
+#: pipeline/contrib/statistics/models.py:40
 msgid "标准插件执行开始时间"
 msgstr "Standard Plugins execution started time"
 
-#: pipeline/contrib/statistics/models.py:40
+#: pipeline/contrib/statistics/models.py:41
 msgid "标准插件执行结束时间"
 msgstr "Standard Plugins execution finished time"
 
-#: pipeline/contrib/statistics/models.py:41
+#: pipeline/contrib/statistics/models.py:42
 msgid "标准插件执行耗时(s)"
 msgstr "Standard Plugins execution Elapsed(s)"
 
-#: pipeline/contrib/statistics/models.py:42
+#: pipeline/contrib/statistics/models.py:43
 #: pipeline/core/flow/activity/service_activity.py:35
 msgid "是否执行成功"
 msgstr "Success"
 
-#: pipeline/contrib/statistics/models.py:43 pipeline/engine/models/core.py:843
+#: pipeline/contrib/statistics/models.py:44 pipeline/engine/models/core.py:843
 #: pipeline/engine/models/core.py:948
 msgid "是否跳过"
 msgstr "Skip OR Not"
 
-#: pipeline/contrib/statistics/models.py:44
+#: pipeline/contrib/statistics/models.py:45
 msgid "是否重试记录"
 msgstr "Retried Record OR Not"
 
-#: pipeline/contrib/statistics/models.py:47
-#: pipeline/contrib/statistics/models.py:48
+#: pipeline/contrib/statistics/models.py:49
+#: pipeline/contrib/statistics/models.py:50
 msgid "Pipeline标准插件执行数据"
 msgstr "Standard Plugins execution data"
 
-#: pipeline/contrib/statistics/models.py:57
-#: pipeline/contrib/statistics/models.py:71
+#: pipeline/contrib/statistics/models.py:59
+#: pipeline/contrib/statistics/models.py:73
 msgid "标准插件总数"
 msgstr "Total number of Standard Plugins"
 
-#: pipeline/contrib/statistics/models.py:58
-#: pipeline/contrib/statistics/models.py:72
+#: pipeline/contrib/statistics/models.py:60
+#: pipeline/contrib/statistics/models.py:74
 msgid "子流程总数"
 msgstr "Subprocess Count"
 
-#: pipeline/contrib/statistics/models.py:59
-#: pipeline/contrib/statistics/models.py:73
+#: pipeline/contrib/statistics/models.py:61
+#: pipeline/contrib/statistics/models.py:75
 msgid "网关总数"
 msgstr "Gateways Count"
 
-#: pipeline/contrib/statistics/models.py:62
-#: pipeline/contrib/statistics/models.py:63
+#: pipeline/contrib/statistics/models.py:64
+#: pipeline/contrib/statistics/models.py:65
 msgid "Pipeline模板引用数据"
 msgstr "Pipeline Template Reference Data"
 
-#: pipeline/contrib/statistics/models.py:76
-#: pipeline/contrib/statistics/models.py:77
+#: pipeline/contrib/statistics/models.py:78
+#: pipeline/contrib/statistics/models.py:79
 msgid "Pipeline实例引用数据"
 msgstr "Pipeline Instance Reference Data"
 
@@ -2709,19 +2714,19 @@ msgstr "Script"
 msgid "文件"
 msgstr "File"
 
-#: pipeline_plugins/components/query/sites/open/query.py:476
+#: pipeline_plugins/components/query/sites/open/query.py:478
 msgid "File Manager 未配置，请联系管理员进行配置"
 msgstr "File Manager config not found, please contact administrator"
 
-#: pipeline_plugins/components/query/sites/open/query.py:493
+#: pipeline_plugins/components/query/sites/open/query.py:495
 msgid "文件上传失败， 文件大小超过2G"
 msgstr "file upload fail, file size can not over 2G"
 
-#: pipeline_plugins/components/query/sites/open/query.py:499
+#: pipeline_plugins/components/query/sites/open/query.py:501
 msgid "文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符"
 msgstr "Upload file failed, which name should not contain chinese or \\/:*?\"<>|"
 
-#: pipeline_plugins/components/query/sites/open/query.py:510
+#: pipeline_plugins/components/query/sites/open/query.py:512
 msgid "文件上传归档失败，请联系管理员"
 msgstr "file archive failed, contact admin please"
 

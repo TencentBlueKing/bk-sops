@@ -262,9 +262,8 @@
 @import '@/scss/config.scss';
 .functionalization-wrapper {
     position: relative;
-    margin: 0 40px;
+    padding: 0 40px;
     padding-top: 30px;
-    width: calc(100% - 80px);
     min-height: calc(100vh - 50px - 139px);
     background-color: #ffffff;
     @media screen and (max-width: 1300px){
