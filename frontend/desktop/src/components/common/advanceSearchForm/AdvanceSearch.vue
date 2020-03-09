@@ -11,14 +11,16 @@
 */
 <template>
     <div class="advanced-search">
-        <span v-if="!hideAdvance" class="search-content" @click="onShow">
-            {{i18n.advancedSearch}}
-            <div class="advanced-shape">
-                <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
-                <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
+        <div v-if="!hideAdvance" class="search-content" @click="onShow">
+            <div class="search-btn">
+                <span>{{i18n.advancedSearch}}</span>
+                <span class="advanced-shape">
+                    <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
+                    <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
+                </span>
             </div>
             <slot name="extend"></slot>
-        </span>
+        </div>
         <bk-input
             class="search-input"
             v-model="localValue"
@@ -96,17 +98,20 @@
         color:#313238;
         font-size: 14px;
         font-weight: 400;
-        cursor: pointer;
-        &:hover {
-            color: #3c96ff;
-        }
-        .advanced-shape {
+        .search-btn {
             display: inline-block;
-            margin-left: 5px;
-            font-size: 12px;
-            color:#cccccc;
+            cursor: pointer;
             &:hover {
                 color: #3c96ff;
+            }
+            .advanced-shape {
+                display: inline-block;
+                margin-left: 5px;
+                font-size: 12px;
+                color:#cccccc;
+                &:hover {
+                    color: #3c96ff;
+                }
             }
         }
     }

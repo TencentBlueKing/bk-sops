@@ -640,7 +640,6 @@
                 }
                 clearTimeout(this.autoRedrawTimer)
                 this.autoRedrawTimer = setTimeout(() => {
-                    console.log(new Date().getSeconds())
                     this.loadFunctionTask()
                     this.onOpenAutoRedraw()
                 }, 15000)
