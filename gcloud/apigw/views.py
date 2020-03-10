@@ -173,8 +173,11 @@ def dispatch_plugin_query(request):
                 'message': 'only support get and post method.'
             })
 
+        # transfer request.user
+        setattr(fake_request, 'user', request.user)
+
+        # todo: remove after debug for no jwt (skip)
         if debug:
-            # TODO: test only
             from django.contrib.auth import get_user_model
             User = get_user_model()
             setattr(fake_request, 'user', User.objects.get(username='admin'))
