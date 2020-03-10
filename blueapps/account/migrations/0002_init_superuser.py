@@ -29,7 +29,7 @@ def load_data(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('account', '0002_real_initial')
+        ('account', '0001_initial')
     ]
     operations = [
         migrations.RunPython(load_data)

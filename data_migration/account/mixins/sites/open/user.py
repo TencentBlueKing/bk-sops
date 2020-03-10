@@ -54,10 +54,6 @@ class BkUserCompatibleMixin:
         return self.get_property('ex_userid')
 
     @property
-    def auth_token(self):
-        return self.get_property('auth_token')
-
-    @property
     def chinese_name(self):
         return self.get_property('chinese_name')
 
@@ -88,3 +84,11 @@ class BkUserCompatibleMixin:
     @property
     def nick_name(self):
         return self.get_property('nick_name')
+
+    @property
+    def auth_token(self):
+        from bkoauth import get_access_token_by_user
+        try:
+            return get_access_token_by_user(self.username).access_token
+        except Exception:
+            return ''

@@ -26,6 +26,9 @@ if not locals().get('ESB_SDK_NAME'):
 # 蓝鲸PASS平台URL
 BK_PAAS_HOST = os.getenv('BK_PAAS_HOST', BK_URL)
 
+# 蓝鲸开发者页面
+BK_DEV_URL = '%s/app/list/' % BK_PAAS_HOST
+
 # 兼容component的APP_ID,APP_TOKEN
 APP_CODE = APP_ID = os.environ.get('APP_ID', APP_CODE)
 SECRET_KEY = APP_TOKEN = os.environ.get('APP_TOKEN', SECRET_KEY)
@@ -50,12 +53,12 @@ if 'BK_BROKER_URL' in os.environ:
 # SITE_URL,STATIC_URL,,FORCE_SCRIPT_NAME
 # 测试环境
 if os.getenv('BK_ENV') == 'testing':
-    BK_URL = os.environ.get("BK_URL", "%s/console" % BK_PAAS_HOST)
+    BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
     SITE_URL = os.environ.get("BK_SITE_URL", '/t/%s/' % APP_CODE)
     STATIC_URL = '%sstatic/' % SITE_URL
 # 正式环境
 if os.getenv('BK_ENV') == 'production':
-    BK_URL = os.environ.get("BK_URL", "%s/console" % BK_PAAS_HOST)
+    BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
     SITE_URL = os.environ.get("BK_SITE_URL", '/o/%s/' % APP_CODE)
     STATIC_URL = '%sstatic/' % SITE_URL
 
@@ -76,17 +79,5 @@ DEFAULT_BK_API_VER = locals().get('DEFAULT_BK_API_VER', 'v2')
 
 # STATIC_ROOT,静态文件收集文件夹,由于企业版需要用户手动收集,此处设为空,
 # 同时需要设置STATICFILES_DIRS不改变
-STATICFILES_DIRS = []
-STATIC_ROOT = "static"
-
-# DATABASES
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USERNAME'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
-    },
-}
+if not locals().get('STATIC_ROOT'):
+    STATIC_ROOT = None

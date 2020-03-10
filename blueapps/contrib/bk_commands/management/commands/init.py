@@ -25,7 +25,7 @@ from blueapps.contrib.bk_commands.management.templates import \
     BlueTemplateCommand
 
 platform_esb_minimum_version_map = OrderedDict(
-    [('ieod', '0.0.39'),
+    [('ieod', '0.0.68'),
      ('clouds', '0.0.42'),
      ('qcloud', '0.1.14'),
      ('tencent', '0.0.21'),
@@ -126,12 +126,15 @@ class Command(BlueTemplateCommand):
         v3_requirements_file = os.path.join(top_dir, 'requirements-v3.txt')
         # 最终的requirements.txt路径
         requirements_file = os.path.join(top_dir, 'requirements.txt')
-        # open保留requirements-open.txt,并重命名为requirements.txt
+
+        # open版本包定制
         if run_ver == 'open':
+            # 保留requirements - open.txt, 并重命名为requirements.txt
             os.remove(v3_requirements_file)
             os.rename(open_requirements_file, requirements_file)
-        # v3(ieod,qcloud,clouds,tencent)保留requirements-v3.txt,并重命名为requirements.txt
+        # v3(ieod,qcloud,clouds,tencent)版本包定制
         else:
+            # 保留requirements-v3.txt,并重命名为requirements.txt
             os.remove(open_requirements_file)
             os.rename(v3_requirements_file, requirements_file)
 
