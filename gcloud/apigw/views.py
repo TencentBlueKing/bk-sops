@@ -15,10 +15,13 @@ import logging
 
 import ujson as json
 import jsonschema
+from urllib.parse import urlsplit
 from django.http import JsonResponse
 from django.forms.fields import BooleanField
+from django.urls import Resolver404, resolve
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.test import RequestFactory
 
 from blueapps.account.decorators import login_exempt
 from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed, batch_verify_or_raise_auth_failed
@@ -117,32 +120,86 @@ def format_template_data(template, project=None):
 
 
 @login_exempt
+@csrf_exempt
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
-def dispatch_pipeline_plugin_query(request):
-    """转发插件表单渲染资源请求"""
+def dispatch_plugin_query(request):
+    """转发插件表单渲染资源请求，暂时仅考虑GET请求
+        body = {
+            "url": 被转发资源请求url, 比如：/pipeline/job_get_script_list/4/?type=public
+            "method": 'GET|POST',
+            "data": data, POST请求的数据
+        }
+    """
 
-    # parse view func
-    view_func = ''
-
-    # recover request and other params
-    params = ''
-
-    # get view func data
     try:
-        data = view_func(request, params)
+        params = json.loads(request.body)
+    except Exception:
         return JsonResponse({
-            'result': True,
-            'data': data,
-            'code': err_code.SUCCESS.code
+            'result': False,
+            'message': 'invalid json format',
+            'code': err_code.REQUEST_PARAM_INVALID.code,
+            'data': None,
         })
-    except Exception as e:
-        logger.warning('dispatch_pipeline_plugin_query exception: {}'.format(e))
+
+    # proxy: url/method/data
+    url = params.get('url')
+    method = params.get('method', 'GET')
+    data = params.get('data', {})
+    debug = params.get('debug')
+
+    try:
+        parsed = urlsplit(url)
+
+        if method.lower() == 'get':
+            # build fake request, support get only
+            fake_request = RequestFactory().get(
+                url,
+                content_type="application/json"
+            )
+        elif method.lower() == 'post':
+            # build fake request, support get only
+            fake_request = RequestFactory().post(
+                url,
+                data=data,
+                content_type="application/json"
+            )
+        else:
+            return JsonResponse({
+                'result': False,
+                'data': None,
+                'code': err_code.INVALID_OPERATION.code,
+                'message': 'only support get and post method.'
+            })
+
+        if debug:
+            # TODO: test only
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            setattr(fake_request, 'user', User.objects.get(username='admin'))
+
+        # resolve view_func
+        match = resolve(parsed.path, urlconf=None)
+        view_func, kwargs = match.func, match.kwargs
+
+        # call view_func
+        return view_func(fake_request, **kwargs)
+
+    except Resolver404:
         return JsonResponse({
             'result': False,
             'data': None,
-            'code': err_code.REQUEST_PARAM_INVALID.code
+            'code': err_code.REQUEST_PARAM_INVALID.code,
+            'message': 'resolve view func failed for: {}'.format(url)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'result': False,
+            'data': None,
+            'message': str(e),
+            'code': err_code.UNKNOW_ERROR.code
         })
 
 

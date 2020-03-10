@@ -38,5 +38,5 @@ urlpatterns = [
     url(r'^node_callback/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.node_callback),
     url(r'^import_common_template/$', views.import_common_template),
     url(r'^get_plugin_list/(?P<project_id>\d+)/$', views.get_plugin_list),
-    url(r'^dispatch_pipeline_plugin_query/$', views.dispatch_pipeline_plugin_query)
+    url(r'^dispatch_plugin_query/$', views.dispatch_plugin_query)
 ]
