@@ -288,7 +288,7 @@ BK_IAM_SYSTEM_CREATOR = 'admin'
 BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', '')
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
-BK_IAM_HOST = '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE)
+BK_IAM_HOST = os.environ.get('BK_IAM_HOST', '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE))
 
 # 用户管理配置
 BK_USER_MANAGE_HOST = '{}/o/{}'.format(BK_PAAS_HOST, 'bk_user_manage')
