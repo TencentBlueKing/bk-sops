@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.resources.base import Action
@@ -25,7 +26,7 @@ periodic_task_resource = DjangoModelResource(
     rtype='periodic_task',
     name=_("周期任务"),
     scope_type='system',
-    scope_id='bk_sops',
+    scope_id=settings.BK_IAM_SYSTEM_ID,
     scope_name=_("标准运维"),
     actions=[
         Action(id='view', name=_("查看"), is_instance_related=True),
