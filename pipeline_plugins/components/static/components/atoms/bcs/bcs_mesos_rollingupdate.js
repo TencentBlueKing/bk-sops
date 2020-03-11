@@ -19,6 +19,7 @@
                 hookable: true,
                 children: [
                     {
+                        "tag_code": "bcs_rollingupdate_project_id",
                         "type": "input",
                         "attrs": {
                             "name": gettext("BCS项目ID"),
@@ -35,10 +36,10 @@
                             _tag_init: function () {
                                 this.emit_event(this.tagCode, "change", this.value)
                             }
-                        },
-                        "tag_code": "bcs_rollingupdate_project_id"
+                        }
                     },
                     {
+                        "tag_code": "bcs_rollingupdate_obj_type",
                         "type": "select",
                         "attrs": {
                             "name": gettext("对象类型"),
@@ -61,10 +62,10 @@
                             "placeholder": gettext("请选择对象类型"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_rollingupdate_obj_type"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_rollingupdate_app",
                         "type": "select",
                         "attrs": {
                             "name": gettext("应用实例"),
@@ -135,10 +136,10 @@
                                 url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id + '&category=' + category
                                 return url
                             }
-                        },
-                        "tag_code": "bcs_rollingupdate_app"
+                        }
                     },
                     {
+                        "tag_code": "bcs_rollingupdate_app_ver",
                         "type": "select",
                         "attrs": {
                             "name": gettext("应用实例版本"),
@@ -191,10 +192,10 @@
                                 url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id + '&instance_id=' + instance_id
                                 return url
                             }
-                        },
-                        "tag_code": "bcs_rollingupdate_app_ver"
+                        }
                     },
                     {
+                        "tag_code": "bcs_rollingupdate_inst_num",
                         "type": "int",
                         "attrs": {
                             "name": gettext("实例化个数"),
@@ -208,10 +209,10 @@
                             "placeholder": gettext("请输入实例化个数"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_rollingupdate_inst_num"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_rollingupdate_vars",
                         "type": "datatable",
                         "attrs": {
                             "name": gettext("实例版本参数"),
@@ -236,14 +237,13 @@
                             "editable": true,
                             "value": [],
                             "add_btn": true,
-                            "empty_text": "无数据",
+                            "empty_text": gettext("无数据"),
                             "remote_url": "",
                             "remote_data_init": function (e) { return e },
                             "table_buttons": []
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_rollingupdate_vars"
+                        "methods": {}
                     }
                 ]
             },

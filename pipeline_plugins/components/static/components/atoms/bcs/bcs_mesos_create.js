@@ -19,6 +19,7 @@
                 hookable: true,
                 children: [
                     {
+                        "tag_code": "bcs_create_project_id",
                         "type": "input",
                         "attrs": {
                             "name": gettext("BCS项目ID"),
@@ -35,10 +36,10 @@
                             _tag_init: function () {
                                 this.emit_event(this.tagCode, "change", this.value)
                             }
-                        },
-                        "tag_code": "bcs_create_project_id"
+                        }
                     },
                     {
+                        "tag_code": "bcs_create_obj_type",
                         "type": "select",
                         "attrs": {
                             "name": gettext("对象类型"),
@@ -65,10 +66,10 @@
                             "placeholder": gettext("请选择对象类型"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_create_obj_type"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_create_set",
                         "type": "select",
                         "attrs": {
                             "name": gettext("集群"),
@@ -116,10 +117,10 @@
                                 url += '?project_id=' + project_id
                                 return url
                             }
-                        },
-                        "tag_code": "bcs_create_set"
+                        }
                     },
                     {
+                        "tag_code": "bcs_create_muster",
                         "type": "select",
                         "attrs": {
                             "name": gettext("模板集"),
@@ -170,10 +171,10 @@
                                 url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id
                                 return url
                             }
-                        },
-                        "tag_code": "bcs_create_muster"
+                        }
                     },
                     {
+                        "tag_code": "bcs_create_muster_ver",
                         "type": "select",
                         "attrs": {
                             "name": gettext("模板集版本"),
@@ -229,10 +230,10 @@
                                 url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id + '&muster_id=' + muster_id
                                 return url
                             }
-                        },
-                        "tag_code": "bcs_create_muster_ver"
+                        }
                     },
                     {
+                        "tag_code": "bcs_create_template",
                         "type": "select",
                         "attrs": {
                             "name": gettext("资源"),
@@ -301,10 +302,10 @@
                                 url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id + '&version_id=' + version_id + '&obj_type=' + obj_type
                                 return url
                             }
-                        },
-                        "tag_code": "bcs_create_template"
+                        }
                     },
                     {
+                        "tag_code": "bcs_create_vars",
                         "type": "datatable",
                         "attrs": {
                             "name": gettext("命名空间参数"),
@@ -336,14 +337,13 @@
                             "editable": true,
                             "value": [],
                             "add_btn": true,
-                            "empty_text": "无数据",
+                            "empty_text": gettext("无数据"),
                             "remote_url": "",
                             "remote_data_init": function (e) { return e },
                             "table_buttons": []
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_create_vars"
+                        "methods": {}
                     }
                 ]
             },
