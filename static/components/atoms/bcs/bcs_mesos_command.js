@@ -19,6 +19,7 @@
                 hookable: true,
                 children: [
                     {
+                        "tag_code": "bcs_command_project_id",
                         "type": "input",
                         "attrs": {
                             "name": gettext("BCS项目ID"),
@@ -35,10 +36,10 @@
                             _tag_init: function () {
                                 this.emit_event(this.tagCode, "change", this.value)
                             }
-                        },
-                        "tag_code": "bcs_command_project_id"
+                        }
                     },
                     {
+                        "tag_code": "bcs_command_obj_type",
                         "type": "select",
                         "attrs": {
                             "name": gettext("对象类型"),
@@ -69,10 +70,10 @@
                             _tag_init: function () {
                                 this.emit_event(this.tagCode, "change", this.value)
                             }
-                        },
-                        "tag_code": "bcs_command_obj_type"
+                        }
                     },
                     {
+                        "tag_code": "bcs_command_app",
                         "type": "select",
                         "attrs": {
                             "name": gettext("应用实例"),
@@ -143,10 +144,10 @@
                                 url += '?project_id=' + project_id + '&bk_biz_id=' + bk_biz_id + '&category=' + category
                                 return url
                             }
-                        },
-                        "tag_code": "bcs_command_app"
+                        }
                     },
                     {
+                        "tag_code": "bcs_command_cmd",
                         "type": "input",
                         "attrs": {
                             "name": gettext("命令"),
@@ -160,10 +161,10 @@
                             "placeholder": gettext("请填写命令，例: ps"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_command_cmd"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_command_param",
                         "type": "input",
                         "attrs": {
                             "name": gettext("命令参数"),
@@ -172,10 +173,10 @@
                             "placeholder": gettext("请填写命令参数，例: -a"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_command_param"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_command_user",
                         "type": "input",
                         "attrs": {
                             "name": gettext("用户"),
@@ -184,10 +185,10 @@
                             "placeholder": gettext("请填写用户身份，不填则默认为 root"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_command_user"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_command_work_dir",
                         "type": "input",
                         "attrs": {
                             "name": gettext("工作目录"),
@@ -196,10 +197,10 @@
                             "placeholder": gettext("请填写工作目录"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_command_work_dir"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_command_has_privilege",
                         "type": "radio",
                         "attrs": {
                             "name": gettext("拥有特权"),
@@ -222,10 +223,10 @@
                             ],
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_command_has_privilege"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_command_task_ttl",
                         "type": "int",
                         "attrs": {
                             "name": gettext("任务信息保存时间"),
@@ -234,10 +235,10 @@
                             "placeholder": gettext("默认为24607分钟"),
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_command_task_ttl"
+                        "methods": {}
                     },
                     {
+                        "tag_code": "bcs_rollingupdate_vars",
                         "type": "datatable",
                         "attrs": {
                             "name": gettext("环境变量"),
@@ -262,14 +263,13 @@
                             "editable": true,
                             "value": [],
                             "add_btn": true,
-                            "empty_text": "无数据",
+                            "empty_text": gettext("无数据"),
                             "remote_url": "",
                             "remote_data_init": function (e) { return e },
                             "table_buttons": []
                         },
                         "events": [],
-                        "methods": {},
-                        "tag_code": "bcs_rollingupdate_vars"
+                        "methods": {}
                     }
                 ]
             },

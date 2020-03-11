@@ -95,8 +95,7 @@ class BCSClient(object):
 
         if not (username and password):
             return {
-                'message': 'make sure BKAPP_BCS_PLUGINS_USERNAME and BKAPP_BCS_PLUGINS_PASSWORD'
-                ' is config in enviroments',
+                'message': 'make sure BKAPP_BCS_PLUGINS_USERNAME and BKAPP_BCS_PLUGINS_PASSWORD is config in enviroments',  # noqa
                 'result': False
             }
 

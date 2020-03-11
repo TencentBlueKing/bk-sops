@@ -12,10 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import traceback
 from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
+
+from gcloud.core.models import EnvironmentVariables
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema
@@ -39,7 +42,15 @@ BCS_TASK_STATUS_FINISH = 'finish'
 BCS_TASK_STATUS_FAILED = 'failed'
 BCS_COMMAND_EXIT_SUCCESS = 0
 
-BCS_MAX_SCHEDULE_TIMES = 120
+try:
+    BCS_MAX_SCHEDULE_TIMES = EnvironmentVariables.objects.get_var('BCS_MAX_SCHEDULE_TIMES', 120)
+except Exception:
+    BCS_MAX_SCHEDULE_TIMES = 120
+else:
+    try:
+        BCS_MAX_SCHEDULE_TIMES = int(BCS_MAX_SCHEDULE_TIMES)
+    except Exception:
+        BCS_MAX_SCHEDULE_TIMES = 120
 
 
 class BcsMesosCreateService(Service):
@@ -89,8 +100,14 @@ class BcsMesosCreateService(Service):
 
         bcs_create_muster_ver = data.inputs.bcs_create_data['bcs_create_muster_ver']
         version_id, show_version_id = bcs_create_muster_ver.split('_', 1)
-        version_id = int(version_id)
-        show_version_id = int(show_version_id)
+        try:
+            version_id = int(version_id)
+            show_version_id = int(show_version_id)
+        except Exception:
+            message = 'version_id, show_version_id 转换错误: {}'.format(traceback.format_exc())
+            self.logger.error(message)
+            data.outputs.ex_data = message
+            return False
 
         obj_type = data.inputs.bcs_create_data['bcs_create_obj_type']
         templates = data.inputs.bcs_create_data['bcs_create_template']
