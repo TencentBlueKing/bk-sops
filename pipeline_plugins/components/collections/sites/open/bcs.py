@@ -42,11 +42,15 @@ BCS_TASK_STATUS_FINISH = 'finish'
 BCS_TASK_STATUS_FAILED = 'failed'
 BCS_COMMAND_EXIT_SUCCESS = 0
 
-BCS_MAX_SCHEDULE_TIMES = EnvironmentVariables.objects.get_var('BCS_MAX_SCHEDULE_TIMES', 120)
 try:
-    BCS_MAX_SCHEDULE_TIMES = int(BCS_MAX_SCHEDULE_TIMES)
+    BCS_MAX_SCHEDULE_TIMES = EnvironmentVariables.objects.get_var('BCS_MAX_SCHEDULE_TIMES', 120)
 except Exception:
     BCS_MAX_SCHEDULE_TIMES = 120
+else:
+    try:
+        BCS_MAX_SCHEDULE_TIMES = int(BCS_MAX_SCHEDULE_TIMES)
+    except Exception:
+        BCS_MAX_SCHEDULE_TIMES = 120
 
 
 class BcsMesosCreateService(Service):
