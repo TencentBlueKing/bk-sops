@@ -360,7 +360,7 @@
                 try {
                     this.pending.set = true
                     const params = {
-                        bk_set_id: this.set_template_id
+                        bk_set_id: this.formData.set[0].id
                     }
                     const resp = await this.getCCSearchModule(params)
                     if (resp.result) {
