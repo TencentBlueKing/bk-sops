@@ -223,7 +223,7 @@
             }),
             isEditInDialog () {
                 return this.renderConfig[0].type
-                    && (this.renderConfig[0].type === 'datatable' || this.renderConfig[0].type === 'ip_selector')
+                    && (this.renderConfig[0].type === 'datatable' || this.renderConfig[0].type === 'ip_selector' || this.renderConfig[0].type === 'set_allocation')
             },
             isDisabledValType () {
                 const { source_type } = this.theEditingData

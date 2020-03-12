@@ -42,9 +42,10 @@
                     <template slot-scope="props">
                         <template v-if="item.config.tag_code !== 'tb_btns'">
                             <render-form
+                                :ref="`row_${props.$index}_${item.config.tag_code}`"
                                 :scheme="[item.config]"
                                 :form-option="getCellOption(props.$index)"
-                                v-model="props.row[props.column.index]">
+                                v-model="props.row[item.config.tag_code]">
                             </render-form>
                         </template>
                         <template v-else>
@@ -53,7 +54,7 @@
                                 <bk-button :text="true" @click="rowDelClick(props)">{{ i18n.delete }}</bk-button>
                             </template>
                             <template v-else>
-                                <bk-button :text="true" @click="rowSaveClick(props)">{{ i18n.save }}</bk-button>
+                                <bk-button :text="true" @click="rowSaveClick(props, item.config.tag_code)">{{ i18n.save }}</bk-button>
                                 <bk-button :text="true" @click="rowCancelClick">{{ i18n.cancel }}</bk-button>
                             </template>
                         </template>
@@ -138,9 +139,14 @@
                     }
                 })
                 const sheetValue = this.value.map(rowData => {
-                    return rowData.map(item => {
-                        return Object.values(item).join('')
+                    const dataItem = []
+                    this.cols.forEach(col => {
+                        const tagCode = col.config.tag_code
+                        if (tagCode !== 'tb_btns') {
+                            dataItem.push(rowData[col.config.tag_code][col.config.tag_code])
+                        }
                     })
+                    return dataItem
                 })
                 const sheetData = [sheetHeader, ...sheetValue]
                 
@@ -193,20 +199,37 @@
 
                 return options
             },
+            validateRow (name) {
+                const refs = Object.keys(this.$refs).filter(item => item.startsWith(name))
+                let valid = true
+                refs.forEach(item => {
+                    const result = this.$refs[item][0].validate() // bk-table 里的body会有两份内容
+                    if (!result) {
+                        valid = false
+                    }
+                })
+                return valid
+            },
             rowEditClick (data) {
                 this.editRow = data.$index
             },
             rowDelClick (row) {
                 this.tableData.splice(row.$index, 1)
-                this.$emit('updateValue', tools.deepClone(this.tableData))
+                this.$emit('update', tools.deepClone(this.tableData))
             },
             rowSaveClick (data) {
-                this.editRow = ''
-                this.$emit('updateValue', tools.deepClone(this.tableData))
+                const valid = this.validateRow(`row_${data.$index}`)
+                if (valid) {
+                    this.editRow = ''
+                    this.$emit('update', tools.deepClone(this.tableData))
+                }
             },
             rowCancelClick (data) {
                 this.editRow = ''
                 this.tableData = tools.deepClone(this.value)
+            },
+            validate () {
+                return this.validateRow(`row_`)
             }
         }
     }

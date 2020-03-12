@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-set-allocation" v-bkloading="{ isLoading: loading, opacity: 0.8 }">
-        <div v-if="formMode && typeof ipValue === 'object'" class="tag-set-allocation-wrap">
+    <div class="tag-set-allocation">
+        <div v-if="formMode" class="tag-set-allocation-wrap">
             <set-allocation
                 ref="setAllocation"
                 :config="setValue.config"

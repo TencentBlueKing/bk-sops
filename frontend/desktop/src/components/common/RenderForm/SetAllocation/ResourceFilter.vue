@@ -96,7 +96,7 @@
                         :key="moduleItem.name"
                         :name="moduleItem.bk_module_id"
                         :label="moduleItem.bk_module_name">
-                        <bk-form :model="formData.modules[moduleIndex]">
+                        <bk-form :model="formData.modules[moduleIndex]" ref="moduleTab" :rules="moduleRules">
                             <bk-form-item :label="i18n.resourceNum" :required="true" property="count">
                                 <bk-input v-model="formData.modules[moduleIndex].count" type="number" :min="0"></bk-input>
                             </bk-form-item>
@@ -108,7 +108,11 @@
                                     @change="onChangeReuse($event, formData.modules[moduleIndex])">
                                 </bk-switcher>
                             </bk-form-item>
-                            <bk-form-item :label="i18n.reuseModule" property="reuse" v-if="formData.modules[moduleIndex].isReuse">
+                            <bk-form-item
+                                v-show="formData.modules[moduleIndex].isReuse"
+                                property="reuse"
+                                :label="i18n.reuseModule"
+                                :required="true">
                                 <bk-select v-model="formData.modules[moduleIndex].reuse">
                                     <bk-option
                                         v-for="item in canReusedModules"
@@ -118,7 +122,7 @@
                                     </bk-option>
                                 </bk-select>
                             </bk-form-item>
-                            <div class="condition-wrapper" v-else>
+                            <div class="condition-wrapper" v-show="!formData.modules[moduleIndex].isReuse">
                                 <select-condition
                                     ref="filterConditions"
                                     :label="i18n.filter"
@@ -145,6 +149,7 @@
 <script >
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import SelectCondition from '../IpSelector/SelectCondition.vue'
@@ -174,7 +179,8 @@
             }
         },
         data () {
-            const { set_count, host_resources, module_detail } = this.config
+            const { set_count, host_resources, module_detail } = tools.deepClone(this.config)
+            const $this = this
             return {
                 formData: {
                     clusterCount: set_count,
@@ -206,11 +212,30 @@
                         {
                             required: true,
                             message: gettext('必选项'),
-                            trigger: 'bluer'
+                            trigger: 'blur'
                         }
                     ]
                 },
-                moduleRules: [],
+                moduleRules: {
+                    count: [{
+                        required: true,
+                        message: gettext('必填项'),
+                        trigger: 'blur'
+                    }],
+                    reuse: [{
+                        validator (val) {
+                            if ($this.formData.modules[$this.validatingTabIndex].isReuse
+                                && $this.formData.modules[$this.validatingTabIndex].reuse === ''
+                            ) {
+                                return false
+                            }
+                            return true
+                        },
+                        message: gettext('必填项'),
+                        trigger: 'blur'
+                    }]
+                },
+                validatingTabIndex: 0, // 正在被校验的 module tab，每次校验之前清零
                 setList: [], // 集群模板 tree
                 resourceList: [], // 主机资源所属 tree
                 moduleList: [], // 集群下模块列表
@@ -261,7 +286,12 @@
                 this.moduleList.forEach((item, index) => {
                     const moduleItem = this.config.module_detail.find(md => md.id === item.bk_module_id)
                     if (moduleItem) {
-                        this.$set(this.formData.modules, index, moduleItem)
+                        const { host_count: count, name, id, reuse_module: reuse, filters, excludes } = tools.deepClone(moduleItem)
+                        const isReuse = reuse !== ''
+                        const moduleData = {
+                            count, name, id, isReuse, reuse, filters, excludes
+                        }
+                        this.$set(this.formData.modules, index, moduleData)
                     } else {
                         this.$set(this.formData.modules, index, {
                             count: 0,
@@ -453,12 +483,30 @@
             updateCondition (type, value, data) {
                 data[type] = value
             },
-            async onConfigConfirm () {
+            // 点击确定，校验表单，提交数据
+            onConfigConfirm () {
                 if (this.pending.host) {
                     return
                 }
-                this.$refs.setForm.validate().then(validator => {
-                    this.getHostsAndSave()
+                this.$refs.setForm.validate().then(async validator => {
+                    let tabValid = true
+                    if (this.$refs.moduleTab && this.$refs.moduleTab.length) {
+                        const len = this.$refs.moduleTab.length
+                        for (let i = 0; i < len; i++) {
+                            this.validatingTabIndex = i
+                            try {
+                                await this.$refs.moduleTab[i].validate()
+                            } catch (error) {
+                                tabValid = false
+                            }
+                        }
+                    }
+                    if (tabValid) {
+                        this.getHostsAndSave()
+                    } else {
+                        errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
+                    }
+
                     // @todo 模块校验
                 })
             },
@@ -490,9 +538,10 @@
                         }
                     })
                     const moduleDetail = modules.map(item => {
-                        const { count, name, reuse, filters, excludes } = item
+                        const { count, name, id, reuse, filters, excludes } = item
                         return {
                             name,
+                            id,
                             filters,
                             excludes,
                             host_count: count,
@@ -520,7 +569,7 @@
              *
              * @param {Array} data 全量的 host 数据
              *
-             * @return {Object} 满足每个 module 设置条件的 host 值，格式: {gamserver: [12.3.2.1, 3.3.4.5], ...}
+             * @return {Object} 满足每个 module 设置条件的 host 值，格式: {gamserver: [xx.xx.x.x, x.x.x.xxx], ...}
              */
             filterModuleHost (data) {
                 const hosts = {}
@@ -605,6 +654,14 @@
         .module-wrapper {
             margin-top: 20px;
             min-height: 450px;
+        }
+        .bk-form {
+            /deep/ .bk-form-item {
+                .bk-label {
+                    color: #313138;
+                    font-size: 12px;
+                }
+            }
         }
     }
     .module-empty {

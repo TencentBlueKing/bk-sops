@@ -31,6 +31,7 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ResourceList from './ResourceList.vue'
     import ResourceFilter from './ResourceFilter.vue'
@@ -63,11 +64,25 @@
         data () {
             return {
                 showFilter: false,
-                localConfig: this.config,
-                localValue: this.value,
+                localConfig: tools.deepClone(this.config),
+                localValue: this.tranformPropsModuleData(this.value),
                 colsLoading: false,
                 originalCols: [], // 表格列原始配置项
                 tbCols: [] // 增加模块列后的表格配置项
+            }
+        },
+        watch: {
+            config: {
+                handler (val) {
+                    this.localConfig = tools.deepClone(val)
+                },
+                deep: true
+            },
+            value: {
+                handler (val) {
+                    this.localValue = this.tranformPropsModuleData(val)
+                },
+                deep: true
             }
         },
         mounted () {
@@ -77,6 +92,63 @@
             ...mapActions([
                 'getCCSearchColAttrSet'
             ]),
+            /**
+             * 转换 value 的格式
+             * value 中保存的模块数据统一放在 key 为 `__module` 的数组里，需要把里面的数据提取出来
+             *
+             */
+            tranformPropsModuleData (data) {
+                const localData = []
+                data.forEach(item => {
+                    const dataItem = {}
+                    Object.keys(item).forEach(key => {
+                        if (key !== '__module') {
+                            dataItem[key] = { // renderForm 组件 value 需要接受 object 类型数据
+                                [key]: tools.deepClone(item[key])
+                            }
+                        } else {
+                            if (item[key].length > 0) {
+                                item[key].forEach(md => {
+                                    dataItem[md.key] = {
+                                        [md.key]: md.value.join('\n')
+                                    }
+                                })
+                            }
+                        }
+                    })
+                    localData.push(dataItem)
+                })
+                return localData
+            },
+            /**
+             * 转换组件的 localValue 格式
+             * 把组件模块数据收到 `__module` 属性中
+             */
+            transformLocalModuleData (data) {
+                const propsValue = []
+                data.forEach((rowData) => {
+                    const dataItem = {
+                        '__module': []
+                    }
+                    this.tbCols.forEach(col => {
+                        const { tag_code: tagCode, module } = col.config
+                        if (tagCode !== 'tb_btns') {
+                            if (module) { // 模块列
+                                dataItem.__module.push({
+                                    key: tagCode,
+                                    value: rowData[tagCode][tagCode].split('\n').map(item => item.trim()).filter(item => item !== '')
+                                })
+                            } else { // 普通数据列
+                                dataItem[tagCode] = tools.deepClone(rowData[tagCode][tagCode])
+                            }
+                        }
+                    })
+                    propsValue.push(dataItem)
+                })
+
+                return propsValue
+            },
+            // 获取表格原始列配置项
             async getColsConfig () {
                 try {
                     this.colsLoading = true
@@ -103,6 +175,7 @@
                     }
                 })
                 modules.forEach(item => {
+                    const count = item.host_count
                     modulesConfig.push({
                         width: 120,
                         config: {
@@ -112,7 +185,25 @@
                             attrs: {
                                 name: gettext('模块:') + item.name + '(' + item.host_count + ')',
                                 editable: true,
-                                validation: [{ type: 'required' }]
+                                validation: [
+                                    { type: 'required' },
+                                    {
+                                        type: 'custom',
+                                        args (val) {
+                                            let result = true
+                                            let message = ''
+                                            const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
+                                            if (hosts.length < count) {
+                                                result = false
+                                                message = gettext('资源不足')
+                                            }
+                                            return {
+                                                result,
+                                                error_message: message
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     })
@@ -138,18 +229,20 @@
                 const value = []
                 if (rowCount > 0) {
                     for (let i = 0; i < rowCount; i++) {
-                        const valItem = []
+                        const valItem = {}
                         this.tbCols.forEach(item => {
                             const tagCode = item.config.tag_code
                             if (tagCode !== 'tb_btns') {
                                 const rowData = data[i]
                                 if (rowData.hasOwnProperty(tagCode)) {
                                     const val = item.config.module ? rowData[tagCode].join('\n') : rowData[tagCode]
-                                    valItem.push({
+                                    valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
                                         [tagCode]: val
-                                    })
+                                    }
                                 } else {
-                                    valItem.push({})
+                                    valItem[tagCode] = { // renderForm 组件 value 需要接受 object 类型数据
+                                        [tagCode]: ''
+                                    }
                                 }
                             }
                         })
@@ -173,12 +266,22 @@
                 this.localConfig = conf
                 this.joinCols(this.localConfig.module_detail)
                 this.joinValue(conf.set_count, data)
+                this.updatePropsData()
             },
             /**
              * 同步表格编辑的数据
              */
             updateValue (val) {
                 this.localValue = val
+                this.updatePropsData()
+            },
+            // 同步本地组件数据到父组件
+            updatePropsData () {
+                const propsData = {
+                    config: tools.deepClone(this.localConfig),
+                    data: this.transformLocalModuleData(this.localValue)
+                }
+                this.$emit('update', propsData)
             },
             /**
              * excel 数据导入到表格
@@ -213,7 +316,7 @@
                                     host_count: count
                                 })
                             }
-                            value[key] = row[header].split('\n').map(ip => ip.trim())
+                            value[key] = row[header].split('\n').map(ip => ip.trim()).filter(item => item !== '')
                         } else {
                             const key = headerMap[header]
                             if (key) {
@@ -225,16 +328,16 @@
                 })
                 this.joinCols(modules)
                 this.joinValue(rowCount, data)
+                this.updatePropsData()
             },
             validate () {
-                this.$refs.resourceList && this.$refs.resourceList.validate()
+                return this.$refs.resourceList.validate()
             }
         }
     }
 </script>
 <style style="scss" scoped>
     .resource-allocation {
-        width: 800px;
         background: #ffffff;
     }
 </style>
