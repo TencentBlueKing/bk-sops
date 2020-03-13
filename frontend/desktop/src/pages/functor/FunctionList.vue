@@ -27,6 +27,11 @@
                             {{i18n.new}}
                         </bk-button>
                     </template>
+                    <template v-slot:search-extend>
+                        <span class="auto-redraw" @click.stop>
+                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ i18n.autoRedraw }}</bk-checkbox>
+                        </span>
+                    </template>
                 </advance-search-form>
             </div>
             <div class="functor-table-content">
@@ -71,16 +76,24 @@
                             {{ props.row.claim_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="140"></bk-table-column>
-                    <bk-table-column :label="i18n.claimant" width="140">
+                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.claimant" width="120">
                         <template slot-scope="props">
                             {{ props.row.claimant || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="i18n.claimStatus" width="120">
                         <template slot-scope="props">
                             <span :class="statusClass(props.row.status)"></span>
                             {{statusMethod(props.row.status, props.row.status_name)}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.taskStatus" width="120">
+                        <template slot-scope="props">
+                            <div class="task-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                            </div>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.operation" width="100">
@@ -226,6 +239,7 @@
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
+    import task from '@/mixins/task.js'
     const searchForm = [
         {
             type: 'select',
@@ -271,7 +285,7 @@
             BaseTitle,
             NoData
         },
-        mixins: [permission],
+        mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -287,7 +301,8 @@
                     billTimePlaceholder: gettext('请选择时间'),
                     creator: gettext('提单人'),
                     claimant: gettext('认领人'),
-                    status: gettext('状态'),
+                    claimStatus: gettext('认领状态'),
+                    taskStatus: gettext('任务状态'),
                     operation: gettext('操作'),
                     claim: gettext('认领'),
                     view: gettext('查看'),
@@ -305,7 +320,8 @@
                     query: gettext('搜索'),
                     reset: gettext('清空'),
                     confirm: gettext('确认'),
-                    cancel: gettext('取消')
+                    cancel: gettext('取消'),
+                    autoRedraw: gettext('实时刷新')
                 },
                 listLoading: true,
                 functorSync: 0,
@@ -313,6 +329,7 @@
                 isShowNewTaskDialog: false,
                 functorBasicInfoLoading: true,
                 functorList: [],
+                executeStatus: [], // 任务执行状态
                 business: {
                     list: [],
                     loading: false,
@@ -339,6 +356,8 @@
                     disabled: false
                 },
                 isCommonTemplate: false,
+                isAutoRedraw: false,
+                autoRedrawTimer: null,
                 status: undefined,
                 functorCategory: [],
                 requestData: {
@@ -419,10 +438,13 @@
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
+                    const taskList = functorListData.objects.map(m => m.task)
                     this.tplAuthOperations = functorListData.meta.auth_operations
                     this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.pagination.count = functorListData.meta.total_count
+                    // mixins getExecuteStatus
+                    this.getExecuteStatus('executeStatus', taskList)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -432,6 +454,8 @@
             onPageChange (page) {
                 this.pagination.current = page
                 this.loadFunctionTask()
+                // 重置自动刷新时间
+                this.onOpenAutoRedraw()
             },
             searchInputhandler (data) {
                 this.requestData.flowName = data
@@ -607,9 +631,33 @@
                 this.requestData = data
                 this.loadFunctionTask()
             },
+            onAutoRedrawChange (val) {
+                if (val) {
+                    return this.onOpenAutoRedraw()
+                }
+                this.clearAutoRedraw()
+            },
+            // 开启自动刷新
+            onOpenAutoRedraw () {
+                if (!this.isAutoRedraw) {
+                    return this.clearAutoRedraw()
+                }
+                clearTimeout(this.autoRedrawTimer)
+                this.autoRedrawTimer = setTimeout(() => {
+                    this.loadFunctionTask()
+                    this.onOpenAutoRedraw()
+                }, 15000)
+            },
+            // 关闭自动刷新
+            clearAutoRedraw () {
+                clearTimeout(this.autoRedrawTimer)
+                this.autoRedrawTimer = null
+                this.isAutoRedraw = false
+            },
             handlePageLimitChange (val) {
                 this.pagination.limit = val
                 this.pagination.current = 1
+                this.onOpenAutoRedraw() // 重置自动刷新时间
                 this.loadFunctionTask()
             }
         }
@@ -617,6 +665,7 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/task.scss';
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
@@ -635,6 +684,10 @@
     .task-create-btn {
         min-width: 120px;
     }
+    .auto-redraw {
+        margin-left: 30px;
+        display: inline-block;
+    }
 }
 .advanced-search {
     margin: 0;
@@ -650,6 +703,9 @@
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .task-status {
+       @include ui-task-status;
     }
 }
 .panagation {
