@@ -11,7 +11,7 @@
 */
 <template>
     <div class="resource-filter">
-        <header>
+        <header class="set-form">
             <span class="title">{{ i18n.title }}</span>
             <div class="btns">
                 <bk-button theme="primary" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
@@ -22,7 +22,7 @@
                 </bk-button>
             </div>
         </header>
-        <section>
+        <section class="module-form">
             <bk-form ref="setForm" :model="formData" :rules="setRules">
                 <bk-form-item :label="i18n.cluster" :required="true" property="clusterCount">
                     <bk-input v-model="formData.clusterCount" type="number" :min="0"></bk-input>
@@ -122,7 +122,7 @@
                                     </bk-option>
                                 </bk-select>
                             </bk-form-item>
-                            <div class="condition-wrapper" v-show="!formData.modules[moduleIndex].isReuse">
+                            <div class="condition-wrapper" v-if="!formData.modules[moduleIndex].isReuse">
                                 <select-condition
                                     ref="filterConditions"
                                     :label="i18n.filter"
@@ -282,7 +282,7 @@
             this.getResource()
             this.getCondition()
             if (this.config.set_template_id !== '') { // 筛选面板编辑时，组装模块列表数据
-                await this.getModule()
+                await this.getModule(this.config.set_template_id)
                 this.moduleList.forEach((item, index) => {
                     const moduleItem = this.config.module_detail.find(md => md.id === item.bk_module_id)
                     if (moduleItem) {
@@ -320,8 +320,8 @@
                     const resp = await this.getCCSearchTopoSet()
                     if (resp.result) {
                         this.setList = resp.data
-                        if (this.config.set_template_id !== '') {
-                            this.$refs.setTree.setCheckedKeys([this.config.set_template_id])
+                        if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
+                            this.$refs.setTree && this.$refs.setTree.setCheckedKeys([this.config.set_template_id])
                             const checkedName = this.filterSetName(this.config.set_template_id, resp.data)
                             this.formData.set = [{
                                 id: this.config.set_template_id,
@@ -345,7 +345,7 @@
                         this.resourceList = resp.data
                         if (this.formData.resource.length > 0) {
                             const keys = this.formData.resource.map(item => item.id)
-                            this.$refs.resourceTree.setCheckedKeys(keys)
+                            this.$refs.resourceTree && this.$refs.resourceTree.setCheckedKeys(keys)
                         }
                     } else {
                         errorHandler(resp, this)
@@ -356,11 +356,11 @@
                     this.pending.resource = false
                 }
             },
-            async getModule () {
+            async getModule (id) {
                 try {
                     this.pending.set = true
                     const params = {
-                        bk_set_id: this.formData.set[0].id
+                        bk_set_id: id
                     }
                     const resp = await this.getCCSearchModule(params)
                     if (resp.result) {
@@ -398,7 +398,7 @@
                 this.formData.set = [checked]
                 this.$refs.setTree.setCheckedKeys([checked.id])
                 this.$refs.setSelect.close()
-                await this.getModule()
+                await this.getModule(checked.id)
                 this.moduleList.forEach((item, index) => {
                     this.$set(this.formData.modules, index, {
                         count: 0,
@@ -632,8 +632,8 @@
     }
 </script>
 <style lang="scss" scoped>
-    header {
-        margin: 20px 0;
+    .set-form {
+        margin-bottom: 20px;
         vertical-align: middle;
         overflow: hidden;
         .title {
@@ -647,9 +647,9 @@
             float: right;
         }
     }
-    section {
+    .module-form {
         padding: 20px;
-        border: 1px solid #dcdee5;
+        border: 1px solid #ececec;
         border-radius: 2px;
         .module-wrapper {
             margin-top: 20px;

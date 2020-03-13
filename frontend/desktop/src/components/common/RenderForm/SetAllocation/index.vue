@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="resource-allocation">
+    <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
         <resource-list
             v-show="!showFilter"
             ref="resourceList"
@@ -177,7 +177,7 @@
                 modules.forEach(item => {
                     const count = item.host_count
                     modulesConfig.push({
-                        width: 120,
+                        width: 150,
                         config: {
                             tag_code: item.name,
                             type: 'textarea',
@@ -186,7 +186,6 @@
                                 name: gettext('模块:') + item.name + '(' + item.host_count + ')',
                                 editable: true,
                                 validation: [
-                                    { type: 'required' },
                                     {
                                         type: 'custom',
                                         args (val) {
@@ -338,6 +337,8 @@
 </script>
 <style style="scss" scoped>
     .resource-allocation {
+        padding: 20px;
         background: #ffffff;
+        border-radius: 2px;
     }
 </style>

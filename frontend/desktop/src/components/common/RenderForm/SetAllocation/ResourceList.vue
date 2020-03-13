@@ -29,7 +29,7 @@
             </el-upload>
         </div>
         <div class="data-table">
-            <bk-table :data="tableData">
+            <bk-table :data="tableData" :fit="false">
                 <bk-table-column
                     v-for="(item, colIndex) in cols"
                     :key="item.config.tag_code"
@@ -203,9 +203,13 @@
                 const refs = Object.keys(this.$refs).filter(item => item.startsWith(name))
                 let valid = true
                 refs.forEach(item => {
-                    const result = this.$refs[item][0].validate() // bk-table 里的body会有两份内容
-                    if (!result) {
-                        valid = false
+                    if (this.$refs[item].length > 0) {
+                        const result = this.$refs[item][0].validate() // bk-table 里的body会有两份内容
+                        if (!result) {
+                            valid = false
+                        }
+                    } else {
+                        delete this.$refs[item]
                     }
                 })
                 return valid
@@ -234,11 +238,17 @@
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
     .opt-btns {
-        margin: 20px 0;
-        .upload-btn {
+        margin-bottom: 20px;
+        /deep/ .upload-btn {
             display: inline-block;
+        }
+    }
+    .data-table {
+        /deep/ .bk-table tbody .cell {
+            padding-top: 16px;
+            padding-bottom: 16px;
         }
     }
 </style>
