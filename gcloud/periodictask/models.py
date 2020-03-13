@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+import ujson as json
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -27,6 +28,7 @@ from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
 
@@ -153,6 +155,13 @@ class PeriodicTask(models.Model):
                 name = template.name
         return name
 
+    @property
+    def template(self):
+        if self.template_source in NON_COMMON_TEMPLATE_TYPES:
+            return TaskTemplate.objects.get(pk=self.template_id)
+        elif self.template_source == COMMON:
+            return CommonTemplate.objects.get(pk=self.template_id)
+
     def set_enabled(self, enabled):
         self.task.set_enabled(enabled)
 
@@ -166,6 +175,24 @@ class PeriodicTask(models.Model):
 
     def modify_constants(self, constants):
         return self.task.modify_constants(constants)
+
+    def get_stakeholders(self):
+        notify_receivers = json.loads(self.template.notify_receivers)
+        receiver_group = notify_receivers.get('receiver_group', [])
+        receivers = [self.creator]
+
+        if self.project.from_cmdb:
+            group_members = get_business_group_members(
+                self.project.bk_biz_id,
+                receiver_group
+            )
+
+            receivers.extend(group_members)
+
+        return receivers
+
+    def get_notify_type(self):
+        return json.loads(self.template.notify_type)
 
 
 class PeriodicTaskHistoryManager(models.Manager):

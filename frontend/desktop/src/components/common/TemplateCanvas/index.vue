@@ -96,7 +96,6 @@
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
-        <div ref="dragReferenceLine" class="drag-reference-line"></div>
     </div>
 </template>
 <script>
@@ -249,7 +248,6 @@
             document.removeEventListener('keydown', this.nodeSelectedhandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
-            document.body.removeEventListener('click', this.handleReferenceLineHide, false)
             // 画布快捷键缩放
             const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
             if (canvasPaintArea) {
@@ -264,16 +262,18 @@
                     const { x, y } = pos
                     this.$refs.jsFlow.zoomIn(1.1, x, y)
                 } else {
-                    this.$refs.jsFlow.zoomIn()
+                    this.$refs.jsFlow.zoomIn(1.1, 0, 0)
                 }
+                this.clearReferenceLine()
             },
             onZoomOut (pos) {
                 if (pos) {
                     const { x, y } = pos
                     this.$refs.jsFlow.zoomOut(0.9, x, y)
                 } else {
-                    this.$refs.jsFlow.zoomOut()
+                    this.$refs.jsFlow.zoomOut(0.9, 0, 0)
                 }
+                this.clearReferenceLine()
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
@@ -683,27 +683,80 @@
             },
             onBeforeDrag (data) {
                 if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                 }
             },
             // 节点拖动回调
             onNodeMoving (node) {
                 // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
                 if (this.referenceLine.id && this.referenceLine.id === node.id) {
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                 }
                 if (node.id !== this.idOfNodeShortcutPanel) {
                     this.handleShortcutPanelHide()
                 }
+            },
+            // 初始化生成参考线
+            createReferenceLine () {
+                const canvas = document.querySelector('.canvas-flow-wrap')
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+                svg.setAttribute('id', 'referenceLine')
+                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+                svg.setAttribute('version', '1.1')
+                svg.setAttribute('style', 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events: none;')
+
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+                const marker = `
+                    <marker id="arrow" markerWidth="10" markerHeight="10" refx="0" refy="2" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,4 L6,2 z" fill="#979ba5" />
+                    </marker>
+                `
+                defs.innerHTML = marker
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+                line.setAttribute('id', 'referencePath')
+                line.setAttribute('marker-end', 'url(#arrow)')
+                line.setAttribute('x1', '0')
+                line.setAttribute('y1', '0')
+                line.setAttribute('x2', '0')
+                line.setAttribute('y2', '0')
+                line.setAttribute('style', 'stroke:#979ba5;stroke-width:2')
+                line.setAttribute('id', 'referencePath')
+
+                svg.appendChild(defs)
+                svg.appendChild(line)
+                canvas.appendChild(svg)
+                document.body.addEventListener('mousedown', this.clearReferenceLine, { once: true })
+            },
+            // 更新参考线位置
+            updataReferenceLinePositon (startPos, endPos) {
+                const referencePath = document.getElementById('referencePath')
+                if (referencePath) {
+                    referencePath.setAttribute('x1', startPos.x)
+                    referencePath.setAttribute('y1', startPos.y)
+                    referencePath.setAttribute('x2', endPos.x)
+                    referencePath.setAttribute('y2', endPos.y)
+                }
+            },
+            // 清除参考线
+            clearReferenceLine () {
+                const canvas = document.querySelector('.canvas-flow-wrap')
+                const line = document.getElementById('referenceLine')
+                if (canvas && line) {
+                    canvas.removeChild(line)
+                }
+                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
+                this.referenceLine = {}
             },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
                 if (!this.editable) {
                     return false
                 }
-                const { pageX, pageY, offsetX, offsetY } = event
-                const bX = pageX - offsetX + 5
-                const bY = pageY - 50 - offsetY + 5
+                const { pageX, pageY } = event
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const bX = pageX - offsetX
+                const bY = pageY - offsetY
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
@@ -711,50 +764,28 @@
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
                     )
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                     return false
                 }
-                const line = this.$refs.dragReferenceLine
-                line.style.left = bX + 'px'
-                line.style.top = bY + 'px'
+                this.createReferenceLine()
                 this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
                 document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
-            // 生成参考线
+            // 鼠标移动更新参考线
             handleReferenceLine (e) {
-                const line = this.$refs.dragReferenceLine
-                const { x: startX, y: startY } = this.referenceLine
                 const { pageX, pageY } = e
-                const pX = pageX - startX
-                const pY = pageY - startY - 56
-                let r = Math.atan2(Math.abs(pY), Math.abs(pX)) / (Math.PI / 180)
-                if (pX < 0 && pY > 0) r = 180 - r
-                if (pX < 0 && pY < 0) r = r + 180
-                if (pX > 0 && pY < 0) r = 360 - r
-                // set style
-                const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
-                window.requestAnimationFrame(() => {
-                    line.style.display = 'block'
-                    line.style.width = len - 8 + 'px'
-                    line.style.transformOrigin = `top left`
-                    line.style.transform = 'rotate(' + r + 'deg)'
-                    if (!this.referenceLine.id) {
-                        this.handleReferenceLineHide()
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const bX = pageX - offsetX
+                const bY = pageY - offsetY
+                const endPos = { x: bX, y: bY }
+                const animationFrame = () => {
+                    return window.requestAnimationFrame || function (fn) {
+                        setTimeout(fn, 1000 / 60)
                     }
-                })
-                document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
-            },
-            // 移出参考线
-            handleReferenceLineHide (e) {
-                const line = this.$refs.dragReferenceLine
-                if (line) {
-                    line.style.display = 'none'
                 }
-                this.referenceLine.id = ''
-                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
-                document.body.removeEventListener('mousedown', this.handleReferenceLineHide, false)
+                animationFrame(this.updataReferenceLinePositon(this.referenceLine, endPos))
             },
-            // 创建连线
+            // 创建节点间连线
             createLine (source, target) {
                 if (source.id === target.id) {
                     return false
@@ -889,7 +920,7 @@
                     // 自动连线
                     this.onConnectionDragStop({ id: this.referenceLine.id, arrow: this.referenceLine.arrow }, id, event)
                     // 移出参考线
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                     return
                 }
                 if (type !== 'endpoint') {

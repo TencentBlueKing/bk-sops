@@ -11,138 +11,134 @@
 */
 <template>
     <div class="variable-edit-wrapper" @click="e => e.stopPropagation()">
-        <ul class="form-list">
-            <li class="form-item clearfix">
-                <label class="required">{{ i18n.name }}</label>
-                <div class="form-content">
-                    <bk-input
-                        name="variableName"
-                        v-model="theEditingData.name"
-                        v-validate="variableNameRule">
-                    </bk-input>
-                    <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
-                </div>
-            </li>
-            <li class="form-item clearfix">
-                <label class="required">KEY</label>
-                <div class="form-content">
-                    <bk-input
-                        name="variableKey"
-                        v-model="theEditingData.key"
-                        v-validate="variableKeyRule"
-                        :disabled="isDisabledValType">
-                    </bk-input>
-                    <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
-                </div>
-            </li>
-            <li class="form-item clearfix">
-                <label class="form-label">{{ i18n.desc }}</label>
-                <div class="form-content">
-                    <bk-input type="textarea" v-model="theEditingData.desc"></bk-input>
-                </div>
-            </li>
-            <li class="form-item clearfix">
-                <label class="required">{{ i18n.type }}</label>
-                <div class="form-content">
-                    <bk-select
-                        v-model="currentValType"
-                        :disabled="isDisabledValType"
-                        @change="onValTypeChange">
-                        <template v-if="isDisabledValType">
-                            <bk-option
-                                v-for="(option, optionIndex) in valTypeList"
-                                :key="optionIndex"
-                                :id="option.code"
-                                :name="option.name">
-                            </bk-option>
-                        </template>
-                        <template v-else>
-                            <bk-option-group
-                                v-for="(group, groupIndex) in valTypeList"
-                                :key="groupIndex"
-                                :name="group.name">
+        <div class="variable-operation-tips"> {{ varOperatingTips }} </div>
+        <div class="variable-edit-content">
+            <ul class="form-list">
+                <!-- 名称 -->
+                <li class="form-item clearfix">
+                    <label class="required">{{ i18n.name }}</label>
+                    <div class="form-content">
+                        <bk-input
+                            name="variableName"
+                            v-model="theEditingData.name"
+                            v-validate="variableNameRule"
+                            :disabled="isSystemVar">
+                        </bk-input>
+                        <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
+                    </div>
+                </li>
+                <!-- key -->
+                <li class="form-item clearfix">
+                    <label class="required">KEY</label>
+                    <div class="form-content">
+                        <bk-input
+                            name="variableKey"
+                            v-model="theEditingData.key"
+                            v-validate="variableKeyRule"
+                            :disabled="isDisabledValType">
+                        </bk-input>
+                        <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
+                    </div>
+                </li>
+                <!-- 描述 -->
+                <li class="form-item clearfix">
+                    <label class="form-label">{{ i18n.desc }}</label>
+                    <div class="form-content">
+                        <bk-input type="textarea" v-model="theEditingData.desc"></bk-input>
+                    </div>
+                </li>
+                <!-- 类型 -->
+                <li class="form-item clearfix">
+                    <label class="required">{{ i18n.type }}</label>
+                    <div class="form-content">
+                        <bk-select
+                            v-model="currentValType"
+                            :disabled="isDisabledValType"
+                            @change="onValTypeChange">
+                            <template v-if="isDisabledValType">
                                 <bk-option
-                                    v-for="(option, optionIndex) in group.children"
+                                    v-for="(option, optionIndex) in valTypeList"
                                     :key="optionIndex"
                                     :id="option.code"
                                     :name="option.name">
                                 </bk-option>
-                            </bk-option-group>
+                            </template>
+                            <template v-else>
+                                <bk-option-group
+                                    v-for="(group, groupIndex) in valTypeList"
+                                    :key="groupIndex"
+                                    :name="group.name">
+                                    <bk-option
+                                        v-for="(option, optionIndex) in group.children"
+                                        :key="optionIndex"
+                                        :id="option.code"
+                                        :name="option.name">
+                                    </bk-option>
+                                </bk-option-group>
+                            </template>
+                        </bk-select>
+                    </div>
+                </li>
+                <!-- 默认值 -->
+                <li v-if="!isOutputVar" class="form-item clearfix">
+                    <label class="form-label">{{ theEditingData.is_meta ? i18n.meta : i18n.default }}</label>
+                    <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
+                        <template v-if="!atomConfigLoading && renderConfig.length">
+                            <RenderForm
+                                ref="renderForm"
+                                :scheme="renderConfig"
+                                :form-option="renderOption"
+                                v-model="renderData">
+                            </RenderForm>
                         </template>
-                    </bk-select>
-                </div>
-            </li>
-            <li class="form-item clearfix" v-if="!isOutputVar">
-                <label class="form-label">{{ theEditingData.is_meta ? i18n.meta : i18n.default }}</label>
-                <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
-                    <template v-if="!atomConfigLoading && renderConfig.length">
-                        <RenderForm
-                            ref="renderForm"
-                            v-if="!isEditInDialog"
-                            :scheme="renderConfig"
-                            :form-option="renderOption"
-                            v-model="renderData">
-                        </RenderForm>
-                        <a
-                            v-else
-                            class="edit-table"
-                            @click="onShowEditDialog">
-                            {{ i18n.edit_table }}
-                        </a>
-                    </template>
-                </div>
-            </li>
-            <li class="form-item clearfix" v-show="theEditingData.custom_type === 'input'">
-                <label class="form-label">{{ i18n.validation }}</label>
-                <div class="form-content">
-                    <bk-input
-                        name="valueValidation"
-                        v-model="theEditingData.validation"
-                        v-validate="validationRule"
-                        @blur="onBlurValidation">
-                    </bk-input>
-                    <span v-show="errors.has('valueValidation')" class="common-error-tip error-msg">{{errors.first('valueValidation')}}</span>
-                </div>
-            </li>
-            <li class="form-item clearfix">
-                <label class="required">{{ i18n.show }}</label>
-                <div class="form-content">
-                    <bk-select
-                        v-model="theEditingData.show_type"
-                        :disabled="isOutputVar"
-                        :clearable="false"
-                        @change="onValShowTypeChange">
-                        <bk-option
-                            v-for="(option, index) in showTypeList"
-                            :key="index"
-                            :id="option.id"
-                            :name="option.name">
-                        </bk-option>
-                    </bk-select>
-                </div>
-            </li>
-        </ul>
-        <div class="action-wrapper">
-            <bk-button
-                theme="success"
-                :disabled="atomConfigLoading"
-                @click.stop="saveVariable">
-                {{ i18n.save }}
-            </bk-button>
-            <bk-button
-                theme="default"
-                @click.stop="cancelVariable">
-                {{ i18n.cancel }}
-            </bk-button>
+                    </div>
+                </li>
+                <!-- 验证规则 -->
+                <li v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
+                    <label class="form-label">{{ i18n.validation }}</label>
+                    <div class="form-content">
+                        <bk-input
+                            name="valueValidation"
+                            v-model="theEditingData.validation"
+                            v-validate="validationRule"
+                            @blur="onBlurValidation">
+                        </bk-input>
+                        <span v-show="errors.has('valueValidation')" class="common-error-tip error-msg">{{errors.first('valueValidation')}}</span>
+                    </div>
+                </li>
+                <!-- 显示/隐藏 -->
+                <li class="form-item clearfix">
+                    <label class="required">{{ i18n.show }}</label>
+                    <div class="form-content">
+                        <bk-select
+                            v-model="theEditingData.show_type"
+                            :disabled="isOutputVar"
+                            :clearable="false"
+                            @change="onValShowTypeChange">
+                            <bk-option
+                                v-for="(option, index) in showTypeList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </div>
+                </li>
+            </ul>
+            <div class="action-wrapper">
+                <bk-button
+                    theme="success"
+                    :disabled="atomConfigLoading"
+                    @click.stop="saveVariable">
+                    {{ i18n.save }}
+                </bk-button>
+                <bk-button
+                    theme="default"
+                    @click.stop="cancelVariable">
+                    {{ i18n.cancel }}
+                </bk-button>
+            </div>
         </div>
-        <VariableEditDialog
-            :is-show="isEditDialogShow"
-            :render-config="renderConfig"
-            :render-option="renderOption"
-            :render-data="renderData"
-            @onConfirmDialogEdit="onConfirmDialogEdit"
-            @onCancelDialogEdit="onCancelDialogEdit">
-        </VariableEditDialog>
     </div>
 </template>
 <script>
@@ -155,7 +151,6 @@
     import atomFilter from '@/utils/atomFilter.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import VariableEditDialog from './VariableEditDialog.vue'
 
     const SHOW_TYPE_LIST = [
         { id: 'show', name: gettext('显示') },
@@ -167,10 +162,18 @@
     export default {
         name: 'VariableEdit',
         components: {
-            RenderForm,
-            VariableEditDialog
+            RenderForm
         },
-        props: ['variableData', 'isNewVariable', 'variableTypeList', 'systemConstants', 'isHideSystemVar'],
+        props: [
+            'variableData',
+            'variableList',
+            'isNewVariable',
+            'isSystemVar',
+            'variableTypeList',
+            'systemConstants',
+            'isHideSystemVar',
+            'varOperatingTips'
+        ],
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
@@ -180,7 +183,6 @@
                     desc: gettext('说明'),
                     default: gettext('默认值'),
                     meta: gettext('配置'),
-                    edit_table: gettext('编辑表格'),
                     validation: gettext('正则校验'),
                     type: gettext('类型'),
                     show: gettext('显示'),
@@ -202,7 +204,6 @@
                     showVarList: true,
                     validateSet: ['custom', 'regex']
                 },
-                isEditDialogShow: false,
                 // 变量名称校验规则
                 variableNameRule: {
                     required: true,
@@ -221,13 +222,9 @@
                 'atomFormConfig': state => state.atomForm.config,
                 'constants': state => state.template.constants
             }),
-            isEditInDialog () {
-                return this.renderConfig[0].type
-                    && (this.renderConfig[0].type === 'datatable' || this.renderConfig[0].type === 'ip_selector')
-            },
             isDisabledValType () {
                 const { source_type } = this.theEditingData
-                return source_type === 'component_inputs' || source_type === 'component_outputs'
+                return source_type === 'component_inputs' || source_type === 'component_outputs' || this.isSystemVar
             },
             isOutputVar () {
                 return this.theEditingData.source_type === 'component_outputs'
@@ -256,7 +253,7 @@
                 }
             },
             version () {
-                return this.isNewVariable ? 'legacy' : this.variableData.version
+                return this.isNewVariable ? 'legacy' : (this.variableData.version || 'legacy')
             },
             // 变量 Key 校验规则
             variableKeyRule () {
@@ -487,20 +484,6 @@
                 })
             },
             /**
-             * datatable 编辑弹窗
-             */
-            onShowEditDialog () {
-                this.isEditDialogShow = true
-            },
-            onConfirmDialogEdit (formData) {
-                this.isEditDialogShow = false
-                this.theEditingData.value = formData['customVariable']
-                this.renderData['customVariable'] = formData['customVariable']
-            },
-            onCancelDialogEdit () {
-                this.isEditDialogShow = false
-            },
-            /**
              * 校验并保存变量
              */
             saveVariable () {
@@ -563,12 +546,25 @@
 @import '@/scss/mixins/scrollbar.scss';
 $localBorderColor: #d8e2e7;
 .variable-edit-wrapper {
-    padding: 20px;
     font-size: 14px;
     text-align: left;
     background: $whiteThinBg;
     border-bottom: 1px solid $localBorderColor;
     cursor: auto;
+}
+.variable-edit-content {
+    padding: 20px;
+    padding-bottom: 40px;
+}
+.variable-operation-tips {
+    height: 43px;
+    line-height: 43px;
+    color: #63656e;
+    font-size: 12px;
+    text-align: center;
+    background: #f0f1f5;
+    border-top: 1px solid #dcdee5;
+    border-bottom: 1px solid #dcdee5;
 }
 .error-msg {
     margin-top: 10px;
@@ -647,13 +643,6 @@ $localBorderColor: #d8e2e7;
     }
     /deep/ .tag-form {
         margin-left: 0;
-    }
-    .edit-table {
-        height: 36px;
-        line-height: 36px;
-        color: $blueDefault;
-        font-size: 12px;
-        cursor: pointer;
     }
 }
 .action-wrapper {
