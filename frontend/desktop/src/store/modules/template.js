@@ -649,7 +649,35 @@ const template = {
                     }
                 }
             }
-            this.commit('template/setConstantsCited', { nodeId: location.id })
+            this.commit('template/setConstantsCited', location)
+        },
+        // 设置节点基础信息
+        setNodeBasicInfo (state, payload) {
+            const { id, setVals } = payload
+            const nodeInfo = state.activities[id]
+            Object.keys(setVals).forEach(key => {
+                Vue.set(nodeInfo, key, setVals[key])
+            })
+        },
+        // 设置节点输入参数信息
+        setNodeInputData (state, payload) {
+            const { id, type, setVals } = payload
+            const nodeInfo = state.activities[id]
+            if (type === 'ServiceActivity') {
+                if (!nodeInfo.component.data) {
+                    Vue.set(nodeInfo.component, 'data', {})
+                }
+                Object.keys(setVals).forEach(key => {
+                    if (!nodeInfo.component.data[key]) {
+                        Vue.set(nodeInfo.component.data, key, { hook: false, value: setVals[key] })
+                    } else {
+                        Vue.set(nodeInfo.component.data[key], 'value', setVals[key])
+                    }
+                })
+            } else {
+                console.log(setVals, 'sublow')
+            //    Vue.set()
+            }
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {
@@ -741,12 +769,12 @@ const template = {
         // 更新变量引用此次
         setConstantsCited (state, payload) {
             // 更新变量引用次数
-            const { nodeId } = payload
+            const { id: nodeId, type: nodeType } = payload
             const constantsCited = {}
             const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
             if (state.activities[nodeId]) {
                 const item = state.activities[nodeId]
-                const nodeData = item.component.data
+                const nodeData = nodeType === 'ServiceActivity' ? item.component.data : item.constants
                 if (checkDataType(nodeData) === 'Object') {
                     for (const code in nodeData) {
                         const value = nodeData[code].value

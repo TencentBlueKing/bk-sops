@@ -557,7 +557,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type, version })
+                        await this.loadAtomConfig({ atom: type, version })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({
