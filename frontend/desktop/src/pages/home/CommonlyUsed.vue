@@ -107,6 +107,9 @@
             ...mapActions('template/', [
                 'loadCommonProject'
             ]),
+            ...mapActions('project/', [
+                'changeDefaultProject'
+            ]),
             ...mapMutations('project', [
                 'setProjectId'
             ]),
@@ -132,6 +135,7 @@
             },
             onSwitchBusiness (id) {
                 this.setProjectId(id)
+                this.changeDefaultProject(id)
                 this.$router.push({
                     name: 'process',
                     params: { project_id: id }

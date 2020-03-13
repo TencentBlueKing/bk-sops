@@ -11,43 +11,45 @@
 */
 <template>
     <header>
-        <router-link to="" class="nav-logo" @click.native="onLogoClick()">
+        <a href="javascript:void(0);" class="nav-logo" @click.prevent="onLogoClick()">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
-        </router-link>
+        </a>
         <ul class="nav-left" v-if="!appmakerDataLoading">
             <li
                 v-for="(item, index) in showRouterList"
                 :key="index"
                 :class="['nav-item', { 'active': isNavActived(item) }]">
-                <router-link to="" @click.native="onGoToPath(item)">
+                <a href="javascript:void(0);" @click.prevent="onGoToPath(item)">
                     {{ item.name }}
-                </router-link>
+                </a>
                 <div
                     v-if="item.children"
                     class="sub-nav">
-                    <router-link
+                    <a
+                        href="javascript:void(0);"
                         v-for="(sub, subIndex) in item.children"
                         :key="subIndex"
                         to=""
                         :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
-                        @click.native="onGoToPath(sub)">
+                        @click.prevent="onGoToPath(sub)">
                         {{ sub.name }}
-                    </router-link>
+                    </a>
                 </div>
             </li>
         </ul>
         <ul class="nav-right">
             <li v-if="showProjectSelect" class="project-select">
                 <ProjectSelector
-                    :disabled="isProjectDisabled"
+                    :show="!isProjectHidden"
+                    :read-only="isProjectReadOnly"
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
             <li class="right-icon help-doc">
                 <a
                     class="common-icon-dark-circle-question"
-                    href="http://docs.bk.tencent.com/product_white_paper/gcloud/"
+                    href="https://bk.tencent.com/docs/document/5.1/3/22"
                     target="_blank">
                 </a>
             </li>
@@ -127,12 +129,12 @@
             children: [
                 {
                     routerName: 'adminSearch',
-                    path: '/admin/manage/search',
+                    path: '/admin/manage/',
                     name: gettext('后台管理')
                 },
                 {
                     routerName: 'statisticsTemplate',
-                    path: '/admin/statistics/template',
+                    path: '/admin/statistics/',
                     name: gettext('运营数据')
                 }
             ]
@@ -148,7 +150,6 @@
             routerName: 'appmakerTaskCreate',
             path: 'appmakerTaskCreate',
             params: ['app_id', 'project_id'],
-            query: ['appmakerTemplateId'],
             name: gettext('新建任务')
         },
         {
@@ -202,12 +203,21 @@
                 authResource: state => state.authResource
             }),
             showProjectSelect () {
-                return this.view_mode !== 'appmaker' && this.projectList.length > 0
+                if (this.view_mode === 'appmaker') {
+                    return this.$route.name !== 'appmakerTaskHome'
+                }
+                return this.projectList.length > 0
             },
-            isProjectDisabled () {
+            isProjectHidden () {
                 const route = this.$route
-                const disabledPathList = ['/home', '/common', '/admin', '/function', '/project', '/atomdev', '/audit']
-                return disabledPathList.some(path => route.path.indexOf(path) === 0)
+                const hiddenPathList = ['/home', '/common', '/admin', '/project', '/atomdev', '/audit', '/appmaker']
+                const hiddenRouteNames = ['appmakerTaskHome', 'functionHome']
+                return hiddenPathList.some(path => route.path.indexOf(path) === 0 || hiddenRouteNames.includes(route.name))
+            },
+            isProjectReadOnly () {
+                const currPath = this.$route.path
+                const readOnlyPathList = ['/appmaker', '/function']
+                return readOnlyPathList.some(path => currPath.indexOf(path) === 0)
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {
@@ -365,6 +375,10 @@
                 route.query && route.query.forEach(m => {
                     query[m] = this[m] || undefined
                 })
+                if (route.routerName === 'appmakerTaskCreate') {
+                    params['step'] = 'selectnode'
+                    query['template_id'] = this.appmakerTemplateId
+                }
                 this.$router.push({
                     name: route.routerName,
                     params,
@@ -401,7 +415,7 @@
                 if (this.view_mode === 'appmaker') {
                     return this.$route.name === route.path
                 }
-                return this.$route.path.indexOf(route.path) > -1
+                return this.$route.path.indexOf(route.path) === 0
             },
             handleVersionChange (data) {
                 const version = data[0]

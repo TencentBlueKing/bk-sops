@@ -172,6 +172,7 @@
                 this.appmakerDataLoading = true
                 try {
                     const res = await this.loadAppmakerDetail(this.appId)
+                    this.setProjectName(res.project.name)
                     this.setAppmakerDetail(res)
                 } catch (e) {
                     errorHandler(e, this)

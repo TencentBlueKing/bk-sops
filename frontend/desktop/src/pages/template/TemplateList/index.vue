@@ -88,7 +88,6 @@
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
-                                    <!-- 项目流程按钮 -->
                                     <a
                                         v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
                                         v-cursor

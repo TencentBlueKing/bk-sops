@@ -11,71 +11,80 @@
 */
 <template>
     <div class="local-draft-panel">
-        <div class="local-title">
-            <span> {{i18n.localCache}} </span>
-            <i class="common-icon-info draft-tooltip"
-                v-bk-tooltips="{
-                    allowHtml: true,
-                    content: '#draft-desc',
-                    placement: 'bottom-end',
-                    duration: 0,
-                    width: 400 }"></i>
-            <div id="draft-desc">
-                <div class="tips-item" style="white-space: normal;">
-                    <h4>{{ i18n.sketch }}</h4>
-                    <p>{{ i18n.draftSketch }}</p>
+        <bk-sideslider
+            ext-cls="common-template-setting-sideslider"
+            :width="420"
+            :is-show="isShow"
+            :before-close="onBeforeClose"
+            :quick-close="true">
+            <div slot="header">
+                <span> {{i18n.localCache}} </span>
+                <i class="common-icon-info draft-tooltip"
+                    v-bk-tooltips="{
+                        allowHtml: true,
+                        content: '#draft-desc',
+                        placement: 'bottom-end',
+                        duration: 0,
+                        width: 400 }"></i>
+                <div id="draft-desc">
+                    <div class="tips-item" style="white-space: normal;">
+                        <h4>{{ i18n.sketch }}</h4>
+                        <p>{{ i18n.draftSketch }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
-            <div class="draft-form" v-if="newDraftShow">
-                <bk-input
-                    name="draftName"
-                    class="draft-name-input"
-                    :placeholder="i18n.draftMessage"
-                    v-model="newDraftName"
-                    data-vv-validate-on=" "
-                    v-validate="draftNameRule" />
-                <bk-button theme="success" @click="onNewDraft">{{i18n.affirm}}</bk-button>
-                <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
+            <div class="content-wrap" slot="content">
+                <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
+                    <div class="draft-form" v-if="newDraftShow">
+                        <bk-input
+                            name="draftName"
+                            class="draft-name-input"
+                            :placeholder="i18n.draftMessage"
+                            v-model="newDraftName"
+                            data-vv-validate-on=" "
+                            v-validate="draftNameRule" />
+                        <bk-button theme="success" @click="onNewDraft">{{i18n.affirm}}</bk-button>
+                        <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
+                    </div>
+                    <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
+                        {{ i18n.newDraft }}
+                    </bk-button>
+                    <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
+                </div>
+                <div class="local-draft-content">
+                    <table class="draft-table">
+                        <thead>
+                            <tr>
+                                <th class="col-number">{{ i18n.serialNumber }}</th>
+                                <th class="col-name">{{ i18n.draftMessage }}</th>
+                                <th class="col-time">{{ i18n.saveTime }}</th>
+                                <th class="col-delete"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="(draft, index) in draftArray"
+                                :key="draft.key"
+                                @click="onReplaceTemplate(draft.data.template)">
+                                <td class="col-number"><div class="content">{{ index + 1 }}</div></td>
+                                <td
+                                    class="col-name"
+                                    :title="draft.data.description.message">
+                                    <div class="content">{{draft.data.description.message}}</div>
+                                </td>
+                                <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
+                                <td class="col-delete" @click.stop="onDeleteDraft(draft.key)">
+                                    <i class="close-btn common-icon-dark-circle-close"></i>
+                                </td>
+                            </tr>
+                            <tr v-if="!draftArray.length" class="empty-draft-tip">
+                                <td><NoData><p>{{i18n.emptyDraftTip}}</p></NoData></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
-                {{ i18n.newDraft }}
-            </bk-button>
-            <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
-        </div>
-        <div class="local-draft-content">
-            <table class="draft-table">
-                <thead>
-                    <tr>
-                        <th class="col-number">{{ i18n.serialNumber }}</th>
-                        <th class="col-name">{{ i18n.draftMessage }}</th>
-                        <th class="col-time">{{ i18n.saveTime }}</th>
-                        <th class="col-delete"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="(draft, index) in draftArray"
-                        :key="draft.key"
-                        @click="onReplaceTemplate(draft.data.template)">
-                        <td class="col-number"><div class="content">{{ index + 1 }}</div></td>
-                        <td
-                            class="col-name"
-                            :title="draft.data.description.message">
-                            <div class="content">{{draft.data.description.message}}</div>
-                        </td>
-                        <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
-                        <td class="col-delete" @click.stop="onDeleteDraft(draft.key)">
-                            <i class="close-btn common-icon-dark-circle-close"></i>
-                        </td>
-                    </tr>
-                    <tr v-if="!draftArray.length" class="empty-draft-tip">
-                        <td><NoData><p>{{i18n.emptyDraftTip}}</p></NoData></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        </bk-sideslider>
     </div>
 </template>
 
@@ -89,7 +98,7 @@
         components: {
             NoData
         },
-        props: ['draftArray'],
+        props: ['draftArray', 'isShow'],
         data () {
             return {
                 replaceData: null,
@@ -156,6 +165,9 @@
             onCancelNewDraft () {
                 this.newDraftName = ''
                 this.newDraftShow = false
+            },
+            onBeforeClose () {
+                this.$emit('onColseTab', 'localDraftTab')
             }
         }
     }
@@ -171,16 +183,8 @@
 }
 .local-draft-panel {
     height: 100%;
-    .local-title {
-        height: 35px;
-        line-height: 35px;
-        margin: 20px;
-        border-bottom: 1px solid #cacecb;
-        span {
-            font-size: 14px;
-            font-weight:600;
-            color:#313238;
-        }
+    .content-wrap {
+        height: 100%;
     }
     .add-draft {
         margin: 20px;
@@ -249,6 +253,7 @@
             display: block;
             height: calc(100% - 40px);
             overflow: auto;
+            @include scrollbar;
             tr:not(.empty-draft-tip):hover {
                 background: $blueStatus;
                 cursor: pointer;
@@ -301,16 +306,6 @@
         .common-icon-dark-circle-close:hover {
             color: #cecece;
         }
-    }
-}
-.tooltip-content {
-    margin-bottom: 20px;
-    &:last-child {
-        margin-bottom: 0;
-    }
-    h4 {
-        margin-top: 0;
-        margin-bottom: 10px;
     }
 }
 </style>
