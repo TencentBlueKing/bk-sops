@@ -56,4 +56,3 @@ def preview_template_tree(project_id, template_source, template_id, version, exc
         'pipeline_tree': pipeline_tree,
         'constants_not_referred': constants_not_referred
     }
-

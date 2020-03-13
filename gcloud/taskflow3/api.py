@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import copy
 import logging
 import traceback
 
@@ -35,8 +34,6 @@ from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.taskflow3.utils import preview_template_tree

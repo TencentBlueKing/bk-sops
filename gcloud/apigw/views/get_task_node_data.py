@@ -22,6 +22,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.views.utils import logger
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
 
