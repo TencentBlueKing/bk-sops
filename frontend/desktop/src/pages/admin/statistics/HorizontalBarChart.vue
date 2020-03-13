@@ -152,7 +152,7 @@
         },
         computed: {
             totalNumber () {
-                return this.dataList.reduce((acc, cur) => acc + cur.value, 0)
+                return this.dataList.reduce((acc, cur) => Number(acc) + Number(cur.value), 0)
             },
             sortedData () {
                 if (this.selectedSortType === 'descending') {

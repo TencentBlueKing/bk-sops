@@ -263,6 +263,9 @@
                     params: { project_id: this.project_id, step: 'paramfill' },
                     query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
                 }
+                if (this.entrance === 'function') {
+                    url.name = 'functionTemplateStep'
+                }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
                 }
