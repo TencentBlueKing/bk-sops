@@ -37,5 +37,11 @@ urlpatterns = [
     url(r'^get_task_node_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.get_task_node_detail),
     url(r'^node_callback/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.node_callback),
     url(r'^import_common_template/$', views.import_common_template),
-    url(r'^get_plugin_list/(?P<project_id>\d+)/$', views.get_plugin_list)
+    url(r'^get_plugin_list/(?P<project_id>\d+)/$', views.get_plugin_list),
+    url(r'^get_user_project_list/$', views.get_user_project_list),
+    url(r'^get_user_project_detail/(?P<project_id>\d+)/$', views.get_user_project_detail),
+    url(r'^get_template_schemes/(?P<project_id>\d+)/(?P<template_id>\d+)/$', views.get_template_schemes),
+    url(r'^preview_task_tree/(?P<project_id>\d+)/(?P<template_id>\d+)/$', views.preview_task_tree),
+    url(r'^get_task_node_data/(?P<project_id>\d+)/(?P<task_id>\d+)/$', views.get_task_node_data),
+    url(r'^operate_node/(?P<project_id>\d+)/(?P<task_id>\d+)/$', views.operate_node),
 ]
