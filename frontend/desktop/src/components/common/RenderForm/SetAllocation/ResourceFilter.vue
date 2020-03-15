@@ -267,13 +267,7 @@
             // 模块可引用列表，去掉相互引用，暂未处理三层或更多层的循环引用
             canReusedModules (id) {
                 return this.moduleList.filter((item, index) => {
-                    if (
-                        item.bk_module_id === this.activeTab
-                        || this.formData.modules[index].reuse === this.activeTab
-                    ) {
-                        return false
-                    }
-                    return true
+                    return item.bk_module_id !== this.activeTab && this.formData.modules[index].reuse !== this.activeTab
                 })
             }
         },
@@ -488,6 +482,30 @@
                 if (this.pending.host) {
                     return
                 }
+
+                // 检查模块复用是否有循环引用，a->b,b->c,c->a
+                let cycleCiting = false
+                let cycled = []
+                const passedModule = {}
+                this.formData.modules.some(md => {
+                    if (md.isReuse) {
+                        if (passedModule.hasOwnProperty(md.reuse)) {
+                            cycleCiting = true
+                            cycled = [passedModule[md.reuse], md.name]
+                            return true
+                        } else {
+                            passedModule[md.id] = md.name
+                        }
+                    }
+                })
+                // 节点循环引用退出保存，弹出提示
+                if (cycleCiting) {
+                    errorHandler({
+                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用')
+                    }, this)
+                    return
+                }
+
                 this.$refs.setForm.validate().then(async validator => {
                     let tabValid = true
                     if (this.$refs.moduleTab && this.$refs.moduleTab.length) {
@@ -501,13 +519,12 @@
                             }
                         }
                     }
+
                     if (tabValid) {
                         this.getHostsAndSave()
                     } else {
                         errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
                     }
-
-                    // @todo 模块校验
                 })
             },
             // 保存资源筛选面板的表单数据，向父级同步
@@ -519,12 +536,12 @@
                     const fields = []
                     modules.forEach(md => {
                         md.filters.forEach(item => {
-                            if (!fields.includes(item.field)) {
+                            if (item.field !== '' && !fields.includes(item.field)) {
                                 fields.push(item.field)
                             }
                         })
                         md.excludes.forEach(item => {
-                            if (!fields.includes(item.field)) {
+                            if (item.field !== '' && !fields.includes(item.field)) {
                                 fields.push(item.field)
                             }
                         })
@@ -539,11 +556,15 @@
                     })
                     const moduleDetail = modules.map(item => {
                         const { count, name, id, reuse, filters, excludes } = item
+                        // 取有效筛选、排除条件，不做校验（和 ip 选择器有区别，这里多个 tab 有多个相同 refs）
+                        const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
+                        const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
+
                         return {
                             name,
                             id,
-                            filters,
-                            excludes,
+                            filters: validFilters,
+                            excludes: validExclude,
                             host_count: count,
                             reuse_module: reuse
                         }
@@ -565,6 +586,7 @@
             /**
              * 根据接口返回的全量 host 数据，筛选出对应模块的 host 值
              * host 值需要同时满足筛选条件和排除条件
+             * 模块复用时，取其复用的模块主机数据
              * 每个模块的 host 数量不能超过 moudule.count 设置
              *
              * @param {Array} data 全量的 host 数据
@@ -573,40 +595,69 @@
              */
             filterModuleHost (data) {
                 const hosts = {}
+                const reuseOthers = []
                 this.formData.modules.forEach(md => {
-                    const { filters, excludes, name, count } = md
-                    hosts[name] = []
-                    if (filters.length === 0 && excludes.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                        hosts[name] = data.slice(0, count).map(d => d.bk_host_innerip)
-                    } else {
-                        const filterObj = this.transFieldArrToObj(filters)
-                        const excludeObj = this.transFieldArrToObj(excludes)
-                        data.some(item => {
-                            let included = true // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
-                            let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
-                            
-                            included = Object.keys(filterObj).some(filterKey => {
-                                if (filterObj[filterKey].includes(item[filterKey])) {
+                    const { filters, excludes, name, count, isReuse } = md
+                    const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
+                    const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
+
+                    if (isReuse) {
+                        reuseOthers.push(md)
+                    } else { // 未复用其他模块主机，则计算本模块数据
+                        hosts[name] = []
+                        if (validFilters.length === 0 && validExclude.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
+                            hosts[name] = data.slice(0, count).map(d => d.bk_host_innerip)
+                        } else {
+                            const filterObj = this.transFieldArrToObj(validFilters)
+                            const excludeObj = this.transFieldArrToObj(validExclude)
+
+                            data.some(item => {
+                                let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
+                                let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
+
+                                if (validFilters.length === 0) {
+                                    included = true
+                                } else {
+                                    Object.keys(filterObj).some(filterKey => {
+                                        if (filterObj[filterKey].includes(item[filterKey])) {
+                                            included = true
+                                            return true
+                                        }
+                                    })
+                                }
+                                
+                                if (included) {
+                                    Object.keys(excludeObj).some(excludeKey => {
+                                        if (excludeObj[excludeKey].includes(item[excludeKey])) {
+                                            excluded = true
+                                            return true
+                                        }
+                                    })
+                                }
+
+                                if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
+                                    hosts[name].push(item.bk_host_innerip)
+                                }
+
+                                if (hosts[name].length === count) { // 主机数到达设置值，提前退出
                                     return true
                                 }
                             })
-                            if (included) {
-                                excluded = Object.keys(excludeObj).some(excludeKey => {
-                                    if (excludeObj[excludeKey].includes(item[excludeKey])) {
-                                        return true
-                                    }
-                                })
-                            }
-
-                            if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                hosts[name].push(item.bk_host_innerip)
-                            }
-
-                            if (hosts[name].length === count) { // 主机数到达设置值，提前退出
-                                return true
-                            }
-                        })
+                        }
                     }
+                })
+
+                reuseOthers.forEach(md => { // 复用其他模块主机数据，数量取按照本模块设置数
+                    let citedModule = this.formData.modules.find(item => item.id === md.reuse)
+                    const citePath = [md]
+                    while (!hosts[citedModule.name]) {
+                        citePath.unshift(Object.assign({}, citedModule))
+                        citedModule = this.formData.modules.find(item => item.id === citedModule.reuse)
+                    }
+                    citePath.forEach(item => {
+                        const cModule = this.formData.modules.find(cm => cm.id === item.reuse)
+                        hosts[item.name] = hosts[cModule.name].slice(0, item.count)
+                    })
                 })
 
                 return hosts
@@ -620,11 +671,15 @@
              */
             transFieldArrToObj (fields) {
                 return fields.reduce((acc, cur, index) => {
-                    if (acc.hasOwnProperty(cur.field)) {
-                        acc[cur.field] = acc[cur.field].concat(cur.value)
-                    } else {
-                        acc[cur.field] = [...cur.value]
+                    const { field, value } = cur
+                    if (field !== '' && value.length > 0) {
+                        if (acc.hasOwnProperty(field)) {
+                            acc[field] = acc[field].concat(value)
+                        } else {
+                            acc[field] = [...value]
+                        }
                     }
+
                     return acc
                 }, {})
             }
