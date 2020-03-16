@@ -1363,6 +1363,52 @@ const api = {
         }
         return request(opts)
     },
+    getCCSearchTopoSet () {
+        const prefixUrl = this.getPrefix('cc_search_top_set')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    getCCSearchTopoResource () {
+        const prefixUrl = this.getPrefix('cc_search_top_resource')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    getCCSearchModule (data) {
+        const prefixUrl = this.getPrefix('cc_search_module')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: data
+        }
+        return request(opts)
+    },
+    getCCSearchObjAttrHost () {
+        const prefixUrl = this.getPrefix('cc_search_obj_attr')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    getCCSearchColAttrSet () {
+        const prefixUrl = this.getPrefix('cc_search_cols_attr')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
     /**
      * 加载插件包源配置
      * @param {Object} fields 包源查询字段
