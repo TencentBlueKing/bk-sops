@@ -20,15 +20,14 @@ from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
 
 
 class GetTemplateListAPITest(APITest):
-
     def url(self):
-        return '/apigw/get_template_list/{project_id}/'
+        return "/apigw/get_template_list/{project_id}/"
 
     @patch(
         PROJECT_GET,
@@ -37,54 +36,65 @@ class GetTemplateListAPITest(APITest):
                 project_id=TEST_PROJECT_ID,
                 name=TEST_PROJECT_NAME,
                 bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True
+                from_cmdb=True,
             )
-        )
+        ),
     )
     def test_get_template_list__for_project_template(self):
-        pt1 = MockPipelineTemplate(id=1, name='pt1')
-        pt2 = MockPipelineTemplate(id=2, name='pt2')
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        pt2 = MockPipelineTemplate(id=2, name="pt2")
 
         task_tmpl1 = MockTaskTemplate(id=1, pipeline_template=pt1)
         task_tmpl2 = MockTaskTemplate(id=2, pipeline_template=pt2)
 
         task_templates = [task_tmpl1, task_tmpl2]
 
-        with patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=task_templates))):
+        with patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+        ):
             assert_data = [
                 {
-                    'id': tmpl.id,
-                    'name': tmpl.pipeline_template.name,
-                    'creator': tmpl.pipeline_template.creator,
-                    'create_time': format_datetime(tmpl.pipeline_template.create_time),
-                    'editor': tmpl.pipeline_template.editor,
-                    'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-                    'category': tmpl.category,
-                    'project_id': TEST_PROJECT_ID,
-                    'project_name': TEST_PROJECT_NAME,
-                    'bk_biz_id': TEST_PROJECT_ID,
-                    'bk_biz_name': TEST_PROJECT_NAME
-                } for tmpl in task_templates
+                    "id": tmpl.id,
+                    "name": tmpl.pipeline_template.name,
+                    "creator": tmpl.pipeline_template.creator,
+                    "create_time": format_datetime(tmpl.pipeline_template.create_time),
+                    "editor": tmpl.pipeline_template.editor,
+                    "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+                    "category": tmpl.category,
+                    "project_id": TEST_PROJECT_ID,
+                    "project_name": TEST_PROJECT_NAME,
+                    "bk_biz_id": TEST_PROJECT_ID,
+                    "bk_biz_name": TEST_PROJECT_NAME,
+                }
+                for tmpl in task_templates
             ]
 
-            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(project_id=TEST_PROJECT_ID)
+            )
 
             self.assertEqual(response.status_code, 200)
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], assert_data)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], assert_data)
 
-        with patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[]))):
+        with patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=[])),
+        ):
             assert_data = []
 
-            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(project_id=TEST_PROJECT_ID)
+            )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], assert_data)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], assert_data)
 
     @patch(
         PROJECT_GET,
@@ -93,58 +103,64 @@ class GetTemplateListAPITest(APITest):
                 project_id=TEST_PROJECT_ID,
                 name=TEST_PROJECT_NAME,
                 bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True
+                from_cmdb=True,
             )
-        )
+        ),
     )
     def test_get_template_list__for_common_template(self):
-        pt1 = MockPipelineTemplate(id=1, name='pt1')
-        pt2 = MockPipelineTemplate(id=2, name='pt2')
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        pt2 = MockPipelineTemplate(id=2, name="pt2")
 
         task_tmpl1 = MockCommonTemplate(id=1, pipeline_template=pt1)
         task_tmpl2 = MockCommonTemplate(id=2, pipeline_template=pt2)
 
         task_templates = [task_tmpl1, task_tmpl2]
 
-        with patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(
-                return_value=MockQuerySet(filter_result=task_templates))):
+        with patch(
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+        ):
             assert_data = [
                 {
-                    'id': tmpl.id,
-                    'name': tmpl.pipeline_template.name,
-                    'creator': tmpl.pipeline_template.creator,
-                    'create_time': format_datetime(tmpl.pipeline_template.create_time),
-                    'editor': tmpl.pipeline_template.editor,
-                    'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-                    'category': tmpl.category,
-                    'project_id': TEST_PROJECT_ID,
-                    'project_name': TEST_PROJECT_NAME,
-                    'bk_biz_id': TEST_PROJECT_ID,
-                    'bk_biz_name': TEST_PROJECT_NAME
-                } for tmpl in task_templates
+                    "id": tmpl.id,
+                    "name": tmpl.pipeline_template.name,
+                    "creator": tmpl.pipeline_template.creator,
+                    "create_time": format_datetime(tmpl.pipeline_template.create_time),
+                    "editor": tmpl.pipeline_template.editor,
+                    "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+                    "category": tmpl.category,
+                    "project_id": TEST_PROJECT_ID,
+                    "project_name": TEST_PROJECT_NAME,
+                    "bk_biz_id": TEST_PROJECT_ID,
+                    "bk_biz_name": TEST_PROJECT_NAME,
+                }
+                for tmpl in task_templates
             ]
 
             response = self.client.get(
                 path=self.url().format(project_id=TEST_PROJECT_ID),
-                data={'template_source': 'common'}
+                data={"template_source": "common"},
             )
 
             self.assertEqual(response.status_code, 200)
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], assert_data)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], assert_data)
 
-        with patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[]))):
+        with patch(
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(filter_result=[])),
+        ):
             assert_data = []
 
             response = self.client.get(
                 path=self.url().format(project_id=TEST_PROJECT_ID),
-                data={'template_source': 'common'}
+                data={"template_source": "common"},
             )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], assert_data)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], assert_data)

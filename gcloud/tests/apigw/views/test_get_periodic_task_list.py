@@ -22,43 +22,54 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
 
 
 class GetPeriodicTaskListAPITest(APITest):
-
     def url(self):
-        return '/apigw/get_periodic_task_list/{project_id}/'
+        return "/apigw/get_periodic_task_list/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_get_periodic_task_list(self):
-        pt1 = MockPeriodicTask(id='1')
-        pt2 = MockPeriodicTask(id='2')
-        pt3 = MockPeriodicTask(id='3')
+        pt1 = MockPeriodicTask(id="1")
+        pt2 = MockPeriodicTask(id="2")
+        pt3 = MockPeriodicTask(id="3")
 
         periodic_tasks = [pt1, pt2, pt3]
 
-        assert_data = [{
-            'id': task.id,
-            'name': task.name,
-            'template_id': task.template_id,
-            'template_source': task.template_source,
-            'creator': task.creator,
-            'cron': task.cron,
-            'enabled': task.enabled,
-            'last_run_at': format_datetime(task.last_run_at),
-            'total_run_count': task.total_run_count,
-        } for task in periodic_tasks]
+        assert_data = [
+            {
+                "id": task.id,
+                "name": task.name,
+                "template_id": task.template_id,
+                "template_source": task.template_source,
+                "creator": task.creator,
+                "cron": task.cron,
+                "enabled": task.enabled,
+                "last_run_at": format_datetime(task.last_run_at),
+                "total_run_count": task.total_run_count,
+            }
+            for task in periodic_tasks
+        ]
 
         with mock.patch(PERIODIC_TASK_FILTER, MagicMock(return_value=periodic_tasks)):
-            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(project_id=TEST_PROJECT_ID)
+            )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], assert_data)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], assert_data)

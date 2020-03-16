@@ -21,6 +21,8 @@ TASKTEMPLATE_GET = 'gcloud.tasktmpl3.models.TaskTemplate.objects.get'
 TASKTEMPLATE_CREATE_PIPELINE_TEMPLATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.create_pipeline_template'
 TASKTEMPLATE_MODEL = 'gcloud.tasktmpl3.models.TaskTemplate.objects.model'
 
+TEMPLATESCHEME_FILTER = 'pipeline.models.TemplateScheme.objects.filter'
+
 COMMONTEMPLATE_GET = 'gcloud.commons.template.models.CommonTemplate.objects.get'
 COMMONTEMPLATE_SELECT_RELATE = 'gcloud.commons.template.models.CommonTemplate.objects.select_related'
 COMMONTEMPLATE_IMPORT_TEMPLATES = 'gcloud.commons.template.models.CommonTemplate.objects.import_templates'
@@ -52,12 +54,12 @@ APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.get_tas
 APIGW_IMPORT_COMMON_TEMPLATE_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.import_common_template.read_encoded_template_data'  # noqa
 APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.get_plugin_list.ComponentModel.objects.filter'
 APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.get_plugin_list.ComponentLibrary.get_component_class'  # noqa
+APIGW_GET_USER_PROJECT_LIST_GET_USER_BUSINESS_LIST = 'gcloud.apigw.views.get_user_project_list.get_user_business_list'
+APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL = 'gcloud.apigw.views.get_user_project_detail.get_business_detail'
+APIGW_PREVIEW_TASK_TREE_PREVIEW_TEMPLATE_TREE = 'gcloud.apigw.views.preview_task_tree.preview_template_tree'
 APIGW_DECORATOR_CHECK_WHITE_LIST = 'gcloud.apigw.decorators.check_white_apps'
 APIGW_DECORATOR_GET_USER_MODEL = 'gcloud.apigw.decorators.get_user_model'
 APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
-
-APIGW_VIEW_APIGW_REQUIRED = 'gcloud.apigw.views.apigw_required'
-APIGW_DECORATOR_APIGW_REQUIRED = 'gcloud.apigw.decorators.apigw_required'
 
 MAIN_PACKAGE_SOURCE_GET = 'gcloud.external_plugins.models.main_source.MainPackageSource.objects.get'
 

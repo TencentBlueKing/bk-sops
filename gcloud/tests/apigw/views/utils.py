@@ -21,12 +21,13 @@ from gcloud.tests.mock_settings import *  # noqa
 
 try:
     from bkoauth.decorators import apigw_required  # noqa
-    BKOAUTH_DECORATOR_JWT_CLIENT = 'bkoauth.decorators.JWTClient'
-except ImportError:
-    BKOAUTH_DECORATOR_JWT_CLIENT = 'packages.bkoauth.decorators.JWTClient'
 
-TEST_APP_CODE = 'app_code'
-TEST_USERNAME = ''
+    BKOAUTH_DECORATOR_JWT_CLIENT = "bkoauth.decorators.JWTClient"
+except ImportError:
+    BKOAUTH_DECORATOR_JWT_CLIENT = "packages.bkoauth.decorators.JWTClient"
+
+TEST_APP_CODE = "app_code"
+TEST_USERNAME = ""
 
 
 def dummy_params_wrapper(perm):
@@ -48,24 +49,35 @@ def dummy_wrapper(func):
 
 class APITest(TestCase, metaclass=abc.ABCMeta):
     def setUp(self):
-        self.white_list_patcher = patch(APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=True))
+        self.white_list_patcher = patch(
+            APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=True)
+        )
 
         self.dummy_user = MagicMock()
-        self.dummy_user.username = ''
+        self.dummy_user.username = ""
         self.user_cls = MagicMock()
         self.user_cls.objects = MagicMock()
         self.user_cls.objects.get = MagicMock(return_value=self.dummy_user)
 
-        self.get_user_model_patcher = patch(APIGW_DECORATOR_GET_USER_MODEL, MagicMock(return_value=self.user_cls))
+        self.get_user_model_patcher = patch(
+            APIGW_DECORATOR_GET_USER_MODEL, MagicMock(return_value=self.user_cls)
+        )
         exist_return_true_qs = MagicMock()
         exist_return_true_qs.exist = MagicMock(return_value=True)
-        self.project_filter_patcher = patch(PROJECT_FILTER, MagicMock(return_value=exist_return_true_qs))
+        self.project_filter_patcher = patch(
+            PROJECT_FILTER, MagicMock(return_value=exist_return_true_qs)
+        )
         self.bkoauth_decorator_jwt_client = patch(
             BKOAUTH_DECORATOR_JWT_CLIENT,
-            MagicMock(return_value=MockJwtClient({
-                settings.APIGW_APP_CODE_KEY: TEST_APP_CODE,
-                settings.APIGW_USER_USERNAME_KEY: TEST_USERNAME})
-            ))
+            MagicMock(
+                return_value=MockJwtClient(
+                    {
+                        settings.APIGW_APP_CODE_KEY: TEST_APP_CODE,
+                        settings.APIGW_USER_USERNAME_KEY: TEST_USERNAME,
+                    }
+                )
+            ),
+        )
 
         self.white_list_patcher.start()
         self.get_user_model_patcher.start()

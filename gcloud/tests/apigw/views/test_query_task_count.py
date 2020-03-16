@@ -22,64 +22,87 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_DATA = 'data'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_DATA = "data"
 
 
 class QueryTaskCountAPITest(APITest):
     def url(self):
-        return '/apigw/query_task_count/{project_id}/'
+        return "/apigw/query_task_count/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
-    @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(True, TEST_DATA)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(
+        TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(True, TEST_DATA))
+    )
     def test_query_task_count__success(self):
-        response = self.client.post(path=self.url().format(project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'group_by': 'category'}),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            data=json.dumps({"group_by": "category"}),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
-        self.assertTrue(data['result'], msg=data)
-        self.assertEqual(data['data'], TEST_DATA)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(data["data"], TEST_DATA)
 
     def test_query_task_count__conditions_is_not_dict(self):
-        response = self.client.post(path=self.url().format(project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'conditions': []}),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            data=json.dumps({"conditions": []}),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)
 
     def test_query_task_count__group_by_is_not_valid(self):
-        response = self.client.post(path=self.url().format(project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'group_by': 'invalid_value'}),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            data=json.dumps({"group_by": "invalid_value"}),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
-    @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, '')))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(
+        TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, ""))
+    )
     def test_query_task_count__dispatch_fail(self):
-        response = self.client.post(path=self.url().format(project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'group_by': 'category'}),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            data=json.dumps({"group_by": "category"}),
+            content_type="application/json",
+        )
 
         task_flow_instance.dispatch.assert_called_once_with(
-            'category', {
-                'project_id': TEST_BIZ_CC_ID,
-                'is_deleted': False
-            }
+            "category", {"project_id": TEST_BIZ_CC_ID, "is_deleted": False}
         )
         data = json.loads(response.content)
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)

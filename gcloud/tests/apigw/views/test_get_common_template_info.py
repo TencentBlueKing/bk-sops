@@ -23,40 +23,45 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_TEMPLATE_ID = '1'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_TEMPLATE_ID = "1"
 
 
 class GetCommonTemplateInfoAPITest(APITest):
     def url(self):
-        return '/apigw/get_common_template_info/{template_id}/'
+        return "/apigw/get_common_template_info/{template_id}/"
 
     def test_get_common_template_info(self):
-        pt1 = MockPipelineTemplate(id=1, name='pt1')
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
         tmpl = MockCommonTemplate(id=TEST_TEMPLATE_ID, pipeline_template=pt1)
 
-        with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+        with mock.patch(
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
-            pipeline_tree.pop('line')
-            pipeline_tree.pop('location')
+            pipeline_tree.pop("line")
+            pipeline_tree.pop("location")
             assert_data = {
-                'id': tmpl.id,
-                'name': tmpl.pipeline_template.name,
-                'creator': tmpl.pipeline_template.creator,
-                'create_time': format_datetime(tmpl.pipeline_template.create_time),
-                'editor': tmpl.pipeline_template.editor,
-                'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-                'category': tmpl.category,
-                'pipeline_tree': pipeline_tree
+                "id": tmpl.id,
+                "name": tmpl.pipeline_template.name,
+                "creator": tmpl.pipeline_template.creator,
+                "create_time": format_datetime(tmpl.pipeline_template.create_time),
+                "editor": tmpl.pipeline_template.editor,
+                "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+                "category": tmpl.category,
+                "pipeline_tree": pipeline_tree,
             }
 
-            response = self.client.get(path=self.url().format(template_id=TEST_TEMPLATE_ID))
+            response = self.client.get(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID)
+            )
 
             self.assertEqual(response.status_code, 200)
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(assert_data, data['data'])
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(assert_data, data["data"])

@@ -22,73 +22,91 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_PERIODIC_TASK_ID = '3'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_PERIODIC_TASK_ID = "3"
 
 
 class ModifyCronForPeriodicTaskAPITest(APITest):
     def url(self):
-        return '/apigw/modify_cron_for_periodic_task/{task_id}/{project_id}/'
+        return "/apigw/modify_cron_for_periodic_task/{task_id}/{project_id}/"
 
     def test_modify_cron_for_periodic_task__success(self):
-        proj = MockProject(project_id=TEST_PROJECT_ID,
-                           name=TEST_PROJECT_NAME,
-                           bk_biz_id=TEST_BIZ_CC_ID,
-                           from_cmdb=True)
+        proj = MockProject(
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
+        )
         task = MockPeriodicTask()
-        cron = {'minute': '*/1'}
+        cron = {"minute": "*/1"}
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
-                    path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                           project_id=TEST_PROJECT_ID),
-                    data=json.dumps({'cron': cron}),
-                    content_type='application/json')
+                    path=self.url().format(
+                        task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+                    ),
+                    data=json.dumps({"cron": cron}),
+                    content_type="application/json",
+                )
 
                 task.modify_cron.assert_called_once_with(cron, proj.time_zone)
 
                 data = json.loads(response.content)
 
-                self.assertTrue(data['result'], msg=data)
-                self.assertEqual(data['data'], {'cron': task.cron})
+                self.assertTrue(data["result"], msg=data)
+                self.assertEqual(data["data"], {"cron": task.cron})
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_modify_cron_for_periodic_task__task_does_not_exist(self):
-        response = self.client.post(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                                           project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'enabled': True}),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(
+                task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+            ),
+            data=json.dumps({"enabled": True}),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
 
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)
 
     def test_modify_cron_for_periodic_task__modify_raise(self):
         task = MockPeriodicTask()
         task.modify_cron = MagicMock(side_effect=Exception())
-        cron = {'minute': '*/1'}
-        proj = MockProject(project_id=TEST_PROJECT_ID,
-                           name=TEST_PROJECT_NAME,
-                           bk_biz_id=TEST_BIZ_CC_ID,
-                           from_cmdb=True)
+        cron = {"minute": "*/1"}
+        proj = MockProject(
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
+        )
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
-                    path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                           project_id=TEST_PROJECT_ID),
-                    data=json.dumps({'cron': cron}),
-                    content_type='application/json')
+                    path=self.url().format(
+                        task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+                    ),
+                    data=json.dumps({"cron": cron}),
+                    content_type="application/json",
+                )
 
                 data = json.loads(response.content)
 
-                self.assertFalse(data['result'])
-                self.assertTrue('message' in data)
+                self.assertFalse(data["result"])
+                self.assertTrue("message" in data)

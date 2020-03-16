@@ -24,16 +24,15 @@ from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_TEMPLATE_ID = '1'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_TEMPLATE_ID = "1"
 
 
 class GetTemplateInfoAPITest(APITest):
-
     def url(self):
-        return '/apigw/get_template_info/{template_id}/{project_id}/'
+        return "/apigw/get_template_info/{template_id}/{project_id}/"
 
     @mock.patch(
         PROJECT_GET,
@@ -42,51 +41,51 @@ class GetTemplateInfoAPITest(APITest):
                 project_id=TEST_PROJECT_ID,
                 name=TEST_PROJECT_NAME,
                 bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True
+                from_cmdb=True,
             )
-        )
+        ),
     )
     def test_get_template_info__for_project_template(self):
-        pt1 = MockPipelineTemplate(id=1, name='pt1')
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
 
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
 
-        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+        with mock.patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
-            pipeline_tree.pop('line')
-            pipeline_tree.pop('location')
+            pipeline_tree.pop("line")
+            pipeline_tree.pop("location")
             assert_data = {
-                'id': tmpl.id,
-                'name': tmpl.pipeline_template.name,
-                'creator': tmpl.pipeline_template.creator,
-                'create_time': format_datetime(tmpl.pipeline_template.create_time),
-                'editor': tmpl.pipeline_template.editor,
-                'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-                'category': tmpl.category,
-                'project_id': TEST_PROJECT_ID,
-                'project_name': TEST_PROJECT_NAME,
-                'bk_biz_id': TEST_BIZ_CC_ID,
-                'bk_biz_name': TEST_PROJECT_NAME,
-                'pipeline_tree': pipeline_tree
+                "id": tmpl.id,
+                "name": tmpl.pipeline_template.name,
+                "creator": tmpl.pipeline_template.creator,
+                "create_time": format_datetime(tmpl.pipeline_template.create_time),
+                "editor": tmpl.pipeline_template.editor,
+                "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+                "category": tmpl.category,
+                "project_id": TEST_PROJECT_ID,
+                "project_name": TEST_PROJECT_NAME,
+                "bk_biz_id": TEST_BIZ_CC_ID,
+                "bk_biz_name": TEST_PROJECT_NAME,
+                "pipeline_tree": pipeline_tree,
             }
 
             response = self.client.get(
                 path=self.url().format(
-                    template_id=TEST_TEMPLATE_ID,
-                    project_id=TEST_PROJECT_ID
+                    template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
                 )
             )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(assert_data, data['data'])
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(assert_data, data["data"])
 
     @mock.patch(
         TASKTEMPLATE_SELECT_RELATE,
-        MagicMock(
-            return_value=MockQuerySet(get_raise=TaskTemplate.DoesNotExist())
-        )
+        MagicMock(return_value=MockQuerySet(get_raise=TaskTemplate.DoesNotExist())),
     )
     @mock.patch(
         PROJECT_GET,
@@ -95,21 +94,21 @@ class GetTemplateInfoAPITest(APITest):
                 project_id=TEST_PROJECT_ID,
                 name=TEST_PROJECT_NAME,
                 bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True
+                from_cmdb=True,
             )
-        )
+        ),
     )
     def test_get_template_info__for_project_template_does_not_exists(self):
         response = self.client.get(
             path=self.url().format(
-                template_id=TEST_TEMPLATE_ID,
-                project_id=TEST_PROJECT_ID)
+                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
+            )
         )
 
         data = json.loads(response.content)
 
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)
 
     @mock.patch(
         PROJECT_GET,
@@ -118,54 +117,52 @@ class GetTemplateInfoAPITest(APITest):
                 project_id=TEST_PROJECT_ID,
                 name=TEST_PROJECT_NAME,
                 bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True
+                from_cmdb=True,
             )
-        )
+        ),
     )
     def test_get_template_info__for_common_template(self):
-        pt1 = MockPipelineTemplate(id=1, name='pt1')
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
 
         tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
 
-        with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+        with mock.patch(
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
-            pipeline_tree.pop('line')
-            pipeline_tree.pop('location')
+            pipeline_tree.pop("line")
+            pipeline_tree.pop("location")
             assert_data = {
-                'id': tmpl.id,
-                'name': tmpl.pipeline_template.name,
-                'creator': tmpl.pipeline_template.creator,
-                'create_time': format_datetime(tmpl.pipeline_template.create_time),
-                'editor': tmpl.pipeline_template.editor,
-                'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-                'category': tmpl.category,
-                'project_id': TEST_PROJECT_ID,
-                'project_name': TEST_PROJECT_NAME,
-                'bk_biz_id': TEST_BIZ_CC_ID,
-                'bk_biz_name': TEST_PROJECT_NAME,
-                'pipeline_tree': pipeline_tree
+                "id": tmpl.id,
+                "name": tmpl.pipeline_template.name,
+                "creator": tmpl.pipeline_template.creator,
+                "create_time": format_datetime(tmpl.pipeline_template.create_time),
+                "editor": tmpl.pipeline_template.editor,
+                "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
+                "category": tmpl.category,
+                "project_id": TEST_PROJECT_ID,
+                "project_name": TEST_PROJECT_NAME,
+                "bk_biz_id": TEST_BIZ_CC_ID,
+                "bk_biz_name": TEST_PROJECT_NAME,
+                "pipeline_tree": pipeline_tree,
             }
 
             response = self.client.get(
                 path=self.url().format(
-                    template_id=TEST_TEMPLATE_ID,
-                    project_id=TEST_PROJECT_ID
+                    template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
                 ),
-                data={'template_source': 'common'}
+                data={"template_source": "common"},
             )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(assert_data, data['data'])
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(assert_data, data["data"])
 
     @mock.patch(
         COMMONTEMPLATE_SELECT_RELATE,
-        MagicMock(
-            return_value=MockQuerySet(
-                get_raise=CommonTemplate.DoesNotExist()
-            )
-        )
+        MagicMock(return_value=MockQuerySet(get_raise=CommonTemplate.DoesNotExist())),
     )
     @mock.patch(
         PROJECT_GET,
@@ -174,20 +171,19 @@ class GetTemplateInfoAPITest(APITest):
                 project_id=TEST_PROJECT_ID,
                 name=TEST_PROJECT_NAME,
                 bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True
+                from_cmdb=True,
             )
-        )
+        ),
     )
     def test_get_template_info__for_common_template_does_not_exists(self):
         response = self.client.get(
             path=self.url().format(
-                template_id=TEST_TEMPLATE_ID,
-                project_id=TEST_PROJECT_ID
+                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
             ),
-            data={'template_source': 'common'}
+            data={"template_source": "common"},
         )
 
         data = json.loads(response.content)
 
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)

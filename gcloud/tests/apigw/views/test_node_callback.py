@@ -22,49 +22,64 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_NODE_ID = 'node_id'
-TEST_CALLBACK_DATA = 'callback_data'
-TEST_TASKFLOW_ID = '2'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_NODE_ID = "node_id"
+TEST_CALLBACK_DATA = "callback_data"
+TEST_TASKFLOW_ID = "2"
 
 
 class NodeCallbackAPITest(APITest):
     def url(self):
-        return '/apigw/node_callback/{task_id}/{project_id}/'
+        return "/apigw/node_callback/{task_id}/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_node_callback__success(self):
         mock_instance = MockTaskFlowInstance()
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_instance)):
-            response = self.client.post(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                               project_id=TEST_PROJECT_ID),
-                                        data=json.dumps({
-                                            'node_id': TEST_NODE_ID,
-                                            'callback_data': TEST_CALLBACK_DATA
-                                        }),
-                                        content_type='application/json')
+            response = self.client.post(
+                path=self.url().format(
+                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+                ),
+                data=json.dumps(
+                    {"node_id": TEST_NODE_ID, "callback_data": TEST_CALLBACK_DATA}
+                ),
+                content_type="application/json",
+            )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            mock_instance.callback.assert_called_once_with(TEST_NODE_ID, TEST_CALLBACK_DATA)
+            self.assertTrue(data["result"], msg=data)
+            mock_instance.callback.assert_called_once_with(
+                TEST_NODE_ID, TEST_CALLBACK_DATA
+            )
 
-    @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
+    @mock.patch(
+        TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist())
+    )
     def test_node_callback__taskflow_does_not_exists(self):
-        response = self.client.post(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                           project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({
-                                        'node_id': TEST_NODE_ID,
-                                        'callback_data': TEST_CALLBACK_DATA
-                                    }),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(
+                task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+            ),
+            data=json.dumps(
+                {"node_id": TEST_NODE_ID, "callback_data": TEST_CALLBACK_DATA}
+            ),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
 
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)

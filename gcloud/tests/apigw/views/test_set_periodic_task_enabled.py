@@ -22,46 +22,57 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_BIZ_CC_NAME = 'biz name'
-TEST_PERIODIC_TASK_ID = '3'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_BIZ_CC_NAME = "biz name"
+TEST_PERIODIC_TASK_ID = "3"
 
 
 class SetPeriodicTaskEnabledAPITest(APITest):
     def url(self):
-        return '/apigw/set_periodic_task_enabled/{task_id}/{project_id}/'
+        return "/apigw/set_periodic_task_enabled/{task_id}/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_set_periodic_task_enabled__success(self):
         task = MockPeriodicTask()
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
-            response = self.client.post(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                                               project_id=TEST_PROJECT_ID),
-                                        data=json.dumps({'enabled': True}),
-                                        content_type='application/json')
+            response = self.client.post(
+                path=self.url().format(
+                    task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+                ),
+                data=json.dumps({"enabled": True}),
+                content_type="application/json",
+            )
 
             task.set_enabled.assert_called_once_with(True)
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], {
-                'enabled': task.enabled
-            })
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], {"enabled": task.enabled})
 
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_set_periodic_task_enabled__task_does_not_exist(self):
-        response = self.client.post(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                                           project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'enabled': True}),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(
+                task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+            ),
+            data=json.dumps({"enabled": True}),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
 
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)

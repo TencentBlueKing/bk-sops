@@ -22,50 +22,56 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_PERIODIC_TASK_ID = '3'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_PERIODIC_TASK_ID = "3"
 
 
 class ModifyConstantsForPeriodicTaskAPITest(APITest):
-
     def url(self):
-        return '/apigw/modify_constants_for_periodic_task/{task_id}/{project_id}/'
+        return "/apigw/modify_constants_for_periodic_task/{task_id}/{project_id}/"
 
     def test_modify_constants_for_periodic_task__success(self):
         task = MockPeriodicTask()
-        constants = {'k': 'v'}
-        proj = MockProject(project_id=TEST_PROJECT_ID,
-                           name=TEST_PROJECT_NAME,
-                           bk_biz_id=TEST_BIZ_CC_ID,
-                           from_cmdb=True)
+        constants = {"k": "v"}
+        proj = MockProject(
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
+        )
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
-                    path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                           project_id=TEST_PROJECT_ID),
-                    data=json.dumps({'constants': constants}),
-                    content_type='application/json')
+                    path=self.url().format(
+                        task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+                    ),
+                    data=json.dumps({"constants": constants}),
+                    content_type="application/json",
+                )
 
                 task.modify_constants.assert_called_once_with(constants)
 
                 data = json.loads(response.content)
 
-                self.assertTrue(data['result'], msg=data)
-                self.assertEqual(data['data'], task.modify_constants.return_value)
+                self.assertTrue(data["result"], msg=data)
+                self.assertEqual(data["data"], task.modify_constants.return_value)
 
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_modify_constants_for_periodic_task__task_does_not_exist(self):
-        response = self.client.post(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                                           project_id=TEST_PROJECT_ID),
-                                    content_type='application/json')
+        response = self.client.post(
+            path=self.url().format(
+                task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+            ),
+            content_type="application/json",
+        )
 
         data = json.loads(response.content)
 
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)
 
     def test_modify_constants_for_periodic_task__modify_constants_raise(self):
         biz = MockBusiness()
@@ -75,11 +81,13 @@ class ModifyConstantsForPeriodicTaskAPITest(APITest):
         with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
-                    path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                           project_id=TEST_PROJECT_ID),
-                    content_type='application/json')
+                    path=self.url().format(
+                        task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+                    ),
+                    content_type="application/json",
+                )
 
                 data = json.loads(response.content)
 
-                self.assertFalse(data['result'])
-                self.assertTrue('message' in data)
+                self.assertFalse(data["result"])
+                self.assertTrue("message" in data)

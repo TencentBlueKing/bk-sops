@@ -20,34 +20,43 @@ from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
 
-TEST_PROJECT_ID = '123'  # do not change this to non number
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_APP_CODE = 'app_code'
-TEST_TASKFLOW_ID = '2'
+TEST_PROJECT_ID = "123"  # do not change this to non number
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_APP_CODE = "app_code"
+TEST_TASKFLOW_ID = "2"
 
 
 class StartTaskAPITest(APITest):
-
     def url(self):
-        return '/apigw/start_task/{task_id}/{project_id}/'
+        return "/apigw/start_task/{task_id}/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_start_task(self):
-        assert_return = {'result': True}
+        assert_return = {"result": True}
         task = MockTaskFlowInstance(task_action_return=assert_return)
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
-            response = self.client.post(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                               project_id=TEST_PROJECT_ID),
-                                        data=json.dumps({}),
-                                        content_type="application/json",
-                                        HTTP_BK_APP_CODE=TEST_APP_CODE)
+            response = self.client.post(
+                path=self.url().format(
+                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+                ),
+                data=json.dumps({}),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+            )
 
-            task.task_action.assert_called_once_with('start', '')
+            task.task_action.assert_called_once_with("start", "")
 
             data = json.loads(response.content)
 

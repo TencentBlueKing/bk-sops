@@ -46,7 +46,8 @@ def get_user_project_detail(request, project_id):
             'message': 'can not get business[{}] detail for user[{}]'.format(
                 request.user.username,
                 request.project.bk_biz_id
-            )
+            ),
+            'code': err_code.UNKNOW_ERROR.code,
         })
 
     return JsonResponse({

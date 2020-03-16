@@ -45,19 +45,7 @@ except ImportError:
 )
 def get_task_node_data(request, project_id, task_id):
     project = request.project
-    try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
-    except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
-            task_id=task_id,
-            project_id=project.id,
-            biz_id=project.bk_biz_id)
-        logger.exception(message)
-        return JsonResponse({
-            'result': False,
-            'message': message,
-            'code': err_code.CONTENT_NOT_EXIST.code
-        })
+    task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
 
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
@@ -69,7 +57,7 @@ def get_task_node_data(request, project_id, task_id):
         return JsonResponse({
             'result': False,
             'message': 'subprocess_stack is not a valid array json',
-            'code': err_code.UNKNOW_ERROR.code
+            'code': err_code.REQUEST_PARAM_INVALID.code
         })
 
     data = task.get_node_data(

@@ -21,44 +21,63 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
 
 
 class GetPluginListAPITest(APITest):
     def url(self):
-        return '/apigw/get_plugin_list/{project_id}/'
+        return "/apigw/get_plugin_list/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_get_component_list(self):
-        comp_model = MockComponentModel(code='code_token')
-        comp = MockComponent(inputs='inputs_token',
-                             outputs='outputs_token',
-                             desc='desc_token',
-                             code='code_token',
-                             name='name_token',
-                             group_name='group_name')
+        comp_model = MockComponentModel(code="code_token")
+        comp = MockComponent(
+            inputs="inputs_token",
+            outputs="outputs_token",
+            desc="desc_token",
+            code="code_token",
+            name="name_token",
+            group_name="group_name",
+        )
 
-        with mock.patch(APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER, MagicMock(return_value=[comp_model])):
-            with mock.patch(APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS, MagicMock(return_value=comp)):
-                assert_data = [{
-                    'inputs': comp.inputs_format(),
-                    'outputs': comp.outputs_format(),
-                    'desc': comp.desc,
-                    'code': comp.code,
-                    'name': comp.name,
-                    'group_name': comp.group_name
-                }]
+        with mock.patch(
+            APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER,
+            MagicMock(return_value=[comp_model]),
+        ):
+            with mock.patch(
+                APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS,
+                MagicMock(return_value=comp),
+            ):
+                assert_data = [
+                    {
+                        "inputs": comp.inputs_format(),
+                        "outputs": comp.outputs_format(),
+                        "desc": comp.desc,
+                        "code": comp.code,
+                        "name": comp.name,
+                        "group_name": comp.group_name,
+                    }
+                ]
 
-                response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
+                response = self.client.get(
+                    path=self.url().format(project_id=TEST_PROJECT_ID)
+                )
 
                 self.assertEqual(response.status_code, 200)
 
                 data = json.loads(response.content)
 
-                self.assertTrue(data['result'], msg=data)
-                self.assertEqual(data['data'], assert_data)
+                self.assertTrue(data["result"], msg=data)
+                self.assertEqual(data["data"], assert_data)

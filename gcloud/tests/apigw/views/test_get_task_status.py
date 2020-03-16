@@ -21,81 +21,120 @@ from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_TASKFLOW_ID = '2'
-TEST_DATA = 'data'
-TEST_SUBPROCESS_STACK = '[1, 2, 3]'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_TASKFLOW_ID = "2"
+TEST_DATA = "data"
+TEST_SUBPROCESS_STACK = "[1, 2, 3]"
 
 
 class GetTaskStatusAPITest(APITest):
-
     def url(self):
-        return '/apigw/get_task_status/{task_id}/{project_id}/'
+        return "/apigw/get_task_status/{task_id}/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_get_task_status__success(self):
         task = MockTaskFlowInstance(get_status_return=TEST_DATA)
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
-            response = self.client.get(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                              project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(
+                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+                )
+            )
 
             data = json.loads(response.content)
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], TEST_DATA)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], TEST_DATA)
 
     def test_get_task_status__raise(self):
         task = MockTaskFlowInstance(get_status_raise=Exception())
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
-            response = self.client.get(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                              project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(
+                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+                )
+            )
 
             data = json.loads(response.content)
-            self.assertFalse(data['result'])
-            self.assertTrue('message' in data)
+            self.assertFalse(data["result"])
+            self.assertTrue("message" in data)
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     @mock.patch(TASKINSTANCE_FORMAT_STATUS, MagicMock())
-    @mock.patch(APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE, MagicMock(return_value=TEST_DATA))
+    @mock.patch(
+        APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE,
+        MagicMock(return_value=TEST_DATA),
+    )
     def test_get_task_status__is_subprocess(self):
         task = MockTaskFlowInstance(get_status_raise=TaskFlowInstance.DoesNotExist())
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
-            response = self.client.get(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                              project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(
+                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+                )
+            )
 
             TaskFlowInstance.format_pipeline_status.assert_called_once_with(TEST_DATA)
 
             data = json.loads(response.content)
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], TEST_DATA)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], TEST_DATA)
 
-    @mock.patch(APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE, MagicMock(return_value=TEST_DATA))
+    @mock.patch(
+        APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE,
+        MagicMock(return_value=TEST_DATA),
+    )
     def test_get_task_status__is_subprocess_raise(self):
         task = MockTaskFlowInstance(get_status_raise=TaskFlowInstance.DoesNotExist())
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
-            with mock.patch(APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE, MagicMock(side_effect=Exception())):
-                response = self.client.get(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                                  project_id=TEST_PROJECT_ID))
+            with mock.patch(
+                APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE,
+                MagicMock(side_effect=Exception()),
+            ):
+                response = self.client.get(
+                    path=self.url().format(
+                        task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+                    )
+                )
 
                 data = json.loads(response.content)
-                self.assertFalse(data['result'])
-                self.assertTrue('message' in data)
+                self.assertFalse(data["result"])
+                self.assertTrue("message" in data)
 
-            with mock.patch(TASKINSTANCE_FORMAT_STATUS, MagicMock(side_effect=Exception())):
-                response = self.client.get(path=self.url().format(task_id=TEST_TASKFLOW_ID,
-                                                                  project_id=TEST_PROJECT_ID))
+            with mock.patch(
+                TASKINSTANCE_FORMAT_STATUS, MagicMock(side_effect=Exception())
+            ):
+                response = self.client.get(
+                    path=self.url().format(
+                        task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+                    )
+                )
 
                 data = json.loads(response.content)
-                self.assertFalse(data['result'])
-                self.assertTrue('message' in data)
+                self.assertFalse(data["result"])
+                self.assertTrue("message" in data)

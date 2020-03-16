@@ -23,80 +23,103 @@ from gcloud.tests.mock_settings import *  # noqa
 from .utils import APITest
 
 
-TEST_PROJECT_ID = '123'
-TEST_PROJECT_NAME = 'biz name'
-TEST_BIZ_CC_ID = '123'
-TEST_PERIODIC_TASK_ID = '3'
+TEST_PROJECT_ID = "123"
+TEST_PROJECT_NAME = "biz name"
+TEST_BIZ_CC_ID = "123"
+TEST_PERIODIC_TASK_ID = "3"
 
 
 class GetPeriodicTaskInfoAPITest(APITest):
     def url(self):
-        return '/apigw/get_periodic_task_info/{task_id}/{project_id}/'
+        return "/apigw/get_periodic_task_info/{task_id}/{project_id}/"
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_get_periodic_task_info__success(self):
         task = MockPeriodicTask()
         assert_data = {
-            'id': task.id,
-            'name': task.name,
-            'template_id': task.template_id,
-            'template_source': 'project',
-            'creator': task.creator,
-            'cron': task.cron,
-            'enabled': task.enabled,
-            'last_run_at': format_datetime(task.last_run_at),
-            'total_run_count': task.total_run_count,
-            'form': task.form,
-            'pipeline_tree': task.pipeline_tree
+            "id": task.id,
+            "name": task.name,
+            "template_id": task.template_id,
+            "template_source": "project",
+            "creator": task.creator,
+            "cron": task.cron,
+            "enabled": task.enabled,
+            "last_run_at": format_datetime(task.last_run_at),
+            "total_run_count": task.total_run_count,
+            "form": task.form,
+            "pipeline_tree": task.pipeline_tree,
         }
 
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
-            response = self.client.get(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                                              project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(
+                    task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+                )
+            )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], assert_data)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], assert_data)
 
-    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
-                                                                name=TEST_PROJECT_NAME,
-                                                                bk_biz_id=TEST_BIZ_CC_ID,
-                                                                from_cmdb=True)))
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     def test_get_periodic_task_info__common_template(self):
-        task = MockPeriodicTask(template_source='common')
+        task = MockPeriodicTask(template_source="common")
         assert_data = {
-            'id': task.id,
-            'name': task.name,
-            'template_id': task.template_id,
-            'template_source': 'common',
-            'creator': task.creator,
-            'cron': task.cron,
-            'enabled': task.enabled,
-            'last_run_at': format_datetime(task.last_run_at),
-            'total_run_count': task.total_run_count,
-            'form': task.form,
-            'pipeline_tree': task.pipeline_tree
+            "id": task.id,
+            "name": task.name,
+            "template_id": task.template_id,
+            "template_source": "common",
+            "creator": task.creator,
+            "cron": task.cron,
+            "enabled": task.enabled,
+            "last_run_at": format_datetime(task.last_run_at),
+            "total_run_count": task.total_run_count,
+            "form": task.form,
+            "pipeline_tree": task.pipeline_tree,
         }
 
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
-            response = self.client.get(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                                              project_id=TEST_PROJECT_ID))
+            response = self.client.get(
+                path=self.url().format(
+                    task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+                )
+            )
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'], msg=data)
-            self.assertEqual(data['data'], assert_data)
+            self.assertTrue(data["result"], msg=data)
+            self.assertEqual(data["data"], assert_data)
 
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_periodic_task_info__task_does_not_exist(self):
-        response = self.client.get(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID,
-                                                          project_id=TEST_PROJECT_ID))
+        response = self.client.get(
+            path=self.url().format(
+                task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
+            )
+        )
 
         data = json.loads(response.content)
 
-        self.assertFalse(data['result'])
-        self.assertTrue('message' in data)
+        self.assertFalse(data["result"])
+        self.assertTrue("message" in data)
