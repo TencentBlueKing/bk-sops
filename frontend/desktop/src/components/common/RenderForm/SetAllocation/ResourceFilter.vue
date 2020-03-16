@@ -198,14 +198,14 @@
                         {
                             required: true,
                             message: gettext('必选项'),
-                            trigger: 'bluer'
+                            trigger: 'blur'
                         }
                     ],
                     set: [
                         {
                             required: true,
                             message: gettext('必选项'),
-                            trigger: 'bluer'
+                            trigger: 'blur'
                         }
                     ],
                     resource: [
