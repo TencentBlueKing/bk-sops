@@ -107,3 +107,35 @@ class VarCmdbIpSelector(LazyVariable):
         else:
             ip = ','.join([host['bk_host_innerip'] for host in ip_result['data']])
         return ip
+
+
+class SetDetailData(object):
+
+    def __init__(self, data):
+        self.value = data
+        item_values = {}
+        modules = []
+        for item in data:
+            for key, val in item.items():
+                if key == '__module':
+                    item_module = {mod['key']: mod['value'] for mod in val}
+                    modules.append(item_module)
+                else:
+                    item_values.setdefault(key, []).append(val)
+        for attr, attr_val in item_values.items():
+            setattr(self, attr, attr_val)
+            flat_val = '\n'.join(map(str, attr_val))
+            setattr(self, 'flat__{}'.format(attr), flat_val)
+        setattr(self, '__module', modules)
+
+
+class VarCmdbSetAllocation(LazyVariable):
+    code = 'set_allocation'
+    name = _("集群资源筛选")
+    type = 'general'
+    tag = 'var_cmdb_resource_allocation.set_allocation'
+    form = '%svariables/sites/%s/var_cmdb_resource_allocation.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+    def get_value(self):
+        value = SetDetailData(self.value['data'])
+        return value

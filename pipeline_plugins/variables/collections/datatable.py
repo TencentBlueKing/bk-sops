@@ -32,7 +32,7 @@ class DataTableValue(object):
         for attr, attr_val in item_values.items():
             setattr(self, attr, attr_val)
             flat_val = '\n'.join(map(str, attr_val))
-            setattr(self, 'flat_{}'.format(attr), flat_val)
+            setattr(self, 'flat__{}'.format(attr), flat_val)
 
 
 class DataTable(LazyVariable):
