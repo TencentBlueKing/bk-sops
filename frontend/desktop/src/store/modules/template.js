@@ -746,33 +746,18 @@ const template = {
             const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
             if (state.activities[nodeId]) {
                 const item = state.activities[nodeId]
-                if (item.type === 'ServiceActivity') {
-                    const nodeData = item.component.data
-                    if (checkDataType(nodeData) === 'Object') {
-                        for (const code in nodeData) {
-                            const value = nodeData[code].value
-                            const matchArr = checkDataType(value) === 'String' ? value.match(codeReg) || [] : []
-                            matchArr.forEach(matchItem => {
-                                if (constantsCited[matchItem]) {
-                                    constantsCited[matchItem] += 1
-                                } else {
-                                    constantsCited[matchItem] = 1
-                                }
-                            })
-                        }
-                    }
-                } else {
-                    const nodeData = item.constants
-                    if (checkDataType(nodeData) === 'Object') {
-                        for (const varKey in nodeData) {
-                            if (varKey in state.constants) {
-                                if (constantsCited[varKey]) {
-                                    constantsCited[varKey] += 1
-                                } else {
-                                    constantsCited[varKey] = 1
-                                }
+                const nodeData = item.type === 'ServiceActivity' ? item.component.data : item.constants
+                if (checkDataType(nodeData) === 'Object') {
+                    for (const code in nodeData) {
+                        const value = nodeData[code].value
+                        const matchArr = checkDataType(value) === 'String' ? value.match(codeReg) || [] : []
+                        matchArr.forEach(matchItem => {
+                            if (constantsCited[matchItem]) {
+                                constantsCited[matchItem] += 1
+                            } else {
+                                constantsCited[matchItem] = 1
                             }
-                        }
+                        })
                     }
                 }
             }
