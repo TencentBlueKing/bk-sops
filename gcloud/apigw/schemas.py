@@ -23,8 +23,8 @@ APIGW_CREATE_TASK_PARAMS = {
             "maxLength": PERIOD_TASK_NAME_MAX_LENGTH,
         },
         "flow_type": {"type": "string", "enum": list(TASK_FLOW.keys())},
-        "constants": {"type": "object",},
-        "exclude_task_nodes_id": {"type": "array",},
+        "constants": {"type": "object"},
+        "exclude_task_nodes_id": {"type": "array"},
     },
 }
 
@@ -38,7 +38,7 @@ APIGW_CREATE_PERIODIC_TASK_PARAMS = {
             "maxLength": PERIOD_TASK_NAME_MAX_LENGTH,
         },
         "cron": {"type": "object"},
-        "exclude_task_nodes_id": {"type": "array",},
-        "constants": {"type": "object",},
+        "exclude_task_nodes_id": {"type": "array"},
+        "constants": {"type": "object"},
     },
 }

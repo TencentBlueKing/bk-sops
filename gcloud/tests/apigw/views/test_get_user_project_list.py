@@ -17,7 +17,6 @@ import ujson as json
 from pipeline.utils.collections import FancyDict
 
 from gcloud import err_code
-from gcloud.core.utils import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 

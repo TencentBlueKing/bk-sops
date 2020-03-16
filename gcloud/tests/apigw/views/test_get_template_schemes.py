@@ -16,7 +16,6 @@ import ujson as json
 
 from pipeline.utils.collections import FancyDict
 
-from gcloud.periodictask.models import PeriodicTask
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 from gcloud import err_code
