@@ -39,29 +39,29 @@ except ImportError:
 @api_verify_perms(
     taskflow_resource,
     [taskflow_resource.actions.view],
-    get_kwargs={'task_id': 'id', 'project_id': 'project_id'}
+    get_kwargs={"task_id": "id", "project_id": "project_id"},
 )
 def get_task_status(request, task_id, project_id):
     project = request.project
     try:
-        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
+        task = TaskFlowInstance.objects.get(
+            pk=task_id, project_id=project.id, is_deleted=False
+        )
         task_status = task.get_status()
-        result = {
-            'result': True,
-            'data': task_status,
-            'code': err_code.SUCCESS.code
-        }
+        result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
         return JsonResponse(result)
     # 请求子流程的状态，直接通过pipeline api查询
     except (ValueError, TaskFlowInstance.DoesNotExist):
-        logger.info('task[id=%s] does not exist' % task_id)
+        logger.info("task[id=%s] does not exist" % task_id)
     except Exception as e:
-        message = 'task[id={task_id}] get status error: {error}'.format(task_id=task_id, error=e)
+        message = "task[id={task_id}] get status error: {error}".format(
+            task_id=task_id, error=e
+        )
         logger.error(message)
         result = {
-            'result': False,
-            'message': message,
-            'code': err_code.UNKNOW_ERROR.code
+            "result": False,
+            "message": message,
+            "code": err_code.UNKNOW_ERROR.code,
         }
         return JsonResponse(result)
 
@@ -69,17 +69,15 @@ def get_task_status(request, task_id, project_id):
         task_status = pipeline_api.get_status_tree(task_id, max_depth=99)
         TaskFlowInstance.format_pipeline_status(task_status)
     except Exception as e:
-        message = 'task[id={task_id}] get status error: {error}'.format(task_id=task_id, error=e)
+        message = "task[id={task_id}] get status error: {error}".format(
+            task_id=task_id, error=e
+        )
         logger.error(message)
         result = {
-            'result': False,
-            'message': message,
-            'code': err_code.UNKNOW_ERROR.code
+            "result": False,
+            "message": message,
+            "code": err_code.UNKNOW_ERROR.code,
         }
         return JsonResponse(result)
-    result = {
-        'result': True,
-        'data': task_status,
-        'code': err_code.SUCCESS.code
-    }
+    result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
     return JsonResponse(result)

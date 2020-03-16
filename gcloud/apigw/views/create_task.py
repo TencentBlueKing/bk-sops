@@ -54,109 +54,140 @@ def create_task(request, template_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid json format",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
     project = request.project
-    template_source = params.get('template_source', PROJECT)
+    template_source = params.get("template_source", PROJECT)
 
-    logger.info('apigw create_task info, template_id: {template_id}, project_id: {project_id}, params: {params}'.format(
-        template_id=template_id,
-        project_id=project.id,
-        params=params))
+    logger.info(
+        "apigw create_task info, template_id: {template_id}, project_id: {project_id}, params: {params}".format(
+            template_id=template_id, project_id=project.id, params=params
+        )
+    )
 
     # 兼容老版本的接口调用
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         template_source = PROJECT
         try:
-            tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                project_id=project.id,
-                                                                                is_deleted=False)
+            tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
+                id=template_id, project_id=project.id, is_deleted=False
+            )
         except TaskTemplate.DoesNotExist:
             result = {
-                'result': False,
-                'message': 'template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] '
-                           'does not exist'.format(template_id=template_id,
-                                                   project_id=project.id,
-                                                   biz_id=project.bk_biz_id),
-                'code': err_code.CONTENT_NOT_EXIST.code
+                "result": False,
+                "message": "template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] "
+                "does not exist".format(
+                    template_id=template_id,
+                    project_id=project.id,
+                    biz_id=project.bk_biz_id,
+                ),
+                "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return JsonResponse(result)
 
         if not request.is_trust:
-            verify_or_raise_auth_failed(principal_type='user',
-                                        principal_id=request.user.username,
-                                        resource=task_template_resource,
-                                        action_ids=[task_template_resource.actions.create_task.id],
-                                        instance=tmpl,
-                                        status=200)
+            verify_or_raise_auth_failed(
+                principal_type="user",
+                principal_id=request.user.username,
+                resource=task_template_resource,
+                action_ids=[task_template_resource.actions.create_task.id],
+                instance=tmpl,
+                status=200,
+            )
     else:
         try:
-            tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                  is_deleted=False)
+            tmpl = CommonTemplate.objects.select_related("pipeline_template").get(
+                id=template_id, is_deleted=False
+            )
         except CommonTemplate.DoesNotExist:
             result = {
-                'result': False,
-                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id),
-                'code': err_code.CONTENT_NOT_EXIST.code
+                "result": False,
+                "message": "common template[id={template_id}] does not exist".format(
+                    template_id=template_id
+                ),
+                "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return JsonResponse(result)
 
         if not request.is_trust:
-            perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
-                            (common_template_resource, [common_template_resource.actions.create_task.id], tmpl)]
-            batch_verify_or_raise_auth_failed(principal_type='user',
-                                              principal_id=request.user.username,
-                                              perms_tuples=perms_tuples,
-                                              status=200)
+            perms_tuples = [
+                (
+                    project_resource,
+                    [project_resource.actions.use_common_template.id],
+                    project,
+                ),
+                (
+                    common_template_resource,
+                    [common_template_resource.actions.create_task.id],
+                    tmpl,
+                ),
+            ]
+            batch_verify_or_raise_auth_failed(
+                principal_type="user",
+                principal_id=request.user.username,
+                perms_tuples=perms_tuples,
+                status=200,
+            )
 
     try:
-        params.setdefault('flow_type', 'common')
-        params.setdefault('constants', {})
-        params.setdefault('exclude_task_nodes_id', [])
+        params.setdefault("flow_type", "common")
+        params.setdefault("constants", {})
+        params.setdefault("exclude_task_nodes_id", [])
         jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
     except jsonschema.ValidationError as e:
         logger.warning("apigw create_task raise prams error: %s" % e)
-        message = 'task params is invalid: %s' % e
-        return JsonResponse({
-            'result': False,
-            'message': message,
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        message = "task params is invalid: %s" % e
+        return JsonResponse(
+            {
+                "result": False,
+                "message": message,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
-        message = 'app_code cannot be empty, make sure api gateway has sent correct params'
-        return JsonResponse({
-            'result': False,
-            'message': message,
-            'code': err_code.CONTENT_NOT_EXIST.code
-        })
+        message = (
+            "app_code cannot be empty, make sure api gateway has sent correct params"
+        )
+        return JsonResponse(
+            {
+                "result": False,
+                "message": message,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+        )
 
     pipeline_instance_kwargs = {
-        'name': params['name'],
-        'creator': request.user.username,
+        "name": params["name"],
+        "creator": request.user.username,
     }
-    if 'description' in params:
-        pipeline_instance_kwargs['description'] = params['description']
+    if "description" in params:
+        pipeline_instance_kwargs["description"] = params["description"]
     try:
-        result, data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-            tmpl, pipeline_instance_kwargs, params['constants'], params['exclude_task_nodes_id'])
+        (
+            result,
+            data,
+        ) = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
+            tmpl,
+            pipeline_instance_kwargs,
+            params["constants"],
+            params["exclude_task_nodes_id"],
+        )
     except PipelineException as e:
-        return JsonResponse({
-            'result': False,
-            'message': str(e),
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        return JsonResponse(
+            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+        )
     if not result:
-        return JsonResponse({
-            'result': False,
-            'message': data,
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        return JsonResponse(
+            {"result": False, "message": data, "code": err_code.UNKNOW_ERROR.code}
+        )
 
     task = TaskFlowInstance.objects.create(
         project=project,
@@ -164,17 +195,21 @@ def create_task(request, template_id, project_id):
         category=tmpl.category,
         template_id=template_id,
         template_source=template_source,
-        create_method='api',
+        create_method="api",
         create_info=app_code,
-        flow_type=params.get('flow_type', 'common'),
-        current_flow='execute_task' if params.get('flow_type', 'common') == 'common' else 'func_claim',
+        flow_type=params.get("flow_type", "common"),
+        current_flow="execute_task"
+        if params.get("flow_type", "common") == "common"
+        else "func_claim",
     )
-    return JsonResponse({
-        'result': True,
-        'data': {
-            'task_id': task.id,
-            'task_url': task.url,
-            'pipeline_tree': task.pipeline_tree
-        },
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {
+                "task_id": task.id,
+                "task_url": task.url,
+                "pipeline_tree": task.pipeline_tree,
+            },
+            "code": err_code.SUCCESS.code,
+        }
+    )

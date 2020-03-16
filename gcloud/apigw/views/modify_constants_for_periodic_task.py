@@ -40,41 +40,41 @@ except ImportError:
 @api_verify_perms(
     periodic_task_resource,
     [periodic_task_resource.actions.edit],
-    get_kwargs={'task_id': 'id', 'project_id': 'project_id'}
+    get_kwargs={"task_id": "id", "project_id": "project_id"},
 )
 def modify_constants_for_periodic_task(request, task_id, project_id):
     project = request.project
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid json format",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
-    constants = params.get('constants', {})
+    constants = params.get("constants", {})
 
     try:
         task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
-        return JsonResponse({
-            'result': False,
-            'message': 'task(%s) does not exist' % task_id,
-            'code': err_code.CONTENT_NOT_EXIST.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "task(%s) does not exist" % task_id,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+        )
 
     try:
         new_constants = task.modify_constants(constants)
     except Exception as e:
-        return JsonResponse({
-            'result': False,
-            'message': str(e),
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        return JsonResponse(
+            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+        )
 
-    return JsonResponse({
-        'result': True,
-        'data': new_constants,
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse(
+        {"result": True, "data": new_constants, "code": err_code.SUCCESS.code}
+    )

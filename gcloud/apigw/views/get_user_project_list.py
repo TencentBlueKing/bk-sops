@@ -36,27 +36,25 @@ def get_user_project_list(request):
     try:
         biz_list = get_user_business_list(request.user.username)
     except Exception as e:
-        logger.exception('[API] get_user_business_list call fail: {}'.format(e))
-        return JsonResponse({
-            'result': False,
-            'message': 'can not fetch business for user[{}]'.format(request.user.username),
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        logger.exception("[API] get_user_business_list call fail: {}".format(e))
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "can not fetch business for user[{}]".format(
+                    request.user.username
+                ),
+                "code": err_code.UNKNOW_ERROR.code,
+            }
+        )
 
-    biz_id_list = [biz['bk_biz_id'] for biz in biz_list]
+    biz_id_list = [biz["bk_biz_id"] for biz in biz_list]
 
     projects = Project.objects.filter(bk_biz_id__in=biz_id_list, is_disable=False)
     data = []
 
     for proj in projects:
-        data.append({
-            'project_id': proj.id,
-            'bk_biz_id': proj.bk_biz_id,
-            'name': proj.name
-        })
+        data.append(
+            {"project_id": proj.id, "bk_biz_id": proj.bk_biz_id, "name": proj.name}
+        )
 
-    return JsonResponse({
-        'result': True,
-        'data': data,
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

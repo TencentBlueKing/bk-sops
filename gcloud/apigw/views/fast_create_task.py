@@ -51,92 +51,99 @@ def fast_create_task(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid json format",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
     project = request.project
-    logger.info('apigw fast_create_task info, project_id: {project_id}, params: {params}'.format(
-        project_id=project.id,
-        params=params))
+    logger.info(
+        "apigw fast_create_task info, project_id: {project_id}, params: {params}".format(
+            project_id=project.id, params=params
+        )
+    )
 
     if not request.is_trust:
-        perms_tuples = [(project_resource, [project_resource.actions.fast_create_task.id], project)]
-        batch_verify_or_raise_auth_failed(principal_type='user',
-                                          principal_id=request.user.username,
-                                          perms_tuples=perms_tuples,
-                                          status=200)
+        perms_tuples = [
+            (project_resource, [project_resource.actions.fast_create_task.id], project)
+        ]
+        batch_verify_or_raise_auth_failed(
+            principal_type="user",
+            principal_id=request.user.username,
+            perms_tuples=perms_tuples,
+            status=200,
+        )
 
     try:
-        pipeline_tree = params['pipeline_tree']
+        pipeline_tree = params["pipeline_tree"]
         pipeline_node_name_handle(pipeline_tree)
-        pipeline_tree.setdefault('gateways', {})
-        pipeline_tree.setdefault('constants', {})
-        pipeline_tree.setdefault('outputs', [])
+        pipeline_tree.setdefault("gateways", {})
+        pipeline_tree.setdefault("constants", {})
+        pipeline_tree.setdefault("outputs", [])
         draw_pipeline(pipeline_tree)
         validate_web_pipeline_tree(pipeline_tree)
     except Exception as e:
-        message = 'invalid param pipeline_tree: %s' % str(e)
+        message = "invalid param pipeline_tree: %s" % str(e)
         logger.exception(message)
-        return JsonResponse({
-            'result': False,
-            'message': message,
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        return JsonResponse(
+            {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
+        )
 
     try:
         pipeline_instance_kwargs = {
-            'name': name_handler(params['name'], TASK_NAME_MAX_LENGTH),
-            'creator': request.user.username,
-            'pipeline_tree': pipeline_tree,
-            'description': params.get('description', '')
+            "name": name_handler(params["name"], TASK_NAME_MAX_LENGTH),
+            "creator": request.user.username,
+            "pipeline_tree": pipeline_tree,
+            "description": params.get("description", ""),
         }
     except (KeyError, ValueError) as e:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid params: %s' % str(e),
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid params: %s" % str(e),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
     try:
         pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(
-            template=None,
-            **pipeline_instance_kwargs
+            template=None, **pipeline_instance_kwargs
         )
     except PipelineException as e:
-        message = 'create pipeline instance error: %s' % str(e)
+        message = "create pipeline instance error: %s" % str(e)
         logger.exception(message)
-        return JsonResponse({
-            'result': False,
-            'message': message,
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        return JsonResponse(
+            {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
+        )
 
     taskflow_kwargs = {
-        'project': project,
-        'pipeline_instance': pipeline_instance,
-        'template_source': ONETIME,
-        'create_method': 'api',
+        "project": project,
+        "pipeline_instance": pipeline_instance,
+        "template_source": ONETIME,
+        "create_method": "api",
     }
-    if params.get('category') in [cate[0] for cate in TASK_CATEGORY]:
-        taskflow_kwargs['category'] = params['category']
+    if params.get("category") in [cate[0] for cate in TASK_CATEGORY]:
+        taskflow_kwargs["category"] = params["category"]
     # 职能化任务，新建后进入职能化认领阶段
-    if params.get('flow_type', 'common') == 'common_func':
-        taskflow_kwargs['flow_type'] = 'common_func'
-        taskflow_kwargs['current_flow'] = 'func_claim'
+    if params.get("flow_type", "common") == "common_func":
+        taskflow_kwargs["flow_type"] = "common_func"
+        taskflow_kwargs["current_flow"] = "func_claim"
     # 常规流程，新建后即可执行
     else:
-        taskflow_kwargs['flow_type'] = 'common'
-        taskflow_kwargs['current_flow'] = 'execute_task'
+        taskflow_kwargs["flow_type"] = "common"
+        taskflow_kwargs["current_flow"] = "execute_task"
     task = TaskFlowInstance.objects.create(**taskflow_kwargs)
-    return JsonResponse({
-        'result': True,
-        'data': {
-            'task_id': task.id,
-            'task_url': task.url,
-            'pipeline_tree': task.pipeline_tree
-        },
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {
+                "task_id": task.id,
+                "task_url": task.url,
+                "pipeline_tree": task.pipeline_tree,
+            },
+            "code": err_code.SUCCESS.code,
+        }
+    )

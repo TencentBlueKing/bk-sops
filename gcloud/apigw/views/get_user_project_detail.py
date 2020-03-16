@@ -38,29 +38,34 @@ except ImportError:
 @api_verify_proj_perms([project_resource.actions.view])
 def get_user_project_detail(request, project_id):
     try:
-        biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
+        biz_detail = get_business_detail(
+            request.user.username, request.project.bk_biz_id
+        )
     except Exception as e:
-        logger.exception('[API] get_user_business_detail call fail: {}'.format(e))
-        return JsonResponse({
-            'result': False,
-            'message': 'can not get business[{}] detail for user[{}]'.format(
-                request.user.username,
-                request.project.bk_biz_id
-            ),
-            'code': err_code.UNKNOW_ERROR.code,
-        })
+        logger.exception("[API] get_user_business_detail call fail: {}".format(e))
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "can not get business[{}] detail for user[{}]".format(
+                    request.user.username, request.project.bk_biz_id
+                ),
+                "code": err_code.UNKNOW_ERROR.code,
+            }
+        )
 
-    return JsonResponse({
-        'result': True,
-        'data': {
-            'project_id': request.project.id,
-            'project_name': request.project.name,
-            'bk_biz_id': biz_detail['bk_biz_id'],
-            'bk_biz_name': biz_detail['bk_biz_name'],
-            'bk_biz_developer': biz_detail['bk_biz_developer'],
-            'bk_biz_maintainer': biz_detail['bk_biz_maintainer'],
-            'bk_biz_tester': biz_detail['bk_biz_tester'],
-            'bk_biz_productor': biz_detail['bk_biz_productor'],
-        },
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse(
+        {
+            "result": True,
+            "data": {
+                "project_id": request.project.id,
+                "project_name": request.project.name,
+                "bk_biz_id": biz_detail["bk_biz_id"],
+                "bk_biz_name": biz_detail["bk_biz_name"],
+                "bk_biz_developer": biz_detail["bk_biz_developer"],
+                "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
+                "bk_biz_tester": biz_detail["bk_biz_tester"],
+                "bk_biz_productor": biz_detail["bk_biz_productor"],
+            },
+            "code": err_code.SUCCESS.code,
+        }
+    )

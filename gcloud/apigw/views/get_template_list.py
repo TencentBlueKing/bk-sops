@@ -40,28 +40,34 @@ except ImportError:
 @project_inject
 @api_verify_proj_perms([project_resource.actions.view])
 def get_template_list(request, project_id):
-    template_source = request.GET.get('template_source', PROJECT)
-    id_in = request.GET.get('id_in', None)
+    template_source = request.GET.get("template_source", PROJECT)
+    id_in = request.GET.get("id_in", None)
 
     if id_in:
         try:
-            id_in = id_in.split(',')
+            id_in = id_in.split(",")
         except Exception:
             id_in = None
-            logger.warning('[API] id_in[{}] relove fail, ignore.'.format(id_in))
+            logger.warning("[API] id_in[{}] relove fail, ignore.".format(id_in))
 
     filter_kwargs = dict(is_deleted=False)
     if id_in:
-        filter_kwargs['id__in'] = id_in
+        filter_kwargs["id__in"] = id_in
 
     project = request.project
     if template_source in NON_COMMON_TEMPLATE_TYPES:
-        filter_kwargs['project_id'] = project.id
-        templates = TaskTemplate.objects.select_related('pipeline_template').filter(**filter_kwargs)
+        filter_kwargs["project_id"] = project.id
+        templates = TaskTemplate.objects.select_related("pipeline_template").filter(
+            **filter_kwargs
+        )
     else:
-        templates = CommonTemplate.objects.select_related('pipeline_template').filter(**filter_kwargs)
-    return JsonResponse({
-        'result': True,
-        'data': format_template_list_data(templates, project),
-        'code': err_code.SUCCESS.code
-    })
+        templates = CommonTemplate.objects.select_related("pipeline_template").filter(
+            **filter_kwargs
+        )
+    return JsonResponse(
+        {
+            "result": True,
+            "data": format_template_list_data(templates, project),
+            "code": err_code.SUCCESS.code,
+        }
+    )

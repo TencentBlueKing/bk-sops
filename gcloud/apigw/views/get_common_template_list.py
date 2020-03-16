@@ -32,10 +32,14 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 def get_common_template_list(request):
-    templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
+    templates = CommonTemplate.objects.select_related("pipeline_template").filter(
+        is_deleted=False
+    )
 
-    return JsonResponse({
-        'result': True,
-        'data': format_template_list_data(templates),
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse(
+        {
+            "result": True,
+            "data": format_template_list_data(templates),
+            "code": err_code.SUCCESS.code,
+        }
+    )

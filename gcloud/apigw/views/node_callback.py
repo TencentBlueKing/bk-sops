@@ -41,35 +41,38 @@ except ImportError:
 @api_verify_perms(
     taskflow_resource,
     [taskflow_resource.actions.operate],
-    get_kwargs={'task_id': 'id', 'project_id': 'project_id'}
+    get_kwargs={"task_id": "id", "project_id": "project_id"},
 )
 def node_callback(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid json format",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
     project = request.project
 
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
-            task_id=task_id,
-            project_id=project.id,
-            biz_id=project.bk_biz_id)
+        message = "task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist".format(
+            task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
+        )
         logger.exception(message)
-        return JsonResponse({
-            'result': False,
-            'message': message,
-            'code': err_code.CONTENT_NOT_EXIST.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": message,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+        )
 
-    node_id = params.get('node_id')
-    callback_data = params.get('callback_data')
+    node_id = params.get("node_id")
+    callback_data = params.get("callback_data")
 
     return JsonResponse(task.callback(node_id, callback_data))

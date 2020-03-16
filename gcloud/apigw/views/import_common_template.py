@@ -38,42 +38,52 @@ except ImportError:
 @mark_request_whether_is_trust
 def import_common_template(request):
     if not request.is_trust:
-        return JsonResponse({
-            'result': False,
-            'message': 'you have no permission to call this api.',
-            'code': err_code.REQUEST_FORBIDDEN_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "you have no permission to call this api.",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
 
     try:
         req_data = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid json format",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
-    template_data = req_data.get('template_data', None)
+    template_data = req_data.get("template_data", None)
     if not template_data:
-        return JsonResponse({
-            'result': False,
-            'message': 'template data can not be none',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "template data can not be none",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
     r = read_encoded_template_data(template_data)
-    if not r['result']:
+    if not r["result"]:
         return JsonResponse(r)
 
-    override = BooleanField().to_python(req_data.get('override', False))
+    override = BooleanField().to_python(req_data.get("override", False))
 
     try:
-        import_result = CommonTemplate.objects.import_templates(r['data']['template_data'], override)
+        import_result = CommonTemplate.objects.import_templates(
+            r["data"]["template_data"], override
+        )
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid flow data or error occur, please contact administrator',
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid flow data or error occur, please contact administrator",
+                "code": err_code.UNKNOW_ERROR.code,
+            }
+        )
 
     return JsonResponse(import_result)

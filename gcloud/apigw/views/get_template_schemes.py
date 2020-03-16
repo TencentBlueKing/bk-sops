@@ -38,7 +38,7 @@ except ImportError:
 @api_verify_perms(
     task_template_resource,
     [task_template_resource.actions.view],
-    get_kwargs={'template_id': 'id', 'project_id': 'project_id'}
+    get_kwargs={"template_id": "id", "project_id": "project_id"},
 )
 def get_template_schemes(request, project_id, template_id):
     template = TaskTemplate.objects.get(project_id=request.project.id, id=template_id)
@@ -47,14 +47,6 @@ def get_template_schemes(request, project_id, template_id):
 
     data = []
     for s in schemes:
-        data.append({
-            'id': s.unique_id,
-            'name': s.name,
-            'data': s.data
-        })
+        data.append({"id": s.unique_id, "name": s.name, "data": s.data})
 
-    return JsonResponse({
-        'result': True,
-        'data': data,
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

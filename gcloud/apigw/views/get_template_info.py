@@ -41,45 +41,55 @@ except ImportError:
 @project_inject
 def get_template_info(request, template_id, project_id):
     project = request.project
-    template_source = request.GET.get('template_source', PROJECT)
+    template_source = request.GET.get("template_source", PROJECT)
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
-            tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                project_id=project.id,
-                                                                                is_deleted=False)
+            tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
+                id=template_id, project_id=project.id, is_deleted=False
+            )
         except TaskTemplate.DoesNotExist:
             result = {
-                'result': False,
-                'message': 'template[id={template_id}] of project[project_id={project_id}, biz_id={biz_id}] '
-                           'does not exist'.format(template_id=template_id,
-                                                   project_id=project.id,
-                                                   biz_id=project.bk_biz_id),
-                'code': err_code.CONTENT_NOT_EXIST.code
+                "result": False,
+                "message": "template[id={template_id}] of project[project_id={project_id}, biz_id={biz_id}] "
+                "does not exist".format(
+                    template_id=template_id,
+                    project_id=project.id,
+                    biz_id=project.bk_biz_id,
+                ),
+                "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return JsonResponse(result)
         auth_resource = task_template_resource
     else:
         try:
-            tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
+            tmpl = CommonTemplate.objects.select_related("pipeline_template").get(
+                id=template_id, is_deleted=False
+            )
         except CommonTemplate.DoesNotExist:
             result = {
-                'result': False,
-                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id),
-                'code': err_code.CONTENT_NOT_EXIST.code
+                "result": False,
+                "message": "common template[id={template_id}] does not exist".format(
+                    template_id=template_id
+                ),
+                "code": err_code.CONTENT_NOT_EXIST.code,
             }
             return JsonResponse(result)
         auth_resource = common_template_resource
 
     if not request.is_trust:
-        verify_or_raise_auth_failed(principal_type='user',
-                                    principal_id=request.user.username,
-                                    resource=auth_resource,
-                                    action_ids=[auth_resource.actions.view.id],
-                                    instance=tmpl,
-                                    status=200)
+        verify_or_raise_auth_failed(
+            principal_type="user",
+            principal_id=request.user.username,
+            resource=auth_resource,
+            action_ids=[auth_resource.actions.view.id],
+            instance=tmpl,
+            status=200,
+        )
 
-    return JsonResponse({
-        'result': True,
-        'data': format_template_data(tmpl, project),
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse(
+        {
+            "result": True,
+            "data": format_template_data(tmpl, project),
+            "code": err_code.SUCCESS.code,
+        }
+    )

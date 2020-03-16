@@ -40,20 +40,24 @@ except ImportError:
 @api_verify_perms(
     taskflow_resource,
     [taskflow_resource.actions.operate],
-    get_kwargs={'task_id': 'id', 'project_id': 'project_id'}
+    get_kwargs={"task_id": "id", "project_id": "project_id"},
 )
 def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
-    action = params.get('action')
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid json format",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
+    action = params.get("action")
     username = request.user.username
     project = request.project
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
+    task = TaskFlowInstance.objects.get(
+        pk=task_id, project_id=project.id, is_deleted=False
+    )
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)

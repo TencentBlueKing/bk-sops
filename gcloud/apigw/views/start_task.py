@@ -38,11 +38,11 @@ except ImportError:
 @api_verify_perms(
     taskflow_resource,
     [taskflow_resource.actions.operate],
-    get_kwargs={'task_id': 'id', 'project_id': 'project_id'}
+    get_kwargs={"task_id": "id", "project_id": "project_id"},
 )
 def start_task(request, task_id, project_id):
     username = request.user.username
     project = request.project
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
-    ctx = task.task_action('start', username)
+    ctx = task.task_action("start", username)
     return JsonResponse(ctx)

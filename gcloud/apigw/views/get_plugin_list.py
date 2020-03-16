@@ -39,17 +39,15 @@ def get_plugin_list(request, project_id):
     data = []
     for comp_model in components:
         comp = ComponentLibrary.get_component_class(comp_model.code)
-        data.append({
-            'inputs': comp.inputs_format(),
-            'outputs': comp.outputs_format(),
-            'desc': comp.desc,
-            'code': comp.code,
-            'name': comp.name,
-            'group_name': comp.group_name
-        })
+        data.append(
+            {
+                "inputs": comp.inputs_format(),
+                "outputs": comp.outputs_format(),
+                "desc": comp.desc,
+                "code": comp.code,
+                "name": comp.name,
+                "group_name": comp.group_name,
+            }
+        )
 
-    return JsonResponse({
-        'result': True,
-        'data': data,
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

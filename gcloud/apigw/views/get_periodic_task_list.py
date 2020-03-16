@@ -43,8 +43,4 @@ def get_periodic_task_list(request, project_id):
     for task in task_list:
         data.append(info_data_from_period_task(task, detail=False))
 
-    return JsonResponse({
-        'result': True,
-        'data': data,
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

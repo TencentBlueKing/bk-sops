@@ -40,44 +40,42 @@ except ImportError:
 @api_verify_perms(
     periodic_task_resource,
     [periodic_task_resource.actions.edit],
-    get_kwargs={'task_id': 'id', 'project_id': 'project_id'}
+    get_kwargs={"task_id": "id", "project_id": "project_id"},
 )
 def modify_cron_for_periodic_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid json format',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid json format",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
 
     project = request.project
-    cron = params.get('cron', {})
+    cron = params.get("cron", {})
     tz = project.time_zone
 
     try:
         task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
-        return JsonResponse({
-            'result': False,
-            'message': 'task(%s) does not exist' % task_id,
-            'code': err_code.CONTENT_NOT_EXIST.code
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "task(%s) does not exist" % task_id,
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+        )
 
     try:
         task.modify_cron(cron, tz)
     except Exception as e:
-        return JsonResponse({
-            'result': False,
-            'message': str(e),
-            'code': err_code.UNKNOW_ERROR.code
-        })
+        return JsonResponse(
+            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+        )
 
-    return JsonResponse({
-        'result': True,
-        'data': {
-            'cron': task.cron
-        },
-        'code': err_code.SUCCESS.code
-    })
+    return JsonResponse(
+        {"result": True, "data": {"cron": task.cron}, "code": err_code.SUCCESS.code}
+    )
