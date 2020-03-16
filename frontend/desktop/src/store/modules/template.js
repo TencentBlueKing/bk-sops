@@ -15,7 +15,6 @@ import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
-import { checkDataType } from '@/utils/checkDataType.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
