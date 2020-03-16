@@ -254,32 +254,6 @@
             onColseTab (tabName) {
                 this.activeTab = undefined
                 this.togglePanel(false)
-            },
-            // 处理配置面板以外点击事件
-            handleSettingPanelShow (e) {
-                // 配置面板、删除变量弹窗遮罩、全局变量铆钉
-                // const delVarDialog = document.querySelector('.delete-variable-dialog .bk-dialog')
-                // if (
-                //     !this.isSettingPanelShow
-                //     || (delVarDialog && delVarDialog.style.display !== 'none')
-                //     || (this.isFixedVarMenu && this.activeTab === 'globalVariableTab')) {
-                //     return
-                // }
-                // const clientX = document.body.clientWidth
-                // const nodeConfig = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
-                // const activeTabPanel = document.querySelector('.setting-area-wrap .panel-item.active-tab .bk-sideslider-wrapper')
-                // const { left, top, bottom } = activeTabPanel.getBoundingClientRect()
-                // const baseLeft = this.isNodeConfigPanelShow ? nodeConfig.getBoundingClientRect().left : left
-                // if (
-                //     (e.clientX === 0 || e.clientY === 0)
-                //     || (e.clientX > baseLeft
-                //     && e.clientX < clientX
-                //     && e.clientY > top
-                //     && e.clientY < bottom)
-                // ) {
-                //     return
-                // }
-                // this.onColseTab()
             }
         }
     }

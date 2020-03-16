@@ -21,7 +21,7 @@
             <div slot="header">
                 <span>{{ atomName }}</span>
             </div>
-            <template slot="content">
+            <template slot="content" v-if="isShow">
                 <section class="config-section">
                     <h3>{{i18n.basicInfo}}</h3>
                     <basic-info
@@ -45,7 +45,9 @@
                                 :node-config="nodeConfig"
                                 :scheme="inputs"
                                 :value="inputParamValue"
-                                :is-subflow="isSubflow">
+                                :hooked="inputHooked"
+                                :is-subflow="isSubflow"
+                                @inputsHookChange="inputsHookChange">
                             </input-params>
                             <no-data v-else></no-data>
                         </template>
@@ -56,9 +58,10 @@
                     <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
                         <template v-if="!outputLoading">
                             <output-params
-                                v-if="outputs.length > 0"
+                                v-if="outputs.length"
                                 :node-id="nodeId"
-                                :params="outputs">
+                                :params.sync="outputs"
+                                :node-config="nodeConfig">
                             </output-params>
                             <no-data v-else></no-data>
                         </template>
@@ -70,7 +73,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
@@ -128,8 +131,10 @@
                 basicInfo: {},
                 inputs: [],
                 inputParamValue: {},
+                inputHooked: {},
                 outputs: [],
-                constants: {}, // 子流程输入参数（引用的全局变量）
+                outputHooked: {},
+                subfowConstants: {}, // 子流程输入参数（引用的全局变量）
                 i18n: {
                     basicInfo: gettext('基础信息'),
                     inputParams: gettext('输入参数'),
@@ -142,13 +147,15 @@
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
+                'constants': state => state.template.constants,
                 'pluginConfigs': state => state.atomForm.config
             }),
             nodeConfig () { // 任务节点原始配置
-                return tools.deepClone(this.activities[this.nodeId])
+                const config = this.activities[this.nodeId]
+                return tools.deepClone(config)
             },
             isSubflow () {
-                return this.nodeConfig && this.nodeConfig.type !== 'ServiceActivity'
+                return this.isShow && this.nodeConfig.type && this.nodeConfig.type !== 'ServiceActivity'
             },
             atomGroup () { // 某一标准插件下所有版本分组
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
@@ -196,18 +203,17 @@
                 if (!val || !this.isShow) {
                     return
                 }
-                this.inputs = []
-                this.inputParamValue = {}
-                this.outputs = []
-                this.constants = {}
-                this.basicInfo = this.getNodeBasic()
-                this.initData()
+                // 更新配置信息
+                this.resetNodeConfigData()
             }
         },
         methods: {
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
                 'loadSubflowConfig'
+            ]),
+            ...mapMutations('template/', [
+                'setNodeInputData'
             ]),
             // 初始化节点数据
             async initData () {
@@ -221,10 +227,10 @@
                         this.$set(this.inputParamValue, key, val)
                     })
                 } else {
-                    this.constants = tools.deepClone(this.nodeConfig.constants)
+                    this.subfowConstants = tools.deepClone(this.nodeConfig.constants)
                     const { version } = this.nodeConfig
                     const subflowData = await this.getSubflowData(version)
-                    this.constants = this.getConstants(subflowData.form)
+                    this.subfowConstants = this.getConstants(subflowData.form)
                     this.inputs = await this.getSubflowInputsConfig()
                     this.inputParamValue = this.getSubflowInputsValue()
                 }
@@ -255,6 +261,21 @@
                 try {
                     this.inputs = await this.getAtomConfig(plugin, version)
                     this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                    this.outputHooked = this.setVals
+                    const setVals = this.inputs.reduce((acc, cur) => {
+                        acc[cur.tag_code] = { value: '', hook: false }
+                        return acc
+                    }, {})
+
+                    const data = this.nodeConfig.component.data
+                    if (!data || !Object.keys(data).length) { // 同步 data 数据到 store
+                        this.setNodeInputData({
+                            id: this.nodeConfig.id,
+                            type: this.nodeConfig.type,
+                            updateType: 'all',
+                            setVals: setVals
+                        })
+                    }
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
@@ -278,7 +299,8 @@
                         const output = resp.outputs[item]
                         return {
                             name: output.name,
-                            key: output.key
+                            key: output.key,
+                            version: output.version
                         }
                     })
                     return resp
@@ -297,8 +319,16 @@
              * @return {Object} 子流程表单项
              */
             getConstants (forms) {
-                const constantsKeys = Object.keys(this.nodeConfig.constants)
-                return constantsKeys.length ? this.nodeConfig.constants : forms
+                const keys = this.nodeConfig.constants ? Object.keys(this.nodeConfig.constants) : []
+                if (!keys.length) { // 同步 constants 数据到 store
+                    this.setNodeInputData({
+                        id: this.nodeConfig.id,
+                        type: this.nodeConfig.type,
+                        updateType: 'all',
+                        setVals: tools.deepClone(forms)
+                    })
+                }
+                return keys.length ? this.nodeConfig.constants : forms
             },
             /**
              * 加载子流程输入参数表单配置项
@@ -311,8 +341,8 @@
                 this.constantsLoading = true
                 const inputs = []
                 let variables = []
-                Object.keys(this.constants).forEach(item => {
-                    const from = this.constants[item]
+                Object.keys(this.subfowConstants).forEach(item => {
+                    const from = this.subfowConstants[item]
                     if (from.show_type === 'show') { // 隐藏变量不显示
                         variables.push(from)
                     }
@@ -398,11 +428,41 @@
              * 获取子流程任务节点输入参数值
              */
             getSubflowInputsValue () {
-                return Object.keys(this.constants).reduce((acc, cur) => {
-                    const variable = this.constants[cur]
+                return Object.keys(this.subfowConstants).reduce((acc, cur) => {
+                    const variable = this.subfowConstants[cur]
                     acc[variable.key] = tools.deepClone(variable.value)
                     return acc
                 }, {})
+            },
+            getInputHooked () {
+                if (this.isSubflow) { // 子流程、遍历全局变量中是否有节点引用了
+                    // return this.inputs.reduce((acc, cur) => {
+                    //     acc[cur.tag_code] = Object.keys(this.constants).some(key => {
+                    //         const sourceInfo = this.constants[key].source_info
+                    //         for (const node in sourceInfo) {
+                    //             console.log(sourceInfo[node], cur.tag_code, 'cscscscss')
+                    //             if (sourceInfo[node].includes(cur.tag_code)) {
+                    //                 return true
+                    //             }
+                    //         }
+                    //     })
+                    //     return acc
+                    // }, {})
+                    return Object.keys(this.subfowConstants).reduce((acc, cur) => {
+                        const item = this.subfowConstants[cur]
+                        const targetVar = this.constants[cur]
+                        acc[cur] = targetVar && targetVar.version === item.version
+                        return acc
+                    }, {})
+                }
+                if (this.nodeConfig.component && this.nodeConfig.component.data) {
+                    const data = this.nodeConfig.component.data
+                    return Object.keys(data).reduce((acc, cur) => {
+                        acc[cur] = data[cur].hook || false
+                        return acc
+                    }, {})
+                }
+                return {}
             },
             pluginChange () {
                 const { name, desc, outputs } = this.atomGroup
@@ -422,6 +482,9 @@
                 this.inputParamValue = {}
                 this.getPluginData()
             },
+            inputsHookChange ({ code, val }) {
+                this.$set(this.inputHooked, code, val)
+            },
             versionChange () {
                 this.getPluginData()
                 this.inputParamValue = {}
@@ -434,12 +497,27 @@
             onShowChoosePluginPanel () {
                 this.$emit('onShowChoosePluginPanel', this.nodeId)
             },
+            /**
+             * 根据 activities[nodeId] 中数据重置面板
+             * 基础信息
+             * 输入信息
+             * 输出信息
+             */
+            async resetNodeConfigData () {
+                this.inputs = []
+                this.inputParamValue = {}
+                this.outputs = []
+                this.subfowConstants = {}
+                this.basicInfo = this.getNodeBasic()
+                await this.initData()
+                this.inputHooked = this.getInputHooked()
+            },
             async tplChange () {
                 const tpl = this.subflowList.find(item => item.template_id === this.basicInfo.tpl)
                 this.basicInfo.name = tpl.name
                 this.basicInfo.selectable = false
                 const subflowData = await this.getSubflowData()
-                this.constants = this.getConstants(subflowData.form)
+                this.subfowConstants = this.getConstants(subflowData.form)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputParamValue = this.getSubflowInputsValue()
             }

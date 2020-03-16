@@ -375,6 +375,7 @@ const template = {
                     Vue.set(sourceInfo, id, [tagCode])
                 }
             } else if (type === 'delete') {
+                if (!sourceInfo || !sourceInfo[id]) return
                 if (sourceInfo[id].length <= 1) {
                     Vue.delete(sourceInfo, id)
                 } else {
@@ -386,6 +387,9 @@ const template = {
                         }
                     })
                     sourceInfo[id].splice(atomIndex, 1)
+                }
+                if (!Object.keys(sourceInfo).length) {
+                    Vue.delete(state.constants, key)
                 }
             }
         },
@@ -594,7 +598,7 @@ const template = {
                     }
                 }
             } else if (type === 'edit') {
-                state.activities[location.id] = location
+                Vue.set(state.activities, location.id, location)
                 state.location.some(item => {
                     if (item.id === location.id) {
                         Vue.set(item, 'name', location.name)
@@ -649,7 +653,7 @@ const template = {
                     }
                 }
             }
-            this.commit('template/setConstantsCited', location)
+            // this.commit('templates/setConstantsCited', location)
         },
         // 设置节点基础信息
         setNodeBasicInfo (state, payload) {
@@ -659,25 +663,49 @@ const template = {
                 Vue.set(nodeInfo, key, setVals[key])
             })
         },
-        // 设置节点输入参数信息
+        /**
+         * 设置节点输入参数信息
+         * @param {Object} payload.id node id
+         * @param {Object} payload.type node type
+         * @param {Object} payload.setVals eg: { [code]: { value: '', hook: false } }
+         * @param {Object} payload.updateType single: 更新单个属性值，all：更新全部属性值
+         */
         setNodeInputData (state, payload) {
-            const { id, type, setVals } = payload
+            const { id, type, setVals, updateType = 'single' } = payload
             const nodeInfo = state.activities[id]
             if (type === 'ServiceActivity') {
+                // 普通流程输入参数为 component.data
+                if (updateType === 'all') {
+                    Vue.set(nodeInfo.component, 'data', setVals)
+                    return
+                }
                 if (!nodeInfo.component.data) {
                     Vue.set(nodeInfo.component, 'data', {})
                 }
                 Object.keys(setVals).forEach(key => {
                     if (!nodeInfo.component.data[key]) {
-                        Vue.set(nodeInfo.component.data, key, { hook: false, value: setVals[key] })
+                        Vue.set(nodeInfo.component.data, key, { hook: false, value: setVals[key].value })
                     } else {
-                        Vue.set(nodeInfo.component.data[key], 'value', setVals[key])
+                        setVals[key].value && Vue.set(nodeInfo.component.data[key], 'value', setVals[key].value)
+                        Vue.set(nodeInfo.component.data[key], 'hook', setVals[key].hook || false)
                     }
                 })
             } else {
-                console.log(setVals, 'sublow')
-            //    Vue.set()
+                // 子流程输入参数为 component.constants
+                if (updateType === 'all') {
+                    Vue.set(nodeInfo, 'constants', setVals)
+                    return
+                }
+                Object.keys(setVals).forEach(key => {
+                    if (nodeInfo.constants && nodeInfo.constants[key]) {
+                        Vue.set(nodeInfo.constants[key], 'value', setVals[key].value)
+                    }
+                })
             }
+        },
+        // 节点输入参数勾选
+        setNodeInputHook () {
+
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {

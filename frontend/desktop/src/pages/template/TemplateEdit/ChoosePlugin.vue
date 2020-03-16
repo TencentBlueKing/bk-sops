@@ -172,14 +172,10 @@
             ]),
             onSearchInput () {
                 if (this.searchStr !== '') {
-                    // const reg = new RegExp(this.searchStr)
                     const result = []
                     this.nodes.forEach(group => {
                         if (group.list.length > 0) {
                             group.list.forEach(node => {
-                                // if (reg.test(node.name)) {
-                                //     result.push(node)
-                                // }
                                 if (
                                     typeof node.name === 'string'
                                     && node.name.indexOf(this.searchStr) !== -1
@@ -207,18 +203,14 @@
              * @param {Object} node 插件/子流程
              */
             onChoosePlugin (node) {
-                const nodeConfg = this.nodeConfg
+                const nodeConfg = tools.deepClone(this.nodeConfg)
                 if (this.isSubflow) {
                     nodeConfg.template_id = node.id
                     nodeConfg.version = node.version
                     nodeConfg.name = node.name.replace(/\s/g, '')
                     nodeConfg.optional = false
-                    for (const key in nodeConfg.constants) {
-                        const variable = nodeConfg.constants(key)
-                        if (variable) {
-                            variable.value = ''
-                        }
-                    }
+                    nodeConfg.constants = {}
+                    console.log(nodeConfg, 'ziliucheng')
                 } else {
                     nodeConfg.component.code = node.code
                     nodeConfg.component.data = {}
@@ -229,8 +221,13 @@
                     nodeConfg.skippable = true
                     nodeConfg.retryable = true
                     nodeConfg.error_ignorable = false
+                    console.log(nodeConfg, 'put')
                 }
                 this.setActivities({ type: 'edit', location: nodeConfg })
+                this.$emit('onPluginChange', nodeConfg)
+                // 待开发，遍历全局变量，看是否有被该节点引用的，有就souce_info中去除，
+                // souce_info中只有一条则删除该变量
+                // 子流程更新
             },
             getSelectedStatus (node) {
                 if (this.isSubflow) {

@@ -52,6 +52,7 @@
             </TemplateCanvas>
             <div class="side-content">
                 <node-config
+                    ref="nodeConfig"
                     :is-show="isNodeConfigPanelShow"
                     :node-id="idOfNodeInConfigPanel"
                     :atom-list="atomList"
@@ -66,7 +67,8 @@
                     :is-show="isChoosePluginPanelShow"
                     :node-id="idOfChoosePluginPanel"
                     :atom-type-list="atomTypeList"
-                    @hide="hideChoosePluginPanel">
+                    @hide="hideChoosePluginPanel"
+                    @onPluginChange="onPluginChange">
                 </choose-plugin>
                 <condition-edit
                     ref="conditionEdit"
@@ -1341,15 +1343,19 @@
                 if (document.body.clientWidth < 1920) {
                     this.hideConfigPanel()
                 }
-                console.log('showCHoos')
                 this.isChoosePluginPanelShow = true
                 this.idOfChoosePluginPanel = nodeId
             },
             // 关闭插件选择面板
             hideChoosePluginPanel () {
-                console.log('hideCHoos')
                 this.isChoosePluginPanelShow = false
                 this.idOfChoosePluginPanel = ''
+            },
+            // 插件更新
+            onPluginChange (node) {
+                if (this.isNodeConfigPanelShow) {
+                    this.$refs.nodeConfig.resetNodeConfigData()
+                }
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

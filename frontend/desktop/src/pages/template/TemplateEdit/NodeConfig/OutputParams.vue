@@ -15,7 +15,7 @@
             <bk-table-column label="KEY" align="center" prop="key"></bk-table-column>
             <bk-table-column :label="i18n.cite" :width="100" align="center">
                 <template slot-scope="props">
-                    <bk-checkbox @change="onToggleCheck(props)"></bk-checkbox>
+                    <bk-checkbox :value="getHookStatus(props.row)" @change="onToggleCheck(props, $event)"></bk-checkbox>
                 </template>
             </bk-table-column>
         </bk-table>
@@ -23,6 +23,8 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { mapState, mapMutations } from 'vuex'
+    import { random4 } from '@/utils/uuid.js'
     export default {
         name: 'OutputParams',
         props: {
@@ -30,6 +32,12 @@
                 type: Array,
                 default () {
                     return []
+                }
+            },
+            nodeConfig: {
+                type: Object,
+                default () {
+                    return {}
                 }
             }
         },
@@ -41,8 +49,85 @@
                 }
             }
         },
+        computed: {
+            ...mapState({
+                'constants': state => state.template.constants
+            })
+        },
         methods: {
-            onToggleCheck () {}
+            ...mapMutations('template/', [
+                'addVariable',
+                'deleteVariable'
+            ]),
+            onToggleCheck (props, checked) {
+                const { key, name, version } = props.row
+                const index = props.$index
+                const vs = this.nodeConfig.type === 'ServiceActivity'
+                    ? (this.nodeConfig.component.version || 'legacy')
+                    : (version || 'legacy')
+                if (checked) {
+                    const variableKey = this.generateRandomKey(key)
+                    const variableOpts = {
+                        name,
+                        key: variableKey,
+                        source_type: 'component_outputs',
+                        source_info: {
+                            [this.nodeConfig.id]: [key]
+                        },
+                        source_tag: '',
+                        custom_type: '',
+                        show_type: 'hide',
+                        version: vs
+                    }
+                    this.$set(this.params[index], key, variableKey)
+                    this.hookToGlobal(variableOpts)
+                } else {
+                    const constant = this.constants[key]
+                    if (constant) {
+                        this.deleteVariable(key)
+                    }
+                }
+            },
+            generateRandomKey (key) {
+                let variableKey = key.replace(/^\$\{/, '').replace(/(\}$)/, '').slice(0, 14)
+                do {
+                    variableKey = '${' + variableKey + '_' + random4() + '}'
+                } while (this.constants[variableKey])
+                return variableKey
+            },
+            getHookStatus (row) {
+                const key = row.key
+                for (const cKey in this.constants) {
+                    const constant = this.constants[cKey]
+                    if (constant.source_type === 'component_outputs'
+                        && constant.source_info[this.nodeConfig.id]
+                        && constant.source_info[this.nodeConfig.id].indexOf(key) > -1
+                    ) {
+                        return true
+                    }
+                }
+                return false
+            },
+            hookToGlobal (variableOpts) {
+                // 创建新变量
+                const len = Object.keys(this.constants).length
+                const defaultOpts = {
+                    name: '',
+                    key: '',
+                    desc: '',
+                    custom_type: '',
+                    source_info: {},
+                    source_tag: '',
+                    value: '',
+                    show_type: 'show',
+                    source_type: 'component_inputs',
+                    validation: '',
+                    index: len,
+                    version: 'legacy'
+                }
+                const variable = Object.assign({}, defaultOpts, variableOpts)
+                this.addVariable(Object.assign({}, variable))
+            }
         }
     }
 </script>
