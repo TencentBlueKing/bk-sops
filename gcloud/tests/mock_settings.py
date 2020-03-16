@@ -45,17 +45,16 @@ PERIODIC_TASK_HISTORY_CREATE = 'gcloud.periodictask.models.PeriodicTaskHistory.o
 
 APIGW_BIZ_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_business'
 APIGW_TASK_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_task'
-APIGW_VIEW_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.jsonschema.validate'
-APIGW_VIEW_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.pipeline_api.get_status_tree'
+APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.create_task.jsonschema.validate'
+APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.create_periodic_task.jsonschema.validate'
+APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.create_periodic_task.replace_template_id'
+APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.get_task_status.pipeline_api.get_status_tree'
+APIGW_IMPORT_COMMON_TEMPLATE_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.import_common_template.read_encoded_template_data'  # noqa
+APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.get_plugin_list.ComponentModel.objects.filter'
+APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.get_plugin_list.ComponentLibrary.get_component_class'  # noqa
 APIGW_DECORATOR_CHECK_WHITE_LIST = 'gcloud.apigw.decorators.check_white_apps'
 APIGW_DECORATOR_GET_USER_MODEL = 'gcloud.apigw.decorators.get_user_model'
 APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
-
-APIGW_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.ComponentModel.objects.filter'
-APIGW_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.ComponentLibrary.get_component_class'
-
-APIGW_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.read_encoded_template_data'
-APIGW_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.replace_template_id'
 
 APIGW_VIEW_APIGW_REQUIRED = 'gcloud.apigw.views.apigw_required'
 APIGW_DECORATOR_APIGW_REQUIRED = 'gcloud.apigw.decorators.apigw_required'
