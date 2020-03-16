@@ -58,6 +58,7 @@
                     :atom-list="atomList"
                     :subflow-list="subflowList"
                     :common="common"
+                    :is-setting-panel-show="isSettingPanelShow"
                     :is-choose-plugin-panel-show="isChoosePluginPanelShow"
                     :setting-active-tab="settingActiveTab"
                     @hide="hideConfigPanel"
@@ -105,58 +106,6 @@
                     @hideConfigPanel="hideConfigPanel">
                 </template-setting>
             </div>
-            <!-- <NodeConfig
-                ref="nodeConfig"
-                :project_id="project_id"
-                v-show="isNodeConfigPanelShow"
-                :is-show="isNodeConfigPanelShow"
-                :setting-active-tab="settingActiveTab"
-                :template_id="template_id"
-                :single-atom="singleAtom"
-                :sub-atom="subAtom"
-                :is-setting-panel-show="isSettingPanelShow"
-                :is-node-config-panel-show="isNodeConfigPanelShow"
-                :id-of-node-in-config-panel="idOfNodeInConfigPanel"
-                :common="common"
-                @hideConfigPanel="hideConfigPanel"
-                @globalVariableUpdate="globalVariableUpdate"
-                @onUpdateNodeInfo="onUpdateNodeInfo">
-            </NodeConfig>
-            <ConditionEdit
-                ref="conditionEdit"
-                :condition-data="conditionData"
-                :is-setting-panel-show="isSettingPanelShow"
-                :is-show-condition-edit="isShowConditionEdit"
-                v-show="isShowConditionEdit"
-                @onCloseConditionEdit="onCloseConditionEdit">
-            </ConditionEdit>
-            <TemplateSetting
-                ref="templateSetting"
-                :draft-array="draftArray"
-                :is-global-variable-update="isGlobalVariableUpdate"
-                :project-info-loading="projectInfoLoading"
-                :is-template-config-valid="isTemplateConfigValid"
-                :is-setting-panel-show="isSettingPanelShow"
-                :is-node-config-panel-show="isNodeConfigPanelShow"
-                :variable-type-list="variableTypeList"
-                :local-template-data="localTemplateData"
-                :is-click-draft="isClickDraft"
-                :is-fixed-var-menu="isFixedVarMenu"
-                @toggleSettingPanel="toggleSettingPanel"
-                @globalVariableUpdate="globalVariableUpdate"
-                @onDeleteConstant="onDeleteConstant"
-                @variableDataChanged="variableDataChanged"
-                @fixedVarMenuChange="fixedVarMenuChange"
-                @onSelectCategory="onSelectCategory"
-                @onDeleteDraft="onDeleteDraft"
-                @onReplaceTemplate="onReplaceTemplate"
-                @onNewDraft="onNewDraft"
-                @onCitedNodeClick="onCitedNodeClick"
-                @updateLocalTemplateData="updateLocalTemplateData"
-                @modifyTemplateData="modifyTemplateData"
-                @hideConfigPanel="hideConfigPanel"
-                @updataConditionData="updataConditionData">
-            </TemplateSetting> -->
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -777,7 +726,6 @@
                     }
                 }
                 if (clientX < 1920) {
-                    console.log('onWindowResize')
                     this.hideChoosePluginPanel()
                 }
             },
@@ -1322,7 +1270,9 @@
                     panel = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
                 }
                 const { left, top } = panel.getBoundingClientRect()
-                if (e.clientX < left || e.clientY < top) {
+                const pageX = left + document.documentElement.scrollLeft
+                const pageY = top + document.documentElement.scrollTop
+                if (e.pageX < pageX || e.pageX < pageY) {
                     this.isNodeConfigPanelShow && this.hideConfigPanel()
                     !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
                     this.isShowConditionEdit && this.onCloseConditionEdit()

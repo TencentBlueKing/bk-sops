@@ -59,14 +59,17 @@
                 'addVariable',
                 'deleteVariable'
             ]),
+            /**
+             * 输出参数勾选切换
+             */
             onToggleCheck (props, checked) {
                 const { key, name, version } = props.row
                 const index = props.$index
                 const vs = this.nodeConfig.type === 'ServiceActivity'
                     ? (this.nodeConfig.component.version || 'legacy')
                     : (version || 'legacy')
-                if (checked) {
-                    const variableKey = this.generateRandomKey(key)
+                const variableKey = this.generateRandomKey(key)
+                if (checked) { // hook
                     const variableOpts = {
                         name,
                         key: variableKey,
@@ -79,9 +82,9 @@
                         show_type: 'hide',
                         version: vs
                     }
-                    this.$set(this.params[index], key, variableKey)
+                    this.$set(this.params[index], 'key', variableKey)
                     this.hookToGlobal(variableOpts)
-                } else {
+                } else { // cancel
                     const constant = this.constants[key]
                     if (constant) {
                         this.deleteVariable(key)
@@ -95,6 +98,10 @@
                 } while (this.constants[variableKey])
                 return variableKey
             },
+            /**
+             * 获取输出参数勾选状态
+             * 变量全局变量中 source_info 里是否含有该变量
+             */
             getHookStatus (row) {
                 const key = row.key
                 for (const cKey in this.constants) {
@@ -108,8 +115,8 @@
                 }
                 return false
             },
+            // 创建新变量
             hookToGlobal (variableOpts) {
-                // 创建新变量
                 const len = Object.keys(this.constants).length
                 const defaultOpts = {
                     name: '',

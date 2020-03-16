@@ -22,6 +22,7 @@
                 <span>{{ atomName }}</span>
             </div>
             <template slot="content" v-if="isShow">
+                <!-- 基础信息 -->
                 <section class="config-section">
                     <h3>{{i18n.basicInfo}}</h3>
                     <basic-info
@@ -31,11 +32,13 @@
                         :atom-list="atomList"
                         :subflow-list="subflowList"
                         :is-subflow="isSubflow"
+                        :input-loading="inputLoading"
                         @onShowChoosePluginPanel="onShowChoosePluginPanel"
                         @versionChange="versionChange"
                         @tplChange="tplChange">
                     </basic-info>
                 </section>
+                <!-- 输入参数 -->
                 <section class="config-section">
                     <h3>{{i18n.inputParams}}</h3>
                     <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
@@ -45,14 +48,14 @@
                                 :node-config="nodeConfig"
                                 :scheme="inputs"
                                 :value="inputParamValue"
-                                :hooked="inputHooked"
-                                :is-subflow="isSubflow"
-                                @inputsHookChange="inputsHookChange">
+                                :hooked.sync="inputHooked"
+                                :is-subflow="isSubflow">
                             </input-params>
                             <no-data v-else></no-data>
                         </template>
                     </div>
                 </section>
+                <!-- 输出参数 -->
                 <section class="config-section">
                     <h3>{{i18n.outputParams}}</h3>
                     <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
@@ -118,6 +121,10 @@
                 type: Boolean,
                 required: false
             },
+            isSettingPanelShow: {
+                type: Boolean,
+                required: false
+            },
             isChoosePluginPanelShow: {
                 type: Boolean,
                 required: false
@@ -179,18 +186,20 @@
             },
             configClassString () { // 动态设置面板的 class
                 let base = 'common-template-setting-sideslider node-config-base'
-                switch (this.settingActiveTab) {
-                    case 'globalVariableTab':
-                        base += ' position-right-var'
-                        break
-                    case 'templateConfigTab':
-                        base += ' position-right-basic-info'
-                        break
-                    case 'localDraftTab':
-                        base += ' position-right-cache'
-                        break
-                    case 'templateDataEditTab':
-                        base += ' position-right-template-data'
+                if (this.isSettingPanelShow) {
+                    switch (this.settingActiveTab) {
+                        case 'globalVariableTab':
+                            base += ' position-right-var'
+                            break
+                        case 'templateConfigTab':
+                            base += ' position-right-basic-info'
+                            break
+                        case 'localDraftTab':
+                            base += ' position-right-cache'
+                            break
+                        case 'templateDataEditTab':
+                            base += ' position-right-template-data'
+                    }
                 }
                 if (this.isChoosePluginPanelShow) {
                     base += ' position-right-choose-plugin'
@@ -436,18 +445,6 @@
             },
             getInputHooked () {
                 if (this.isSubflow) { // 子流程、遍历全局变量中是否有节点引用了
-                    // return this.inputs.reduce((acc, cur) => {
-                    //     acc[cur.tag_code] = Object.keys(this.constants).some(key => {
-                    //         const sourceInfo = this.constants[key].source_info
-                    //         for (const node in sourceInfo) {
-                    //             console.log(sourceInfo[node], cur.tag_code, 'cscscscss')
-                    //             if (sourceInfo[node].includes(cur.tag_code)) {
-                    //                 return true
-                    //             }
-                    //         }
-                    //     })
-                    //     return acc
-                    // }, {})
                     return Object.keys(this.subfowConstants).reduce((acc, cur) => {
                         const item = this.subfowConstants[cur]
                         const targetVar = this.constants[cur]
@@ -481,9 +478,6 @@
                 this.outputs = outputs
                 this.inputParamValue = {}
                 this.getPluginData()
-            },
-            inputsHookChange ({ code, val }) {
-                this.$set(this.inputHooked, code, val)
             },
             versionChange () {
                 this.getPluginData()

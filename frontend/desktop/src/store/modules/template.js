@@ -653,7 +653,6 @@ const template = {
                     }
                 }
             }
-            // this.commit('templates/setConstantsCited', location)
         },
         // 设置节点基础信息
         setNodeBasicInfo (state, payload) {
@@ -793,46 +792,6 @@ const template = {
         // 设置内置变量
         setInternalVariable (state, payload) {
             state.systemConstants = payload
-        },
-        // 更新变量引用此次
-        setConstantsCited (state, payload) {
-            // 更新变量引用次数
-            const { id: nodeId, type: nodeType } = payload
-            const constantsCited = {}
-            const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
-            if (state.activities[nodeId]) {
-                const item = state.activities[nodeId]
-                const nodeData = nodeType === 'ServiceActivity' ? item.component.data : item.constants
-                if (checkDataType(nodeData) === 'Object') {
-                    for (const code in nodeData) {
-                        const value = nodeData[code].value
-                        const matchArr = checkDataType(value) === 'String' ? value.match(codeReg) || [] : []
-                        matchArr.forEach(matchItem => {
-                            if (constantsCited[matchItem]) {
-                                constantsCited[matchItem] += 1
-                            } else {
-                                constantsCited[matchItem] = 1
-                            }
-                        })
-                    }
-                }
-            }
-            // 输出变量
-            for (const key in state.constants) {
-                const constant = state.constants[key]
-                if (constant.source_type === 'component_outputs') {
-                    for (const node in constant.source_info) {
-                        if (node === nodeId) {
-                            if (constantsCited[constant.key]) {
-                                constantsCited[constant.key] += 1
-                            } else {
-                                constantsCited[constant.key] = 1
-                            }
-                        }
-                    }
-                }
-            }
-            Vue.set(state.constantsCited, nodeId, constantsCited)
         }
     },
     actions: {
@@ -970,20 +929,6 @@ const template = {
                 outputs,
                 start_event
             }
-        },
-        constantsCited: state => {
-            const constantsCitedMap = {}
-            for (const nodeId in state.constantsCited) {
-                const obj = state.constantsCited[nodeId]
-                for (const key in obj) {
-                    if (constantsCitedMap[key]) {
-                        constantsCitedMap[key] += obj[key]
-                    } else {
-                        constantsCitedMap[key] = obj[key]
-                    }
-                }
-            }
-            return constantsCitedMap
         }
     }
 }

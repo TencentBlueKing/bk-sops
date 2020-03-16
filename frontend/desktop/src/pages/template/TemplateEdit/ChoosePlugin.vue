@@ -31,6 +31,7 @@
                 </div>
                 <div class="plugin-list">
                     <template v-if="listInPanel.length > 0">
+                        <!-- 全部插件类表 -->
                         <template v-if="searchStr === ''">
                             <bk-collapse ext-cls="plugin-collapse" v-for="group in listInPanel" :key="group.type">
                                 <bk-collapse-item :name="group.group_name">
@@ -61,6 +62,7 @@
                                 </bk-collapse-item>
                             </bk-collapse>
                         </template>
+                        <!-- 搜索结果插件列表 -->
                         <template v-else>
                             <ul slot="content" class="node-item-wrap">
                                 <li class="node-item"
@@ -170,6 +172,9 @@
             ...mapMutations('template/', [
                 'setActivities'
             ]),
+            /**
+             * 搜索值改变
+             */
             onSearchInput () {
                 if (this.searchStr !== '') {
                     const result = []
@@ -210,7 +215,6 @@
                     nodeConfg.name = node.name.replace(/\s/g, '')
                     nodeConfg.optional = false
                     nodeConfg.constants = {}
-                    console.log(nodeConfg, 'ziliucheng')
                 } else {
                     nodeConfg.component.code = node.code
                     nodeConfg.component.data = {}
@@ -221,20 +225,38 @@
                     nodeConfg.skippable = true
                     nodeConfg.retryable = true
                     nodeConfg.error_ignorable = false
-                    console.log(nodeConfg, 'put')
                 }
                 this.setActivities({ type: 'edit', location: nodeConfg })
                 this.$emit('onPluginChange', nodeConfg)
                 // 待开发，遍历全局变量，看是否有被该节点引用的，有就souce_info中去除，
-                // souce_info中只有一条则删除该变量
+                // souce_info 中只有一条则删除该变量
                 // 子流程更新
             },
+            /**
+             * 插件选中状态
+             * @param {Object} node 插件/子流程
+             */
             getSelectedStatus (node) {
                 if (this.isSubflow) {
                     return node.id === this.nodeConfg.template_id
                 }
                 return node.code === this.nodeConfg.component.code
             },
+            // 查看子流程
+            onViewSubflow (node) {
+                const { href } = this.$router.resolve({
+                    name: 'templatePanel',
+                    params: {
+                        type: 'edit',
+                        project_id: node.project.id
+                    },
+                    query: {
+                        template_id: node.id
+                    }
+                })
+                window.open(href, '_blank')
+            },
+            // 关闭面板
             onBeforeClose () {
                 this.$emit('hide')
             }
@@ -260,6 +282,7 @@
         clear: both;
         height: calc(100vh - 232px);
         overflow: scroll;
+        @include scrollbar;
         .plugin-collapse {
             /deep/ {
                 .bk-collapse-item-header {

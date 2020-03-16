@@ -117,15 +117,9 @@
                     setVals: setVals
                 })
             },
-            // 输入勾选值改变
-            // inputsHookChange (code, value) {
-            //     // 更新页面数据
-            //     this.$set(this.hooked, code, true)
-            //     this.$set(this.formData, code, value)
-            // },
             // 输入勾选，取消勾选
             onInputHookChange (code, val) {
-                // <----start 获取创建变量所需参数
+                // <-----------start 获取创建变量所需参数
                 const VAR_KEY_REG = /^\$\{(\w+)\}$/
                 const variable = {
                     name: '',
@@ -159,9 +153,12 @@
                     variable.value = tools.deepClone(this.value[code])
                     variable.version = component.version || 'legacy'
                 }
-                //  获取创建变量所需参数 end------->
+                //  ---------获取创建变量所需参数------->
+
                 if (val) { // hook
                     if (!variable.source_tag) { // custom variable not include ip selector
+                        this.$set(this.hooked, code, true)
+                        this.$set(this.formData, code, correctKey)
                         this.hookToGlobal(variable)
                         this.setNodeInputData({
                             id: this.nodeConfig.id,
@@ -178,9 +175,10 @@
                         this.reuseableVarList = reuseableVarList
                         this.isReuseVarDialogShow = true
                     } else { // 新增变量
-                        console.log(correctKey, 'correctKey')
                         variable.form_schema = formSchema.getSchema(code, this.scheme)
-                        this.hookToGlobal(variable, code)
+                        this.$set(this.hooked, code, true)
+                        this.$set(this.formData, code, correctKey)
+                        this.hookToGlobal(variable)
                         this.setNodeInputData({
                             id: this.nodeConfig.id,
                             type: this.nodeConfig.type,
@@ -188,9 +186,8 @@
                         })
                     }
                 } else { // cancel hook
-                    const value = this.constants[correctKey]
-                    // this.$set(this.hooked, code, true)
-                    this.$emit('inputsHookChange', { code, val: false })
+                    const value = this.constants[correctKey].value
+                    this.$set(this.hooked, code, false)
                     this.$set(this.formData, code, value)
                     this.setNodeInputData({
                         id: this.nodeConfig.id,
@@ -223,11 +220,7 @@
             /**
              * 参数不复用，创建新变量
              */
-            hookToGlobal (variableOpts, code) {
-                // 更新页面数据
-                // this.$set(this.hooked, code, true)
-                this.$emit('inputsHookChange', { code, val: true })
-                this.$set(this.formData, code, variableOpts.key)
+            hookToGlobal (variableOpts) {
                 // 创建新变量
                 const len = Object.keys(this.constants).length
                 const defaultOpts = {
@@ -247,16 +240,19 @@
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))
             },
-            // 复用变量
+            /**
+             * 复用变量
+             */
             reuseVar (variableOpts, code) {
                 const { varKey, key, value } = variableOpts
                 // 更新页面数据
-                // this.$set(this.hooked, code, true)
-                this.$emit('inputsHookChange', { code, val: true })
+                this.$set(this.hooked, code, true)
                 this.$set(this.formData, code, variableOpts.key)
                 this.setVariableSourceInfo({ type: 'add', id: this.nodeConfig.id, key: varKey, tagCode: key, value })
             },
-            // 复用变量确认回调
+            /**
+             * 复用变量确认回调
+             */
             onConfirmReuseVar (varConfig) {
                 const { type, name, key, varKey, source_tag, source_info, value } = varConfig
                 const code = source_tag.split('.')[1]
@@ -270,7 +266,9 @@
                     }
                     const variableOpts = { name, key: varKey, source_tag, source_info, value }
                     variableOpts.form_schema = formSchema.getSchema(key, this.scheme)
-                    this.hookToGlobal(variableOpts, code)
+                    this.$set(this.hooked, code, true)
+                    this.$set(this.formData, code, varKey)
+                    this.hookToGlobal(variableOpts)
                 } else { // 复用
                     this.reuseVar(varConfig, code)
                 }
@@ -280,12 +278,13 @@
                     setVals: { [key]: { value: key, hook: true } }
                 })
             },
-            // 取消复用变量回调
+            /**
+             * 取消复用变量回调
+             */
             onCancelReuseVar (reuseVariable) {
                 const { source_tag } = reuseVariable
                 const code = source_tag.split('.')[1]
-                // this.$set(this.hooked, code, false)
-                this.$emit('inputsHookChange', { code, val: false })
+                this.$set(this.hooked, code, false)
                 this.$set(this.formData, code, reuseVariable.key)
             }
         }

@@ -10,23 +10,12 @@
 */
 <template>
     <div class="basic-info">
+        <!-- 普通插件 -->
         <bk-form
             v-if="!isSubflow"
             :label-width="130"
             :model="formData">
             <bk-form-item :label="i18n.plugin" :required="true">
-                <!-- <bk-select
-                    v-model="formData.plugin"
-                    :clearable="false"
-                    :searchable="true"
-                    @selected="$emit('pluginChange')">
-                    <bk-option
-                        v-for="atom in atomList"
-                        :key="atom.code"
-                        :id="atom.code"
-                        :name="`${atom.type}-${atom.name}`">
-                    </bk-option>
-                </bk-select> -->
                 <bk-input :value="atomName" readonly>
                     <template slot="append">
                         <div class="group-text choose-plugin-btn"
@@ -57,9 +46,10 @@
             <bk-form-item :label="i18n.name" :required="true">
                 <bk-input v-model="formData.name" @blur="saveBasicInfo"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="i18n.step">
+            <!-- 新版设计去掉步骤 -->
+            <!-- <bk-form-item :label="i18n.step">
                 <bk-input v-model="formData.step"></bk-input>
-            </bk-form-item>
+            </bk-form-item> -->
             <bk-form-item :label="i18n.errorHandle" class="error-handle">
                 <bk-checkbox v-model="formData.ignorable" @change="onErrorIgnoreChange">
                     <i class="error-handle-icon common-icon-dark-circle-i"></i>
@@ -89,40 +79,39 @@
                 <bk-switcher v-model="formData.selectable" size="small" @change="saveBasicInfo"></bk-switcher>
             </bk-form-item>
         </bk-form>
+        <!-- 子流程 -->
         <bk-form
             v-else
             :label-width="130"
             :model="formData">
             <bk-form-item :label="i18n.tpl" :required="true">
-                <!-- <bk-select
-                    v-model="formData.tpl"
-                    :clearable="false"
-                    :searchable="true"
-                    @selected="$emit('tplChange')">
-                    <bk-option
-                        v-for="item is subflowList"
-                        :key="item.id"
-                        :id="item.id"
-                        :name="item.name">
-                        <template>
-                            <span class="subflow-option-name">{{item.name}}</span>
-                            <i class="bk-icon common-icon-box-top-right-corner open-link-icon" @click.stop="onOpenTpl"></i>
-                        </template>
-                    </bk-option>
-                </bk-select> -->
                 <bk-input :value="atomName" readonly>
                     <template slot="append">
                         <div class="group-text choose-plugin-btn"
                             @click.stop="onChoosePlugin">{{ formData.tpl ? i18n.reselect : i18n.select }}</div>
                     </template>
                 </bk-input>
+                <!-- 子流程版本更新 -->
+                <i
+                    :class="[
+                        'common-icon-clock-inversion',
+                        'update-tooltip',
+                        { 'disabled': inputLoading }
+                    ]"
+                    v-if="subflowHasUpdate"
+                    v-bk-tooltips="{
+                        content: i18n.update,
+                        placements: ['bottom-end'] }"
+                    @click="onUpdateSubflowVersion">
+                </i>
             </bk-form-item>
             <bk-form-item :label="i18n.name" :required="true">
                 <bk-input v-model="formData.name"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="i18n.step">
+            <!-- 新版设计去掉步骤 -->
+            <!-- <bk-form-item :label="i18n.step">
                 <bk-input v-model="formData.step"></bk-input>
-            </bk-form-item>
+            </bk-form-item> -->
             <bk-form-item :label="i18n.selectable">
                 <bk-switcher v-model="formData.selectable" size="small"></bk-switcher>
             </bk-form-item>
@@ -131,7 +120,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapMutations } from 'vuex'
+    import { mapState, mapMutations } from 'vuex'
     export default {
         name: 'BasicInfo',
         props: {
@@ -166,6 +155,10 @@
             isSubflow: {
                 type: Boolean,
                 default: false
+            },
+            inputLoading: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -181,6 +174,7 @@
                     reselect: gettext('重选'),
                     plugin: gettext('标准插件'),
                     version: gettext('插件版本'),
+                    update: gettext('版本更新'),
                     name: gettext('节点名称'),
                     step: gettext('步骤名称'),
                     errorHandle: gettext('失败处理'),
@@ -198,12 +192,25 @@
             }
         },
         computed: {
+            ...mapState({
+                'subprocessInfo': state => state.template.subprocess_info
+            }),
+            subflowHasUpdate () {
+                return this.subprocessInfo.details.some(subflow => {
+                    if (
+                        subflow.expired
+                        && subflow.template_id === Number(this.nodeConfig.template_id)
+                        && subflow.subprocess_node_id === this.nodeConfig.id
+                    ) {
+                        return true
+                    }
+                })
+            }
         },
         methods: {
             ...mapMutations('template/', [
                 'setNodeBasicInfo'
             ]),
-            onOpenTpl () {},
             onErrorIgnoreChange (val) {
                 if (val) {
                     this.formData.retryable = false
@@ -232,6 +239,12 @@
             },
             onChoosePlugin () {
                 this.$emit('onShowChoosePluginPanel')
+            },
+            /**
+             * 子流程版本更新
+             */
+            onUpdateSubflowVersion () {
+                
             }
         }
     }
@@ -278,6 +291,12 @@
             line-height: 30px;
             color: #3a84ff;
             background: #e1ecff;
+            cursor: pointer;
+        }
+        .update-tooltip {
+            position: absolute;
+            right: -28px;
+            top: 8px;
             cursor: pointer;
         }
     }
