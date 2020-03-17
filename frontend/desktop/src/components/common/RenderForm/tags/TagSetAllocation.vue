@@ -11,9 +11,12 @@
 */
 <template>
     <div class="tag-set-allocation">
-        <div v-if="formMode" class="tag-set-allocation-wrap">
+        <div class="tag-set-allocation-wrap">
             <set-allocation
                 ref="setAllocation"
+                :editable="editable && !disabled"
+                :view-value="!formMode"
+                :urls="urls"
                 :config="setValue.config"
                 :value="setValue.data"
                 @update="update">
@@ -31,7 +34,15 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用组件')
+            desc: gettext('组件禁用态')
+        },
+        remote_url: {
+            type: [Object, Function],
+            required: true,
+            default () {
+                return {}
+            },
+            desc: gettext('组件内部调用接口地址')
         },
         value: {
             type: [Object, String],
@@ -50,10 +61,10 @@
             SetAllocation
         },
         mixins: [getFormMixins(attrs)],
-        data () {
-            return {}
-        },
         computed: {
+            urls () {
+                return typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
+            },
             setValue: {
                 get () {
                     return this.value
