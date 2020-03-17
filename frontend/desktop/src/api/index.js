@@ -1325,16 +1325,15 @@ const api = {
     },
     /**
      * 查询业务在 CMDB 的主机
-     * @param {Array} filels 主机查询字段
      */
-    loadHostInCC (fields) {
-        const prefixUrl = this.getPrefix('cc_search_host')
-
+    loadHostInCC (data) {
+        const { url, fields, topo } = data
         const opts = {
             method: 'GET',
-            url: prefixUrl,
+            url,
             params: {
-                fields: JSON.stringify(fields)
+                fields: JSON.stringify(fields),
+                topo: JSON.stringify(topo)
             }
         }
         return request(opts)
@@ -1342,12 +1341,10 @@ const api = {
     /**
      * 查询业务在 CMDB 的拓扑树
      */
-    loadTopoTreeInCC () {
-        const prefixUrl = this.getPrefix('cc_search_topo_tree')
-
+    loadTopoTreeInCC (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
         }
         return request(opts)
     },
@@ -1363,49 +1360,41 @@ const api = {
         }
         return request(opts)
     },
-    getCCSearchTopoSet () {
-        const prefixUrl = this.getPrefix('cc_search_top_set')
-
+    getCCSearchTopoSet (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
         }
         return request(opts)
     },
-    getCCSearchTopoResource () {
-        const prefixUrl = this.getPrefix('cc_search_top_resource')
-
+    getCCSearchTopoResource (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
         }
         return request(opts)
     },
     getCCSearchModule (data) {
-        const prefixUrl = this.getPrefix('cc_search_module')
-
         const opts = {
             method: 'GET',
-            url: prefixUrl,
-            params: data
+            url: data.url,
+            params: {
+                bk_set_id: data.bk_set_id
+            }
         }
         return request(opts)
     },
-    getCCSearchObjAttrHost () {
-        const prefixUrl = this.getPrefix('cc_search_obj_attr')
-
+    getCCSearchObjAttrHost (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
         }
         return request(opts)
     },
-    getCCSearchColAttrSet () {
-        const prefixUrl = this.getPrefix('cc_search_cols_attr')
-
+    getCCSearchColAttrSet (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
         }
         return request(opts)
     },

@@ -11,18 +11,30 @@
 */
 <template>
     <div class="resource-list">
-        <div class="opt-btns">
-            <bk-button theme="default" @click="$emit('update:showFilter', true)">{{ i18n.resourceFilter }}</bk-button>
-            <bk-button theme="default" @click="exportData">{{ i18n.export }}</bk-button>
+        <div class="opt-btns" v-if="!viewValue">
+            <bk-button
+                theme="default"
+                :disabled="!editable"
+                @click="$emit('update:showFilter', true)">
+                {{ i18n.resourceFilter }}
+            </bk-button>
+            <bk-button
+                theme="default"
+                :disabled="!editable"
+                @click="exportData">
+                {{ i18n.export }}
+            </bk-button>
             <el-upload
                 ref="upload"
                 class="upload-btn"
                 action="/"
+                :disabled="!editable"
                 :show-file-list="false"
                 :on-change="importData"
                 :auto-upload="false">
                 <bk-button
                     slot="trigger"
+                    :disabled="!editable"
                     theme="default">
                     {{ i18n.import }}
                 </bk-button>
@@ -50,18 +62,18 @@
                         </template>
                         <template v-else>
                             <template v-if="editRow !== props.$index">
-                                <bk-button :text="true" @click="rowEditClick(props)">{{ i18n.edit }}</bk-button>
-                                <bk-button :text="true" @click="rowDelClick(props)">{{ i18n.delete }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowEditClick(props)">{{ i18n.edit }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowDelClick(props)">{{ i18n.delete }}</bk-button>
                             </template>
                             <template v-else>
-                                <bk-button :text="true" @click="rowSaveClick(props, item.config.tag_code)">{{ i18n.save }}</bk-button>
-                                <bk-button :text="true" @click="rowCancelClick">{{ i18n.cancel }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowSaveClick(props, item.config.tag_code)">{{ i18n.save }}</bk-button>
+                                <bk-button :text="true" :disabled="!editable" @click="rowCancelClick">{{ i18n.cancel }}</bk-button>
                             </template>
                         </template>
                     </template>
                 </bk-table-column>
                 <template v-slot:empty>
-                    <no-data></no-data>
+                    <no-data :style="{ background: 'transparent' }"></no-data>
                 </template>
             </bk-table>
         </div>
@@ -82,6 +94,14 @@
             NoData
         },
         props: {
+            editable: {
+                type: Boolean,
+                default: true
+            },
+            viewValue: { // 查看值模式，不需要要编辑表单操作
+                type: Boolean,
+                default: false
+            },
             cols: {
                 type: Array
             },

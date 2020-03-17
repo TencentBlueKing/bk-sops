@@ -44,6 +44,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - tree
 - upload
 - memberSelector
+- setAllocation
 # Tag 组件属性、方法
 
 标准插件中定义的配置项在页面渲染时，会作为属性传入到 Tag 组件中。Tag 组件根据不同的属性值，可以灵活的扩展多种表单配置，例如 `TagSelect` 组件可以通过 `multiple` 属性来区分下拉框为单选还是多选，`TagUpload` 组件可以通过 `remote_data_init` 属性来自定义加载数据后的处理逻辑。
@@ -128,7 +129,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 *none*
 
-### 4. TagDatatable*
+### 4. TagDatatable
 
 表格，用来展示多条并列数据，支持远程加载数据、单独添加数据、数据编辑。
 
@@ -226,6 +227,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 **属性**
 
   - `isMultiple`：ip 选择器是否为多选（单选为选择静态或者动态 ip，多选为同时选择静态、动态 ip）
+  - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
   - `disabled`：设置是否禁用组件
   - `value`：选择的 ip 值
 
@@ -388,6 +390,20 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `placeholder`：占位文本
   - `disabled`：设置是否禁用组件
   - `value`：选择人员名字，名字间以 ',' 隔开。eg:"xiaoming,xiaozhang,xiaoli"
+
+**方法**
+
+*none*
+
+### 17. TagSetAllocation
+
+开区资源选择器。
+
+**属性**
+
+  - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
+  - `disabled`：设置是否禁用组件
+  - `value`：选择的 ip 值
 
 **方法**
 

@@ -14,9 +14,12 @@
         <resource-list
             v-show="!showFilter"
             ref="resourceList"
+            :editable="editable"
+            :view-value="viewValue"
             :show-filter.sync="showFilter"
             :cols="tbCols"
             :config="localConfig"
+            :urls="urls"
             :value="localValue"
             @importData="importData"
             @update="updateValue">
@@ -25,6 +28,7 @@
             v-if="showFilter"
             :show-filter.sync="showFilter"
             :config="localConfig"
+            :urls="urls"
             @update="updateConfig">
         </resource-filter>
     </div>
@@ -43,6 +47,10 @@
             ResourceFilter
         },
         props: {
+            editable: {
+                type: Boolean,
+                default: true
+            },
             config: {
                 type: Object,
                 default () {
@@ -54,10 +62,20 @@
                     }
                 }
             },
+            viewValue: { // 查看值模式，不需要要编辑表单操作
+                type: Boolean,
+                default: false
+            },
             value: {
                 type: Array,
                 default () {
                     return []
+                }
+            },
+            urls: {
+                type: Object,
+                default () {
+                    return {}
                 }
             }
         },
@@ -152,7 +170,9 @@
             async getColsConfig () {
                 try {
                     this.colsLoading = true
-                    const resp = await this.getCCSearchColAttrSet()
+                    const resp = await this.getCCSearchColAttrSet({
+                        url: this.urls['cc_search_create_object_attribute_set']
+                    })
                     if (resp.result) {
                         this.originalCols = resp.data
                         this.joinCols(this.localConfig.module_detail)
@@ -208,15 +228,18 @@
                     })
                 })
                 const cols = [...originalConfig.slice(0, 1), ...modulesConfig, ...originalConfig.slice(1)]
-                cols.push({
-                    width: 100,
-                    config: {
-                        tag_code: 'tb_btns',
-                        attrs: {
-                            name: gettext('操作')
+                if (!this.viewValue) {
+                    cols.push({
+                        width: 100,
+                        config: {
+                            tag_code: 'tb_btns',
+                            attrs: {
+                                name: gettext('操作')
+                            }
                         }
-                    }
-                })
+                    })
+                }
+
                 this.tbCols = cols
             },
             /**
@@ -337,8 +360,8 @@
 </script>
 <style style="scss" scoped>
     .resource-allocation {
-        padding: 20px;
-        background: #ffffff;
+        padding: 10px;
+        border: 1px solid #ececec;
         border-radius: 2px;
     }
 </style>
