@@ -270,7 +270,7 @@
                 this.schemeLoading = true
                 try {
                     const data = {
-                        project_id: this.project_id,
+                        project__id: this.project_id,
                         template_id: this.appData.appTemplate
                     }
                     this.schemeList = await this.loadTaskScheme(data)

@@ -591,13 +591,13 @@ const api = {
      */
     getTaskScheme (data) {
         const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
-        const { project_id, template_id } = data
+        const { project__id, template_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
             params: {
                 template_id,
-                'project__id': project_id
+                'project__id': project__id
             }
         }
         return request(opts)

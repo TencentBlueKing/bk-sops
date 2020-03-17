@@ -156,7 +156,7 @@
             }
         },
         created () {
-            this.loadTaskList()
+            this.loadSchemeList()
         },
         methods: {
             ...mapActions('task/', [
@@ -164,7 +164,7 @@
                 'createTaskScheme',
                 'deleteTaskScheme'
             ]),
-            async loadTaskList () {
+            async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
                         project__id: this.project_id,
@@ -220,7 +220,7 @@
                         this.selectedScheme = newScheme.id
                         this.schemaName = ''
                         this.nameEditing = false
-                        this.loadTaskList()
+                        this.loadSchemeList()
                         this.$bkMessage({
                             message: gettext('方案添加成功'),
                             theme: 'success'
@@ -253,7 +253,7 @@
                 this.deleting = true
                 try {
                     await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
-                    this.loadTaskList()
+                    this.loadSchemeList()
                     this.$bkMessage({
                         message: gettext('方案删除成功'),
                         theme: 'success'
