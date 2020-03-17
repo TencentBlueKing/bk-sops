@@ -219,12 +219,13 @@
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
                         const previewNodeData = resp.data.pipeline_tree
+                        // TODO: 自动排版目前会导致节点重叠，等待修复后开启
                         // 如果画布有未选中节点，启用自动编排
-                        if (this.excludeNode.length > 0) {
-                            const layoutedData = await this.getLayoutedPosition(previewNodeData)
-                            previewNodeData.line = layoutedData.line
-                            previewNodeData.location = layoutedData.location
-                        }
+                        // if (this.excludeNode.length > 0) {
+                        //     const layoutedData = await this.getLayoutedPosition(previewNodeData)
+                        //     previewNodeData.line = layoutedData.line
+                        //     previewNodeData.location = layoutedData.location
+                        // }
 
                         this.previewData = previewNodeData
                     } else {

@@ -278,11 +278,13 @@
                     }
 
                     const pipelineTree = previewData.data.pipeline_tree
-                    if (this.excludeNode.length > 0) {
-                        const layoutedData = await this.getLayoutedPosition(pipelineTree)
-                        pipelineTree.line = layoutedData.line
-                        pipelineTree.location = layoutedData.location
-                    }
+                    // TODO: 自动排版目前会导致节点重叠，等待修复后开启
+                    // 如果画布有未选中节点，启用自动编排
+                    // if (this.excludeNode.length > 0) {
+                    //     const layoutedData = await this.getLayoutedPosition(pipelineTree)
+                    //     pipelineTree.line = layoutedData.line
+                    //     pipelineTree.location = layoutedData.location
+                    // }
                     this.pipelineData = pipelineTree
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
