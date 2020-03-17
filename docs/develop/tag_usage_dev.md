@@ -403,7 +403,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
   - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
   - `disabled`：设置是否禁用组件
-  - `value`：选择的 ip 值
+  - `value`：选择的资源值以及筛选配置
 
 **方法**
 
