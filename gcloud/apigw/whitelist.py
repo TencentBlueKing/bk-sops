@@ -29,6 +29,8 @@ class EnvWhitelist(object):
             return True
 
         env_list_var = EnvironmentVariables.objects.get_var(self.env_key)
+        if not env_list_var:
+            return False
 
         try:
             env_list = set(env_list_var.split(','))
