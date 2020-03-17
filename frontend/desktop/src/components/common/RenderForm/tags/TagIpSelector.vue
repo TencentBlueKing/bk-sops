@@ -44,13 +44,13 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: '组件禁用态'
+            desc: gettext('组件禁用态')
         },
         remote_url: {
-            type: [Object, String],
+            type: [Object, Function],
             required: true,
             default: '',
-            desc: '插件调用接口地址加载地址'
+            desc: gettext('组件内部调用接口的地址')
         },
         value: {
             type: [Object, String],

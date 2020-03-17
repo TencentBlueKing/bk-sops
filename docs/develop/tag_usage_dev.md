@@ -166,7 +166,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `add_btn`： 是否显示添加按钮
   - `table_buttons`: 自定义配置表格按钮，eg: [{text: '点击', callback: function(){console.log(1)}, type: 'xxx or import'}, ...]，其中 type 为非必需字段，值为 import 时，点击回调使用内置的上传函数
   - `empty_text`：无数据提示
-  - `remote_url`：表格数据远程加载，支持 url 和方法
+  - `remote_url`：表格数据远程加载，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：加载数据后的处理函数
   - `value`：表格的值
 
@@ -272,6 +272,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `items`：提供选择的下拉框选项， eg:[{text: '微信', value: 'weixin'}, {text: '邮件', value: 'mail'}]
   - `multiple`：是否为多选
   - `remote`：是否开远程加载
+  - `remote_url`:  远程加载 url，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：远程加载后的数据处理函数
   - `placeholder`：占位文本
   - `empty_text`：无数据提示
@@ -347,7 +348,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `show_checkbox`：节点是否可被选择
   - `default_expand_all`： 是否默认全部展开
   - `remote`： 是否开启远程加载
-  - `remote_url`： 远程加载 url
+  - `remote_url`： 远程加载 url，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：远程加载后的数据处理函数
   - `value`：选中的值
 
