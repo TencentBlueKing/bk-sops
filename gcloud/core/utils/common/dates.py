@@ -16,6 +16,7 @@ import datetime
 import logging
 import time
 import pytz
+import math
 
 from django.utils import timezone
 
@@ -96,6 +97,6 @@ def add_months(dt, months):
     :return:
     """
     month = dt.month - 1 + months
-    year = dt.year + month / 12
+    year = dt.year + math.floor(month / 12)
     month = month % 12 + 1
     return dt.replace(year=year, month=month)

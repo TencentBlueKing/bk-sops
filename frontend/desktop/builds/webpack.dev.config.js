@@ -33,7 +33,9 @@ const proxyPath = [
     'admin/search/',
     'admin/api/*',
     'admin/taskflow/*',
-    'admin/template/*'
+    'admin/template/*',
+    'develop/api/*',
+    'version_log/*'
 ]
 const proxyRule = {}
 proxyPath.forEach(item => {

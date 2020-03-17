@@ -11,27 +11,30 @@
 */
 <template>
     <div class="tag-datatable">
-        <template v-if="editable && formMode">
+        <div class="button-area" v-if="editable && formMode">
             <bk-button
                 v-if="add_btn"
-                class="add-column"
+                class="add-column button-item"
                 size="small"
                 @click="add_row">
                 {{ i18n.add_text }}
             </bk-button>
-            <div v-for="btn in table_buttons" :key="btn.type" class="table-buttons">
+            <template v-for="btn in table_buttons">
                 <bk-button
                     v-if="btn.type !== 'import'"
+                    class="button-item"
                     type="default"
                     size="small"
-                    @click="onBtnClick(btn.callback)">
+                    :key="btn.type"
+                    @click.stop="onBtnClick(btn.callback)">
                     {{ btn.text}}
                 </bk-button>
                 <el-upload
                     v-else
                     ref="upload"
-                    class="upload-btn"
+                    class="upload-btn button-item"
                     action="/"
+                    :key="btn.type"
                     :show-file-list="false"
                     :on-change="importExcel"
                     :auto-upload="false">
@@ -42,8 +45,8 @@
                         {{ btn.text }}
                     </bk-button>
                 </el-upload>
-            </div>
-        </template>
+            </template>
+        </div>
         <el-table
             v-if="Array.isArray(value)"
             style="width: 100%; font-size: 12px"
@@ -86,7 +89,7 @@
                     </div>
                     <div v-else>
                         <a class="operate-btn" @click="onEdit(scope.$index, scope.row)">{{ i18n.edit_text }}</a>
-                        <a v-if="add_btn" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
+                        <a v-if="deleteable" class="operate-btn" @click="onDelete(scope.$index, scope.row)">{{ i18n.delete_text }}</a>
                     </div>
                 </template>
             </el-table-column>
@@ -142,6 +145,12 @@
             required: false,
             default: true,
             desc: 'show edit and delete button or not'
+        },
+        deleteable: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'show delete button in a row'
         },
         value: {
             type: [Array, String],
@@ -260,29 +269,29 @@
                 return jsonData.map(v => filterVal.map(j => v[j]))
             },
             export2Excel () {
-                require.ensure([], () => {
-                    const TableToExcel = require('table-to-excel')
-                    const tableToExcel = new TableToExcel()
-                    const tableHeader = []
-                    const tableData = []
-                    const filterVal = []
-                    for (let i = 0; i < this.columns.length; i++) {
-                        const tagCode = this.columns[i].tag_code
-                        const name = this.columns[i].attrs.name
-                        tableHeader.push(name)
-                        filterVal.push(tagCode)
+                const tableHeader = []
+                const tableData = []
+                const filterVal = []
+                for (let i = 0; i < this.columns.length; i++) {
+                    const tagCode = this.columns[i].tag_code
+                    const name = this.columns[i].attrs.name
+                    tableHeader.push(name)
+                    filterVal.push(tagCode)
+                }
+                tableData.push(tableHeader)
+                const list = this.tableValue
+                for (let i = 0; i < list.length; i++) {
+                    const row = []
+                    for (let j = 0; j < filterVal.length; j++) {
+                        row.push(list[i][filterVal[j]])
                     }
-                    tableData.push(tableHeader)
-                    const list = this.tableValue
-                    for (let i = 0; i < list.length; i++) {
-                        const row = []
-                        for (let j = 0; j < filterVal.length; j++) {
-                            row.push(list[i][filterVal[j]])
-                        }
-                        tableData.push(row)
-                    }
-                    tableToExcel.render(tableData)
-                })
+                    tableData.push(row)
+                }
+                const wsName = 'Sheet1'
+                const wb = XLSX.utils.book_new()
+                const ws = XLSX.utils.aoa_to_sheet(tableData)
+                XLSX.utils.book_append_sheet(wb, ws, wsName)
+                XLSX.writeFile(wb, 'tableData.xlsx')
             },
             importExcel (file) {
                 const types = file.name.split('.')[1]
@@ -307,7 +316,7 @@
                                 delete excelValue[i][key]
                             }
                         }
-                        this.tableValue = tabJson[0]['sheet']
+                        this._set_value(tabJson[0]['sheet'])
                     }
                 })
             },
@@ -367,7 +376,7 @@
                 }
             },
             onBtnClick (callback) {
-                typeof callback === 'function' && callback()
+                typeof callback === 'function' && callback.bind(this)()
             },
             onEdit (index, row) {
                 this.editRowNumber = index
@@ -489,17 +498,17 @@
             margin: 0;
         }
     }
-    .add-column {
+    .button-area {
         margin-bottom: 10px;
+        overflow: hidden;
+        .button-item {
+            float: left;
+            margin-right: 10px;
+        }
     }
     .operate-btn {
         color: $blueDefault;
         white-space: nowrap;
         cursor: pointer;
-    }
-    .table-buttons{
-        display: inline-block;
-        margin-left: 10px;
-        margin-bottom: 15px;
     }
 </style>

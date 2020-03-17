@@ -15,7 +15,6 @@ import logging
 
 from django.conf import settings
 from django.contrib import auth
-
 try:
     from django.utils.deprecation import MiddlewareMixin
 except Exception:
@@ -38,36 +37,23 @@ class LoginRequiredMiddleware(MiddlewareMixin):
         if hasattr(request, 'is_wechat') and request.is_wechat():
             return None
 
+        if hasattr(request, 'is_bk_jwt') and request.is_bk_jwt():
+            return None
+
         if getattr(view, 'login_exempt', False):
             return None
 
-        user = LoginRequiredMiddleware.authenticate(request)
-        if user:
-            return None
-
+        form = AuthenticationForm(request.COOKIES)
+        if form.is_valid():
+            bk_token = form.cleaned_data['bk_token']
+            user = auth.authenticate(request=request, bk_token=bk_token)
+            if user:
+                # Succeed to login, recall self to exit process
+                if user.username != request.user.username:
+                    auth.login(request, user)
+                return None
         handler = ResponseHandler(ConfFixture, settings)
         return handler.build_401_response(request)
 
     def process_response(self, request, response):
         return response
-
-    @staticmethod
-    def authenticate(request):
-        form = AuthenticationForm(request.COOKIES)
-        if not form.is_valid():
-            return None
-
-        bk_token = form.cleaned_data['bk_token']
-        # 确认 cookie 中的 bk_token 和 session 中的是否一致
-        # 如果登出删除 cookie 后 session 存在 is_match 为False
-        is_match = (bk_token == request.session.get('bk_token'))
-        if is_match and request.user.is_authenticated:
-            return request.user
-
-        user = auth.authenticate(request=request,
-                                 bk_token=bk_token)
-        if user:
-            # 登录成功，记录 user 信息
-            auth.login(request, user)
-            request.session['bk_token'] = bk_token
-        return user

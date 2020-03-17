@@ -160,8 +160,10 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
       }
     }
   ]
-  - `editable`：是否显示编辑、删除按钮列
+  - `editable`：是否显示表格操作列，包含编辑、删除、保存、取消按钮
+  - `deleteable`：是否显示删除按钮，用来单独控制表格操作列的删除按钮
   - `add_btn`： 是否显示添加按钮
+  - `table_buttons`: 自定义配置表格按钮，eg: [{text: '点击', callback: function(){console.log(1)}, type: 'xxx or import'}, ...]，其中 type 为非必需字段，值为 import 时，点击回调使用内置的上传函数
   - `empty_text`：无数据提示
   - `remote_url`：表格数据远程加载，支持 url 和方法
   - `remote_data_init`：加载数据后的处理函数
@@ -172,6 +174,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `validateSubCom`：校验表格内的数据是否符合规则（规则由对应的列的标准插件配置项指定）
   - `set_loading`：传入布尔类型参数来设置表格是否为 loading 状态
   - `remoteMethod`：远程加载数据
+  - `export2Excel`：将表格数据导出到 excel 文件
 
 ### 5. TagDatetime
 

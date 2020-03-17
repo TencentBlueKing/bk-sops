@@ -33,3 +33,7 @@ if hasattr(ConfFixture, 'WEIXIN_MIDDLEWARE'):
 if hasattr(ConfFixture, 'RIO_MIDDLEWARE'):
     RioLoginRequiredMiddleware = load_middleware(
         ConfFixture.RIO_MIDDLEWARE)
+
+if hasattr(ConfFixture, 'BK_JWT_MIDDLEWARE'):
+    BkJwtLoginRequiredMiddleware = load_middleware(
+        ConfFixture.BK_JWT_MIDDLEWARE)

@@ -129,7 +129,7 @@
             }
         },
         mounted () {
-            if (this.userRights.function) {
+            if (this.userRights.function && this.entrance === 'function') {
                 this.setFunctionalStep(true)
             }
             if (this.entrance === 'periodicTask') {

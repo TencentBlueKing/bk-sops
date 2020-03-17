@@ -42,7 +42,7 @@ const permission = {
             const permissions = []
             actions.forEach(item => {
                 const res = []
-                if (resource.resource_type !== 'project') {
+                if (resource.resource_type !== 'project' || item.id !== 'create') { // 创建项目权限不需要资源信息
                     res.push([{
                         resource_id: resourceData.id,
                         resource_name: resourceData.name,

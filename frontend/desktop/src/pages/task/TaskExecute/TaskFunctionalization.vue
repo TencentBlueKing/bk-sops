@@ -68,7 +68,7 @@
             width="1000"
             @cancel="onCancel">
             <NodePreview
-                v-if="previewDialogShow"
+                v-if="canvasShow"
                 ref="nodePreviewRef"
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData(previewData)"
@@ -115,6 +115,7 @@
                 },
                 isSubmit: false,
                 previewDialogShow: false,
+                canvasShow: false,
                 previewDataLoading: false,
                 name: this.instanceName,
                 nodeSwitching: false,
@@ -134,6 +135,22 @@
             }),
             isVariableEmpty () {
                 return Object.keys(this.pipelineData.constants).length === 0
+            }
+        },
+        watch: {
+            /** HACK
+             * magicbox V2.1.8 版本，dialog 组件在切换为显示状态后，画布组件开始渲染，
+             * 弹窗内容区域 display 属性仍为 none，在 $nextTick 里才变更，
+             * 导致画布组件首次渲染时因为容器高度为 0，连线不能正确渲染位置
+             */
+            previewDialogShow (val) {
+                if (val) {
+                    setTimeout(() => {
+                        this.canvasShow = true
+                    }, 0)
+                } else {
+                    this.canvasShow = false
+                }
             }
         },
         methods: {
@@ -245,9 +262,8 @@
 @import '@/scss/config.scss';
 .functionalization-wrapper {
     position: relative;
-    margin: 0 40px;
+    padding: 0 40px;
     padding-top: 30px;
-    width: calc(100% - 80px);
     min-height: calc(100vh - 50px - 139px);
     background-color: #ffffff;
     @media screen and (max-width: 1300px){

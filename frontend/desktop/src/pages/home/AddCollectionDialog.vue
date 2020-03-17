@@ -25,10 +25,13 @@
                 <div class="search-wrapper">
                     <bk-search-select
                         ref="bkSearchSelect"
+                        :popover-zindex="2002"
                         :show-condition="false"
                         :data="searchOptionalList"
+                        :show-popover-tag-change="searchOptionalList.length !== 0"
                         v-model="searchValue"
-                        @change="onSearchChange">
+                        @change="onSearchChange"
+                        @chip-del="onChipDel">
                     </bk-search-select>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
@@ -480,6 +483,16 @@
             },
             onCancel () {
                 this.$emit('onCloseDialog')
+            },
+            onChipDel (name) {
+                /**
+                 * 兼容方法，待 magicbox 版本 2.1.9 稳定更新后删除、
+                 * 解决：当前版本 magicbox 2.1.9-beta.5，searchSelect 组件点击 x 并不能同步更新待选面板数据
+                 */
+                const instance = this.$refs.bkSearchSelect
+                this.$nextTick(() => {
+                    instance && instance.showMenu()
+                })
             }
         }
     }
