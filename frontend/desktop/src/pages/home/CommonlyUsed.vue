@@ -128,11 +128,14 @@
             },
             // 这里统一直接用后端提供的 host 跳转
             openOtherApp (name) {
-                if (name === 'bk_iam_app') {
-                    return window.open(window.BK_IAM_HOST, '__blank')
+                const HOST_MAP = {
+                    'bk_iam_app': window.BK_IAM_HOST,
+                    'bk_cmdb': window.BK_CC_HOST
                 }
-                if (name === 'bk_cmdb') {
-                    return window.open(window.BK_CC_HOST, '__blank')
+                if (self === top) {
+                    window.open(HOST_MAP[name], '__blank')
+                } else {
+                    window.PAAS_API.open_other_app(HOST_MAP[name])
                 }
             },
             onSwitchBusiness (id) {
