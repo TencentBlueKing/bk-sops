@@ -104,7 +104,7 @@
                                 <bk-switcher
                                     v-model="formData.modules[moduleIndex].isReuse"
                                     theme="primary"
-                                    size="small"
+                                    size="min"
                                     @change="onChangeReuse($event, formData.modules[moduleIndex])">
                                 </bk-switcher>
                             </bk-form-item>
@@ -141,7 +141,6 @@
                         </bk-form>
                     </bk-tab-panel>
                 </bk-tab>
-                <no-data class="module-empty" v-else></no-data>
             </div>
         </section>
     </div>
@@ -151,7 +150,6 @@
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import NoData from '@/components/common/base/NoData.vue'
     import SelectCondition from '../IpSelector/SelectCondition.vue'
 
     export default {
@@ -162,8 +160,7 @@
             }
         },
         components: {
-            SelectCondition,
-            NoData
+            SelectCondition
         },
         props: {
             config: {
@@ -176,6 +173,12 @@
                         module_detail: []
                     }
                 }
+            },
+            urls: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -185,12 +188,7 @@
                 formData: {
                     clusterCount: set_count,
                     set: [],
-                    resource: host_resources.map(item => {
-                        return {
-                            id: item.bk_module_id,
-                            label: item.bk_module_name
-                        }
-                    }),
+                    resource: host_resources,
                     modules: module_detail
                 },
                 setRules: {
@@ -311,7 +309,9 @@
             async getSetTopo () {
                 try {
                     this.pending.set = true
-                    const resp = await this.getCCSearchTopoSet()
+                    const resp = await this.getCCSearchTopoSet({
+                        url: this.urls['cc_search_topo_set']
+                    })
                     if (resp.result) {
                         this.setList = resp.data
                         if (this.config.set_template_id !== '') { // 筛选面板编辑时，由集群id筛选出集群名称
@@ -334,7 +334,9 @@
             async getResource () {
                 try {
                     this.pending.resource = true
-                    const resp = await this.getCCSearchTopoResource()
+                    const resp = await this.getCCSearchTopoResource({
+                        url: this.urls['cc_search_topo_module']
+                    })
                     if (resp.result) {
                         this.resourceList = resp.data
                         if (this.formData.resource.length > 0) {
@@ -351,14 +353,17 @@
                 }
             },
             async getModule (id) {
+                const setId = id.replace(/^set_/, '')
                 try {
                     this.pending.set = true
                     const params = {
-                        bk_set_id: id
+                        url: this.urls['cc_search_module'],
+                        bk_set_id: setId
                     }
                     const resp = await this.getCCSearchModule(params)
                     if (resp.result) {
                         this.moduleList = resp.data.info
+                        this.formData.modules = []
                     } else {
                         errorHandler(resp, this)
                     }
@@ -371,7 +376,9 @@
             async getCondition () {
                 try {
                     this.pending.condition = true
-                    const resp = await this.getCCSearchObjAttrHost()
+                    const resp = await this.getCCSearchObjAttrHost({
+                        url: this.urls['cc_search_object_attribute_host']
+                    })
                     if (resp.result) {
                         this.conditions = resp.data.map(item => {
                             return {
@@ -418,9 +425,9 @@
                 })
                 return name
             },
-            // 集群模板叶子节点不可选
+            // 集群模板只有 id 以 "set_" 开头的节点可选
             setLeafDisabled (data) {
-                return !data.hasOwnProperty('children') || data.children.length === 0
+                return !data.id.startsWith('set_')
             },
             // 主机资源所属，选中父节点后子节点不可选
             setResourceDisabled (data, node) {
@@ -546,14 +553,19 @@
                             }
                         })
                     })
-                    const hostData = await this.getHostInCC(fields)
-                    const moduleHosts = this.filterModuleHost(hostData.data)
-                    const hostResources = resource.map(item => {
+                    const topo = resource.map(item => {
+                        const [bk_obj_id, bk_inst_id] = item.id.split('_')
                         return {
-                            bk_module_id: item.id,
-                            bk_module_name: item.label
+                            bk_obj_id,
+                            bk_inst_id
                         }
                     })
+                    const hostData = await this.getHostInCC({
+                        url: this.urls['cc_search_host'],
+                        fields,
+                        topo
+                    })
+                    const moduleHosts = this.filterModuleHost(hostData.data)
                     const moduleDetail = modules.map(item => {
                         const { count, name, id, reuse, filters, excludes } = item
                         // 取有效筛选、排除条件，不做校验（和 ip 选择器有区别，这里多个 tab 有多个相同 refs）
@@ -572,7 +584,7 @@
                     const config = {
                         set_count: clusterCount,
                         set_template_id: set[0].id,
-                        host_resources: hostResources,
+                        host_resources: resource,
                         module_detail: moduleDetail
                     }
                     this.$emit('update', config, moduleHosts)
@@ -704,11 +716,9 @@
     }
     .module-form {
         padding: 20px;
-        border: 1px solid #ececec;
         border-radius: 2px;
         .module-wrapper {
             margin-top: 20px;
-            min-height: 450px;
         }
         .bk-form {
             /deep/ .bk-form-item {
