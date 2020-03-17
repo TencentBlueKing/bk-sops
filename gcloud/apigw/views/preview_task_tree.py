@@ -15,6 +15,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
@@ -33,6 +34,7 @@ except ImportError:
 
 
 @login_exempt
+@csrf_exempt
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
