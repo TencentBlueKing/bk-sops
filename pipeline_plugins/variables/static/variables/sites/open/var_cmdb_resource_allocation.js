@@ -10,44 +10,41 @@
 * specific language governing permissions and limitations under the License.
 */
 (function () {
-    $.atoms.var_cmdb_ip_selector = [
+    $.atoms.var_cmdb_resource_allocation = [
         {
-            tag_code: "ip_selector",
-            type: "ip_selector",
+            tag_code: "set_allocation",
+            type: "set_allocation",
             attrs: {
-                name: gettext("选择服务器"),
+                name: gettext("集群资源筛选"),
                 hookable: true,
-                isMultiple: false,
                 validation: [
                     {
                         type: "required"
                     }
                 ],
-                default: {
-                    "selectors": ["ip"],
-                    "topo": [],
-                    "ip": [],
-                    "filters": [],
-                    "excludes": [],
-                    "with_cloud_id": false
-                },
                 remote_url: function () {
                     if (!$.context.canSelectBiz()) {
                         return {
                             "cc_search_host": $.context.get("site_url") + "pipeline/cc_search_host/" + $.context.getBkBizId() + "/",
-                            "cc_search_topo_tree": $.context.get("site_url") + "pipeline/cc_search_topo_tree/" + $.context.getBkBizId() + "/",
-                            "cc_get_mainline_object_topo": $.context.get("site_url") + "pipeline/cc_get_mainline_object_topo/" + $.context.getBkBizId() + "/"
+                            "cc_search_topo_set": $.context.get("site_url") + "pipeline/cc_search_topo/set/normal/" + $.context.getBkBizId() + "/",
+                            "cc_search_topo_module": $.context.get("site_url") + "pipeline/cc_search_topo/module/normal/" + $.context.getBkBizId() + "/",
+                            "cc_search_module": $.context.get("site_url") + "pipeline/cc_search_module/" + $.context.getBkBizId() + "/",
+                            "cc_search_object_attribute_host": $.context.get("site_url") + "pipeline/cc_search_object_attribute/host/" + $.context.getBkBizId() + "/",
+                            "cc_search_create_object_attribute_set": $.context.get("site_url") + "pipeline/cc_search_create_object_attribute/set/" + $.context.getBkBizId() + "/"
                         }
                     } else {
                         show_msg(gettext("该变量只能在关联CMDB业务的项目下使用"), "error");
                         return {
                             "cc_search_host": "",
-                            "cc_search_topo_tree": "",
-                            "cc_get_mainline_object_topo": ""
+                            "cc_search_topo_set": "",
+                            "cc_search_topo_module": "",
+                            "cc_search_module": "",
+                            "cc_search_object_attribute_host": "",
+                            "cc_search_create_object_attribute_set": ""
                         }
                     }
                 }
             }
-        },
+        }
     ]
 })();

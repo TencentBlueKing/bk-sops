@@ -10,12 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from django.conf.urls import url
-
-from pipeline_plugins.variables.query import select
-
-
-urlpatterns = [
-    url(r'^variable_select_source_data_proxy/$', select.variable_select_source_data_proxy),
-]
