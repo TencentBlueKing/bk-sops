@@ -236,7 +236,7 @@ def cc_get_inner_ip_by_module_id(
         "bk_biz_id": biz_cc_id,
         "bk_supplier_account": supplier_account,
         "condition": [
-            {"bk_obj_id": "host", "fields": ["bk_host_innerip"],},
+            {"bk_obj_id": "host", "fields": ["bk_host_innerip"]},
             {
                 "bk_obj_id": "module",
                 "fields": [],
