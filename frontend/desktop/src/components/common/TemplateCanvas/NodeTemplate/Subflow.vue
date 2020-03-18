@@ -39,7 +39,9 @@
                     </bk-checkbox>
                 </template>
             </div>
-            <div v-if="node.hasUpdated" class="updated-dot"></div>
+            <div v-if="node.hasUpdated" class="updated-dot">
+                <div class="ripple"></div>
+            </div>
             <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon subflow-status">
                 <i v-if="node.status === 'SUSPENDED'" class="common-icon-double-vertical-line"></i>
                 <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
@@ -120,15 +122,33 @@
         position: absolute;
         top: -6px;
         right: 15px;
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         background: #ff5757;
         border-radius: 50%;
         z-index: 1;
+        &.show-animation .ripple {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 100%;
+            width: 100%;
+            background: transparent;
+            border: 1px solid #ff5757;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: ripple .8s ease-out infinite;
+        }
     }
     .dark-circle {
         font-size: 12px;
         color: #979ba5;
         margin-left: -2px;
+    }
+    @keyframes ripple {
+        100% {
+            width: 200%;
+            height: 200%;
+        }
     }
 </style>

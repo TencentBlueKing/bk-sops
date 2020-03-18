@@ -41,6 +41,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         templateExport: SITE_URL + 'template/api/export/' + PROJECT_ID + '/',
         templateSummary: SITE_URL + 'template/api/get_template_count/' + PROJECT_ID + '/',
         templateAutoDraw: SITE_URL + 'template/api/draw_pipeline/',
+        templateExpiredSubProcess: SITE_URL + 'template/api/get_templates_with_expired_subprocess/' + PROJECT_ID + '/',
         instanceClone: SITE_URL + 'taskflow/api/clone/' + PROJECT_ID + '/',
         instancePreview: SITE_URL + 'taskflow/api/preview_task_tree/' + PROJECT_ID + '/',
         instanceStart: SITE_URL + 'taskflow/api/action/start/' + PROJECT_ID + '/',

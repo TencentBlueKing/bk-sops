@@ -28,6 +28,15 @@
                 @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
+            <SubflowUpdateTips
+                v-if="subflowShouldUpdated.length > 0"
+                :class="['update-tips', { 'update-tips-with-menu-open': nodeMenuOpen }]"
+                :list="subflowShouldUpdated"
+                :locations="locations"
+                :node-menu-open="nodeMenuOpen"
+                @viewClick="moveSubflowToView"
+                @foldClick="clearDotAnimation">
+            </SubflowUpdateTips>
             <TemplateCanvas
                 ref="templateCanvas"
                 class="template-canvas"
@@ -39,6 +48,7 @@
                 :common="common"
                 :template_id="template_id"
                 :canvas-data="canvasData"
+                :node-memu-open.sync="nodeMenuOpen"
                 @hook:mounted="canvasMounted"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
@@ -133,6 +143,7 @@
     import TemplateSetting from './TemplateSetting/index.vue'
     import NodeConfig from './NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
+    import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
     import { STRING_LENGTH } from '@/constants/index.js'
@@ -159,7 +170,8 @@
             TemplateCanvas,
             NodeConfig,
             ConditionEdit,
-            TemplateSetting
+            TemplateSetting,
+            SubflowUpdateTips
         },
         props: ['template_id', 'type', 'common'],
         data () {
@@ -180,6 +192,7 @@
                 isSettingPanelShow: true,
                 isNodeConfigPanelShow: false,
                 isLeaveDialogShow: false,
+                nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
                 isFixedVarMenu: false, // 全局变量面板铆钉
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
@@ -320,6 +333,12 @@
             // draftProjectId
             draftProjectId () {
                 return this.common ? 'common' : this.project_id
+            },
+            subflowShouldUpdated () {
+                if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
+                    return this.subprocess_info.details
+                }
+                return []
             }
         },
         async created () {
@@ -1241,6 +1260,34 @@
             canvasMounted () {
                 this.handlerGuideTips()
             },
+            /**
+             * 移动画布，将需要更新的子流程节点放到到画布左上角
+             */
+            moveSubflowToView (id) {
+                const { x, y } = this.locations.find(item => item.id === id)
+                const offsetX = 200 - x
+                const offsetY = 200 - y
+                this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
+                this.showDotAnimation(id)
+            },
+            // 开启子流程更新的小红点动画效果
+            showDotAnimation (id) {
+                this.clearDotAnimation()
+                if (!Array.isArray(id)) {
+                    id = [id]
+                }
+                id.forEach(item => {
+                    const nodeDot = document.querySelector(`#${item} .updated-dot`)
+                    nodeDot.classList.add('show-animation')
+                })
+            },
+            // 关闭所有子流程更新的小红点动画效果
+            clearDotAnimation () {
+                const updateNodesDot = document.querySelectorAll('.subflow-node .updated-dot')
+                updateNodesDot.forEach(item => {
+                    item.classList.remove('show-animation')
+                })
+            },
             fixedVarMenuChange (val) {
                 this.isFixedVarMenu = val
             }
@@ -1270,6 +1317,18 @@
         position: relative;
         height: 100%;
         overflow: hidden;
+    }
+    .update-tips {
+        position: absolute;
+        top: 76px;
+        left: 400px;
+        min-height: 40px;
+        overflow: hidden;
+        z-index: 1;
+        transition: left 0.5s ease;
+        &.update-tips-with-menu-open {
+            left: 700px;
+        }
     }
     .pipeline-canvas-wrapper {
         height: 100%;

@@ -41,7 +41,7 @@
                 type: String,
                 default: ''
             },
-            hideAdvance: {
+            isAdvanceOpen: {
                 type: Boolean,
                 default: false
             },
@@ -67,8 +67,7 @@
         },
         methods: {
             onShow () {
-                this.$emit('onShow', this.isAdvancedSerachShow)
-                this.shapeShow = !this.shapeShow
+                this.$emit('update:isAdvanceOpen', !this.isAdvanceOpen)
             },
             onInput (value) {
                 const exportValue = typeof value === 'string' ? value : value.target.value

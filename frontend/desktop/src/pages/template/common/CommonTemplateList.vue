@@ -12,9 +12,14 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.commonFlow"></base-title>
+            <list-page-tips-title
+                :title="i18n.commonFlow"
+                :num="expiredSubflowTplList.length"
+                @viewClick="handleSubflowFilter">
+            </list-page-tips-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    ref="advanceSearch"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -210,13 +215,14 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from '../TemplateList/ImportTemplateDialog.vue'
     import ExportTemplateDialog from '../TemplateList/ExportTemplateDialog.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    import ListPageTipsTitle from '../ListPageTipsTitle.vue'
+
     const searchForm = [
         {
             type: 'select',
@@ -259,7 +265,7 @@
             ImportTemplateDialog,
             ExportTemplateDialog,
             ProjectSelectorModal,
-            BaseTitle,
+            ListPageTipsTitle,
             AdvanceSearchForm,
             NoData
         },
@@ -310,7 +316,7 @@
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
-                totalPage: 1,
+                expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isExportDialogShow: false,
@@ -336,6 +342,7 @@
                     creator: '',
                     flowName: ''
                 },
+                totalPage: 1,
                 pagination: {
                     current: 1,
                     count: 0,
@@ -376,6 +383,7 @@
             this.getCollectList()
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
+            // this.getExpiredSubflowData() 公共流程暂时不显示子流程更新提示
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -393,7 +401,8 @@
                 'deleteTemplate',
                 'saveTemplatePersons',
                 'templateImport',
-                'templateExport'
+                'templateExport',
+                'getExpiredSubProcess'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -468,6 +477,18 @@
                 } finally {
                     this.projectInfoLoading = false
                     this.categoryLoading = false
+                }
+            },
+            async getExpiredSubflowData () {
+                try {
+                    const resp = await this.getExpiredSubProcess()
+                    if (resp.result) {
+                        this.expiredSubflowTplList = resp.data
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
                 }
             },
             async getCollectList () {
@@ -657,6 +678,13 @@
                 this.pagination.limit = val
                 this.pagination.current = 1
                 this.getTemplateList()
+            },
+            // 标题提示信息，查看子流程更新
+            handleSubflowFilter () {
+                const searchComp = this.$refs.advanceSearch
+                searchComp.onAdvanceOpen(true)
+                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.submit()
             },
             // 添加/取消收藏模板
             async onCollectTemplate (template, event) {
