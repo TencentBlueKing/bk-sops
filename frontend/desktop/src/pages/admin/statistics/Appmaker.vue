@@ -131,7 +131,8 @@
         },
         {
             label: gettext('创建时间'),
-            prop: 'createTime'
+            prop: 'createTime',
+            width: 200
         },
         {
             label: gettext('创建任务数'),

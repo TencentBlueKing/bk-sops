@@ -57,7 +57,7 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
@@ -75,11 +75,9 @@
                             </a>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.type" prop="category_name"></bk-table-column>
-                    <bk-table-column :label="i18n.updateTime" prop="edit_time"></bk-table-column>
-                    <bk-table-column
-                        width="120"
-                        :label="i18n.subflowUpdate">
+                    <bk-table-column :label="i18n.type" prop="category_name" width="180"></bk-table-column>
+                    <bk-table-column :label="i18n.updateTime" prop="edit_time" width="200"></bk-table-column>
+                    <bk-table-column width="120" :label="i18n.subflowUpdate">
                         <template slot-scope="props">
                             <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
                                 {{getSubflowContent(props.row)}}
@@ -87,7 +85,7 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="200" class="operation-cell">
+                    <bk-table-column :label="i18n.operation" width="240" class="operation-cell">
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
@@ -118,11 +116,17 @@
                                         {{i18n.clone}}
                                     </a>
                                     <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
-                                    
-                                    <bk-dropdown-menu>
-                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul class="bk-dropdown-list" slot="dropdown-content">
-                                            <li>
+                                    <bk-popover
+                                        theme="light"
+                                        placement="right-top"
+                                        ext-cls="common-dropdown-btn-popver"
+                                        :z-index="2000"
+                                        :distance="0"
+                                        :arrow="false"
+                                        :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                        <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                        <ul slot="content">
+                                            <li class="opt-btn">
                                                 <a
                                                     v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, tplOperations) }"
                                                     href="javascript:void(0);"
@@ -132,6 +136,8 @@
                                                     @click="onCollectTemplate(props.row, $event)">
                                                     {{ isCollected(props.row.id) ? i18n.cancelCollection : i18n.collect }}
                                                 </a>
+                                            </li>
+                                            <li class="opt-btn">
                                                 <a
                                                     v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
                                                     v-cursor
@@ -145,11 +151,8 @@
                                                     @click.prevent="getJumpUrl('edit', props.row.id)">
                                                     {{i18n.edit}}
                                                 </a>
-                                                <router-link
-                                                    v-if="project_id"
-                                                    :to="getExecuteHistoryUrl(props.row.id)">
-                                                    {{ i18n.executeHistory }}
-                                                </router-link>
+                                            </li>
+                                            <li class="opt-btn">
                                                 <a
                                                     v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
                                                     href="javascript:void(0);"
@@ -161,7 +164,7 @@
                                                 </a>
                                             </li>
                                         </ul>
-                                    </bk-dropdown-menu>
+                                    </bk-popover>
                                 </template>
                             </div>
                         </template>
@@ -757,27 +760,19 @@ a {
     a.template-name {
         color: $blueDefault;
     }
-    /deep/ .bk-table {
-        overflow: visible;
-        .bk-table-body-wrapper,.is-scrolling-none,
-        td.is-last .cell {
-            overflow: visible;
-        }
-    }
     .template-operation > .text-permission-disable {
         padding: 5px;
     }
     .template-operate-btn {
         padding: 5px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .drop-icon-ellipsis {
-        position: absolute;
-        top: -13px;
         font-size: 18px;
+        vertical-align: -3px;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
         }
     }
     .empty-data {
@@ -786,8 +781,5 @@ a {
     .subflow-has-update {
         color: $redDefault;
     }
-}
-.bk-dropdown-menu .bk-dropdown-list > li > a {
-    font-size: 12px;
 }
 </style>

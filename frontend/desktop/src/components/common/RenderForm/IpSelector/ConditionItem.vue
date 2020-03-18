@@ -18,7 +18,7 @@
                 :placeholder="i18n.select"
                 @selected="onConditionSelect">
                 <bk-option
-                    v-for="(option, i) in filedsData"
+                    v-for="(option, i) in fieldsList"
                     :key="i"
                     :id="option.id"
                     :name="option.name">
@@ -48,13 +48,34 @@
 
     const i18n = {
         select: gettext('请选择'),
-        desc: gettext('请输入拓扑实例名称，多个用换行符分隔'),
+        desc: gettext('请输入，多个用换行符分隔'),
         notEmpty: gettext('必填项')
     }
 
     export default {
         name: 'ConditionItem',
-        props: ['editable', 'data', 'fieldsList', 'index'],
+        props: {
+            editable: {
+                type: Boolean,
+                default: true
+            },
+            data: {
+                type: Object,
+                default () {
+                    return {
+                        field: '',
+                        value: []
+                    }
+                }
+            },
+            fieldsList: {
+                type: Array,
+                default: []
+            },
+            index: {
+                type: Number
+            }
+        },
         data () {
             return {
                 isDropdownShow: false,
@@ -65,16 +86,6 @@
                     value: this.data.value.join('\n')
                 },
                 i18n
-            }
-        },
-        computed: {
-            filedsData () {
-                return this.fieldsList.map(item => {
-                    return {
-                        id: item.bk_obj_id,
-                        name: item.bk_obj_name
-                    }
-                })
             }
         },
         watch: {

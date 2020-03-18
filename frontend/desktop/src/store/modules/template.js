@@ -38,7 +38,7 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 300,
-            y: 150,
+            y: 145,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
@@ -743,7 +743,7 @@ const template = {
             const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
             if (state.activities[nodeId]) {
                 const item = state.activities[nodeId]
-                const nodeData = item.component.data
+                const nodeData = item.type === 'ServiceActivity' ? item.component.data : item.constants
                 if (checkDataType(nodeData) === 'Object') {
                     for (const code in nodeData) {
                         const value = nodeData[code].value

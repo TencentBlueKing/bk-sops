@@ -1458,7 +1458,7 @@
         font-size: 12px;
         color: $whiteDefault;
         text-align: center;
-        background:#3c96ff;
+        background:#3a84ff;
         border-right: none;
         border-radius: 4px;
         border-top-right-radius: 0;
