@@ -35,7 +35,8 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 def dispatch_plugin_query(request):
-    """转发插件表单渲染资源请求，暂时仅考虑GET/POST请求
+    """
+        转发插件表单渲染资源请求，暂时仅考虑GET/POST请求
         body = {
             "url": 被转发资源请求url, 比如：/pipeline/job_get_script_list/4/?type=public
             "method": 'GET|POST',
