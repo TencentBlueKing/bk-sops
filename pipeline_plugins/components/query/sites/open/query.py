@@ -99,7 +99,7 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
             prop_dict = {
                 "tag_code": item["bk_property_id"],
                 "type": "input",
-                "attrs": {"name": item["bk_property_name"], "editable": "true",},
+                "attrs": {"name": item["bk_property_name"], "editable": "true"},
             }
             if item["bk_property_id"] in ["bk_set_name"]:
                 prop_dict["attrs"]["validation"] = [{"type": "required"}]
@@ -301,9 +301,7 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
         return JsonResponse(result)
     task_list = []
     for task in job_result["data"]:
-        task_list.append(
-            {"value": task["bk_job_id"], "text": task["name"],}
-        )
+        task_list.append({"value": task["bk_job_id"], "text": task["name"]})
     return JsonResponse({"result": True, "data": task_list})
 
 
