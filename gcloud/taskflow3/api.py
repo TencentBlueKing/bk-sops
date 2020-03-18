@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import copy
 import logging
 import traceback
 
@@ -35,10 +34,9 @@ from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
+from gcloud.taskflow3.utils import preview_template_tree
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -265,23 +263,24 @@ def preview_task_tree(request, project_id):
     template_source = request.POST.get('template_source', PROJECT)
     template_id = request.POST.get('template_id')
     version = request.POST.get('version')
-    if template_source == PROJECT:
-        template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
-    else:
-        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
     exclude_task_nodes_id = json.loads(request.POST.get('exclude_task_nodes_id', '[]'))
-    pipeline_tree = template.get_pipeline_tree_by_version(version)
-    template_constants = copy.deepcopy(pipeline_tree['constants'])
+
     try:
-        TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+        data = preview_template_tree(
+            project_id,
+            template_source,
+            template_id,
+            version,
+            exclude_task_nodes_id
+        )
     except Exception as e:
-        logger.exception(e)
-        return JsonResponse({'result': False, 'message': str(e)})
-    constants_not_referred = {key: value for key, value in list(template_constants.items())
-                              if key not in pipeline_tree['constants']}
+        err_msg = 'preview_template_tree fail: {}'.format(e)
+        logger.exception(err_msg)
+        return JsonResponse({'result': False, 'message': err_msg})
+
     return JsonResponse({
         'result': True,
-        'data': {'pipeline_tree': pipeline_tree, 'constants_not_referred': constants_not_referred}
+        'data': data
     })
 
 

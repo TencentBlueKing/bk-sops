@@ -15,11 +15,10 @@ import logging
 
 from gcloud.core.models import EnvironmentVariables
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 class EnvWhitelist(object):
-
     def __init__(self, transient_list, env_key):
         self.transient_list = transient_list
         self.env_key = env_key
@@ -33,9 +32,9 @@ class EnvWhitelist(object):
             return False
 
         try:
-            env_list = set(env_list_var.split(','))
+            env_list = set(env_list_var.split(","))
         except Exception:
-            logger.exception('resolve {} error.'.format(self.env_key))
+            logger.exception("resolve {} error.".format(self.env_key))
             return False
 
         return app in env_list
