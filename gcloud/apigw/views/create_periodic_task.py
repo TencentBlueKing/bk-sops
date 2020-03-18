@@ -63,7 +63,7 @@ def create_periodic_task(request, template_id, project_id):
     project = request.project
     template_source = params.get("template_source", PROJECT)
     logger.info(
-        "apigw create_periodic_task info, "
+        "[API] apigw create_periodic_task info, "
         "template_id: {template_id}, project_id: {project_id}, params: {params}".format(
             template_id=template_id, project_id=project.id, params=params
         )
@@ -135,7 +135,7 @@ def create_periodic_task(request, template_id, project_id):
         params.setdefault("exclude_task_nodes_id", [])
         jsonschema.validate(params, APIGW_CREATE_PERIODIC_TASK_PARAMS)
     except jsonschema.ValidationError as e:
-        logger.warning("apigw create_periodic_task raise prams error: %s" % e)
+        logger.warning("[API] create_periodic_task raise prams error: %s" % e)
         message = "task params is invalid: %s" % e
         return JsonResponse(
             {
@@ -152,7 +152,7 @@ def create_periodic_task(request, template_id, project_id):
             pipeline_tree, exclude_task_nodes_id
         )
     except Exception as e:
-        logger.exception(e)
+        logger.exception("[API] create_periodic_task preview tree error: {}".format(e))
         return JsonResponse(
             {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
         )
@@ -167,7 +167,7 @@ def create_periodic_task(request, template_id, project_id):
     try:
         replace_template_id(TaskTemplate, pipeline_tree)
     except Exception as e:
-        logger.exception(e)
+        logger.exception("[API] create_periodic_task replace id error: {}".format(e))
         return JsonResponse(
             {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
         )
@@ -183,7 +183,7 @@ def create_periodic_task(request, template_id, project_id):
             creator=request.user.username,
         )
     except Exception as e:
-        logger.exception(e)
+        logger.exception("[API] create_periodic_task create error: {}".format(e))
         return JsonResponse(
             {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
         )

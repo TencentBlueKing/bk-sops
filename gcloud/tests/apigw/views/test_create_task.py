@@ -17,7 +17,9 @@ import jsonschema
 
 from pipeline.exceptions import PipelineException
 
+from gcloud import err_code
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.apigw.views import create_task
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -32,6 +34,7 @@ TEST_TEMPLATE_ID = "1"
 TEST_TASKFLOW_ID = "2"
 TEST_TASKFLOW_URL = "url"
 TEST_TASKFLOW_PIPELINE_TREE = "pipeline_tree"
+TEST_PIPELINE_TREE = "TEST_PIPELINE_TREE"
 
 
 class CreateTaskAPITest(APITest):
@@ -82,7 +85,7 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": ""}, {}, "exclude_task_nodes_id"
+                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id"
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -136,7 +139,7 @@ class CreateTaskAPITest(APITest):
                 )
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                    tmpl, {"name": "name", "creator": ""}, {}, "exclude_task_nodes_id"
+                    tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id"
                 )
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -410,3 +413,177 @@ class CreateTaskAPITest(APITest):
 
             self.assertFalse(data["result"])
             self.assertTrue("message" in data)
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock(side_effect=Exception()))
+    def test_create_task__validate_pipeline_tree_error(self):
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            response = self.client.post(
+                path=self.url().format(
+                    template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
+                ),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "pipeline_tree": TEST_PIPELINE_TREE,
+                        "exclude_task_node_id": "exclude_task_node_id",
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+            )
+
+            data = json.loads(response.content)
+
+            self.assertFalse(data["result"])
+            self.assertTrue("message" in data)
+            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+
+            create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
+            create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
+            create_task.pipeline_node_name_handle.reset_mock()
+            create_task.validate_web_pipeline_tree.reset_mock()
+
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            response = self.client.post(
+                path=self.url().format(
+                    template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
+                ),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "pipeline_tree": TEST_PIPELINE_TREE,
+                        "exclude_task_node_id": "exclude_task_node_id",
+                        "template_source": "common",
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+            )
+
+            data = json.loads(response.content)
+
+            self.assertFalse(data["result"])
+            self.assertTrue("message" in data)
+            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+
+            create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
+            create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE_INSTANCE, MagicMock(side_effect=PipelineException()))
+    def test_create_task__create_pipeline_instance_error(self):
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            response = self.client.post(
+                path=self.url().format(
+                    template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
+                ),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "pipeline_tree": TEST_PIPELINE_TREE,
+                        "exclude_task_node_id": "exclude_task_node_id",
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+            )
+
+            data = json.loads(response.content)
+
+            self.assertFalse(data["result"])
+            self.assertTrue("message" in data)
+            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+
+            TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
+                template=tmpl,
+                name="name",
+                creator="",
+                description="",
+                pipeline_tree=TEST_PIPELINE_TREE,
+            )
+            TaskFlowInstance.objects.create_pipeline_instance.reset_mock()
+
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            response = self.client.post(
+                path=self.url().format(
+                    template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
+                ),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "pipeline_tree": TEST_PIPELINE_TREE,
+                        "exclude_task_node_id": "exclude_task_node_id",
+                        "template_source": "common",
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+            )
+
+            data = json.loads(response.content)
+
+            self.assertFalse(data["result"])
+            self.assertTrue("message" in data)
+            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+
+            TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
+                template=tmpl,
+                name="name",
+                creator="",
+                description="",
+                pipeline_tree=TEST_PIPELINE_TREE,
+            )

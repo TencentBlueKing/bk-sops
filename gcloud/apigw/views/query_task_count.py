@@ -61,7 +61,8 @@ def query_task_count(request, project_id):
     group_by = params.get("group_by")
     if not isinstance(conditions, dict):
         message = (
-            "query_task_list params conditions[%s] are invalid dict data" % conditions
+            "[API] query_task_list params conditions[%s] are invalid dict data"
+            % conditions
         )
         logger.error(message)
         return JsonResponse(
@@ -72,7 +73,7 @@ def query_task_count(request, project_id):
             }
         )
     if group_by not in ["category", "create_method", "flow_type", "status"]:
-        message = "query_task_list params group_by[%s] is invalid" % group_by
+        message = "[API] query_task_list params group_by[%s] is invalid" % group_by
         logger.error(message)
         return JsonResponse(
             {
