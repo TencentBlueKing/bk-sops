@@ -8,10 +8,14 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 module.exports = {
     entry: {
         index: './src/renderform/index.js',
-        entry: './src/renderform/entry.js'
     },
     output: {
         path: path.join(__dirname, '../static/renderform'),
+        filename: 'index.js',
+        library: 'renderForm',
+        libraryTarget: 'umd',
+        libraryExport: 'renderForm',
+        umdNamedDefine: true
     },
     module: {
         rules: [

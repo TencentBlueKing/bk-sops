@@ -122,7 +122,7 @@ const atomFilter = {
      * @param {String} version 插件版本
      * @param {Object} atomFormConfig 所有配置
      */
-    isConfigExists (atomType, version, atomFormConfig) {
+    isConfigExists (atomType, version, atomFormConfig = {}) {
         return atomFormConfig[atomType] && atomFormConfig[atomType][version]
     }
 }
