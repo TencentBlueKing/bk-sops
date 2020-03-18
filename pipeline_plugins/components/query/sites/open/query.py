@@ -349,49 +349,19 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 
 
 @supplier_account_inject
-def cc_search_topo_tree(request, project_id, supplier_account):
-    project = Project.objects.get(id=project_id)
-    if project.from_cmdb:
-        return cmdb_search_topo_tree(request, project.bk_biz_id, supplier_account)
-    else:
-        ctx = {
-            'result': False,
-            'message': 'cannot search topo tree by project which is not from CMDB',
-            'data': {},
-            'code': -1
-        }
-        return JsonResponse(ctx)
+def cc_search_topo_tree(request, biz_cc_id, supplier_account):
+    return cmdb_search_topo_tree(request, biz_cc_id, supplier_account)
 
 
 @supplier_account_inject
 @supplier_id_inject
-def cc_search_host(request, project_id, supplier_account, supplier_id):
-    project = Project.objects.get(id=project_id)
-    if project.from_cmdb:
-        return cmdb_search_host(request, project.bk_biz_id, supplier_account, supplier_id)
-    else:
-        ctx = {
-            'result': False,
-            'message': 'cannot search host by project which is not from CMDB',
-            'data': {},
-            'code': -1
-        }
-        return JsonResponse(ctx)
+def cc_search_host(request, biz_cc_id, supplier_account, supplier_id):
+    return cmdb_search_host(request, biz_cc_id, supplier_account, supplier_id)
 
 
 @supplier_account_inject
-def cc_get_mainline_object_topo(request, project_id, supplier_account):
-    project = Project.objects.get(id=project_id)
-    if project.from_cmdb:
-        return cmdb_get_mainline_object_topo(request, project.bk_biz_id, supplier_account)
-    else:
-        ctx = {
-            'result': False,
-            'message': 'cannot search mainline object topo by project which is not from CMDB',
-            'data': {},
-            'code': -1
-        }
-        return JsonResponse(ctx)
+def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
+    return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
 
 
 def cc_get_business(request):
@@ -490,9 +460,9 @@ urlpatterns = [
     url(r'^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_job_task_detail),
 
     # IP selector
-    url(r'^cc_search_topo_tree/(?P<project_id>\d+)/$', cc_search_topo_tree),
-    url(r'^cc_search_host/(?P<project_id>\d+)/$', cc_search_host),
-    url(r'^cc_get_mainline_object_topo/(?P<project_id>\d+)/$', cc_get_mainline_object_topo),
+    url(r'^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$', cc_search_topo_tree),
+    url(r'^cc_search_host/(?P<biz_cc_id>\d+)/$', cc_search_host),
+    url(r'^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$', cc_get_mainline_object_topo),
 
     url(r'^cc_get_business_list/$', cc_get_business),
 ]

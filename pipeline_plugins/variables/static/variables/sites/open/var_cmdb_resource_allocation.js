@@ -21,7 +21,29 @@
                     {
                         type: "required"
                     }
-                ]
+                ],
+                remote_url: function () {
+                    if (!$.context.canSelectBiz()) {
+                        return {
+                            "cc_search_host": $.context.get("site_url") + "pipeline/cc_search_host/" + $.context.getBkBizId() + "/",
+                            "cc_search_topo_set": $.context.get("site_url") + "pipeline/cc_search_topo/set/normal/" + $.context.getBkBizId() + "/",
+                            "cc_search_topo_module": $.context.get("site_url") + "pipeline/cc_search_topo/module/normal/" + $.context.getBkBizId() + "/",
+                            "cc_search_module": $.context.get("site_url") + "pipeline/cc_search_module/" + $.context.getBkBizId() + "/",
+                            "cc_search_object_attribute_host": $.context.get("site_url") + "pipeline/cc_search_object_attribute/host/" + $.context.getBkBizId() + "/",
+                            "cc_search_create_object_attribute_set": $.context.get("site_url") + "pipeline/cc_search_create_object_attribute/set/" + $.context.getBkBizId() + "/"
+                        }
+                    } else {
+                        show_msg(gettext("该变量只能在关联CMDB业务的项目下使用"), "error");
+                        return {
+                            "cc_search_host": "",
+                            "cc_search_topo_set": "",
+                            "cc_search_topo_module": "",
+                            "cc_search_module": "",
+                            "cc_search_object_attribute_host": "",
+                            "cc_search_create_object_attribute_set": ""
+                        }
+                    }
+                }
             }
         }
     ]

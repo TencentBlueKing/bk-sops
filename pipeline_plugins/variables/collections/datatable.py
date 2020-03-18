@@ -24,7 +24,7 @@ logger = logging.getLogger('root')
 
 class DataTableValue(object):
     def __init__(self, data):
-        self.value = data
+        self._value = data
         item_values = {}
         for item in data:
             for key, val in item.items():
@@ -45,4 +45,10 @@ class DataTable(LazyVariable):
     schema = StringItemSchema(description=_('表格变量'))
 
     def get_value(self):
+        """
+        @summary: 返回 DataTableValue 对象
+        @note： 引用表格变量某一列某一行的属性，如 ${table.columnA[0]} -> "test1"
+        @note： 引用表格变量某一列的全部属性，多行用换行分隔，如 ${table.flat__columnA} -> "test1\ntest2"
+        @return:
+        """
         return DataTableValue(self.value)
