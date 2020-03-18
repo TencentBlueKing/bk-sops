@@ -21,7 +21,6 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust
 
 try:
     from bkoauth.decorators import apigw_required
@@ -32,8 +31,6 @@ except ImportError:
 @login_exempt
 @csrf_exempt
 @require_POST
-# @apigw_required
-# @mark_request_whether_is_trust
 def dispatch_plugin_query(request):
     """
         转发插件表单渲染资源请求，暂时仅考虑GET/POST请求
