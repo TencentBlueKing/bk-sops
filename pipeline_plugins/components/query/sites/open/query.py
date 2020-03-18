@@ -37,7 +37,7 @@ from files.factory import ManagerFactory
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from gcloud.exceptions import APIError
-from gcloud.core.models import Project, EnvironmentVariables
+from gcloud.core.models import EnvironmentVariables
 from gcloud.core.utils import get_user_business_list
 
 logger = logging.getLogger('root')
