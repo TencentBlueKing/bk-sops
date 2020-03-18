@@ -11,206 +11,209 @@
 */
 <template>
     <div class="node-config" @click="e => e.stopPropagation()">
-        <div
-            :class="[
-                'node-config-panel',
-                {
-                    'position-right-side': !isSettingPanelShow
-                }
-            ]"
-            ref="nodeConfigPanel">
-            <div class="node-title">
-                <span>{{ i18n.baseInfo }}</span>
-            </div>
-            <div class="basic-info">
-                <div class="section-form basic-info-form">
-                    <div class="form-item form-name">
-                        <label class="required">{{ atomNameType }}</label>
-                        <div class="form-content">
-                            <bk-select
-                                v-model="currentAtom"
-                                class="node-select"
-                                :searchable="true"
-                                :clearable="false"
-                                :disabled="atomConfigLoading"
-                                @selected="onAtomSelect">
-                                <bk-option
-                                    v-for="(option, index) in atomList"
-                                    :key="option.id"
-                                    :id="option.id"
-                                    :name="option.name">
-                                    <template v-if="!isSingleAtom">
-                                        <span class="subflow-option-name">{{option.name}}</span>
-                                        <i class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
-                                    </template>
-                                </bk-option>
-                            </bk-select>
-                            <!-- 标准插件节点说明 -->
-                            <i class="common-icon-info desc-tooltip"
-                                v-if="atomDesc"
-                                v-bk-tooltips="{
-                                    content: atomDesc,
-                                    width: '400',
-                                    placements: ['bottom-end'] }">
-                            </i>
-                            <!-- 子流程版本更新 -->
-                            <i
-                                :class="[
-                                    'common-icon-clock-inversion',
-                                    'update-tooltip',
-                                    {
-                                        'disabled': atomConfigLoading
-                                    }
-                                ]"
-                                v-if="subflowHasUpdate"
-                                v-bk-tooltips="{
-                                    content: i18n.update,
-                                    placements: ['bottom-end'] }"
-                                @click="onUpdateSubflowVersion">
-                            </i>
-                            <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
-                        </div>
-                    </div>
-                    <div v-if="isSingleAtom" class="form-item">
-                        <label class="required">{{ i18n.version_name }}</label>
-                        <div class="form-content">
-                            <bk-select
-                                v-model="currentVersion"
-                                class="node-select"
-                                :searchable="true"
-                                :clearable="false"
-                                @selected="onVersionSelect">
-                                <bk-option
-                                    v-for="option in currentVersionList"
-                                    :key="option.version"
-                                    :id="option.version"
-                                    :name="option.version">
-                                </bk-option>
-                            </bk-select>
-                            <span v-show="taskVersionEmpty" class="common-error-tip error-msg">{{ i18n.version_name + i18n.typeEmptyTip}}</span>
-                        </div>
-                    </div>
-                    <div class="form-item">
-                        <label class="required">{{ i18n.node_name }}</label>
-                        <div class="form-content">
-                            <bk-input
-                                v-model="nodeName"
-                                name="nodeName"
-                                class="node-name"
-                                v-validate="nodeNameRule" />
-                            <span v-show="errors.has('nodeName')" class="common-error-tip error-msg">{{ errors.first('nodeName') }}</span>
-                        </div>
-                    </div>
-                    <div class="form-item">
-                        <label>{{ i18n.stage_tag }}</label>
-                        <div class="form-content">
-                            <bk-input v-model="stageName" name="stageName" class="stage-name" v-validate="stageNameRule" />
-                            <span v-show="errors.has('stageName')" class="common-error-tip error-msg">{{ errors.first('stageName') }}</span>
-                        </div>
-                    </div>
-                    <div class="form-item" v-if="isSingleAtom">
-                        <label>{{ i18n.failureHandling }}</label>
-                        <div class="form-content error-handler">
-                            <bk-checkbox
-                                v-model="errorCouldBeIgnored"
-                                @change="onIgnoredChange">
-                                <div class="checkbox-text-wrapper">
-                                    <i class="common-icon-dark-circle-i"></i>
-                                    <span class="checkbox-text">{{i18n.ignore}}</span>
-                                </div>
-                            </bk-checkbox>
-                            <bk-checkbox v-model="isSkip" :disabled="isManulHandleErrrorDisable">
-                                <div class="checkbox-text-wrapper">
-                                    <i class="common-icon-dark-circle-s"></i>
-                                    <span class="checkbox-text">{{i18n.manuallySkip}}</span>
-                                </div>
-                            </bk-checkbox>
-                            <bk-checkbox v-model="isRetry" :disabled="isManulHandleErrrorDisable">
-                                <div class="checkbox-text-wrapper">
-                                    <i class="common-icon-dark-circle-r"></i>
-                                    <span class="checkbox-text">{{i18n.manuallyRetry}}</span>
-                                </div>
-                            </bk-checkbox>
-                            <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
-                                <p>
-                                    {{ i18n.failureHandlingIgnore }}
-                                </p>
-                                <p>
-                                    {{ i18n.failureHandlingSkip }}
-                                </p>
-                                <p>
-                                    {{ i18n.failureHandlingRetry }}
-                                </p>
-                            </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info ui-failure-info"></i>
-                            <span v-show="manuallyEmpty" class="error-handler-warning-tip common-warning-tip">{{ i18n.manuallyEmpty}}</span>
-                        </div>
-                    </div>
-                    <div class="form-item">
-                        <label>{{ i18n.optional }}</label>
-                        <div class="form-content">
-                            <bk-switcher
-                                size="small"
-                                v-model="nodeCouldBeSkipped">
-                            </bk-switcher>
-                        </div>
-                    </div>
+        <div>
+            <bk-sideslider
+                ref="nodeConfigPanel"
+                :ext-cls="configClassString"
+                :width="711"
+                :is-show="isShow"
+                :before-close="onBeforeClose"
+                :quick-close="true">
+                <div slot="header">
+                    <span>{{ i18n.baseInfo }}</span>
                 </div>
-            </div>
-            <div class="inputs-info">
-                <div class="node-title">
-                    <span>{{ i18n.input }}</span>
-                </div>
-                <div class="section-form inputs-info-form" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
-                    <RenderForm
-                        ref="renderForm"
-                        v-if="!atomConfigLoading && renderInputConfig && renderInputConfig.length"
-                        :scheme="renderInputConfig"
-                        :form-data="renderInputData.value"
-                        :form-option="renderInputOption"
-                        :hooked="renderInputData.hook"
-                        @change="onInputDataChange"
-                        @onHookChange="onInputHookChange">
-                    </RenderForm>
-                    <div class="no-data-wrapper" v-else>
-                        <NoData></NoData>
-                    </div>
-                </div>
-            </div>
-            <div class="outputs-info">
-                <div class="node-title">
-                    <span>{{ i18n.output }}</span>
-                </div>
-                <div class="section-form outputs-info-form" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
-                    <table class="outputs-table" v-if="renderOutputData && renderOutputData.length">
-                        <thead>
-                            <tr>
-                                <th class="output-name">{{ i18n.name }}</th>
-                                <th class="output-key">KEY</th>
-                                <th class="output-checkbox">{{ i18n.refer }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in renderOutputData" :key="item.key">
-                                <td class="output-name">{{item.name}}</td>
-                                <td class="output-key">{{item.key}}</td>
-                                <td class="output-checkbox">
-                                    <span
+                <template slot="content">
+                    <div class="basic-info">
+                        <div class="section-form basic-info-form">
+                            <div class="form-item form-name">
+                                <label class="required">{{ atomNameType }}</label>
+                                <div class="form-content">
+                                    <bk-select
+                                        v-model="currentAtom"
+                                        class="node-select"
+                                        :searchable="true"
+                                        :clearable="false"
+                                        :disabled="atomConfigLoading"
+                                        @selected="onAtomSelect">
+                                        <bk-option
+                                            v-for="(option, index) in atomList"
+                                            :key="option.id"
+                                            :id="option.id"
+                                            :name="option.name">
+                                            <template v-if="!isSingleAtom">
+                                                <span class="subflow-option-name">{{option.name}}</span>
+                                                <i class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
+                                            </template>
+                                        </bk-option>
+                                    </bk-select>
+                                    <!-- 标准插件节点说明 -->
+                                    <i class="common-icon-info desc-tooltip"
+                                        v-if="atomDesc"
                                         v-bk-tooltips="{
-                                            content: item.hook ? i18n.cancelHook : i18n.hook,
-                                            placements: ['left'] }">
-                                        <bk-checkbox :value="item.hook" @change="onOutputHookChange(item.name, item.key, $event)"></bk-checkbox>
-                                    </span>
-
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="no-data-wrapper" v-else>
-                        <NoData />
+                                            content: atomDesc,
+                                            width: '400',
+                                            placements: ['bottom-end'] }">
+                                    </i>
+                                    <!-- 子流程版本更新 -->
+                                    <i
+                                        :class="[
+                                            'common-icon-clock-inversion',
+                                            'update-tooltip',
+                                            {
+                                                'disabled': atomConfigLoading
+                                            }
+                                        ]"
+                                        v-if="subflowHasUpdate"
+                                        v-bk-tooltips="{
+                                            content: i18n.update,
+                                            placements: ['bottom-end'] }"
+                                        @click="onUpdateSubflowVersion">
+                                    </i>
+                                    <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
+                                </div>
+                            </div>
+                            <div v-if="isSingleAtom" class="form-item">
+                                <label class="required">{{ i18n.version_name }}</label>
+                                <div class="form-content">
+                                    <bk-select
+                                        v-model="currentVersion"
+                                        class="node-select"
+                                        :searchable="true"
+                                        :clearable="false"
+                                        @selected="onVersionSelect">
+                                        <bk-option
+                                            v-for="option in currentVersionList"
+                                            :key="option.version"
+                                            :id="option.version"
+                                            :name="option.version">
+                                        </bk-option>
+                                    </bk-select>
+                                    <span v-show="taskVersionEmpty" class="common-error-tip error-msg">{{ i18n.version_name + i18n.typeEmptyTip}}</span>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label class="required">{{ i18n.node_name }}</label>
+                                <div class="form-content">
+                                    <bk-input
+                                        v-model="nodeName"
+                                        name="nodeName"
+                                        class="node-name"
+                                        v-validate="nodeNameRule" />
+                                    <span v-show="errors.has('nodeName')" class="common-error-tip error-msg">{{ errors.first('nodeName') }}</span>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>{{ i18n.stage_tag }}</label>
+                                <div class="form-content">
+                                    <bk-input v-model="stageName" name="stageName" class="stage-name" v-validate="stageNameRule" />
+                                    <span v-show="errors.has('stageName')" class="common-error-tip error-msg">{{ errors.first('stageName') }}</span>
+                                </div>
+                            </div>
+                            <div class="form-item" v-if="isSingleAtom">
+                                <label>{{ i18n.failureHandling }}</label>
+                                <div class="form-content error-handler">
+                                    <bk-checkbox
+                                        v-model="errorCouldBeIgnored"
+                                        @change="onIgnoredChange">
+                                        <div class="checkbox-text-wrapper">
+                                            <i class="common-icon-dark-circle-i"></i>
+                                            <span class="checkbox-text">{{i18n.ignore}}</span>
+                                        </div>
+                                    </bk-checkbox>
+                                    <bk-checkbox v-model="isSkip" :disabled="isManulHandleErrrorDisable">
+                                        <div class="checkbox-text-wrapper">
+                                            <i class="common-icon-dark-circle-s"></i>
+                                            <span class="checkbox-text">{{i18n.manuallySkip}}</span>
+                                        </div>
+                                    </bk-checkbox>
+                                    <bk-checkbox v-model="isRetry" :disabled="isManulHandleErrrorDisable">
+                                        <div class="checkbox-text-wrapper">
+                                            <i class="common-icon-dark-circle-r"></i>
+                                            <span class="checkbox-text">{{i18n.manuallyRetry}}</span>
+                                        </div>
+                                    </bk-checkbox>
+                                    <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
+                                        <p>
+                                            {{ i18n.failureHandlingIgnore }}
+                                        </p>
+                                        <p>
+                                            {{ i18n.failureHandlingSkip }}
+                                        </p>
+                                        <p>
+                                            {{ i18n.failureHandlingRetry }}
+                                        </p>
+                                    </div>
+                                    <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info ui-failure-info"></i>
+                                    <span v-show="manuallyEmpty" class="error-handler-warning-tip common-warning-tip">{{ i18n.manuallyEmpty}}</span>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>{{ i18n.optional }}</label>
+                                <div class="form-content">
+                                    <bk-switcher
+                                        size="small"
+                                        v-model="nodeCouldBeSkipped">
+                                    </bk-switcher>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                    <div class="inputs-info">
+                        <div class="node-title">
+                            <span>{{ i18n.input }}</span>
+                        </div>
+                        <div class="section-form inputs-info-form" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
+                            <RenderForm
+                                ref="renderForm"
+                                v-if="!atomConfigLoading && renderInputConfig && renderInputConfig.length"
+                                :scheme="renderInputConfig"
+                                :form-data="renderInputData.value"
+                                :form-option="renderInputOption"
+                                :hooked="renderInputData.hook"
+                                @change="onInputDataChange"
+                                @onHookChange="onInputHookChange">
+                            </RenderForm>
+                            <div class="no-data-wrapper" v-else>
+                                <NoData></NoData>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="outputs-info">
+                        <div class="node-title">
+                            <span>{{ i18n.output }}</span>
+                        </div>
+                        <div class="section-form outputs-info-form" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
+                            <table class="outputs-table" v-if="renderOutputData && renderOutputData.length">
+                                <thead>
+                                    <tr>
+                                        <th class="output-name">{{ i18n.name }}</th>
+                                        <th class="output-key">KEY</th>
+                                        <th class="output-checkbox">{{ i18n.refer }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in renderOutputData" :key="item.key">
+                                        <td class="output-name">{{item.name}}</td>
+                                        <td class="output-key">{{item.key}}</td>
+                                        <td class="output-checkbox">
+                                            <span
+                                                v-bk-tooltips="{
+                                                    content: item.hook ? i18n.cancelHook : i18n.hook,
+                                                    placements: ['left'] }">
+                                                <bk-checkbox :value="item.hook" @change="onOutputHookChange(item.name, item.key, $event)"></bk-checkbox>
+                                            </span>
+
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="no-data-wrapper" v-else>
+                                <NoData />
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </bk-sideslider>
         </div>
         <ReuseVarDialog
             :is-reuse-var-dialog-show="isReuseVarDialogShow"
@@ -261,12 +264,14 @@
         props: [
             'isNodeConfigPanelShow',
             'isSettingPanelShow',
+            'settingActiveTab',
             'singleAtom',
             'subAtom',
             'idOfNodeInConfigPanel',
             'template_id',
             'common',
-            'project_id'
+            'project_id',
+            'isShow'
         ],
         data () {
             return {
@@ -514,6 +519,20 @@
             // 任务节点执行失败手动处理选项禁用
             isManulHandleErrrorDisable () {
                 return this.errorCouldBeIgnored
+            },
+            // 动态设置面板的 class
+            configClassString () {
+                let base = 'common-template-setting-sideslider node-config-panel'
+                if (this.isSettingPanelShow) {
+                    if (this.settingActiveTab === 'globalVariableTab') {
+                        base += ' position-right-var'
+                    } else if (this.settingActiveTab === 'templateDataEditTab') {
+                        base += ' position-right-tempalte-data-edit'
+                    } else {
+                        base += ' position-right-tempalte-config'
+                    }
+                }
+                return base
             }
         },
         watch: {
@@ -586,7 +605,7 @@
                         const component = this.nodeConfigData.component
                         const version = component.version || this.SingleAtomVersionMap[component.code]
                         if (version) {
-                            this.getConfig(this.nodeConfigData.component.version)
+                            this.getConfig(version)
                             this.currentVersion = version
                         }
                     } else {
@@ -750,7 +769,9 @@
             setNodeConfigData (atomType, version) {
                 const data = {}
                 const config = this.atomFormConfig[atomType][version]
-                if (atomType === this.activities[this.nodeId].component.code) {
+                if (
+                    atomType === this.activities[this.nodeId].component.code
+                    && version === this.activities[this.nodeId].component.version) {
                     this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 } else {
                     config.forEach(item => {
@@ -876,8 +897,9 @@
                 // 处理在面板区域里的 popup 上的点击，eg: select、tooltip
                 const settingPanel = document.querySelector('.setting-area-wrap')
                 const nodeConfig = document.querySelector('.node-config')
+                const nodeConfigPanel = document.querySelector('.node-config-panel.bk-sideslider')
                 const clientX = document.body.clientWidth
-                const { left, right, top, bottom } = this.$refs.nodeConfigPanel.getBoundingClientRect()
+                const { left, right, top, bottom } = nodeConfigPanel.getBoundingClientRect()
                 const baseRight = this.isSettingPanelShow ? clientX : right
                 if (
                     (e.clientX === 0 || e.clientY === 0)
@@ -889,8 +911,7 @@
                     return
                 }
                 if (settingPanel && this.isNodeConfigPanelShow) {
-                    if (!dom.nodeContains(settingPanel, e.target)
-                        && !dom.nodeContains(nodeConfig, e.target)) {
+                    if (!dom.nodeContains(settingPanel, e.target) && !dom.nodeContains(nodeConfig, e.target)) {
                         this.subflowHasUpdate = false
                         this.syncNodeDataToActivities()
                     }
@@ -924,7 +945,7 @@
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
-                            value: tools.deepClone(this.inputAtomData[key]) || ''
+                            value: this.inputAtomData[key] !== undefined ? tools.deepClone(this.inputAtomData[key]) : ''
                         }
                     }
                 } else {
@@ -937,7 +958,6 @@
                 // 任务节点参数编辑时，可能会修改输入输出连线，取最新的连线数据，防止被节点参数编辑时保存的旧数据覆盖
                 const { incoming, outgoing } = this.activities[this.nodeId]
                 Object.assign(nodeData, { incoming, outgoing })
-
                 this.setActivities({ type: 'edit', location: nodeData })
             },
             /**
@@ -981,7 +1001,7 @@
                     this.subAtomInput = []
                     this.subAtomOutput = []
 
-                    this.$emit('hideConfigPanel')
+                    this.$emit('hideConfigPanel', false)
                     return isValid
                 })
             },
@@ -1066,7 +1086,6 @@
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.inputAtomHook = {}
                 this.inputAtomData = {}
-                this.updateActivities()
                 this.getConfig(id)
                 this.$nextTick(() => {
                     this.isAtomChanged = false
@@ -1266,6 +1285,8 @@
                     if (variable && !Object.keys(variable.source_info).length) {
                         this.removeFromGlobal(variableKey)
                     }
+                    // 更新数据节点数据，从而更新变量引用节点信息
+                    this.updateActivities()
                 }
             },
             onOutputHookChange (name, key, checked) {
@@ -1319,6 +1340,8 @@
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))
                 this.$emit('globalVariableUpdate', true)
+                // 更新数据节点数据，从而更新变量引用节点信息
+                this.updateActivities()
             },
             removeFromGlobal (key) {
                 this.deleteVariable(key)
@@ -1359,6 +1382,8 @@
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
                     this.setVariableSourceInfo({ type: 'add', id: this.nodeId, key: varKey, tagCode: key, value })
+                    // 更新数据节点数据，从而更新变量引用节点信息
+                    this.updateActivities()
                 }
 
                 this.isReuseVarDialogShow = false
@@ -1389,6 +1414,11 @@
                 this.isSkip = false
                 this.isRetry = false
                 this.errorCouldBeIgnored = updatedValue
+            },
+            // 关闭配置面板
+            onBeforeClose () {
+                this.subflowHasUpdate = false
+                this.syncNodeDataToActivities()
             }
         }
     }
@@ -1398,30 +1428,43 @@
 @import '@/scss/mixins/clearfix.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .node-config-panel {
-    position: absolute;
     top: 59px;
-    right: 476px;
-    padding: 20px;
-    width: 694px;
-    height: calc(100% - 50px);
-    background: $whiteDefault;
-    border-left: 1px solid $commonBorderColor;
-    box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.15);
-    overflow-y: auto;
+    left: calc(100% - 767px);
+    width: 711px;
     z-index: 5;
-    transition: right 0.5s ease-in-out;
-    @include scrollbar;
+    transition: left 0.3s ease-in-out;
+    /deep/ {
+        .bk-sideslider-wrapper {
+            overflow: hidden;
+        }
+        .bk-sideslider-content {
+            padding: 20px;
+            overflow: scroll;
+            @include scrollbar;
+        }
+    }
+    &.position-right-var {
+        @media screen and (min-width: 1920px) {
+            left: calc(100% - 1568px);
+        }
+    }
+    &.position-right-tempalte-config {
+        left: calc(100% - 1188px);
+    }
+    &.position-right-tempalte-data-edit{
+        @media screen and (min-width: 1920px) {
+            left: calc(100% - 1608px);
+        }
+    }
     .node-title {
-        height: 35px;
-        border-bottom: 1px solid #cacecb;
+        height: 54px;
+        line-height: 54px;
+        border-bottom: 1px solid #dcdee5;
         span {
             font-size: 14px;
             font-weight:600;
             color:#313238;
         }
-    }
-    &.position-right-side {
-        right: 56px;
     }
     .basic-info-form {
         .error-handler {

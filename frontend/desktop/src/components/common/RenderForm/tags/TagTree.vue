@@ -78,7 +78,7 @@
             desc: 'use remote data or not'
         },
         remote_url: {
-            type: String,
+            type: [String, Function],
             required: false,
             default: '',
             desc: 'remote url when remote is true'

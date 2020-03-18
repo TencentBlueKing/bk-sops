@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import logging
 import importlib
 
-import ujson as json
 from django.conf import settings
 
 from gcloud.shortcuts.message.common import (
@@ -22,6 +21,7 @@ from gcloud.shortcuts.message.common import (
     title_and_content_for_flow_finished,
     title_and_content_for_periodic_task_start_fail
 )
+from gcloud.periodictask.models import PeriodicTask
 
 logger = logging.getLogger('root')
 _message_module = importlib.import_module('gcloud.shortcuts.message.sites.%s.send_msg' % settings.RUN_VER)
@@ -31,18 +31,16 @@ TASK_FINISHED = 'task_finished'
 
 
 def send_task_flow_message(taskflow, msg_type, node_name=''):
-    template = taskflow.template
-    pipeline_inst = taskflow.pipeline_instance
-    executor = pipeline_inst.executor
 
-    notify_type = json.loads(template.notify_type)
-    receivers_list = template.get_notify_receivers_list(executor)
+    notify_type = taskflow.get_notify_type()
+    receivers_list = taskflow.get_stakeholders()
     receivers = ','.join(receivers_list)
+    executor = taskflow.executor
 
     if msg_type == 'atom_failed':
-        title, content = title_and_content_for_atom_failed(taskflow, pipeline_inst, node_name, executor)
+        title, content = title_and_content_for_atom_failed(taskflow, taskflow.pipeline_instance, node_name, executor)
     elif msg_type == 'task_finished':
-        title, content = title_and_content_for_flow_finished(taskflow, pipeline_inst, node_name, executor)
+        title, content = title_and_content_for_flow_finished(taskflow, taskflow.pipeline_instance, node_name, executor)
     else:
         return False
 
@@ -57,18 +55,19 @@ def send_task_flow_message(taskflow, msg_type, node_name=''):
     return True
 
 
-def send_periodic_task_message(template, periodic_task, history):
-    notify_type = json.loads(template.notify_type)
-    receivers_list = template.get_notify_receivers_list(periodic_task.creator)
+def send_periodic_task_message(periodic_task, history):
+    gcloud_periodic_task = PeriodicTask.objects.get(task=periodic_task)
+    notify_type = gcloud_periodic_task.get_notify_type()
+    receivers_list = gcloud_periodic_task.get_stakeholders()
     receivers = ','.join(receivers_list)
 
-    title, content = title_and_content_for_periodic_task_start_fail(template, periodic_task, history)
+    title, content = title_and_content_for_periodic_task_start_fail(gcloud_periodic_task, history)
 
     logger.info('periodic task of template[id={template_id}] will send message({notify_type}) to: {receivers}'.format(
-        template_id=template.id,
+        template_id=gcloud_periodic_task.template.id,
         notify_type=notify_type,
         receivers=receivers
     ))
-    _message_module.send_message(periodic_task.creator, notify_type, receivers, title, content)
+    _message_module.send_message(gcloud_periodic_task.creator, notify_type, receivers, title, content)
 
     return True

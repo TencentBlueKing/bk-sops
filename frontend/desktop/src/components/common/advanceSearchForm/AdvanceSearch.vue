@@ -11,13 +11,16 @@
 */
 <template>
     <div class="advanced-search">
-        <span v-if="!hideAdvance" class="search-content" @click="onShow">
-            {{i18n.advancedSearch}}
-            <div class="advanced-shape">
-                <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
-                <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
+        <div class="search-content">
+            <div v-if="!hideAdvance" class="search-btn" @click="onShow">
+                <span>{{i18n.advancedSearch}}</span>
+                <span class="advanced-shape">
+                    <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
+                    <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
+                </span>
             </div>
-        </span>
+            <slot name="extend"></slot>
+        </div>
         <bk-input
             class="search-input"
             v-model="localValue"
@@ -77,9 +80,11 @@
 
 <style lang='scss'>
 @import '@/scss/config.scss';
- .advanced-search {
+.advanced-search {
     position: relative;
     float: right;
+    display: flex;
+    align-items: center;
     .search-input {
         display: inline-block;
         width: 360px;
@@ -89,21 +94,24 @@
       }
     }
     .search-content {
-        margin: 30px;
+        margin: 0 30px;
         color:#313238;
         font-size: 14px;
         font-weight: 400;
-        cursor: pointer;
-        &:hover {
-            color: #3c96ff;
-        }
-        .advanced-shape {
+        .search-btn {
             display: inline-block;
-            margin-left: 5px;
-            font-size: 12px;
-            color:#cccccc;
+            cursor: pointer;
             &:hover {
-                color: #3c96ff;
+                color: #3a84ff;
+            }
+            .advanced-shape {
+                display: inline-block;
+                margin-left: 5px;
+                font-size: 12px;
+                color:#cccccc;
+                &:hover {
+                    color: #3c96ff;
+                }
             }
         }
     }

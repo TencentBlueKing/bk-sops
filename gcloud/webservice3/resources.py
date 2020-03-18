@@ -325,12 +325,12 @@ class CommonProjectResource(GCloudModelResource):
             for project_id in project_ids
         ])
 
-        return ProjectCounter.objects.filter(project_id__in=project_ids)
+        return ProjectCounter.objects.filter(project_id__in=project_ids, project__is_disable=False)
 
     def get_object_list(self, request):
 
         query = super(GCloudModelResource, self).get_object_list(request)
-        query = query.filter(username=request.user.username)
+        query = query.filter(username=request.user.username, project__is_disable=False)
 
         # 第一次访问或无被授权的项目
         if not query.exists():

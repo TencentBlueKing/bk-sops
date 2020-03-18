@@ -123,17 +123,17 @@
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
                 if (isGatewayCurrNode && !isGatewayAppendNode) {
-                    location.y -= 5
+                    location.y -= 10
                 }
                 if (!isGatewayCurrNode && isGatewayAppendNode) {
-                    location.y += 5
+                    location.y += 10
                 }
                 /**
                  * 添加规则
                  * 当前节点类型为并行/分支网管：都是 onAppendNode
                  * 其他节点类型：后面有节点为插入，没有为追加
                  */
-                if (isHaveNodeBehind && ['tasknode', 'subflow', 'convergegateway'].indexOf(currType) > -1) {
+                if (isHaveNodeBehind && ['tasknode', 'subflow', 'convergegateway', 'startpoint'].indexOf(currType) > -1) {
                     this.$emit('onInsertNode', {
                         startNodeId: id,
                         endNodeId,

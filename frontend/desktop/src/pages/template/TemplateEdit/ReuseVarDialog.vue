@@ -40,7 +40,7 @@
             <div class="common-form-item" v-if="!reuseVariable.useNewKey">
                 <label>{{ i18n.new }}</label>
                 <div class="common-form-content">
-                    <bk-switcher v-model="isCreateVar" size="min" class="create-var-switcher"></bk-switcher>
+                    <bk-switcher v-model="isCreateVar" size="small" class="create-var-switcher"></bk-switcher>
                 </div>
             </div>
             <div class="create-new-variable" v-show="isCreateVar">

@@ -123,7 +123,8 @@
         },
         {
             label: gettext('项目'),
-            prop: 'projectName'
+            prop: 'projectName',
+            width: 150
         },
         {
             label: gettext('分类'),

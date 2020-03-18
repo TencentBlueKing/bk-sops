@@ -22,7 +22,8 @@ from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
-from pipeline_plugins.components.utils.common import supplier_account_for_business
+
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)

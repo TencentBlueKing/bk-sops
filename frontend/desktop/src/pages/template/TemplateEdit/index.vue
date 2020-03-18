@@ -55,6 +55,8 @@
                 ref="nodeConfig"
                 :project_id="project_id"
                 v-show="isNodeConfigPanelShow"
+                :is-show="isNodeConfigPanelShow"
+                :setting-active-tab="settingActiveTab"
                 :template_id="template_id"
                 :single-atom="singleAtom"
                 :sub-atom="subAtom"
@@ -81,17 +83,21 @@
                 :project-info-loading="projectInfoLoading"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
+                :is-node-config-panel-show="isNodeConfigPanelShow"
                 :variable-type-list="variableTypeList"
                 :local-template-data="localTemplateData"
                 :is-click-draft="isClickDraft"
+                :is-fixed-var-menu="isFixedVarMenu"
                 @toggleSettingPanel="toggleSettingPanel"
                 @globalVariableUpdate="globalVariableUpdate"
                 @onDeleteConstant="onDeleteConstant"
                 @variableDataChanged="variableDataChanged"
+                @fixedVarMenuChange="fixedVarMenuChange"
                 @onSelectCategory="onSelectCategory"
                 @onDeleteDraft="onDeleteDraft"
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
+                @onCitedNodeClick="onCitedNodeClick"
                 @updateLocalTemplateData="updateLocalTemplateData"
                 @modifyTemplateData="modifyTemplateData"
                 @hideConfigPanel="hideConfigPanel"
@@ -124,7 +130,7 @@
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
-    import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
+    import TemplateSetting from './TemplateSetting/index.vue'
     import NodeConfig from './NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import draft from '@/utils/draft.js'
@@ -174,10 +180,13 @@
                 isSettingPanelShow: true,
                 isNodeConfigPanelShow: false,
                 isLeaveDialogShow: false,
+                isFixedVarMenu: false, // 全局变量面板铆钉
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
                 isShowConditionEdit: false,
+                settingActiveTab: 'globalVariableTab',
+                lastOpenPanelName: '', // 最近一次打开的面板名
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
@@ -354,11 +363,13 @@
             window.onbeforeunload = function () {
                 return i18n.tips
             }
+            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             window.onbeforeunload = null
             this.resetTemplateData()
             this.hideGuideTips()
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('atomList/', [
@@ -626,17 +637,74 @@
 
                 this.subAtomGrouped = atomGrouped
             },
-            toggleSettingPanel (isSettingPanelShow) {
+            toggleSettingPanel (isSettingPanelShow, activeTab) {
+                const clientX = document.body.clientWidth
+                // 分辨率 1920 以下，显示 setting 面板时需隐藏节点配置面板
+                if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
+                    this.hideConfigPanel()
+                }
+                if (isSettingPanelShow) {
+                    this.lastOpenPanelName = 'settingPanel'
+                }
                 this.isSettingPanelShow = isSettingPanelShow
+                this.settingActiveTab = activeTab
             },
             showConfigPanel (id) {
                 this.variableDataChanged()
                 this.isNodeConfigPanelShow = true
                 this.idOfNodeInConfigPanel = id
+                this.lastOpenPanelName = 'nodeConfigPanel'
             },
-            hideConfigPanel () {
-                this.isNodeConfigPanelShow = false
-                this.idOfNodeInConfigPanel = ''
+            // 关闭配置面板
+            hideConfigPanel (asyncData = true) {
+                if (this.idOfNodeInConfigPanel && asyncData) {
+                    const nodeType = this.locations.filter(item => {
+                        return item.id === this.idOfNodeInConfigPanel
+                    })[0].type
+                    if ((nodeType === 'tasknode' || nodeType === 'subflow') && this.isNodeConfigPanelShow) {
+                        // 同步面板数据
+                        this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
+                            this.isNodeConfigPanelShow = false
+                            this.idOfNodeInConfigPanel = ''
+                            this.reopenGlobalVarPanel()
+                        })
+                    }
+                } else {
+                    this.isNodeConfigPanelShow = false
+                    this.idOfNodeInConfigPanel = ''
+                    this.reopenGlobalVarPanel()
+                }
+            },
+            /**
+             * 1920 分辨率一下，在全局变量面板 isFixedVarMenu = true 的情况下:
+             * 切换到节点配置面板(会自动关闭变量面板)，保留状态，待节点配置面板关闭后重新打开
+             */
+            reopenGlobalVarPanel () {
+                if (this.isFixedVarMenu && document.body.clientWidth < 1920) {
+                    this.$refs.templateSetting.setErrorTab('globalVariableTab')
+                }
+            },
+            onWindowResize () {
+                const clientX = document.body.clientWidth
+                // 在配置面板和setting面板双开时，屏幕突然改变保留最近打开的面板
+                if (clientX < 1920
+                    && this.isNodeConfigPanelShow
+                    && this.isSettingPanelShow
+                    && ['templateDataEditTab', 'globalVariableTab'].includes(this.settingActiveTab)) {
+                    if (this.lastOpenPanelName === 'settingPanel') {
+                        this.hideConfigPanel()
+                    } else {
+                        this.toggleSettingPanel(false)
+                    }
+                }
+            },
+            // 全局变量引用节点点击回调
+            onCitedNodeClick (nodeId) {
+                if (this.idOfNodeInConfigPanel === nodeId) {
+                    this.hideConfigPanel()
+                } else {
+                    this.onShowNodeConfig(nodeId, false)
+                }
             },
             /**
              * 标识模板是否被编辑
@@ -760,11 +828,13 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
+            onShowNodeConfig (id, hideSettingPanel = true) {
                 if (this.isShowConditionEdit) {
                     this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
                 }
-                this.toggleSettingPanel(false)
+                if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
+                    this.toggleSettingPanel(false)
+                }
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
                 })[0].type
@@ -1170,6 +1240,9 @@
             },
             canvasMounted () {
                 this.handlerGuideTips()
+            },
+            fixedVarMenuChange (val) {
+                this.isFixedVarMenu = val
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
