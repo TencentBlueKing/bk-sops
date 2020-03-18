@@ -225,7 +225,7 @@
                     }
 
                     return await new Promise ((resolve, reject) => {
-                        $.getScript(formResource).then(response => {
+                        $.getScript(`${$.context.site_url}${formResource}`).then(response => {
                             this.setAtomsConfig(setTypeName, $.atoms[setTypeName], version)
                             resolve(response)
                         })
@@ -243,7 +243,7 @@
                         : `api/v3/component/${type}/?version=${version}`
                 }
 
-                return $.get({ url: `/t/bk_sops/${url}` })
+                return $.get({ url: `${$.context.site_url}${url}` })
             },
             setAtomsConfig (name, config, version) {
                 if (this.atomsConfig[name]) {
