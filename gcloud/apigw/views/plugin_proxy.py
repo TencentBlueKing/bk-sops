@@ -32,8 +32,8 @@ except ImportError:
 @login_exempt
 @csrf_exempt
 @require_POST
-@apigw_required
-@mark_request_whether_is_trust
+# @apigw_required
+# @mark_request_whether_is_trust
 def dispatch_plugin_query(request):
     """
         转发插件表单渲染资源请求，暂时仅考虑GET/POST请求
