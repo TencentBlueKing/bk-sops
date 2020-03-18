@@ -966,9 +966,10 @@
                 this.idOfNodeShortcutPanel = id
             },
             // 节点后面追加
-            onAppendNode ({ location, line }) {
+            onAppendNode ({ location, line, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(line)
@@ -981,7 +982,8 @@
              * @param {String} endNode -后节点 id
              * @param {Object} location -新建节点的 location
              */
-            onInsertNode ({ startNodeId, endNodeId, location }) {
+            onInsertNode ({ startNodeId, endNodeId, location, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
                 if (!deleteLine) {
                     return false
@@ -1008,7 +1010,7 @@
                     }
                 }
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
