@@ -12,7 +12,7 @@
 <template>
     <div class="advanced-search">
         <div class="search-content">
-            <div v-if="!hideAdvance" class="search-btn" @click="onShow">
+            <div class="search-btn" @click="onShow">
                 <span>{{i18n.advancedSearch}}</span>
                 <span class="advanced-shape">
                     <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>

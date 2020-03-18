@@ -402,6 +402,9 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
         },
+        beforeDestroy () {
+            this.clearAutoRedraw()
+        },
         methods: {
             ...mapActions('functionTask/', [
                 'loadFunctionTaskList'
