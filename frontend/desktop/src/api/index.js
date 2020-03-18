@@ -1351,12 +1351,10 @@ const api = {
     /**
      * 查询业务在 CMDB 的拓扑模型
      */
-    loadTopoModelInCC () {
-        const prefixUrl = this.getPrefix('cc_get_mainline_object_topo')
-
+    loadTopoModelInCC (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
         }
         return request(opts)
     },
