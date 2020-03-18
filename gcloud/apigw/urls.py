@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
-
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
 from gcloud.apigw.views.create_task import create_task
 from gcloud.apigw.views.fast_create_task import fast_create_task
@@ -45,8 +44,10 @@ from gcloud.apigw.views.preview_task_tree import preview_task_tree
 from gcloud.apigw.views.query_task_count import query_task_count
 from gcloud.apigw.views.set_periodic_task_enabled import set_periodic_task_enabled
 from gcloud.apigw.views.start_task import start_task
+from gcloud.apigw.views.plugin_proxy import dispatch_plugin_query
 
 urlpatterns = [
+    url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
     url(r"^get_template_list/(?P<project_id>\d+)/$", get_template_list),
     url(
         r"^get_template_info/(?P<template_id>\d+)/(?P<project_id>\d+)/$",
