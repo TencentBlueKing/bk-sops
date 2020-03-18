@@ -135,7 +135,7 @@
                 if (self === top) {
                     window.open(HOST_MAP[name], '__blank')
                 } else {
-                    window.PAAS_API.open_other_app(HOST_MAP[name])
+                    window.PAAS_API.open_other_app(name, HOST_MAP[name])
                 }
             },
             onSwitchBusiness (id) {
