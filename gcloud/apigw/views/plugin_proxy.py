@@ -22,11 +22,6 @@ from django.views.decorators.http import require_POST
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 
-try:
-    from bkoauth.decorators import apigw_required
-except ImportError:
-    from packages.bkoauth.decorators import apigw_required
-
 
 @login_exempt
 @csrf_exempt
