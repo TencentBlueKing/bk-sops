@@ -348,7 +348,6 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                 # 全局变量类型：1:云参, 2:上下文参数，3:IPs
                 "category": var.get("category", 1),
                 "name": var["name"],
-                "type": var["type"],
                 "value": value,
                 "description": var["description"],
             }
