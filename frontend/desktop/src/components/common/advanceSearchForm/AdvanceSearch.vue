@@ -80,7 +80,7 @@
 
 <style lang='scss'>
 @import '@/scss/config.scss';
- .advanced-search {
+.advanced-search {
     position: relative;
     float: right;
     display: flex;
@@ -102,7 +102,7 @@
             display: inline-block;
             cursor: pointer;
             &:hover {
-                color: #3c96ff;
+                color: #3a84ff;
             }
             .advanced-shape {
                 display: inline-block;

@@ -538,7 +538,7 @@
         .td-with-input {
             &:hover{
                 border-style: double;
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             @include common-input-error;
         }
@@ -556,10 +556,10 @@
             color: #63656e;
             outline: none;
             &:hover {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             &:active {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             &[disabled="disabled"] {
                 color: #aaa;
@@ -583,10 +583,10 @@
             min-height: 102px;
             max-height: 140px;
             &:hover {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             &:active {
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
         }
     }
@@ -649,7 +649,7 @@
         .td-with-input {
             &:hover{
                 border-style: double;
-                border-color: #3c96ff;
+                border-color: #3a84ff;
             }
             @include common-input-error;
         }

@@ -41,9 +41,13 @@
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
-                    <bk-table-column :label="i18n.business" prop="task.project.name" width="160"></bk-table-column>
-                    <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.business" width="160">
+                        <template slot-scope="props">
+                            <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.taskId" prop="task.id" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
@@ -72,19 +76,19 @@
                             {{ props.row.claim_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="140"></bk-table-column>
-                    <bk-table-column :label="i18n.claimant" width="140">
+                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.claimant" width="120">
                         <template slot-scope="props">
                             {{ props.row.claimant || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.claimStatus" width="140">
+                    <bk-table-column :label="i18n.claimStatus" width="120">
                         <template slot-scope="props">
                             <span :class="statusClass(props.row.status)"></span>
                             {{statusMethod(props.row.status, props.row.status_name)}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.taskStatus" width="140">
+                    <bk-table-column :label="i18n.taskStatus" width="120">
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -695,7 +699,7 @@
         color: $blueDefault;
     }
     .functor-operation-btn {
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .empty-data {
         padding: 120px 0;

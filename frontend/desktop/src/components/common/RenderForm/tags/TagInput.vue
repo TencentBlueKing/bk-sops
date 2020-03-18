@@ -179,7 +179,7 @@
             cursor: pointer;
             &:hover {
                 background: #eef6fe;
-                color: #3c96ff;
+                color: #3a84ff;
             }
         }
     }

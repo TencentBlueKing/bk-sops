@@ -100,6 +100,18 @@
                 <bk-button theme="default" @click="onPreviewClose">{{ i18n.close }}</bk-button>
             </template>
         </bk-dialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.leave"
+            :value="isLeaveDialogShow"
+            @confirm="onLeaveConfirm"
+            @cancel="onLeaveCancel">
+            <div class="leave-tips">{{ i18n.tips }}</div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -148,6 +160,9 @@
                 atomConfig: [],
                 atomConfigStr: '',
                 atomStringError: '',
+                allowLeave: false,
+                leaveToPath: '',
+                contentChange: '', // 配置项内容有变更，用来做离开页面的二次确认
                 apiCodeStr: '',
                 editingForm: {},
                 isPreviewMode: false,
@@ -155,6 +170,7 @@
                 hideFormPanel: false,
                 showUploadDialog: false,
                 previewDialogShow: false,
+                isLeaveDialogShow: false,
                 fileUploading: false,
                 renderFormOption: {
                     showGroup: false,
@@ -174,7 +190,9 @@
                     apiCode: gettext('后台代码'),
                     close: gettext('关闭'),
                     confirm: gettext('确认'),
-                    cancel: gettext('取消')
+                    cancel: gettext('取消'),
+                    leave: gettext('离开页面'),
+                    tips: gettext('系统不会保存您所做的更改，确认离开？')
                 }
             }
         },
@@ -267,6 +285,7 @@
                 this.atomStringError = error
             },
             atomConfigUpdate (val) {
+                this.contentChange = true
                 const formConfig = tools.deepClone(val)
                 const forms = formConfig.map((item, index) => {
                     const tagName = item.type.split('_').map(tp => tp.replace(/^\S/, s => s.toUpperCase())).join('')
@@ -357,6 +376,23 @@
             },
             closeSettingPanel () {
                 this.showAtomSetting = false
+            },
+            onLeaveConfirm () {
+                this.allowLeave = true
+                this.$router.push({ path: this.leaveToPath })
+            },
+            onLeaveCancel () {
+                this.allowLeave = false
+                this.leaveToPath = ''
+                this.isLeaveDialogShow = false
+            }
+        },
+        beforeRouteLeave (to, from, next) {
+            if (this.allowLeave || !this.contentChange) {
+                next()
+            } else {
+                this.leaveToPath = to.fullPath
+                this.isLeaveDialogShow = true
             }
         }
     }
@@ -427,5 +463,8 @@
             height: 32px;
             border: none;
         }
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>

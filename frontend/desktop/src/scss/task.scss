@@ -5,13 +5,12 @@
     vertical-align: middle;
 }
 @mixin ui-task-status {
-    width: 105px;
     text-align: left;
     .common-icon-dark-circle-shape {
         @include status-icon-style(#979BA5);
     }
     .common-icon-dark-circle-ellipsis {
-        @include status-icon-style(#3c96ff);
+        @include status-icon-style(#3a84ff);
     }
     .icon-check-circle-shape {
         @include status-icon-style(#30d878);
