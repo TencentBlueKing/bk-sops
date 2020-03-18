@@ -172,7 +172,7 @@
             desc: 'tips when data is empty'
         },
         remote_url: {
-            type: String,
+            type: [String, Function],
             required: false,
             default: '',
             desc: 'remote url when remote is true'

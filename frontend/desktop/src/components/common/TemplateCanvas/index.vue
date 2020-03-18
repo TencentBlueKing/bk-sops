@@ -428,6 +428,7 @@
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
+                this.$emit('update:nodeMemuOpen', val)
             },
             updateCanvas () {
                 const { locations: nodes, lines } = this.canvasData
@@ -1098,6 +1099,24 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
+            },
+            /**
+             * 设置画布偏移量
+             * @param {Number} x 画布向右偏移量
+             * @param {Number} y 画布向下偏移量
+             * @param {Boolean} animation 是否设置缓动动画
+             */
+            setCanvasPosition (x, y, animation = false) {
+                if (animation) {
+                    const canvas = this.$refs.jsFlow.$el.querySelector('#canvas-flow')
+                    canvas.style.transition = 'left 0.4s, top 0.4s'
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                    setTimeout(() => {
+                        canvas.style.transition = 'unset'
+                    }, 600)
+                } else {
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                }
             }
         }
     }

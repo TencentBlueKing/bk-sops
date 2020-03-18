@@ -747,7 +747,7 @@
     }
     .common-icon-dark-circle-ellipsis {
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .common-icon-dark-circle-pause {
         font-size: 12px;

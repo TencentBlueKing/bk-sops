@@ -474,7 +474,11 @@
             // 变量列表滚动监听
             handleVariableListScroll (event) {
                 setTimeout(() => {
-                    const itemHeight = document.querySelector('.global-variable-content .variable-item .variable-content').getBoundingClientRect().height
+                    const item = document.querySelector('.global-variable-content .variable-item .variable-content')
+                    if (!item) {
+                        return
+                    }
+                    const itemHeight = item.getBoundingClientRect().height
                     let sortIndex = 0
                     if (!this.theKeyOfEditing) { // new var
                         sortIndex = this.variableList.length

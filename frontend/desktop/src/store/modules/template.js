@@ -37,7 +37,7 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 300,
-            y: 150,
+            y: 145,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
@@ -204,10 +204,7 @@ const template = {
         },
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some(item => {
-                if (
-                    subflow.template_id === item.template_id
-                    && subflow.subprocess_node_id === item.subprocess_node_id
-                ) {
+                if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
                     subflow.version && (item.version = subflow.version)
                     return true
