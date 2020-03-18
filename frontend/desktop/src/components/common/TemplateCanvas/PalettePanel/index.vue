@@ -119,8 +119,15 @@
                 return this.lang === 'zh-cn' ? 'zh' : 'en'
             },
             nodes () {
-                const data = this.atomTypeList[this.activeNodeListType]
-                return data || []
+                if (this.activeNodeListType) {
+                    if (this.activeNodeListType === 'subflow') {
+                        return this.atomTypeList.subflow
+                    } else {
+                        return this.getGroupedAtom(this.atomTypeList.tasknode)
+                    }
+                } else {
+                    return []
+                }
             }
         },
         watch: {
@@ -133,6 +140,33 @@
             this.renderGuide()
         },
         methods: {
+            getGroupedAtom (atoms) {
+                const groups = []
+                const atomGrouped = []
+                atoms.forEach(item => {
+                    const type = item.group_name
+                    const index = groups.indexOf(type)
+                    // 分组存在
+                    if (index > -1) {
+                        const list = atomGrouped[index].list
+                        const isCodeExisted = list.some(m => m.code === item.code)
+                        // 相同 code 的只显示一个
+                        if (!isCodeExisted) {
+                            list.push(item)
+                        }
+                    } else {
+                        const newGroup = {
+                            type,
+                            group_name: item.group_name,
+                            group_icon: item.group_icon,
+                            list: [item]
+                        }
+                        groups.push(type)
+                        atomGrouped.push(newGroup)
+                    }
+                })
+                return [...atomGrouped]
+            },
             onMouseDown (e) {
                 this.moveFlag = {
                     x: e.pageX,
