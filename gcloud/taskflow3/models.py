@@ -1013,7 +1013,7 @@ class TaskFlowInstance(models.Model):
 
         if component_code:
             outputs_table = []
-            version = self.get_act_web_info(node_id).get('version', None)
+            version = self.get_act_web_info(node_id).get('component', {}).get('version', None)
             try:
                 component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
