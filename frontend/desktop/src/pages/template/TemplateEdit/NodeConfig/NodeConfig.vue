@@ -13,83 +13,100 @@
     <div class="node-config-wrapper">
         <bk-sideslider
             ref="nodeConfigPanel"
-            :ext-cls="configClassString"
+            :ext-cls="getSliderCls"
             :width="711"
             :is-show="isShow"
             :before-close="onBeforeClose"
             :quick-close="true">
             <div slot="header">
-                <span>{{ atomName }}</span>
+                <span>{{ basicInfo.name }}</span>
+                <div
+                    v-if="isSelectorPanelShow" class="go-back"
+                    @click="isSelectorPanelShow = false">
+                    <i class="common-icon-return-arrow"></i>
+                </div>
             </div>
-            <template slot="content" v-if="isShow">
-                <!-- 基础信息 -->
-                <section class="config-section">
-                    <h3>{{i18n.basicInfo}}</h3>
-                    <basic-info
-                        :form-data.sync="basicInfo"
-                        :atom-name="atomName"
-                        :node-config="nodeConfig"
-                        :atom-list="atomList"
-                        :subflow-list="subflowList"
-                        :is-subflow="isSubflow"
-                        :input-loading="inputLoading"
-                        @onShowChoosePluginPanel="onShowChoosePluginPanel"
-                        @versionChange="versionChange"
-                        @tplChange="tplChange">
-                    </basic-info>
-                </section>
-                <!-- 输入参数 -->
-                <section class="config-section">
-                    <h3>{{i18n.inputParams}}</h3>
-                    <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
-                        <template v-if="!inputLoading">
-                            <input-params
-                                v-if="inputs.length > 0"
-                                :node-config="nodeConfig"
-                                :scheme="inputs"
-                                :value="inputParamValue"
-                                :hooked.sync="inputHooked"
-                                :is-subflow="isSubflow">
-                            </input-params>
-                            <no-data v-else></no-data>
-                        </template>
-                    </div>
-                </section>
-                <!-- 输出参数 -->
-                <section class="config-section">
-                    <h3>{{i18n.outputParams}}</h3>
-                    <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
-                        <template v-if="!outputLoading">
-                            <output-params
-                                v-if="outputs.length"
-                                :node-id="nodeId"
-                                :params.sync="outputs"
-                                :node-config="nodeConfig">
-                            </output-params>
-                            <no-data v-else></no-data>
-                        </template>
-                    </div>
-                </section>
+            <template slot="content">
+                <div v-if="!isSelectorPanelShow" class="node-config-content">
+                    <!-- 基础信息 -->
+                    <section class="config-section">
+                        <h3>{{i18n.basicInfo}}</h3>
+                        <basic-info
+                            :form-data="basicInfo"
+                            :node-config="nodeConfig"
+                            :subflow-list="subflowList"
+                            :version-list="versionList"
+                            :is-subflow="isSubflow"
+                            :input-loading="inputLoading"
+                            @openSelectorPanel="isSelectorPanelShow = true"
+                            @versionChange="versionChange"
+                            @tplChange="tplChange">
+                        </basic-info>
+                    </section>
+                    <!-- 输入参数 -->
+                    <section class="config-section">
+                        <h3>{{i18n.inputParams}}</h3>
+                        <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
+                            <template v-if="!inputLoading">
+                                <input-params
+                                    v-if="inputs.length > 0"
+                                    :node-config="nodeConfig"
+                                    :scheme="inputs"
+                                    :value="inputParamValue"
+                                    :hooked.sync="inputHooked"
+                                    :is-subflow="isSubflow">
+                                </input-params>
+                                <no-data v-else></no-data>
+                            </template>
+                        </div>
+                    </section>
+                    <!-- 输出参数 -->
+                    <section class="config-section">
+                        <h3>{{i18n.outputParams}}</h3>
+                        <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
+                            <template v-if="!outputLoading">
+                                <output-params
+                                    v-if="outputs.length"
+                                    :node-id="nodeId"
+                                    :params.sync="outputs"
+                                    :node-config="nodeConfig">
+                                </output-params>
+                                <no-data v-else></no-data>
+                            </template>
+                        </div>
+                    </section>
+                </div>
+                <selector-panel
+                    v-else
+                    :is-subflow="isSubflow"
+                    :atom-type-list="atomTypeList"
+                    :basic-info="basicInfo"
+                    @back="isSelectorPanelShow = false"
+                    @select="onPluginOrTplChange">
+                </selector-panel>
             </template>
         </bk-sideslider>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions, mapState, mapMutations } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
     import BasicInfo from './BasicInfo.vue'
     import InputParams from './InputParams.vue'
-    import outputParams from './outputParams.vue'
+    import OutputParams from './OutputParams.vue'
+    import SelectorPanel from './SelectorPanel.vue'
     import NoData from '@/components/common/base/NoData.vue'
+
     export default {
         name: 'NodeConfig',
         components: {
             BasicInfo,
             InputParams,
-            outputParams,
+            OutputParams,
+            SelectorPanel,
             NoData
         },
         props: {
@@ -113,6 +130,16 @@
                     return []
                 }
             },
+            atomTypeList: {
+                type: Object,
+                default () {
+                    return {
+                        tasknode: [],
+                        subflow: []
+                    }
+                }
+            },
+
             common: {
                 type: [Boolean, Number],
                 required: false
@@ -124,30 +151,32 @@
             isSettingPanelShow: {
                 type: Boolean,
                 required: false
-            },
-            isChoosePluginPanelShow: {
-                type: Boolean,
-                required: false
             }
         },
         data () {
+            const nodeConfig = this.$store.state.template.activities[this.nodeId]
+            const basicInfo = this.getNodeBasic(nodeConfig)
+            const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
             return {
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
                 constantsLoading: false, // 子流程输入参数配置项加载
-                basicInfo: {},
-                inputs: [],
-                inputParamValue: {},
-                inputHooked: {},
-                outputs: [],
-                outputHooked: {},
-                subfowConstants: {}, // 子流程输入参数（引用的全局变量）
+                nodeConfig, // 任务节点的完整 activity 配置参数
+                basicInfo, // 基础信息模块
+                versionList, // 标准插件版本
+                inputs: [], // 输入参数表单配置项
+                inputParamValue: {}, // 输入参数值
+                inputHooked: {}, // 被勾选的输入参数
+                outputs: [], // 输出参数
+                outputHooked: {}, // 被勾选的输出参数
+                subflowConstants: {}, // 子流程输入参数
+                isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
                 i18n: {
                     basicInfo: gettext('基础信息'),
                     inputParams: gettext('输入参数'),
                     outputParams: gettext('输出参数'),
-                    selectAtom: gettext('请选择插件'),
-                    selectSubflow: gettext('请选择子流程')
+                    choosePlugin: gettext('请选择插件'),
+                    chooseSubflow: gettext('请选择子流程')
                 }
             }
         },
@@ -157,26 +186,11 @@
                 'constants': state => state.template.constants,
                 'pluginConfigs': state => state.atomForm.config
             }),
-            nodeConfig () { // 任务节点原始配置
-                const config = this.activities[this.nodeId]
-                return tools.deepClone(config)
-            },
             isSubflow () {
                 return this.isShow && this.nodeConfig.type && this.nodeConfig.type !== 'ServiceActivity'
             },
             atomGroup () { // 某一标准插件下所有版本分组
                 return this.atomList.find(item => item.code === this.basicInfo.plugin)
-            },
-            atomName () { // 面板 title 和 插件名
-                if (this.isSubflow) {
-                    const templateId = this.nodeConfig.template_id
-                    if (templateId || templateId === 0) {
-                        return this.nodeConfig.name
-                    }
-                    return this.i18n.selectSubflow
-                } else {
-                    return !this.atomGroup ? this.i18n.selectAtom : `${this.atomGroup.type}-${this.atomGroup.name}`
-                }
             },
             inputLoading () { // 以下任一方法处于 pending 状态，输入参数展示 loading 效果
                 return this.pluginLoading || this.subflowLoading || this.constantsLoading
@@ -184,7 +198,7 @@
             outputLoading () {
                 return this.pluginLoading || this.subflowLoading
             },
-            configClassString () { // 动态设置面板的 class
+            getSliderCls () { // 动态设置面板的 class
                 let base = 'common-template-setting-sideslider node-config-base'
                 if (this.isSettingPanelShow) {
                     switch (this.settingActiveTab) {
@@ -201,7 +215,7 @@
                             base += ' position-right-template-data'
                     }
                 }
-                if (this.isChoosePluginPanelShow) {
+                if (this.isSelectorPanelShow) {
                     base += ' position-right-choose-plugin'
                 }
                 return base
@@ -221,27 +235,42 @@
                 'loadAtomConfig',
                 'loadSubflowConfig'
             ]),
-            ...mapMutations('template/', [
-                'setNodeInputData'
-            ]),
+            // ...mapMutations('template/', [
+            //     'setNodeInputData'
+            // ]),
             // 初始化节点数据
             async initData () {
                 if (!this.basicInfo.plugin && !this.basicInfo.tpl) { // 未选择插件
                     return
                 }
                 if (this.basicInfo.type === 'ServiceActivity') {
-                    this.getPluginData()
-                    Object.keys(this.nodeConfig.component.data || []).forEach(key => {
+                    await this.getPluginData()
+                    Object.keys(this.nodeConfig.component.data || {}).forEach(key => {
                         const val = tools.deepClone(this.nodeConfig.component.data[key].value)
                         this.$set(this.inputParamValue, key, val)
                     })
                 } else {
-                    this.subfowConstants = tools.deepClone(this.nodeConfig.constants)
+                    this.subflowConstants = tools.deepClone(this.nodeConfig.constants)
                     const { version } = this.nodeConfig
                     const subflowData = await this.getSubflowData(version)
-                    this.subfowConstants = this.getConstants(subflowData.form)
+                    this.subflowConstants = this.getConstants(subflowData.form)
                     this.inputs = await this.getSubflowInputsConfig()
                     this.inputParamValue = this.getSubflowInputsValue()
+                }
+            },
+            /**
+             * 加载标准插件节点输入参数表单配置项，获取输出参数列表
+             */
+            async getPluginData () {
+                const { plugin, version } = this.basicInfo
+                this.pluginLoading = true
+                try {
+                    this.inputs = await this.getAtomConfig(plugin, version)
+                    this.outputs = this.atomGroup.list.find(item => item.version === version).output
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.pluginLoading = false
                 }
             },
             /**
@@ -259,36 +288,6 @@
                     return config
                 } catch (error) {
                     errorHandler(error, this)
-                }
-            },
-            /**
-             * 加载普通任务节点数据
-             */
-            async getPluginData () {
-                const { plugin, version } = this.basicInfo
-                this.pluginLoading = true
-                try {
-                    this.inputs = await this.getAtomConfig(plugin, version)
-                    this.outputs = this.atomGroup.list.find(item => item.version === version).output
-                    this.outputHooked = this.setVals
-                    const setVals = this.inputs.reduce((acc, cur) => {
-                        acc[cur.tag_code] = { value: '', hook: false }
-                        return acc
-                    }, {})
-
-                    const data = this.nodeConfig.component.data
-                    if (!data || !Object.keys(data).length) { // 同步 data 数据到 store
-                        this.setNodeInputData({
-                            id: this.nodeConfig.id,
-                            type: this.nodeConfig.type,
-                            updateType: 'all',
-                            setVals: setVals
-                        })
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
-                } finally {
-                    this.pluginLoading = false
                 }
             },
             /**
@@ -328,16 +327,16 @@
              * @return {Object} 子流程表单项
              */
             getConstants (forms) {
-                const keys = this.nodeConfig.constants ? Object.keys(this.nodeConfig.constants) : []
-                if (!keys.length) { // 同步 constants 数据到 store
-                    this.setNodeInputData({
-                        id: this.nodeConfig.id,
-                        type: this.nodeConfig.type,
-                        updateType: 'all',
-                        setVals: tools.deepClone(forms)
-                    })
-                }
-                return keys.length ? this.nodeConfig.constants : forms
+                // const keys = this.nodeConfig.constants ? Object.keys(this.nodeConfig.constants) : []
+                // if (!keys.length) { // 同步 constants 数据到 store
+                //     this.setNodeInputData({
+                //         id: this.nodeConfig.id,
+                //         type: this.nodeConfig.type,
+                //         updateType: 'all',
+                //         setVals: tools.deepClone(forms)
+                //     })
+                // }
+                // return keys.length ? this.nodeConfig.constants : forms
             },
             /**
              * 加载子流程输入参数表单配置项
@@ -350,8 +349,8 @@
                 this.constantsLoading = true
                 const inputs = []
                 let variables = []
-                Object.keys(this.subfowConstants).forEach(item => {
-                    const from = this.subfowConstants[item]
+                Object.keys(this.subflowConstants).forEach(item => {
+                    const from = this.subflowConstants[item]
                     if (from.show_type === 'show') { // 隐藏变量不显示
                         variables.push(from)
                     }
@@ -387,35 +386,45 @@
             /**
              * 获取任务节点基础信息数据
              */
-            getNodeBasic () {
-                if (this.nodeConfig.type === 'ServiceActivity') {
+            getNodeBasic (config) {
+                if (config.type === 'ServiceActivity') {
                     const {
-                        type, component, name, stage_name, error_ignorable,
+                        component, name, stage_name, error_ignorable,
                         can_retry, retryable, isSkipped, skippable, optional
-                    } = this.nodeConfig
-                    // 空节点不存在 atom
-                    const atom = this.atomList.find(item => item.code === component.code)
+                    } = config
+                    let basicInfoName = gettext('请选择插件')
+                    let desc = ''
+                    // 节点已选择标准插件
+                    if (component.code) {
+                        const atom = this.atomList.find(item => item.code === component.code)
+                        basicInfoName = `${atom.group_name}-${atom.name}`
+                        desc = atom.desc
+                    }
+
                     return {
                         plugin: component.code,
+                        name: basicInfoName,
                         version: component.code ? component.version || 'legacy' : '',
-                        versionList: this.getAtomVersions(component.code),
-                        name: name,
-                        desc: atom ? atom.desc : '',
+                        nodeName: name,
+                        desc, // 空节点不存在插件描述信息
                         step: stage_name,
                         ignorable: error_ignorable,
                         skippable: isSkipped || skippable,
                         retryable: retryable || can_retry,
-                        selectable: optional,
-                        type
+                        selectable: optional
                     }
                 } else {
-                    const { type, template_id, name, stage_name, optional } = this.nodeConfig
+                    const { template_id, name, stage_name, optional } = config
+                    let basicInfoName = gettext('请选择子流程')
+                    if (config.template_id || config.template_id === 0) {
+                        basicInfoName = config.name
+                    }
                     return {
                         tpl: template_id,
-                        name: name,
+                        name: basicInfoName,
+                        nodeName: name,
                         step: stage_name,
-                        selectable: optional,
-                        type
+                        selectable: optional
                     }
                 }
             },
@@ -437,16 +446,17 @@
              * 获取子流程任务节点输入参数值
              */
             getSubflowInputsValue () {
-                return Object.keys(this.subfowConstants).reduce((acc, cur) => {
-                    const variable = this.subfowConstants[cur]
+                return Object.keys(this.subflowConstants).reduce((acc, cur) => {
+                    const variable = this.subflowConstants[cur]
                     acc[variable.key] = tools.deepClone(variable.value)
                     return acc
                 }, {})
             },
+            // 遍历输入参数中勾选的表单
             getInputHooked () {
                 if (this.isSubflow) { // 子流程、遍历全局变量中是否有节点引用了
-                    return Object.keys(this.subfowConstants).reduce((acc, cur) => {
-                        const item = this.subfowConstants[cur]
+                    return Object.keys(this.subflowConstants).reduce((acc, cur) => {
+                        const item = this.subflowConstants[cur]
                         const targetVar = this.constants[cur]
                         acc[cur] = targetVar && targetVar.version === item.version
                         return acc
@@ -461,13 +471,23 @@
                 }
                 return {}
             },
-            pluginChange () {
-                const { name, desc, outputs } = this.atomGroup
-                const versionList = this.getAtomVersions(this.basicInfo.plugin)
+            // 标准插件（子流程）选择面板切换插件（子流程）
+            onPluginOrTplChange (val) {
+                this.isSelectorPanelShow = false
+                if (this.isSubflow) {
+                    this.tplChange(val)
+                } else {
+                    this.pluginChange(val)
+                }
+            },
+            // 标准插件切换
+            pluginChange (val) {
+                const { group_name, name, desc, outputs } = this.atomGroup
+                this.versionList = this.getAtomVersions(this.basicInfo.plugin)
                 const config = {
-                    versionList: versionList,
-                    version: versionList[versionList.length - 1].version,
-                    name: name,
+                    version: this.versionList[this.versionList.length - 1].version,
+                    name: `${group_name}_${name}`,
+                    nodeName: name,
                     desc: desc,
                     ignorable: false,
                     skippable: true,
@@ -479,9 +499,21 @@
                 this.inputParamValue = {}
                 this.getPluginData()
             },
-            versionChange () {
+            // 标准插件版本切换
+            versionChange (val) {
                 this.getPluginData()
                 this.inputParamValue = {}
+            },
+            // 子流程模板切换
+            async tplChange () {
+                debugger
+                const tpl = this.subflowList.find(item => item.template_id === this.basicInfo.tpl)
+                this.basicInfo.name = tpl.name
+                this.basicInfo.selectable = false
+                const subflowData = await this.getSubflowData()
+                this.subflowConstants = this.getConstants(subflowData.form)
+                this.inputs = await this.getSubflowInputsConfig()
+                this.inputParamValue = this.getSubflowInputsValue()
             },
             // 关闭配置面板
             onBeforeClose () {
@@ -501,19 +533,10 @@
                 this.inputs = []
                 this.inputParamValue = {}
                 this.outputs = []
-                this.subfowConstants = {}
+                this.subflowConstants = {}
                 this.basicInfo = this.getNodeBasic()
                 await this.initData()
                 this.inputHooked = this.getInputHooked()
-            },
-            async tplChange () {
-                const tpl = this.subflowList.find(item => item.template_id === this.basicInfo.tpl)
-                this.basicInfo.name = tpl.name
-                this.basicInfo.selectable = false
-                const subflowData = await this.getSubflowData()
-                this.subfowConstants = this.getConstants(subflowData.form)
-                this.inputs = await this.getSubflowInputsConfig()
-                this.inputParamValue = this.getSubflowInputsValue()
             }
         }
     }
@@ -524,15 +547,19 @@
         height: 100%;
         background: #ffffff;
         overflow-y: auto;
-        /deep/ {
-            .bk-sideslider-wrapper {
-                overflow: hidden;
+        @include scrollbar;
+        .go-back {
+            position: absolute;
+            top: 0;
+            right: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
             }
-            .bk-sideslider-content {
-                padding: 30px 20px;
-                overflow: scroll;
-                @include scrollbar;
-            }
+        }
+        .node-config-content {
+            padding: 30px 20px;
         }
         .node-config-base {
             /deep/ .bk-sideslider-wrapper {
@@ -557,11 +584,6 @@
             &.position-right-template-data {
                 /deep/ .bk-sideslider-wrapper {
                     right: 897px;
-                }
-            }
-            &.position-right-choose-plugin {
-                /deep/ .bk-sideslider-wrapper {
-                    right: 768px;
                 }
             }
         }

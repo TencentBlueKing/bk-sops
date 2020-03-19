@@ -16,10 +16,10 @@
             :label-width="130"
             :model="formData">
             <bk-form-item :label="i18n.plugin" :required="true">
-                <bk-input :value="atomName" readonly>
+                <bk-input :value="formData.name" readonly>
                     <template slot="append">
                         <div class="group-text choose-plugin-btn"
-                            @click.stop="onChoosePlugin">{{ formData.plugin ? i18n.reselect : i18n.select }}</div>
+                            @click.stop="openSelectorPanel">{{ formData.plugin ? i18n.reselect : i18n.select }}</div>
                     </template>
                 </bk-input>
                 <i class="common-icon-info form-item-tips"
@@ -36,20 +36,16 @@
                     :clearable="false"
                     @selected="$emit('versionChange')">
                     <bk-option
-                        v-for="item in formData.versionList"
+                        v-for="item in versionList"
                         :key="item.version"
                         :id="item.version"
                         :name="item.version">
                     </bk-option>
                 </bk-select>
             </bk-form-item>
-            <bk-form-item :label="i18n.name" :required="true">
-                <bk-input v-model="formData.name" @blur="saveBasicInfo"></bk-input>
+            <bk-form-item :label="i18n.nodeName" :required="true">
+                <bk-input v-model="formData.nodeName" @blur="saveBasicInfo"></bk-input>
             </bk-form-item>
-            <!-- 新版设计去掉步骤 -->
-            <!-- <bk-form-item :label="i18n.step">
-                <bk-input v-model="formData.step"></bk-input>
-            </bk-form-item> -->
             <bk-form-item :label="i18n.errorHandle" class="error-handle">
                 <bk-checkbox v-model="formData.ignorable" @change="onErrorIgnoreChange">
                     <i class="error-handle-icon common-icon-dark-circle-i"></i>
@@ -85,10 +81,10 @@
             :label-width="130"
             :model="formData">
             <bk-form-item :label="i18n.tpl" :required="true">
-                <bk-input :value="atomName" readonly>
+                <bk-input :value="formData.name" readonly>
                     <template slot="append">
                         <div class="group-text choose-plugin-btn"
-                            @click.stop="onChoosePlugin">{{ formData.tpl ? i18n.reselect : i18n.select }}</div>
+                            @click.stop="openSelectorPanel">{{ formData.tpl ? i18n.reselect : i18n.select }}</div>
                     </template>
                 </bk-input>
                 <!-- 子流程版本更新 -->
@@ -105,13 +101,9 @@
                     @click="onUpdateSubflowVersion">
                 </i>
             </bk-form-item>
-            <bk-form-item :label="i18n.name" :required="true">
-                <bk-input v-model="formData.name"></bk-input>
+            <bk-form-item :label="i18n.nodeName" :required="true">
+                <bk-input v-model="formData.nodeName"></bk-input>
             </bk-form-item>
-            <!-- 新版设计去掉步骤 -->
-            <!-- <bk-form-item :label="i18n.step">
-                <bk-input v-model="formData.step"></bk-input>
-            </bk-form-item> -->
             <bk-form-item :label="i18n.selectable">
                 <bk-switcher v-model="formData.selectable" size="small"></bk-switcher>
             </bk-form-item>
@@ -130,25 +122,19 @@
                     return {}
                 }
             },
+            versionList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
             nodeConfig: {
                 type: Object,
                 default () {
                     return {}
                 }
             },
-            atomList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            subflowList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            atomName: {
+            name: {
                 type: String,
                 default: ''
             },
@@ -175,7 +161,7 @@
                     plugin: gettext('标准插件'),
                     version: gettext('插件版本'),
                     update: gettext('版本更新'),
-                    name: gettext('节点名称'),
+                    nodeName: gettext('节点名称'),
                     step: gettext('步骤名称'),
                     errorHandle: gettext('失败处理'),
                     selectable: gettext('是否可选'),
@@ -237,8 +223,8 @@
                     }
                 })
             },
-            onChoosePlugin () {
-                this.$emit('onShowChoosePluginPanel')
+            openSelectorPanel () {
+                this.$emit('openSelectorPanel')
             },
             /**
              * 子流程版本更新

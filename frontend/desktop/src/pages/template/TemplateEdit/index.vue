@@ -62,24 +62,17 @@
             <div class="side-content">
                 <node-config
                     ref="nodeConfig"
+                    v-if="isNodeConfigPanelShow"
                     :is-show="isNodeConfigPanelShow"
                     :node-id="idOfNodeInConfigPanel"
                     :atom-list="atomList"
                     :subflow-list="subflowList"
+                    :atom-type-list="atomTypeList"
                     :common="common"
                     :is-setting-panel-show="isSettingPanelShow"
-                    :is-choose-plugin-panel-show="isChoosePluginPanelShow"
                     :setting-active-tab="settingActiveTab"
-                    @hide="hideConfigPanel"
-                    @onShowChoosePluginPanel="onShowChoosePluginPanel">
+                    @hide="hideConfigPanel">
                 </node-config>
-                <choose-plugin
-                    :is-show="isChoosePluginPanelShow"
-                    :node-id="idOfChoosePluginPanel"
-                    :atom-type-list="atomTypeList"
-                    @hide="hideChoosePluginPanel"
-                    @onPluginChange="onPluginChange">
-                </choose-plugin>
                 <condition-edit
                     ref="conditionEdit"
                     :is-show="isShowConditionEdit"
@@ -145,7 +138,6 @@
     import TemplateSetting from './TemplateSetting/index.vue'
     import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
-    import ChoosePlugin from './ChoosePlugin.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
@@ -172,7 +164,6 @@
             TemplateHeader,
             TemplateCanvas,
             NodeConfig,
-            ChoosePlugin,
             ConditionEdit,
             TemplateSetting,
             SubflowUpdateTips
@@ -194,7 +185,6 @@
                 isSettingPanelShow: true,
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false,
-                isChoosePluginPanelShow: false,
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
                 isFixedVarMenu: false, // 全局变量面板铆钉
@@ -206,7 +196,6 @@
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
-                idOfChoosePluginPanel: '',
                 atomList: [],
                 subflowList: [],
                 atomTypeList: {
@@ -681,9 +670,6 @@
                 if (this.isShowConditionEdit) {
                     this.onCloseConditionEdit()
                 }
-                if (this.isChoosePluginPanelShow && activeTab) {
-                    this.hideChoosePluginPanel()
-                }
                 if (isSettingPanelShow) {
                     this.lastOpenPanelName = 'settingPanel'
                 }
@@ -739,9 +725,6 @@
                     } else {
                         this.toggleSettingPanel(false)
                     }
-                }
-                if (clientX < 1920) {
-                    this.hideChoosePluginPanel()
                 }
             },
             // 全局变量引用节点点击回调
@@ -1268,7 +1251,6 @@
                     !this.isNodeConfigPanelShow
                     && !this.isSettingPanelShow
                     && !this.isShowConditionEdit
-                    && !this.isChoosePluginPanelShow
                 ) {
                     return
                 }
@@ -1278,9 +1260,6 @@
                 }
                 if (this.isShowConditionEdit) {
                     panel = document.querySelector('.condition-edit .bk-sideslider-wrapper')
-                }
-                if (this.isChoosePluginPanelShow) {
-                    panel = document.querySelector('.choose-plugin .bk-sideslider-wrapper')
                 }
                 if (this.isNodeConfigPanelShow) {
                     panel = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
@@ -1293,7 +1272,6 @@
                         this.isNodeConfigPanelShow && this.hideConfigPanel()
                         !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
                         this.isShowConditionEdit && this.onCloseConditionEdit()
-                        this.isChoosePluginPanelShow && this.hideChoosePluginPanel()
                     }
                 }
             },
@@ -1327,25 +1305,6 @@
             },
             fixedVarMenuChange (val) {
                 this.isFixedVarMenu = val
-            },
-            /**
-             * 显示插件选择面板
-             * @param {String} nodeId 节点id
-             */
-            onShowChoosePluginPanel (nodeId) {
-                if (this.isSettingPanelShow) {
-                    this.toggleSettingPanel(false)
-                }
-                if (document.body.clientWidth < 1920) {
-                    this.hideConfigPanel()
-                }
-                this.isChoosePluginPanelShow = true
-                this.idOfChoosePluginPanel = nodeId
-            },
-            // 关闭插件选择面板
-            hideChoosePluginPanel () {
-                this.isChoosePluginPanelShow = false
-                this.idOfChoosePluginPanel = ''
             },
             // 插件更新
             onPluginChange (node) {
