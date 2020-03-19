@@ -1,5 +1,12 @@
 # Release
 
+## 3.5.402
+
+- 优化项
+  - ProjectCounter 添加 admin 配置
+- bugfix
+  - 修复【节点管理-安装】插件密码加密失败的问题
+
 ## 3.5.401
 
 - bugfix
