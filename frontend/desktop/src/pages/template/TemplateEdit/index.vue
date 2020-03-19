@@ -46,7 +46,6 @@
                 :name="name"
                 :type="type"
                 :common="common"
-                :template_id="template_id"
                 :canvas-data="canvasData"
                 :node-memu-open.sync="nodeMenuOpen"
                 @hook:mounted="canvasMounted"
@@ -182,8 +181,6 @@
         data () {
             return {
                 i18n,
-                bkMessageInstance: null,
-                exception: {},
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
                 projectInfoLoading: false,
@@ -212,7 +209,10 @@
                 idOfChoosePluginPanel: '',
                 atomList: [],
                 subflowList: [],
-                subAtomGrouped: [],
+                atomTypeList: {
+                    tasknode: [],
+                    subflow: []
+                },
                 draftArray: [],
                 intervalSaveTemplate: null,
                 intervalGetDraftArray: null,
@@ -265,28 +265,6 @@
                 'timeZone': state => state.timezone,
                 'project_id': state => state.project_id
             }),
-            atomTypeList () {
-                const subAtomGrouped = tools.deepClone(this.subAtomGrouped)
-                if (this.type !== 'new') {
-                    let theSameAtomIndex
-                    this.subAtomGrouped.some((group, groupIndex) => {
-                        const inTheGroup = group.list.some((item, index) => {
-                            if (item.id === Number(this.template_id)) {
-                                theSameAtomIndex = index
-                                return true
-                            }
-                        })
-                        if (inTheGroup) {
-                            subAtomGrouped[groupIndex].list.splice(theSameAtomIndex, 1)
-                        }
-                        return inTheGroup
-                    })
-                }
-                return {
-                    'tasknode': this.atomList,
-                    'subflow': subAtomGrouped
-                }
-            },
             projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
                 return this.common ? 'common' : this.project_id
             },
@@ -458,6 +436,7 @@
                         }
                     })
                     this.atomList = atomList
+                    this.handleAtomGroup(atomList)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -521,6 +500,7 @@
                     this.customVarCollectionLoading = false
                 }
             },
+            // 获取模板详情
             async getTemplateData () {
                 try {
                     const data = {
@@ -577,7 +557,7 @@
                         const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
+                        if (!atomFilter.isConfigExists(atom, version, this.atomConfig)) {
                             await this.loadAtomConfig({ name, atom, classify, version })
                         }
                         const atomConfig = this.atomConfig[atom][version]
@@ -652,29 +632,45 @@
                 activities.component.data = data
                 this.setActivities({ type: 'edit', location: activities })
             },
+            // 标准插件分组
+            handleAtomGroup (data) {
+                const grouped = []
+                data.forEach(item => {
+                    const group = grouped.find(atom => atom.type === item.type)
+                    if (group) {
+                        group.list.push(item)
+                    } else {
+                        const { type, group_name, group_icon } = item
+                        grouped.push({
+                            group_name: group_name,
+                            group_icon: group_icon,
+                            type: type,
+                            list: [item]
+                        })
+                    }
+                })
+                this.atomTypeList.tasknode = grouped
+            },
             // 子流程分组
             handleSubflowGroup (data) {
-                const primaryData = data
-                const groups = []
-                const atomGrouped = []
-                this.projectBaseInfo.task_categories.forEach(item => {
-                    groups.push(item.value)
-                    atomGrouped.push({
-                        type: item.value,
-                        group_name: item.name,
-                        group_icon: '',
-                        list: []
-                    })
-                })
-                primaryData.forEach(item => {
-                    const type = item.category
-                    const index = groups.indexOf(type)
-                    if (index > -1) {
-                        atomGrouped[index].list.push(item)
+                const grouped = []
+                data.forEach(item => {
+                    const group = grouped.find(tpl => tpl.type === item.category)
+                    if (group) {
+                        if (item.id !== Number(this.template_id)) {
+                            group.list.push(item)
+                        }
+                    } else {
+                        grouped.push({
+                            type: item.category,
+                            group_name: item.category_name,
+                            group_icon: '',
+                            list: [item]
+                        })
                     }
                 })
 
-                this.subAtomGrouped = atomGrouped
+                this.atomTypeList.subflow = grouped
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth
@@ -1267,6 +1263,7 @@
             },
             // 所有侧滑面板以外点击事件处理
             handleSidesPanelShow (e) {
+                console.log(2)
                 if (
                     !this.isNodeConfigPanelShow
                     && !this.isSettingPanelShow
@@ -1288,14 +1285,16 @@
                 if (this.isNodeConfigPanelShow) {
                     panel = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
                 }
-                const { left, top } = panel.getBoundingClientRect()
-                const pageX = left + document.documentElement.scrollLeft
-                const pageY = top + document.documentElement.scrollTop
-                if (e.pageX < pageX || e.pageX < pageY) {
-                    this.isNodeConfigPanelShow && this.hideConfigPanel()
-                    !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
-                    this.isShowConditionEdit && this.onCloseConditionEdit()
-                    this.isChoosePluginPanelShow && this.hideChoosePluginPanel()
+                if (panel) {
+                    const { left, top } = panel.getBoundingClientRect()
+                    const pageX = left + document.documentElement.scrollLeft
+                    const pageY = top + document.documentElement.scrollTop
+                    if (e.pageX < pageX || e.pageX < pageY) {
+                        this.isNodeConfigPanelShow && this.hideConfigPanel()
+                        !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
+                        this.isShowConditionEdit && this.onCloseConditionEdit()
+                        this.isChoosePluginPanelShow && this.hideChoosePluginPanel()
+                    }
                 }
             },
             /**

@@ -119,15 +119,7 @@
                 return this.lang === 'zh-cn' ? 'zh' : 'en'
             },
             nodes () {
-                if (this.activeNodeListType) {
-                    if (this.activeNodeListType === 'subflow') {
-                        return this.atomTypeList.subflow
-                    } else {
-                        return this.getGroupedAtom(this.atomTypeList.tasknode)
-                    }
-                } else {
-                    return []
-                }
+                return this.activeNodeListType ? this.atomTypeList[this.activeNodeListType] : []
             }
         },
         watch: {

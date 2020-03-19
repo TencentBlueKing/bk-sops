@@ -142,27 +142,7 @@
                 return this.nodeConfg.type === 'SubProcess'
             },
             nodes () {
-                if (this.isSubflow) {
-                    return this.atomTypeList['subflow']
-                } else { // 按照 type 字段分组
-                    const group = []
-                    const atoms = this.atomTypeList['tasknode']
-                    atoms.forEach(item => {
-                        const atom = group.find(atom => atom.type === item.type)
-                        if (atom) {
-                            atom.list.push(item)
-                        } else {
-                            const { type, group_name, group_icon } = item
-                            group.push({
-                                group_name: group_name,
-                                group_icon: group_icon,
-                                type: type,
-                                list: [item]
-                            })
-                        }
-                    })
-                    return group
-                }
+                return this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
             },
             listInPanel () {
                 return this.searchStr === '' ? this.nodes : this.searchResult
