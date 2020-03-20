@@ -11,30 +11,29 @@
 */
 <template>
     <header>
-        <a href="javascript:void(0);" class="nav-logo" @click.prevent="onLogoClick()">
+        <router-link :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
-        </a>
+        </router-link>
         <ul class="nav-left" v-if="!appmakerDataLoading">
             <li
                 v-for="(item, index) in showRouterList"
                 :key="index"
                 :class="['nav-item', { 'active': isNavActived(item) }]">
-                <a href="javascript:void(0);" @click.prevent="onGoToPath(item)">
+                <router-link :to="{ name: item.routerName }" @click.native="onGoToPath($event, item)">
                     {{ item.name }}
-                </a>
+                </router-link>
                 <div
                     v-if="item.children"
                     class="sub-nav">
-                    <a
-                        href="javascript:void(0);"
+                    <router-link
                         v-for="(sub, subIndex) in item.children"
                         :key="subIndex"
-                        to=""
+                        :to="{ name: item.routerName }"
                         :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
-                        @click.prevent="onGoToPath(sub)">
+                        @click.native="onGoToPath($event, sub)">
                         {{ sub.name }}
-                    </a>
+                    </router-link>
                 </div>
             </li>
         </ul>
@@ -249,7 +248,8 @@
                 'getVersionList',
                 'getVersionDetail'
             ]),
-            onLogoClick () {
+            onLogoClick (e) {
+                e.preventDefault()
                 if (this.view_mode !== 'app') {
                     return false
                 }
@@ -358,7 +358,8 @@
              * 导航跳转
              * @param {Object} route 路由信息
              */
-            onGoToPath (route) {
+            onGoToPath (e, route) {
+                e.preventDefault()
                 if (this.$route.name === route.routerName) {
                     return this.reload()
                 }
