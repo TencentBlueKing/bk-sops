@@ -14,7 +14,6 @@
         v-show="showForm"
         :class="[
             'rf-form-item',
-            'clearfix',
             {
                 'rf-has-hook': showHook,
                 'show-label': option.showLabel,
@@ -92,11 +91,6 @@
             false,
             /Tag[A-Z]\w+\.(vue|js)$/
         )
-        // const userComponent = require.context(
-        //     '../../tags/',
-        //     false,
-        //     /Tag[A-Z]\w+\.(vue|js)$/
-        // )
         const tagComponent = {}
         const register = (fileName, context) => {
             const componentConfig = context(fileName)
@@ -111,9 +105,6 @@
         innerComponent.keys().forEach(fileName => {
             register(fileName, innerComponent)
         })
-        // userComponent.keys().forEach(fileName => {
-        //     register(fileName, userComponent)
-        // })
 
         return tagComponent
     }
@@ -336,6 +327,11 @@
     margin: 15px 0;
     min-height: 32px;
     font-size: 12px;
+    &::after {
+        display: block;
+        content: "";
+        clear: both;
+    }
     &:first-child {
         margin-top: 0;
     }
@@ -358,8 +354,9 @@
     .rf-tag-label {
         float: left;
         position: relative;
-        margin-top: 8px;
+        margin-top: 11px;
         width: 100px;
+        line-height: 1;
         font-size: 12px;
         color: #313238;
         text-align: right;

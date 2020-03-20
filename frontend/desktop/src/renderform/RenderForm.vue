@@ -61,12 +61,7 @@
             event: 'change'
         },
         props: {
-            scheme: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
+            scheme: Array,
             constants: {
                 type: Array,
                 default () {
@@ -122,7 +117,7 @@
             },
             constants: {
                 handler: function (val) {
-                    if (this.scheme.length === 0 && val) {
+                    if (!this.scheme && val) {
                         this.handleConstants(val)
                     }
                 },
@@ -151,8 +146,8 @@
         },
         methods: {
             async handleConstants (constants) {
-                this.formConfig = []
-                this.value = []
+                const config = []
+                const data = {}
 
                 let variableArray = constants.filter(item => item.show_type === 'show')
 
@@ -162,7 +157,7 @@
                     return a.index - b.index
                 })
 
-                for (const variable of variableArray) {
+                await Promise.all(variableArray.map(async (variable) => {
                     const { key } = variable
                     const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     // custom_type 可以判断是手动新建节点还是组件勾选
@@ -196,10 +191,12 @@
                                 error_message: gettext('参数值不符合正则规则：') + variable.validation
                             })
                         }
-                        this.formConfig.push(currentFormConfig)
+                        config.push(currentFormConfig)
                     }
-                    this.value[key] = tools.deepClone(variable.value)
-                }
+                    data[key] = tools.deepClone(variable.value)
+                }))
+                this.formConfig = config
+                this.$emit('change', data)
             },
             async loadAtomConfig (payload) {
                 const { atomType, classify, isMeta, saveName } = payload
@@ -225,7 +222,7 @@
                     }
 
                     return await new Promise ((resolve, reject) => {
-                        $.getScript(`${$.context.site_url}${formResource}`).then(response => {
+                        $.getScript(`${formResource}`).then(response => {
                             this.setAtomsConfig(setTypeName, $.atoms[setTypeName], version)
                             resolve(response)
                         })
@@ -233,17 +230,16 @@
                 })
             },
             getAtomFormURL (type, classify, version = '', isMeta) {
-                let url = ''
+                let url = isMeta ? `api/v3/${classify}/${type}/?meta=1` : `api/v3/${classify}/${type}/`
                 // 变量暂时没有版本系统
-                if (classify === 'variable') {
-                    url = isMeta ? `api/v3/variable/?meta=1` : `api/v3/variable/${type}/`
-                } else {
-                    url = isMeta
-                        ? `api/v3/component/${type}/?meta=1&version=${version}`
-                        : `api/v3/component/${type}/?version=${version}`
+                if (classify === 'component') {
+                    url = `${url}?version=${version}`
                 }
 
-                return $.get({ url: `${$.context.site_url}${url}` })
+                return $.ajax({
+                    url: `${$.context.site_url}${url}`,
+                    method: 'GET'
+                })
             },
             setAtomsConfig (name, config, version) {
                 if (this.atomsConfig[name]) {

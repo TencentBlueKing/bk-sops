@@ -2,7 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+// const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 
 module.exports = {
@@ -73,13 +73,13 @@ module.exports = {
         new VueLoaderPlugin(),
         new MiniCssExtractPlugin({
             filename: path.posix.join('dist/css/[name].css')
-        }),
-        new CopyWebpackPlugin([{
-            context: './src/renderform/',
-            from: './lib/',
-            to: './lib',
-            flatten: true
-        }])
+        })
+        // new CopyWebpackPlugin([{
+        //     context: './src/renderform/',
+        //     from: './lib/',
+        //     to: './lib',
+        //     flatten: true
+        // }])
     ],
     resolve: {
         alias: {
