@@ -16,17 +16,42 @@
             :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
-                    <template>
-                        <p class="text title">{{ commonTitle }}</p>
-                        <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
-                        <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                        <p class="text">Ctrl + 0 {{i18n.reduction}}</p>
-                        <p class="text">Ctrl + {{i18n.zoom}}</p>
-                        <p class="text" v-show="editable">{{commonCtrl}} + {{i18n.multiple}}</p>
-                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] {{ i18n.moveNode }}</p>
-                        <p class="text" v-show="editable">[{{i18n.afterSelect}}] Delete {{ i18n.delNode }}</p>
-                        <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
-                    </template>
+                    <p class="text title">{{ commonTitle + i18n.shortcuts }}</p>
+                    <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>Ctrl + (+):</td>
+                                <td>{{ i18n.zoomIn }}</td>
+                            </tr>
+                            <tr>
+                                <td>Ctrl + (-):</td>
+                                <td>{{ i18n.zoomOut }}</td>
+                            </tr>
+                            <tr>
+                                <td>Ctrl + 0:</td>
+                                <td>{{ i18n.reduction }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ i18n.scroll }}:</td>
+                                <td>{{ i18n.zoom }}</td>
+                            </tr>
+                            <template v-show="editable">
+                                <tr>
+                                    <td>{{ commonCtrl }} {{ i18n.click }}:</td>
+                                    <td>{{ i18n.multiple }}</td>
+                                </tr>
+                                <tr>
+                                    <td>[{{ i18n.afterSelect }}]{{ i18n.arrowMove }}:</td>
+                                    <td>{{ i18n.moveNode }}</td>
+                                </tr>
+                                <tr>
+                                    <td>[{{i18n.afterSelect}}] Delete:</td>
+                                    <td>{{ i18n.delNode }}</td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
                 </div>
             </transition>
         </div>
@@ -55,18 +80,22 @@
         data () {
             return {
                 i18n: {
-                    reset: gettext('：撤销'),
-                    restore: gettext('：恢复'),
-                    zoomIn: gettext('：放大'),
-                    zoomOut: gettext('：缩小'),
-                    zoom: gettext(' 鼠标滚动：缩放'),
-                    reduction: gettext('：还原'),
-                    multiple: gettext('鼠标左键单击 ：连续选中（或取消）节点'),
+                    reset: gettext('撤销'),
+                    restore: gettext('恢复'),
+                    shortcuts: gettext('快捷键列表'),
+                    zoomIn: gettext('放大'),
+                    zoomOut: gettext('缩小'),
+                    scroll: gettext('鼠标滚动'),
+                    zoom: gettext('缩放'),
+                    reduction: gettext('还原'),
+                    click: gettext('鼠标左键单击'),
+                    multiple: gettext('连续选中（或取消）节点'),
                     selectAll: gettext('选中所有节点'),
                     afterSelect: gettext('选中后'),
-                    delNode: gettext('：删除节点'),
-                    moveNode: gettext('箭头（上下左右）：移动流程元素'),
-                    cancel: gettext('：取消选中')
+                    delNode: gettext('删除节点'),
+                    arrowMove: gettext('箭头（上下左右）'),
+                    moveNode: gettext('移动流程元素'),
+                    cancel: gettext('取消选中')
                 },
                 isMac,
                 commonTitle: isMac ? 'Mac' : 'Windows',
@@ -116,21 +145,20 @@
         left: 80px;
         top: 124px;
         padding: 20px;
-        width: 304px;
-        border-radius: 10px;
-        background-color: #777A85;
+        width: 340px;
+        border-radius: 4px;
+        background-color: #fafbfd;
+        font-size: 12px;
+        line-height: 17px;
+        color: #63656e;
         transition: all 0.5s ease;
+        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
         &.min-top {
             left: 40px;
             top: 70px;
         }
         .title {
-            margin-bottom: 20px;
-        }
-        .text {
-            font-size: 12px;
-            line-height: 17px;
-            color: #FFFFFF;
+            margin-bottom: 10px;
         }
         .close {
             display: inline-block;
@@ -139,12 +167,16 @@
             top: 10px;
             width: 16px;
             height: 16px;
+            font-size: 16px;
             line-height: 16px;
             text-align: center;
             cursor: pointer;
             .common-icon-dark-circle-close {
-                color: #ffffff;
+                color: #c4c6cc;
             }
+        }
+        table {
+            width: 100%;
         }
     }
 }

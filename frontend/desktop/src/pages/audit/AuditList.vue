@@ -29,8 +29,12 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.business" prop="project.name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.business" width="120">
+                        <template slot-scope="props">
+                            <span :title="props.row.project.name">{{ props.row.project.name }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -63,9 +67,9 @@
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.category" prop="category_name" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.operator" width="100">
+                    <bk-table-column :label="i18n.category" prop="category_name" width="140"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="140"></bk-table-column>
+                    <bk-table-column :label="i18n.operator" width="140">
                         <template slot-scope="props">
                             {{ props.row.executor_name || '--' }}
                         </template>
@@ -407,7 +411,7 @@
         @include ui-task-status;
     }
     .audit-operation-btn {
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .empty-data {
         padding: 120px 0;

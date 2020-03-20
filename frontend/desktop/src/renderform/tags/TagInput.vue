@@ -17,22 +17,8 @@
                     type="text"
                     v-model="inputValue"
                     :disabled="!editable || disabled"
-                    :placeholder="placeholder"
-                    @input="onInput">
+                    :placeholder="placeholder">
                 </el-input>
-                <transition>
-                    <div class="rf-select-list" v-show="showVarList && isListOpen">
-                        <ul class="rf-select-content">
-                            <li
-                                class="rf-select-item"
-                                v-for="item in varList"
-                                :key="item"
-                                @click.stop="onSelectVal(item)">
-                                {{item}}
-                            </li>
-                        </ul>
-                    </div>
-                </transition>
             </div>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
@@ -40,11 +26,8 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
-    import dom from '@/utils/dom.js'
+    import '../utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
-
-    const VAR_REG = /\$\{\w*$/
 
     export const attrs = {
         placeholder: {
@@ -63,33 +46,12 @@
             type: String,
             required: false,
             default: ''
-        },
-        showVarList: {
-            type: Boolean,
-            default: false,
-            inner: true
         }
     }
     export default {
         name: 'TagInput',
         mixins: [getFormMixins(attrs)],
-        data () {
-            return {
-                isListOpen: false,
-                varList: []
-            }
-        },
         computed: {
-            constantArr: {
-                get () {
-                    const Keylist = []
-                    return Keylist
-                },
-                set (val) {
-                    this.varList = val
-                }
-            },
-
             inputValue: {
                 get () {
                     return this.value
@@ -97,41 +59,6 @@
                 set (val) {
                     this.updateForm(val)
                 }
-            }
-        },
-        created () {
-            window.addEventListener('click', this.handleListShow, false)
-        },
-        beforeDestroy () {
-            window.removeEventListener('click', this.handleListShow, false)
-        },
-        methods: {
-            handleListShow (e) {
-                if (!this.isListOpen) {
-                    return
-                }
-                const listPanel = document.querySelector('.rf-select-list')
-                if (listPanel && !dom.nodeContains(listPanel, e.target)) {
-                    this.isListOpen = false
-                }
-            },
-            onInput (val) {
-                const matchResult = val.match(VAR_REG)
-                if (matchResult && matchResult[0]) {
-                    const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
-                    const inputReg = new RegExp(regStr)
-                    this.varList = this.constantArr.filter(item => {
-                        return inputReg.test(item)
-                    })
-                } else {
-                    this.varList = []
-                }
-                this.isListOpen = !!this.varList.length
-            },
-            onSelectVal (val) {
-                const replacedValue = this.value.replace(VAR_REG, val)
-                this.updateForm(replacedValue)
-                this.isListOpen = false
             }
         }
     }

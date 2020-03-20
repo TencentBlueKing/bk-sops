@@ -80,9 +80,6 @@
             }
         },
         computed: {
-            ...mapState({
-                'memberlist': state => state.member.memberlist
-            }),
             setValue: {
                 get () {
                     return this.value
@@ -127,7 +124,10 @@
                 try {
                     if (this.memberlist && this.memberlist.length === 0 && !this.isLoading) {
                         this.isLoading = true
-                        const result = await this.loadMemberList()
+                        const result = await $.ajax({
+                            url: $.context.site_url + 'core/api/get_user_list/',
+                            method: 'GET'
+                        })
                         this.memberlist = result.data
                     }
                 } catch (e) {

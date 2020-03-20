@@ -459,6 +459,11 @@
             }
         }
     }
-    
+    /deep/ .common-error-tip {
+        display: inline-block;
+        font-size: 12px;
+        line-height: 1;
+        color: #ff5757;
+    }
 }
 </style>

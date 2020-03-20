@@ -41,7 +41,7 @@
                 type: String,
                 default: ''
             },
-            hideAdvance: {
+            isAdvanceOpen: {
                 type: Boolean,
                 default: false
             },
@@ -67,8 +67,7 @@
         },
         methods: {
             onShow () {
-                this.$emit('onShow', this.isAdvancedSerachShow)
-                this.shapeShow = !this.shapeShow
+                this.$emit('update:isAdvanceOpen', !this.isAdvanceOpen)
             },
             onInput (value) {
                 const exportValue = typeof value === 'string' ? value : value.target.value
@@ -80,7 +79,7 @@
 
 <style lang='scss'>
 @import '@/scss/config.scss';
- .advanced-search {
+.advanced-search {
     position: relative;
     float: right;
     display: flex;
@@ -102,7 +101,7 @@
             display: inline-block;
             cursor: pointer;
             &:hover {
-                color: #3c96ff;
+                color: #3a84ff;
             }
             .advanced-shape {
                 display: inline-block;

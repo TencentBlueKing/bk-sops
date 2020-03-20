@@ -44,7 +44,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import '../../utils/i18n.js' // ip选择器兼容标准运维国际化
 
     const i18n = {
         select: gettext('请选择'),

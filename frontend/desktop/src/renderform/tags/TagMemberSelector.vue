@@ -24,8 +24,9 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { getFormMixins } from '@/components/common/RenderForm/formMixins.js'
-    import MemberSelect from '../MemberSelect.vue'
+    import { getFormMixins } from '../formMixins.js'
+    import MemberSelect from '../components/MemberSelect.vue'
+
     const attrs = {
         value: {
             type: String,

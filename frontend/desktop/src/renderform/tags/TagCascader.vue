@@ -29,7 +29,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import '../utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {

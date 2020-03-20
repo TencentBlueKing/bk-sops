@@ -66,10 +66,10 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import '../../utils/i18n.js' // ip选择器兼容标准运维国际化
     import SingleIpSelector from './SingleIpSelector.vue'
     import MultipleIpSelector from './MultipleIpSelector.vue'
-    import SelectCondition from './SelectCondition.vue'
+    import SelectCondition from '../SelectCondition/index.vue'
 
     const i18n = {
         staticIp: gettext('静态IP'),

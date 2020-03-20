@@ -13,8 +13,6 @@
     <div class="task-container">
         <div class="list-wrapper">
             <div class="operation-area">
-                <div class="operation-area clearfix">
-                </div>
                 <advance-search-form
                     :search-config="{ placeholder: i18n.taskNamePlaceholder }"
                     :search-form="searchForm"
@@ -37,8 +35,8 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.task_name" prop="name">
+                    <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.task_name" prop="name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -61,12 +59,12 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.start_time" prop="category_name">
+                    <bk-table-column :label="i18n.start_time" prop="start_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finish_time">
+                    <bk-table-column :label="i18n.finish_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
@@ -612,11 +610,6 @@
     font-size: 14px;
     vertical-align: middle;
 }
-.operation-area {
-    .bk-button {
-        min-width: 120px;
-    }
-}
 .task-table-content {
     background: #ffffff;
     a.task-name {
@@ -626,15 +619,14 @@
        @include ui-task-status;
     }
     .task-operation {
-        width: 150px;
         .task-operation-clone {
             padding: 5px;
-            color: #3C96FF;
+            color: #3a84ff;
             font-size: 12px;
         }
         .task-operation-delete {
             padding: 5px;
-            color: #3C96FF;
+            color: #3a84ff;
             font-size: 12px;
         }
     }
@@ -643,21 +635,6 @@
     }
     .template-operate-btn {
         color: $blueDefault;
-    }
-}
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #ffff;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 12px;
-    }
-    .bk-page {
-        display: inline-block;
     }
 }
 </style>

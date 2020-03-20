@@ -24,7 +24,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import '../../utils/i18n.js' // ip选择器兼容标准运维国际化
 
     const i18n = {
         placeholder: gettext('搜索IP，多个以逗号隔开')

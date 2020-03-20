@@ -206,11 +206,6 @@
         .task-status-icon {
             background: $color;
         }
-       .sub-body {
-            .t-left .triangle, .blue-bar{
-                background-color: $color;
-            }
-        }
     }
     @mixin gatewayStyle ($color) {
         .node-type-icon {
@@ -249,8 +244,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             background: #96a1b9;
             border-radius: 50%;
             &.finished {
@@ -269,8 +264,8 @@
         }
         .gateway-node {
             position: relative;
-            height: 32px;
-            width: 32px;
+            height: 34px;
+            width: 34px;
             text-align: center;
             &.failed {
                 @include gatewayStyle($redDark);
@@ -281,8 +276,8 @@
             &:before {
                 content: '';
                 position: absolute;
-                top: 1px;
-                left: 2px;
+                top: 2px;
+                left: 3px;
                 width: 28px;
                 height: 28px;
                 background: #ffffff;
@@ -299,6 +294,17 @@
             text-align: center;
         }
         .task-node {
+            position: relative;
+            width: 150px;
+            height: 54px;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            &.actived {
+                box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
+            }
             &:hover {
                 box-shadow: 0px 0px 20px 0px $activeShadow;
             }
@@ -314,51 +320,54 @@
             &.finished {
                 @include taskNodeStyle ($greenDark)
             }
-            
-        }
-        .subflow-node {
-            &:hover > .ui-node-shadow {
-                box-shadow: 0px 0px 20px 0px $activeShadow;
-            }
-            &.failed {
-                @include taskNodeStyle ($redDark)
-            }
-            &.suspended {
-                @include taskNodeStyle ($yellowDark)
-            }
-            &.running {
-                @include taskNodeStyle ($yellowDark)
-            }
-            &.finished {
-                @include taskNodeStyle ($greenDark)
-            }
-        }
-        .task-node,
-        .subflow-node {
-            .node-name {
+            .node-status-block {
+                float: left;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                padding: 5px 2px;
+                width: 32px;
                 height: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                text-align: center;
-                color: #63656e;
+                background: #52699d;
+                border-top-left-radius: 4px;
+                border-bottom-left-radius: 4px;
+                .node-icon {
+                    width: 16px;
+                }
+                .node-icon-font {
+                    font-size: 18px;
+                    color: #ffffff;
+                }
             }
-        }
-        .subflow-node-icon {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 17px;
-            height: 8px;
-            background: $blueDark;
-            border-top-left-radius: 4px;
-            border-bottom-right-radius: 4px;
+            .node-name {
+                display: flex;
+                align-items: center;
+                margin-left: 32px;
+                padding: 0 2px;
+                width: 118px;
+                height: 100%;
+                .name-text {
+                    display: -webkit-box;
+                    width: 100%;
+                    font-size: 12px;
+                    color: #63656e;
+                    text-align: center;
+                    overflow : hidden;
+                    text-overflow: ellipsis;
+                    word-break: break-all;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                }
+            }
+            .node-options-icon {
+                position: absolute;
+                top: -23px;
+                left: 0;
+                .bk-form-checkbox,
+                &>[class*="common-icon"] {
+                    display: inline-block;
+                    vertical-align: bottom;
+                }
+            }
         }
         .task-status-icon {
             position: absolute;

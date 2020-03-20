@@ -27,10 +27,10 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import '../utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import IpSelector from '../IpSelector/index.vue'
+    import IpSelector from '../components/IpSelector/index.vue'
 
     export const attrs = {
         isMultiple: {
@@ -43,7 +43,13 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用组件')
+            desc: gettext('组件禁用态')
+        },
+        remote_url: {
+            type: [Object, Function],
+            required: true,
+            default: '',
+            desc: gettext('组件内部调用接口的地址')
         },
         value: {
             type: [Object, String],
@@ -101,23 +107,25 @@
                 return !this.validateSet.includes('required')
             }
         },
-        created () {
+        mounted () {
             this.getData()
         },
         methods: {
-            getHostInCC () {
-
-            },
-            getTopoTreeInCC () {},
-            getTopoModelInCC () {},
             getData () {
                 this.loading = true
                 const staticIpExtraFields = ['agent']
-
+                const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
                 Promise.all([
-                    this.getHostInCC(staticIpExtraFields),
-                    this.getTopoTreeInCC(),
-                    this.getTopoModelInCC()
+                    $.ajax({
+                        url: urls['cc_search_host'],
+                        fields: staticIpExtraFields
+                    }),
+                    $.ajax({
+                        url: urls['cc_search_topo_tree']
+                    }),
+                    $.ajax({
+                        url: urls['cc_get_mainline_object_topo']
+                    })
                 ]).then(values => {
                     if (Array.isArray(values)) {
                         this.staticIpList = (values[0] && values[0].data) || []
