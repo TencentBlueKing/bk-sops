@@ -453,7 +453,7 @@
                 if (Array.isArray(this.value)) {
                     const atomOutput = this.atomForm.form[specialAtom][version].output.slice(0)
                     this.value.forEach(item => {
-                        if (typeof item.type === 'number' && item.type !== 2 && item.category === 1) {
+                        if (item.category === 1 || item.category === 2) {
                             atomOutput.push({
                                 key: item.name,
                                 name: item.name
