@@ -21,11 +21,20 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
+from gcloud.apigw.decorators import mark_request_whether_is_trust
+from gcloud.apigw.views.utils import logger
+
+try:
+    from bkoauth.decorators import apigw_required
+except ImportError:
+    from packages.bkoauth.decorators import apigw_required
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
+@apigw_required
+@mark_request_whether_is_trust
 def dispatch_plugin_query(request):
     """
         转发插件表单渲染资源请求，暂时仅考虑GET/POST请求
@@ -43,14 +52,12 @@ def dispatch_plugin_query(request):
             'result': False,
             'message': 'invalid json format',
             'code': err_code.REQUEST_PARAM_INVALID.code,
-            'data': None,
         })
 
     # proxy: url/method/data
     url = params.get('url')
     method = params.get('method', 'GET')
     data = params.get('data', {})
-    debug = params.get('debug')
 
     try:
         parsed = urlsplit(url)
@@ -71,19 +78,12 @@ def dispatch_plugin_query(request):
         else:
             return JsonResponse({
                 'result': False,
-                'data': None,
                 'code': err_code.INVALID_OPERATION.code,
-                'message': 'only support get and post method.'
+                'message': 'dispatch_plugin_query: only support get and post method.'
             })
 
         # transfer request.user
         setattr(fake_request, 'user', request.user)
-
-        # todo: remove after debug for no jwt (skip)
-        if debug:
-            from django.contrib.auth import get_user_model
-            User = get_user_model()
-            setattr(fake_request, 'user', User.objects.get(username='admin'))
 
         # resolve view_func
         match = resolve(parsed.path, urlconf=None)
@@ -93,17 +93,17 @@ def dispatch_plugin_query(request):
         return view_func(fake_request, **kwargs)
 
     except Resolver404:
+        logger.warning('dispatch_plugin_query: resolve view func 404 for: {}'.format(url))
         return JsonResponse({
             'result': False,
-            'data': None,
             'code': err_code.REQUEST_PARAM_INVALID.code,
-            'message': 'resolve view func failed for: {}'.format(url)
+            'message': 'dispatch_plugin_query: resolve view func 404 for: {}'.format(url)
         })
 
     except Exception as e:
+        logger.error('dispatch_plugin_query: exception for {}'.format(e))
         return JsonResponse({
             'result': False,
-            'data': None,
-            'message': str(e),
+            'message': 'dispatch_plugin_query: exception for {}'.format(e),
             'code': err_code.UNKNOW_ERROR.code
         })
