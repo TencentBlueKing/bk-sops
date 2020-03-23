@@ -20,7 +20,7 @@ class UploadModuleManager(Manager):
     type = 'upload_module'
 
     def __init__(self):
-        super().__init__(self, None)
+        super().__init__(None)
 
     def save(self, name, content, shims=None, max_length=None, **kwargs):
 
