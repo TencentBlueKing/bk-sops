@@ -471,19 +471,20 @@ def file_upload(request):
         file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
     except Exception as e:
         logger.error(
-            "can not get file manager for type: {}\n err: {}".format(
+            "[FILE_UPLOAD]can not get file manager for type: {}\n err: {}".format(
                 file_manager_type, traceback.format_exc()
             )
         )
         return JsonResponse({"result": False, "message": str(e)})
 
-    logger.info('file_upload POST: {}'.format(request.POST))
+    logger.info('[FILE_UPLOAD]file_upload POST: {}'.format(request.POST))
 
     file_name = request.POST.get('file_name')
     file_path = request.POST.get('file_local_path')
     source_ip = request.POST.get('file_locate_ip')
 
     if not file_name:
+        logger.error('[FILE_UPLOAD]invalid file_name: {}'.format(file_name))
         return JsonResponse({
             'result': False,
             'message': 'invalid file_name'
@@ -491,16 +492,19 @@ def file_upload(request):
 
     if INVALID_CHAR_REGEX.findall(file_name):
         message = _('文件上传失败，文件名不能包含中文和\\/:*?"<>|等特殊字符')
+        logger.error('[FILE_UPLOAD]invalid file_name: {}'.format(message))
         response = JsonResponse({"result": False, "message": message})
         return response
 
     if not file_path:
+        logger.error('[FILE_UPLOAD]invalid file_path: {}'.format(file_path))
         return JsonResponse({
             'result': False,
             'message': 'invalid file_path'
         })
 
     if not source_ip:
+        logger.error('[FILE_UPLOAD]invalid source_ip: {}'.format(source_ip))
         return JsonResponse({
             'result': False,
             'message': 'invalid source_ip'
@@ -514,9 +518,10 @@ def file_upload(request):
             file_path=file_path
         )
     except Exception:
-        logger.error("file upload save err: {}".format(traceback.format_exc()))
+        logger.error("[FILE_UPLOAD]file upload save err: {}".format(traceback.format_exc()))
         return JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})
 
+    logger.info("[FILE_UPLOAD] will return: {}".format(file_tag))
     return JsonResponse({"result": True, "tag": file_tag})
 
 
