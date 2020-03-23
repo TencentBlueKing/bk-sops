@@ -45,3 +45,9 @@ class ProjectAdmin(admin.ModelAdmin):
 class UserDefaultProjectAdmin(admin.ModelAdmin):
     list_display = ['username', 'default_project']
     search_fields = ['username']
+
+
+@admin.register(models.ProjectCounter)
+class ProjectCounterAdmin(admin.ModelAdmin):
+    list_display = ['username', 'project', 'count']
+    search_fields = ['username']
