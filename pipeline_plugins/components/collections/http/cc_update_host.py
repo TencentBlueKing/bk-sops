@@ -112,7 +112,6 @@ class CCUpdateHostService(Service):
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_host_info = data.get_one_of_inputs('cc_host_info')
 
-
         # 组装参数
         host_list = []
         ip_list = ''
