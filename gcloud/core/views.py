@@ -29,6 +29,8 @@ logger = logging.getLogger("root")
 def page_not_found(request):
     if request.is_ajax() or request.path.startswith(settings.STATIC_URL):
         return HttpResponseNotFound()
+
+    user = None
     form = AuthenticationForm(request.COOKIES)
     if form.is_valid():
         bk_token = form.cleaned_data["bk_token"]
