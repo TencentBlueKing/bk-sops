@@ -66,6 +66,9 @@ class Business(models.Model):
     def __unicode__(self):
         return "%s_%s" % (self.cc_id, self.cc_name)
 
+    def __str__(self):
+        return "%s_%s" % (self.cc_id, self.cc_name)
+
     def available(self):
         return self.status != 'disabled'
 
@@ -99,6 +102,9 @@ class BusinessGroupMembership(models.Model):
     def __unicode__(self):
         return "B%s:G%s" % (self.business_id, self.group_id)
 
+    def __str__(self):
+        return "B%s:G%s" % (self.business_id, self.group_id)
+
 
 class EnvVarManager(models.Manager):
 
@@ -117,6 +123,9 @@ class EnvironmentVariables(models.Model):
     objects = EnvVarManager()
 
     def __unicode__(self):
+        return "%s_%s" % (self.key, self.name)
+
+    def __str__(self):
         return "%s_%s" % (self.key, self.name)
 
     class Meta:
@@ -188,6 +197,9 @@ class Project(models.Model):
     def __unicode__(self):
         return '%s_%s' % (self.id, self.name)
 
+    def __str__(self):
+        return '%s_%s' % (self.id, self.name)
+
 
 class UserDefaultProjectManager(models.Manager):
 
@@ -211,6 +223,9 @@ class UserDefaultProject(models.Model):
     def __unicode__(self):
         return '%s_%s' % (self.username, self.default_project)
 
+    def __str__(self):
+        return '%s_%s' % (self.username, self.default_project)
+
 
 class ProjectCounterManager(models.Manager):
 
@@ -224,7 +239,7 @@ class ProjectCounterManager(models.Manager):
 
 class ProjectCounter(models.Model):
     username = models.CharField(_(u"用户名"), max_length=255)
-    project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
+    project = models.ForeignKey(verbose_name=_(u"项目"), to=Project)
     count = models.IntegerField(_(u"项目访问次数"), default=1)
 
     objects = ProjectCounterManager()
@@ -234,4 +249,7 @@ class ProjectCounter(models.Model):
         verbose_name_plural = _(u"用户访问项目计数 ProjectCounter")
 
     def __unicode__(self):
+        return '%s_%s_%s' % (self.username, self.project, self.count)
+
+    def __str__(self):
         return '%s_%s_%s' % (self.username, self.project, self.count)
