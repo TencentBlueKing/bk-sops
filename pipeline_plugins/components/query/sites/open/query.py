@@ -23,6 +23,8 @@ from django.views.decorators.csrf import csrf_exempt
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
 
+from blueapps.account.decorators import login_exempt
+
 from pipeline_plugins.components.utils import (
     cc_get_inner_ip_by_module_id,
     supplier_account_inject,
@@ -450,6 +452,7 @@ def cc_get_business(request):
     return JsonResponse({"result": True, "data": data})
 
 
+@login_exempt
 @csrf_exempt
 def file_upload(request):
     """
