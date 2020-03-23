@@ -34,7 +34,7 @@ class EnvWhitelist(object):
         try:
             env_list = set(env_list_var.split(","))
         except Exception:
-            logger.exception("resolve {} error.".format(self.env_key))
+            logger.exception("[API] resolve {} error.".format(self.env_key))
             return False
 
         return app in env_list

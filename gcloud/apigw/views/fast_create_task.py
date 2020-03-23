@@ -61,7 +61,7 @@ def fast_create_task(request, project_id):
 
     project = request.project
     logger.info(
-        "apigw fast_create_task info, project_id: {project_id}, params: {params}".format(
+        "[API] fast_create_task info, project_id: {project_id}, params: {params}".format(
             project_id=project.id, params=params
         )
     )
@@ -86,7 +86,7 @@ def fast_create_task(request, project_id):
         draw_pipeline(pipeline_tree)
         validate_web_pipeline_tree(pipeline_tree)
     except Exception as e:
-        message = "invalid param pipeline_tree: %s" % str(e)
+        message = "[API] fast_create_task get invalid pipeline_tree: %s" % str(e)
         logger.exception(message)
         return JsonResponse(
             {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
@@ -113,7 +113,7 @@ def fast_create_task(request, project_id):
             template=None, **pipeline_instance_kwargs
         )
     except PipelineException as e:
-        message = "create pipeline instance error: %s" % str(e)
+        message = "[API] fast_create_task create pipeline error: %s" % str(e)
         logger.exception(message)
         return JsonResponse(
             {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
