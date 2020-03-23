@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import os
 
 from .managers.nfs import HostNFSManager
+from .managers.upload_module import UploadModuleManager
 
 
 class ManagerFactory(object):
@@ -41,3 +42,7 @@ class ManagerFactory(object):
             location=location,
             server_location=server_location
         )
+
+    @classmethod
+    def _create_upload_module_manager(cls):
+        return UploadModuleManager()
