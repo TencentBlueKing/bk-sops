@@ -115,7 +115,9 @@
                 }
                 return false
             },
-            // 创建新变量
+            /**
+             * 勾选到全局变量变量，不同节点间的相同变量没有复用逻辑，每次勾选用生成新的随机数拼接
+             */
             hookToGlobal (variableOpts) {
                 const len = Object.keys(this.constants).length
                 const defaultOpts = {
