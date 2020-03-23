@@ -100,4 +100,3 @@ def dispatch_plugin_query(request):
             'message': 'dispatch_plugin_query: exception for {}'.format(e),
             'code': err_code.UNKNOW_ERROR.code
         })
-
