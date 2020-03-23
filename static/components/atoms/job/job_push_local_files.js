@@ -34,7 +34,7 @@
                 name: gettext("本地文件"),
                 hookable: true,
                 auto_upload: true,
-                url: $.context.get('site_url') + 'pipeline/file_upload/' + $.context.getProjectId() + '/',
+                url: window.FILE_UPLOAD_ENTRY,
                 placeholder: $.context.getProjectId() == ''? gettext("公共流程在编辑状态下无法直接上传文件，请勾选为全局变量后，在新建任务的参数填写阶段上传") : gettext("文件名不能包含中文和特殊字符且大小不能超过2G"),
                 disabled: $.context.getProjectId() == '',
                 validation: [
@@ -44,10 +44,6 @@
                 ]
             },
             methods: {
-                beforeUpload(file, fileList) {
-                    // 解决csrftoken过期问题
-                    this.$set(this.headers, "X-CSRFToken", getCookie(window.APP_CODE + "_csrftoken"))
-                },
                 handleSuccess: function (response, file, fileList) {
                     var file_num = fileList.length;
                     if (response.result) {

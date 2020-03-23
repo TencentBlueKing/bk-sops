@@ -19,7 +19,7 @@ class Manager(object, metaclass=ABCMeta):
     def __init__(self, storage):
         self.storage = storage
 
-    def save(self, name, content, shims=None, max_length=None):
+    def save(self, name, content, shims=None, max_length=None, **kwargs):
         """
         content {object} -- [a proper File object or any python file-like object]
         This method should return a file tag, which will mark the file info for this type of manager:

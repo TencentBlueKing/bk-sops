@@ -14,6 +14,7 @@ context_processor for common(setting)
 ** 除setting外的其他context_processor内容，均采用组件的方式(string)
 """
 
+import os
 import logging
 
 from django.utils.translation import ugettext_lazy as _
@@ -91,7 +92,8 @@ def mysetting(request):
         'IS_FUNCTOR': is_functor,
         'IS_AUDITOR': is_auditor,
         'PROJECT_TIMEZONE': project_timezone,
-        'DEFAULT_PROJECT_ID': default_project.id if default_project else ''
+        'DEFAULT_PROJECT_ID': default_project.id if default_project else '',
+        'FILE_UPLOAD_ENTRY': os.getenv('BKAPP_FILE_UPLOAD_ENTRY')
     }
 
     return ctx

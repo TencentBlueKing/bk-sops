@@ -18,6 +18,7 @@ import traceback
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
+from django.views.decorators.csrf import csrf_exempt
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
@@ -449,11 +450,11 @@ def cc_get_business(request):
     return JsonResponse({"result": True, "data": data})
 
 
-def file_upload(request, project_id):
+@csrf_exempt
+def file_upload(request):
     """
     @summary: 本地文件上传
     @param request:
-    @param project_id:
     @return:
     """
 
@@ -473,26 +474,42 @@ def file_upload(request, project_id):
         )
         return JsonResponse({"result": False, "message": str(e)})
 
-    file_obj = request.FILES["file"]
-    file_name = file_obj.name
-    file_size = file_obj.size
-    # 文件名不能包含中文， 文件大小不能大于 2G
-    if file_size > 2048 * 1024 * 1024:
-        message = _("文件上传失败， 文件大小超过2G")
-        response = JsonResponse({"result": False, "message": message})
-        response.status_code = 400
-        return response
+    logger.info('file_upload POST: {}'.format(request.POST))
+
+    file_name = request.POST.get('file_name')
+    file_path = request.POST.get('file_local_path')
+    source_ip = request.POST.get('file_locate_ip')
+
+    if not file_name:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid file_name'
+        })
 
     if INVALID_CHAR_REGEX.findall(file_name):
         message = _('文件上传失败，文件名不能包含中文和\\/:*?"<>|等特殊字符')
         response = JsonResponse({"result": False, "message": message})
-        response.status_code = 400
         return response
 
-    shims = "plugins_upload/job_push_local_files/{}".format(project_id)
+    if not file_path:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid file_path'
+        })
+
+    if not source_ip:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid source_ip'
+        })
 
     try:
-        file_tag = file_manager.save(name=file_name, content=file_obj, shims=shims)
+        file_tag = file_manager.save(
+            name=file_name,
+            content=None,
+            source_ip=source_ip,
+            file_path=file_path
+        )
     except Exception:
         logger.error("file upload save err: {}".format(traceback.format_exc()))
         return JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})
@@ -519,7 +536,7 @@ urlpatterns = [
         r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$",
         job_get_own_db_account_list,
     ),
-    url(r"^file_upload/(?P<project_id>\d+)/$", file_upload),
+    url(r"^file_upload/$", file_upload),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
     url(
         r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
