@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 
-"""
+""" 
 +------+        +------+        +------+        +------+        +------+
 | afc8 |------->| c814 |------->| 4350 |------->| 8cca |------->| fb8b |
 +------+        +------+        +------+        +------+        +------+
@@ -21,7 +21,7 @@ specific language governing permissions and limitations under the License.
                     |           +------+
                      -----------| bb3d |
                                 +------+
-"""
+"""  # noqa
 pipeline_with_circle = {
     'activities': {
         'nodeaf2161961809a91ebb00db88c814': {

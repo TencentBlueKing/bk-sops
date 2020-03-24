@@ -36,7 +36,7 @@ def feasible_tree_ranker(pipeline, ranks):
                >| G |------->| H |------->| I |------->| J |
                 +---+        +---+        +---+        +---+
                   -1           0            1            2
-    """
+    """  # noqa
     part_tree = {
         'all_nodes': {
             pipeline[PE.start_event][PE.id]: pipeline[PE.start_event]

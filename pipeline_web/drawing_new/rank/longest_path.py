@@ -35,7 +35,7 @@ def longest_path_ranker(pipeline):
                >| G |------->| H |------->| I |------->| J |
                 +---+        +---+        +---+        +---+
                   -3           -2           -1           0
-    """
+    """  # noqa
     ranks = {}
 
     def dfs(node):
