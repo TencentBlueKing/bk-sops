@@ -14,10 +14,29 @@ specific language governing permissions and limitations under the License.
 from pipeline.core.constants import PE
 from pipeline.validators.utils import format_to_list
 
-from pipeline_web.drawing_new.rank.longest_path import slack
+from pipeline_web.drawing_new.rank.utils import slack
 
 
 def feasible_tree_ranker(pipeline, ranks):
+    """
+    @summary: 最优可行树分配层级
+    @param pipeline:
+    @param ranks:
+    @return:
+    @example:
+                +---+        +---+        +---+
+               >| B |------->| C |------->| E |
+             -/ +---+        +---+        +---+
+           -/     -1           0            1
+    +---+-/     +---+        +---+
+    | A |------>| D |------->| F |
+    +---+-\     +---+        +---+
+     -2    -\     -1           0
+             -\ +---+        +---+        +---+        +---+
+               >| G |------->| H |------->| I |------->| J |
+                +---+        +---+        +---+        +---+
+                  -1           0            1            2
+    """
     part_tree = {
         'all_nodes': {
             pipeline[PE.start_event][PE.id]: pipeline[PE.start_event]

@@ -19,8 +19,22 @@ from pipeline_web.drawing_new.constants import MIN_LEN
 
 def longest_path_ranker(pipeline):
     """
-    @summary: 按照最长路径算法（所有叶子节点层级一样），快速初始化一种 rank
+    @summary: 按照最长路径算法（所有叶子节点层级一样），快速初始化一种 rank，由于标准运维是一定是以开始节点开始，结束节点结束，所以
+        可以尽量让最长路径对齐在开始节点，这样多分支的节点会在前面对齐
     @return:
+    @example: A 为结束节点
+                             +---+        +---+        +---+
+                         --->| B |------->| C |------->| E |
+                   -----/    +---+        +---+        +---+
+             -----/            -2           -1           0
+    +---+---/                             +---+        +---+
+    | A |-------------------------------->| D |------->| F |
+    +---+-\                               +---+        +---+
+     -4    -\                               -1           0
+             -\ +---+        +---+        +---+        +---+
+               >| G |------->| H |------->| I |------->| J |
+                +---+        +---+        +---+        +---+
+                  -3           -2           -1           0
     """
     ranks = {}
 
@@ -28,29 +42,22 @@ def longest_path_ranker(pipeline):
         if node[PE.id] in ranks:
             return ranks[node[PE.id]]
 
-        outgoing_node_ranks = []
-        for flow_id in format_to_list(node[PE.outgoing]):
+        incoming_node_ranks = []
+        for flow_id in format_to_list(node[PE.incoming]):
             flow = pipeline[PE.flows][flow_id]
-            outgoing_node = pipeline['all_nodes'][flow[PE.target]]
-            outgoing_node_ranks.append(dfs(outgoing_node) - MIN_LEN)
+            incoming_node = pipeline['all_nodes'][flow[PE.source]]
+            incoming_node_ranks.append(dfs(incoming_node) - MIN_LEN)
 
-        if not outgoing_node_ranks:
+        if not incoming_node_ranks:
             return 0
         else:
-            return min(outgoing_node_ranks)
+            return min(incoming_node_ranks)
 
     for node_id, node in pipeline['all_nodes'].items():
         ranks[node_id] = dfs(node)
 
+    # 重置结束节点的 rank 为 0，并且其他节点 rank 小于 结束节点
+    min_rank = min(list(ranks.values()))
+    for key in ranks:
+        ranks[key] = min_rank - ranks[key]
     return ranks
-
-
-def slack(ranks, flow):
-    """
-    @summary: Returns the amount of slack for the given flow. The slack is defined as the
-        difference between the length of the flow and its minimum length.
-    @param ranks:
-    @param flow:
-    @return:
-    """
-    return ranks[flow[PE.target]] - ranks[flow[PE.source]] - MIN_LEN

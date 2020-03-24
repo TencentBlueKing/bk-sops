@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from pipeline.core.constants import PE
 from pipeline.utils.uniqid import line_uniqid, node_uniqid
 
-from pipeline_web.drawing_new.rank.longest_path import slack
+from pipeline_web.drawing_new.rank.utils import slack
 from pipeline_web.drawing_new.constants import MIN_LEN, DUMMY_NODE_TYPE, DUMMY_FLOW_TYPE
 from pipeline_web.drawing_new.utils import delete_flow_id_from_node_io, add_flow_id_to_node_io
 
