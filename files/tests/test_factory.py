@@ -18,7 +18,6 @@ from files.factory import ManagerFactory
 
 
 def get_env_wrapper(not_exist_var):
-
     def get_env(var):
         if var == not_exist_var:
             return None
@@ -29,20 +28,19 @@ def get_env_wrapper(not_exist_var):
 
 
 class ManagerFactoryTestCase(TestCase):
-
     def test_get_not_exist_manager(self):
-        self.assertRaises(LookupError, ManagerFactory.get_manager, 'not_exist_type')
+        self.assertRaises(LookupError, ManagerFactory.get_manager, "not_exist_type")
 
     def test_get_nfs_manager__config_err(self):
         for lack_var in [
-            'BKAPP_NFS_CONTAINER_ROOT',
-            'BKAPP_NFS_HOST_ROOT',
+            "BKAPP_NFS_CONTAINER_ROOT",
+            "BKAPP_NFS_HOST_ROOT",
         ]:
-            with patch('files.factory.os.getenv', get_env_wrapper(lack_var)):
-                self.assertRaises(EnvironmentError, ManagerFactory.get_manager, 'host_nfs')
+            with patch("files.factory.os.getenv", get_env_wrapper(lack_var)):
+                self.assertRaises(EnvironmentError, ManagerFactory.get_manager, "host_nfs")
 
-    @patch('files.factory.os.getenv', get_env_wrapper(None))
+    @patch("files.factory.os.getenv", get_env_wrapper(None))
     def test_get_nfs_manager(self):
-        manager = ManagerFactory.get_manager('host_nfs')
-        self.assertEqual(manager.location, 'BKAPP_NFS_CONTAINER_ROOT')
-        self.assertEqual(manager.server_location, 'BKAPP_NFS_HOST_ROOT')
+        manager = ManagerFactory.get_manager("host_nfs")
+        self.assertEqual(manager.location, "BKAPP_NFS_CONTAINER_ROOT")
+        self.assertEqual(manager.server_location, "BKAPP_NFS_HOST_ROOT")

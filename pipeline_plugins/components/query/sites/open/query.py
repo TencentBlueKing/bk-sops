@@ -11,14 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
 import logging
 import traceback
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
-from django.views.decorators.csrf import csrf_exempt
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
@@ -36,7 +34,7 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
 )
 
-from files.factory import ManagerFactory
+from files.factory import ManagerFactory, BartenderFactory
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -51,7 +49,6 @@ JOB_VAR_CATEGORY_CLOUD = 1
 JOB_VAR_CATEGORY_CONTEXT = 2
 JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT}
 JOB_VAR_CATEGORY_IP = 3
-INVALID_CHAR_REGEX = re.compile('[\u4e00-\u9fa5\\/:*?"<>|,]')
 
 
 @supplier_account_inject
@@ -453,7 +450,6 @@ def cc_get_business(request):
 
 
 @login_exempt
-@csrf_exempt
 def file_upload(request):
     """
     @summary: 本地文件上传
@@ -479,50 +475,9 @@ def file_upload(request):
 
     logger.info('[FILE_UPLOAD]file_upload POST: {}'.format(request.POST))
 
-    file_name = request.POST.get('file_name')
-    file_path = request.POST.get('file_local_path')
-    source_ip = request.POST.get('file_locate_ip')
+    bartender = BartenderFactory.get_bartender(manager_type=file_manager_type, manager=file_manager)
 
-    if not file_name:
-        logger.error('[FILE_UPLOAD]invalid file_name: {}'.format(file_name))
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid file_name'
-        })
-
-    if INVALID_CHAR_REGEX.findall(file_name):
-        message = _('文件上传失败，文件名不能包含中文和\\/:*?"<>|等特殊字符')
-        logger.error('[FILE_UPLOAD]invalid file_name: {}'.format(message))
-        response = JsonResponse({"result": False, "message": message})
-        return response
-
-    if not file_path:
-        logger.error('[FILE_UPLOAD]invalid file_path: {}'.format(file_path))
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid file_path'
-        })
-
-    if not source_ip:
-        logger.error('[FILE_UPLOAD]invalid source_ip: {}'.format(source_ip))
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid source_ip'
-        })
-
-    try:
-        file_tag = file_manager.save(
-            name=file_name,
-            content=None,
-            source_ip=source_ip,
-            file_path=file_path
-        )
-    except Exception:
-        logger.error("[FILE_UPLOAD]file upload save err: {}".format(traceback.format_exc()))
-        return JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})
-
-    logger.info("[FILE_UPLOAD] will return: {}".format(file_tag))
-    return JsonResponse({"result": True, "tag": file_tag})
+    return bartender.process_request(request)
 
 
 urlpatterns = [
