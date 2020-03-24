@@ -17,6 +17,7 @@ import traceback
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
+from django.views.decorators.csrf import csrf_exempt
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
@@ -450,6 +451,7 @@ def cc_get_business(request):
 
 
 @login_exempt
+@csrf_exempt
 def file_upload(request):
     """
     @summary: 本地文件上传
