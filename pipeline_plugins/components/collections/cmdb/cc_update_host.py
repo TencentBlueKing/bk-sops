@@ -35,9 +35,9 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 __group_name__ = _("配置平台(CMDB)")
 
 
-def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
+def get_host_id_dict_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """
-    获取主机ID
+    获取主机ID,返回dict
     :param executor:
     :param bk_biz_id:
     :param ip_list:
@@ -66,18 +66,19 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         message = cc_handle_api_error('cc.search_host', cc_kwargs, cc_result)
         return {'result': False, 'message': message}
 
-    # change bk_host_id to str to use str.join() function
     ip_to_id = {item['host']['bk_host_innerip']: item['host']['bk_host_id'] for item in cc_result['data']['info']}
     invalid_ip_list = []
     for ip in ip_list:
         if ip not in ip_to_id:
-            result = {
-                'result': False,
-                'message': _("查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}").format(
-                    ip=','.join(invalid_ip_list)
-                )
-            }
-            return result
+            invalid_ip_list.append(ip)
+    if invalid_ip_list:
+        result = {
+            'result': False,
+            'message': _("查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}").format(
+                ip=','.join(invalid_ip_list)
+            )
+        }
+        return result
 
     return {'result': True, 'data': ip_to_id}
 
@@ -93,9 +94,20 @@ class CCUpdateHostService(Service):
             self.InputItem(name=_('主机信息'),
                            key='cc_host_info',
                            type='array',
-                           schema=ArrayItemSchema(description=_('待更新主机属性对象列表'),
-                                                  item_schema=ObjectItemSchema(description=_('主机属性描述对象'),
-                                                                               property_schemas={})))]
+                           schema=ArrayItemSchema(
+                               description=_('待更新主机属性对象列表'),
+                               item_schema=ObjectItemSchema(
+                                   description=_('主机属性描述对象'),
+                                   property_schemas={'bk_host_innerip': StringItemSchema(description=_(u'内网IP')),
+                                                     'bk_host_outerip': StringItemSchema(description=_(u'外网IP')),
+                                                     'operator': StringItemSchema(description=_(u'主要维护人')),
+                                                     'bk_bak_operator': StringItemSchema(description=_(u'备份维护人')),
+                                                     'bk_sn': StringItemSchema(description=_(u'设备SN')),
+                                                     'bk_comment': StringItemSchema(description=_(u'备注')),
+                                                     'bk_state_name': StringItemSchema(description=_(u'所在国家')),
+                                                     'bk_province_name': StringItemSchema(description=_(u'所在省份')),
+                                                     'bk_isp_name': StringItemSchema(description=_(u'所属运营商')),
+                                                     })))]
 
     def outputs_format(self):
         return []
@@ -113,29 +125,28 @@ class CCUpdateHostService(Service):
         cc_host_info = data.get_one_of_inputs('cc_host_info')
 
         # 组装参数
-        host_list = []
-        ip_list = ''
-        innerip = 'bk_host_innerip'
+        host_list, ip_list = [], []
+        innerip_key = 'bk_host_innerip'
         for host_params in cc_host_info:
-            if not (innerip in list(host_params.keys()) and host_params[innerip]):
+            if not (innerip_key in list(host_params.keys()) and host_params[innerip_key]):
                 data.set_outputs('ex_data', _("请填写内网ip"))
                 return False
 
             properties = {}
             for key, value in list(host_params.items()):
                 if value:
-                    if key == innerip:
-                        ip_list += ("%s%s" % (value, "\n"))
+                    if key == innerip_key:
+                        ip_list.append(value)
                         host_list.append({
                             "bk_host_id": value,
                             "properties": properties
                         })
                         continue
-                    properties.update({key: value})
+                    properties[key] = value
 
         # 查询主机id
-        ip_list = get_ip_by_regex(ip_list)
-        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        ip_list = get_ip_by_regex('\n'.join(ip_list))
+        host_result = get_host_id_dict_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
         if not host_result['result']:
             data.set_outputs('ex_data', host_result['message'])
             return False
