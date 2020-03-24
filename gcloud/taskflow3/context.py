@@ -36,7 +36,7 @@ class TaskContext(object):
         self.bk_biz_id = taskflow.project.bk_biz_id
         self.bk_biz_name = taskflow.project.name
         if taskflow.project.from_cmdb:
-            self.biz_supplier_account = Business.objects.get(cc_id=taskflow.project.bk_biz_id)
+            self.biz_supplier_account = Business.objects.get(cc_id=taskflow.project.bk_biz_id).cc_owner
         else:
             self.biz_supplier_account = None
         self.operator = operator
