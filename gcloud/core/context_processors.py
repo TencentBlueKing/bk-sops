@@ -93,7 +93,7 @@ def mysetting(request):
         'IS_AUDITOR': is_auditor,
         'PROJECT_TIMEZONE': project_timezone,
         'DEFAULT_PROJECT_ID': default_project.id if default_project else '',
-        'FILE_UPLOAD_ENTRY': os.getenv('BKAPP_FILE_UPLOAD_ENTRY')
+        'FILE_UPLOAD_ENTRY': os.getenv('BKAPP_FILE_UPLOAD_ENTRY', '')
     }
 
     return ctx
