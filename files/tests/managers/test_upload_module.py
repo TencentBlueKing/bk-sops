@@ -21,7 +21,7 @@ from files.managers.upload_module import UploadModuleManager
 UPLOAD_MODULE_TAG_OBJECTS_FILTER = "files.models.UploadModuleFileTag.objects.filter"
 
 
-class HostNFSManagerTestCase(TestCase):
+class UploadModuleManagerTestCase(TestCase):
     def test_init(self):
         manager = UploadModuleManager()
         self.assertIsNone(manager.storage)

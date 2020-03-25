@@ -28,15 +28,12 @@ INVALID_CHAR_REGEX = re.compile('[\u4e00-\u9fa5\\/:*?"<>|,]')
 class HostNFSBartender(UploadRequestBartender):
     def process_request(self, request):
         file_obj = request.FILES["file"]
-        project_id = request.META['HTTP_APP_PROJECTID']
+        project_id = request.META["HTTP_APP_PROJECTID"]
         file_name = file_obj.name
         file_size = file_obj.size
 
         if not project_id:
-            response = JsonResponse({
-                "result": False,
-                "message": "invalid project_id: {}".format(project_id)
-            })
+            response = JsonResponse({"result": False, "message": "invalid project_id: {}".format(project_id)})
             response.status_code = 400
             return response
 

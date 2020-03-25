@@ -10,19 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from django.contrib import admin
-
-from files import models
-
-
-@admin.register(models.UploadModuleFileTag)
-class UploadModuleFileTagAdmin(admin.ModelAdmin):
-    list_display = ["id", "source_ip", "file_name", "file_path"]
-    search_fields = ["id", "source_ip", "file_name", "file_path"]
-
-
-@admin.register(models.UploadTicket)
-class UploadTicketAdmin(admin.ModelAdmin):
-    list_display = ["id", "code", "applicant", "apply_from", "created_at", "is_available", "used_at"]
-    search_fields = ["id", "code", "applicant", "apply_from", "created_at", "is_available", "used_at"]

@@ -41,11 +41,7 @@ class UploadModuleManager(Manager):
         tag_models = UploadModuleFileTag.objects.filter(id__in=tag_ids)
 
         file_source = [
-            {
-                "files": ["{}/{}".format(tag.file_path, tag.file_name)],
-                "account": "root",
-                "ip_list": [{"bk_cloud_id": 0, "ip": tag.source_ip}],
-            }
+            {"files": [tag.file_path], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": tag.source_ip}]}
             for tag in tag_models
         ]
 
