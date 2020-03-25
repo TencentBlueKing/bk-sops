@@ -60,7 +60,7 @@
                     <span>
                         {{i18n.previewMode}}
                     </span>
-                    <bk-switcher size="small" :value="isPreviewMode" @change="onChangePreviewNode"></bk-switcher>
+                    <bk-switcher size="small" theme="primary" :value="isPreviewMode" @change="onChangePreviewNode"></bk-switcher>
                 </div>
             </div>
         </div>

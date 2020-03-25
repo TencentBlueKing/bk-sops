@@ -171,7 +171,6 @@ const template = {
         start_event: {},
         template_id: '',
         constants: {},
-        constantsCited: {},
         projectBaseInfo: {},
         notify_receivers: {
             receiver_group: [],
@@ -206,7 +205,9 @@ const template = {
             state.subprocess_info.details.some(item => {
                 if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
-                    subflow.version && (item.version = subflow.version)
+                    if (subflow.version) {
+                        item.version = subflow.version
+                    }
                     return true
                 }
             })
@@ -348,15 +349,6 @@ const template = {
             const vIndex = state.outputs.indexOf(key)
             vIndex > -1 && state.outputs.splice(vIndex, 1)
             Vue.delete(state.constants, key)
-            // 删除变量引用节点信息
-            for (const node in state.constantsCited) {
-                const citedInfo = state.constantsCited[node]
-                for (const varKey in citedInfo) {
-                    if (varKey === key) {
-                        Vue.delete(citedInfo, varKey)
-                    }
-                }
-            }
         },
         // 配置全局变量 source_info 字段
         setVariableSourceInfo (state, payload) {
@@ -371,7 +363,6 @@ const template = {
                     Vue.set(sourceInfo, id, [tagCode])
                 }
             } else if (type === 'delete') {
-                if (!sourceInfo || !sourceInfo[id]) return
                 if (sourceInfo[id].length <= 1) {
                     Vue.delete(sourceInfo, id)
                 } else {
@@ -649,58 +640,6 @@ const template = {
                     }
                 }
             }
-        },
-        // 设置节点基础信息
-        setNodeBasicInfo (state, payload) {
-            const { id, setVals } = payload
-            const nodeInfo = state.activities[id]
-            Object.keys(setVals).forEach(key => {
-                Vue.set(nodeInfo, key, setVals[key])
-            })
-        },
-        /**
-         * 设置节点输入参数信息
-         * @param {Object} payload.id node id
-         * @param {Object} payload.type node type
-         * @param {Object} payload.setVals eg: { [code]: { value: '', hook: false } }
-         * @param {Object} payload.updateType single: 更新单个属性值，all：更新全部属性值
-         */
-        setNodeInputData (state, payload) {
-            const { id, type, setVals, updateType = 'single' } = payload
-            const nodeInfo = state.activities[id]
-            if (type === 'ServiceActivity') {
-                // 普通流程输入参数为 component.data
-                if (updateType === 'all') {
-                    Vue.set(nodeInfo.component, 'data', setVals)
-                    return
-                }
-                if (!nodeInfo.component.data) {
-                    Vue.set(nodeInfo.component, 'data', {})
-                }
-                Object.keys(setVals).forEach(key => {
-                    if (!nodeInfo.component.data[key]) {
-                        Vue.set(nodeInfo.component.data, key, { hook: false, value: setVals[key].value })
-                    } else {
-                        setVals[key].value && Vue.set(nodeInfo.component.data[key], 'value', setVals[key].value)
-                        Vue.set(nodeInfo.component.data[key], 'hook', setVals[key].hook || false)
-                    }
-                })
-            } else {
-                // 子流程输入参数为 component.constants
-                if (updateType === 'all') {
-                    Vue.set(nodeInfo, 'constants', setVals)
-                    return
-                }
-                Object.keys(setVals).forEach(key => {
-                    if (nodeInfo.constants && nodeInfo.constants[key]) {
-                        Vue.set(nodeInfo.constants[key], 'value', setVals[key].value)
-                    }
-                })
-            }
-        },
-        // 节点输入参数勾选
-        setNodeInputHook () {
-
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {

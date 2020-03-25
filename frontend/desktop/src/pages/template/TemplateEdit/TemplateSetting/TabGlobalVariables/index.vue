@@ -93,7 +93,6 @@
                                 :outputs="outputs"
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
-                                :constants-cited="constantsCited"
                                 :variable-data="variableData"
                                 :variable-list="variableList"
                                 :variable-type-list="variableTypeList"
@@ -149,7 +148,6 @@
 <script>
     import '@/utils/i18n.js'
     import { mapMutations, mapState } from 'vuex'
-    import { checkDataType } from '@/utils/checkDataType.js'
     import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
     import VariableEdit from './VariableEdit.vue'
@@ -194,7 +192,6 @@
                 theKeyOfEditing: '',
                 theKeyOfViewCited: '',
                 constantsArray: [],
-                constantsCited: {},
                 deleteConfirmDialogShow: false,
                 isVarTipsShow: false
             }
@@ -276,14 +273,12 @@
                     this.theKeyOfEditing = ''
                     this.constantsArray = this.getConstantsArray(this.constants)
                     this.onChangeEdit(false)
-                    this.constantsCited = this.getConstantsCited()
                 },
                 deep: true
             }
         },
         created () {
             this.constantsArray = this.getConstantsArray(this.constants)
-            this.constantsCited = this.getConstantsCited()
         },
         methods: {
             ...mapMutations('template/', [
@@ -295,57 +290,6 @@
                 'setOvertime',
                 'setCategory'
             ]),
-            getConstantsCited () {
-                const constantsCited = {}
-                const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
-                for (const nodeId in this.activities) {
-                    // 遍历输入
-                    const cited = {}
-                    const inputData = this.activities[nodeId].type === 'ServiceActivity'
-                        ? this.activities[nodeId].component.data || {}
-                        : this.activities[nodeId].constants
-                    Object.keys(inputData).forEach(dKey => {
-                        const value = inputData[dKey].value || ''
-                        const matchArr = checkDataType(value) === 'String' ? value.match(codeReg) || [] : []
-                        matchArr.forEach(matchItem => {
-                            if (cited[matchItem]) {
-                                cited[matchItem] += 1
-                            } else {
-                                cited[matchItem] = 1
-                            }
-                        })
-                    })
-                    // 输出变量
-                    for (const key in this.constants) {
-                        const constant = this.constants[key]
-                        if (constant.source_type === 'component_outputs') {
-                            for (const node in constant.source_info) {
-                                if (node === nodeId) {
-                                    if (cited[constant.key]) {
-                                        cited[constant.key] += 1
-                                    } else {
-                                        cited[constant.key] = 1
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    constantsCited[nodeId] = cited
-                }
-                // 以变量名分类
-                const constantsCitedMap = {}
-                for (const nodeId in constantsCited) {
-                    const obj = constantsCited[nodeId]
-                    for (const key in obj) {
-                        if (constantsCitedMap[key]) {
-                            constantsCitedMap[key] += obj[key]
-                        } else {
-                            constantsCitedMap[key] = obj[key]
-                        }
-                    }
-                }
-                return constantsCitedMap
-            },
             getConstantsArray (obj) {
                 const arrayList = []
                 for (const cKey in obj) {

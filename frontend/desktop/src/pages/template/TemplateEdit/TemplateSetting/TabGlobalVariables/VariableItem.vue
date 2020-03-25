@@ -64,16 +64,23 @@
             <span class="col-item col-output">
                 <div @click.stop>
                     <bk-switcher
-                        size="small"
+                        size="min"
+                        theme="primary"
                         :value="outputs.indexOf(constant.key) > -1"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
                 </div>
             </span>
             <span
-                class="col-item col-quote"
-                @click.stop="onViewCitedList(constantsCited[constant.key])">
-                {{ constantsCited[constant.key] || 0 }}
+                :class="[
+                    'col-item',
+                    'col-cited',
+                    {
+                        'actived': isShowVariableCited
+                    }
+                ]"
+                @click.stop="toggleCitedPanel">
+                {{ citedList.length }}
             </span>
             <span class="col-item col-operation">
                 <span class="col-operation-item"
@@ -119,6 +126,7 @@
         <VariableCitedList
             v-if="isShowVariableCited"
             :constant="constant"
+            :cited-list="citedList"
             @onCitedNodeClick="onCitedNodeClick">
         </VariableCitedList>
     </li>
@@ -140,7 +148,6 @@
             'constant',
             'variableList',
             'variableData',
-            'constantsCited',
             'varOperatingTips',
             'theKeyOfEditing',
             'theKeyOfViewCited',
@@ -151,6 +158,8 @@
         ],
         data () {
             return {
+                isShowVariableCited: false,
+                copyText: '',
                 i18n: {
                     copied: gettext('已复制'),
                     inputs: gettext('输入'),
@@ -159,8 +168,7 @@
                     hide: gettext('隐藏'),
                     copy: gettext('复制'),
                     delete: gettext('删除')
-                },
-                copyText: ''
+                }
             }
         },
         computed: {
@@ -170,8 +178,8 @@
             isShowVariableEdit () {
                 return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
             },
-            isShowVariableCited () {
-                return this.theKeyOfViewCited === this.constant.key
+            citedList () {
+                return Object.keys(this.constant.source_info).map(id => id)
             }
         },
         methods: {
@@ -211,6 +219,11 @@
             },
             onChangeEdit (val) {
                 this.$emit('onChangeEdit', val)
+            },
+            toggleCitedPanel () {
+                if (this.citedList.length > 0) {
+                    this.isShowVariableCited = !this.isShowVariableCited
+                }
             },
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
@@ -284,10 +297,11 @@ $localBorderColor: #d8e2e7;
     .col-output {
         width: 58px;
     }
-    .col-quote {
+    .col-cited {
         width: 54px;
         cursor: pointer;
-        &:hover {
+        &:hover,
+        &.actived {
             color: #3a84ff;
         }
     }
@@ -326,24 +340,6 @@ $localBorderColor: #d8e2e7;
         margin-left: 2px;
         color: #52699d;
         text-decoration: underline;
-    }
-}
-.col-output {
-    .bk-switcher .bk-switcher-small {
-        margin-left: 32px;
-    }
-    .bk-switcher.bk-switcher-small {
-        width: 28px;
-        height: 16px;
-        line-height: 10px;
-    }
-    .bk-switcher.bk-switcher-small:after {
-        top: 1px;
-        width: 14px;
-        height: 14px;
-    }
-    .bk-switcher.bk-switcher-small.is-checked:after {
-        margin-left: -15px;
     }
 }
 .col-operation {

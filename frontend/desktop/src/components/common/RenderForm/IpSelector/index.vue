@@ -42,6 +42,7 @@
                 <label>{{ i18n.showCloudArea }}</label>
                 <bk-switcher
                     size="small"
+                    theme="primary"
                     v-model="with_cloud_id"
                     @change="updateValue('with_cloud_id', $event)">
                 </bk-switcher>

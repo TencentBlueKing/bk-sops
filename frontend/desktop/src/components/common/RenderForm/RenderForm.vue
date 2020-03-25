@@ -208,6 +208,7 @@
                     }
                     return acc[cur]
                 }, fieldDataObj)
+                // debugger
                 this.$emit('change', fieldDataObj)
             },
             updateHook (field, val) {

@@ -12,19 +12,19 @@
     <div class="input-params">
         <render-form
             ref="renderForm"
-            v-model="formData"
             :scheme="scheme"
-            :form-option="option"
             :hooked="hooked"
-            @change="onInputsChange"
+            :form-option="option"
+            :form-data="formData"
+            @change="onInputsValChange"
             @onHookChange="onInputHookChange">
         </render-form>
         <reuse-var-dialog
-            :is-reuse-var-dialog-show="isReuseVarDialogShow"
-            :reuse-variable="reuseVariable"
-            :reuseable-var-list="reuseableVarList"
-            @onConfirmReuseVar="onConfirmReuseVar"
-            @onCancelReuseVar="onCancelReuseVar">
+            :is-show="isReuseDialogShow"
+            :variables="reuseableVarList"
+            :create-new="isKeyExist"
+            @confirm="onConfirmReuseVar"
+            @cancel="onCancelReuseVar">
         </reuse-var-dialog>
     </div>
 </template>
@@ -34,6 +34,9 @@
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import ReuseVarDialog from './ReuseVarDialog.vue'
     import { mapState, mapMutations } from 'vuex'
+
+    const varKeyReg = /^\$\{(\w+)\}$/
+
     export default {
         name: 'InputParams',
         components: {
@@ -41,41 +44,21 @@
             ReuseVarDialog
         },
         props: {
-            scheme: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            nodeConfig: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
-            value: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
-            hooked: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
-            isSubflow: {
-                type: Boolean,
-                default: false
-            }
+            scheme: Array,
+            value: Object,
+            plugin: String, // 标准插件
+            version: String, // 标准插件版本或子流程版本
+            isSubflow: Boolean,
+            subflowForms: Object, // 子流程模板输入参数变量配置
+            nodeId: String
         },
         data () {
             return {
-                isReuseVarDialogShow: false,
-                reuseVariable: {},
-                reuseableVarList: [],
                 formData: tools.deepClone(this.value),
+                hookingVarForm: '', // 正被勾选的表单项
+                isKeyExist: false, // 勾选的表单生成的 key 是否在全局变量列表中存在
+                isReuseDialogShow: false,
+                reuseableVarList: [],
                 option: {
                     showGroup: false,
                     showHook: true,
@@ -87,141 +70,150 @@
         computed: {
             ...mapState({
                 'constants': state => state.template.constants
-            })
+            }),
+            hooked () {
+                const hooked = {}
+                const keys = Object.keys(this.constants)
+                this.scheme.forEach(form => {
+                    // 已勾选到在全局变量中
+                    const isHooked = keys.some(item => {
+                        const varItem = this.constants[item]
+                        if (varItem.source_type === 'component_inputs') {
+                            const sourceInfo = varItem.source_info[this.nodeId]
+                            if (sourceInfo && sourceInfo.includes(form.tag_code)) {
+                                return true
+                            }
+                        }
+                    })
+                    // 勾选中的状态，变量复用弹窗出现时
+                    const isHooking = this.hookingVarForm === form.tag_code
+                    hooked[form.tag_code] = isHooked || isHooking
+                })
+                return hooked
+            }
         },
         watch: {
             value (val) {
                 this.formData = tools.deepClone(val)
             }
         },
-        created () {
-            this.onInputsChange = tools.debounce(this.inputsChange, 800)
-        },
         methods: {
             ...mapMutations('template/', [
-                'setNodeInputData',
                 'addVariable',
+                'deleteVariable',
                 'setVariableSourceInfo'
             ]),
-            // 输入参数值改变
-            inputsChange (val) {
-                const setVals = Object.keys(val).reduce((acc, cur) => {
-                    acc[cur] = {
-                        value: val[cur]
-                    }
-                    return acc
-                }, {})
-                this.setNodeInputData({
-                    id: this.nodeConfig.id,
-                    type: this.nodeConfig.type,
-                    setVals: setVals
-                })
+            onInputsValChange (val) {
+                this.$emit('update', tools.deepClone(val))
             },
-            // 输入勾选，取消勾选
-            onInputHookChange (code, val) {
-                // <-----------start 获取创建变量所需参数
-                const VAR_KEY_REG = /^\$\{(\w+)\}$/
-                const variable = {
-                    name: '',
-                    key: '',
-                    source_info: {},
-                    custom_type: '',
-                    value: '',
-                    validation: '',
-                    version: ''
-                }
-                const curCodeScheme = this.scheme.find(m => m.tag_code === code)
-                const correctKey = VAR_KEY_REG.test(code) ? code : '${' + code + '}'
-                variable.name = curCodeScheme.attrs.name.replace(/\s/g, '')
-                if (this.isSubflow) {
-                    const constants = this.nodeConfig.constants
-                    variable.key = correctKey
-                    variable.source_tag = constants.source_tag
-                    variable.source_info = { [this.nodeConfig.id]: [correctKey] }
-                    variable.custom_type = constants.custom_type
-                    variable.value = tools.deepClone(this.value[code])
-                    variable.version = constants[code].version || 'legacy'
-                    if (curCodeScheme.type !== 'combine') {
-                        variable.validation = constants[code].validation
-                    }
+            onInputHookChange (form, val) {
+                if (val) {
+                    this.hookForm(form)
                 } else {
-                    const component = this.nodeConfig.component
-                    variable.key = correctKey
-                    variable.source_tag = `${component.code}.${code}`
-                    variable.source_info = { [this.nodeConfig.id]: [code] }
-                    variable.custom_type = ''
-                    variable.value = tools.deepClone(this.value[code])
-                    variable.version = component.version || 'legacy'
+                    this.unhookForm(form)
                 }
-                //  ---------获取创建变量所需参数------->
+            },
+            /**
+             * 勾选表单
+             *
+             * 1.判断表单全局变量 source_tag 中 tag_code 和勾选表单 tag_code 相同的项：
+             * a.不存在
+             * 判断全局变量中是否存在和勾选表单相同的 key，存在则弹出变量复用弹窗，只提供新建变量选项，若不存在则新建全局变量
+             * b.存在
+             * 弹出是否变量复用弹窗，提供复用或新建选项
+             *
+             * 3.新建全局变量时，勾选表单项已有的表单值需要同步到全局变量中，注意带上后来版本加上的 version、fromScheme 字段
+             */
+            hookForm (form) {
+                const reuseList = []
+                const variableKey = this.isSubflow ? form : `\${${form}}`
+                const formCode = this.isSubflow ? form.match(varKeyReg)[1] : form
+                const version = this.isSubflow ? this.subflowForms[form].version : this.version
+                let isKeyInVariables = false
+                this.hookingVarForm = form
 
-                if (val) { // hook
-                    if (!variable.source_tag) { // custom variable not include ip selector
-                        this.$set(this.hooked, code, true)
-                        this.$set(this.formData, code, correctKey)
-                        this.hookToGlobal(variable)
-                        this.setNodeInputData({
-                            id: this.nodeConfig.id,
-                            type: this.nodeConfig.type,
-                            setVals: { [code]: { value: correctKey, hook: true } }
-                        })
-                        return
+                Object.keys(this.constants).forEach(keyItem => {
+                    const constant = this.constants[keyItem]
+                    const sourceTag = constant.source_tag
+                    // 变量的版本需要和勾选表单一致，判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
+                    if (constant.version === version && sourceTag) {
+                        const tagCode = sourceTag.split('.')[1]
+                        if (tagCode === formCode) {
+                            reuseList.push({
+                                name: `${constant.name}(${constant.key})`,
+                                id: constant.key
+                            })
+                        }
                     }
-                    const reuseableVarList = this.getReuseableVarList(code, variable.version)
-                    const isKeyUsed = variable.key in this.constants
-                    if (reuseableVarList.length || isKeyUsed) { // 复用变量
-                        const useNewKey = !reuseableVarList.length && isKeyUsed
-                        this.reuseVariable = Object.assign({}, variable, { useNewKey: useNewKey })
-                        this.reuseableVarList = reuseableVarList
-                        this.isReuseVarDialogShow = true
-                    } else { // 新增变量
-                        variable.form_schema = formSchema.getSchema(code, this.scheme)
-                        this.$set(this.hooked, code, true)
-                        this.$set(this.formData, code, correctKey)
-                        this.hookToGlobal(variable)
-                        this.setNodeInputData({
-                            id: this.nodeConfig.id,
-                            type: this.nodeConfig.type,
-                            setVals: { [code]: { value: correctKey, hook: true } }
-                        })
+                    if (keyItem === variableKey) {
+                        isKeyInVariables = true
                     }
-                } else { // cancel hook
-                    const value = this.constants[correctKey].value
-                    this.$set(this.hooked, code, false)
-                    this.$set(this.formData, code, value)
-                    this.setNodeInputData({
-                        id: this.nodeConfig.id,
-                        type: this.nodeConfig.type,
-                        setVals: { [code]: { value: value, hook: false } }
+                })
+
+                if (reuseList.length > 0) { // 复用变量
+                    this.reuseableVarList = reuseList
+                    this.isKeyExist = false
+                    this.isReuseDialogShow = true
+                } else if (isKeyInVariables) { // 创建变量(手动填写变量name、key)
+                    this.isKeyExist = true
+                    this.isReuseDialogShow = true
+                } else { // 自动创建新变量
+                    const formConfig = this.scheme.find(item => item.tag_code === form)
+                    const config = this.getNewVarConfig(formConfig.attrs.name, variableKey)
+                    this.createVariable(config)
+                }
+            },
+            /**
+             * 取消勾选表单
+             *
+             * 去掉包含该表单的全局变量 source_info 对应的信息，若对应全局变量只包含这一个表单项，则删除全局变量
+             * 取消勾选后全局变量的值需要同步当前表单项
+             */
+            unhookForm (form) {
+                const variableKey = this.formData[form]
+                const constant = this.constants[variableKey]
+                if (constant) { // 标准插件里(如：job_execute_task)可能会修改表单的勾选状态，需要做一个兼容处理
+                    this.formData[form] = tools.deepClone(constant.value)
+                    this.$emit('update', tools.deepClone(this.formData))
+                    this.setVariableSourceInfo({
+                        type: 'delete',
+                        id: this.nodeId,
+                        key: variableKey,
+                        tagCode: form
                     })
-                    this.setVariableSourceInfo({ type: 'delete', id: this.nodeConfig.id, key: correctKey, tagCode: code })
+                    this.$emit('globalVariableUpdate')
                 }
             },
-            /**
-             * 获取复用变量列表
-             * 获取全局变量中已有的 key + version 相同项列表
-             */
-            getReuseableVarList (tagCode, version) {
-                const variableList = []
-                for (const cKey in this.constants) {
-                    const constant = this.constants[cKey]
-                    const sVersion = constant.version
-                    const sTag = constant.source_tag
-                    if (sTag) {
-                        const tCode = sTag.split('.')[1]
-                        tCode === tagCode && sVersion === version && variableList.push({
-                            name: `${constant.name}(${constant.key})`,
-                            id: constant.key
-                        })
-                    }
+            getNewVarConfig (name, key) {
+                const variableKey = varKeyReg.test(key) ? key : `\${${key}}`
+                const config = {
+                    name,
+                    key: variableKey,
+                    source_info: { [this.nodeId]: [this.hookingVarForm] },
+                    value: tools.deepClone(this.formData[this.hookingVarForm]),
+                    formSchema: formSchema.getSchema(this.hookingVarForm, this.scheme)
                 }
-                return variableList
+                if (this.isSubflow) {
+                    const constant = this.subflowForms[this.hookingVarForm]
+                    const { desc, custom_type, source_tag, validation, version } = constant
+                    Object.assign(config, {
+                        desc,
+                        custom_type,
+                        source_tag,
+                        validation,
+                        version
+                    })
+                } else {
+                    Object.assign(config, {
+                        custom_type: '',
+                        source_tag: `${this.plugin}.${this.hookingVarForm}`,
+                        version: this.version
+                    })
+                }
+                return config
             },
-            /**
-             * 参数不复用，创建新变量
-             */
-            hookToGlobal (variableOpts) {
-                // 创建新变量
+            // 创建新变量
+            createVariable (config = {}) {
                 const len = Object.keys(this.constants).length
                 const defaultOpts = {
                     name: '',
@@ -235,57 +227,54 @@
                     source_type: 'component_inputs',
                     validation: '',
                     index: len,
-                    version: 'legacy'
+                    version: 'legacy',
+                    formSchema: {}
                 }
-                const variable = Object.assign({}, defaultOpts, variableOpts)
-                this.addVariable(Object.assign({}, variable))
+                const variable = Object.assign({}, defaultOpts, config)
+                this.formData[this.hookingVarForm] = variable.key
+                this.hookingVarForm = ''
+                this.addVariable(variable)
+                this.$emit('update', tools.deepClone(this.formData))
+                this.$emit('globalVariableUpdate')
             },
             /**
-             * 复用变量
+             * 复用变量弹窗点击确认回调
+             *
+             * @param {String} type 复用已有全局变量(reuse)或者创建新变量(new)
+             * @param {String, Obejct} data 复用时为 formcode，新建时为 {name, key}
              */
-            reuseVar (variableOpts, code) {
-                const { varKey, key, value } = variableOpts
-                // 更新页面数据
-                this.$set(this.hooked, code, true)
-                this.$set(this.formData, code, variableOpts.key)
-                this.setVariableSourceInfo({ type: 'add', id: this.nodeConfig.id, key: varKey, tagCode: key, value })
-            },
-            /**
-             * 复用变量确认回调
-             */
-            onConfirmReuseVar (varConfig) {
-                const { type, name, key, varKey, source_tag, source_info, value } = varConfig
-                const code = source_tag.split('.')[1]
-                if (type === 'create') { // 新建
-                    if (this.constants[varKey]) {
-                        this.$bkMessage({
-                            message: gettext('变量KEY已存在'),
-                            theme: 'error'
-                        })
-                        return false
-                    }
-                    const variableOpts = { name, key: varKey, source_tag, source_info, value }
-                    variableOpts.form_schema = formSchema.getSchema(key, this.scheme)
-                    this.$set(this.hooked, code, true)
-                    this.$set(this.formData, code, varKey)
-                    this.hookToGlobal(variableOpts)
-                } else { // 复用
-                    this.reuseVar(varConfig, code)
+            onConfirmReuseVar (type, data) {
+                this.isReuseDialogShow = false
+                if (type === 'new') { // 创建新变量
+                    const { name, key } = data
+                    const config = this.getNewVarConfig(name, key)
+                    this.createVariable(config)
+                } else { // 复用已有全局变量
+                    const variableKey = varKeyReg.test(this.hookingVarForm) ? this.hookingVarForm : `\${${this.hookingVarForm}}`
+                    this.setVariableSourceInfo({
+                        type: 'add',
+                        id: this.nodeId,
+                        key: variableKey,
+                        tagCode: this.hookingVarForm
+                    })
+                    this.formData[this.hookingVarForm] = variableKey
+                    this.$emit('update', tools.deepClone(this.formData))
+                    this.hookingVarForm = ''
                 }
-                this.setNodeInputData({
-                    id: this.nodeConfig.id,
-                    type: this.nodeConfig.type,
-                    setVals: { [key]: { value: key, hook: true } }
-                })
             },
             /**
              * 取消复用变量回调
              */
             onCancelReuseVar (reuseVariable) {
-                const { source_tag } = reuseVariable
-                const code = source_tag.split('.')[1]
-                this.$set(this.hooked, code, false)
-                this.$set(this.formData, code, reuseVariable.key)
+                this.hooked[this.hookingVarForm] = false
+                this.isReuseDialogShow = false
+                this.isKeyExist = false
+                this.hookingVarForm = ''
+                this.reuseableVarList = []
+                this.$forceUpdate()
+            },
+            validate () {
+                return this.$refs.renderForm.validate()
             }
         }
     }

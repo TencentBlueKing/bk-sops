@@ -99,13 +99,13 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations } from 'vuex'
     import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import bus from '@/utils/bus.js'
 
     export const attrs = {
         columns: {
@@ -226,15 +226,6 @@
                 }
             }
         },
-        computed: {
-            /**
-             * notice：兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
-             */
-            ...mapState({
-                'atomForm': state => state.atomForm,
-                'constants': state => state.template.constants
-            })
-        },
         watch: {
             remote_url (value) {
                 this.remoteMethod()
@@ -251,20 +242,11 @@
         },
         mounted () {
             if (this.tagCode === 'job_global_var' && this.formEdit) {
-                this.setOutputParams()
+                this.setOutputParams(this.value)
             }
             this.remoteMethod()
         },
         methods: {
-            /**
-             * notice：兼容“job-执行作业（job_execute_task）标准插件”动态添加输出参数
-             */
-            ...mapMutations('atomForm/', [
-                'setAtomOutput'
-            ]),
-            ...mapMutations('template/', [
-                'deleteVariable'
-            ]),
             formatJson (filterVal, jsonData) {
                 return jsonData.map(v => filterVal.map(j => v[j]))
             },
@@ -448,42 +430,43 @@
              * @param {Array} oldVal 表格变更之前的值
              */
             setOutputParams (val, oldVal) {
-                const specialAtom = 'job_execute_task'
-                const version = this.atomForm.atomVersionMap[specialAtom]
-                if (Array.isArray(this.value)) {
-                    const atomOutput = this.atomForm.form[specialAtom][version].output.slice(0)
-                    this.value.forEach(item => {
-                        if (typeof item.type === 'number' && item.type !== 2 && item.category === 1) {
-                            atomOutput.push({
-                                key: item.name,
-                                name: item.name
-                            })
-                        }
-                    })
-                    this.setAtomOutput({
-                        atomType: specialAtom,
-                        outputData: atomOutput,
-                        version
-                    })
-                }
-                // 删除输出变量已勾选的全局变量
-                if (oldVal && this.node.id) {
-                    oldVal.forEach(item => {
-                        if (val.find(v => v.id === item.id)) {
-                            return
-                        }
-                        if (typeof item.type === 'number' && item.type !== 2) {
-                            Object.keys(this.constants).some(key => {
-                                const cst = this.constants[key]
-                                const sourceInfo = cst.source_info[this.node.id]
-                                if (sourceInfo && sourceInfo.indexOf(item.name) > -1) {
-                                    this.deleteVariable(key)
-                                    return true
-                                }
-                            })
-                        }
-                    })
-                }
+                bus.$emit('jobExecuteTaskOutputs', { val, oldVal })
+                // const specialAtom = 'job_execute_task'
+                // const version = 'legacy'
+                // if (Array.isArray(this.value)) {
+                //     const atomOutput = this.atomForm.form[specialAtom][version].output.slice(0)
+                //     this.value.forEach(item => {
+                //         if (item.category === 1) {
+                //             atomOutput.push({
+                //                 key: item.name,
+                //                 name: item.name
+                //             })
+                //         }
+                //     })
+                //     this.setAtomOutput({
+                //         atomType: specialAtom,
+                //         outputData: atomOutput,
+                //         version
+                //     })
+                // }
+                // // 删除输出变量已勾选的全局变量
+                // if (oldVal && this.node.id) {
+                //     oldVal.forEach(item => {
+                //         if (val.find(v => v.id === item.id)) {
+                //             return
+                //         }
+                //         if (item.category === 1) {
+                //             Object.keys(this.constants).some(key => {
+                //                 const cst = this.constants[key]
+                //                 const sourceInfo = cst.source_info[this.node.id]
+                //                 if (sourceInfo && sourceInfo.indexOf(item.name) > -1) {
+                //                     this.deleteVariable(key)
+                //                     return true
+                //                 }
+                //             })
+                //         }
+                //     })
+                // }
             }
         }
     }

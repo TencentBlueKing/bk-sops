@@ -64,13 +64,14 @@
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
                     :is-show="isNodeConfigPanelShow"
-                    :node-id="idOfNodeInConfigPanel"
                     :atom-list="atomList"
                     :subflow-list="subflowList"
                     :atom-type-list="atomTypeList"
                     :common="common"
+                    :node-id="idOfNodeInConfigPanel"
                     :is-setting-panel-show="isSettingPanelShow"
                     :setting-active-tab="settingActiveTab"
+                    @globalVariableUpdate="globalVariableUpdate"
                     @hide="hideConfigPanel">
                 </node-config>
                 <condition-edit
@@ -684,25 +685,31 @@
             },
             // 关闭配置面板
             hideConfigPanel (asyncData = true) {
-                // if (this.idOfNodeInConfigPanel && asyncData) {
-                //     const nodeType = this.locations.filter(item => {
-                //         return item.id === this.idOfNodeInConfigPanel
-                //     })[0].type
-                //     if ((nodeType === 'tasknode' || nodeType === 'subflow') && this.isNodeConfigPanelShow) {
-                //         // 同步面板数据
-                //         this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
-                //             this.isNodeConfigPanelShow = false
-                //             this.idOfNodeInConfigPanel = ''
-                //             this.reopenGlobalVarPanel()
-                //         })
-                //     }
-                // } else {
-                //     this.isNodeConfigPanelShow = false
-                //     this.idOfNodeInConfigPanel = ''
-                //     this.reopenGlobalVarPanel()
-                // }
-                this.isNodeConfigPanelShow = false
-                this.idOfNodeInConfigPanel = ''
+                if (this.isNodeConfigPanelShow) {
+                    if (asyncData) {
+                        const { skippable, retryable, selectable } = this.$refs.nodeConfig.getBasicInfo()
+                        const config = {
+                            skippable,
+                            retryable,
+                            optional: selectable
+                        }
+                        this.$refs.nodeConfig.syncActivity()
+                        this.$refs.nodeConfig.validate().then(result => {
+                            config.status = result ? '' : 'FAILED'
+                            this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                            this.isNodeConfigPanelShow = false
+                            this.idOfNodeInConfigPanel = ''
+                        }, validator => {
+                            config.status = 'FAILED'
+                            this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                            this.isNodeConfigPanelShow = false
+                            this.idOfNodeInConfigPanel = ''
+                        })
+                    } else {
+                        this.isNodeConfigPanelShow = false
+                        this.idOfNodeInConfigPanel = ''
+                    }
+                }
             },
             /**
              * 1920 分辨率一下，在全局变量面板 isFixedVarMenu = true 的情况下:
@@ -854,18 +861,14 @@
                 if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
-                const nodeType = this.locations.filter(item => {
-                    return item.id === id
-                })[0].type
-                if (nodeType === 'tasknode' || nodeType === 'subflow') {
-                    if (this.isNodeConfigPanelShow) {
-                        this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
-                            this.showConfigPanel(id)
-                        })
-                    } else {
-                        this.showConfigPanel(id)
+                const location = this.locations.find(item => item.id === id)
+                this.showConfigPanel(id)
+                this.$nextTick(() => {
+                    // 若节点参数错误，打开面板后执行一次表单校验
+                    if (location.status === 'FAILED') {
+                        this.$refs.nodeConfig.validate()
                     }
-                }
+                })
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
@@ -947,6 +950,7 @@
             onLocationMoveDone (location) {
                 this.setLocationXY(location)
             },
+            // 全局变量是否有更新，面板收起的情况下增加、删除变量时在 icon 处显示小红点
             globalVariableUpdate (val) {
                 this.isGlobalVariableUpdate = val
             },
@@ -1246,7 +1250,6 @@
             },
             // 所有侧滑面板以外点击事件处理
             handleSidesPanelShow (e) {
-                console.log(2)
                 if (
                     !this.isNodeConfigPanelShow
                     && !this.isSettingPanelShow
@@ -1269,7 +1272,7 @@
                     const pageX = left + document.documentElement.scrollLeft
                     const pageY = top + document.documentElement.scrollTop
                     if (e.pageX < pageX || e.pageX < pageY) {
-                        this.isNodeConfigPanelShow && this.hideConfigPanel()
+                        this.isNodeConfigPanelShow && this.hideConfigPanel(true)
                         !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
                         this.isShowConditionEdit && this.onCloseConditionEdit()
                     }
@@ -1305,12 +1308,6 @@
             },
             fixedVarMenuChange (val) {
                 this.isFixedVarMenu = val
-            },
-            // 插件更新
-            onPluginChange (node) {
-                if (this.isNodeConfigPanelShow) {
-                    this.$refs.nodeConfig.resetNodeConfigData()
-                }
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

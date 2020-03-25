@@ -14,212 +14,186 @@
         ext-cls="common-dialog"
         :theme="'primary'"
         :mask-close="false"
+        :render-directive="'if'"
         :header-position="'left'"
         :title="title"
-        :value="isReuseVarDialogShow"
-        width="480"
-        @confirm="onConfirm($event)"
+        :auto-close="false"
+        :value="isShow"
+        width="600"
+        @confirm="onConfirm"
         @cancel="onCancel">
         <div class="reuse-variable-dialog">
-            <div class="common-form-item" v-if="!reuseVariable.useNewKey">
-                <label>{{ i18n.reuse }}</label>
-                <div class="common-form-content">
-                    <bk-select
-                        v-model="selectedVar"
-                        :popover-width="260"
-                        :disabled="isSelectDisabled">
-                        <bk-option
-                            v-for="(option, index) in reuseableVarList"
-                            :key="index"
-                            :id="option.id"
-                            :name="option.name">
-                        </bk-option>
-                    </bk-select>
-                </div>
-            </div>
-            <div class="common-form-item" v-if="!reuseVariable.useNewKey">
-                <label>{{ i18n.new }}</label>
-                <div class="common-form-content">
-                    <bk-switcher v-model="isCreateVar" size="small" class="create-var-switcher"></bk-switcher>
-                </div>
-            </div>
-            <div class="create-new-variable" v-show="isCreateVar">
-                <p v-if="isNewVariableAlone" class="new-var-notice">{{i18n.newVarNotice}}</p>
-                <div
-                    :class="isNewVariableAlone ? 'common-form-block-item' : 'common-form-item'">
-                    <label>{{ i18n.name }}</label>
-                    <div class="common-form-content">
-                        <bk-input
-                            name="variableName"
-                            v-model="varName"
-                            v-validate="variableNameRule" />
-                        <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
-                    </div>
-                </div>
-                <div :class="isNewVariableAlone ? 'common-form-block-item' : 'common-form-item'">
-                    <label>{{ i18n.key }}</label>
-                    <div class="common-form-content">
-                        <bk-input
-                            name="variableKey"
-                            v-model="varKey"
-                            v-validate="variableKeyRule" />
-                        <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
-                    </div>
-                </div>
-            </div>
+            <p v-if="createNew" class="new-var-notice">{{i18n.notice}}</p>
+            <bk-form
+                ref="form"
+                :model="formData"
+                :form-type="createNew ? 'vertical' : 'horizontal'"
+                :rules="rules">
+                <template v-if="!createNew">
+                    <bk-form-item :label="i18n.reuse" property="reused">
+                        <bk-select
+                            v-model="formData.reused"
+                            :disabled="!formData.isReuse"
+                            :clearable="false">
+                            <bk-option
+                                v-for="(option, index) in variables"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                    <bk-form-item :label="i18n.new" property="isReuse">
+                        <bk-switcher
+                            :value="!formData.isReuse"
+                            size="min"
+                            theme="primary"
+                            @change="toggleReuse">
+                        </bk-switcher>
+                    </bk-form-item>
+                </template>
+                <template v-if="!formData.isReuse || createNew">
+                    <bk-form-item :label="i18n.name" property="name" :required="true">
+                        <bk-input name="variableName" v-model="formData.name"></bk-input>
+                    </bk-form-item>
+                    <bk-form-item :label="i18n.key" property="key" :required="true">
+                        <bk-input name="variableKey" v-model="formData.key"></bk-input>
+                    </bk-form-item>
+                </template>
+            </bk-form>
         </div>
     </bk-dialog>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { mapState } from 'vuex'
-    import { Validator } from 'vee-validate'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
+
     export default {
         name: 'ReuseVarDialog',
-        props: ['isReuseVarDialogShow', 'reuseVariable', 'reuseableVarList'],
+        props: {
+            isShow: Boolean,
+            createNew: Boolean,
+            variables: Array
+        },
         data () {
-            let selectedVar = ''
-            if (!this.reuseVariable.useNewKey && this.reuseableVarList.length > 0) {
-                selectedVar = this.reuseableVarList[0].id
-            }
+            const $this = this
+            const reused = this.variables.length > 0 ? this.variables[0].id : ''
             return {
+                formData: {
+                    reused,
+                    isReuse: true,
+                    name: '',
+                    key: ''
+                },
+                rules: {
+                    name: [
+                        {
+                            required: true,
+                            message: gettext('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                            message: gettext('变量名称长度不能超过') + STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH + gettext('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: NAME_REG,
+                            message: gettext('变量名称不能包含') + INVALID_NAME_CHAR + gettext('非法字符'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    key: [
+                        {
+                            required: true,
+                            message: gettext('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
+                            message: gettext('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + gettext('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
+                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
+                            message: gettext('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator (val) {
+                                const value = /^\$\{\w+\}$/.test(val) ? val : `\${${val}}`
+                                if (value in $this.constants) {
+                                    return false
+                                }
+                                return true
+                            },
+                            message: gettext('变量KEY值已存在'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
                 i18n: {
                     reuse: gettext('复用变量'),
                     new: gettext('新建变量'),
                     name: gettext('变量名称'),
                     key: gettext('变量KEY'),
-                    newVarNotice: gettext('已存在相同Key且版本不同的变量，请新建变量')
-                },
-                selectedVar,
-                isCreateVar: this.reuseVariable.useNewKey,
-                varName: '',
-                varKey: '',
-                variableNameRule: {
-                    required: true,
-                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
-                },
-                variableKeyRule: {
-                    required: true,
-                    max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
-                    regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
-                    keyRepeat: true
-                },
-                isOverride: false
+                    notice: gettext('已存在相同Key且版本不同的变量，请新建变量')
+                }
             }
         },
         computed: {
             ...mapState({
                 constants: state => state.template.constants
             }),
-            isSelectDisabled () {
-                return this.isCreateVar
-            },
-            isNewVariableAlone () {
-                return this.isCreateVar && this.reuseVariable.useNewKey
-            },
             title () {
-                if (this.reuseVariable.useNewKey) {
+                if (this.createNew) {
                     return gettext('创建新变量')
                 }
                 return gettext('是否复用变量')
             }
         },
         watch: {
-            reuseVariable (val) {
-                let selectedVar = ''
-                if (!val.useNewKey && this.reuseableVarList.length > 0) {
-                    selectedVar = this.reuseableVarList[0].id
-                }
-                this.isCreateVar = val.useNewKey
-                this.selectedVar = selectedVar
+            variables (val) {
+                this.formData.reused = val.length > 0 ? this.variables[0].id : ''
             }
         },
-        created () {
-            this.validator = new Validator({})
-            this.validator.extend('keyRepeat', (value) => {
-                value = /^\$\{\w+\}$/.test(value) ? value : '${' + value + '}'
-                if (value in this.constants) {
-                    return false
-                }
-                return true
-            })
-        },
         methods: {
-            resetDialogSetting () {
-                this.selectedVar = ''
-                this.isCreateVar = false
-                this.varName = ''
-                this.varKey = ''
-            },
-            onToggleCreateVar (checked) {
-                this.isCreateVar = checked
+            toggleReuse (val) {
+                this.formData.isReuse = !val
             },
             onConfirm ($event) {
-                this.$nextTick(() => {
-                    this.$validator.validateAll().then((result) => {
-                        if (!result && this.isCreateVar) return
-                        let variableConfig
-                        if (this.isCreateVar) { // 新变量
-                            if (!/^\$\{[\w]*\}$/.test(this.varKey)) {
-                                this.varKey = '${' + this.varKey + '}'
-                            }
-                            variableConfig = {
-                                type: 'create',
-                                name: this.varName,
-                                key: this.reuseVariable.key,
-                                varKey: this.varKey,
-                                source_tag: this.reuseVariable.source_tag,
-                                source_info: this.reuseVariable.source_info,
-                                value: this.reuseVariable.value
-                            }
-                        } else { // 复用
-                            variableConfig = {
-                                type: 'reuse',
-                                name: this.reuseVariable.name,
-                                key: this.reuseVariable.key,
-                                varKey: this.selectedVar,
-                                source_tag: this.reuseVariable.source_tag,
-                                source_info: this.reuseVariable.source_info,
-                                value: this.reuseVariable.value
-                            }
+                if (!this.createNew && this.formData.isReuse) {
+                    this.$emit('confirm', 'reuse', this.formData.reused)
+                } else {
+                    this.$refs.form.validate().then(result => {
+                        console.log(result)
+                        if (result) {
+                            const { name, key } = this.formData
+                            this.$emit('confirm', 'new', { name, key })
                         }
-                        this.$emit('onConfirmReuseVar', variableConfig)
-                        this.resetDialogSetting()
                     })
-                })
+                }
             },
             onCancel () {
-                this.$emit('onCancelReuseVar', this.reuseVariable)
-                this.resetDialogSetting()
+                this.$emit('cancel')
             }
         }
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-@import '@/scss/mixins/scrollbar.scss';
-.reuse-variable-dialog {
-    padding: 30px 0;
-    .common-form-item {
-        label {
-            width: 100px;
-            font-weight: normal;
+    .reuse-variable-dialog {
+        padding: 30px;
+        .new-var-notice {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #ea3636;
         }
-        .common-form-content {
-            margin: 0 30px 0 120px;
-        }
-        .create-var-switcher {
-            margin-top: 6px;
+        .bk-form:not(.bk-form-vertical) {
+            /deep/ .bk-form-content {
+                margin-right: 30px;
+            }
         }
     }
-    .new-var-notice {
-        margin-bottom: 10px;
-        padding: 0 20px;
-        font-size: 14px;
-        color: #ea3636;
-    }
-}
-
 </style>

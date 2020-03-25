@@ -13,13 +13,18 @@
         <!-- 普通插件 -->
         <bk-form
             v-if="!isSubflow"
+            ref="pluginForm"
             :label-width="130"
-            :model="formData">
-            <bk-form-item :label="i18n.plugin" :required="true">
+            :model="formData"
+            :rules="pluginRules">
+            <bk-form-item :label="i18n.plugin" :required="true" property="plugin">
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
-                        <div class="group-text choose-plugin-btn"
-                            @click.stop="openSelectorPanel">{{ formData.plugin ? i18n.reselect : i18n.select }}</div>
+                        <div
+                            class="group-text choose-plugin-btn"
+                            @click="$emit('openSelectorPanel')">
+                            {{ formData.plugin ? i18n.reselect : i18n.select }}
+                        </div>
                     </template>
                 </bk-input>
                 <i class="common-icon-info form-item-tips"
@@ -30,11 +35,11 @@
                         placements: ['bottom-end'] }">
                 </i>
             </bk-form-item>
-            <bk-form-item :label="i18n.version" :required="true">
+            <bk-form-item :label="i18n.version" :required="true" property="version">
                 <bk-select
                     v-model="formData.version"
                     :clearable="false"
-                    @selected="$emit('versionChange')">
+                    @selected="$emit('versionChange', $event)">
                     <bk-option
                         v-for="item in versionList"
                         :key="item.version"
@@ -43,19 +48,27 @@
                     </bk-option>
                 </bk-select>
             </bk-form-item>
-            <bk-form-item :label="i18n.nodeName" :required="true">
-                <bk-input v-model="formData.nodeName" @blur="saveBasicInfo"></bk-input>
+            <bk-form-item :label="i18n.nodeName" :required="true" property="nodeName">
+                <bk-input v-model="formData.nodeName" @blur="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="i18n.errorHandle" class="error-handle">
-                <bk-checkbox v-model="formData.ignorable" @change="onErrorIgnoreChange">
+                <bk-checkbox
+                    :value="formData.ignorable"
+                    @change="onErrorHandlerChange($event, 'ignorable')">
                     <i class="error-handle-icon common-icon-dark-circle-i"></i>
                     {{ i18n.ignorable }}
                 </bk-checkbox>
-                <bk-checkbox v-model="formData.skippable" :disabled="formData.ignorable" @change="saveBasicInfo">
+                <bk-checkbox
+                    :value="formData.skippable"
+                    :disabled="formData.ignorable"
+                    @change="onErrorHandlerChange($event, 'skippable')">
                     <i class="error-handle-icon common-icon-dark-circle-s"></i>
                     {{ i18n.skip }}
                 </bk-checkbox>
-                <bk-checkbox v-model="formData.retryable" :disabled="formData.ignorable" @change="saveBasicInfo">
+                <bk-checkbox
+                    :value="formData.retryable"
+                    :disabled="formData.ignorable"
+                    @change="onErrorHandlerChange($event, 'retryable')">
                     <i class="error-handle-icon common-icon-dark-circle-r"></i>
                     {{ i18n.retry }}
                 </bk-checkbox>
@@ -72,19 +85,27 @@
                 <i v-bk-tooltips="errorHandleTipsConfig" ref="tooltipsHtml" class="common-icon-info form-item-tips"></i>
             </bk-form-item>
             <bk-form-item :label="i18n.selectable">
-                <bk-switcher v-model="formData.selectable" size="small" @change="saveBasicInfo"></bk-switcher>
+                <bk-switcher
+                    :value="formData.selectable"
+                    theme="primary"
+                    size="min"
+                    @change="onSelectableChange">
+                </bk-switcher>
             </bk-form-item>
         </bk-form>
         <!-- 子流程 -->
         <bk-form
             v-else
+            ref="subflowForm"
             :label-width="130"
-            :model="formData">
-            <bk-form-item :label="i18n.tpl" :required="true">
+            :model="formData"
+            :rules="subflowRules">
+            <bk-form-item :label="i18n.tpl" :required="true" property="tpl">
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
-                        <div class="group-text choose-plugin-btn"
-                            @click.stop="openSelectorPanel">{{ formData.tpl ? i18n.reselect : i18n.select }}</div>
+                        <div class="group-text choose-plugin-btn" @click="$emit('openSelectorPanel')">
+                            {{ formData.tpl ? i18n.reselect : i18n.select }}
+                        </div>
                     </template>
                 </bk-input>
                 <!-- 子流程版本更新 -->
@@ -94,18 +115,23 @@
                         'update-tooltip',
                         { 'disabled': inputLoading }
                     ]"
-                    v-if="subflowHasUpdate"
+                    v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
                         content: i18n.update,
                         placements: ['bottom-end'] }"
                     @click="onUpdateSubflowVersion">
                 </i>
             </bk-form-item>
-            <bk-form-item :label="i18n.nodeName" :required="true">
-                <bk-input v-model="formData.nodeName"></bk-input>
+            <bk-form-item :label="i18n.nodeName" :required="true" property="nodeName">
+                <bk-input v-model="formData.nodeName" @blur="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="i18n.selectable">
-                <bk-switcher v-model="formData.selectable" size="small"></bk-switcher>
+                <bk-switcher
+                    :value="formData.selectable"
+                    theme="primary"
+                    size="min"
+                    @change="onSelectableChange">
+                </bk-switcher>
             </bk-form-item>
         </bk-form>
     </div>
@@ -113,42 +139,79 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
+    import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
+
     export default {
         name: 'BasicInfo',
         props: {
-            formData: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
-            versionList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            nodeConfig: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
-            name: {
-                type: String,
-                default: ''
-            },
-            isSubflow: {
-                type: Boolean,
-                default: false
-            },
-            inputLoading: {
-                type: Boolean,
-                default: false
-            }
+            nodeConfig: Object,
+            basicInfo: Object,
+            versionList: Array,
+            isSubflow: Boolean,
+            inputLoading: Boolean
         },
         data () {
             return {
+                formData: { ...this.basicInfo },
+                pluginRules: {
+                    plugin: [
+                        {
+                            required: true,
+                            message: gettext('请选择插件'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    version: [
+                        {
+                            required: true,
+                            message: gettext('请选择插件版本'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    nodeName: [
+                        {
+                            required: true,
+                            message: gettext('节点名称不能为空'),
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: NAME_REG,
+                            message: gettext('节点名称不能包含') + INVALID_NAME_CHAR + gettext('非法字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH,
+                            message: gettext('节点名称长度不能超过') + STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH + gettext('个字符'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                subflowRules: {
+                    tpl: [
+                        {
+                            required: true,
+                            message: gettext('请选择流程模板'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    nodeName: [
+                        {
+                            required: true,
+                            message: gettext('节点名称不能为空'),
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: NAME_REG,
+                            message: gettext('节点名称不能包含') + INVALID_NAME_CHAR + gettext('非法字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH,
+                            message: gettext('节点名称长度不能超过') + STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH + gettext('个字符'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
                 errorHandleTipsConfig: {
                     allowHtml: true,
                     width: 400,
@@ -185,7 +248,7 @@
                 return this.subprocessInfo.details.some(subflow => {
                     if (
                         subflow.expired
-                        && subflow.template_id === Number(this.nodeConfig.template_id)
+                        && subflow.template_id === Number(this.formData.tpl)
                         && subflow.subprocess_node_id === this.nodeConfig.id
                     ) {
                         return true
@@ -193,44 +256,51 @@
                 })
             }
         },
+        watch: {
+            basicInfo (val) {
+                this.formData = { ...val }
+            }
+        },
         methods: {
             ...mapMutations('template/', [
                 'setNodeBasicInfo'
             ]),
-            onErrorIgnoreChange (val) {
-                if (val) {
+            onErrorHandlerChange (val, type) {
+                this.formData[type] = val
+                if (type === 'ignorable' && val) {
                     this.formData.retryable = false
                     this.formData.skippable = false
                 }
-                this.saveBasicInfo()
+                this.updateData()
             },
-            saveBasicInfo () {
-                const {
-                    name,
-                    ignorable,
-                    skippable,
-                    retryable,
-                    selectable
-                } = this.formData
-                this.setNodeBasicInfo({
-                    id: this.nodeConfig.id,
-                    setVals: {
-                        name,
-                        ignorable,
-                        skippable,
-                        retryable,
-                        selectable
-                    }
-                })
+            onSelectableChange (val) {
+                this.formData.selectable = val
+                this.updateData()
             },
-            openSelectorPanel () {
-                this.$emit('openSelectorPanel')
+            updateData () {
+                const { version, nodeName, ignorable, skippable, retryable, selectable } = this.formData
+                let data
+                if (this.isSubflow) {
+                    data = { nodeName, selectable }
+                } else {
+                    data = { version, nodeName, ignorable, skippable, retryable, selectable }
+                }
+                this.$emit('update', data)
             },
             /**
              * 子流程版本更新
              */
             onUpdateSubflowVersion () {
-                
+                if (this.inputLoading) {
+                    return
+                }
+
+                this.$emit('updateSubflowVersion')
+            },
+            validate () {
+                const comp = this.isSubflow ? this.$refs.subflowForm : this.$refs.pluginForm
+                comp.clearError()
+                return comp.validate()
             }
         }
     }
@@ -264,6 +334,9 @@
             font-size: 12px;
             color: #63656e;
         }
+        .bk-form-control .group-box.group-append {
+            z-index: 11;
+        }
         .form-item-tips {
             position: absolute;
             right: -30px;
@@ -284,6 +357,10 @@
             right: -28px;
             top: 8px;
             cursor: pointer;
+            color: #c4c6cc;
+            &:hover {
+                color: #f4aa1a;
+            }
         }
     }
     .bk-option-content {

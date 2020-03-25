@@ -10,12 +10,15 @@
 */
 <template>
     <div class="output-params">
-        <bk-table :data="params" :border="true">
+        <bk-table :data="list" :border="true">
             <bk-table-column :label="i18n.name" :width="250" align="center" prop="name"></bk-table-column>
             <bk-table-column label="KEY" align="center" prop="key"></bk-table-column>
             <bk-table-column :label="i18n.cite" :width="100" align="center">
                 <template slot-scope="props">
-                    <bk-checkbox :value="getHookStatus(props.row)" @change="onToggleCheck(props, $event)"></bk-checkbox>
+                    <bk-checkbox
+                        :value="props.row.hooked"
+                        @change="onHookChange(props, $event)">
+                    </bk-checkbox>
                 </template>
             </bk-table-column>
         </bk-table>
@@ -28,21 +31,15 @@
     export default {
         name: 'OutputParams',
         props: {
-            params: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            nodeConfig: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            }
+            params: Array,
+            isSubflow: Boolean,
+            nodeId: String,
+            version: String // 标准插件版本或子流程版本
         },
         data () {
+            const list = this.getOutputsList(this.params)
             return {
+                list,
                 i18n: {
                     name: gettext('名称'),
                     cite: gettext('引用')
@@ -54,43 +51,67 @@
                 'constants': state => state.template.constants
             })
         },
+        watch: {
+            params (val) {
+                this.list = this.getOutputsList(val)
+            }
+        },
         methods: {
             ...mapMutations('template/', [
                 'addVariable',
                 'deleteVariable'
             ]),
+            getOutputsList () {
+                const list = []
+                const constants = this.$store.state.template.constants
+                const varKeys = Object.keys(constants)
+                this.params.forEach(param => {
+                    let key = param.key
+                    const isHooked = varKeys.some(item => {
+                        const varItem = constants[item]
+                        if (varItem.source_type === 'component_outputs') {
+                            const sourceInfo = varItem.source_info[this.nodeId]
+                            if (sourceInfo && sourceInfo.includes(param.key)) {
+                                key = item
+                                return true
+                            }
+                        }
+                    })
+                    list.push({
+                        key,
+                        name: param.name,
+                        version: param.version,
+                        hooked: isHooked
+                    })
+                })
+                return list
+            },
             /**
              * 输出参数勾选切换
              */
-            onToggleCheck (props, checked) {
-                const { key, name, version } = props.row
+            onHookChange (props, val) {
+                const { key, name } = props.row
+                const version = this.isSubflow ? props.version : this.version
                 const index = props.$index
-                const vs = this.nodeConfig.type === 'ServiceActivity'
-                    ? (this.nodeConfig.component.version || 'legacy')
-                    : (version || 'legacy')
                 const variableKey = this.generateRandomKey(key)
-                if (checked) { // hook
-                    const variableOpts = {
+                if (val) { // 勾选到全局变量，不同节点间的相同变量没有复用逻辑，每次勾选用生成新的随机数拼接
+                    const config = {
                         name,
                         key: variableKey,
-                        source_type: 'component_outputs',
                         source_info: {
-                            [this.nodeConfig.id]: [key]
+                            [this.nodeId]: [key]
                         },
-                        source_tag: '',
-                        custom_type: '',
-                        show_type: 'hide',
-                        version: vs
+                        version
                     }
-                    this.$set(this.params[index], 'key', variableKey)
-                    this.hookToGlobal(variableOpts)
-                } else { // cancel
-                    const constant = this.constants[key]
-                    if (constant) {
-                        this.deleteVariable(key)
-                    }
+                    this.list[index].key = variableKey
+                    this.createVariable(config)
+                } else { // 取消勾选
+                    this.list[index].key = this.params[index].key
+                    this.deleteVariable(key)
                 }
+                this.$emit('globalVariableUpdate')
             },
+            // 随机生成变量 key，长度为 14，不可重复
             generateRandomKey (key) {
                 let variableKey = key.replace(/^\$\{/, '').replace(/(\}$)/, '').slice(0, 14)
                 do {
@@ -98,27 +119,7 @@
                 } while (this.constants[variableKey])
                 return variableKey
             },
-            /**
-             * 获取输出参数勾选状态
-             * 变量全局变量中 source_info 里是否含有该变量
-             */
-            getHookStatus (row) {
-                const key = row.key
-                for (const cKey in this.constants) {
-                    const constant = this.constants[cKey]
-                    if (constant.source_type === 'component_outputs'
-                        && constant.source_info[this.nodeConfig.id]
-                        && constant.source_info[this.nodeConfig.id].indexOf(key) > -1
-                    ) {
-                        return true
-                    }
-                }
-                return false
-            },
-            /**
-             * 勾选到全局变量变量，不同节点间的相同变量没有复用逻辑，每次勾选用生成新的随机数拼接
-             */
-            hookToGlobal (variableOpts) {
+            createVariable (variableOpts) {
                 const len = Object.keys(this.constants).length
                 const defaultOpts = {
                     name: '',
@@ -129,13 +130,13 @@
                     source_tag: '',
                     value: '',
                     show_type: 'show',
-                    source_type: 'component_inputs',
+                    source_type: 'component_outputs',
                     validation: '',
                     index: len,
-                    version: 'legacy'
+                    version: ''
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
-                this.addVariable(Object.assign({}, variable))
+                this.addVariable(variable)
             }
         }
     }

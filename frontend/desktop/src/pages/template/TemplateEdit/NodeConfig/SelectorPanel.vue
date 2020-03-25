@@ -151,15 +151,13 @@
                 return 'common-icon-sys-default'
             },
             /**
-             * 选择插件(子流程)
-             * @param {Object} node 插件/子流程
+             * 选择插件/子流程
              */
             onSelect (val) {
                 this.$emit('select', val)
             },
             /**
-             * 插件选中状态
-             * @param {Object} item 插件/子流程
+             * 插件/子流程选中状态
              */
             getSelectedStatus (item) {
                 if (this.isSubflow) {
