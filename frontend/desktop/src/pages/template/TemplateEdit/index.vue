@@ -687,21 +687,10 @@
             hideConfigPanel (asyncData = true) {
                 if (this.isNodeConfigPanelShow) {
                     if (asyncData) {
-                        const { skippable, retryable, selectable } = this.$refs.nodeConfig.getBasicInfo()
-                        const config = {
-                            skippable,
-                            retryable,
-                            optional: selectable
-                        }
-                        this.$refs.nodeConfig.syncActivity()
-                        this.$refs.nodeConfig.validate().then(result => {
-                            config.status = result ? '' : 'FAILED'
-                            this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                        this.syncAndValidateNodeConfig().then(result => {
                             this.isNodeConfigPanelShow = false
                             this.idOfNodeInConfigPanel = ''
-                        }, validator => {
-                            config.status = 'FAILED'
-                            this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                        }).catch(e => {
                             this.isNodeConfigPanelShow = false
                             this.idOfNodeInConfigPanel = ''
                         })
@@ -710,6 +699,23 @@
                         this.idOfNodeInConfigPanel = ''
                     }
                 }
+            },
+            syncAndValidateNodeConfig () {
+                const { skippable, retryable, selectable } = this.$refs.nodeConfig.getBasicInfo()
+                const config = {
+                    skippable,
+                    retryable,
+                    optional: selectable
+                }
+                this.$refs.nodeConfig.syncActivity()
+                return this.$refs.nodeConfig.validate().then(result => {
+                    config.status = result ? '' : 'FAILED'
+                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                    return result
+                }, validator => {
+                    config.status = 'FAILED'
+                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                })
             },
             /**
              * 1920 分辨率一下，在全局变量面板 isFixedVarMenu = true 的情况下:
@@ -1029,9 +1035,11 @@
             // 同步节点配置面板数据
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
-                    this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
-                        if (!isValid) return
-                        this.asyncConditionData()
+                    this.syncAndValidateNodeConfig().then(result => {
+                        console.log(result)
+                        if (result) {
+                            this.asyncConditionData()
+                        }
                     })
                 } else {
                     this.asyncConditionData()
@@ -1271,7 +1279,7 @@
                     const { left, top } = panel.getBoundingClientRect()
                     const pageX = left + document.documentElement.scrollLeft
                     const pageY = top + document.documentElement.scrollTop
-                    if (e.pageX < pageX || e.pageX < pageY) {
+                    if (e.pageX < pageX || e.pageY < pageY) {
                         this.isNodeConfigPanelShow && this.hideConfigPanel(true)
                         !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
                         this.isShowConditionEdit && this.onCloseConditionEdit()

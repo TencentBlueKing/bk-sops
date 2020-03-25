@@ -547,9 +547,9 @@
                     selectable: false
                 }
                 this.updateBasicInfo(config)
-                this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
+                this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
             },
             /**
              * 标准插件版本切换
@@ -576,13 +576,13 @@
                     selectable: false
                 }
                 this.updateBasicInfo(config)
-                this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
                 await this.getSubflowDetail(id, version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
                 })
+                this.$refs.basicInfo && this.$refs.basicInfo.validate() // 清除节点保存报错时的错误信息
             },
             /**
              * 更新基础信息

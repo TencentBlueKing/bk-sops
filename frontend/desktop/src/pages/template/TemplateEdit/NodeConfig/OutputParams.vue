@@ -129,7 +129,7 @@
                     source_info: {},
                     source_tag: '',
                     value: '',
-                    show_type: 'show',
+                    show_type: 'hide',
                     source_type: 'component_outputs',
                     validation: '',
                     index: len,
