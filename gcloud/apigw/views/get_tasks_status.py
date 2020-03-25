@@ -55,7 +55,7 @@ def get_tasks_status(request, project_id):
     task_ids = params.get("task_id_list", [])
     if not isinstance(task_ids, list):
         return JsonResponse(
-            {"result": False, "message": "task_ids must be a list", "code": err_code.REQUEST_PARAM_INVALID.code}
+            {"result": False, "message": "task_id_list must be a list", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
     include_children_status = params.get("include_children_status", False)
 
