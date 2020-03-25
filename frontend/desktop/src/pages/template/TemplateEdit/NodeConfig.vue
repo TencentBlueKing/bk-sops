@@ -855,7 +855,7 @@
             iskeyInSourceInfo (key, tagCode) {
                 for (const cKey in this.constants) {
                     const constant = this.constants[cKey]
-                    const sourceInfo = JSON.stringify(constant.source_info)
+                    const sourceInfo = constant.source_info[this.nodeConfigData.id]
                     if (
                         constant.source_type === 'component_inputs'
                         && sourceInfo
