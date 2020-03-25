@@ -35,6 +35,7 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
 )
 
+from files.models import UploadTicket
 from files.factory import ManagerFactory, BartenderFactory
 
 from gcloud.conf import settings
@@ -459,6 +460,15 @@ def file_upload(request):
     @return:
     """
 
+    ticket = request.META.get("UPLOAD-TICKET", "")
+    ok, err = UploadTicket.objects.check_ticket(ticket)
+    if not ok:
+        response = JsonResponse(
+            {"result": False, "message": "ticket check error: {}".format(err)}
+        )
+        response.status_code = 400
+        return response
+
     file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
     if not file_manager_type:
         return JsonResponse(
@@ -475,11 +485,22 @@ def file_upload(request):
         )
         return JsonResponse({"result": False, "message": str(e)})
 
-    logger.info('[FILE_UPLOAD]file_upload POST: {}'.format(request.POST))
+    logger.info("[FILE_UPLOAD]file_upload POST: {}".format(request.POST))
 
-    bartender = BartenderFactory.get_bartender(manager_type=file_manager_type, manager=file_manager)
+    bartender = BartenderFactory.get_bartender(
+        manager_type=file_manager_type, manager=file_manager
+    )
 
     return bartender.process_request(request)
+
+
+def apply_upload_ticket(request):
+
+    ticket = UploadTicket.objects.apply(
+        request.user.username, request.META.get("REMOTE_ADDR", "")
+    )
+
+    return JsonResponse({"result": True, "data": {"ticket": ticket.code}})
 
 
 urlpatterns = [
@@ -515,4 +536,5 @@ urlpatterns = [
         cc_get_mainline_object_topo,
     ),
     url(r"^cc_get_business_list/$", cc_get_business),
+    url(r"^apply_upload_ticket/$", apply_upload_ticket),
 ]
