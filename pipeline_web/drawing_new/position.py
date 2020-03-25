@@ -65,12 +65,12 @@ def position(pipeline,
     # 先分配节点位置
     locations = {}
     rank_x, rank_y = start
+    new_line_y = rank_y
     # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
     for rk in range(min_rk, max_rk + MIN_LEN, MIN_LEN):
         layer_nodes = orders[rk]
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
-        new_line_y = rank_y + shift_y
         for node_id in layer_nodes:
             if node_id in pipeline['all_nodes']:
                 node = pipeline['all_nodes'][node_id]
