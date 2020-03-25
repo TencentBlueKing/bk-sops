@@ -47,6 +47,24 @@
                 beforeUpload(file, fileList) {
                     this.$set(this.headers, "X-CSRFToken", getCookie(window.APP_CODE + "_csrftoken"))
                     this.$set(this.headers, "APP-ProjectId", $.context.getProjectId())
+                    
+                    var $this = this
+                    $.ajax({
+                        url: $.context.get('site_url') + 'pipeline/apply_upload_ticket/',
+                        type: 'GET',
+                        dataType: 'json',
+                        async: false,
+                        success: function (resp) {
+                            if (resp.result === false) {
+                                show_msg(resp.message, 'error');
+                            } else {
+                                $this.$set($this.headers, "Upload-Ticket", resp.data.ticket)
+                            }
+                        },
+                        error: function () {
+                            show_msg('request job detail error', 'error');
+                        }
+                    })
                 },
                 handleSuccess: function (response, file, fileList) {
                     var file_num = fileList.length;

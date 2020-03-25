@@ -460,11 +460,11 @@ def file_upload(request):
     @return:
     """
 
-    ticket = request.META.get("UPLOAD-TICKET", "")
+    ticket = request.META.get("HTTP_UPLOAD_TICKET", "")
     ok, err = UploadTicket.objects.check_ticket(ticket)
     if not ok:
         response = JsonResponse(
-            {"result": False, "message": "ticket check error: {}".format(err)}
+            {"result": False, "message": "upload ticket check error: {}".format(err)}
         )
         response.status_code = 400
         return response
