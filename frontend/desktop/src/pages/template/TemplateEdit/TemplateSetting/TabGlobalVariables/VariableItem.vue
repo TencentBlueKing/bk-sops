@@ -133,6 +133,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
     import VariableEdit from './VariableEdit.vue'
     import VariableCitedList from './VariableCitedList.vue'
     import SystemVariableEdit from './SystemVariableEdit.vue'
@@ -172,6 +173,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'activities': state => state.template.activities
+            }),
             isSystemVar () {
                 return this.constant.source_type === 'system'
             },
@@ -179,7 +183,51 @@
                 return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
             },
             citedList () {
-                return Object.keys(this.constant.source_info).map(id => id)
+                const sourceInfo = this.constant.source_info
+                // 表单勾选全局变量的节点
+                const nodes = Object.keys(sourceInfo).map(id => id)
+
+                // 输入参数表单直接填写变量key的情况
+                const escapeStr = this.constant.key.replace(/[${}]/g, '\\$&')
+                const keyReg = new RegExp(escapeStr)
+                Object.keys(this.activities).forEach(id => {
+                    // 节点已在引用节点列表中需要去重
+                    if (nodes.includes(id)) {
+                        return
+                    }
+                    const activity = this.activities[id]
+                    if (activity.type === 'SubProcess') {
+                        Object.keys(activity.constants).forEach(key => {
+                            const varItem = activity.constants[key]
+                            // 隐藏类型变量不考虑
+                            if (varItem.show_type === 'hide') {
+                                return
+                            }
+                            // 表单已勾选到全局变量
+                            const isExist = sourceInfo[id] && sourceInfo[id].includes(varItem.key)
+                            if (isExist) {
+                                return
+                            }
+                            // 匹配表单项的值是否包含变量的key
+                            if (typeof varItem.value === 'string' && keyReg.test(varItem.value)) {
+                                nodes.push(id)
+                            }
+                        })
+                    } else {
+                        const component = activity.component
+                        Object.keys(component.data || {}).forEach(form => { // 空任务节点可能会存在 data 为 undefined 的情况
+                            const val = component.data[form].value
+                            const isExist = sourceInfo[id] && sourceInfo[id].includes(form)
+                            if (isExist) {
+                                return
+                            }
+                            if (typeof val === 'string' && keyReg.test(val)) {
+                                nodes.push(id)
+                            }
+                        })
+                    }
+                })
+                return nodes
             }
         },
         methods: {
