@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from pipeline.exceptions import PipelineException
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from auth_backend.plugins.shortcuts import batch_verify_or_raise_auth_failed
 from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
@@ -32,6 +33,7 @@ from gcloud.commons.template.permissions import common_template_resource
 from gcloud.conf import settings
 from gcloud.constants import PROJECT
 from gcloud.core.permissions import project_resource
+from gcloud.core.utils import pipeline_node_name_handle
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -66,7 +68,7 @@ def create_task(request, template_id, project_id):
     template_source = params.get("template_source", PROJECT)
 
     logger.info(
-        "apigw create_task info, template_id: {template_id}, project_id: {project_id}, params: {params}".format(
+        "[API] create_task info, template_id: {template_id}, project_id: {project_id}, params: {params}".format(
             template_id=template_id, project_id=project.id, params=params
         )
     )
@@ -81,7 +83,7 @@ def create_task(request, template_id, project_id):
         except TaskTemplate.DoesNotExist:
             result = {
                 "result": False,
-                "message": "template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] "
+                "message": "template[id={template_id}] of project[project_id={project_id},biz_id={biz_id}] "
                 "does not exist".format(
                     template_id=template_id,
                     project_id=project.id,
@@ -135,22 +137,6 @@ def create_task(request, template_id, project_id):
                 status=200,
             )
 
-    try:
-        params.setdefault("flow_type", "common")
-        params.setdefault("constants", {})
-        params.setdefault("exclude_task_nodes_id", [])
-        jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
-    except jsonschema.ValidationError as e:
-        logger.warning("apigw create_task raise prams error: %s" % e)
-        message = "task params is invalid: %s" % e
-        return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
-
     app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = (
@@ -164,30 +150,81 @@ def create_task(request, template_id, project_id):
             }
         )
 
+    try:
+        params.setdefault("flow_type", "common")
+        params.setdefault("constants", {})
+        params.setdefault("exclude_task_nodes_id", [])
+        jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
+    except jsonschema.ValidationError as e:
+        logger.warning("[API] create_task raise prams error: %s" % e)
+        message = "task params is invalid: %s" % e
+        return JsonResponse(
+            {
+                "result": False,
+                "message": message,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
+
+    create_with_tree = "pipeline_tree" in params
+
     pipeline_instance_kwargs = {
         "name": params["name"],
         "creator": request.user.username,
+        "description": params.get("description", ""),
     }
-    if "description" in params:
-        pipeline_instance_kwargs["description"] = params["description"]
-    try:
-        (
-            result,
-            data,
-        ) = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-            tmpl,
-            pipeline_instance_kwargs,
-            params["constants"],
-            params["exclude_task_nodes_id"],
-        )
-    except PipelineException as e:
-        return JsonResponse(
-            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
-        )
-    if not result:
-        return JsonResponse(
-            {"result": False, "message": data, "code": err_code.UNKNOW_ERROR.code}
-        )
+
+    if create_with_tree:
+        try:
+            pipeline_tree = params["pipeline_tree"]
+            pipeline_node_name_handle(pipeline_tree)
+            validate_web_pipeline_tree(pipeline_tree)
+        except Exception as e:
+            message = "[API] create_task get invalid pipeline_tree: %s" % str(e)
+            logger.exception(message)
+            return JsonResponse(
+                {
+                    "result": False,
+                    "message": message,
+                    "code": err_code.UNKNOW_ERROR.code,
+                }
+            )
+
+        pipeline_instance_kwargs["pipeline_tree"] = pipeline_tree
+
+        try:
+            data = TaskFlowInstance.objects.create_pipeline_instance(
+                template=tmpl, **pipeline_instance_kwargs
+            )
+        except PipelineException as e:
+            message = "[API] create_task create pipeline error: %s" % str(e)
+            logger.exception(message)
+            return JsonResponse(
+                {
+                    "result": False,
+                    "message": message,
+                    "code": err_code.UNKNOW_ERROR.code,
+                }
+            )
+    else:
+        try:
+            (
+                result,
+                data,
+            ) = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
+                tmpl,
+                pipeline_instance_kwargs,
+                params["constants"],
+                params["exclude_task_nodes_id"],
+            )
+        except PipelineException as e:
+            return JsonResponse(
+                {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+            )
+        if not result:
+            return JsonResponse(
+                {"result": False, "message": data, "code": err_code.UNKNOW_ERROR.code}
+            )
 
     task = TaskFlowInstance.objects.create(
         project=project,

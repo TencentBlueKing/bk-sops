@@ -62,18 +62,11 @@ def dispatch_plugin_query(request):
     try:
         parsed = urlsplit(url)
 
-        if method.lower() == 'get':
-            # build fake request, support get only
-            fake_request = RequestFactory().get(
-                url,
-                content_type="application/json"
-            )
-        elif method.lower() == 'post':
-            # build fake request, support get only
+        if method.lower() == "get":
+            fake_request = RequestFactory().get(url, content_type="application/json")
+        elif method.lower() == "post":
             fake_request = RequestFactory().post(
-                url,
-                data=data,
-                content_type="application/json"
+                url, data=data, content_type="application/json"
             )
         else:
             return JsonResponse({
@@ -83,7 +76,7 @@ def dispatch_plugin_query(request):
             })
 
         # transfer request.user
-        setattr(fake_request, 'user', request.user)
+        setattr(fake_request, "user", request.user)
 
         # resolve view_func
         match = resolve(parsed.path, urlconf=None)

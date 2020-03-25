@@ -29,6 +29,7 @@ COMMONTEMPLATE_IMPORT_TEMPLATES = 'gcloud.commons.template.models.CommonTemplate
 
 TASKINSTANCE_CREATE_PIPELINE = \
     'gcloud.taskflow3.models.TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes'
+TASKINSTANCE_CREATE_PIPELINE_INSTANCE = 'gcloud.taskflow3.models.TaskFlowInstance.objects.create_pipeline_instance'
 TASKINSTANCE_CREATE = 'gcloud.taskflow3.models.TaskFlowInstance.objects.create'
 TASKINSTANCE_GET = 'gcloud.taskflow3.models.TaskFlowInstance.objects.get'
 TASKINSTANCE_FORMAT_STATUS = 'gcloud.taskflow3.models.TaskFlowInstance.format_pipeline_status'
@@ -48,6 +49,8 @@ PERIODIC_TASK_HISTORY_CREATE = 'gcloud.periodictask.models.PeriodicTaskHistory.o
 APIGW_BIZ_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_business'
 APIGW_TASK_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_task'
 APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.create_task.jsonschema.validate'
+APIGW_CREATE_TASK_NODE_NAME_HANDLE = 'gcloud.apigw.views.create_task.pipeline_node_name_handle'
+APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE = 'gcloud.apigw.views.create_task.validate_web_pipeline_tree'
 APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.create_periodic_task.jsonschema.validate'
 APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.create_periodic_task.replace_template_id'
 APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.get_task_status.pipeline_api.get_status_tree'

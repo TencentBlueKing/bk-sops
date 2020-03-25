@@ -52,7 +52,7 @@ def get_task_status(request, task_id, project_id):
         return JsonResponse(result)
     # 请求子流程的状态，直接通过pipeline api查询
     except (ValueError, TaskFlowInstance.DoesNotExist):
-        logger.info("task[id=%s] does not exist" % task_id)
+        logger.info("[API] get_task_status task[id=%s] does not exist" % task_id)
     except Exception as e:
         message = "task[id={task_id}] get status error: {error}".format(
             task_id=task_id, error=e
@@ -69,7 +69,7 @@ def get_task_status(request, task_id, project_id):
         task_status = pipeline_api.get_status_tree(task_id, max_depth=99)
         TaskFlowInstance.format_pipeline_status(task_status)
     except Exception as e:
-        message = "task[id={task_id}] get status error: {error}".format(
+        message = "[API] get_task_status task[id={task_id}] get status error: {error}".format(
             task_id=task_id, error=e
         )
         logger.error(message)
