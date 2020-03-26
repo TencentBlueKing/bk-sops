@@ -27,6 +27,7 @@ COMMONTEMPLATE_GET = 'gcloud.commons.template.models.CommonTemplate.objects.get'
 COMMONTEMPLATE_SELECT_RELATE = 'gcloud.commons.template.models.CommonTemplate.objects.select_related'
 COMMONTEMPLATE_IMPORT_TEMPLATES = 'gcloud.commons.template.models.CommonTemplate.objects.import_templates'
 
+TASKFLOW_OBJECTS_FILTER = 'gcloud.taskflow3.models.TaskFlowInstance.objects.filter'
 TASKINSTANCE_CREATE_PIPELINE = \
     'gcloud.taskflow3.models.TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes'
 TASKINSTANCE_CREATE_PIPELINE_INSTANCE = 'gcloud.taskflow3.models.TaskFlowInstance.objects.create_pipeline_instance'
