@@ -15,6 +15,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
+const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
 /**
  * 生产环境分版本打包命令
@@ -145,6 +146,7 @@ module.exports = {
         ]
     },
     plugins: [
+        new CaseSensitivePathsPlugin(),
         new VueLoaderPlugin(),
         new HtmlWebpackPlugin({
             template: './src/assets/html/template.html',

@@ -60,6 +60,7 @@
     "babel-plugin-component": "^1.1.1",
     "babel-plugin-dynamic-import-node": "^2.3.0",
     "babel-plugin-transform-vue-jsx": "^3.7.0",
+    "case-sensitive-paths-webpack-plugin": "^2.3.0",
     "chokidar": "^3.2.2",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.1",
