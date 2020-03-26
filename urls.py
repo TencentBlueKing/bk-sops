@@ -47,6 +47,7 @@ if settings.IS_LOCAL:
         url(r'^media/(?P<path>.*)$', static.serve,
             {'document_root': settings.MEDIA_ROOT}
             ),
+        url('favicon.ico', static.serve, {'document_root': settings.STATIC_ROOT, 'path': 'core/images/bk_sops.png'}),
     ]
     if not settings.DEBUG:
         urlpatterns += [
