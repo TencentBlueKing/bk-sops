@@ -737,6 +737,7 @@
         border-radius: 2px;
         .module-wrapper {
             margin-top: 20px;
+            min-height: 40px;
         }
         .bk-form {
             /deep/ .bk-form-item {
