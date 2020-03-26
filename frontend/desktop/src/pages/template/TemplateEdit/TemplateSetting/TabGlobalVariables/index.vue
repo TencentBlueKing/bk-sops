@@ -602,7 +602,7 @@ $localBorderColor: #dcdee5;
         position: absolute;
         left: 0;
         top: 42px;
-        z-index: 1;
+        z-index: 101;
         width: 100%;
         height: 43px;
         line-height: 43px;

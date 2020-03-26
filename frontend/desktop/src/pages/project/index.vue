@@ -545,11 +545,9 @@
     }
 </script>
 <style lang="scss" scoped>
-    @import '@/scss/config.scss';
     .project-container {
         min-width: 1320px;
         min-height: calc(100% - 50px);
-        background: $whiteNodeBg;
         .dialog-content {
             word-break: break-all;
         }

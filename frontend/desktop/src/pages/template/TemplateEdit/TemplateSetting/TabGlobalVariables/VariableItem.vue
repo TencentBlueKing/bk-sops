@@ -18,7 +18,7 @@
         ]">
         <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
             <i v-if="!isSystemVar && !isShowVariableEdit" class="col-item-drag bk-icon icon-sort"></i>
-            <i v-else class="common-icon-lock-disable"></i>
+            <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
             <span :title="constant.name" class="col-item col-name">
                 {{ constant.name }}
             </span>
