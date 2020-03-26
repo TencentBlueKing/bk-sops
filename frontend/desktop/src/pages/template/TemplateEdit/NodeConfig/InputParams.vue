@@ -75,7 +75,7 @@
                 const hooked = {}
                 const keys = Object.keys(this.constants)
                 this.scheme.forEach(form => {
-                    // 已勾选到在全局变量中
+                    // 已勾选到全局变量中
                     const isHooked = keys.some(item => {
                         const varItem = this.constants[item]
                         if (varItem.source_type === 'component_inputs') {
@@ -122,7 +122,7 @@
              * b.存在
              * 弹出是否变量复用弹窗，提供复用或新建选项
              *
-             * 3.新建全局变量时，勾选表单项已有的表单值需要同步到全局变量中，注意带上后来版本加上的 version、fromScheme 字段
+             * 2.新建全局变量时，勾选表单项已有的表单值需要同步到全局变量中，注意带上后来版本加上的 version、fromScheme 字段
              */
             hookForm (form) {
                 const reuseList = []
@@ -271,7 +271,6 @@
                 this.isKeyExist = false
                 this.hookingVarForm = ''
                 this.reuseableVarList = []
-                this.$forceUpdate()
             },
             validate () {
                 return this.$refs.renderForm.validate()
