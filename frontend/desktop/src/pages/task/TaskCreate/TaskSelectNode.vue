@@ -52,6 +52,7 @@
         </div>
         <div class="action-wrapper" slot="action-wrapper">
             <bk-button
+                theme="primary"
                 class="next-button"
                 @click="onGotoParamFill">
                 {{ i18n.next }}
@@ -263,6 +264,9 @@
                     params: { project_id: this.project_id, step: 'paramfill' },
                     query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
                 }
+                if (this.entrance === 'function') {
+                    url.name = 'functionTemplateStep'
+                }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
                 }
@@ -431,19 +435,9 @@
 }
 .next-button {
     width:140px;
-    height:32px;
-    line-height: 32px;
-    margin-left: 40px;
-    background-color: #2dcb56;
-    border-radius:2px;
-    border-color: #2dcb56;
-    vertical-align: middle;
-    /deep/ span {
-        color: #ffffff;
-        font-size: 14px;
-    }
 }
 .action-wrapper {
+    padding-left: 40px;
     border-top: 1px solid #cacedb;
     background-color: #e1e4e8;
 }

@@ -79,7 +79,7 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: function () {
-                const viewMode = store.state.viewMode
+                const viewMode = store.state.view_mode
                 return viewMode === 'appmaker'
                     ? `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
                     : '/home/'
@@ -117,7 +117,6 @@ const routers = new VueRouter({
                     name: 'commonTemplatePanel',
                     pathToRegexpOptions: { strict: true },
                     props: (route) => ({
-                        project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: route.params.type,
                         common: '1'

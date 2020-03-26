@@ -292,6 +292,20 @@
                             }
                         }
                         break
+                    case 'set_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: []
+                            }
+                        }
+                        break
                     default:
                         valueFormat = {
                             type: 'String',
@@ -350,6 +364,7 @@
     &.rf-col-layout {
         display: inline-block;
         margin: 0;
+        vertical-align: top;
     }
     &.rf-view-mode {
         margin: 8px 0;
@@ -376,7 +391,7 @@
         }
     }
     &.show-label > .rf-tag-form {
-        margin-left: 120px;
+        margin-left: 130px;
     }
     .rf-tag-hook {
         position: absolute;

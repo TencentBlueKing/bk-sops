@@ -11,7 +11,7 @@
 */
 <template>
     <div class="base-title">
-        <div class="base-title-header">
+        <slot>
             <span class="title-name">{{ title }}</span>
             <ul class="base-tab-list" v-if="tabList.length">
                 <li
@@ -22,12 +22,9 @@
                     {{ item.name }}
                 </li>
             </ul>
-            <ul class="expand">
-                <slot name="expand"></slot>
-            </ul>
-        </div>
-        <div class="base-tab-content">
-            <slot name="content" v-bind:active="activeItem"></slot>
+        </slot>
+        <div class="expand">
+            <slot name="expand"></slot>
         </div>
     </div>
 </template>
@@ -36,6 +33,7 @@
     import '@/utils/i18n.js'
     export default {
         name: 'BaseTitle',
+        inject: ['reload'],
         props: {
             title: {
                 type: String,
@@ -66,40 +64,32 @@
                 default: () => ([])
             }
         },
-        data () {
-            return {
-            }
-        },
-        computed: {
-            activeItem () {
-                if (this.type === 'router') {
-                    return this.tabList.find(m => m.routerName === this.$route.name)
-                }
-                return this.tabList.find(m => m.key === this.active)
-            }
-        },
         methods: {
-            tabChange (tabTtem) {
-                if (tabTtem.routerName) {
-                    this.$router.push({ name: tabTtem.routerName, params: tabTtem.params, query: tabTtem.query })
+            tabChange (tabItem) {
+                if (this.$route.name === tabItem.routerName) {
+                    this.reload()
+                    return false
                 }
-                this.$emit('tabChange', tabTtem.key)
+                if (tabItem.routerName) {
+                    this.$router.push({ name: tabItem.routerName, params: tabItem.params, query: tabItem.query })
+                }
+                this.$emit('tabChange', tabItem.key)
             },
-            isActive (tabTtem) {
-                if (this.type === 'router' && tabTtem.routerName) {
-                    return this.$route.name === tabTtem.routerName
+            isActive (tabItem) {
+                if (this.type === 'router' && tabItem.routerName) {
+                    return this.$route.name === tabItem.routerName
                 }
-                return this.active === tabTtem.key
+                return this.active === tabItem.key
             }
         }
     }
 </script>
 
 <style lang='scss' scoped>
-.base-title-header {
+.base-title {
     position: relative;
-    height: 60px;
-    line-height: 60px;
+    padding: 20px 0;
+    min-height: 60px;
     border-bottom: 1px solid #dde4eb;
     .title-name {
         float: left;
@@ -122,18 +112,18 @@
         float: left;
         display: flex;
         position: relative;
-        height: 60px;
         &:before {
             content: '';
             position: absolute;
             left: 0;
-            top: 21px;
+            top: 0;
             width: 0;
             height: 20px;
             border-left: 2px solid #dde4eb;
         }
         .base-tab-item {
             margin-left: 26px;
+            padding-bottom: 18px;
             font-size: 14px;
             height: 100%;
             cursor: pointer;
@@ -146,8 +136,7 @@
     }
     .expand {
         float: right;
-        display: inline-block;
-        height: 60px;
+        margin-top: -6px;
     }
 }
 </style>

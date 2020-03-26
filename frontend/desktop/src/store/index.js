@@ -66,6 +66,12 @@ const store = new Vuex.Store({
         }
     },
     actions: {
+        getVersionList () {
+            return api.getVersionList().then(response => response.data)
+        },
+        getVersionDetail ({ commit }, data) {
+            return api.getVersionDetail(data).then(response => response.data)
+        },
         getCategorys ({ commit }) {
             api.getCategorys().then(response => {
                 commit('setCategorys', response.data.data)
@@ -76,15 +82,34 @@ const store = new Vuex.Store({
                 commit('setSingleAtomList', response.data.objects)
             })
         },
-        getHostInCC ({ commmit }, fields) {
-            return api.loadHostInCC(fields).then(response => response.data)
+        // ip 选择器接口 start --->
+        getHostInCC ({ commmit }, data) {
+            return api.loadHostInCC(data).then(response => response.data)
         },
-        getTopoTreeInCC ({ commmit }) {
-            return api.loadTopoTreeInCC().then(response => response.data)
+        getTopoTreeInCC ({ commmit }, data) {
+            return api.loadTopoTreeInCC(data).then(response => response.data)
         },
-        getTopoModelInCC ({ commit }) {
-            return api.loadTopoModelInCC().then(response => response.data)
+        getTopoModelInCC ({ commit }, data) {
+            return api.loadTopoModelInCC(data).then(response => response.data)
         },
+        // <--- ip 选择器接口 end
+        // 开区资源选择器接口 start --->
+        getCCSearchTopoSet ({ commit }, data) {
+            return api.getCCSearchTopoSet(data).then(response => response.data)
+        },
+        getCCSearchTopoResource ({ commit }, data) {
+            return api.getCCSearchTopoResource(data).then(response => response.data)
+        },
+        getCCSearchModule ({ commit }, data) {
+            return api.getCCSearchModule(data).then(response => response.data)
+        },
+        getCCSearchObjAttrHost ({ commit }, data) {
+            return api.getCCSearchObjAttrHost(data).then(response => response.data)
+        },
+        getCCSearchColAttrSet ({ commit }, data) {
+            return api.getCCSearchColAttrSet(data).then(response => response.data)
+        },
+        // <--- 开区资源选择器接口 end
         getPermissionUrl ({ commit }, data) {
             return api.getPermissionUrl(data).then(response => response.data)
         },

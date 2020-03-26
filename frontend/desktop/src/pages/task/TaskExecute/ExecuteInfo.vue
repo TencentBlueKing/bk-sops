@@ -557,7 +557,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type, version })
+                        await this.loadAtomConfig({ atom: type, version })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({
@@ -747,7 +747,7 @@
     }
     .common-icon-dark-circle-ellipsis {
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .common-icon-dark-circle-pause {
         font-size: 12px;

@@ -11,8 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
+
+from version_log import config as version_log_config
 
 from gcloud.core import views, api, command
 
@@ -34,4 +36,7 @@ urlpatterns = [
 
     # i18n
     url(r'^jsi18n/(?P<packages>\S+?)/$', javascript_catalog),
+
+    # version log
+    url(r'^{}'.format(version_log_config.ENTRANCE_URL), include('version_log.urls'))
 ]

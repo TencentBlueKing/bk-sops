@@ -105,7 +105,7 @@
                 :class="['next-step-button', {
                     'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
                 }]"
-                theme="success"
+                theme="primary"
                 :loading="isSubmit"
                 v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
@@ -192,7 +192,7 @@
                 'appmakerDetail': state => state.appmakerDetail
             }),
             isTaskTypeShow () {
-                return !this.userRights.function && this.isStartNow
+                return this.entrance !== 'function' && this.isStartNow
             },
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && !this.userRights.function && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
@@ -220,7 +220,7 @@
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
-                return this.common || this.viewMode === 'appmaker' || this.userRights.function || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
+                return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -324,11 +324,15 @@
                 this.$emit('setFunctionalStep', isSelectFunctionalType)
             },
             onGotoSelectNode () {
-                this.$emit('setFunctionalStep', false)
                 const url = {
                     name: 'taskStep',
                     params: { project_id: this.project_id, step: 'selectnode' },
                     query: { 'template_id': this.template_id, common: this.common || undefined, entrance: this.entrance || undefined }
+                }
+                if (this.entrance !== 'function') {
+                    this.$emit('setFunctionalStep', false)
+                } else {
+                    url.name = 'functionTemplateStep'
                 }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
@@ -367,10 +371,15 @@
 
                     this.isSubmit = true
                     let flowType
-                    if (this.userRights.function) {
+                    if (
+                        (this.$route.name === 'functionTemplateStep'
+                        && this.entrance === 'function')
+                        || this.isSelectFunctionalType) {
+                        // 职能化任务
                         flowType = 'common_func'
                     } else {
-                        flowType = this.isSelectFunctionalType ? 'common_func' : 'common'
+                        // 普通任务
+                        flowType = 'common'
                     }
                     if (this.isStartNow) {
                         const data = {
@@ -397,11 +406,17 @@
                                         query: { instance_id: taskData.instance_id }
                                     }
                                 }
-                            } else if (this.isSelectFunctionalType) {
+                            } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                                url = {
+                                    name: 'functionTaskExecute',
+                                    params: { project_id: this.project_id },
+                                    query: { instance_id: taskData.instance_id, common: this.common }
+                                }
+                            } else if (this.isSelectFunctionalType) { // 手动选择职能化流程
                                 url = {
                                     name: 'taskList',
                                     params: { project_id: this.project_id },
-                                    query: { common: this.common } // 公共流程创建职能化任务
+                                    query: { common: this.common }
                                 }
                             } else {
                                 url = {
@@ -598,11 +613,6 @@
     }
     .next-step-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        color: #ffffff;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
 </style>

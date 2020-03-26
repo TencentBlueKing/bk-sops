@@ -17,7 +17,7 @@
                 <bk-select
                     class="bk-select-inline"
                     v-model="currentMethod"
-                    :loading="isCreateMethosLoading"
+                    :loading="isCreateMethodsLoading"
                     :popover-width="260"
                     :clearable="false"
                     :placeholder="i18n.methodsPlaceholder"
@@ -153,7 +153,7 @@
                 },
                 tableColumn: tableColumn,
                 isTableLoading: false,
-                isCreateMethosLoading: false,
+                isCreateMethodsLoading: false,
                 currentMethod: 'all'
             }
         },
@@ -162,11 +162,9 @@
                 username: state => state.username
             })
         },
-        created () {
-        },
-        mounted () {
+        async created () {
+            await this.getCreateMethods()
             this.getTaskList()
-            this.getCreateMethos()
         },
         methods: {
             ...mapActions('taskList/', [
@@ -188,7 +186,14 @@
                     const res = await this.loadTaskList(data)
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.objects)
+                    
                     this.dynamicData = res.objects
+                    this.dynamicData.forEach(m => {
+                        const item = this.createMethods.find(method => method.value === m.create_method)
+                        if (item) {
+                            m.create_method = item.name
+                        }
+                    })
                     this.taskOperations = res.meta.auth_operations
                     this.taskResource = res.meta.auth_resource
                     this.isTableLoading = false
@@ -196,13 +201,12 @@
                     errorHandler(e, this)
                 }
             },
-            getCreateMethos () {
+            async getCreateMethods () {
                 try {
-                    this.isCreateMethosLoading = true
-                    this.loadCreateMethod().then(res => {
-                        this.createMethods = [...this.createMethods, ...res.data]
-                        this.isCreateMethosLoading = false
-                    })
+                    this.isCreateMethodsLoading = true
+                    const res = await this.loadCreateMethod()
+                    this.createMethods = [...this.createMethods, ...res.data]
+                    this.isCreateMethodsLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -226,6 +230,8 @@
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
+        margin-top: 0;
+        margin-bottom: 20px;
         .panel-name {
             color: #313238;
             font-size: 16px;
@@ -242,7 +248,7 @@
         @include ui-task-status;
     }
     .task-name {
-        color: #3c96ff;
+        color: #3a84ff;
     }
 }
 </style>

@@ -17,14 +17,13 @@ import re
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
-from pipeline_plugins.components.utils import (
-    cc_get_ips_info_by_str,
-    cc_get_inner_ip_by_module_id,
-    supplier_account_for_project
-)
-from pipeline_plugins.components.utils.common import ip_re
 from pipeline.core.data.var import LazyVariable
+
+from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
+from pipeline_plugins.base.utils.inject import supplier_account_for_project
+from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str
+from pipeline_plugins.components.utils.common import ip_re
 
 from gcloud.core.models import Project
 
@@ -101,5 +100,48 @@ class VarCmdbIpSelector(LazyVariable):
 
         ip_selector = self.value
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
-        ip = ','.join([host['bk_host_innerip'] for host in ip_result['data']])
+
+        # get for old value compatible
+        if self.value.get('with_cloud_id', False):
+            ip = ','.join(['{}:{}'.format(host['bk_cloud_id'], host['bk_host_innerip']) for host in ip_result['data']])
+        else:
+            ip = ','.join([host['bk_host_innerip'] for host in ip_result['data']])
         return ip
+
+
+class SetDetailData(object):
+
+    def __init__(self, data):
+        self._value = data
+        item_values = {}
+        modules = []
+        for item in data:
+            for key, val in item.items():
+                if key == '__module':
+                    item_module = {mod['key']: ','.join(mod['value']) for mod in val}
+                    modules.append(item_module)
+                else:
+                    item_values.setdefault(key, []).append(val)
+        for attr, attr_val in item_values.items():
+            setattr(self, attr, attr_val)
+            flat_val = '\n'.join(map(str, attr_val))
+            setattr(self, 'flat__{}'.format(attr), flat_val)
+        setattr(self, '_module', modules)
+
+
+class VarCmdbSetAllocation(LazyVariable):
+    code = 'set_allocation'
+    name = _("集群资源筛选")
+    type = 'general'
+    tag = 'var_cmdb_resource_allocation.set_allocation'
+    form = '%svariables/sites/%s/var_cmdb_resource_allocation.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+    def get_value(self):
+        """
+        @summary: 返回 SetDetailData 对象
+        @note： 引用集群资源变量某一列某一行的属性，如 ${value.bk_set_name[0]} -> "集群1"
+        @note： 引用集群资源变量某一列的全部属性，多行用换行分隔，如 ${value.flat__bk_set_name} -> "集群1\n集群2"
+        @note： 引用集群资源变量的模块分配的 IP ${value.__module[0]["gamesvr"]} -> "127.0.0.1,127.0.0.2"
+        @return:
+        """
+        return SetDetailData(self.value['data'])

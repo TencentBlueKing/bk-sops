@@ -17,6 +17,7 @@
                 v-model="searchStr"
                 class="search-input"
                 right-icon="bk-icon icon-search"
+                @change="onChange"
                 @enter="onSearchInput">
             </bk-input>
         </div>
@@ -40,12 +41,21 @@
             return {
                 showResultComp: false,
                 searchStr: '',
+                timer: null,
                 i18n: {
                     tips: gettext('输入项目名、模板ID或任务ID进行搜索')
                 }
             }
         },
         methods: {
+            onChange () {
+                if (this.timer) {
+                    clearTimeout(this.timer)
+                }
+                this.timer = setTimeout(() => {
+                    this.onSearchInput()
+                }, 1000)
+            },
             onSearchInput () {
                 this.showResultComp = true
             }

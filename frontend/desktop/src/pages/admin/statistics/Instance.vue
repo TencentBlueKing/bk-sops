@@ -89,6 +89,7 @@
                             :label="item.label"
                             :prop="item.prop"
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                            :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -161,11 +162,13 @@
         },
         {
             label: gettext('任务名称'),
-            prop: 'instanceName'
+            prop: 'instanceName',
+            minWidth: 200
         },
         {
             label: gettext('项目'),
-            prop: 'projectName'
+            prop: 'projectName',
+            width: 150
         },
         {
             label: gettext('分类'),
@@ -179,7 +182,8 @@
         },
         {
             label: gettext('创建时间'),
-            prop: 'createTime'
+            prop: 'createTime',
+            width: 200
         },
         {
             label: gettext('插件数'),

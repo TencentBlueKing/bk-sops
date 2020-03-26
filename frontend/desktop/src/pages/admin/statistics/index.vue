@@ -124,13 +124,6 @@
         .statistics-content {
             padding-top: 20px;
         }
-        .date-picker {
-            height: 60px;
-            /deep/ .bk-label {
-                height: 60px;
-                line-height: 60px;
-            }
-        }
         /deep/ .statistics-select {
             width: 250px;
         }
