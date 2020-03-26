@@ -106,12 +106,12 @@
 
                 for (const variable of variableArray) {
                     const { key } = variable
-                    const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                    const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
-                    if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
+                    if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
                         this.isConfigLoading = true
-                        await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
+                        await this.loadAtomConfig({ name, atom, classify, version })
                     }
                     const atomConfig = this.atomFormConfig[atom][version]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
@@ -162,7 +162,7 @@
                         const [atomType, tagCode] = sourceTag.split('.')
                         const atomVersion = variable.version || 'legacy'
                         if (!atomFilter.isConfigExists(atomType, atomVersion, this.atomFormConfig)) {
-                            this.loadAtomConfig({ atomType, atomVersion })
+                            this.loadAtomConfig({ atom: atomType, version: atomVersion })
                         }
                         const atomConfig = this.atomFormConfig[atomType]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))

@@ -43,7 +43,7 @@
                             v-model="newDraftName"
                             data-vv-validate-on=" "
                             v-validate="draftNameRule" />
-                        <bk-button theme="success" @click="onNewDraft">{{i18n.affirm}}</bk-button>
+                        <bk-button theme="primary" @click="onNewDraft">{{i18n.affirm}}</bk-button>
                         <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
                     </div>
                     <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">

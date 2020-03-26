@@ -93,7 +93,6 @@
                                 :outputs="outputs"
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
-                                :constants-cited="constantsCited"
                                 :variable-data="variableData"
                                 :variable-list="variableList"
                                 :variable-type-list="variableTypeList"
@@ -148,7 +147,7 @@
 
 <script>
     import '@/utils/i18n.js'
-    import { mapMutations, mapState, mapGetters } from 'vuex'
+    import { mapMutations, mapState } from 'vuex'
     import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
     import VariableEdit from './VariableEdit.vue'
@@ -202,12 +201,10 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
+                'activities': state => state.template.activities,
                 'systemConstants': state => state.template.systemConstants,
                 'timeout': state => state.template.time_out
             }),
-            ...mapGetters('template/', [
-                'constantsCited'
-            ]),
             variableData () {
                 if (this.theKeyOfEditing) {
                     return this.constants[this.theKeyOfEditing] || this.systemConstants[this.theKeyOfEditing]
@@ -268,6 +265,7 @@
                 list.sort((a, b) => b.index - a.index)
                 return list
             }
+                
         },
         watch: {
             constants: {

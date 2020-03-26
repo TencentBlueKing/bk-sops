@@ -421,7 +421,7 @@
         height: calc(100% - 50px);
     }
     .tag-panel-col {
-        width: 56px;
+        width: 87px;
         height: 100%;
         border-right: 1px solid #dde4eb;
     }

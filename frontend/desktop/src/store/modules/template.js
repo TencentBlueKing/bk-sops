@@ -15,7 +15,6 @@ import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
-import { checkDataType } from '@/utils/checkDataType.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
@@ -172,7 +171,6 @@ const template = {
         start_event: {},
         template_id: '',
         constants: {},
-        constantsCited: {},
         projectBaseInfo: {},
         notify_receivers: {
             receiver_group: [],
@@ -207,7 +205,9 @@ const template = {
             state.subprocess_info.details.some(item => {
                 if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
-                    subflow.version && (item.version = subflow.version)
+                    if (subflow.version) {
+                        item.version = subflow.version
+                    }
                     return true
                 }
             })
@@ -349,15 +349,6 @@ const template = {
             const vIndex = state.outputs.indexOf(key)
             vIndex > -1 && state.outputs.splice(vIndex, 1)
             Vue.delete(state.constants, key)
-            // 删除变量引用节点信息
-            for (const node in state.constantsCited) {
-                const citedInfo = state.constantsCited[node]
-                for (const varKey in citedInfo) {
-                    if (varKey === key) {
-                        Vue.delete(citedInfo, varKey)
-                    }
-                }
-            }
         },
         // 配置全局变量 source_info 字段
         setVariableSourceInfo (state, payload) {
@@ -383,6 +374,9 @@ const template = {
                         }
                     })
                     sourceInfo[id].splice(atomIndex, 1)
+                }
+                if (!Object.keys(sourceInfo).length) {
+                    Vue.delete(state.constants, key)
                 }
             }
         },
@@ -591,7 +585,7 @@ const template = {
                     }
                 }
             } else if (type === 'edit') {
-                state.activities[location.id] = location
+                Vue.set(state.activities, location.id, location)
                 state.location.some(item => {
                     if (item.id === location.id) {
                         Vue.set(item, 'name', location.name)
@@ -646,7 +640,6 @@ const template = {
                     }
                 }
             }
-            this.commit('template/setConstantsCited', { nodeId: location.id })
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {
@@ -734,46 +727,6 @@ const template = {
         // 设置内置变量
         setInternalVariable (state, payload) {
             state.systemConstants = payload
-        },
-        // 更新变量引用此次
-        setConstantsCited (state, payload) {
-            // 更新变量引用次数
-            const { nodeId } = payload
-            const constantsCited = {}
-            const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
-            if (state.activities[nodeId]) {
-                const item = state.activities[nodeId]
-                const nodeData = item.type === 'ServiceActivity' ? item.component.data : item.constants
-                if (checkDataType(nodeData) === 'Object') {
-                    for (const code in nodeData) {
-                        const value = nodeData[code].value
-                        const matchArr = checkDataType(value) === 'String' ? value.match(codeReg) || [] : []
-                        matchArr.forEach(matchItem => {
-                            if (constantsCited[matchItem]) {
-                                constantsCited[matchItem] += 1
-                            } else {
-                                constantsCited[matchItem] = 1
-                            }
-                        })
-                    }
-                }
-            }
-            // 输出变量
-            for (const key in state.constants) {
-                const constant = state.constants[key]
-                if (constant.source_type === 'component_outputs') {
-                    for (const node in constant.source_info) {
-                        if (node === nodeId) {
-                            if (constantsCited[constant.key]) {
-                                constantsCited[constant.key] += 1
-                            } else {
-                                constantsCited[constant.key] = 1
-                            }
-                        }
-                    }
-                }
-            }
-            Vue.set(state.constantsCited, nodeId, constantsCited)
         }
     },
     actions: {
@@ -911,20 +864,6 @@ const template = {
                 outputs,
                 start_event
             }
-        },
-        constantsCited: state => {
-            const constantsCitedMap = {}
-            for (const nodeId in state.constantsCited) {
-                const obj = state.constantsCited[nodeId]
-                for (const key in obj) {
-                    if (constantsCitedMap[key]) {
-                        constantsCitedMap[key] += obj[key]
-                    } else {
-                        constantsCitedMap[key] = obj[key]
-                    }
-                }
-            }
-            return constantsCitedMap
         }
     }
 }

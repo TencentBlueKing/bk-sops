@@ -127,7 +127,7 @@
             </ul>
             <div class="action-wrapper">
                 <bk-button
-                    theme="success"
+                    theme="primary"
                     :disabled="atomConfigLoading"
                     @click.stop="saveVariable">
                     {{ i18n.save }}
@@ -370,9 +370,9 @@
                     await this.loadAtomConfig({
                         classify,
                         isMeta: isMeta,
-                        atomType: this.atomType,
+                        name: this.atomType,
                         version: this.version,
-                        saveName: atom
+                        atom
                     })
                     this.getRenderConfig()
                 } catch (e) {

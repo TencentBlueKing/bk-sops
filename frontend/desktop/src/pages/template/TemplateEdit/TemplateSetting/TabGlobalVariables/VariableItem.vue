@@ -64,16 +64,23 @@
             <span class="col-item col-output">
                 <div @click.stop>
                     <bk-switcher
-                        size="small"
+                        size="min"
+                        theme="primary"
                         :value="outputs.indexOf(constant.key) > -1"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
                 </div>
             </span>
             <span
-                class="col-item col-quote"
-                @click.stop="onViewCitedList(constantsCited[constant.key])">
-                {{ constantsCited[constant.key] || 0 }}
+                :class="[
+                    'col-item',
+                    'col-cited',
+                    {
+                        'actived': isShowVariableCited
+                    }
+                ]"
+                @click.stop="toggleCitedPanel">
+                {{ citedList.length }}
             </span>
             <span class="col-item col-operation">
                 <span class="col-operation-item"
@@ -119,12 +126,14 @@
         <VariableCitedList
             v-if="isShowVariableCited"
             :constant="constant"
+            :cited-list="citedList"
             @onCitedNodeClick="onCitedNodeClick">
         </VariableCitedList>
     </li>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
     import VariableEdit from './VariableEdit.vue'
     import VariableCitedList from './VariableCitedList.vue'
     import SystemVariableEdit from './SystemVariableEdit.vue'
@@ -140,7 +149,6 @@
             'constant',
             'variableList',
             'variableData',
-            'constantsCited',
             'varOperatingTips',
             'theKeyOfEditing',
             'theKeyOfViewCited',
@@ -151,6 +159,8 @@
         ],
         data () {
             return {
+                isShowVariableCited: false,
+                copyText: '',
                 i18n: {
                     copied: gettext('已复制'),
                     inputs: gettext('输入'),
@@ -159,19 +169,65 @@
                     hide: gettext('隐藏'),
                     copy: gettext('复制'),
                     delete: gettext('删除')
-                },
-                copyText: ''
+                }
             }
         },
         computed: {
+            ...mapState({
+                'activities': state => state.template.activities
+            }),
             isSystemVar () {
                 return this.constant.source_type === 'system'
             },
             isShowVariableEdit () {
                 return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
             },
-            isShowVariableCited () {
-                return this.theKeyOfViewCited === this.constant.key
+            citedList () {
+                const sourceInfo = this.constant.source_info
+                // 表单勾选全局变量的节点
+                const nodes = Object.keys(sourceInfo).map(id => id)
+
+                // 输入参数表单直接填写变量key的情况
+                const escapeStr = this.constant.key.replace(/[${}]/g, '\\$&')
+                const keyReg = new RegExp(escapeStr)
+                Object.keys(this.activities).forEach(id => {
+                    // 节点已在引用节点列表中需要去重
+                    if (nodes.includes(id)) {
+                        return
+                    }
+                    const activity = this.activities[id]
+                    if (activity.type === 'SubProcess') {
+                        Object.keys(activity.constants).forEach(key => {
+                            const varItem = activity.constants[key]
+                            // 隐藏类型变量不考虑
+                            if (varItem.show_type === 'hide') {
+                                return
+                            }
+                            // 表单已勾选到全局变量
+                            const isExist = sourceInfo[id] && sourceInfo[id].includes(varItem.key)
+                            if (isExist) {
+                                return
+                            }
+                            // 匹配表单项的值是否包含变量的key
+                            if (typeof varItem.value === 'string' && keyReg.test(varItem.value)) {
+                                nodes.push(id)
+                            }
+                        })
+                    } else {
+                        const component = activity.component
+                        Object.keys(component.data || {}).forEach(form => { // 空任务节点可能会存在 data 为 undefined 的情况
+                            const val = component.data[form].value
+                            const isExist = sourceInfo[id] && sourceInfo[id].includes(form)
+                            if (isExist) {
+                                return
+                            }
+                            if (typeof val === 'string' && keyReg.test(val)) {
+                                nodes.push(id)
+                            }
+                        })
+                    }
+                })
+                return nodes
             }
         },
         methods: {
@@ -211,6 +267,11 @@
             },
             onChangeEdit (val) {
                 this.$emit('onChangeEdit', val)
+            },
+            toggleCitedPanel () {
+                if (this.citedList.length > 0) {
+                    this.isShowVariableCited = !this.isShowVariableCited
+                }
             },
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
@@ -284,10 +345,11 @@ $localBorderColor: #d8e2e7;
     .col-output {
         width: 58px;
     }
-    .col-quote {
+    .col-cited {
         width: 54px;
         cursor: pointer;
-        &:hover {
+        &:hover,
+        &.actived {
             color: #3a84ff;
         }
     }
@@ -326,24 +388,6 @@ $localBorderColor: #d8e2e7;
         margin-left: 2px;
         color: #52699d;
         text-decoration: underline;
-    }
-}
-.col-output {
-    .bk-switcher .bk-switcher-small {
-        margin-left: 32px;
-    }
-    .bk-switcher.bk-switcher-small {
-        width: 28px;
-        height: 16px;
-        line-height: 10px;
-    }
-    .bk-switcher.bk-switcher-small:after {
-        top: 1px;
-        width: 14px;
-        height: 14px;
-    }
-    .bk-switcher.bk-switcher-small.is-checked:after {
-        margin-left: -15px;
     }
 }
 .col-operation {

@@ -254,32 +254,6 @@
             onColseTab (tabName) {
                 this.activeTab = undefined
                 this.togglePanel(false)
-            },
-            // 处理配置面板以外点击事件
-            handleSettingPanelShow (e) {
-                // 配置面板、删除变量弹窗遮罩、全局变量铆钉
-                const delVarDialog = document.querySelector('.delete-variable-dialog .bk-dialog')
-                if (
-                    !this.isSettingPanelShow
-                    || (delVarDialog && delVarDialog.style.display !== 'none')
-                    || (this.isFixedVarMenu && this.activeTab === 'globalVariableTab')) {
-                    return
-                }
-                const clientX = document.body.clientWidth
-                const nodeConfig = document.querySelector('.node-config .bk-sideslider-wrapper')
-                const activeTabPanel = document.querySelector('.setting-area-wrap .panel-item.active-tab .bk-sideslider-wrapper')
-                const { left, top, bottom } = activeTabPanel.getBoundingClientRect()
-                const baseLeft = this.isNodeConfigPanelShow ? nodeConfig.getBoundingClientRect().left : left
-                if (
-                    (e.clientX === 0 || e.clientY === 0)
-                    || (e.clientX > baseLeft
-                    && e.clientX < clientX
-                    && e.clientY > top
-                    && e.clientY < bottom)
-                ) {
-                    return
-                }
-                this.onColseTab()
             }
         }
     }
@@ -288,16 +262,13 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .setting-area-wrap {
-    position: absolute;
-    top: 59px;
-    right: 0px;
-    height: calc(100% - 50px);
-    z-index: 6;
+    float: right;
+    height: 100%;
 }
 .setting-tab-wrap {
     position: absolute;
-    top: 0px;
-    right: 0px;
+    right: 0;
+    top: 0;
     padding: 15px 0;
     width: 56px;
     height: 100%;
