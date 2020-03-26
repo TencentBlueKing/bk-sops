@@ -26,40 +26,47 @@
                 </div>
             </template>
         </div>
-        <div class="setting-panel" v-show="showPanel">
+        <div class="setting-panel">
             <div class="panel-content">
                 <TabGlobalVariables
-                    v-show="activeTab === 'globalVariableTab'"
+                    :is-show="activeTab === 'globalVariableTab'"
                     ref="globalVariable"
-                    class="panel-item"
+                    :class="['panel-item', { 'active-tab': activeTab === 'globalVariableTab' }]"
+                    :is-fixed-var-menu.sync="isFixedVarMenu"
                     :is-variable-editing="isVariableEditing"
                     :variable-type-list="variableTypeList"
                     @changeVariableEditing="onVariableEditingChange"
                     @variableDataChanged="onVariableDataChange"
-                    @onDeleteConstant="onDeleteConstant">
+                    @onDeleteConstant="onDeleteConstant"
+                    @onCitedNodeClick="onCitedNodeClick"
+                    @onClickVarPin="onClickVarPin"
+                    @onColseTab="onColseTab">
                 </TabGlobalVariables>
                 <TabTemplateConfig
-                    class="panel-item"
-                    v-show="activeTab === 'templateConfigTab'"
+                    :class="['panel-item', { 'active-tab': activeTab === 'templateConfigTab' }]"
+                    :is-show="activeTab === 'templateConfigTab'"
                     :is-template-config-valid="isTemplateConfigValid"
                     :project-info-loading="projectInfoLoading"
-                    @onSelectCategory="onSelectCategory">
+                    @onSelectCategory="onSelectCategory"
+                    @onColseTab="onColseTab">
                 </TabTemplateConfig>
                 <TabLocalDraft
-                    class="panel-item"
-                    v-show="activeTab === 'localDraftTab'"
+                    :class="['panel-item', { 'active-tab': activeTab === 'localDraftTab' }]"
+                    :is-show="activeTab === 'localDraftTab'"
                     :draft-array="draftArray"
+                    @onColseTab="onColseTab"
                     @onDeleteDraft="onDeleteDraft"
                     @onReplaceTemplate="onReplaceTemplate"
                     @onNewDraft="onNewDraft"
                     @hideConfigPanel="hideConfigPanel"
                     @updateLocalTemplateData="updateLocalTemplateData">
                 </TabLocalDraft>
-                <PipelineTreeDialog
-                    :is-show="isPipelineTreeDialogShow"
+                <TabPipelineTreeEdit
+                    :class="['panel-item', { 'active-tab': activeTab === 'templateDataEditTab' }]"
+                    :is-show="activeTab === 'templateDataEditTab'"
                     @confirm="onDataModify"
-                    @cancel="isPipelineTreeDialogShow = false">
-                </PipelineTreeDialog>
+                    @onColseTab="onColseTab">
+                </TabPipelineTreeEdit>
             </div>
         </div>
     </div>
@@ -67,10 +74,10 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
-    import TabGlobalVariables from './TabGlobalVariables.vue'
+    import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabLocalDraft from './TabLocalDraft.vue'
-    import PipelineTreeDialog from './PipelineTreeEditDialog.vue'
+    import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
 
     const SETTING_TABS = [
         {
@@ -101,17 +108,19 @@
             TabGlobalVariables,
             TabTemplateConfig,
             TabLocalDraft,
-            PipelineTreeDialog
+            TabPipelineTreeEdit
         },
         props: [
             'projectInfoLoading',
             'businessInfoLoading',
             'isGlobalVariableUpdate',
             'isTemplateConfigValid',
+            'isNodeConfigPanelShow',
             'isSettingPanelShow',
             'draftArray',
             'variableTypeList',
-            'isClickDraft'
+            'isClickDraft',
+            'isFixedVarMenu'
         ],
         data () {
             return {
@@ -154,11 +163,19 @@
         },
         watch: {
             isSettingPanelShow (val) {
-                this.showPanel = val
-                if (!val) {
+                if (val) {
+                    document.body.addEventListener('click', this.handleSettingPanelShow, false)
+                } else {
                     this.activeTab = undefined
+                    document.body.removeEventListener('click', this.handleSettingPanelShow, false)
                 }
             }
+        },
+        mounted () {
+            document.body.addEventListener('click', this.handleSettingPanelShow, false)
+        },
+        beforeDestroy () {
+            document.body.removeEventListener('click', this.handleSettingPanelShow, false)
         },
         methods: {
             ...mapMutations('template/', [
@@ -171,7 +188,7 @@
                 'setCategory'
             ]),
             togglePanel (val) {
-                this.$emit('toggleSettingPanel', val)
+                this.$emit('toggleSettingPanel', val, this.activeTab)
             },
             // 变量编辑是否展开
             isEditPanelOpen () {
@@ -210,26 +227,33 @@
             updateLocalTemplateData () {
                 this.$emit('updateLocalTemplateData')
             },
+            onCitedNodeClick (nodeId) {
+                this.$emit('onCitedNodeClick', nodeId)
+            },
+            onClickVarPin (val) {
+                this.$emit('fixedVarMenuChange', val)
+            },
             onVariableEditingChange (val) {
                 this.isVariableEditing = val
             },
             onTemplateSettingShow (val) {
-                if (val === 'templateDataEditTab') {
-                    this.isPipelineTreeDialogShow = true
-                    return
-                }
-
                 if (this.activeTab === val) {
                     this.togglePanel(false)
                 } else {
                     this.activeTab = val
                     this.togglePanel(true)
                 }
+                this.$emit('fixedVarMenuChange', false)
                 this.$emit('globalVariableUpdate', false)
             },
             onDataModify (data) {
                 this.isPipelineTreeDialogShow = false
                 this.$emit('modifyTemplateData', data)
+            },
+            // 关闭面板
+            onColseTab (tabName) {
+                this.activeTab = undefined
+                this.togglePanel(false)
             }
         }
     }
@@ -238,23 +262,20 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .setting-area-wrap {
-    position: absolute;
-    top: 59px;
-    right: 0px;
-    height: calc(100% - 50px);
-    z-index: 4;
+    float: right;
+    height: 100%;
 }
 .setting-tab-wrap {
     position: absolute;
-    top: 0px;
-    right: 0px;
+    right: 0;
+    top: 0;
     padding: 15px 0;
     width: 56px;
     height: 100%;
     background: $whiteDefault;
     border-left: 1px solid $commonBorderColor;
     border-bottom: 1px solid $commonBorderColor;
-    z-index: 1;
+    z-index: 2551;
     .setting-panel-tab {
         padding: 15px 11px;
         color: #546a9e;
@@ -290,7 +311,7 @@
     position: absolute;
     top: 0px;
     right: 56px;
-    width: 420px;
+    width: auto;
     height: 100%;
     background: $whiteDefault;
     border-left: 1px solid $commonBorderColor;

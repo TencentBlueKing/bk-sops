@@ -42,6 +42,7 @@
                 <label>{{ i18n.showCloudArea }}</label>
                 <bk-switcher
                     size="small"
+                    theme="primary"
                     v-model="with_cloud_id"
                     @change="updateValue('with_cloud_id', $event)">
                 </bk-switcher>
@@ -50,7 +51,7 @@
                 ref="filterConditions"
                 :label="i18n.filter"
                 :editable="editable"
-                :condition-fields="topoModelList"
+                :condition-fields="conditionFields"
                 :conditions="filters"
                 @change="updateValue('filters', $event)">
             </select-condition>
@@ -58,7 +59,7 @@
                 ref="excludeConditions"
                 :label="i18n.exclude"
                 :editable="editable"
-                :condition-fields="topoModelList"
+                :condition-fields="conditionFields"
                 :conditions="excludes"
                 @change="updateValue('excludes', $event)">
             </select-condition>
@@ -172,6 +173,16 @@
                 excludes: excludes.slice(0),
                 with_cloud_id,
                 i18n
+            }
+        },
+        computed: {
+            conditionFields () {
+                return this.topoModelList.map(item => {
+                    return {
+                        id: item.bk_obj_id,
+                        name: item.bk_obj_name
+                    }
+                })
             }
         },
         watch: {

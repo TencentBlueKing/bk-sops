@@ -47,7 +47,28 @@
         components: {
             ConditionItem
         },
-        props: ['editable', 'label', 'conditions', 'conditionFields'],
+        props: {
+            editable: {
+                type: Boolean,
+                default: true
+            },
+            label: {
+                type: String,
+                default: ''
+            },
+            conditions: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            conditionFields: {
+                type: Array,
+                default () {
+                    return []
+                }
+            }
+        },
         data () {
             return {
                 i18n

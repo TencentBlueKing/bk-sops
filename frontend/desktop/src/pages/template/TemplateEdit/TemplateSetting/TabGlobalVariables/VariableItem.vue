@@ -18,26 +18,12 @@
         ]">
         <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
             <i v-if="!isSystemVar && !isShowVariableEdit" class="col-item-drag bk-icon icon-sort"></i>
-            <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
-            <span class="col-item col-name">
-                <p
-                    class="col-constant-name"
-                    :title="constant.name">
-                    {{constant.name}}
-                </p>
+            <i v-else class="common-icon-lock-disable"></i>
+            <span :title="constant.name" class="col-item col-name">
+                {{ constant.name }}
             </span>
             <span class="col-item col-key">
-                <p class="col-constant-key">{{constant.key}}</p>
-                <a
-                    class="col-key-copy"
-                    href="javascript:void(0)"
-                    v-bk-tooltips.click="{
-                        content: i18n.copied,
-                        placements: ['bottom']
-                    }"
-                    @click.stop="onCopyKey(constant.key)">
-                    {{ i18n.copy }}
-                </a>
+                {{ constant.key }}
             </span>
             <span class="col-item col-attributes">
                 <span class="icon-wrap">
@@ -78,59 +64,170 @@
             <span class="col-item col-output">
                 <div @click.stop>
                     <bk-switcher
-                        size="small"
+                        size="min"
+                        theme="primary"
                         :value="outputs.indexOf(constant.key) > -1"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
                 </div>
             </span>
-            <i
-                v-if="!isSystemVar"
-                class="col-item-delete common-icon-dark-circle-close"
-                @click.stop="onDeleteVariable(constant.key, constant.index)">
-            </i>
+            <span
+                :class="[
+                    'col-item',
+                    'col-cited',
+                    {
+                        'actived': isShowVariableCited
+                    }
+                ]"
+                @click.stop="toggleCitedPanel">
+                {{ citedList.length }}
+            </span>
+            <span class="col-item col-operation">
+                <span class="col-operation-item"
+                    v-bk-tooltips.click="{
+                        content: i18n.copied,
+                        placements: ['bottom']
+                    }"
+                    @click.stop="onCopyKey(constant.key)">
+                    {{ i18n.copy }}
+                </span>
+                <span
+                    v-if="!isSystemVar"
+                    class="col-operation-item"
+                    @click.stop="onDeleteVariable(constant.key, constant.index)">
+                    {{ i18n.delete }}
+                </span>
+            </span>
         </div>
         <div
-            v-if="isShowVariableEdit"
+            v-if="isShowVariableEdit && !isSystemVar"
             :key="`${constant.key}-edit`">
             <VariableEdit
                 ref="editVariablePanel"
                 :variable-data="variableData"
+                :variable-list="variableList"
                 :variable-type-list="variableTypeList"
+                :is-system-var="isSystemVar"
                 :is-new-variable="false"
                 :is-hide-system-var="isHideSystemVar"
                 :system-constants="systemConstants"
+                :var-operating-tips="varOperatingTips"
                 @scrollPanelToView="scrollPanelToView"
                 @onChangeEdit="onChangeEdit">
             </VariableEdit>
         </div>
+        <div
+            v-if="isShowVariableEdit && isSystemVar">
+            <SystemVariableEdit
+                :variable-data="variableData"
+                :var-operating-tips="varOperatingTips">
+            </SystemVariableEdit>
+        </div>
+        <VariableCitedList
+            v-if="isShowVariableCited"
+            :constant="constant"
+            :cited-list="citedList"
+            @onCitedNodeClick="onCitedNodeClick">
+        </VariableCitedList>
     </li>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
     import VariableEdit from './VariableEdit.vue'
+    import VariableCitedList from './VariableCitedList.vue'
+    import SystemVariableEdit from './SystemVariableEdit.vue'
     export default {
         name: 'VariableItem',
         components: {
-            VariableEdit
+            VariableEdit,
+            VariableCitedList,
+            SystemVariableEdit
         },
-        props: ['constant', 'isSystemVar', 'isVariableEditing', 'outputs', 'theKeyOfEditing', 'variableData', 'variableTypeList', 'isHideSystemVar', 'systemConstants'],
+        props: [
+            'outputs',
+            'constant',
+            'variableList',
+            'variableData',
+            'varOperatingTips',
+            'theKeyOfEditing',
+            'theKeyOfViewCited',
+            'isHideSystemVar',
+            'systemConstants',
+            'variableTypeList',
+            'isVariableEditing'
+        ],
         data () {
             return {
+                isShowVariableCited: false,
+                copyText: '',
                 i18n: {
                     copied: gettext('已复制'),
                     inputs: gettext('输入'),
                     outputs: gettext('输出'),
                     show: gettext('显示'),
                     hide: gettext('隐藏'),
-                    copy: gettext('复制')
-                },
-                copyText: ''
+                    copy: gettext('复制'),
+                    delete: gettext('删除')
+                }
             }
         },
         computed: {
+            ...mapState({
+                'activities': state => state.template.activities
+            }),
+            isSystemVar () {
+                return this.constant.source_type === 'system'
+            },
             isShowVariableEdit () {
-                return this.isVariableEditing && this.theKeyOfEditing === this.constant.key && !this.isSystemVar
+                return this.isVariableEditing && this.theKeyOfEditing === this.constant.key
+            },
+            citedList () {
+                const sourceInfo = this.constant.source_info
+                // 表单勾选全局变量的节点
+                const nodes = Object.keys(sourceInfo).map(id => id)
+
+                // 输入参数表单直接填写变量key的情况
+                const escapeStr = this.constant.key.replace(/[${}]/g, '\\$&')
+                const keyReg = new RegExp(escapeStr)
+                Object.keys(this.activities).forEach(id => {
+                    // 节点已在引用节点列表中需要去重
+                    if (nodes.includes(id)) {
+                        return
+                    }
+                    const activity = this.activities[id]
+                    if (activity.type === 'SubProcess') {
+                        Object.keys(activity.constants).forEach(key => {
+                            const varItem = activity.constants[key]
+                            // 隐藏类型变量不考虑
+                            if (varItem.show_type === 'hide') {
+                                return
+                            }
+                            // 表单已勾选到全局变量
+                            const isExist = sourceInfo[id] && sourceInfo[id].includes(varItem.key)
+                            if (isExist) {
+                                return
+                            }
+                            // 匹配表单项的值是否包含变量的key
+                            if (typeof varItem.value === 'string' && keyReg.test(varItem.value)) {
+                                nodes.push(id)
+                            }
+                        })
+                    } else {
+                        const component = activity.component
+                        Object.keys(component.data || {}).forEach(form => { // 空任务节点可能会存在 data 为 undefined 的情况
+                            const val = component.data[form].value
+                            const isExist = sourceInfo[id] && sourceInfo[id].includes(form)
+                            if (isExist) {
+                                return
+                            }
+                            if (typeof val === 'string' && keyReg.test(val)) {
+                                nodes.push(id)
+                            }
+                        })
+                    }
+                })
+                return nodes
             }
         },
         methods: {
@@ -152,6 +249,10 @@
                 e.clipboardData.setData('text/plain', this.copyText)
                 e.preventDefault()
             },
+            // 查看引用节点信息
+            onViewCitedList (nums) {
+                this.$emit('onViewCitedList', this.constant.key, nums)
+            },
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })
             },
@@ -159,7 +260,6 @@
                 this.$emit('onDeleteVariable', { key, index })
             },
             onEditVariable (key, index) {
-                if (this.isSystemVar) return
                 this.$emit('onEditVariable', key, index)
             },
             scrollPanelToView (index) {
@@ -167,6 +267,14 @@
             },
             onChangeEdit (val) {
                 this.$emit('onChangeEdit', val)
+            },
+            toggleCitedPanel () {
+                if (this.citedList.length > 0) {
+                    this.isShowVariableCited = !this.isShowVariableCited
+                }
+            },
+            onCitedNodeClick (nodeId) {
+                this.$emit('onCitedNodeClick', nodeId)
             }
         }
     }
@@ -178,15 +286,37 @@ $localBorderColor: #d8e2e7;
 .variable-header, .variable-list {
     position: relative;
     font-size: 12px;
+}
+.variable-item {
+    position: relative;
+    border-bottom: 1px solid #ebebeb;
+    &:hover {
+        background: $blueStatus;
+    }
+    &.variable-editing {
+        background: $blueStatus;
+    }
+    .variable-content {
+        position: relative;
+        padding-left: 50px;
+        display: flex;
+        height: 42px;
+        line-height: 42px;
+        cursor: pointer;
+        &:hover {
+            .col-item-drag {
+                display: inline-block;
+            }
+        }
+    }
     .col-name {
-        width: 100px;
+        width: 242px;
     }
     .col-key {
-        width: 128px;
+        width: 174px;
     }
     .col-attributes {
-        padding-left: 4px;
-        width: 70px;
+        width: 77px;
         .icon-wrap {
             vertical-align: middle;
             line-height: 1;
@@ -201,7 +331,7 @@ $localBorderColor: #d8e2e7;
             .common-icon-eye-show {
                 margin-left: 8px;
                 color: #219f42;
-                font-size: 15px;
+                font-size: 12px;
             }
             .common-icon-eye-hide {
                 margin-left: 8px;
@@ -213,61 +343,23 @@ $localBorderColor: #d8e2e7;
         }
     }
     .col-output {
-        width: 50px;
+        width: 58px;
     }
-}
-.variable-header {
-    padding: 0 20px 0 45px;
-    background: #ecf0f4;
-    border-bottom: 1px solid $localBorderColor;
-    .t-head {
-        float: left;
-        height: 40px;
-        line-height: 40px;
-        font-size: 14px;
-    }
-}
-
-.variable-item {
-    position: relative;
-    cursor: pointer;
-    &:hover {
-        background: $blueStatus;
-        .col-key-copy {
-            display: inline-block;
-        }
-    }
-    &.variable-editing {
-        background: $blueStatus;
-    }
-    .variable-content {
-        display: table;
-        padding: 0 20px 0 45px;
-        height: 40px;
-        line-height: 40px;
-        &:hover {
-            .col-item-drag {
-                display: inline-block;
-            }
-            .col-item-delete {
-                display: inline-block;
-            }
-        }
-        .col-item-delete {
-            color: #c4c6cc;
-            &:hover {
-                color: #979ba5;
-            }
+    .col-cited {
+        width: 54px;
+        cursor: pointer;
+        &:hover,
+        &.actived {
+            color: #3a84ff;
         }
     }
 }
 .col-item {
-    display: table-cell;
+    display: inline-block;
     font-size: 12px;
     vertical-align: middle;
     word-break: break-all;
     text-align: left;
-    border-bottom: 1px solid #ebebeb;
 }
 .col-item-drag {
     display: none;
@@ -281,30 +373,16 @@ $localBorderColor: #d8e2e7;
         color: #348aff;
     }
 }
-.col-item-delete {
-    display: none;
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 14px;
-    color: #979ba5;
-}
 .col-name {
-    .col-constant-name {
-        width: 90px;
-        overflow: hidden;
-        text-overflow:ellipsis;
-        white-space: nowrap;
-    }
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
 }
 .col-key {
     position: relative;
-    .col-constant-key {
-        display: inline-block;
-        width: 90px;
-        vertical-align: middle;
-        line-height: 2;
-    }
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
     .col-key-copy {
         display: none;
         margin-left: 2px;
@@ -312,39 +390,13 @@ $localBorderColor: #d8e2e7;
         text-decoration: underline;
     }
 }
-.col-output {
-    .bk-switcher .bk-switcher-small {
-        margin-left: 32px;
-    }
-    .bk-switcher.bk-switcher-small {
-        width: 28px;
-        height: 16px;
-        line-height: 10px;
-    }
-    .bk-switcher.bk-switcher-small:after {
-        top: 1px;
-        width: 14px;
-        height: 14px;
-    }
-    .bk-switcher.bk-switcher-small.is-checked:after {
-        margin-left: -15px;
-    }
-}
-.variable-edit-td {
-    padding: 0;
-    width: 412px;
-}
-.empty-variable-tip {
-    margin-top: 120px;
-}
-.tooltip-content {
-    margin-bottom: 20px;
-    &:last-child {
-        margin-bottom: 0;
-    }
-    h4 {
-        margin-top: 0;
-        margin-bottom: 10px;
+.col-operation {
+    .col-operation-item {
+        color: #3a84ff;
+        cursor: pointer;
+        &:not(:first-child) {
+            margin-left: 10px;
+        }
     }
 }
 .common-icon-lock-disable {
@@ -353,8 +405,5 @@ $localBorderColor: #d8e2e7;
     left: 20px;
     transform: translate(0, -50%);
     color: #979ba5;
-}
-.system-constants-item {
-    cursor: default;
 }
 </style>

@@ -37,7 +37,7 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 300,
-            y: 150,
+            y: 145,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
@@ -203,12 +203,11 @@ const template = {
         },
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some(item => {
-                if (
-                    subflow.template_id === item.template_id
-                    && subflow.subprocess_node_id === item.subprocess_node_id
-                ) {
+                if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
-                    subflow.version && (item.version = subflow.version)
+                    if (subflow.version) {
+                        item.version = subflow.version
+                    }
                     return true
                 }
             })
@@ -375,6 +374,9 @@ const template = {
                         }
                     })
                     sourceInfo[id].splice(atomIndex, 1)
+                }
+                if (!Object.keys(sourceInfo).length) {
+                    Vue.delete(state.constants, key)
                 }
             }
         },
@@ -583,7 +585,7 @@ const template = {
                     }
                 }
             } else if (type === 'edit') {
-                state.activities[location.id] = location
+                Vue.set(state.activities, location.id, location)
                 state.location.some(item => {
                     if (item.id === location.id) {
                         Vue.set(item, 'name', location.name)
@@ -800,12 +802,12 @@ const template = {
             return api.getCommonProject(data).then(response => response.data)
         },
         // 获取收藏列表
-        getCollectList ({ commit }, data) {
-            return api.getCollectList(data).then(response => response.data)
+        loadCollectList ({ commit }, data) {
+            return api.loadCollectList(data).then(response => response.data)
         },
         // 收藏模板，批量操作
-        collectSelect ({ commit }, list) {
-            return api.collectSelect(list).then(response => response.data)
+        addToCollectList ({ commit }, list) {
+            return api.addToCollectList(list).then(response => response.data)
         },
         // 删除收藏模板，单个删除
         deleteCollect ({ commit }, id) {
@@ -816,9 +818,6 @@ const template = {
         },
         loadTemplateSummary ({ commit }, data) {
             return api.loadTemplateSummary(data).then(response => response.data)
-        },
-        loadCollectList ({ commit }) {
-            return api.loadCollectList().then(response => response.data)
         },
         getCollectedTemplateDetail ({ commit }, ids) {
             return api.getCollectedTemplateDetail(ids).then(

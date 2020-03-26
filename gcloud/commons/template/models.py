@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from blueapps.utils import managermixins
 from pipeline.core.constants import PE
 from pipeline.exceptions import SubprocessExpiredError
-from pipeline.models import PipelineTemplate
+from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurrentVersion
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from auth_backend.resources import resource_type_lib
 
@@ -168,6 +168,27 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             'message': 'Successfully imported %s flows' % len(template),
             'code': err_code.SUCCESS.code
         }
+
+    def check_templates_subprocess_expired(self, tmpl_and_pipeline_id):
+        # fetch all template relationship in template_ids
+        pipeline_tmpl_ids = [item['pipeline_template_id'] for item in tmpl_and_pipeline_id]
+        subproc_infos = TemplateRelationship.objects.filter(ancestor_template_id__in=pipeline_tmpl_ids)
+
+        # get all subprocess reference template's version
+        subproc_templ = [info.descendant_template_id for info in subproc_infos]
+        tmpl_versions = TemplateCurrentVersion.objects.filter(template_id__in=subproc_templ)
+
+        # comparison data prepare
+        tmpl_version_map = {ver.template_id: ver.current_version for ver in tmpl_versions}
+        tmpl_id_map = {item['pipeline_template_id']: item['id'] for item in tmpl_and_pipeline_id}
+
+        # compare
+        subproc_expired_templ = set()
+        for info in subproc_infos:
+            if info.version != tmpl_version_map[info.descendant_template_id]:
+                subproc_expired_templ.add(info.ancestor_template_id)
+
+        return [tmpl_id_map[pid] for pid in subproc_expired_templ]
 
 
 class BaseTemplate(models.Model):

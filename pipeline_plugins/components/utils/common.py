@@ -17,8 +17,6 @@ import os
 
 from django.conf import settings
 
-from gcloud.core.models import Business, Project
-
 logger = logging.getLogger('root')
 
 ip_re = r'((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)'

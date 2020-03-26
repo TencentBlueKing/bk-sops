@@ -27,6 +27,14 @@
     }
 }
 
+// NOTICE:
+// 插件开发页面，插件的默认icon
+// 规则与 common-icon-tag-default 相同，icon 更新后需要同步修改这里的 content
+.tag-default-icon:before {
+	content: "\f1db";
+}
+
+// icons
 .common-icon-add:before {
 	content: "\efde";
 }
@@ -204,18 +212,6 @@
 .common-icon-node-startpoint-zh:before {
 	content: "\f01c";
 }
-.common-icon-node-subflow:before {
-	content: "\f01d";
-}
-.common-icon-node-subflow-shortcut:before {
-	content: "\f01e";
-}
-.common-icon-node-tasknode:before {
-	content: "\f01f";
-}
-.common-icon-node-tasknode-shortcut:before {
-	content: "\f020";
-}
 .common-icon-paper:before {
 	content: "\f021";
 }
@@ -365,4 +361,28 @@
 }
 .common-icon-tag-cascader:before {
 	content: "\f0ca";
+}
+.common-icon-tag-default:before {
+	content: "\f1db";
+}
+.common-icon-circle-ellipsis:before {
+	content: "\f1fd";
+}
+.common-icon-double-paper-2:before {
+	content: "\f206";
+}
+.common-icon-angle-right:before {
+	content: "\f215";
+}
+.common-icon-node-subflow-shortcut:before {
+	content: "\f244";
+}
+.common-icon-node-subflow:before {
+	content: "\f245";
+}
+.common-icon-node-tasknode-shortcut:before {
+	content: "\f246";
+}
+.common-icon-node-tasknode:before {
+	content: "\f247";
 }

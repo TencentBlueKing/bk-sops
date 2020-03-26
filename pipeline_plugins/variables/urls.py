@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
-from pipeline_plugins.variables import query
+from pipeline_plugins.variables.query import select
 
 
 urlpatterns = [
-    url(r'^variable_select_source_data_proxy/$', query.variable_select_source_data_proxy),
+    url(r'^variable_select_source_data_proxy/$', select.variable_select_source_data_proxy),
 ]

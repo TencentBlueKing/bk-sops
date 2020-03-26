@@ -30,6 +30,22 @@
                     "filters": [],
                     "excludes": [],
                     "with_cloud_id": false
+                },
+                remote_url: function () {
+                    if (!$.context.canSelectBiz()) {
+                        return {
+                            "cc_search_host": $.context.get("site_url") + "pipeline/cc_search_host/" + $.context.getBkBizId() + "/",
+                            "cc_search_topo_tree": $.context.get("site_url") + "pipeline/cc_search_topo_tree/" + $.context.getBkBizId() + "/",
+                            "cc_get_mainline_object_topo": $.context.get("site_url") + "pipeline/cc_get_mainline_object_topo/" + $.context.getBkBizId() + "/"
+                        }
+                    } else {
+                        show_msg(gettext("该变量只能在关联CMDB业务的项目下使用"), "error");
+                        return {
+                            "cc_search_host": "",
+                            "cc_search_topo_tree": "",
+                            "cc_get_mainline_object_topo": ""
+                        }
+                    }
                 }
             }
         },
