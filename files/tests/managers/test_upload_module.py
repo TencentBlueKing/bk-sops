@@ -47,10 +47,13 @@ class UploadModuleManagerTestCase(TestCase):
 
         tag_model_1.file_path = "path1"
         tag_model_1.source_ip = "source_ip1"
+        tag_model_1.file_name = "file_name1"
         tag_model_2.file_path = "path2"
         tag_model_2.source_ip = "source_ip2"
+        tag_model_2.file_name = "file_name2"
         tag_model_3.file_path = "path3"
         tag_model_3.source_ip = "source_ip3"
+        tag_model_3.file_name = "file_name3"
 
         with patch(UPLOAD_MODULE_TAG_OBJECTS_FILTER, MagicMock(return_value=[tag_model_1, tag_model_2, tag_model_3])):
 
@@ -91,9 +94,21 @@ class UploadModuleManagerTestCase(TestCase):
                     "account": account,
                     "file_target_path": target_path,
                     "file_source": [
-                        {"files": ["path1"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}]},
-                        {"files": ["path2"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}]},
-                        {"files": ["path3"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}]},
+                        {
+                            "files": ["path1/file_name1"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
+                        },
+                        {
+                            "files": ["path2/file_name2"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
+                        },
+                        {
+                            "files": ["path3/file_name3"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
+                        },
                     ],
                     "ip_list": ips,
                     "bk_callback_url": callback_url,
@@ -109,10 +124,13 @@ class UploadModuleManagerTestCase(TestCase):
 
         tag_model_1.file_path = "path1"
         tag_model_1.source_ip = "source_ip1"
+        tag_model_1.file_name = "file_name1"
         tag_model_2.file_path = "path2"
         tag_model_2.source_ip = "source_ip2"
+        tag_model_2.file_name = "file_name2"
         tag_model_3.file_path = "path3"
         tag_model_3.source_ip = "source_ip3"
+        tag_model_3.file_name = "file_name3"
 
         with patch(UPLOAD_MODULE_TAG_OBJECTS_FILTER, MagicMock(return_value=[tag_model_1, tag_model_2, tag_model_3])):
 
@@ -151,9 +169,21 @@ class UploadModuleManagerTestCase(TestCase):
                     "account": account,
                     "file_target_path": target_path,
                     "file_source": [
-                        {"files": ["path1"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}]},
-                        {"files": ["path2"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}]},
-                        {"files": ["path3"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}]},
+                        {
+                            "files": ["path1/file_name1"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
+                        },
+                        {
+                            "files": ["path2/file_name2"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
+                        },
+                        {
+                            "files": ["path3/file_name3"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
+                        },
                     ],
                     "ip_list": ips,
                 }
@@ -192,10 +222,13 @@ class UploadModuleManagerTestCase(TestCase):
 
         tag_model_1.file_path = "path1"
         tag_model_1.source_ip = "source_ip1"
+        tag_model_1.file_name = "file_name1"
         tag_model_2.file_path = "path2"
         tag_model_2.source_ip = "source_ip2"
+        tag_model_2.file_name = "file_name2"
         tag_model_3.file_path = "path3"
         tag_model_3.source_ip = "source_ip3"
+        tag_model_3.file_name = "file_name3"
 
         with patch(UPLOAD_MODULE_TAG_OBJECTS_FILTER, MagicMock(return_value=[tag_model_1, tag_model_2, tag_model_3])):
 
@@ -233,9 +266,21 @@ class UploadModuleManagerTestCase(TestCase):
                     "account": account,
                     "file_target_path": target_path,
                     "file_source": [
-                        {"files": ["path1"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}]},
-                        {"files": ["path2"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}]},
-                        {"files": ["path3"], "account": "root", "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}]},
+                        {
+                            "files": ["path1/file_name1"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip1"}],
+                        },
+                        {
+                            "files": ["path2/file_name2"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip2"}],
+                        },
+                        {
+                            "files": ["path3/file_name3"],
+                            "account": "root",
+                            "ip_list": [{"bk_cloud_id": 0, "ip": "source_ip3"}],
+                        },
                     ],
                     "ip_list": ips,
                     "bk_callback_url": callback_url,
