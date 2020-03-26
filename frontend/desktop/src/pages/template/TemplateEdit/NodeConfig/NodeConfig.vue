@@ -16,7 +16,8 @@
             :ext-cls="getSliderCls"
             :width="710"
             :is-show="true"
-            :quick-close="true">
+            :quick-close="true"
+            :before-close="beforeClose">
             <div slot="header">
                 <span>{{ basicInfo.name }}</span>
                 <div
@@ -682,6 +683,9 @@
             // 由父组件调用，获取节点基础信息
             getBasicInfo () {
                 return this.basicInfo
+            },
+            beforeClose () {
+                this.$emit('hide')
             }
         }
     }
