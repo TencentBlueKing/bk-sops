@@ -1271,7 +1271,10 @@
                     const { left, top } = panel.getBoundingClientRect()
                     const pageX = left + document.documentElement.scrollLeft
                     const pageY = top + document.documentElement.scrollTop
-                    if (e.pageX < pageX || e.pageY < pageY) {
+                    if (
+                        (e.pageX > 0 && e.pageY > 0) // 上传组件点击时，触发区域隐藏在页面左上角
+                        && (e.pageX < pageX || e.pageY < pageY)
+                    ) {
                         this.isNodeConfigPanelShow && this.hideConfigPanel(true)
                         !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
                         this.isShowConditionEdit && this.onCloseConditionEdit()
