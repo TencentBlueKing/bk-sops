@@ -41,7 +41,7 @@ class AccessorSignal(Signal):
         )
         if receiver_name != self.allowed_receiver:
             raise AccessForbidden(
-                "%s is not allowed to connect" % receiver_name)
+                u"%s is not allowed to connect" % receiver_name)
         Signal.connect(self, receiver, sender, weak, dispatch_uid)
 
 
@@ -84,6 +84,9 @@ class RequestProvider(MiddlewareMixin):
             not request.is_rio()
         )
 
+        # JWT请求
+        request.is_bk_jwt = lambda: bool(request.META.get('HTTP_X_BKAPI_JWT', ''))
+
         self._request_pool[get_ident()] = request
         return None
 
@@ -108,7 +111,7 @@ class RequestProvider(MiddlewareMixin):
             sender = get_ident()
         if sender not in self._request_pool:
             raise ServerBlueException(
-                "get_request can't be called in a new thread.")
+                u"get_request can't be called in a new thread.")
         return self._request_pool[sender]
 
 

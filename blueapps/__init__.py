@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-VERSION = '1.0.21'
+VERSION = '2.5.1'
 __version__ = VERSION
 
 

@@ -59,14 +59,12 @@ class TokenBackend(ModelBackend):
                               value=user_info.get('wx_userid', ''))
             user.set_property(key='chname', value=user_info.get('chname', ''))
 
-            # 用户如果不是管理员，则需要判断是否存在平台权限，如果有则需要加上
-            if not user.is_superuser and not user.is_staff:
-                role = user_info.get('role', '')
-                is_admin = True if str(role) == ROLE_TYPE_ADMIN else False
-                user.is_superuser = is_admin
-                user.is_staff = is_admin
-                user.save()
-
+            # 用户权限更新,保持与平台同步
+            role = user_info.get('role', '')
+            is_admin = True if str(role) == ROLE_TYPE_ADMIN else False
+            user.is_superuser = is_admin
+            user.is_staff = is_admin
+            user.save()
             return user
         except IntegrityError:
             logger.exception(traceback.format_exc())

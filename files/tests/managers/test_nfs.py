@@ -21,32 +21,25 @@ from files.exceptions import InvalidOperationError
 
 
 class HostNFSManagerTestCase(TestCase):
-
     def setUp(self):
-        self.location = 'location_token'
-        self.server_location = '/server_location_token'
+        self.location = "location_token"
+        self.server_location = "/server_location_token"
 
     def test_init(self):
 
-        manager = HostNFSManager(
-            location=self.location,
-            server_location=self.server_location
-        )
+        manager = HostNFSManager(location=self.location, server_location=self.server_location)
 
         self.assertEqual(manager.location, self.location)
         self.assertEqual(manager.server_location, self.server_location)
 
     def test_save__with_shims(self):
-        manager = HostNFSManager(
-            location=self.location,
-            server_location=self.server_location
-        )
+        manager = HostNFSManager(location=self.location, server_location=self.server_location)
 
-        file_name = 'file_name_token'
-        content = 'content_token'
-        shims = 'shims_token'
-        uid = 'uid_token'
-        ip = '1.1.1.1'
+        file_name = "file_name_token"
+        content = "content_token"
+        shims = "shims_token"
+        uid = "uid_token"
+        ip = "1.1.1.1"
 
         manager._uniqid = MagicMock(return_value=uid)
         manager._get_host_ip = MagicMock(return_value=ip)
@@ -55,35 +48,18 @@ class HostNFSManagerTestCase(TestCase):
         tag = manager.save(name=file_name, content=content, shims=shims)
 
         manager.storage.save.assert_called_once_with(
-            name=os.path.join(
-                manager.location,
-                shims,
-                uid,
-                file_name
-            ),
-            content=content,
-            max_length=None
+            name=os.path.join(manager.location, shims, uid, file_name), content=content, max_length=None
         )
 
-        self.assertEqual(tag, {
-            'type': 'host_nfs',
-            'tags': {
-                'uid': uid,
-                'shims': shims,
-                'name': file_name,
-            }
-        })
+        self.assertEqual(tag, {"type": "host_nfs", "tags": {"uid": uid, "shims": shims, "name": file_name}})
 
     def test_save__without_shims(self):
-        manager = HostNFSManager(
-            location=self.location,
-            server_location=self.server_location
-        )
+        manager = HostNFSManager(location=self.location, server_location=self.server_location)
 
-        file_name = 'file_name_token'
-        content = 'content_token'
-        uid = 'uid_token'
-        ip = '1.1.1.1'
+        file_name = "file_name_token"
+        content = "content_token"
+        uid = "uid_token"
+        ip = "1.1.1.1"
 
         manager._uniqid = MagicMock(return_value=uid)
         manager._get_host_ip = MagicMock(return_value=ip)
@@ -92,68 +68,30 @@ class HostNFSManagerTestCase(TestCase):
         tag = manager.save(name=file_name, content=content)
 
         manager.storage.save.assert_called_once_with(
-            name=os.path.join(
-                manager.location,
-                uid,
-                file_name
-            ),
-            content=content,
-            max_length=None
+            name=os.path.join(manager.location, uid, file_name), content=content, max_length=None
         )
 
-        self.assertEqual(tag, {
-            'type': 'host_nfs',
-            'tags': {
-                'uid': uid,
-                'shims': None,
-                'name': file_name,
-            }
-        })
+        self.assertEqual(tag, {"type": "host_nfs", "tags": {"uid": uid, "shims": None, "name": file_name}})
 
     def test_push_files_to_ips__success_with_callback_url(self):
 
-        bk_biz_id = 'bk_biz_id_token'
+        bk_biz_id = "bk_biz_id_token"
         file_tags = [
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_1',
-                    'shims': 'shims_1',
-                    'name': 'file_1',
-                }
-            },
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_2',
-                    'shims': 'shims_2',
-                    'name': 'file_2',
-                }
-            },
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_3',
-                    'shims': 'shims_3',
-                    'name': 'file_3',
-                }
-            }
+            {"type": "host_nfs", "tags": {"uid": "uid_1", "shims": "shims_1", "name": "file_1"}},
+            {"type": "host_nfs", "tags": {"uid": "uid_2", "shims": "shims_2", "name": "file_2"}},
+            {"type": "host_nfs", "tags": {"uid": "uid_3", "shims": "shims_3", "name": "file_3"}},
         ]
-        target_path = '/user/data'
-        ips = 'ips_token'
-        account = 'account_token'
-        callback_url = 'callback_url_token'
-        host_ip = '1.1.1.1'
+        target_path = "/user/data"
+        ips = "ips_token"
+        account = "account_token"
+        callback_url = "callback_url_token"
+        host_ip = "1.1.1.1"
 
-        job_id = '12345'
+        job_id = "12345"
         esb_client = MagicMock()
-        esb_client.job.fast_push_file = MagicMock(return_value={'result': True,
-                                                                'data': {'job_instance_id': job_id}})
+        esb_client.job.fast_push_file = MagicMock(return_value={"result": True, "data": {"job_instance_id": job_id}})
 
-        manager = HostNFSManager(
-            location=self.location,
-            server_location=self.server_location
-        )
+        manager = HostNFSManager(location=self.location, server_location=self.server_location)
         manager._get_host_ip = MagicMock(return_value=host_ip)
 
         result = manager.push_files_to_ips(
@@ -163,75 +101,50 @@ class HostNFSManagerTestCase(TestCase):
             target_path=target_path,
             ips=ips,
             account=account,
-            callback_url=callback_url
+            callback_url=callback_url,
         )
 
-        esb_client.job.fast_push_file.assert_called_once_with({
-            'bk_biz_id': bk_biz_id,
-            'account': account,
-            'file_target_path': target_path,
-            'file_source': [
-                {
-                    'files': [
-                        '/server_location_token/shims_1/uid_1/file_1',
-                        '/server_location_token/shims_2/uid_2/file_2',
-                        '/server_location_token/shims_3/uid_3/file_3',
-                    ],
-                    'account': 'root',
-                    'ip_list': [{
-                        'bk_cloud_id': 0,
-                        'ip': host_ip
-                    }]
-                }],
-            'ip_list': ips,
-            'bk_callback_url': callback_url
-        })
+        esb_client.job.fast_push_file.assert_called_once_with(
+            {
+                "bk_biz_id": bk_biz_id,
+                "account": account,
+                "file_target_path": target_path,
+                "file_source": [
+                    {
+                        "files": [
+                            "/server_location_token/shims_1/uid_1/file_1",
+                            "/server_location_token/shims_2/uid_2/file_2",
+                            "/server_location_token/shims_3/uid_3/file_3",
+                        ],
+                        "account": "root",
+                        "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
+                    }
+                ],
+                "ip_list": ips,
+                "bk_callback_url": callback_url,
+            }
+        )
 
-        self.assertEqual(result, {'result': True, 'data': {'job_id': job_id}})
+        self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
     def test_push_files_to_ips__success_no_callback_url(self):
 
-        bk_biz_id = 'bk_biz_id_token'
+        bk_biz_id = "bk_biz_id_token"
         file_tags = [
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_1',
-                    'shims': 'shims_1',
-                    'name': 'file_1',
-                }
-            },
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_2',
-                    'shims': 'shims_2',
-                    'name': 'file_2',
-                }
-            },
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_3',
-                    'shims': 'shims_3',
-                    'name': 'file_3',
-                }
-            }
+            {"type": "host_nfs", "tags": {"uid": "uid_1", "shims": "shims_1", "name": "file_1"}},
+            {"type": "host_nfs", "tags": {"uid": "uid_2", "shims": "shims_2", "name": "file_2"}},
+            {"type": "host_nfs", "tags": {"uid": "uid_3", "shims": "shims_3", "name": "file_3"}},
         ]
-        target_path = '/user/data'
-        ips = 'ips_token'
-        account = 'account_token'
-        host_ip = '1.1.1.1'
+        target_path = "/user/data"
+        ips = "ips_token"
+        account = "account_token"
+        host_ip = "1.1.1.1"
 
-        job_id = '12345'
+        job_id = "12345"
         esb_client = MagicMock()
-        esb_client.job.fast_push_file = MagicMock(return_value={'result': True,
-                                                                'data': {'job_instance_id': job_id}})
+        esb_client.job.fast_push_file = MagicMock(return_value={"result": True, "data": {"job_instance_id": job_id}})
 
-        manager = HostNFSManager(
-            location=self.location,
-            server_location=self.server_location
-        )
+        manager = HostNFSManager(location=self.location, server_location=self.server_location)
         manager._get_host_ip = MagicMock(return_value=host_ip)
 
         result = manager.push_files_to_ips(
@@ -243,58 +156,40 @@ class HostNFSManagerTestCase(TestCase):
             account=account,
         )
 
-        esb_client.job.fast_push_file.assert_called_once_with({
-            'bk_biz_id': bk_biz_id,
-            'account': account,
-            'file_target_path': target_path,
-            'file_source': [
-                {
-                    'files': [
-                        '/server_location_token/shims_1/uid_1/file_1',
-                        '/server_location_token/shims_2/uid_2/file_2',
-                        '/server_location_token/shims_3/uid_3/file_3',
-                    ],
-                    'account': 'root',
-                    'ip_list': [{
-                        'bk_cloud_id': 0,
-                        'ip': host_ip
-                    }]
-                }
-            ],
-            'ip_list': ips
-        })
+        esb_client.job.fast_push_file.assert_called_once_with(
+            {
+                "bk_biz_id": bk_biz_id,
+                "account": account,
+                "file_target_path": target_path,
+                "file_source": [
+                    {
+                        "files": [
+                            "/server_location_token/shims_1/uid_1/file_1",
+                            "/server_location_token/shims_2/uid_2/file_2",
+                            "/server_location_token/shims_3/uid_3/file_3",
+                        ],
+                        "account": "root",
+                        "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
+                    }
+                ],
+                "ip_list": ips,
+            }
+        )
 
-        self.assertEqual(result, {'result': True, 'data': {'job_id': job_id}})
+        self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
 
     def test_push_files_to_ips__with_different_tags(self):
-        bk_biz_id = 'bk_biz_id_token'
+        bk_biz_id = "bk_biz_id_token"
         file_tags = [
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_1',
-                    'shims': 'shims_1',
-                    'name': 'file_1',
-                }
-            },
-            {
-                'type': 's3',
-                'tags': {
-                    'uid': 'uid_2',
-                    'shims': 'shims_2',
-                    'name': 'file_2',
-                }
-            }
+            {"type": "host_nfs", "tags": {"uid": "uid_1", "shims": "shims_1", "name": "file_1"}},
+            {"type": "s3", "tags": {"uid": "uid_2", "shims": "shims_2", "name": "file_2"}},
         ]
-        target_path = '/user/data'
-        ips = 'ips_token'
-        account = 'account_token'
-        esb_client = 'esb_client'
+        target_path = "/user/data"
+        ips = "ips_token"
+        account = "account_token"
+        esb_client = "esb_client"
 
-        manager = HostNFSManager(
-            location=self.location,
-            server_location=self.server_location
-        )
+        manager = HostNFSManager(location=self.location, server_location=self.server_location)
 
         self.assertRaises(
             InvalidOperationError,
@@ -309,46 +204,21 @@ class HostNFSManagerTestCase(TestCase):
 
     def test_push_files_to_ips__fail(self):
 
-        bk_biz_id = 'bk_biz_id_token'
+        bk_biz_id = "bk_biz_id_token"
         file_tags = [
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_1',
-                    'shims': 'shims_1',
-                        'name': 'file_1',
-                }
-            },
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_2',
-                    'shims': 'shims_2',
-                    'name': 'file_2',
-                }
-            },
-            {
-                'type': 'host_nfs',
-                'tags': {
-                    'uid': 'uid_3',
-                    'shims': 'shims_3',
-                    'name': 'file_3',
-                }
-            }
+            {"type": "host_nfs", "tags": {"uid": "uid_1", "shims": "shims_1", "name": "file_1"}},
+            {"type": "host_nfs", "tags": {"uid": "uid_2", "shims": "shims_2", "name": "file_2"}},
+            {"type": "host_nfs", "tags": {"uid": "uid_3", "shims": "shims_3", "name": "file_3"}},
         ]
-        target_path = '/user/data'
-        ips = 'ips_token'
-        account = 'account_token'
-        host_ip = '1.1.1.1'
+        target_path = "/user/data"
+        ips = "ips_token"
+        account = "account_token"
+        host_ip = "1.1.1.1"
 
         esb_client = MagicMock()
-        esb_client.job.fast_push_file = MagicMock(return_value={'result': False,
-                                                                'message': 'msg token'})
+        esb_client.job.fast_push_file = MagicMock(return_value={"result": False, "message": "msg token"})
 
-        manager = HostNFSManager(
-            location=self.location,
-            server_location=self.server_location
-        )
+        manager = HostNFSManager(location=self.location, server_location=self.server_location)
         manager._get_host_ip = MagicMock(return_value=host_ip)
 
         result = manager.push_files_to_ips(
@@ -360,25 +230,24 @@ class HostNFSManagerTestCase(TestCase):
             account=account,
         )
 
-        esb_client.job.fast_push_file.assert_called_once_with({
-            'bk_biz_id': bk_biz_id,
-            'account': account,
-            'file_target_path': target_path,
-            'file_source': [
-                {
-                    'files': [
-                        '/server_location_token/shims_1/uid_1/file_1',
-                        '/server_location_token/shims_2/uid_2/file_2',
-                        '/server_location_token/shims_3/uid_3/file_3',
-                    ],
-                    'account': 'root',
-                    'ip_list': [{
-                        'bk_cloud_id': 0,
-                        'ip': host_ip
-                    }]
-                }
-            ],
-            'ip_list': ips
-        })
+        esb_client.job.fast_push_file.assert_called_once_with(
+            {
+                "bk_biz_id": bk_biz_id,
+                "account": account,
+                "file_target_path": target_path,
+                "file_source": [
+                    {
+                        "files": [
+                            "/server_location_token/shims_1/uid_1/file_1",
+                            "/server_location_token/shims_2/uid_2/file_2",
+                            "/server_location_token/shims_3/uid_3/file_3",
+                        ],
+                        "account": "root",
+                        "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
+                    }
+                ],
+                "ip_list": ips,
+            }
+        )
 
-        self.assertEqual(result, {'result': False, 'message': 'msg token'})
+        self.assertEqual(result, {"result": False, "message": "msg token"})

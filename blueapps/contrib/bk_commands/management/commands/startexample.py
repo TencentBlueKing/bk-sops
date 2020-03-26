@@ -12,11 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import io
+import re
 import json
 import os
 import sys
 import shutil
 from os import path
+from codecs import open
 
 import django
 from django.core.management.base import CommandError
@@ -24,7 +26,6 @@ from django.core.management.templates import TemplateCommand
 from django.conf import settings
 
 import blueapps
-
 PY_VER = sys.version
 
 
@@ -37,11 +38,9 @@ class Command(TemplateCommand):
 
     def handle(self, **options):
         target = options.pop('directory')
+
         # 先获取原内容
-        if PY_VER[0] == '2':
-            old_file = open('config/default.py')
-        else:
-            old_file = open('config/default.py', encoding='utf-8')
+        old_file = open('config/default.py', encoding='utf-8')
 
         # if some directory is given, make sure it's nicely expanded
         top_dir = path.abspath(path.expanduser(target))
@@ -65,10 +64,10 @@ class Command(TemplateCommand):
 
         template_dir = path.join(blueapps.__path__[0], 'conf', base_subdir)
         run_ver = None
-        conf_file = open(path.join(os.getcwd(), 'config', '__init__.py'))
+        conf_file = open(path.join(os.getcwd(), 'config', '__init__.py'), encoding='utf-8')
         for line in conf_file.readlines():
             if line.startswith('RUN_VER'):
-                run_ver = line[11:-2]
+                run_ver = re.search("\'(.+)\'", line).group(1)
         conf_file.close()
 
         prefix_length = len(template_dir) + 1
@@ -83,11 +82,7 @@ class Command(TemplateCommand):
 
             flag = root.endswith('sites')
             for dirname in dirs[:]:
-                if (
-                        dirname.startswith('.') or  # noqa
-                        dirname == '__pycache__' or  # noqa
-                        (flag and dirname != run_ver)
-                ):
+                if dirname.startswith('.') or dirname == '__pycache__' or (flag and dirname != run_ver):
                     dirs.remove(dirname)
 
             for filename in files:
@@ -118,17 +113,32 @@ class Command(TemplateCommand):
                         "Notice: Couldn't set permission bits on %s. You're "
                         "probably using an uncommon filesystem setup. No "
                         "problem." % new_path, self.style.NOTICE)
+
+        # 处理open版本导入的blueking与其他版本不同的情况
+        test_component_base = path.join(top_dir, 'blueapps_example', 'test_component')
+        test_app_tags_base = path.join(top_dir, 'blueapps_example', 'test_app_tags')
+        if run_ver == 'open':
+            os.remove(path.join(test_component_base, 'views.py'))
+            shutil.move(path.join(test_component_base, 'views_open.py'), path.join(test_component_base, 'views.py'))
+            os.remove(path.join(test_app_tags_base, 'views.py'))
+            shutil.move(path.join(test_app_tags_base, 'views_open.py'), path.join(test_app_tags_base, 'views.py'))
+        else:
+            os.remove(path.join(test_component_base, 'views_open.py'))
+            os.remove(path.join(test_app_tags_base, 'views_open.py'))
+        # 将静态文件夹移到项目根目录的static文件夹中
+        shutil.move(path.join(top_dir, 'blueapps_example', 'static', 'blueapps_example'),
+                    path.join(top_dir, 'static'))
+        shutil.rmtree(path.join(top_dir, 'blueapps_example', 'static'))
+
         # 修改文件
         modify_default_file(old_file)
 
 
 # 获取原先的 default 文件并对其进行追加和覆盖
-def modify_default_file(old_file):
+def modify_default_file(old_file_object):
     # 打开覆盖前的文件和替换的 json 文件
-    with open(
-            "%s/conf/example_template/config/default.json" % blueapps.__path__[
-                0], 'r') as json_file:
-        with old_file as old_file:
+    with open("%s/conf/example_template/config/default.json" % blueapps.__path__[0], 'r') as json_file:
+        with old_file_object as old_file:
             # 获取 json 数据内容
             result_content = old_file.read()
             json_dict = json.load(json_file)
@@ -143,7 +153,7 @@ def modify_default_file(old_file):
                 # mode 为 add 追加内容
                 if propertys.get('mode') == 'add':
                     end_index = result_content.find(')', start_index) - 1
-                    temp_content = result_content[start_index:end_index]
+                    temp_content = result_content[start_index:end_index].strip()
                     # 检查最后一个是不是,结尾
                     if temp_content[-1] == ',' or temp_content[-1] == '(':
                         temp_content += '\n'
@@ -169,10 +179,5 @@ def modify_default_file(old_file):
                 else:
                     # 其他情况
                     break
-            if PY_VER[0] == '2':
-                with open('config/default.py', 'w') as default_file:
-                    default_file.write(result_content)
-            else:
-                with open('config/default.py', 'w',
-                          encoding='utf-8') as default_file:
-                    default_file.write(result_content)
+            with open('config/default.py', 'w', encoding='utf-8') as default_file:
+                default_file.write(result_content)

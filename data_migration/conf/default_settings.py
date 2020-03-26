@@ -15,7 +15,8 @@ import importlib
 
 from django.conf import settings
 
-ver_settings = importlib.import_module('data_migration.conf.sites.%s.ver_settings' % settings.RUN_VER)
+ver_settings = importlib.import_module(
+    'data_migration.conf.sites.%s.ver_settings' % settings.RUN_VER)
 
 for _setting in dir(ver_settings):
     if _setting.upper() == _setting:

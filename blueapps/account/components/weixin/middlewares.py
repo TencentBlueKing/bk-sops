@@ -39,22 +39,42 @@ class WeixinLoginRequiredMiddleware(MiddlewareMixin):
 
         logger.debug('当前请求客户端为微信端')
         login_exempt = getattr(view, 'login_exempt', False)
-        if login_exempt or request.user.is_authenticated:
-            return None
+        if not (login_exempt or request.user.is_authenticated):
 
-        user = WeixinLoginRequiredMiddleware.authenticate(request)
-        if user:
-            return None
+            form = WeixinAuthenticationForm(request.GET)
 
-        WeixinLoginRequiredMiddleware.set_state(request)
-        handler = ResponseHandler(ConfFixture, settings)
-        return handler.build_weixin_401_response(request)
+            if form.is_valid():
+                code = form.cleaned_data['code']
+                state = form.cleaned_data['state']
+                logger.debug(
+                    u"微信请求链接，检测到微信验证码，code：%s，state：%s" % (
+                        code,
+                        state
+                    )
+                )
+
+                if self.valid_state(request, state):
+                    user = auth.authenticate(request=request, code=code,
+                                             is_wechat=True)
+                    if user:
+                        # 登录成功，重新调用自身函数，即可退出
+                        auth.login(request, user)
+                        return self.process_view(request, view, args, kwargs)
+            else:
+                logger.debug(
+                    u"微信请求链接，未检测到微信验证码，url：%s，params：%s" % (
+                        request.path_info, request.GET)
+                )
+
+            self.set_state(request)
+            handler = ResponseHandler(ConfFixture, settings)
+            return handler.build_weixin_401_response(request)
+        return None
 
     def process_response(self, request, response):
         return response
 
-    @staticmethod
-    def set_state(request, length=32):
+    def set_state(self, request, length=32):
         """
         生成随机数 state，表示客户端的当前状态，根据 oauth2.0 标准，在请求授权码时需要
         附带上的参数，认证服务器的回应必须一模一样包含这个参数，此处将 state 设置在
@@ -69,8 +89,7 @@ class WeixinLoginRequiredMiddleware(MiddlewareMixin):
         request.session['WEIXIN_OAUTH_STATE_TIMESTAMP'] = time.time()
         return True
 
-    @staticmethod
-    def valid_state(request, state, expires_in=60):
+    def valid_state(self, request, state, expires_in=60):
         """
         验证微信认证服务器返回的 code & state 是否合法
         """
@@ -98,34 +117,3 @@ class WeixinLoginRequiredMiddleware(MiddlewareMixin):
         request.session['WEIXIN_OAUTH_STATE'] = None
         request.session['WEIXIN_OAUTH_STATE_TIMESTAMP'] = None
         return True
-
-    @staticmethod
-    def authenticate(request):
-        form = WeixinAuthenticationForm(request.GET)
-        if not form.is_valid():
-            logger.debug(
-                u"微信请求链接，未检测到微信验证码，url：%s，params：%s" % (
-                    request.path_info,
-                    request.GET
-                )
-            )
-            return None
-
-        code = form.cleaned_data['code']
-        state = form.cleaned_data['state']
-        logger.debug(
-            u"微信请求链接，检测到微信验证码，code：%s，state：%s" % (
-                code,
-                state
-            )
-        )
-
-        if not WeixinLoginRequiredMiddleware.valid_state(request, state):
-            return None
-
-        user = auth.authenticate(request=request, code=code,
-                                 is_wechat=True)
-        if user:
-            # 登录成功，重新调用自身函数，即可退出
-            auth.login(request, user)
-        return user

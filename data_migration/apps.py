@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+
+from __future__ import unicode_literals
 import datetime
 
 from django.db import connection
@@ -40,9 +42,16 @@ class DataMigrationConfig(AppConfig):
                     return
 
                 # insert djcelery migration record
-                cursor.execute('select * from `django_migrations` where app=\'djcelery\' and name=\'0001_initial\';')
+                cursor.execute(
+                    'select * from `django_migrations` where app=\'djcelery\' and name=\'0001_initial\';')
                 row = cursor.fetchall()
                 if not row:
-                    cursor.execute('insert into `django_migrations` (app, name, applied) '
-                                   'values (\'djcelery\', \'0001_initial\', \'%s\');' %
-                                   datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    cursor.execute(
+                        'insert into `django_migrations` (app, name, applied) '
+                        'values (\'djcelery\', \'0001_initial\', \'%s\');' %
+                        datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    )
+
+        # account model patch
+        from data_migration.account.patch import patch as user_patch
+        user_patch()
