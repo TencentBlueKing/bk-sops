@@ -172,18 +172,26 @@
 
 // 列表页展开操作项
 .common-dropdown-btn-popver {
+    .tippy-tooltip[data-size="small"] {
+        padding: 2px 0;
+    }
     .tippy-tooltip.light-theme[data-animatefill] {
         background: #ffffff;
     }
     .opt-btn {
-        padding: 0 6px;
+        padding: 0 12px;
         line-height: 32px;
-        a {
-            color: #63656e;
-            cursor: pointer;
-            &:hover {
+        color: #63656e;
+        cursor: pointer;
+        &:hover {
+            background: #eaf3ff;
+            color: #3a84ff;
+            a {
                 color: #3a84ff;
             }
+        }
+        a {
+            color: #63656e;
         }
     }
 }
