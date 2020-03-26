@@ -105,7 +105,7 @@
                 :class="['next-step-button', {
                     'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
                 }]"
-                theme="success"
+                theme="primary"
                 :loading="isSubmit"
                 v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
@@ -613,11 +613,6 @@
     }
     .next-step-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        color: #ffffff;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
 </style>

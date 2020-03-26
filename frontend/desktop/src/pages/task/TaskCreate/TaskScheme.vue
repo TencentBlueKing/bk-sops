@@ -25,7 +25,7 @@
                         :clearable="true"
                         :placeholder="i18n.schemaName">
                     </bk-input>
-                    <bk-button theme="success" @click="onAddScheme">{{i18n.confirm}}</bk-button>
+                    <bk-button theme="primary" @click="onAddScheme">{{i18n.confirm}}</bk-button>
                     <bk-button @click="onCancel">{{i18n.cancel}}</bk-button>
                     <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
                 </div>

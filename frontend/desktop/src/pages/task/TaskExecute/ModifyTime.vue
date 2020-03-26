@@ -25,7 +25,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="success" @click="onModifyTime">{{ i18n.confirm }}</bk-button>
+            <bk-button theme="primary" @click="onModifyTime">{{ i18n.confirm }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
         </div>
     </div>

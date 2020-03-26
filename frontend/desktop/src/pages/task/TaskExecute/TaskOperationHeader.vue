@@ -291,9 +291,9 @@
             .execute-btn {
                 width: 140px;
                 color: #ffffff;
-                background: #2dcb56; // 覆盖 bk-button important 规则
+                background: #3a84ff; // 覆盖 bk-button important 规则
                 &:hover {
-                    background: #1f9c40; // 覆盖 bk-button important 规则
+                    background: #699df4; // 覆盖 bk-button important 规则
                 }
                 &.is-disabled {
                     color: #ffffff; // 覆盖 bk-button important 规则

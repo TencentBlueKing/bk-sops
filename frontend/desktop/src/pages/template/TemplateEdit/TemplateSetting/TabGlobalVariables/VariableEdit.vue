@@ -127,7 +127,7 @@
             </ul>
             <div class="action-wrapper">
                 <bk-button
-                    theme="success"
+                    theme="primary"
                     :disabled="atomConfigLoading"
                     @click.stop="saveVariable">
                     {{ i18n.save }}

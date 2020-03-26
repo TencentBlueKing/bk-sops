@@ -48,7 +48,7 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
-                theme="success"
+                theme="primary"
                 :class="['task-claim-button', {
                     'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
                 }]"
@@ -381,10 +381,6 @@
     }
     .task-claim-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
 .step-form-content-size {
