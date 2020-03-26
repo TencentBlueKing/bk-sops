@@ -15,7 +15,6 @@ suds-jurko==0.6
 jsonschema==2.5.1
 django-tastypie==0.13.3
 setuptools_scm==1.11.1
-django-guardian==1.4.8
 django-haystack==2.4.1
 rsa==3.4.2
 django-nose==1.4.5
