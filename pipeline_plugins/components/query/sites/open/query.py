@@ -24,9 +24,6 @@ from auth_backend.exceptions import AuthFailedException
 
 from blueapps.account.decorators import login_exempt
 
-from pipeline_plugins.components.utils import (
-    cc_get_inner_ip_by_module_id,
-)
 from pipeline_plugins.base.utils.inject import (
     supplier_account_inject,
     supplier_id_inject,
@@ -432,7 +429,6 @@ urlpatterns = [
         r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$",
         cc_search_topo,
     ),
-    url(r"^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$", cc_get_host_by_module_id),
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(
         r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$",
