@@ -431,42 +431,6 @@
              */
             setOutputParams (val, oldVal) {
                 bus.$emit('jobExecuteTaskOutputs', { val, oldVal })
-                // const specialAtom = 'job_execute_task'
-                // const version = 'legacy'
-                // if (Array.isArray(this.value)) {
-                //     const atomOutput = this.atomForm.form[specialAtom][version].output.slice(0)
-                //     this.value.forEach(item => {
-                //         if (item.category === 1) {
-                //             atomOutput.push({
-                //                 key: item.name,
-                //                 name: item.name
-                //             })
-                //         }
-                //     })
-                //     this.setAtomOutput({
-                //         atomType: specialAtom,
-                //         outputData: atomOutput,
-                //         version
-                //     })
-                // }
-                // // 删除输出变量已勾选的全局变量
-                // if (oldVal && this.node.id) {
-                //     oldVal.forEach(item => {
-                //         if (val.find(v => v.id === item.id)) {
-                //             return
-                //         }
-                //         if (item.category === 1) {
-                //             Object.keys(this.constants).some(key => {
-                //                 const cst = this.constants[key]
-                //                 const sourceInfo = cst.source_info[this.node.id]
-                //                 if (sourceInfo && sourceInfo.indexOf(item.name) > -1) {
-                //                     this.deleteVariable(key)
-                //                     return true
-                //                 }
-                //             })
-                //         }
-                //     })
-                // }
             }
         }
     }

@@ -110,11 +110,7 @@
                 </bk-input>
                 <!-- 子流程版本更新 -->
                 <i
-                    :class="[
-                        'common-icon-clock-inversion',
-                        'update-tooltip',
-                        { 'disabled': inputLoading }
-                    ]"
+                    class="common-icon-clock-inversion update-tooltip"
                     v-if="!inputLoading && subflowHasUpdate"
                     v-bk-tooltips="{
                         content: i18n.update,
@@ -357,10 +353,7 @@
             right: -28px;
             top: 8px;
             cursor: pointer;
-            color: #c4c6cc;
-            &:hover {
-                color: #f4aa1a;
-            }
+            color: #3a84ff;
         }
     }
     .bk-option-content {
