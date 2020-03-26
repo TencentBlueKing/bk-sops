@@ -117,44 +117,13 @@
             NoData
         },
         props: {
-            nodeId: {
-                type: String,
-                default: ''
-            },
-            settingActiveTab: {
-                type: String,
-                default: ''
-            },
-            atomList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            subflowList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            atomTypeList: {
-                type: Object,
-                default () {
-                    return {
-                        tasknode: [],
-                        subflow: []
-                    }
-                }
-            },
-
-            common: {
-                type: [Boolean, Number],
-                required: false
-            },
-            isSettingPanelShow: {
-                type: Boolean,
-                required: false
-            }
+            nodeId: String,
+            settingActiveTab: String,
+            atomList: Array,
+            subflowList: Array,
+            atomTypeList: Object,
+            common: [String, Number],
+            isSettingPanelShow: Boolean
         },
         data () {
             const nodeConfig = this.$store.state.template.activities[this.nodeId]

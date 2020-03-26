@@ -96,7 +96,6 @@
                     :is-fixed-var-menu="isFixedVarMenu"
                     @toggleSettingPanel="toggleSettingPanel"
                     @globalVariableUpdate="globalVariableUpdate"
-                    @onDeleteConstant="onDeleteConstant"
                     @variableDataChanged="variableDataChanged"
                     @fixedVarMenuChange="fixedVarMenuChange"
                     @onSelectCategory="onSelectCategory"
@@ -965,13 +964,6 @@
                 const updatedLocation = Object.assign(location, data)
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
-            },
-            onDeleteConstant (key) {
-                this.variableDataChanged()
-                if (this.isNodeConfigPanelShow) {
-                    const constant = this.constants[key]
-                    this.$refs.nodeConfig.onDeleteConstant(constant)
-                }
             },
             // 流程名称修改
             onChangeName (name) {

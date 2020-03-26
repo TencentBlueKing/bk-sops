@@ -19,7 +19,7 @@
             :quick-close="true">
             <div slot="header">
                 <span class="close-panel-icon"></span>
-                <span class="global-variable-text">{{i18n.global_varibles}}</span>
+                <span class="global-variable-text">{{i18n.globalVar}}</span>
                 <i
                     class="common-icon-info global-variable-tootip"
                     v-bk-tooltips="{
@@ -94,7 +94,6 @@
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
                                 :variable-data="variableData"
-                                :variable-list="variableList"
                                 :variable-type-list="variableTypeList"
                                 :the-key-of-editing="theKeyOfEditing"
                                 :the-key-of-view-cited="theKeyOfViewCited"
@@ -166,7 +165,7 @@
             return {
                 isHideSystemVar: false,
                 i18n: {
-                    global_varibles: gettext('全局变量'),
+                    globalVar: gettext('全局变量'),
                     new: gettext('新建'),
                     edit: gettext('编辑'),
                     hideSystemVar: gettext('隐藏系统变量'),
@@ -251,11 +250,11 @@
             },
             // 操作变量提示 title
             varOperatingTips () {
-                const { new: newText, edit, global_varibles } = this.i18n
+                const { new: newText, edit, globalVar } = this.i18n
                 if (this.theKeyOfEditing) {
-                    return edit + global_varibles
+                    return edit + globalVar
                 }
-                return newText + global_varibles
+                return newText + globalVar
             },
             systemConstantsList () {
                 const list = []
@@ -387,7 +386,7 @@
             onConfirm () {
                 const key = this.deleteVarKey
                 const index = this.deleteVarIndex
-                this.$emit('onDeleteConstant', key)
+                this.$emit('variableDataChanged')
                 this.$nextTick(() => {
                     const len = this.constantsArray.length
                     if (len > 1) {

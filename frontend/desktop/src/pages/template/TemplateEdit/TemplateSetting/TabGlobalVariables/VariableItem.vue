@@ -105,7 +105,6 @@
             <VariableEdit
                 ref="editVariablePanel"
                 :variable-data="variableData"
-                :variable-list="variableList"
                 :variable-type-list="variableTypeList"
                 :is-system-var="isSystemVar"
                 :is-new-variable="false"
@@ -147,7 +146,6 @@
         props: [
             'outputs',
             'constant',
-            'variableList',
             'variableData',
             'varOperatingTips',
             'theKeyOfEditing',

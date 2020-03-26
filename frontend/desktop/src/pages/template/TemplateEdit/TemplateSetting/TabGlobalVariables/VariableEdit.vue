@@ -164,16 +164,15 @@
         components: {
             RenderForm
         },
-        props: [
-            'variableData',
-            'variableList',
-            'isNewVariable',
-            'isSystemVar',
-            'variableTypeList',
-            'systemConstants',
-            'isHideSystemVar',
-            'varOperatingTips'
-        ],
+        props: {
+            variableData: Object,
+            isNewVariable: Boolean,
+            isSystemVar: Boolean,
+            variableTypeList: Array,
+            systemConstants: Object,
+            isHideSystemVar: Boolean,
+            varOperatingTips: String
+        },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
