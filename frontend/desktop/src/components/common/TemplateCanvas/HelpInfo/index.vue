@@ -36,7 +36,7 @@
                                 <td>{{ i18n.scroll }}:</td>
                                 <td>{{ i18n.zoom }}</td>
                             </tr>
-                            <template v-show="editable">
+                            <template v-if="editable">
                                 <tr>
                                     <td>{{ commonCtrl }} {{ i18n.click }}:</td>
                                     <td>{{ i18n.multiple }}</td>
