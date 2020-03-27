@@ -35,6 +35,7 @@ from gcloud.contrib.function.resources import FunctionTaskResource
 from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
+from gcloud.contrib.label.resources import LabelGroupModelResource, LabelModelResource
 
 v3_api = Api(api_name='v3')
 v3_api.register(BusinessResource())
@@ -53,6 +54,8 @@ v3_api.register(CommonTemplateResource())
 v3_api.register(CommonTemplateSchemeResource())
 v3_api.register(PackageSourceResource())
 v3_api.register(SyncTaskResource())
+v3_api.register(LabelGroupModelResource())
+v3_api.register(LabelModelResource())
 
 # Standard bits...
 urlpatterns = [
