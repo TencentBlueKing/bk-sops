@@ -695,8 +695,6 @@
     .node-config-wrapper {
         height: 100%;
         background: #ffffff;
-        overflow-y: auto;
-        @include scrollbar;
         .go-back {
             position: absolute;
             top: 0;
@@ -711,6 +709,7 @@
             padding: 30px 20px;
             height: 100%;
             overflow-y: auto;
+            @include scrollbar;
         }
         .node-config-base {
             /deep/ .bk-sideslider-wrapper {

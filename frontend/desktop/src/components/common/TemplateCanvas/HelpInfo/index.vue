@@ -143,7 +143,7 @@
     .hot-key-panel {
         position: absolute;
         left: 80px;
-        top: 124px;
+        top: 80px;
         padding: 20px;
         width: 340px;
         border-radius: 4px;
