@@ -106,11 +106,7 @@
             },
             formData: {
                 handler: function (val, oldVal) {
-                    if (!tools.isDataEqual(val, oldVal)) {
-                        const value = tools.deepClone(val)
-                        this.value = value
-                        this.$emit('change', value)
-                    }
+                    this.value = tools.deepClone(val)
                 },
                 deep: true
             }

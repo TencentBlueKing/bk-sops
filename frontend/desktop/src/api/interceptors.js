@@ -51,6 +51,12 @@ axios.interceptors.response.use(
                     window.top.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
                 }
                 break
+            case 404:
+                const url = response.config.url
+                if (/\/api\/v3\/template\/\d+\/$/.test(url)) {
+                    bus.$emit('templateNotFound')
+                }
+                break
             case 403:
             case 405:
             case 406:
