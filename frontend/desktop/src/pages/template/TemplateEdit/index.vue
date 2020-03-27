@@ -516,10 +516,7 @@
              */
             async getSingleAtomConfig (location) {
                 const code = location.atomId
-                const atoms = this.atomList.find(item => item.code === code).list
-                // @todo 和后台确认插件版本最新的逻辑，暂时取最后一个
-                const lastVersionAtom = atoms[atoms.length - 1]
-                const version = lastVersionAtom.version
+                const version = location.version
                 const atomConfig = this.atomConfig[code]
                 if (atomConfig && atomConfig[version]) {
                     this.addSingleAtomActivities(location, atomConfig[version])
@@ -919,10 +916,16 @@
                     case 'subflow':
                         // 添加任务节点
                         if (changeType === 'add' && location.atomId) {
-                            this.setActivities({ type: 'add', location })
                             if (location.type === 'tasknode') {
+                                const atoms = this.atomList.find(item => item.code === location.atomId).list
+                                // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
+                                const lastVersionAtom = atoms[atoms.length - 1]
+                                const version = lastVersionAtom.version
+                                location.version = version
+                                this.setActivities({ type: 'add', location })
                                 this.getSingleAtomConfig(location)
                             } else {
+                                this.setActivities({ type: 'add', location })
                                 this.getSubflowConfig(location)
                             }
                             return
