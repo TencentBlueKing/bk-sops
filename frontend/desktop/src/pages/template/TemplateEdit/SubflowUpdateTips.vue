@@ -109,7 +109,6 @@
         padding: 1px;
         min-width: 18px;
         height: 18px;
-        line-height: 18px;
         font-size: 12px;
         border-radius: 9px;
         text-align: center;
