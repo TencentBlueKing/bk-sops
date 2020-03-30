@@ -66,7 +66,7 @@
                     <bk-switcher
                         size="min"
                         theme="primary"
-                        :value="outputs.indexOf(constant.key) > -1"
+                        :value="outputed"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
                 </div>
@@ -94,7 +94,7 @@
                 <span
                     v-if="!isSystemVar"
                     class="col-operation-item"
-                    @click.stop="onDeleteVariable(constant.key, constant.index)">
+                    @click.stop="onDeleteVariable(constant.key)">
                     {{ i18n.delete }}
                 </span>
             </span>
@@ -144,7 +144,7 @@
             SystemVariableEdit
         },
         props: [
-            'outputs',
+            'outputed',
             'constant',
             'variableData',
             'varOperatingTips',
@@ -254,8 +254,8 @@
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })
             },
-            onDeleteVariable (key, index) {
-                this.$emit('onDeleteVariable', { key, index })
+            onDeleteVariable (key) {
+                this.$emit('onDeleteVariable', key)
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)

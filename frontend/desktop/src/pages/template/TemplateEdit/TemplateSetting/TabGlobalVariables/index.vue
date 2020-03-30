@@ -85,12 +85,12 @@
                     </div>
                     <div v-if="isVarTipsShow" class="variable-operating-tips">{{ varOperatingTips }}</div>
                     <ul class="variable-list" ref="variableList">
-                        <draggable class="variable-drag" v-model="variableList" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
+                        <draggable class="variable-drag" :list="variableList" handle=".col-item-drag" @end="onDragEnd($event)">
                             <VariableItem
                                 v-for="(constant, index) in variableList"
                                 :ref="`variableKey_${constant.key}`"
                                 :key="index"
-                                :outputs="outputs"
+                                :outputed="outputs.indexOf(constant.key) > -1"
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
                                 :variable-data="variableData"
@@ -192,6 +192,7 @@
                 theKeyOfViewCited: '',
                 constantsArray: [],
                 deleteConfirmDialogShow: false,
+                deleteVarKey: '',
                 isVarTipsShow: false
             }
         },
@@ -234,19 +235,14 @@
              * 系统变量：index范围 （-1 => -n）
              * 普通变量：index范围 （0 => n）
              */
-            variableList: {
-                get () {
-                    if (this.isHideSystemVar) {
-                        return this.getConstantsArray(this.constants)
-                    }
-                    return [
-                        ...this.getConstantsArray(this.systemConstants),
-                        ...this.getConstantsArray(this.constants)
-                    ]
-                },
-                set (val) {
-                    this.constantsArray = val
+            variableList () {
+                if (this.isHideSystemVar) {
+                    return this.getConstantsArray(this.constants)
                 }
+                return [
+                    ...this.getConstantsArray(this.systemConstants),
+                    ...this.getConstantsArray(this.constants)
+                ]
             },
             // 操作变量提示 title
             varOperatingTips () {
@@ -283,11 +279,7 @@
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
-                'setOutputs',
-                'setReceiversGroup',
-                'setNotifyType',
-                'setOvertime',
-                'setCategory'
+                'setOutputs'
             ]),
             getConstantsArray (obj) {
                 const arrayList = []
@@ -346,12 +338,30 @@
              * 变量顺序拖拽
              */
             onDragEnd (event) {
-                const { newIndex, oldIndex } = event
-                const start = Math.min(newIndex, oldIndex)
-                const end = Math.max(newIndex, oldIndex) + 1
+                let { newIndex, oldIndex } = event
+                if (!this.isHideSystemVar) {
+                    newIndex = newIndex - this.systemConstantsList.length
+                    oldIndex = oldIndex - this.systemConstantsList.length
+                }
+                const varItem = this.constantsArray[oldIndex]
+
+                let start, end, delta
+                if (newIndex > oldIndex) { // 从上往下拖
+                    start = oldIndex
+                    end = newIndex + 1
+                    delta = -1
+                } else {
+                    start = newIndex
+                    end = oldIndex + 1
+                    delta = 1
+                }
                 const indexChangedVariable = this.constantsArray.slice(start, end)
                 indexChangedVariable.forEach((item, index) => {
-                    item.index = index + start
+                    if (item.key === varItem.key) {
+                        item.index = newIndex
+                    } else {
+                        item.index = item.index + delta
+                    }
                     this.editVariable({ key: item.key, variable: item })
                 })
                 this.$emit('variableDataChanged')
@@ -378,31 +388,19 @@
             /**
              *  删除变量
              */
-            onDeleteVariable ({ key, index }) {
+            onDeleteVariable (key) {
                 this.deleteVarKey = key
-                this.deleteVarIndex = index
                 this.deleteConfirmDialogShow = true
             },
             onConfirm () {
-                const key = this.deleteVarKey
-                const index = this.deleteVarIndex
+                this.deleteConfirmDialogShow = false
+                this.deleteVariable(this.deleteVarKey)
                 this.$emit('variableDataChanged')
-                this.$nextTick(() => {
-                    const len = this.constantsArray.length
-                    if (len > 1) {
-                        const indexChangedVariable = this.constantsArray.slice(index + 1, len)
-                        indexChangedVariable.forEach((item, index) => {
-                            item.index -= 1
-                            this.editVariable({ key: item.key, variable: item })
-                        })
-                    }
-                    this.deleteVariable(key)
-                    this.$emit('variableDataChanged')
-                    this.deleteConfirmDialogShow = false
-                })
+                this.deleteVarKey = ''
             },
             onCancel () {
                 this.deleteConfirmDialogShow = false
+                this.deleteVarKey = ''
             },
             // 添加滚动监听
             addContentScroll () {
