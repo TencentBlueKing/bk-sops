@@ -90,7 +90,7 @@ class Select(LazyVariable):
     def get_value(self):
         # multiple select
         if isinstance(self.value, list):
-            return ','.join(self.value)
+            return ','.join([str(v) for v in self.value])
         # single select
         else:
             return self.value
