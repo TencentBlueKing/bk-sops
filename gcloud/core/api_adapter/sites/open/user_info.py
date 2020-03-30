@@ -51,10 +51,9 @@ def get_all_users(request):
     if not resp["result"]:
         logger.error("usermanage API[list_users] return error: %s", resp)
 
-    data = {}
-    data["code"] = resp.get("code")
-    data["message"] = resp.get("message")
-    data["data"] = resp.get("data")
-    data["result"] = resp["result"]
-
-    return data
+    return {
+        "code": resp.get("code"),
+        "message": resp.get("message"),
+        "data": resp.get("data"),
+        "result": resp["result"]
+    }
