@@ -50,7 +50,7 @@ def taskflow_node_failed_handler(sender, pipeline_id, pipeline_activity_id, **kw
         activity_name = taskflow.get_act_web_info(pipeline_activity_id)['name']
         send_taskflow_message.delay(taskflow=taskflow,
                                     msg_type=ATOM_FAILED,
-                                    atom_node_name=activity_name)
+                                    node_name=activity_name)
     except Exception as e:
         logger.exception('taskflow_node_failed_handler[taskflow_id=%s] send message error: %s' % (taskflow.id, e))
     return
