@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
+
 from pipeline.core.constants import PE
 
 CANVAS_WIDTH = 1300
@@ -43,15 +45,24 @@ def draw_branch_group(start_x, start_y, start_gateway, shift_x, shift_y, gateway
     @param gateway_shift_y: 网关节点相对任务节点的轴偏移
     @return:
     """
+    old_locations = {location[PE.id]: location for location in pipeline.get('location', [])}
     flows = pipeline['flows']
-    location = [{
-        'id': start_gateway[PE.id],
-        'type': PIPELINE_ELEMENT_TO_WEB[start_gateway[PE.type]],
-        'name': start_gateway[PE.name],
-        'status': '',
-        'x': start_x,
-        'y': start_y + gateway_shift_y,
-    }]
+    if start_gateway[PE.id] in old_locations:
+        location_start = copy.deepcopy(old_locations[start_gateway[PE.id]])
+        location_start.update({
+            'x': start_x,
+            'y': start_y + gateway_shift_y,
+        })
+        location = [location_start]
+    else:
+        location = [{
+            'id': start_gateway[PE.id],
+            'type': PIPELINE_ELEMENT_TO_WEB[start_gateway[PE.type]],
+            'name': start_gateway[PE.name],
+            'status': '',
+            'x': start_x,
+            'y': start_y + gateway_shift_y,
+        }]
     next_y = start_y
     line = []
     branch_next_x = []
@@ -91,15 +102,23 @@ def draw_branch_group(start_x, start_y, start_gateway, shift_x, shift_y, gateway
         while next_node[PE.type] != PE.ConvergeGateway:
             if next_node[PE.type] in PE.TaskNodes:
                 # 把 next_node 加入 location，把 next_flow 加入line，然后把 next_node 设置为下一个节点
-                location.append({
-                    'id': next_node[PE.id],
-                    'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
-                    'name': next_node[PE.name],
-                    'stage_name': next_node.get(PE.stage_name),
-                    'status': '',
-                    'x': next_x,
-                    'y': next_y,
-                })
+                if next_node[PE.id] in old_locations:
+                    location_next = copy.deepcopy(old_locations[next_node[PE.id]])
+                    location_next.update({
+                        'x': next_x,
+                        'y': next_y,
+                    })
+                    location.append(location_next)
+                else:
+                    location.append({
+                        'id': next_node[PE.id],
+                        'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
+                        'name': next_node[PE.name],
+                        'stage_name': next_node.get(PE.stage_name),
+                        'status': '',
+                        'x': next_x,
+                        'y': next_y,
+                    })
                 current_flow = flows[next_node[PE.outgoing]]
                 line.append({
                     'id': current_flow[PE.id],
@@ -131,14 +150,22 @@ def draw_branch_group(start_x, start_y, start_gateway, shift_x, shift_y, gateway
 
     # 最后加入汇聚网关节点和汇聚网关出度顺序流
     next_x = max(branch_next_x)
-    location.append({
-        'id': next_node[PE.id],
-        'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
-        'name': next_node[PE.name],
-        'status': '',
-        'x': next_x,
-        'y': start_y + gateway_shift_y,
-    })
+    if next_node[PE.id] in old_locations:
+        location_next = copy.deepcopy(old_locations[next_node[PE.id]])
+        location_next.update({
+            'x': next_x,
+            'y': start_y + gateway_shift_y,
+        })
+        location.append(location_next)
+    else:
+        location.append({
+            'id': next_node[PE.id],
+            'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
+            'name': next_node[PE.name],
+            'status': '',
+            'x': next_x,
+            'y': start_y + gateway_shift_y,
+        })
     current_flow = flows[next_node[PE.outgoing]]
     line.append({
         'id': current_flow[PE.id],
@@ -191,14 +218,23 @@ def draw_pipeline(pipeline, activity_size=POSITION['activity_size'], event_size=
     next_x = start_x + shift_x
     next_y = start_y
 
-    location = [{
-        'id': start_node[PE.id],
-        'type': 'startpoint',
-        'name': start_node[PE.name],
-        'status': '',
-        'x': start_x,
-        'y': start_y + event_shift_y,
-    }]
+    old_locations = {location[PE.id]: location for location in pipeline.get('location', [])}
+    if start_node[PE.id] in old_locations:
+        location_start = copy.deepcopy(old_locations[start_node[PE.id]])
+        location_start.update({
+            'x': start_x,
+            'y': start_y + event_shift_y,
+        })
+        location = [location_start]
+    else:
+        location = [{
+            'id': start_node[PE.id],
+            'type': 'startpoint',
+            'name': start_node[PE.name],
+            'status': '',
+            'x': start_x,
+            'y': start_y + event_shift_y,
+        }]
     line = [{
         'id': current_flow[PE.id],
         'source': {
@@ -225,15 +261,23 @@ def draw_pipeline(pipeline, activity_size=POSITION['activity_size'], event_size=
             next_y = branch_max_height[0]
         if next_node[PE.type] in PE.TaskNodes:
             # 把 next_node 加入 location，把 next_flow 加入line，然后把 next_node 设置为下一个节点
-            location.append({
-                'id': next_node[PE.id],
-                'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
-                'name': next_node[PE.name],
-                'stage_name': next_node.get(PE.stage_name),
-                'status': '',
-                'x': next_x,
-                'y': next_y,
-            })
+            if next_node[PE.id] in old_locations:
+                location_next = copy.deepcopy(old_locations[next_node[PE.id]])
+                location_next.update({
+                    'x': next_x,
+                    'y': next_y,
+                })
+                location.append(location_next)
+            else:
+                location.append({
+                    'id': next_node[PE.id],
+                    'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
+                    'name': next_node[PE.name],
+                    'stage_name': next_node.get(PE.stage_name),
+                    'status': '',
+                    'x': next_x,
+                    'y': next_y,
+                })
             current_flow = flows[next_node[PE.outgoing]]
             line.append({
                 'id': current_flow[PE.id],
@@ -258,14 +302,22 @@ def draw_pipeline(pipeline, activity_size=POSITION['activity_size'], event_size=
             branch_max_height.append(next_y)
 
     # 最后加入结束节点
-    location.append({
-        'id': next_node[PE.id],
-        'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
-        'name': next_node[PE.name],
-        'status': '',
-        'x': next_x,
-        'y': branch_max_height[0] + event_shift_y,
-    })
+    if next_node[PE.id] in old_locations:
+        location_next = copy.deepcopy(old_locations[next_node[PE.id]])
+        location_next.update({
+            'x': next_x,
+            'y': branch_max_height[0] + event_shift_y,
+        })
+        location.append(location_next)
+    else:
+        location.append({
+            'id': next_node[PE.id],
+            'type': PIPELINE_ELEMENT_TO_WEB[next_node[PE.type]],
+            'name': next_node[PE.name],
+            'status': '',
+            'x': next_x,
+            'y': branch_max_height[0] + event_shift_y,
+        })
 
     pipeline.update({
         'location': location,
