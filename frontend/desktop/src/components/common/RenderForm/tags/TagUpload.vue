@@ -33,7 +33,9 @@
             <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
-        <span v-else class="rf-view-value">{{viewValue}}</span>
+        <span v-else class="rf-view-value">
+            <p v-for="(file, index) in viewValue" :key="index">{{ file }}</p>
+        </span>
     </div>
 </template>
 <script>
@@ -152,7 +154,7 @@
                 if (this.fileValue === 'undefined' || !this.fileValue.length) {
                     return '--'
                 }
-                return this.fileValue.join(',')
+                return this.fileValue.map(item => item.name)
             },
             uploadText () {
                 return this.text || (this.auto_upload ? this.i18n.upload : this.i18n.select)
