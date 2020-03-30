@@ -41,7 +41,12 @@ def get_user_info(username):
 
 def get_all_users(request):
     client = get_client_by_user(request.user.username)
-    resp = client.usermanage.list_users({"fields": "display_name,username,id"})
+    resp = client.usermanage.list_users(
+        {
+            "fields": "display_name,username,id",
+            "no_page": True
+        }
+    )
 
     if not resp["result"]:
         logger.error("usermanage API[list_users] return error: %s", resp)
@@ -49,7 +54,7 @@ def get_all_users(request):
     data = {}
     data["code"] = resp.get("code")
     data["message"] = resp.get("message")
-    data["data"] = resp.get("data").get("results")
+    data["data"] = resp.get("data")
     data["result"] = resp["result"]
 
     return data
