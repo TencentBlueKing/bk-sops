@@ -505,7 +505,7 @@ class JobFastExecuteScriptService(JobService):
             "bk_callback_url": get_node_callback_url(self.id),
         }
 
-        script_param = data.get_one_of_inputs("job_script_param")
+        script_param = str(data.get_one_of_inputs("job_script_param"))
         if script_param:
             job_kwargs.update(
                 {
