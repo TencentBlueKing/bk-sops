@@ -65,7 +65,7 @@ def position(pipeline,
     min_rk = min(list(orders.keys()))
     max_rk = max(list(orders.keys()))
     # 之前的位置信息
-    old_locations = {location['id']: location for location in pipeline['location']}
+    old_locations = {location['id']: location for location in pipeline.get('location', [])}
     # 先分配节点位置
     locations = {}
     rank_x, rank_y = start
