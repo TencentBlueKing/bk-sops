@@ -529,6 +529,7 @@
                         )
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
+                        variable.index = this.constants[variable.key].index
                         this.editVariable({ key: this.variableData.key, variable })
                     }
                     return true
