@@ -47,6 +47,7 @@ from gcloud.apigw.views.query_task_count import query_task_count
 from gcloud.apigw.views.set_periodic_task_enabled import set_periodic_task_enabled
 from gcloud.apigw.views.start_task import start_task
 from gcloud.apigw.views.get_tasks_status import get_tasks_status
+from gcloud.apigw.views.import_project_template import import_project_template
 
 urlpatterns = [
     url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
@@ -108,4 +109,5 @@ urlpatterns = [
     ),
     url(r"^operate_node/(?P<project_id>\d+)/(?P<task_id>\d+)/$", operate_node),
     url(r"^get_tasks_status/(?P<project_id>\d+)/$", get_tasks_status),
+    url(r"^import_project_template/(?P<project_id>\d+)/$", import_project_template),
 ]
