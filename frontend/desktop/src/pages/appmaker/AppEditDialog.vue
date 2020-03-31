@@ -296,7 +296,6 @@
                 const pic = e.target.files[0]
                 const size = pic.size
                 if (size > 1024000) {
-                    e.target.value = ''
                     this.appData.appLogo = []
                     this.$bkMessage({
                         message: gettext('图片大小不能超过 100K'),
@@ -308,6 +307,7 @@
                     this.logoUrl = window.URL.createObjectURL(pic)
                     this.appData.appLogo = pic
                 }
+                e.target.value = ''
             },
             onConfirm () {
                 if (!this.appData.appTemplate) {
