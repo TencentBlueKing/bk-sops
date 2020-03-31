@@ -130,6 +130,7 @@
             const nodeConfig = this.$store.state.template.activities[this.nodeId]
             const basicInfo = this.getNodeBasic(nodeConfig)
             const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
+            const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
             return {
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
@@ -141,7 +142,7 @@
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
+                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
                 i18n: {
                     basicInfo: gettext('基础信息'),
                     inputParams: gettext('输入参数'),
