@@ -64,7 +64,8 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
@@ -137,6 +138,7 @@
                     regex: NAME_REG
                 },
                 isShowMode: true,
+                hasCreateTplPerm: false, // 是否有创建公共流程权限
                 i18n: {
                     placeholder: gettext('请输入名称'),
                     create: gettext('新建流程'),
@@ -163,43 +165,48 @@
             createTaskBtnText () {
                 return this.isSaveAndCreateTaskType ? this.i18n.saveAndCreateTask : this.i18n.createTask
             },
-            createTaskBtnIsPass () {
-                if (this.type === 'new') {
-                    return this.perm.create_task.isPass && this.perm.edit.isPass
+            saveRequiredPerm () {
+                if (['new', 'clone'].includes(this.type)) {
+                    return this.common ? ['create'] : ['create_template'] // 新建、克隆流程保存按钮对公共流程和普通流程的权限要求
                 } else {
-                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                    return ['edit']
                 }
             },
-            saveRequiredPerm () {
-                return this.type === 'new' ? ['create_template'] : ['edit']
-            },
             saveAndCreateRequiredPerm () {
-                if (this.type === 'new') {
-                    return ['create_template']
+                if (['new', 'clone'].includes(this.type)) {
+                    return this.common ? ['create'] : ['create_template']
                 } else {
                     return this.isTemplateDataChanged ? ['create_task', 'edit'] : ['create_task']
                 }
             },
             isSaveBtnEnable () {
-                if (this.project_id && !this.common) {
-                    if (this.type === 'new') {
+                if (!this.common) { // 普通流程保存/新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
                         return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
                     } else {
                         return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
                     }
-                } else {
-                    return true
+                } else { // 公共流程保存/新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
+                        return this.hasCreateTplPerm
+                    } else {
+                        return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                    }
                 }
             },
             isSaveAndCreateBtnEnable () {
-                if (this.project_id) {
-                    if (this.type === 'new') {
+                if (!this.common) { // 普通流程新建任务/保存并新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
                         return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
                     } else {
                         return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
                     }
-                } else {
-                    return true
+                } else { // 公共流程新建任务/保存并新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
+                        return this.hasCreateTplPerm
+                    } else {
+                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                    }
                 }
             }
         },
@@ -208,7 +215,15 @@
                 this.tName = val
             }
         },
+        created () {
+            if (['new', 'clone'].includes(this.type) && this.common) { // 公共流程新建、克隆需要单独查询权限
+                this.queryCreateCommonTplPerm()
+            }
+        },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapMutations('template/', [
                 'setTemplateName'
             ]),
@@ -228,9 +243,11 @@
             saveTemplate (saveAndCreate = false, projectId) {
                 const { resourceData, operations, actions, resource } = this.getPermissionData()
                 const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
-                if (!this.hasPermission(required, actions, operations)) {
-                    this.applyForPermission(required, resourceData, operations, resource)
-                    return
+                if (!this.common || !['new', 'clone'].includes(this.type)) { // 创建、克隆公共流程执行事后校验
+                    if (!this.hasPermission(required, actions, operations)) {
+                        this.applyForPermission(required, resourceData, operations, resource)
+                        return
+                    }
                 }
 
                 this.$validator.validateAll().then((result) => {
@@ -246,7 +263,7 @@
             },
             getPermissionData () {
                 let resourceData, operations, actions, resource
-                if (this.type === 'new') {
+                if (['new', 'clone'].includes(this.type)) {
                     resourceData = {
                         id: this.project_id,
                         name: gettext('项目'),
@@ -300,6 +317,19 @@
                     }
                     this.isShowMode = true
                 })
+            },
+            async queryCreateCommonTplPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'common_flow',
+                        action_ids: JSON.stringify(['create'])
+                    })
+                    this.hasCreateTplPerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create' && item.is_pass
+                    })
+                } catch (err) {
+                    errorHandler(err, this)
+                }
             }
         }
     }
