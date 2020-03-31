@@ -34,7 +34,7 @@
                 :list="subflowShouldUpdated"
                 :locations="locations"
                 :node-menu-open="nodeMenuOpen"
-                @viewClick="moveSubflowToView"
+                @viewClick="viewUpdatedNode"
                 @foldClick="clearDotAnimation">
             </SubflowUpdateTips>
             <TemplateCanvas
@@ -736,14 +736,6 @@
                     }
                 }
             },
-            // 全局变量引用节点点击回调
-            onCitedNodeClick (nodeId) {
-                if (this.idOfNodeInConfigPanel === nodeId) {
-                    this.hideConfigPanel()
-                } else {
-                    this.onShowNodeConfig(nodeId, false)
-                }
-            },
             /**
              * 标识模板是否被编辑
              */
@@ -1284,15 +1276,23 @@
                     }
                 }
             },
+            // 查看需要更新的子流程
+            viewUpdatedNode (id) {
+                this.moveNodeToView(id)
+                this.showDotAnimation(id)
+            },
+            // 全局变量引用节点点击回调
+            onCitedNodeClick (nodeId) {
+                this.moveNodeToView(nodeId)
+            },
             /**
-             * 移动画布，将需要更新的子流程节点放到到画布左上角
+             * 移动画布，将节点放到画布左上角
              */
-            moveSubflowToView (id) {
+            moveNodeToView (id) {
                 const { x, y } = this.locations.find(item => item.id === id)
                 const offsetX = 200 - x
                 const offsetY = 200 - y
                 this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
-                this.showDotAnimation(id)
             },
             // 开启子流程更新的小红点动画效果
             showDotAnimation (id) {
