@@ -454,19 +454,13 @@
             /**
              * 展示引用节点列表
              * @param {String} key 变量 key
-             * @param {Number} nums 变量被引用次数
              */
-            onViewCitedList (key, nums) {
-                if (!nums) {
-                    this.theKeyOfViewCited = ''
-                    return
-                }
+            onViewCitedList (key) {
                 if (this.theKeyOfViewCited === key) {
                     this.theKeyOfViewCited = ''
-                    return
+                } else {
+                    this.theKeyOfViewCited = key
                 }
-                this.onChangeEdit(false)
-                this.theKeyOfViewCited = key
             },
             onClickVarPin () {
                 this.$emit('onClickVarPin', !this.isFixedVarMenu)

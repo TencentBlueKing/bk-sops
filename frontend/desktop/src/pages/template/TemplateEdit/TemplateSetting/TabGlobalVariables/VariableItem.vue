@@ -76,10 +76,10 @@
                     'col-item',
                     'col-cited',
                     {
-                        'actived': isShowVariableCited
+                        'disabled': citedList.length === 0
                     }
                 ]"
-                @click.stop="toggleCitedPanel">
+                @click.stop="onViewCitedList">
                 {{ citedList.length }}
             </span>
             <span class="col-item col-operation">
@@ -123,7 +123,7 @@
             </SystemVariableEdit>
         </div>
         <VariableCitedList
-            v-if="isShowVariableCited"
+            v-if="theKeyOfViewCited === constant.key"
             :constant="constant"
             :cited-list="citedList"
             @onCitedNodeClick="onCitedNodeClick">
@@ -248,8 +248,11 @@
                 e.preventDefault()
             },
             // 查看引用节点信息
-            onViewCitedList (nums) {
-                this.$emit('onViewCitedList', this.constant.key, nums)
+            onViewCitedList () {
+                // 节点详情点开时不显示引用列表
+                if (!this.isShowVariableEdit && this.citedList.length > 0) {
+                    this.$emit('onViewCitedList', this.constant.key)
+                }
             },
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })
@@ -265,11 +268,6 @@
             },
             onChangeEdit (val) {
                 this.$emit('onChangeEdit', val)
-            },
-            toggleCitedPanel () {
-                if (this.citedList.length > 0) {
-                    this.isShowVariableCited = !this.isShowVariableCited
-                }
             },
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
@@ -345,10 +343,10 @@ $localBorderColor: #d8e2e7;
     }
     .col-cited {
         width: 54px;
+        color: #3a84ff;
         cursor: pointer;
-        &:hover,
-        &.actived {
-            color: #3a84ff;
+        &.disabled {
+            color: #333333;
         }
     }
 }
