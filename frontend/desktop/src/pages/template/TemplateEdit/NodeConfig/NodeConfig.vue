@@ -20,8 +20,10 @@
             :before-close="beforeClose">
             <div slot="header">
                 <span>{{ basicInfo.name }}</span>
+                <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
                 <div
-                    v-if="isSelectorPanelShow" class="go-back"
+                    v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
+                    class="go-back"
                     @click="isSelectorPanelShow = false">
                     <i class="common-icon-return-arrow"></i>
                 </div>
