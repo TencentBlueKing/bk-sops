@@ -31,6 +31,7 @@
                         :key="subIndex"
                         :to="{ name: item.routerName }"
                         :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
+                        :event="''"
                         @click.native="onGoToPath(sub)">
                         {{ sub.name }}
                     </router-link>
