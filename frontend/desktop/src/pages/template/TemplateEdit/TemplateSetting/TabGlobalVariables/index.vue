@@ -518,11 +518,10 @@ $localBorderColor: #dcdee5;
     }
     .panel-fixed-pin {
         position: absolute;
-        top: 16px;
+        top: 14px;
         right: 30px;
-        width: 32px;
-        height: 32px;
-        line-height: 32px;
+        padding: 6px 9px;
+        line-height: initial;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
         font-size: 14px;
