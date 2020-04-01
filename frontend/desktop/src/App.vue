@@ -108,9 +108,6 @@
                     theme: info.theme || 'error'
                 })
             })
-            bus.$on('templateNotFound', () => {
-                this.$router.push({ name: 'notFoundPage' })
-            })
 
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
