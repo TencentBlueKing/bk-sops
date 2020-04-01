@@ -41,7 +41,7 @@ def get_host_id_dict_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     :param executor:
     :param bk_biz_id:
     :param ip_list:
-    :return: {"127.0.0.q":1,"127.0.0.2":2}
+    :return: {"127.0.0.1":1, "127.0.0.2":2}
     """
     cc_kwargs = {
         'bk_biz_id': bk_biz_id,
@@ -68,9 +68,8 @@ def get_host_id_dict_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
 
     ip_to_id = {item['host']['bk_host_innerip']: item['host']['bk_host_id'] for item in cc_result['data']['info']}
     invalid_ip_list = []
-    for ip in ip_list:
-        if ip not in ip_to_id:
-            invalid_ip_list.append(ip)
+    [invalid_ip_list.append(ip) for ip in ip_list if ip not in ip_to_id]
+
     if invalid_ip_list:
         result = {
             'result': False,
@@ -128,7 +127,7 @@ class CCUpdateHostService(Service):
         host_list, ip_list = [], []
         innerip_key = 'bk_host_innerip'
         for host_params in cc_host_info:
-            if not (innerip_key in list(host_params.keys()) and host_params[innerip_key]):
+            if not host_params.get(innerip_key):
                 data.set_outputs('ex_data', _("请填写内网ip"))
                 return False
 
@@ -136,16 +135,19 @@ class CCUpdateHostService(Service):
             for key, value in list(host_params.items()):
                 if value:
                     if key == innerip_key:
-                        ip_list.append(value)
+                        valid_ip = get_ip_by_regex(value)
+                        if not valid_ip:
+                            data.set_outputs('ex_data', '内网ip(%s)格式错误' % value)
+                            return False
+                        ip_list.append(valid_ip[0])
                         host_list.append({
-                            "bk_host_id": value,
+                            innerip_key: valid_ip[0],
                             "properties": properties
                         })
                         continue
                     properties[key] = value
 
         # 查询主机id
-        ip_list = get_ip_by_regex('\n'.join(ip_list))
         host_result = get_host_id_dict_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
         if not host_result['result']:
             data.set_outputs('ex_data', host_result['message'])
@@ -153,7 +155,7 @@ class CCUpdateHostService(Service):
 
         # 参数内更新主机id
         for host in host_list:
-            host['bk_host_id'] = host_result['data'][host['bk_host_id']]
+            host['bk_host_id'] = host_result['data'][host.pop(innerip_key)]
 
         cc_kwargs = {
             "bk_supplier_account": supplier_account,
