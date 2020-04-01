@@ -33,9 +33,7 @@
             </span>
         </div>
         <div class="task-container">
-            <div :class="['pipeline-nodes', {
-                'task-params-show': isTaskParamsShow
-            }]">
+            <div class="pipeline-nodes">
                 <TemplateCanvas
                     ref="templateCanvas"
                     v-if="!nodeSwitching"
@@ -196,7 +194,6 @@
 
             return {
                 taskId: this.instance_id,
-                isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
                 state: '',
@@ -1164,47 +1161,6 @@
         }
     }
 
-}
-.task-params {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 750px;
-    height: 100%;
-    background: $whiteDefault;
-    border-left: 1px solid $commonBorderColor;
-    box-shadow: -1px 1px 8px rgba(130, 130, 130, .15), 1px -1px 8px rgba(130, 130, 130, .15);
-    z-index: 4;
-    .task-params-show {
-        width: 750px;
-        border-left: 1px solid $commonBorderColor;
-    }
-    .toggle-params-panel {
-        position: absolute;
-        top: 50%;
-        left: -20px;
-        margin-top: -12px;
-        width: 20px;
-        height: 38px;
-        line-height: 38px;
-        font-size: 12px;
-        color: $whiteDefault;
-        text-align: center;
-        background: $blueDefault;
-        border-right: none;
-        border-radius: 4px;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
-        cursor: pointer;
-        transform: rotate(0);
-        &:hover {
-            background: #0082ff;
-        }
-        &.actived {
-            transform: rotate(-180deg);
-        }
-    }
 }
 .node-info-panel {
     position: absolute;
