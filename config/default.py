@@ -317,6 +317,7 @@ PIPELINE_INSTANCE_CONTEXT = 'gcloud.taskflow3.utils.get_instance_context'
 
 COMPONENT_PATH = [
     'components.collections.http',
+    'components.collections.cmdb',
     'components.collections.sites.%s' % RUN_VER]
 VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
 
