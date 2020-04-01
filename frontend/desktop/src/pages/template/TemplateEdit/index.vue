@@ -1336,7 +1336,6 @@
     }
 </script>
 <style lang="scss" scoped>
-    @import '@/scss/config.scss';
     .template-page {
         position: relative;
         height: 100%;
@@ -1348,7 +1347,7 @@
         left: 400px;
         min-height: 40px;
         overflow: hidden;
-        z-index: 1;
+        z-index: 4;
         transition: left 0.5s ease;
         &.update-tips-with-menu-open {
             left: 700px;
