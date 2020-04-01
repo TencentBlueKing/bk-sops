@@ -137,7 +137,7 @@ class CCUpdateHostService(Service):
                     if key == innerip_key:
                         valid_ip = get_ip_by_regex(value)
                         if not valid_ip:
-                            data.set_outputs('ex_data', '内网ip(%s)格式错误' % value)
+                            data.set_outputs('ex_data', _("内网ip(%s)格式错误") % value)
                             return False
                         ip_list.append(valid_ip[0])
                         host_list.append({
