@@ -11,16 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
 import logging
 import traceback
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
+from django.views.decorators.csrf import csrf_exempt
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
+
+from blueapps.account.decorators import login_exempt
 
 from pipeline_plugins.components.utils import (
     cc_get_inner_ip_by_module_id,
@@ -33,7 +35,8 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo,
 )
 
-from files.factory import ManagerFactory
+from files.models import UploadTicket
+from files.factory import ManagerFactory, BartenderFactory
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -48,7 +51,6 @@ JOB_VAR_CATEGORY_CLOUD = 1
 JOB_VAR_CATEGORY_CONTEXT = 2
 JOB_VAR_CATEGORY_GLOBAL_VARS = {JOB_VAR_CATEGORY_CLOUD, JOB_VAR_CATEGORY_CONTEXT}
 JOB_VAR_CATEGORY_IP = 3
-INVALID_CHAR_REGEX = re.compile('[\u4e00-\u9fa5\\/:*?"<>|,]')
 
 
 @supplier_account_inject
@@ -449,13 +451,23 @@ def cc_get_business(request):
     return JsonResponse({"result": True, "data": data})
 
 
-def file_upload(request, project_id):
+@login_exempt
+@csrf_exempt
+def file_upload(request):
     """
     @summary: 本地文件上传
     @param request:
-    @param project_id:
     @return:
     """
+
+    ticket = request.META.get("HTTP_UPLOAD_TICKET", "")
+    ok, err = UploadTicket.objects.check_ticket(ticket)
+    if not ok:
+        response = JsonResponse(
+            {"result": False, "message": "upload ticket check error: {}".format(err)}
+        )
+        response.status_code = 400
+        return response
 
     file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
     if not file_manager_type:
@@ -467,37 +479,28 @@ def file_upload(request, project_id):
         file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
     except Exception as e:
         logger.error(
-            "can not get file manager for type: {}\n err: {}".format(
+            "[FILE_UPLOAD]can not get file manager for type: {}\n err: {}".format(
                 file_manager_type, traceback.format_exc()
             )
         )
         return JsonResponse({"result": False, "message": str(e)})
 
-    file_obj = request.FILES["file"]
-    file_name = file_obj.name
-    file_size = file_obj.size
-    # 文件名不能包含中文， 文件大小不能大于 2G
-    if file_size > 2048 * 1024 * 1024:
-        message = _("文件上传失败， 文件大小超过2G")
-        response = JsonResponse({"result": False, "message": message})
-        response.status_code = 400
-        return response
+    logger.info("[FILE_UPLOAD]file_upload POST: {}".format(request.POST))
 
-    if INVALID_CHAR_REGEX.findall(file_name):
-        message = _('文件上传失败，文件名不能包含中文和\\/:*?"<>|等特殊字符')
-        response = JsonResponse({"result": False, "message": message})
-        response.status_code = 400
-        return response
+    bartender = BartenderFactory.get_bartender(
+        manager_type=file_manager_type, manager=file_manager
+    )
 
-    shims = "plugins_upload/job_push_local_files/{}".format(project_id)
+    return bartender.process_request(request)
 
-    try:
-        file_tag = file_manager.save(name=file_name, content=file_obj, shims=shims)
-    except Exception:
-        logger.error("file upload save err: {}".format(traceback.format_exc()))
-        return JsonResponse({"result": False, "message": _("文件上传归档失败，请联系管理员")})
 
-    return JsonResponse({"result": True, "tag": file_tag})
+def apply_upload_ticket(request):
+
+    ticket = UploadTicket.objects.apply(
+        request.user.username, request.META.get("REMOTE_ADDR", "")
+    )
+
+    return JsonResponse({"result": True, "data": {"ticket": ticket.code}})
 
 
 urlpatterns = [
@@ -519,7 +522,7 @@ urlpatterns = [
         r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$",
         job_get_own_db_account_list,
     ),
-    url(r"^file_upload/(?P<project_id>\d+)/$", file_upload),
+    url(r"^file_upload/$", file_upload),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
     url(
         r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
@@ -533,4 +536,5 @@ urlpatterns = [
         cc_get_mainline_object_topo,
     ),
     url(r"^cc_get_business_list/$", cc_get_business),
+    url(r"^apply_upload_ticket/$", apply_upload_ticket),
 ]

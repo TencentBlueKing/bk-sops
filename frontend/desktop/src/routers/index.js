@@ -134,7 +134,7 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:project_id?/',
+                    path: 'home/:project_id/',
                     name: 'process',
                     pathToRegexpOptions: { strict: true },
                     component: TemplateList,
@@ -173,7 +173,7 @@ const routers = new VueRouter({
                     name: 'taskHome',
                     children: [
                         {
-                            path: 'list/:project_id?/',
+                            path: 'list/:project_id/',
                             component: TaskList,
                             name: 'taskList',
                             pathToRegexpOptions: { strict: true },
@@ -185,7 +185,7 @@ const routers = new VueRouter({
                             meta: { project: true }
                         },
                         {
-                            path: 'periodic/:project_id?/',
+                            path: 'periodic/:project_id/',
                             pathToRegexpOptions: { strict: true },
                             component: periodicTemplateList,
                             name: 'periodicTemplate',
@@ -225,7 +225,7 @@ const routers = new VueRouter({
                 }]
         },
         {
-            path: '/appmaker/home/:project_id?/',
+            path: '/appmaker/home/:project_id/',
             component: AppMaker,
             name: 'appMakerList',
             pathToRegexpOptions: { strict: true },

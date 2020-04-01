@@ -11,23 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from ..base import ComponentAPI
+from __future__ import unicode_literals
+
+from django.db import migrations, models
 
 
-class CollectionsUserManage(object):
-    """Collections of SOPS APIS"""
+class Migration(migrations.Migration):
 
-    def __init__(self, client):
-        self.client = client
+    initial = True
 
-        self.retrieve_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
-            description='查询用户具体详情'
-        )
+    dependencies = [
+    ]
 
-        self.list_users = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/list_users/',
-            description='获取用户列表'
-        )
+    operations = [
+        migrations.CreateModel(
+            name='UploadModuleFileTag',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('source_ip', models.CharField(max_length=128, verbose_name='file locate ip')),
+                ('file_name', models.TextField(verbose_name='file name')),
+                ('file_path', models.TextField(verbose_name='file locate path')),
+            ],
+        ),
+    ]

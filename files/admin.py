@@ -11,23 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from ..base import ComponentAPI
+from django.contrib import admin
+
+from files import models
 
 
-class CollectionsUserManage(object):
-    """Collections of SOPS APIS"""
+@admin.register(models.UploadModuleFileTag)
+class UploadModuleFileTagAdmin(admin.ModelAdmin):
+    list_display = ["id", "source_ip", "file_name", "file_path"]
+    search_fields = ["id", "source_ip", "file_name", "file_path"]
 
-    def __init__(self, client):
-        self.client = client
 
-        self.retrieve_user = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
-            description='查询用户具体详情'
-        )
-
-        self.list_users = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi{bk_api_ver}/usermanage/list_users/',
-            description='获取用户列表'
-        )
+@admin.register(models.UploadTicket)
+class UploadTicketAdmin(admin.ModelAdmin):
+    list_display = ["id", "code", "applicant", "apply_from", "created_at", "is_available", "used_at"]
+    search_fields = ["id", "code", "applicant", "apply_from"]
+    list_filter = ["is_available"]

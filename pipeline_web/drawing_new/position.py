@@ -11,7 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
+
 from pipeline_web.constants import PWE
+
 from pipeline_web.drawing_new.constants import (
     MIN_LEN,
     PIPELINE_ELEMENT_TO_WEB,
@@ -60,6 +63,8 @@ def position(pipeline,
 
     min_rk = min(list(orders.keys()))
     max_rk = max(list(orders.keys()))
+    # 之前的位置信息
+    old_locations = {location['id']: location for location in pipeline.get('location', [])}
     # 先分配节点位置
     locations = {}
     rank_x, rank_y = start
@@ -73,14 +78,21 @@ def position(pipeline,
             if node_id in pipeline['all_nodes']:
                 node = pipeline['all_nodes'][node_id]
                 node_y = int(order_y + pipeline_element_shift_y[node[PWE.type]])
-                locations[node[PWE.id]] = {
-                    'id': node[PWE.id],
-                    'type': PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
-                    'name': node.get(PWE.name, ''),
-                    'status': '',
-                    'x': int(order_x),
-                    'y': node_y
-                }
+                if node_id in old_locations:
+                    locations[node_id] = copy.deepcopy(old_locations[node_id])
+                    locations[node_id].update({
+                        'x': int(order_x),
+                        'y': node_y
+                    })
+                else:
+                    locations[node_id] = {
+                        'id': node_id,
+                        'type': PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
+                        'name': node.get(PWE.name, ''),
+                        'status': '',
+                        'x': int(order_x),
+                        'y': node_y
+                    }
                 if node_y > new_line_y:
                     new_line_y = node_y + shift_y
             order_y += shift_y
