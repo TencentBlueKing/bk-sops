@@ -45,9 +45,7 @@ if OPEN_VER == 'open':
 
 # 请在这里加入你的自定义 APP
 INSTALLED_APPS += (
-    'guardian',
     'gcloud.core',
-    'gcloud.config',
     'gcloud.tasktmpl3',
     'gcloud.taskflow3',
     'gcloud.webservice3',
@@ -80,6 +78,7 @@ INSTALLED_APPS += (
     'weixin.core',
     'weixin',
     'version_log',
+    'files',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -192,11 +191,6 @@ USE_L10N = True
 
 LANGUAGE_SESSION_KEY = 'blueking_language'
 LANGUAGE_COOKIE_NAME = 'blueking_language'
-
-AUTHENTICATION_BACKENDS += (
-    'guardian.backends.ObjectPermissionBackend',
-    'gcloud.core.backends.GCloudPermissionBackend',
-)
 
 HAYSTACK_CONNECTIONS = {
     'default': {

@@ -11,16 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from abc import ABCMeta, abstractmethod
 
-def has_any_perms(user_obj, perms, obj):
-    """
-    @summary: if user_obj has any perm of perms, return True
-    @param user_obj: instance of User
-    @param perms: a list of perms
-    @param obj: object
-    @return: True or False
-    """
-    for perm in perms:
-        if user_obj.has_perm(perm, obj):
-            return True
-    return False
+
+class UploadRequestBartender(object, metaclass=ABCMeta):
+    def __init__(self, manager):
+        self.manager = manager
+
+    @abstractmethod
+    def process_request(self, request):
+        raise NotImplementedError()

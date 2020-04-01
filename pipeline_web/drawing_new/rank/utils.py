@@ -11,6 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from pipeline.core.constants import PE
+from pipeline_web.drawing_new.constants import MIN_LEN
+
 
 def max_rank(ranks):
     return max(list(ranks.values()))
@@ -30,3 +33,15 @@ def normalize_ranks(ranks):
     min_rk = min_rank(ranks)
     for node_id in ranks:
         ranks[node_id] -= min_rk
+
+
+def slack(ranks, flow):
+    """
+    @summary: Returns the amount of slack for the given flow. The slack is defined as the
+        difference between the length of the flow and its minimum length.
+        松弛度被定义为其长度和最小长度之间的差值，边的松弛度为0，则为紧凑的。
+    @param ranks:
+    @param flow:
+    @return:
+    """
+    return ranks[flow[PE.target]] - ranks[flow[PE.source]] - MIN_LEN

@@ -77,7 +77,7 @@ def import_common_template(request):
             r["data"]["template_data"], override
         )
     except Exception as e:
-        logger.exception(e)
+        logger.exception("[API] import common tempalte error: {}".format(e))
         return JsonResponse(
             {
                 "result": False,

@@ -13,48 +13,14 @@ specific language governing permissions and limitations under the License.
 
 import base64
 import hashlib
-import itertools
 import logging
 
 import ujson as json
-from django.db import transaction
-from guardian.shortcuts import (
-    assign_perm,
-    remove_perm,
-    get_users_with_perms,
-    get_groups_with_perms,
-)
 
 from gcloud import err_code
 from gcloud.conf import settings
 
 logger = logging.getLogger("root")
-
-
-@transaction.atomic
-def assign_tmpl_perms(perms, groups, tmpl):
-    # 先删除有当前要授权权限的分组权限
-    perm_groups = get_groups_with_perms(tmpl, attach_perms=True)
-    for group, perm_list in list(perm_groups.items()):
-        for perm in perm_list:
-            if perm in perms:
-                remove_perm(perm, group, tmpl)
-    # 给分组授权
-    for perm, group in itertools.product(perms, groups):
-        assign_perm(perm, group, tmpl)
-
-
-@transaction.atomic
-def assign_tmpl_perms_user(perms, users, tmpl):
-    # 先删除有当前要授权权限的用户权限
-    perm_users = get_users_with_perms(tmpl, attach_perms=True)
-    for user, perm_list in list(perm_users.items()):
-        for perm in perm_list:
-            if perm in perms:
-                remove_perm(perm, user, tmpl)
-    # 给用户授权
-    for perm, user in itertools.product(perms, users):
-        assign_perm(perm, user, tmpl)
 
 
 def read_encoded_template_data(content):

@@ -68,3 +68,5 @@ COMPATIBLE_MODULE_MAP = {
     'pipeline_plugins.variables.variables.collections.sites.community.cc':
         'pipeline_plugins.variables.collections.sites.open.cc',
 }
+
+USER_TOKEN_TYPE = 'bk_token'

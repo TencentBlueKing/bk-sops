@@ -11,33 +11,34 @@
 */
 <template>
     <header>
-        <a href="javascript:void(0);" class="nav-logo" @click.prevent="onLogoClick()">
+        <router-link :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
-        </a>
+        </router-link>
         <ul class="nav-left" v-if="!appmakerDataLoading">
             <li
                 v-for="(item, index) in showRouterList"
                 :key="index"
                 :class="['nav-item', { 'active': isNavActived(item) }]">
-                <a href="javascript:void(0);" @click.prevent="onGoToPath(item)">
+                <router-link :to="getNavPath(item)" :event="''" @click.native="onGoToPath(item)">
                     {{ item.name }}
-                </a>
+                </router-link>
                 <div
                     v-if="item.children"
                     class="sub-nav">
-                    <a
-                        href="javascript:void(0);"
+                    <router-link
                         v-for="(sub, subIndex) in item.children"
                         :key="subIndex"
-                        to=""
+                        :to="{ name: item.routerName }"
                         :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
-                        @click.prevent="onGoToPath(sub)">
+                        :event="''"
+                        @click.native="onGoToPath(sub)">
                         {{ sub.name }}
-                    </a>
+                    </router-link>
                 </div>
             </li>
         </ul>
+        <!-- 右侧项目选择和其他信息 -->
         <ul class="nav-right">
             <li v-if="showProjectSelect" class="project-select">
                 <ProjectSelector
@@ -65,6 +66,7 @@
                 </span>
             </li>
         </ul>
+        <!-- 日志组件 -->
         <version-log
             ref="versionLog"
             :log-list="logList"
@@ -239,7 +241,8 @@
                 'getVersionList',
                 'getVersionDetail'
             ]),
-            onLogoClick () {
+            onLogoClick (e) {
+                e.preventDefault()
                 if (this.view_mode !== 'app') {
                     return false
                 }
@@ -324,7 +327,7 @@
                     action_id: action.id,
                     action_name: action.name
                 })
-                bus.$emit('togglePermissionApplyPage', true, 'function_center', permissions)
+                bus.$emit('togglePermissionApplyPage', true, resource.type, permissions)
             },
             /**
              * 获取单个类型的权限
@@ -344,19 +347,8 @@
                     errorHandler(err, this)
                 }
             },
-            /**
-             * 导航跳转
-             * @param {Object} route 路由信息
-             */
-            onGoToPath (route) {
-                if (this.$route.name === route.routerName) {
-                    return this.reload()
-                }
-                /** 404 页面时，导航统一跳转到首页 */
-                if (this.notFoundPage && this.view_mode === 'app') {
-                    return this.$router.push({ name: 'home' })
-                }
-                this.checkRouterPerm(route.routerName)
+            // 获取导航的链接，供右键点击跳转
+            getNavPath (route) {
                 const params = {}
                 const query = {}
                 route.params && route.params.forEach(m => {
@@ -369,13 +361,27 @@
                     params['step'] = 'selectnode'
                     query['template_id'] = this.appmakerTemplateId
                 }
-                this.$router.push({
+                return {
                     name: route.routerName,
                     params,
                     query
-                }).catch(err => {
-                    errorHandler(err, this)
-                })
+                }
+            },
+            /**
+             * 左键点击导航跳转
+             * @param {Object} route 路由信息
+             */
+            onGoToPath (route) {
+                if (this.$route.name === route.routerName) {
+                    return this.reload()
+                }
+                /** 404 页面时，导航统一跳转到首页 */
+                if (this.notFoundPage && this.view_mode === 'app') {
+                    return this.$router.push({ name: 'home' })
+                }
+                const config = this.getNavPath(route)
+                this.$router.push(config)
+                this.checkRouterPerm(route.routerName)
             },
             /* 打开版本日志 */
             async onOpenVersion () {

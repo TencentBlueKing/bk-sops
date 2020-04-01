@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,11 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from __future__ import unicode_literals
 
-from gcloud.config import api
+from django.db import migrations, models
 
-urlpatterns = [
-    url(r'^api/biz_config/(?P<biz_cc_id>\d+)/$', api.biz_config),
-    url(r'^api/biz_executor/(?P<biz_cc_id>\d+)/$', api.biz_executor),
-]
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('function', '0002_auto_20180413_1804'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='functiontask',
+            name='status',
+            field=models.CharField(choices=[('submitted', '未认领'), ('claimed', '已认领'), ('rejected', '已驳回'), ('executed', '已执行'), ('finished', '已完成')], default='submitted', max_length=32, verbose_name='单据状态'),
+        ),
+    ]
