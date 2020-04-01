@@ -571,8 +571,9 @@ const template = {
             const { type, location } = payload
             if (type === 'add') {
                 if (!state.activities[location.id]) {
+                    let activity = {}
                     if (location.type === 'tasknode') {
-                        state.activities[location.id] = {
+                        activity = {
                             component: {
                                 code: location.atomId,
                                 data: location.data,
@@ -591,7 +592,7 @@ const template = {
                             skippable: true
                         }
                     } else if (location.type === 'subflow') {
-                        state.activities[location.id] = {
+                        activity = {
                             constants: {},
                             hooked_constants: [],
                             id: location.id,
@@ -606,6 +607,7 @@ const template = {
                             type: 'SubProcess'
                         }
                     }
+                    Vue.set(state.activities, location.id, activity)
                 }
             } else if (type === 'edit') {
                 Vue.set(state.activities, location.id, location)

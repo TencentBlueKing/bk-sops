@@ -182,7 +182,7 @@
             },
             citedList () {
                 const sourceInfo = this.constant.source_info
-                // 表单勾选全局变量的节点
+                // 该全局变量被哪些节点勾选的集合
                 const nodes = Object.keys(sourceInfo).map(id => id)
 
                 // 输入参数表单直接填写变量key的情况
@@ -194,7 +194,7 @@
                         return
                     }
                     const activity = this.activities[id]
-                    if (activity.type === 'SubProcess') {
+                    if (activity.type === 'SubProcess') { // 子流程任务节点
                         Object.keys(activity.constants).forEach(key => {
                             const varItem = activity.constants[key]
                             // 隐藏类型变量不考虑
@@ -211,7 +211,7 @@
                                 nodes.push(id)
                             }
                         })
-                    } else {
+                    } else { // 标准插件任务节点
                         const component = activity.component
                         Object.keys(component.data || {}).forEach(form => { // 空任务节点可能会存在 data 为 undefined 的情况
                             const val = component.data[form].value

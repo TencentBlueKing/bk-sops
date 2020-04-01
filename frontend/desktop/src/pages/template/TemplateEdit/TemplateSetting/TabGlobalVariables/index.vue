@@ -87,9 +87,9 @@
                     <ul class="variable-list" ref="variableList">
                         <draggable class="variable-drag" :list="variableList" handle=".col-item-drag" @end="onDragEnd($event)">
                             <VariableItem
-                                v-for="(constant, index) in variableList"
+                                v-for="constant in variableList"
                                 :ref="`variableKey_${constant.key}`"
-                                :key="index"
+                                :key="constant.key"
                                 :outputed="outputs.indexOf(constant.key) > -1"
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
