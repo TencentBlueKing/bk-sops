@@ -40,6 +40,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -134,6 +135,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                fileValue: tools.deepClone(this.value),
                 i18n: {
                     submit: gettext('提交'),
                     upload: gettext('点击上传'),
@@ -142,14 +144,6 @@
             }
         },
         computed: {
-            fileValue: {
-                get () {
-                    return this.value
-                },
-                set (val) {
-                    this.updateForm(val)
-                }
-            },
             viewValue () {
                 if (this.fileValue === 'undefined' || !this.fileValue.length) {
                     return '--'
@@ -158,6 +152,16 @@
             },
             uploadText () {
                 return this.text || (this.auto_upload ? this.i18n.upload : this.i18n.select)
+            }
+        },
+        watch: {
+            value: {
+                handler (val, oldVal) {
+                    if (!tools.isDataEqual(val, oldVal)) {
+                        this.fileValue = tools.deepClone(val)
+                    }
+                },
+                deep: true
             }
         },
         methods: {
