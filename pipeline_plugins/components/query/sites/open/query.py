@@ -441,10 +441,10 @@ urlpatterns = [
         job_get_job_task_detail,
     ),
     # IP selector
-    url(r"^cc_search_topo_tree/(?P<project_id>\d+)/$", cc_search_topo_tree),
-    url(r"^cc_search_host/(?P<project_id>\d+)/$", cc_search_host),
+    url(r"^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$", cc_search_topo_tree),
+    url(r"^cc_search_host/(?P<biz_cc_id>\d+)/$", cc_search_host),
     url(
-        r"^cc_get_mainline_object_topo/(?P<project_id>\d+)/$",
+        r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$",
         cc_get_mainline_object_topo,
     ),
     url(r"^cc_get_business_list/$", cc_get_business),
