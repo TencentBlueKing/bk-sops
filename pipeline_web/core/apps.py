@@ -11,9 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.dispatch import Signal
+from django.apps import AppConfig
 
-node_in_template_post_save = Signal(providing_args=['node_obj', 'node_info'])
-node_in_template_delete = Signal(providing_args=['node_obj'])
 
-node_in_instance_post_save = Signal(providing_args=['node_obj', 'node_info'])
+class CodeConfig(AppConfig):
+    name = 'pipeline_web.core'
+    label = 'pipeline_web_core'
+    verbose_name = 'PipelineWebCore'
+
+    def ready(self):
+        from pipeline_web.core.signals import (  # noqa
+            node_in_template_post_save,
+            node_in_template_delete,
+            node_in_instance_post_save
+        )

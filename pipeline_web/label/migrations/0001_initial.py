@@ -22,6 +22,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('pipeline_web_core', '0001_initial'),
     ]
 
     operations = [
@@ -49,9 +50,33 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': '标签分组 LabelGroup',
             },
         ),
+        migrations.CreateModel(
+            name='NodeInInstanceAttrLabel',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('labels', models.ManyToManyField(blank=True, to='pipeline_web_label.Label', verbose_name='节点标签')),
+                ('node', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pipeline_web_core.NodeInInstance', verbose_name='流程实例节点')),
+            ],
+            options={
+                'verbose_name': '流程实例节点标签 NodeInInstanceAttrLabel',
+                'verbose_name_plural': '流程实例节点标签 NodeInInstanceAttrLabel',
+            },
+        ),
+        migrations.CreateModel(
+            name='NodeInTemplateAttrLabel',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('labels', models.ManyToManyField(blank=True, to='pipeline_web_label.Label', verbose_name='节点标签')),
+                ('node', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pipeline_web_core.NodeInTemplate', verbose_name='流程模板节点')),
+            ],
+            options={
+                'verbose_name': '流程模板节点标签 NodeInTemplateAttrLabel',
+                'verbose_name_plural': '流程模板节点标签 NodeInTemplateAttrLabel',
+            },
+        ),
         migrations.AddField(
             model_name='label',
             name='group',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='label.LabelGroup'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pipeline_web_label.LabelGroup'),
         ),
     ]

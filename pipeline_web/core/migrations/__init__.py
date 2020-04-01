@@ -10,10 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from django.dispatch import Signal
-
-node_in_template_post_save = Signal(providing_args=['node_obj', 'node_info'])
-node_in_template_delete = Signal(providing_args=['node_obj'])
-
-node_in_instance_post_save = Signal(providing_args=['node_obj', 'node_info'])

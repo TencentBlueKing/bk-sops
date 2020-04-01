@@ -82,11 +82,12 @@ def replace_all_id(pipeline_data):
     _replace_front_end_data_id(pipeline_data, node_map, flow_map)
 
     return {
-        'start_event': start_event_id_maps,
-        'end_event': end_event_id_maps,
-        'activity': activity_id_maps,
-        'gateway': gateway_id_maps,
-        'flow': flow_id_maps
+        PE.start_event: start_event_id_maps,
+        PE.end_event: end_event_id_maps,
+        PE.activities: activity_id_maps,
+        PE.gateways: gateway_id_maps,
+        PE.flows: flow_id_maps,
+        'subprocess_detail': {}
     }
 
 

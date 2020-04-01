@@ -11,17 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.core.constants import PE
+from pipeline_web.parser.format import get_all_nodes
 
 
 def normalize_run(pipeline):
-    pipeline['all_nodes'] = {}
-    pipeline['all_nodes'].update(pipeline[PE.activities])
-    pipeline['all_nodes'].update(pipeline[PE.gateways])
-    pipeline['all_nodes'].update({
-        pipeline[PE.start_event][PE.id]: pipeline[PE.start_event],
-        pipeline[PE.end_event][PE.id]: pipeline[PE.end_event]
-    })
+    pipeline['all_nodes'] = get_all_nodes(pipeline)
 
 
 def normalize_undo(pipeline):

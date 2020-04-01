@@ -46,7 +46,11 @@ from pipeline.exceptions import (
 )
 from pipeline.validators.gateway import validate_gateways
 from pipeline.validators.utils import format_node_io_to_list
+from pipeline_web.core.abstract import NodeAttr
+
+from pipeline_web.core.models import NodeInInstance
 from pipeline_web.parser import WebPipelineAdapter
+from pipeline_web.parser.clean import PipelineWebTreeClean
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
@@ -106,14 +110,24 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             'description': kwargs.get('description', ''),
         }
 
-        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
+        pipeline_web_tree = PipelineWebTreeClean(pipeline_tree)
+        nodes_attr = pipeline_web_tree.clean()
 
-        pipeline_instance = PipelineInstance.objects.create_instance(
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
+        pipeline_instance, id_maps = PipelineInstance.objects.create_instance(
             template.pipeline_template if template else None,
             pipeline_tree,
             spread=True,
             **pipeline_template_data
         )
+
+        # create node in instance
+        nodes_id_maps = id_maps[PE.activities]
+        for node_id, new_node_id in nodes_id_maps.items():
+            if node_id in nodes_attr:
+                nodes_attr.update({new_node_id: nodes_attr.pop(node_id)})
+        pipeline_web_tree.to_web(nodes_attr)
+        NodeInInstance.objects.create_nodes_in_instance(pipeline_instance, pipeline_tree)
         return pipeline_instance
 
     @staticmethod
@@ -855,7 +869,13 @@ class TaskFlowInstance(models.Model):
 
     @property
     def pipeline_tree(self):
-        return self.pipeline_instance.execution_data
+        tree = self.pipeline_instance.execution_data
+        # add nodes attr
+        pipeline_web_clean = PipelineWebTreeClean(tree)
+        nodes = NodeInInstance.objects.filter(instance_id=self.pipeline_instance.instance_id)
+        nodes_attr = NodeAttr.get_nodes_attr(nodes, 'instance')
+        pipeline_web_clean.to_web(nodes_attr)
+        return tree
 
     @property
     def name(self):

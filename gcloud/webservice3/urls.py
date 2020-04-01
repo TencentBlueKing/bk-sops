@@ -20,6 +20,8 @@ from gcloud.webservice3.resources import (
     ComponentModelResource,
     VariableModelResource,
     CommonProjectResource,
+    LabelGroupModelResource,
+    LabelModelResource
 )
 from gcloud.commons.template.resources import (
     CommonTemplateResource,
@@ -35,7 +37,6 @@ from gcloud.contrib.function.resources import FunctionTaskResource
 from gcloud.contrib.collection.resources import CollectionResources
 from gcloud.periodictask.resources import PeriodicTaskResource
 from gcloud.external_plugins.resources import PackageSourceResource, SyncTaskResource
-from gcloud.contrib.label.resources import LabelGroupModelResource, LabelModelResource
 
 v3_api = Api(api_name='v3')
 v3_api.register(BusinessResource())

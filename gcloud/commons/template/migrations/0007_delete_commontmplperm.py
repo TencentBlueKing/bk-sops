@@ -11,17 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db import transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from __future__ import unicode_literals
 
-from pipeline.models import PipelineTemplate, PipelineInstance
-
-from pipeline_web.core.models import NodeInTemplate, NodeInInstance
+from django.db import migrations
 
 
-@receiver(post_save, sender=PipelineTemplate)
-def node_in_template_create(sender, instance, **kwargs):
-    template = instance
-    nodes = NodeInTemplate.objects.filter(template_id=template.template_id)
-    new_nodes = template.
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('template', '0006_auto_20200325_1458'),
+    ]
+
+    operations = [
+        migrations.DeleteModel(
+            name='CommonTmplPerm',
+        ),
+    ]

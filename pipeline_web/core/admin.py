@@ -11,9 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.dispatch import Signal
+from django.contrib import admin
 
-node_in_template_post_save = Signal(providing_args=['node_obj', 'node_info'])
-node_in_template_delete = Signal(providing_args=['node_obj'])
+from pipeline_web.core import models
 
-node_in_instance_post_save = Signal(providing_args=['node_obj', 'node_info'])
+
+@admin.register(models.NodeInTemplate)
+class NodeInTemplateAdmin(admin.ModelAdmin):
+    list_display = ['id', 'node_id', 'template_id', 'version']
+    search_fields = ['node_id', 'template_id']
+
+
+@admin.register(models.NodeInInstance)
+class NodeInInstanceAdmin(admin.ModelAdmin):
+    list_display = ['id', 'node_id', 'instance_id']
+    search_fields = ['node_id', 'instance_id']
