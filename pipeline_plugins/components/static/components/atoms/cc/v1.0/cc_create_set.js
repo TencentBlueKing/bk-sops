@@ -97,7 +97,11 @@
                     return url
                 },
                 remote_data_init: function (resp) {
-                    return resp.data;
+                    const data = resp.data;
+                    data.forEach(function (column) {
+                        column.type = 'textarea'
+                    });
+                    return data;
                 },
                 hookable: true,
                 add_btn: true,
