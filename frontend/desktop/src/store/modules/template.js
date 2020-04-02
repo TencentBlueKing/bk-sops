@@ -30,13 +30,13 @@ function generateInitLocation () {
     return [
         {
             id: 'node' + uuid(),
-            x: 80,
+            x: 20,
             y: 150,
             type: 'startpoint'
         },
         {
             id: 'node' + uuid(),
-            x: 300,
+            x: 240,
             y: 145,
             name: '',
             stage_name: gettext('步骤1'),
@@ -44,7 +44,7 @@ function generateInitLocation () {
         },
         {
             id: 'node' + uuid(),
-            x: 600,
+            x: 540,
             y: 150,
             type: 'endpoint'
         }
