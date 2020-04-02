@@ -104,13 +104,17 @@
                     return a.index - b.index
                 })
 
+                if (variableArray.length > 0) {
+                    this.isConfigLoading = true
+                    this.$emit('onChangeConfigLoading', true)
+                }
+
                 for (const variable of variableArray) {
                     const { key } = variable
                     const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
                     if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
-                        this.isConfigLoading = true
                         await this.loadAtomConfig({ name, atom, classify, version })
                     }
                     const atomConfig = this.atomFormConfig[atom][version]

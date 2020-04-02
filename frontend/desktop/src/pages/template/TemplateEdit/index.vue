@@ -34,7 +34,7 @@
                 :list="subflowShouldUpdated"
                 :locations="locations"
                 :node-menu-open="nodeMenuOpen"
-                @viewClick="moveSubflowToView"
+                @viewClick="viewUpdatedNode"
                 @foldClick="clearDotAnimation">
             </SubflowUpdateTips>
             <TemplateCanvas
@@ -96,7 +96,6 @@
                     :is-fixed-var-menu="isFixedVarMenu"
                     @toggleSettingPanel="toggleSettingPanel"
                     @globalVariableUpdate="globalVariableUpdate"
-                    @onDeleteConstant="onDeleteConstant"
                     @variableDataChanged="variableDataChanged"
                     @fixedVarMenuChange="fixedVarMenuChange"
                     @onSelectCategory="onSelectCategory"
@@ -517,10 +516,7 @@
              */
             async getSingleAtomConfig (location) {
                 const code = location.atomId
-                const atoms = this.atomList.find(item => item.code === code).list
-                // @todo 和后台确认插件版本最新的逻辑，暂时取最后一个
-                const lastVersionAtom = atoms[atoms.length - 1]
-                const version = lastVersionAtom.version
+                const version = location.version
                 const atomConfig = this.atomConfig[code]
                 if (atomConfig && atomConfig[version]) {
                     this.addSingleAtomActivities(location, atomConfig[version])
@@ -740,14 +736,6 @@
                     }
                 }
             },
-            // 全局变量引用节点点击回调
-            onCitedNodeClick (nodeId) {
-                if (this.idOfNodeInConfigPanel === nodeId) {
-                    this.hideConfigPanel()
-                } else {
-                    this.onShowNodeConfig(nodeId, false)
-                }
-            },
             /**
              * 标识模板是否被编辑
              */
@@ -920,10 +908,16 @@
                     case 'subflow':
                         // 添加任务节点
                         if (changeType === 'add' && location.atomId) {
-                            this.setActivities({ type: 'add', location })
                             if (location.type === 'tasknode') {
+                                const atoms = this.atomList.find(item => item.code === location.atomId).list
+                                // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
+                                const lastVersionAtom = atoms[atoms.length - 1]
+                                const version = lastVersionAtom.version
+                                location.version = version
+                                this.setActivities({ type: 'add', location })
                                 this.getSingleAtomConfig(location)
                             } else {
+                                this.setActivities({ type: 'add', location })
                                 this.getSubflowConfig(location)
                             }
                             return
@@ -965,13 +959,6 @@
                 const updatedLocation = Object.assign(location, data)
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
-            },
-            onDeleteConstant (key) {
-                this.variableDataChanged()
-                if (this.isNodeConfigPanelShow) {
-                    const constant = this.constants[key]
-                    this.$refs.nodeConfig.onDeleteConstant(constant)
-                }
             },
             // 流程名称修改
             onChangeName (name) {
@@ -1279,22 +1266,33 @@
                     const { left, top } = panel.getBoundingClientRect()
                     const pageX = left + document.documentElement.scrollLeft
                     const pageY = top + document.documentElement.scrollTop
-                    if (e.pageX < pageX || e.pageY < pageY) {
+                    if (
+                        (e.pageX > 0 && e.pageY > 0) // 上传组件点击时，触发区域隐藏在页面左上角
+                        && (e.pageX < pageX || e.pageY < pageY)
+                    ) {
                         this.isNodeConfigPanelShow && this.hideConfigPanel(true)
                         !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
                         this.isShowConditionEdit && this.onCloseConditionEdit()
                     }
                 }
             },
+            // 查看需要更新的子流程
+            viewUpdatedNode (id) {
+                this.moveNodeToView(id)
+                this.showDotAnimation(id)
+            },
+            // 全局变量引用节点点击回调
+            onCitedNodeClick (nodeId) {
+                this.moveNodeToView(nodeId)
+            },
             /**
-             * 移动画布，将需要更新的子流程节点放到到画布左上角
+             * 移动画布，将节点放到画布左上角
              */
-            moveSubflowToView (id) {
+            moveNodeToView (id) {
                 const { x, y } = this.locations.find(item => item.id === id)
                 const offsetX = 200 - x
                 const offsetY = 200 - y
                 this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
-                this.showDotAnimation(id)
             },
             // 开启子流程更新的小红点动画效果
             showDotAnimation (id) {
@@ -1338,7 +1336,6 @@
     }
 </script>
 <style lang="scss" scoped>
-    @import '@/scss/config.scss';
     .template-page {
         position: relative;
         height: 100%;
@@ -1350,7 +1347,7 @@
         left: 400px;
         min-height: 40px;
         overflow: hidden;
-        z-index: 1;
+        z-index: 4;
         transition: left 0.5s ease;
         &.update-tips-with-menu-open {
             left: 700px;

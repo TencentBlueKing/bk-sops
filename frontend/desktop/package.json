@@ -26,7 +26,7 @@
     "monaco-editor": "0.17.1",
     "plotly.js": "1.39.4",
     "qs": "^6.5.2",
-    "serialize-javascript": "^2.1.0",
+    "serialize-javascript": "^3.0.0",
     "vee-validate": "^2.1.0-beta.6",
     "vue": "^2.6.10",
     "vue-router": "^3.0.1",

@@ -470,10 +470,12 @@
                 if (checked.children && checked.children.length > 0) {
                     this.unCheckChildrenNodes(checked, checkedNodes)
                 }
-                this.formData.resource = [{
-                    id: checked.id,
-                    label: checked.label
-                }]
+                this.formData.resource = checkedNodes.map(item => {
+                    return {
+                        id: item.id,
+                        label: item.label
+                    }
+                })
                 this.$refs.resourceTree.setCheckedNodes(checkedNodes)
             },
             onChangeReuse (val, data) {
@@ -737,6 +739,7 @@
         border-radius: 2px;
         .module-wrapper {
             margin-top: 20px;
+            min-height: 40px;
         }
         .bk-form {
             /deep/ .bk-form-item {

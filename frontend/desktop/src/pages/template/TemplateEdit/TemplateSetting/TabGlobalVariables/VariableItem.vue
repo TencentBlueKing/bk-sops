@@ -18,7 +18,7 @@
         ]">
         <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
             <i v-if="!isSystemVar && !isShowVariableEdit" class="col-item-drag bk-icon icon-sort"></i>
-            <i v-else class="common-icon-lock-disable"></i>
+            <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
             <span :title="constant.name" class="col-item col-name">
                 {{ constant.name }}
             </span>
@@ -66,7 +66,7 @@
                     <bk-switcher
                         size="min"
                         theme="primary"
-                        :value="outputs.indexOf(constant.key) > -1"
+                        :value="outputed"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
                 </div>
@@ -76,10 +76,10 @@
                     'col-item',
                     'col-cited',
                     {
-                        'actived': isShowVariableCited
+                        'disabled': citedList.length === 0
                     }
                 ]"
-                @click.stop="toggleCitedPanel">
+                @click.stop="onViewCitedList">
                 {{ citedList.length }}
             </span>
             <span class="col-item col-operation">
@@ -94,7 +94,7 @@
                 <span
                     v-if="!isSystemVar"
                     class="col-operation-item"
-                    @click.stop="onDeleteVariable(constant.key, constant.index)">
+                    @click.stop="onDeleteVariable(constant.key)">
                     {{ i18n.delete }}
                 </span>
             </span>
@@ -105,7 +105,6 @@
             <VariableEdit
                 ref="editVariablePanel"
                 :variable-data="variableData"
-                :variable-list="variableList"
                 :variable-type-list="variableTypeList"
                 :is-system-var="isSystemVar"
                 :is-new-variable="false"
@@ -124,7 +123,7 @@
             </SystemVariableEdit>
         </div>
         <VariableCitedList
-            v-if="isShowVariableCited"
+            v-if="theKeyOfViewCited === constant.key"
             :constant="constant"
             :cited-list="citedList"
             @onCitedNodeClick="onCitedNodeClick">
@@ -145,9 +144,8 @@
             SystemVariableEdit
         },
         props: [
-            'outputs',
+            'outputed',
             'constant',
-            'variableList',
             'variableData',
             'varOperatingTips',
             'theKeyOfEditing',
@@ -184,7 +182,7 @@
             },
             citedList () {
                 const sourceInfo = this.constant.source_info
-                // 表单勾选全局变量的节点
+                // 该全局变量被哪些节点勾选的集合
                 const nodes = Object.keys(sourceInfo).map(id => id)
 
                 // 输入参数表单直接填写变量key的情况
@@ -196,7 +194,7 @@
                         return
                     }
                     const activity = this.activities[id]
-                    if (activity.type === 'SubProcess') {
+                    if (activity.type === 'SubProcess') { // 子流程任务节点
                         Object.keys(activity.constants).forEach(key => {
                             const varItem = activity.constants[key]
                             // 隐藏类型变量不考虑
@@ -213,7 +211,7 @@
                                 nodes.push(id)
                             }
                         })
-                    } else {
+                    } else { // 标准插件任务节点
                         const component = activity.component
                         Object.keys(component.data || {}).forEach(form => { // 空任务节点可能会存在 data 为 undefined 的情况
                             const val = component.data[form].value
@@ -250,14 +248,17 @@
                 e.preventDefault()
             },
             // 查看引用节点信息
-            onViewCitedList (nums) {
-                this.$emit('onViewCitedList', this.constant.key, nums)
+            onViewCitedList () {
+                // 节点详情点开时不显示引用列表
+                if (!this.isShowVariableEdit && this.citedList.length > 0) {
+                    this.$emit('onViewCitedList', this.constant.key)
+                }
             },
             onChangeVariableOutput (key, checked) {
                 this.$emit('onChangeVariableOutput', { key, checked })
             },
-            onDeleteVariable (key, index) {
-                this.$emit('onDeleteVariable', { key, index })
+            onDeleteVariable (key) {
+                this.$emit('onDeleteVariable', key)
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
@@ -267,11 +268,6 @@
             },
             onChangeEdit (val) {
                 this.$emit('onChangeEdit', val)
-            },
-            toggleCitedPanel () {
-                if (this.citedList.length > 0) {
-                    this.isShowVariableCited = !this.isShowVariableCited
-                }
             },
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
@@ -347,10 +343,10 @@ $localBorderColor: #d8e2e7;
     }
     .col-cited {
         width: 54px;
+        color: #3a84ff;
         cursor: pointer;
-        &:hover,
-        &.actived {
-            color: #3a84ff;
+        &.disabled {
+            color: #333333;
         }
     }
 }

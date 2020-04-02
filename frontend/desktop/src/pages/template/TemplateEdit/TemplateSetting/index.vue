@@ -37,7 +37,6 @@
                     :variable-type-list="variableTypeList"
                     @changeVariableEditing="onVariableEditingChange"
                     @variableDataChanged="onVariableDataChange"
-                    @onDeleteConstant="onDeleteConstant"
                     @onCitedNodeClick="onCitedNodeClick"
                     @onClickVarPin="onClickVarPin"
                     @onColseTab="onColseTab">
@@ -205,9 +204,6 @@
             },
             onVariableDataChange () {
                 this.$emit('variableDataChanged')
-            },
-            onDeleteConstant (key) {
-                this.$emit('onDeleteConstant', key)
             },
             onSelectCategory (value) {
                 this.$emit('onSelectCategory', value)

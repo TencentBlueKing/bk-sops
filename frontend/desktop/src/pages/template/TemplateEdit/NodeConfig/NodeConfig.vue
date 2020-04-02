@@ -16,11 +16,14 @@
             :ext-cls="getSliderCls"
             :width="710"
             :is-show="true"
-            :quick-close="true">
+            :quick-close="true"
+            :before-close="beforeClose">
             <div slot="header">
                 <span>{{ basicInfo.name }}</span>
+                <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
                 <div
-                    v-if="isSelectorPanelShow" class="go-back"
+                    v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
+                    class="go-back"
                     @click="isSelectorPanelShow = false">
                     <i class="common-icon-return-arrow"></i>
                 </div>
@@ -117,49 +120,19 @@
             NoData
         },
         props: {
-            nodeId: {
-                type: String,
-                default: ''
-            },
-            settingActiveTab: {
-                type: String,
-                default: ''
-            },
-            atomList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            subflowList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            atomTypeList: {
-                type: Object,
-                default () {
-                    return {
-                        tasknode: [],
-                        subflow: []
-                    }
-                }
-            },
-
-            common: {
-                type: [Boolean, Number],
-                required: false
-            },
-            isSettingPanelShow: {
-                type: Boolean,
-                required: false
-            }
+            nodeId: String,
+            settingActiveTab: String,
+            atomList: Array,
+            subflowList: Array,
+            atomTypeList: Object,
+            common: [String, Number],
+            isSettingPanelShow: Boolean
         },
         data () {
             const nodeConfig = this.$store.state.template.activities[this.nodeId]
             const basicInfo = this.getNodeBasic(nodeConfig)
             const versionList = nodeConfig.type === 'ServiceActivity' ? this.getAtomVersions(nodeConfig.component.code) : []
+            const isSelectorPanelShow = nodeConfig.type === 'ServiceActivity' ? !basicInfo.plugin : !basicInfo.tpl
             return {
                 pluginLoading: false, // 普通任务节点数据加载
                 subflowLoading: false, // 子流程任务节点数据加载
@@ -171,7 +144,7 @@
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow: false, // 是否显示选择插件(子流程)面板
+                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
                 i18n: {
                     basicInfo: gettext('基础信息'),
                     inputParams: gettext('输入参数'),
@@ -713,6 +686,9 @@
             // 由父组件调用，获取节点基础信息
             getBasicInfo () {
                 return this.basicInfo
+            },
+            beforeClose () {
+                this.$emit('hide')
             }
         }
     }
@@ -722,8 +698,6 @@
     .node-config-wrapper {
         height: 100%;
         background: #ffffff;
-        overflow-y: auto;
-        @include scrollbar;
         .go-back {
             position: absolute;
             top: 0;
@@ -738,6 +712,7 @@
             padding: 30px 20px;
             height: 100%;
             overflow-y: auto;
+            @include scrollbar;
         }
         .node-config-base {
             /deep/ .bk-sideslider-wrapper {
