@@ -67,6 +67,7 @@
     import TaskScheme from './TaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
+    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     export default {
         name: 'TaskSelectNode',
@@ -243,9 +244,17 @@
              */
             async getLayoutedPosition (data) {
                 try {
+                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
                     const canvasEl = document.querySelector('.canvas-content')
                     const width = canvasEl.offsetWidth - 90
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
+                    const res = await this.getLayoutedPipeline({
+                        canvas_width: width,
+                        pipeline_tree: data,
+                        activity_size: ACTIVITY_SIZE,
+                        event_size: EVENT_SIZE,
+                        gateway_size: GATEWAY_SIZE,
+                        start: START_POSITION
+                    })
                     if (res.result) {
                         return res.data.pipeline_tree
                     } else {

@@ -125,6 +125,8 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
+
     export default {
         name: 'TaskParamFill',
         components: {
@@ -298,8 +300,16 @@
              */
             async getLayoutedPosition (data) {
                 try {
+                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
                     const width = document.body.scrollWidth - 90
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
+                    const res = await this.getLayoutedPipeline({
+                        canvas_width: width,
+                        pipeline_tree: data,
+                        activity_size: ACTIVITY_SIZE,
+                        event_size: EVENT_SIZE,
+                        gateway_size: GATEWAY_SIZE,
+                        start: START_POSITION
+                    })
                     if (res.result) {
                         return res.data.pipeline_tree
                     } else {

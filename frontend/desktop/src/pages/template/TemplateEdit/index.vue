@@ -142,6 +142,7 @@
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
     import { STRING_LENGTH } from '@/constants/index.js'
+    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     const i18n = {
         templateEdit: gettext('流程编辑'),
@@ -875,10 +876,18 @@
                 }
                 this.canvasDataLoading = true // @todo 支持画布单独loading
                 try {
+                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
                     const pipelineTree = this.getPipelineTree()
                     const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
                     const width = canvasEl.offsetWidth - 200
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree })
+                    const res = await this.getLayoutedPipeline({
+                        canvas_width: width,
+                        pipeline_tree: pipelineTree,
+                        activity_size: ACTIVITY_SIZE,
+                        event_size: EVENT_SIZE,
+                        gateway_size: GATEWAY_SIZE,
+                        start: START_POSITION
+                    })
                     if (res.result) {
                         this.onNewDraft(undefined, false)
                         this.$refs.templateCanvas.removeAllConnector()

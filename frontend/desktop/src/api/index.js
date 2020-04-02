@@ -530,16 +530,12 @@ const api = {
         return request(opts)
     },
     getLayoutedPipeline (data) {
-        const { width, pipelineTree } = data
         const prefixUrl = this.getPrefix('templateAutoDraw')
 
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            data: {
-                canvas_width: width,
-                pipeline_tree: pipelineTree
-            }
+            data
         }
         return request(opts)
     },
