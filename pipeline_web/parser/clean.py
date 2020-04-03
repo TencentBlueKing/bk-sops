@@ -17,7 +17,7 @@ from pipeline_web.constants import PWE
 from pipeline_web.parser.format import get_all_nodes
 
 
-class PipelineWebTreeClean(object):
+class PipelineWebTreeCleaner(object):
     """
     @summary: pipeline tree 数据清洗
     """

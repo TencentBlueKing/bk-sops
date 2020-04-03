@@ -50,7 +50,7 @@ from pipeline_web.core.abstract import NodeAttr
 
 from pipeline_web.core.models import NodeInInstance
 from pipeline_web.parser import WebPipelineAdapter
-from pipeline_web.parser.clean import PipelineWebTreeClean
+from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud import err_code
@@ -110,7 +110,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             'description': kwargs.get('description', ''),
         }
 
-        pipeline_web_tree = PipelineWebTreeClean(pipeline_tree)
+        pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
         nodes_attr = pipeline_web_tree.clean()
 
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
@@ -871,7 +871,7 @@ class TaskFlowInstance(models.Model):
     def pipeline_tree(self):
         tree = self.pipeline_instance.execution_data
         # add nodes attr
-        pipeline_web_clean = PipelineWebTreeClean(tree)
+        pipeline_web_clean = PipelineWebTreeCleaner(tree)
         nodes = NodeInInstance.objects.filter(instance_id=self.pipeline_instance.instance_id)
         nodes_attr = NodeAttr.get_nodes_attr(nodes, 'instance')
         pipeline_web_clean.to_web(nodes_attr)

@@ -21,7 +21,7 @@ from pipeline.exceptions import SubprocessExpiredError
 from pipeline.models import PipelineTemplate
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
-from pipeline_web.parser.clean import PipelineWebTreeClean
+from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from auth_backend.resources import resource_type_lib
 
@@ -54,7 +54,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             'description': kwargs['description'],
         }
 
-        pipeline_web_tree = PipelineWebTreeClean(pipeline_tree)
+        pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
         pipeline_web_tree.clean()
 
         pipeline_template = PipelineTemplate.objects.create_model(
@@ -246,7 +246,7 @@ class BaseTemplate(models.Model):
         tree = self.pipeline_template.data
         replace_template_id(self.__class__, tree, reverse=True)
         # add nodes attr
-        pipeline_web_clean = PipelineWebTreeClean(tree)
+        pipeline_web_clean = PipelineWebTreeCleaner(tree)
         nodes = NodeInTemplate.objects.filter(template_id=self.pipeline_template.template_id, version=self.version)
         nodes_attr = NodeAttr.get_nodes_attr(nodes, 'template')
         pipeline_web_clean.to_web(nodes_attr)
@@ -314,7 +314,7 @@ class BaseTemplate(models.Model):
         pipeline_tree = kwargs.pop('pipeline_tree')
         replace_template_id(self.__class__, pipeline_tree)
 
-        pipeline_web_tree = PipelineWebTreeClean(pipeline_tree)
+        pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
         pipeline_web_tree.clean()
         pipeline_template.update_template(pipeline_tree, **kwargs)
         # create node in template
@@ -345,7 +345,7 @@ class BaseTemplate(models.Model):
         tree = self.pipeline_template.data_for_version(version)
         replace_template_id(self.__class__, tree, reverse=True)
         # add nodes attr
-        pipeline_web_clean = PipelineWebTreeClean(tree)
+        pipeline_web_clean = PipelineWebTreeCleaner(tree)
         nodes = NodeInTemplate.objects.filter(template_id=self.pipeline_template.template_id, version=self.version)
         nodes_attr = NodeAttr.get_nodes_attr(nodes, 'template')
         pipeline_web_clean.to_web(nodes_attr)

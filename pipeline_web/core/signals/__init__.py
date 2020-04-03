@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.dispatch import Signal
 
-node_in_template_post_save = Signal(providing_args=['node_obj', 'node_info'])
-node_in_template_delete = Signal(providing_args=['node_obj'])
+node_in_template_post_save = Signal(providing_args=['nodes_objs', 'nodes_info'])
+node_in_template_delete = Signal(providing_args=['nodes_objs'])
 
-node_in_instance_post_save = Signal(providing_args=['node_obj', 'node_info'])
+node_in_instance_post_save = Signal(providing_args=['nodes_objs', 'nodes_info'])

@@ -39,10 +39,9 @@ class NodeInTemplateManager(models.Manager):
             ))
         self.model.objects.bulk_create(nodes_info)
         # send signal
-        node_objs = self.model.objects.filter(template_id=pipeline_template.template_id,
-                                              version=pipeline_template.version)
-        for node_obj in node_objs:
-            node_in_template_post_save.send(sender=self.model, node_obj=node_obj, node_info=new_nodes[node_obj.node_id])
+        nodes_objs = self.model.objects.filter(template_id=pipeline_template.template_id,
+                                               version=pipeline_template.version)
+        node_in_template_post_save.send(sender=self.model, nodes_objs=nodes_objs, nodes_info=new_nodes)
 
     @transaction.atomic()
     def update_nodes_in_template(self, pipeline_template, pipeline_tree):
@@ -66,17 +65,15 @@ class NodeInTemplateManager(models.Manager):
                     version=pipeline_template.version
                 ))
         # send signal
-        for node_obj in nodes_for_delete:
-            node_in_template_delete.send(sender=self.model, node_obj=node_obj)
+        node_in_template_delete.send(sender=self.model, nodes_objs=nodes_for_delete)
         nodes_for_delete.delete()
 
         nodes_for_update.update(edit_time=now())
         self.bulk_create(nodes_for_add)
         # send signal
-        node_objs = self.filter(template_id=pipeline_template.template_id,
-                                version=pipeline_template.version)
-        for node_obj in node_objs:
-            node_in_template_post_save.send(sender=self.model, node_obj=node_obj, node_info=new_nodes[node_obj.node_id])
+        nodes_objs = self.filter(template_id=pipeline_template.template_id,
+                                 version=pipeline_template.version)
+        node_in_template_post_save.send(sender=self.model, nodes_objs=nodes_objs, nodes_info=new_nodes)
 
     def nodes_in_template(self, template_id, version):
         return self.filter(template_id=template_id, version=version)
@@ -120,9 +117,8 @@ class NodeInInstanceManager(models.Manager):
             ))
         self.model.objects.bulk_create(nodes_info)
         # send signal
-        node_objs = self.filter(instance_id=pipeline_instance.instance_id)
-        for node_obj in node_objs:
-            node_in_instance_post_save.send(sender=self.model, node_obj=node_obj, node_info=new_nodes[node_obj.node_id])
+        nodes_objs = self.filter(instance_id=pipeline_instance.instance_id)
+        node_in_instance_post_save.send(sender=self.model, nodes_objs=nodes_objs, nodes_info=new_nodes)
 
     def nodes_in_instance(self, instance_id):
         return self.filter(instance_id=instance_id)
