@@ -224,7 +224,7 @@
                 let valid = true
                 refs.forEach(item => {
                     if (this.$refs[item].length > 0) {
-                        const result = this.$refs[item][0].validate() // bk-table 里的body会有两份内容
+                        const result = this.$refs[item][1].validate() // bk-table 里的body会有两份内容
                         if (!result) {
                             valid = false
                         }

@@ -12,7 +12,7 @@
 <template>
     <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
         <resource-list
-            v-show="!showFilter"
+            v-if="!showFilter && !colsLoading"
             ref="resourceList"
             :editable="editable"
             :view-value="viewValue"
