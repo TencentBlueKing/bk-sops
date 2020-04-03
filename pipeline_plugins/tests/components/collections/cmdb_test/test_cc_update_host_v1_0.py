@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import json
+import ujson as json
 from django.test import TestCase
 
 from mock import MagicMock
@@ -87,7 +87,7 @@ SEARCH_HOST_RETURN_INFO = {
                             "bk_inst_name": "default area"
                         }
                     ],
-                    "bk_host_innerip": "192.168.1.1"
+                    "bk_host_innerip": "127.0.0.2"
                 },
                 "set": [],
                 "biz": [],
@@ -100,7 +100,7 @@ INPUT_INFO = {
     'cc_host_info': [
         {
             'bk_host_innerip': '127.0.0.1',
-            'bk_host_outerip': '111.111.111.111',
+            'bk_host_outerip': '127.0.0.111',
             'operator': 'executor_token',
             'bk_bak_operator': 'bk_bak_operator',
             'bk_sn': '',
@@ -110,8 +110,8 @@ INPUT_INFO = {
             'bk_isp_name': '',
         },
         {
-            'bk_host_innerip': '192.168.1.1',
-            'bk_host_outerip': '222.222.222.222',
+            'bk_host_innerip': '127.0.0.2',
+            'bk_host_outerip': '127.0.0.222',
             'operator': 'executor_token',
             'bk_bak_operator': 'bk_bak_operator',
             'bk_sn': '',
@@ -123,11 +123,25 @@ INPUT_INFO = {
     ]
 }
 
-FAILED_INPUT = """\
-{"bk_supplier_account":0,"update":[{"properties":{"bk_host_outerip":"111.111.111.111","operator":"executor_token",\
-"bk_bak_operator":"bk_bak_operator"},"bk_host_id":1},{"properties":{"bk_host_outerip":"222.222.222.222","operator":\
-"executor_token","bk_bak_operator":"bk_bak_operator"},"bk_host_id":2}]}\
-"""
+FAILED_INPUT = json.dumps(
+    {
+        "bk_supplier_account": 0,
+        "update": [
+            {
+                "properties": {
+                    "bk_host_outerip": "127.0.0.111",
+                    "operator": "executor_token",
+                    "bk_bak_operator": "bk_bak_operator"
+                },
+                "bk_host_id": 1
+            }, {
+                "properties": {
+                    "bk_host_outerip": "127.0.0.222",
+                    "operator": "executor_token",
+                    "bk_bak_operator": "bk_bak_operator"
+                },
+                "bk_host_id": 2
+            }]})
 # mock path
 GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.cmdb.cc_update_host.get_client_by_user'
 CC_GET_HOST_ID_DICT_BY_INNERIP = 'pipeline_plugins.components.collections.cmdb.cc_update_host.' \
@@ -173,7 +187,7 @@ HOST_UPDATE_SUCCESS_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_HOST_ID_DICT_BY_INNERIP,
-                      calls=[Call('executor_token', 2, ['127.0.0.1', '192.168.1.1'], 0)]),
+                      calls=[Call('executor_token', 2, ['127.0.0.1', '127.0.0.2'], 0)]),
         CallAssertion(func=HOST_UPDATE_SUCCESS_CLIENT.cc.batch_update_host,
                       calls=[Call({
                           "bk_supplier_account": 0,
@@ -181,13 +195,13 @@ HOST_UPDATE_SUCCESS_CASE = ComponentTestCase(
                               {
                                   "bk_host_id": 1,
                                   "properties": {
-                                      "bk_host_outerip": "111.111.111.111",
+                                      "bk_host_outerip": "127.0.0.111",
                                       "operator": "executor_token",
                                       "bk_bak_operator": "bk_bak_operator"}},
                               {
                                   "bk_host_id": 2,
                                   "properties": {
-                                      "bk_host_outerip": "222.222.222.222",
+                                      "bk_host_outerip": "127.0.0.222",
                                       "operator": "executor_token",
                                       "bk_bak_operator": "bk_bak_operator"}}]})])
     ],
@@ -195,7 +209,7 @@ HOST_UPDATE_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=HOST_UPDATE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_HOST_ID_DICT_BY_INNERIP, return_value={'result': True,
-                                                                     'data': {"127.0.0.1": 1, "192.168.1.1": 2}})]
+                                                                     'data': {"127.0.0.1": 1, "127.0.0.2": 2}})]
 )
 
 HOST_UPDATE_ERR_CASE = ComponentTestCase(
@@ -216,12 +230,12 @@ HOST_UPDATE_ERR_CASE = ComponentTestCase(
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_HOST_ID_DICT_BY_INNERIP,
-                      calls=[Call('executor_token', 2, ['127.0.0.1', '192.168.1.1'], 0)]),
+                      calls=[Call('executor_token', 2, ['127.0.0.1', '127.0.0.2'], 0)]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=HOST_UPDATE_FAIL_CLIENT),
         Patcher(target=CC_GET_HOST_ID_DICT_BY_INNERIP, return_value={'result': True,
-                                                                     'data': {"127.0.0.1": 1, "192.168.1.1": 2}})]
+                                                                     'data': {"127.0.0.1": 1, "127.0.0.2": 2}})]
 )
 
 INVALID_IP_CASE = ComponentTestCase(
@@ -229,8 +243,8 @@ INVALID_IP_CASE = ComponentTestCase(
     inputs={
         'cc_host_info': [
             {
-                'bk_host_innerip': 'sss.sss.sss.sss',
-                'bk_host_outerip': '111.111.111.111',
+                'bk_host_innerip': '127.0.0.xxx',
+                'bk_host_outerip': '127.0.0.111',
                 'operator': 'executor_token',
                 'bk_bak_operator': 'bk_bak_operator',
                 'bk_sn': '',
@@ -249,12 +263,12 @@ INVALID_IP_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            'ex_data': '内网ip(sss.sss.sss.sss)格式错误'
+            'ex_data': '内网ip(127.0.0.xxx)格式错误'
         }),
     schedule_assertion=None,
     execute_call_assertion=[
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=HOST_UPDATE_FAIL_CLIENT),
-        ]
+    ]
 )

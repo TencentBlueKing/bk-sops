@@ -67,9 +67,8 @@ def get_host_id_dict_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
         return {'result': False, 'message': message}
 
     ip_to_id = {item['host']['bk_host_innerip']: item['host']['bk_host_id'] for item in cc_result['data']['info']}
-    invalid_ip_list = []
-    [invalid_ip_list.append(ip) for ip in ip_list if ip not in ip_to_id]
 
+    invalid_ip_list = [ip for ip in ip_list if ip not in ip_to_id]
     if invalid_ip_list:
         result = {
             'result': False,
