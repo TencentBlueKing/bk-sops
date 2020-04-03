@@ -33,7 +33,7 @@
             <div class="common-form-item executor-switch">
                 <label>{{i18n.alwaysUseExecutorLabel}}</label>
                 <div class="common-form-content">
-                    <bk-switcher v-model="alwaysUseExecutor" size="small"></bk-switcher>
+                    <bk-switcher v-model="alwaysUseExecutor" size="small" theme="primary"></bk-switcher>
                     <i
                         class="common-icon-info desc-tooltip"
                         v-bk-tooltips="{

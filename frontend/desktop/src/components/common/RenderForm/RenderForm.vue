@@ -100,19 +100,19 @@
         watch: {
             scheme: {
                 handler: function (val) {
-                    this.setDefaultValue(val, this.formData)
+                    this.setDefaultValue(val, this.value)
                 },
                 deep: true
             },
             formData: {
-                handler: function (val) {
+                handler: function (val, oldVal) {
                     this.value = tools.deepClone(val)
                 },
                 deep: true
             }
         },
         created () {
-            this.setDefaultValue(this.scheme, this.formData)
+            this.setDefaultValue(this.scheme, this.value)
         },
         methods: {
             /**
@@ -124,6 +124,7 @@
             setDefaultValue (scheme, data) {
                 if (!scheme || !Array.isArray(scheme)) return
 
+                let isSetValueToFormData = false // 传入的 formData 中不包含 scheme 项中的值
                 scheme.forEach(item => {
                     const key = item.tag_code
 
@@ -135,13 +136,14 @@
                     if (item.type === 'combine') {
                         if (!this.hooked || !this.hooked[item.tag_code]) {
                             if (!(key in data)) {
+                                isSetValueToFormData = true
                                 this.$set(data, key, {})
-                                this.$set(this.value, key, {})
                             }
                             this.setDefaultValue(item.attrs.children, data[key])
                         }
                     } else {
                         if (!(key in data)) {
+                            isSetValueToFormData = true
                             let val
                             if ('value' in item.attrs) {
                                 val = tools.deepClone(item.attrs.value)
@@ -188,16 +190,19 @@
                         }
                     }
                 })
+                if (isSetValueToFormData) {
+                    this.$emit('change', tools.deepClone(data))
+                }
             },
             getFormValue (atom) {
                 /** warning 前端tag结构变化数据兼容 */
                 if (atom.tag_code === 'job_task') {
                     this.value[atom.tag_code] = this.reloadValue(atom, this.value)
                 }
-                return this.formData[atom.tag_code]
+                return this.value[atom.tag_code]
             },
             updateForm (fieldArr, val) {
-                const fieldDataObj = tools.deepClone(this.formData)
+                const fieldDataObj = tools.deepClone(this.value)
                 fieldArr.reduce((acc, cur, index, arr) => {
                     if (index === arr.length - 1) {
                         acc[cur] = val

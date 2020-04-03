@@ -421,7 +421,7 @@
         height: calc(100% - 50px);
     }
     .tag-panel-col {
-        width: 56px;
+        width: 111px;
         height: 100%;
         border-right: 1px solid #dde4eb;
     }
@@ -430,7 +430,7 @@
         height: 100%;
     }
     .config-panel-col {
-        width: calc(100% - 806px);
+        width: calc(100% - 861px);
         height: 100%;
         background: #ffffff;
         border-left: 1px solid #dde4eb;

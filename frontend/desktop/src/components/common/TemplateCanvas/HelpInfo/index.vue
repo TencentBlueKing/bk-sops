@@ -36,7 +36,7 @@
                                 <td>{{ i18n.scroll }}:</td>
                                 <td>{{ i18n.zoom }}</td>
                             </tr>
-                            <template v-show="editable">
+                            <template v-if="editable">
                                 <tr>
                                     <td>{{ commonCtrl }} {{ i18n.click }}:</td>
                                     <td>{{ i18n.multiple }}</td>
@@ -143,7 +143,7 @@
     .hot-key-panel {
         position: absolute;
         left: 80px;
-        top: 124px;
+        top: 80px;
         padding: 20px;
         width: 340px;
         border-radius: 4px;

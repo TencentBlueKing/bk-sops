@@ -22,7 +22,7 @@ class ConfFixture(object):
 
     CONSOLE_LOGIN_URL = settings.BK_PAAS_HOST
     LOGIN_URL = settings.BK_PAAS_HOST + '/login/'
-    LOGIN_PLAIN_URL = settings.BK_PAAS_HOST + '/login/plain/'
+    LOGIN_PLAIN_URL = settings.BK_PAAS_HOST + '/login/'
     VERIFY_URL = settings.BK_PAAS_INNER_HOST + '/login/accounts/is_login/'
     USER_INFO_URL = settings.BK_PAAS_INNER_HOST + '/login/accounts/get_user/'
     HAS_PLAIN = False
@@ -36,6 +36,14 @@ class ConfFixture(object):
     WEIXIN_MIDDLEWARE = 'null.NullMiddleware'
     WEIXIN_BACKEND = 'null.NullBackend'
 
+    SMS_CLIENT_MODULE = 'cmsi'
+    SMS_CLIENT_FUNC = 'send_sms'
+    SMS_CLIENT_USER_ARGS_NAME = 'receiver__username'
+    SMS_CLIENT_CONTENT_ARGS_NAME = 'content'
+
     RIO_BACKEND_TYPE = 'null'
     RIO_MIDDLEWARE = 'null.NullMiddleware'
     RIO_BACKEND = 'null.NullBackend'
+
+    BK_JWT_MIDDLEWARE = 'bk_jwt.middlewares.BkJwtLoginRequiredMiddleware'
+    BK_JWT_BACKEND = 'bk_jwt.backends.BkJwtBackend'

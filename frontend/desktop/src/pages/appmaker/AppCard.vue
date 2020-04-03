@@ -42,26 +42,37 @@
                     :title="i18n.executive"
                     :to="getExecuteHistoryUrl(appData.template_id)">
                 </router-link>
-                <bk-dropdown-menu align="left" ext-cls="operate-dropdown">
-                    <span slot="dropdown-trigger" class="common-icon-circle-ellipsis operate-btn"></span>
-                    <ul class="operate-list" slot="dropdown-content">
+                <bk-popover
+                    theme="light"
+                    placement="right-bottom"
+                    ext-cls="common-dropdown-btn-popver"
+                    :z-index="2000"
+                    :distance="0"
+                    :arrow="false"
+                    :tippy-options="{ boundary: 'window', duration: [0, 0], appendTo: 'parent' }">
+                    <span class="common-icon-circle-ellipsis operate-btn"></span>
+                    <ul class="operate-list" slot="content">
                         <li
                             v-cursor="{ active: !hasPermission(['view'], appData.auth_actions, appOperations) }"
                             href="javascript:void(0);"
                             :class="{
+                                'opt-btn': true,
                                 'text-permission-disable': !hasPermission(['view'], appData.auth_actions, appOperations)
                             }"
                             @click="onCollectAppMaker(appData, $event)">
                             {{ isCollected(appData.id) ? i18n.cancelCollection : i18n.collect }}
                         </li>
                         <li
-                            :class="{ 'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations) }"
+                            :class="{
+                                'opt-btn': true,
+                                'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
+                            }"
                             v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
                             @click="onCardDelete">
                             {{i18n.delete}}
                         </li>
                     </ul>
-                </bk-dropdown-menu>
+                </bk-popover>
             </div>
         </div>
         <div class="card-particular">
@@ -91,7 +102,14 @@
     export default {
         name: 'AppCard',
         mixins: [permission],
-        props: ['appData', 'project_id', 'appResource', 'appOperations'],
+        props: {
+            appData: Object,
+            project_id: [Number, String],
+            appResource: Object,
+            appOperations: Array,
+            collectedLoading: Boolean,
+            collectedList: Array
+        },
         data () {
             return {
                 isLogoLoadingError: false,
@@ -120,23 +138,11 @@
                 return this.isLogoLoadingError || !this.appData.logo_url
             }
         },
-        created () {
-            this.getCollectList()
-        },
         methods: {
             ...mapActions('template/', [
                 'addToCollectList',
-                'deleteCollect',
-                'loadCollectList'
+                'deleteCollect'
             ]),
-            async getCollectList () {
-                try {
-                    const res = await this.loadCollectList()
-                    this.collectionList = res.objects
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
             useDefaultLogo () {
                 this.isLogoLoadingError = true
             },
@@ -198,6 +204,10 @@
                     this.onAppMakerPermissonCheck(['view'], this.appData, event)
                     return
                 }
+                // 收藏列表数据加载时，不执行操作
+                if (this.collectedLoading) {
+                    return
+                }
                 try {
                     if (!this.isCollected(data.id)) { // add
                         const res = await this.addToCollectList([{
@@ -206,31 +216,30 @@
                                 name: data.name,
                                 id: data.id
                             },
-                            category: 'common_flow'
+                            category: 'mini_app'
                         }])
                         if (res.objects.length) {
                             this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
                         }
                     } else { // cancel
-                        const delId = this.collectionList.find(m => m.extra_info.id === data.id && m.category === 'common_flow').id
+                        const delId = this.collectedList.find(m => m.extra_info.id === data.id && m.category === 'mini_app').id
                         await this.deleteCollect(delId)
                         this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
                     }
-                    this.getCollectList()
+                    this.$emit('getCollectList')
                 } catch (e) {
                     errorHandler(e, this)
                 }
             },
             // 判断是否已在收藏列表
             isCollected (id) {
-                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'common_flow')
+                return !!this.collectedList.find(m => m.extra_info.id === id && m.category === 'mini_app')
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-@import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
     min-width: 345px;
@@ -240,48 +249,22 @@
     border: 1px solid $commonBorderColor;
     border-radius: 2px;
 }
-.card-operation {
-    position: relative;
-    font-size: 24px;
-    color: #979ba5;
-    text-align: center;
-    opacity: 0;
-    transform: translateY(110%);
-    transition-duration: 0.25s;
-    .operate-btn {
-        padding: 5px;
-        font-size: 14px;
-        color: #ffffff;
-        background: #d8dadc;
-        border-radius: 2px;
-        cursor: pointer;
-        &:not(.permission-disable):hover {
-            background: #979ba5;
-        }
-    }
-    .operate-list {
-        width: 120px;
-        font-size: 12px;
-        li {
-            padding: 0 12px;
-            width: 100%;
-            height: 32px;
-            line-height: 32px;
-            color: #63656e;
-            cursor: pointer;
-            &:hover {
-                color: #3ab4ff;
-                background: #ebf4ff;
-            }
-        }
-    }
-}
 .card-basic {
     float: left;
+    position: relative;
     width: 40%;
     height: 100%;
     padding: 20px 15px;
     border-right: 1px solid $commonBorderColor;
+    &:hover {
+        background: #f0f1f5;
+        .card-operation {
+            bottom: 10px;
+            z-index: 1;
+            opacity: 1;
+            visibility: visible;
+        }
+    }
     .logo {
         width: 60px;
         height: 60px;
@@ -311,28 +294,59 @@
         height: 40px;
         .app-name {
             display: block;
+            display: -webkit-box;
             font-size: 14px;
             font-weight: bold;
             color: #63656e;
             word-break: break-all;
             cursor: pointer;
-            @include multiLineEllipsis(1.2em, 2);
             text-align: center;
+            overflow : hidden;
+            text-overflow: ellipsis;
+            word-break: break-all;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             &:hover {
                 color: $blueDefault;
             }
         }
     }
-    &:hover {
-        background: #f0f1f5;
-        .app-name::after {
-            background: #f0f1f5;
+}
+.card-operation {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    font-size: 24px;
+    color: #979ba5;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    .operate-btn {
+        padding: 5px;
+        font-size: 14px;
+        color: #ffffff;
+        background: #d8dadc;
+        border-radius: 2px;
+        cursor: pointer;
+        &:not(.permission-disable):hover {
+            background: #979ba5;
         }
-        .card-operation {
-            transform: translateY(-10%);
-            transition-duration: 0.25s;
-            z-index: 1;
-            opacity: 1;
+    }
+    .operate-list {
+        font-size: 12px;
+        li {
+            padding: 0 12px;
+            width: 100%;
+            height: 32px;
+            line-height: 32px;
+            color: #63656e;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+                background: #ebf4ff;
+            }
         }
     }
 }

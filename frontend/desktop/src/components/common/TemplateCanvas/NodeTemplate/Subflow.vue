@@ -120,8 +120,8 @@
     }
     .updated-dot {
         position: absolute;
-        top: -6px;
-        right: 15px;
+        top: -4px;
+        right: -4px;
         width: 8px;
         height: 8px;
         background: #ff5757;

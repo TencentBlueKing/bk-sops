@@ -13,7 +13,7 @@
     <div class="variable-cited-wrap">
         <ul class="variable-cited-list">
             <li
-                v-for="item in citedList"
+                v-for="item in list"
                 :key="item.id"
                 class="variable-cited-item">
                 <span class="cited-name"
@@ -29,26 +29,21 @@
     import { mapState } from 'vuex'
     export default {
         name: 'VariableCitedList',
-        props: ['constant'],
+        props: {
+            constant: Object,
+            citedList: Array
+        },
         computed: {
             ...mapState({
-                'constantsCited': state => state.template.constantsCited,
                 'activities': state => state.template.activities
             }),
-            citedList () {
-                const list = []
-                for (const node in this.constantsCited) {
-                    const codes = this.constantsCited[node]
-                    for (const code in codes) {
-                        if (code === this.constant.key) {
-                            list.push({
-                                name: this.activities[node].name,
-                                id: node
-                            })
-                        }
+            list () {
+                return this.citedList.map(id => {
+                    return {
+                        id,
+                        name: this.activities[id].name
                     }
-                }
-                return list
+                })
             }
         },
         methods: {

@@ -19,7 +19,7 @@
             :quick-close="true">
             <div slot="header">
                 <span class="close-panel-icon"></span>
-                <span class="global-variable-text">{{i18n.global_varibles}}</span>
+                <span class="global-variable-text">{{i18n.globalVar}}</span>
                 <i
                     class="common-icon-info global-variable-tootip"
                     v-bk-tooltips="{
@@ -85,17 +85,15 @@
                     </div>
                     <div v-if="isVarTipsShow" class="variable-operating-tips">{{ varOperatingTips }}</div>
                     <ul class="variable-list" ref="variableList">
-                        <draggable class="variable-drag" v-model="variableList" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
+                        <draggable class="variable-drag" :list="variableList" handle=".col-item-drag" @end="onDragEnd($event)">
                             <VariableItem
-                                v-for="(constant, index) in variableList"
+                                v-for="constant in variableList"
                                 :ref="`variableKey_${constant.key}`"
-                                :key="index"
-                                :outputs="outputs"
+                                :key="constant.key"
+                                :outputed="outputs.indexOf(constant.key) > -1"
                                 :is-variable-editing="isVariableEditing"
                                 :constant="constant"
-                                :constants-cited="constantsCited"
                                 :variable-data="variableData"
-                                :variable-list="variableList"
                                 :variable-type-list="variableTypeList"
                                 :the-key-of-editing="theKeyOfEditing"
                                 :the-key-of-view-cited="theKeyOfViewCited"
@@ -148,7 +146,7 @@
 
 <script>
     import '@/utils/i18n.js'
-    import { mapMutations, mapState, mapGetters } from 'vuex'
+    import { mapMutations, mapState } from 'vuex'
     import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
     import VariableEdit from './VariableEdit.vue'
@@ -167,7 +165,7 @@
             return {
                 isHideSystemVar: false,
                 i18n: {
-                    global_varibles: gettext('全局变量'),
+                    globalVar: gettext('全局变量'),
                     new: gettext('新建'),
                     edit: gettext('编辑'),
                     hideSystemVar: gettext('隐藏系统变量'),
@@ -194,6 +192,7 @@
                 theKeyOfViewCited: '',
                 constantsArray: [],
                 deleteConfirmDialogShow: false,
+                deleteVarKey: '',
                 isVarTipsShow: false
             }
         },
@@ -202,12 +201,10 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
+                'activities': state => state.template.activities,
                 'systemConstants': state => state.template.systemConstants,
                 'timeout': state => state.template.time_out
             }),
-            ...mapGetters('template/', [
-                'constantsCited'
-            ]),
             variableData () {
                 if (this.theKeyOfEditing) {
                     return this.constants[this.theKeyOfEditing] || this.systemConstants[this.theKeyOfEditing]
@@ -238,27 +235,22 @@
              * 系统变量：index范围 （-1 => -n）
              * 普通变量：index范围 （0 => n）
              */
-            variableList: {
-                get () {
-                    if (this.isHideSystemVar) {
-                        return this.getConstantsArray(this.constants)
-                    }
-                    return [
-                        ...this.getConstantsArray(this.systemConstants),
-                        ...this.getConstantsArray(this.constants)
-                    ]
-                },
-                set (val) {
-                    this.constantsArray = val
+            variableList () {
+                if (this.isHideSystemVar) {
+                    return this.getConstantsArray(this.constants)
                 }
+                return [
+                    ...this.getConstantsArray(this.systemConstants),
+                    ...this.getConstantsArray(this.constants)
+                ]
             },
             // 操作变量提示 title
             varOperatingTips () {
-                const { new: newText, edit, global_varibles } = this.i18n
+                const { new: newText, edit, globalVar } = this.i18n
                 if (this.theKeyOfEditing) {
-                    return edit + global_varibles
+                    return edit + globalVar
                 }
-                return newText + global_varibles
+                return newText + globalVar
             },
             systemConstantsList () {
                 const list = []
@@ -268,6 +260,7 @@
                 list.sort((a, b) => b.index - a.index)
                 return list
             }
+                
         },
         watch: {
             constants: {
@@ -286,11 +279,7 @@
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
-                'setOutputs',
-                'setReceiversGroup',
-                'setNotifyType',
-                'setOvertime',
-                'setCategory'
+                'setOutputs'
             ]),
             getConstantsArray (obj) {
                 const arrayList = []
@@ -349,12 +338,30 @@
              * 变量顺序拖拽
              */
             onDragEnd (event) {
-                const { newIndex, oldIndex } = event
-                const start = Math.min(newIndex, oldIndex)
-                const end = Math.max(newIndex, oldIndex) + 1
+                let { newIndex, oldIndex } = event
+                if (!this.isHideSystemVar) {
+                    newIndex = newIndex - this.systemConstantsList.length
+                    oldIndex = oldIndex - this.systemConstantsList.length
+                }
+                const varItem = this.constantsArray[oldIndex]
+
+                let start, end, delta
+                if (newIndex > oldIndex) { // 从上往下拖
+                    start = oldIndex
+                    end = newIndex + 1
+                    delta = -1
+                } else {
+                    start = newIndex
+                    end = oldIndex + 1
+                    delta = 1
+                }
                 const indexChangedVariable = this.constantsArray.slice(start, end)
                 indexChangedVariable.forEach((item, index) => {
-                    item.index = index + start
+                    if (item.key === varItem.key) {
+                        item.index = newIndex
+                    } else {
+                        item.index = item.index + delta
+                    }
                     this.editVariable({ key: item.key, variable: item })
                 })
                 this.$emit('variableDataChanged')
@@ -381,31 +388,19 @@
             /**
              *  删除变量
              */
-            onDeleteVariable ({ key, index }) {
+            onDeleteVariable (key) {
                 this.deleteVarKey = key
-                this.deleteVarIndex = index
                 this.deleteConfirmDialogShow = true
             },
             onConfirm () {
-                const key = this.deleteVarKey
-                const index = this.deleteVarIndex
-                this.$emit('onDeleteConstant', key)
-                this.$nextTick(() => {
-                    const len = this.constantsArray.length
-                    if (len > 1) {
-                        const indexChangedVariable = this.constantsArray.slice(index + 1, len)
-                        indexChangedVariable.forEach((item, index) => {
-                            item.index -= 1
-                            this.editVariable({ key: item.key, variable: item })
-                        })
-                    }
-                    this.deleteVariable(key)
-                    this.$emit('variableDataChanged')
-                    this.deleteConfirmDialogShow = false
-                })
+                this.deleteConfirmDialogShow = false
+                this.deleteVariable(this.deleteVarKey)
+                this.$emit('variableDataChanged')
+                this.deleteVarKey = ''
             },
             onCancel () {
                 this.deleteConfirmDialogShow = false
+                this.deleteVarKey = ''
             },
             // 添加滚动监听
             addContentScroll () {
@@ -459,19 +454,13 @@
             /**
              * 展示引用节点列表
              * @param {String} key 变量 key
-             * @param {Number} nums 变量被引用次数
              */
-            onViewCitedList (key, nums) {
-                if (!nums) {
-                    this.theKeyOfViewCited = ''
-                    return
-                }
+            onViewCitedList (key) {
                 if (this.theKeyOfViewCited === key) {
                     this.theKeyOfViewCited = ''
-                    return
+                } else {
+                    this.theKeyOfViewCited = key
                 }
-                this.onChangeEdit(false)
-                this.theKeyOfViewCited = key
             },
             onClickVarPin () {
                 this.$emit('onClickVarPin', !this.isFixedVarMenu)
@@ -523,11 +512,10 @@ $localBorderColor: #dcdee5;
     }
     .panel-fixed-pin {
         position: absolute;
-        top: 16px;
+        top: 14px;
         right: 30px;
-        width: 32px;
-        height: 32px;
-        line-height: 32px;
+        padding: 6px 9px;
+        line-height: initial;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
         font-size: 14px;
@@ -604,7 +592,7 @@ $localBorderColor: #dcdee5;
         position: absolute;
         left: 0;
         top: 42px;
-        z-index: 1;
+        z-index: 101;
         width: 100%;
         height: 43px;
         line-height: 43px;

@@ -18,9 +18,8 @@ from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
 def get_project_with(obj_id, scope):
     get_filters = {}
     if scope == PROJECT_SCOPE_CMDB_BIZ:
-        get_filters.update({'bk_biz_id': obj_id,
-                            'from_cmdb': True})
+        get_filters.update({"bk_biz_id": obj_id, "from_cmdb": True})
     else:
-        get_filters.update({'id': obj_id})
+        get_filters.update({"id": obj_id})
 
     return Project.objects.get(**get_filters)

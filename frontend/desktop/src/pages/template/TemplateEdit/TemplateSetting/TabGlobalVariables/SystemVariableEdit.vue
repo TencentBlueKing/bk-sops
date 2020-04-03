@@ -36,20 +36,15 @@
                         </bk-input>
                     </div>
                 </li>
-                <!-- 显示/隐藏 -->
+                <!-- 说明 -->
                 <li class="form-item clearfix">
-                    <label class="required">{{ i18n.show }}</label>
+                    <label class="required">{{ i18n.desc }}</label>
                     <div class="form-content">
-                        <bk-select
-                            :value="variableData.show_type"
-                            :disabled="true">
-                            <bk-option
-                                v-for="(option, index) in showTypeList"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
+                        <bk-input
+                            type="textarea"
+                            :disabled="true"
+                            :value="variableData.desc || ' '">
+                        </bk-input>
                     </div>
                 </li>
             </ul>
@@ -58,7 +53,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState } from 'vuex'
     export default {
         name: 'SystemVariableEdit',
         props: ['variableData', 'varOperatingTips'],
@@ -66,34 +60,9 @@
             return {
                 i18n: {
                     name: gettext('名称'),
-                    show: gettext('显示'),
+                    desc: gettext('说明'),
                     cited: gettext('引用节点')
-                },
-                showTypeList: [
-                    { id: 'show', name: gettext('显示') },
-                    { id: 'hide', name: gettext('隐藏') }
-                ]
-            }
-        },
-        computed: {
-            ...mapState({
-                'constantsCited': state => state.template.constantsCited
-            }),
-            // 当前变量引用的节点信息
-            currConstantsCited () {
-                const curKey = this.variableData.key
-                const nodes = []
-                for (const node in this.constantsCited) {
-                    for (const key in this.constantsCited[node]) {
-                        if (curKey === key) {
-                            nodes.push({
-                                name: node,
-                                numbers: this.constantsCited[node][key]
-                            })
-                        }
-                    }
                 }
-                return nodes
             }
         }
     }

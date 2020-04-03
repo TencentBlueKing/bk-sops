@@ -11,8 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
 import logging
 
+from gcloud.constants import PROJECT
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.commons.template.models import CommonTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.context import TaskContext
 
@@ -31,3 +35,24 @@ def get_instance_context(pipeline_instance, data_type, username=''):
     # pipeline的root_pipeline_context数据，可以直接在参数中引用，如 ${_system.biz_cc_id}
     else:
         return TaskContext(taskflow, username).context()
+
+
+def preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id):
+
+    if template_source == PROJECT:
+        template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
+    else:
+        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+    pipeline_tree = template.get_pipeline_tree_by_version(version)
+    template_constants = copy.deepcopy(pipeline_tree['constants'])
+    TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+
+    constants_not_referred = {
+        key: value for key, value in list(template_constants.items())
+        if key not in pipeline_tree['constants']
+    }
+
+    return {
+        'pipeline_tree': pipeline_tree,
+        'constants_not_referred': constants_not_referred
+    }

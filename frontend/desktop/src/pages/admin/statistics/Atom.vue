@@ -320,7 +320,7 @@
             this.getAtomList()
         },
         methods: {
-            ...mapActions('atomList', [
+            ...mapActions('atomForm', [
                 'queryAtomData',
                 'loadSingleAtomList'
             ]),

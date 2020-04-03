@@ -14,6 +14,7 @@
         <task-operation-header
             :node-nav="nodeNav"
             :project_id="project_id"
+            :template_id="template_id"
             :template-source="templateSource"
             :node-info-type="nodeInfoType"
             :task-operation-btns="taskOperationBtns"

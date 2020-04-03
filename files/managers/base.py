@@ -15,11 +15,10 @@ from abc import ABCMeta, abstractmethod
 
 
 class Manager(object, metaclass=ABCMeta):
-
     def __init__(self, storage):
         self.storage = storage
 
-    def save(self, name, content, shims=None, max_length=None):
+    def save(self, name, content, shims=None, max_length=None, **kwargs):
         """
         content {object} -- [a proper File object or any python file-like object]
         This method should return a file tag, which will mark the file info for this type of manager:
@@ -28,15 +27,7 @@ class Manager(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def push_files_to_ips(
-            self,
-            esb_client,
-            bk_biz_id,
-            file_tags,
-            target_path,
-            ips,
-            account,
-            callback_url=None):
+    def push_files_to_ips(self, esb_client, bk_biz_id, file_tags, target_path, ips, account, callback_url=None):
         raise NotImplementedError()
 
     @abstractmethod

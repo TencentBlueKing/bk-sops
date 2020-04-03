@@ -127,7 +127,7 @@
             </ul>
             <div class="action-wrapper">
                 <bk-button
-                    theme="success"
+                    theme="primary"
                     :disabled="atomConfigLoading"
                     @click.stop="saveVariable">
                     {{ i18n.save }}
@@ -164,16 +164,15 @@
         components: {
             RenderForm
         },
-        props: [
-            'variableData',
-            'variableList',
-            'isNewVariable',
-            'isSystemVar',
-            'variableTypeList',
-            'systemConstants',
-            'isHideSystemVar',
-            'varOperatingTips'
-        ],
+        props: {
+            variableData: Object,
+            isNewVariable: Boolean,
+            isSystemVar: Boolean,
+            variableTypeList: Array,
+            systemConstants: Object,
+            isHideSystemVar: Boolean,
+            varOperatingTips: String
+        },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
@@ -370,9 +369,9 @@
                     await this.loadAtomConfig({
                         classify,
                         isMeta: isMeta,
-                        atomType: this.atomType,
+                        name: this.atomType,
                         version: this.version,
-                        saveName: atom
+                        atom
                     })
                     this.getRenderConfig()
                 } catch (e) {
@@ -530,6 +529,7 @@
                         )
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
+                        variable.index = this.constants[variable.key].index
                         this.editVariable({ key: this.variableData.key, variable })
                     }
                     return true

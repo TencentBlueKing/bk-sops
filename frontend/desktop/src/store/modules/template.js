@@ -15,7 +15,6 @@ import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
-import { checkDataType } from '@/utils/checkDataType.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
@@ -31,13 +30,13 @@ function generateInitLocation () {
     return [
         {
             id: 'node' + uuid(),
-            x: 80,
+            x: 20,
             y: 150,
             type: 'startpoint'
         },
         {
             id: 'node' + uuid(),
-            x: 300,
+            x: 240,
             y: 145,
             name: '',
             stage_name: gettext('步骤1'),
@@ -45,7 +44,7 @@ function generateInitLocation () {
         },
         {
             id: 'node' + uuid(),
-            x: 600,
+            x: 540,
             y: 150,
             type: 'endpoint'
         }
@@ -172,7 +171,6 @@ const template = {
         start_event: {},
         template_id: '',
         constants: {},
-        constantsCited: {},
         projectBaseInfo: {},
         notify_receivers: {
             receiver_group: [],
@@ -207,7 +205,9 @@ const template = {
             state.subprocess_info.details.some(item => {
                 if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
-                    subflow.version && (item.version = subflow.version)
+                    if (subflow.version) {
+                        item.version = subflow.version
+                    }
                     return true
                 }
             })
@@ -219,37 +219,48 @@ const template = {
             ]
             pipelineTreeOrder.forEach(key => {
                 let val = data[key]
-                if (key !== 'constants') {
-                    val = nodeFilter.convertInvalidIdData(key, val) // convert old invalid data =_=!
-                }
-                if (key === 'activities') { // 兼容脏数据 can_retry、isSkipped 字段不存在问题
-                    for (const nodeId in val) {
-                        const item = val[nodeId]
-                        if (!item.hasOwnProperty('can_retry') && !item.hasOwnProperty('retryable')) {
-                            item.can_retry = true
-                        }
-                        if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
-                            item.isSkipped = true
+
+                if (key === 'constants') {
+                    // 全局变量 index 修正，3.5版本之前变量 index 存在不连续的情况，导致新增变量时 index 不正确
+                    Object.keys(val).map(varKey => val[varKey])
+                        .sort((a, b) => a.index - b.index)
+                        .forEach((item, index) => {
+                            item.index = index
+                        })
+                } else {
+                    // 节点、连线不和规则 id 替换
+                    // 3.1版本之前节点和连线的 id 可能存在以数字开头的情况，导致使用 docuement.getElementById 等查找DOM节点失败
+                    val = nodeFilter.convertInvalidIdData(key, val)
+                    if (key === 'activities') { // 兼容脏数据 can_retry、isSkipped 字段不存在问题
+                        for (const nodeId in val) {
+                            const item = val[nodeId]
+                            if (!item.hasOwnProperty('can_retry') && !item.hasOwnProperty('retryable')) {
+                                item.can_retry = true
+                            }
+                            if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
+                                item.isSkipped = true
+                            }
                         }
                     }
+                    if (key === 'location') {
+                        val = val.map(item => {
+                            if (item.type === 'tasknode' || item.type === 'subflow') {
+                                const node = state.activities[item.id]
+                                const loc = Object.assign({}, item, {
+                                    name: node.name,
+                                    stage_name: node.stage_name,
+                                    optional: node.optional,
+                                    error_ignorable: node.error_ignorable,
+                                    retryable: node.can_retry || node.retryable,
+                                    skippable: node.isSkipped || node.skippable
+                                })
+                                return loc
+                            }
+                            return item
+                        })
+                    }
                 }
-                if (key === 'location') {
-                    val = val.map(item => {
-                        if (item.type === 'tasknode' || item.type === 'subflow') {
-                            const node = state.activities[item.id]
-                            const loc = Object.assign({}, item, {
-                                name: node.name,
-                                stage_name: node.stage_name,
-                                optional: node.optional,
-                                error_ignorable: node.error_ignorable,
-                                retryable: node.can_retry || node.retryable,
-                                skippable: node.isSkipped || node.skippable
-                            })
-                            return loc
-                        }
-                        return item
-                    })
-                }
+                
                 state[key] = val
             })
         },
@@ -329,6 +340,7 @@ const template = {
             const constant = state.constants[key]
             const { source_info } = constant
 
+            // 遍历节点，去掉表单的勾选状态，并将变量值复制给对应表单
             for (const id in source_info) {
                 if (state.activities[id]) {
                     source_info[id].forEach(item => {
@@ -346,18 +358,20 @@ const template = {
                     })
                 }
             }
-            const vIndex = state.outputs.indexOf(key)
-            vIndex > -1 && state.outputs.splice(vIndex, 1)
-            Vue.delete(state.constants, key)
-            // 删除变量引用节点信息
-            for (const node in state.constantsCited) {
-                const citedInfo = state.constantsCited[node]
-                for (const varKey in citedInfo) {
-                    if (varKey === key) {
-                        Vue.delete(citedInfo, varKey)
-                    }
+            // 删除输出变量的勾选状态
+            if (state.outputs.includes(key)) {
+                state.outputs.splice(state.outputs.indexOf(key), 1)
+            }
+
+            for (const key in state.constants) {
+                const varItem = state.constants[key]
+                console.log(varItem.name, varItem.index, constant.index)
+                if (varItem.index > constant.index) {
+                    varItem.index = varItem.index - 1
                 }
             }
+
+            Vue.delete(state.constants, key)
         },
         // 配置全局变量 source_info 字段
         setVariableSourceInfo (state, payload) {
@@ -383,6 +397,9 @@ const template = {
                         }
                     })
                     sourceInfo[id].splice(atomIndex, 1)
+                }
+                if (!Object.keys(sourceInfo).length) {
+                    this.commit('template/deleteVariable', key)
                 }
             }
         },
@@ -554,8 +571,9 @@ const template = {
             const { type, location } = payload
             if (type === 'add') {
                 if (!state.activities[location.id]) {
+                    let activity = {}
                     if (location.type === 'tasknode') {
-                        state.activities[location.id] = {
+                        activity = {
                             component: {
                                 code: location.atomId,
                                 data: location.data,
@@ -574,7 +592,7 @@ const template = {
                             skippable: true
                         }
                     } else if (location.type === 'subflow') {
-                        state.activities[location.id] = {
+                        activity = {
                             constants: {},
                             hooked_constants: [],
                             id: location.id,
@@ -589,9 +607,10 @@ const template = {
                             type: 'SubProcess'
                         }
                     }
+                    Vue.set(state.activities, location.id, activity)
                 }
             } else if (type === 'edit') {
-                state.activities[location.id] = location
+                Vue.set(state.activities, location.id, location)
                 state.location.some(item => {
                     if (item.id === location.id) {
                         Vue.set(item, 'name', location.name)
@@ -646,7 +665,6 @@ const template = {
                     }
                 }
             }
-            this.commit('template/setConstantsCited', { nodeId: location.id })
         },
         // 网关节点增加、删除操作，更新模板各相关字段数据
         setGateways (state, payload) {
@@ -734,46 +752,6 @@ const template = {
         // 设置内置变量
         setInternalVariable (state, payload) {
             state.systemConstants = payload
-        },
-        // 更新变量引用此次
-        setConstantsCited (state, payload) {
-            // 更新变量引用次数
-            const { nodeId } = payload
-            const constantsCited = {}
-            const codeReg = /\$\{[0-9a-zA-Z\_\.]*\}/g
-            if (state.activities[nodeId]) {
-                const item = state.activities[nodeId]
-                const nodeData = item.type === 'ServiceActivity' ? item.component.data : item.constants
-                if (checkDataType(nodeData) === 'Object') {
-                    for (const code in nodeData) {
-                        const value = nodeData[code].value
-                        const matchArr = checkDataType(value) === 'String' ? value.match(codeReg) || [] : []
-                        matchArr.forEach(matchItem => {
-                            if (constantsCited[matchItem]) {
-                                constantsCited[matchItem] += 1
-                            } else {
-                                constantsCited[matchItem] = 1
-                            }
-                        })
-                    }
-                }
-            }
-            // 输出变量
-            for (const key in state.constants) {
-                const constant = state.constants[key]
-                if (constant.source_type === 'component_outputs') {
-                    for (const node in constant.source_info) {
-                        if (node === nodeId) {
-                            if (constantsCited[constant.key]) {
-                                constantsCited[constant.key] += 1
-                            } else {
-                                constantsCited[constant.key] = 1
-                            }
-                        }
-                    }
-                }
-            }
-            Vue.set(state.constantsCited, nodeId, constantsCited)
         }
     },
     actions: {
@@ -911,20 +889,6 @@ const template = {
                 outputs,
                 start_event
             }
-        },
-        constantsCited: state => {
-            const constantsCitedMap = {}
-            for (const nodeId in state.constantsCited) {
-                const obj = state.constantsCited[nodeId]
-                for (const key in obj) {
-                    if (constantsCitedMap[key]) {
-                        constantsCitedMap[key] += obj[key]
-                    } else {
-                        constantsCitedMap[key] = obj[key]
-                    }
-                }
-            }
-            return constantsCitedMap
         }
     }
 }

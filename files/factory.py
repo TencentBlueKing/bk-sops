@@ -14,30 +14,51 @@ specific language governing permissions and limitations under the License.
 import os
 
 from .managers.nfs import HostNFSManager
+from .managers.upload_module import UploadModuleManager
+from .bartenders.nfs import HostNFSBartender
+from .bartenders.upload_module import UploadModuleBartender
 
 
 class ManagerFactory(object):
-
     @classmethod
     def get_manager(cls, manager_type):
-        creator = getattr(cls, '_create_{}_manager'.format(manager_type), None)
+        creator = getattr(cls, "_create_{}_manager".format(manager_type), None)
         if not creator or not callable(creator):
-            raise LookupError('Can not find manager for type: {}'.format(manager_type))
+            raise LookupError("Can not find manager for type: {}".format(manager_type))
 
         return creator()
 
     @classmethod
     def _create_host_nfs_manager(cls):
-        location = os.getenv('BKAPP_NFS_CONTAINER_ROOT')
-        server_location = os.getenv('BKAPP_NFS_HOST_ROOT')
+        location = os.getenv("BKAPP_NFS_CONTAINER_ROOT")
+        server_location = os.getenv("BKAPP_NFS_HOST_ROOT")
 
         if not location:
-            raise EnvironmentError('nfs file manager BKAPP_NFS_CONTAINER_ROOT are not config at envs')
+            raise EnvironmentError("nfs file manager BKAPP_NFS_CONTAINER_ROOT are not config at envs")
 
         if not server_location:
-            raise EnvironmentError('nfs file manager BKAPP_NFS_HOST_ROOT are not config at envs')
+            raise EnvironmentError("nfs file manager BKAPP_NFS_HOST_ROOT are not config at envs")
 
-        return HostNFSManager(
-            location=location,
-            server_location=server_location
-        )
+        return HostNFSManager(location=location, server_location=server_location)
+
+    @classmethod
+    def _create_upload_module_manager(cls):
+        return UploadModuleManager()
+
+
+class BartenderFactory(object):
+    @classmethod
+    def get_bartender(cls, manager_type, manager):
+        creator = getattr(cls, "_create_{}_bartender".format(manager_type), None)
+        if not creator or not callable(creator):
+            raise LookupError("Can not find bartender for type: {}".format(manager_type))
+
+        return creator(manager)
+
+    @classmethod
+    def _create_host_nfs_bartender(cls, manager):
+        return HostNFSBartender(manager)
+
+    @classmethod
+    def _create_upload_module_bartender(cls, manager):
+        return UploadModuleBartender(manager)

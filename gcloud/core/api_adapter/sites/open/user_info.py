@@ -27,7 +27,7 @@ def get_user_info(username):
     """
     client = get_client_by_user(username)
     user_info = client.usermanage.retrieve_user(id=username)
-    if 'data' in user_info:
+    if 'data' in user_info and isinstance(user_info['data'], dict):
         user_info['data']['bk_supplier_account'] = EnvironmentVariables.objects.get_var(
             'BKAPP_DEFAULT_SUPPLIER_ACCOUNT',
             0

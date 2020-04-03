@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.resources.base import Action, NeverInitiateResource
@@ -24,7 +25,7 @@ project_resource = DjangoModelResource(
     rtype='project',
     name=_("项目"),
     scope_type='system',
-    scope_id='bk_sops',
+    scope_id=settings.BK_IAM_SYSTEM_ID,
     scope_name=_("标准运维"),
     actions=[
         Action(id='create', name=_("新建"), is_instance_related=False),
@@ -74,7 +75,7 @@ admin_operate_resource = NeverInitiateResource(
     rtype='admin_operate',
     name=_("后台管理"),
     scope_type='system',
-    scope_id='bk_sops',
+    scope_id=settings.BK_IAM_SYSTEM_ID,
     scope_name=_("标准运维"),
     actions=[
         Action(id='view', name=_("查看"), is_instance_related=False),

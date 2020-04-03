@@ -58,6 +58,17 @@
             }
         },
         computed: {
+            // 节点根据位置做排序，优先级从左往右，在从上往下
+            sortedList () {
+                const list = this.list.map(item => {
+                    const node = this.locations.find(loc => loc.id === item.subprocess_node_id)
+                    return Object.assign({}, item, {
+                        x: node.x,
+                        y: node.y
+                    })
+                })
+                return list.sort((a, b) => a.x - b.x)
+            },
             expiredNodes () {
                 return this.list.filter(item => {
                     return item.expired && this.locations.find(loc => loc.id === item.subprocess_node_id)
@@ -78,10 +89,10 @@
                 let id
                 let reorderList = []
                 if (this.curId === undefined) {
-                    reorderList = this.list
+                    reorderList = this.sortedList
                 } else {
-                    const index = this.list.findIndex(item => item.subprocess_node_id === this.curId)
-                    reorderList = this.list.slice(index + 1).concat(this.list.slice(0, index))
+                    const index = this.sortedList.findIndex(item => item.subprocess_node_id === this.curId)
+                    reorderList = this.sortedList.slice(index + 1).concat(this.sortedList.slice(0, index))
                 }
                 reorderList.some(item => {
                     if (item.expired && this.locations.find(loc => loc.id === item.subprocess_node_id)) {
@@ -109,7 +120,6 @@
         padding: 1px;
         min-width: 18px;
         height: 18px;
-        line-height: 18px;
         font-size: 12px;
         border-radius: 9px;
         text-align: center;
