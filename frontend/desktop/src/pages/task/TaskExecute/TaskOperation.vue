@@ -117,6 +117,7 @@
     import '@/utils/i18n.js'
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
+    import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
@@ -200,6 +201,7 @@
                 state: '',
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
+                cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、撤销时才存在
                 instanceStatus: {},
                 taskParamsType: '',
                 timer: null,
@@ -221,7 +223,6 @@
                 },
                 activeOperation: '', // 当前任务操作（头部区域操作按钮触发）
                 isRevokeDialogShow: false,
-                ellipsis: '...',
                 operateLoading: false,
                 retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
@@ -339,13 +340,16 @@
             async loadTaskStatus () {
                 try {
                     this.$emit('taskStatusLoadChange', true)
-
                     let instanceStatus = {}
-                    if (['FINISHED', 'FAILED'].includes(this.state)
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus) { // 总任务：完成/撤销时,取实例缓存数据
+                        instanceStatus = await this.getGlobalCacheStatus(this.taskId)
+                    } else if (
+                        this.instanceStatus.state
+                        && this.instanceStatus.state === 'FINISHED' // 任务实例才会出现撤销，子流程不存在
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
-                    ) {
-                        instanceStatus = await this.getCacheStatusData()
+                    ) { // 局部：完成时，取局部缓存数据
+                        instanceStatus = await this.getLocalCacheStatus()
                     } else {
                         if (source) {
                             source.cancel('cancelled') // 取消定时器里已经执行的请求
@@ -362,9 +366,17 @@
                         }
                         instanceStatus = await this.getInstanceStatus(data)
                     }
+                    // 处理返回数据
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
+                        if (
+                            !this.cacheStatus
+                            && ['FINISHED', 'REVOKED'].includes(this.state)
+                            && this.taskId === this.instance_id
+                        ) { // save cacheStatus
+                            this.cacheStatus = instanceStatus.data
+                        }
                         if (this.state === 'RUNNING') {
                             this.setTaskStatusTimer()
                         }
@@ -384,12 +396,30 @@
                 }
             },
             /**
-             * 获取缓存状态数据
+             * 从总任务实例状态信息中取数据
+             */
+            getGlobalCacheStatus (taskId) {
+                return new Promise((resolve) => {
+                    const levels = this.nodeNav.map(nav => nav.id).slice(1)
+                    let instanStatus = tools.deepClone(this.cacheStatus)
+                    levels.forEach(subNodeId => {
+                        instanStatus = instanStatus.children[subNodeId]
+                    })
+                    setTimeout(() => {
+                        resolve({
+                            data: instanStatus,
+                            result: true
+                        })
+                    }, 0)
+                })
+            },
+            /**
+             * 获取局部（子流程）缓存状态数据
              * @description
              * 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
              * 然后使用 updateCanvas 替代 v-if
              */
-            getCacheStatusData () {
+            getLocalCacheStatus () {
                 return new Promise((resolve) => {
                     const cacheStatus = this.instanceStatus.children
                     setTimeout(() => {
