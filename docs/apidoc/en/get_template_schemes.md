@@ -1,6 +1,6 @@
 ### Functional description
 
-Get all plugins info for a business
+Get template execution scheme list
 
 ### Request Parameters
 
@@ -16,7 +16,7 @@ Get all plugins info for a business
 |   bk_username   |   string    |   NO     |  Current user username, APP in the white list, can use this field to specify the current user        |
 |   bk_biz_id   |   string   |   YES   |  the business ID             |
 |   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
-
+|   template_id       |   int     |   YES   |  template ID |
 
 ### Request Parameters Example
 
@@ -25,7 +25,8 @@ Get all plugins info for a business
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "2"
+    "bk_biz_id": "2",
+    "template_id": "12"
 }
 ```
 
@@ -36,36 +37,22 @@ Get all plugins info for a business
     "result": true,
     "data": [
         {
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "result",
-                    "key": "_result",
-                    "type": "bool",
-                    "schema": {
-                        "type": "boolean",
-                        "description": "success",
-                        "enum": []
-                    }
-                },
-                {
-                    "name": "loop_time",
-                    "key": "_loop",
-                    "type": "int",
-                    "schema": {
-                        "type": "int",
-                        "description": "loop_time",
-                        "enum": []
-                    }
-                }
-            ],
-            "desc": "",
-            "code": "job_push_local_files",
-            "name": "push local file",
-            "group_name": "(JOB)",
-            "version": "1.0.0"
+            "id": "47-1",
+            "name": "1",
+            "data": "[\"node7082deed0725aed8c72ecff079ba\",\"node88d9050f288765b94a15cbe023ab\"]"
+        },
+        {
+            "id": "47-2",
+            "name": "2",
+            "data": "[\"node7082deed0725aed8c72ecff079ba\"]"
+        },
+        {
+            "id": "47-3",
+            "name": "3",
+            "data": "[\"node88d9050f288765b94a15cbe023ab\"]"
         }
-    ]
+    ],
+    "code": 0
 }
 ```
 
@@ -77,14 +64,9 @@ Get all plugins info for a business
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
 
-##### data[item] 说明
-
+#### data
 | Field      | Type      | Description      |
-| ------------ | ---------- | ------------------------------ |
-|  inputs      |    array    |      plugin inputs list    |
-|  outputs      |    array    |      plugin output list    |
-|  desc      |    string    |      plugin description    |
-|  code      |    string    |      plugin code    |
-|  name      |    string    |      plugin name    |
-|  group_name      |    string    |      plugin group name    |
-|  version      |    name    |      plugin version    |
+| ------------  | ---------- | ------------------------------ |
+|  id  | string     | scheme id           |
+|  name  | string     | scheme name           |
+|  data  | string     | node id in scheme  |

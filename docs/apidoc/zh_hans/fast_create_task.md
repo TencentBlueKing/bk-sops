@@ -1,17 +1,10 @@
 ### 功能描述
 
-快速新建一次性任务
+创建一次性任务
 
 ### 请求参数
 
-#### 通用参数
-
-|   字段           |  类型       | 必选     |  描述             |
-|-----------------|-------------|---------|------------------|
-|   bk_app_code   |   string    |   是    |  应用ID |
-|   bk_app_secret |   string    |   是    |  安全密钥(应用 TOKEN)，可以通过 蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 获取 |
-|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与bk_username必须一个有效，bk_token可以通过Cookie获取  |
-|   bk_username   |   string    |   否    |  当前用户用户名，应用免登录态验证白名单中的应用，用此字段指定当前用户              |
+{{ common_args_desc }}
 
 #### 接口参数
 
@@ -23,7 +16,6 @@
 |   flow_type   |   string   |   否   |  任务流程类型，common: 常规流程，common_func：职能化流程，默认值为common |
 |   description |   string   |   否   |  任务描述         |
 |   category    |   string   |   否   |  任务分类，详细信息请见下面说明 |
-| scope | string | 否 | project_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 project_id 的项目|
 
 #### category
 
@@ -142,12 +134,10 @@
 |  source_tag  | string | 是    | source_type=component_inputs 或 component_outputs 时有效，变量的来源插件和 Tag   |
 |  source_info | dict   | 是    | source_type=component_inputs 或 component_outputs 时有效，变量的来源节点信息   |
 
-
 ### 请求参数示例
 
 ```
 {
-    "project_id": "1",
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
@@ -632,4 +622,29 @@
 
 #### data.pipeline_tree
 
-所有节点 ID 被替换成唯一 ID 的任务实例树，格式同输入参数 pipeline_tree
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+|  start_event      |    dict    |      开始节点信息     |
+|  end_event      |    dict    |      结束节点信息    |
+|  activities      |    dict    |      任务节点（原子和子流程）信息    |
+|  gateways      |    dict    |      网关节点（并行网关、分支网关和汇聚网关）信息    |
+|  flows      |    dict    |     顺序流（节点连线）信息    |
+|  constants      |    dict    |  全局变量信息，详情见下面    |
+|  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
+
+#### data.form.KEY, data.pipeline_tree.constants.KEY
+
+全局变量 KEY，${key} 格式
+
+#### data.form.VALUE, data.pipeline_tree.constants.VALUE
+
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+|  key      |    string    |      同 KEY     |
+|  name      |    string    |      变量名字    |
+|  index      |    int    |      变量在模板中的显示顺序    |
+|  desc      |    string    |      变量说明   |
+|  source_type      |    string    |      变量来源, 取值范围 custom: 自定义变量，component_inputs: 从原子输入参数勾选，component_outputs：从原子输出结果中勾选   |
+|  custom_type      |    string    |      source_type=custom 时有效，自定义变量类型， 取值范围 input: 输入框，textarea: 文本框，datetime: 日期时间，int: 整数|
+|  source_tag      |    string    |      source_type=component_inputs/component_outputs 时有效，变量的来源原子   |
+|  source_info   |   dict  |  source_type=component_inputs/component_outputs 时有效，变量的来源节点信息 |

@@ -4,14 +4,7 @@
 
 ### 请求参数
 
-#### 通用参数
-
-|   字段           |  类型       | 必选     |  描述             |
-|-----------------|-------------|---------|------------------|
-|   bk_app_code   |   string    |   是    |  应用ID |
-|   bk_app_secret |   string    |   是    |  安全密钥(应用 TOKEN)，可以通过 蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 获取 |
-|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与bk_username必须一个有效，bk_token可以通过Cookie获取  |
-|   bk_username   |   string    |   否    |  当前用户用户名，应用免登录态验证白名单中的应用，用此字段指定当前用户              |
+{{ common_args_desc }}
 
 #### 接口参数
 
@@ -22,7 +15,6 @@
 |   node_id        | string     | 是         | 节点 ID                        |
 |   component_code| string     | 否         | 标准插件编码，请求标准插件执行详情必填 |
 |   subprocess_stack| string   | 否         | 子流程堆栈，json 格式的列表    |
-| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 
@@ -35,7 +27,7 @@
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd"
     "subprocess_stack": "[\"nodeaaa0ce51d2143aa9b0dbc27cb7df\"]",
-    "component_code": "job_fast_execute_script"
+    "component_code": "job_fast_execute_script",
 }
 ```
 
@@ -108,7 +100,7 @@
 |  start_time   | string     | 最后一次执行开始时间           |
 |  finish_time  | string     | 最后一次执行结束时间           |
 |  elapsed_time | int        | 最后一次执行耗时，单位秒       |
-|  state        | string     | 最后一次执行状态，CREATED：未执行，RUNNING：执行中，FAILED：失败，NODE_SUSPENDED：暂停，SUSPENDED：成功 |
+|  state        | string     | 最后一次执行状态，CREATED：未执行，RUNNING：执行中，FAILED：失败，NODE_SUSPENDED：暂停，FINISHED：成功 |
 |  skip         | bool       | 是否手动跳过                   |
 |  retry        | int        | 重试次数                       |
 |  inputs       | dict       | 输入参数，key：value格式       |
@@ -131,7 +123,7 @@
 |  start_time   | string     | 执行开始时间                   |
 |  finish_time  | string     | 执行结束时间                   |
 |  elapsed_time | int        | 执行耗时                       |
-|  state        | string     | 执行状态，CREATED：未执行，RUNNING：执行中，FAILED：失败，NODE_SUSPENDED：暂停，SUSPENDED：成功 |
+|  state        | string     | 执行状态，CREATED：未执行，RUNNING：执行中，FAILED：失败，NODE_SUSPENDED：暂停，FINISHED：成功 |
 |  skip         | bool       | 是否手动跳过                   |
 |  retry        | int        | 重试次数                       |
 |  histories    | list       | 重试记录详情，详情见下面说明   |

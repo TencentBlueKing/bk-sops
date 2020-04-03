@@ -4,14 +4,7 @@ Query a task node execution details
 
 ### Request Parameters
 
-#### General Parameters
-
-|   Field         |  Type       | Required |  Description    |
-|-----------------|-------------|---------|------------------|
-|   bk_app_code   |   string    |   YES    |  APP ID |
-|   bk_app_secret |   string    |   YES    |  APP Secret(APP TOKEN), which can be got via BlueKing Developer Center -> Click APP ID -> Basic Info |
-|   bk_token      |   string    |   NO     |  Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie      |
-|   bk_username   |   string    |   NO     |  Current user username, APP in the white list, can use this field to specify the current user        |
+{{ common_args_desc }}
 
 #### Interface Parameters
 
@@ -22,8 +15,6 @@ Query a task node execution details
 |   node_id        | string     | YES         | the node ID of task                        |
 |   component_code| string     | NO         | the code of Standard Plugin, this field is required when query a Standard Plugin node |
 |   subprocess_stack| string   | NO         | stack of SubProcess, format is json  |
-| component_version| string   | NO         | component version, default is 'legacy'    |
-| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
@@ -36,7 +27,7 @@ Query a task node execution details
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd"
     "subprocess_stack": "[\"nodeaaa0ce51d2143aa9b0dbc27cb7df\"]",
-    "component_code": "job_fast_execute_script"
+    "component_code": "job_fast_execute_script",
 }
 ```
 
@@ -109,7 +100,7 @@ Query a task node execution details
 |  start_time   | string     | start time of last execution    |
 |  finish_time  | string     | finish time of last execution   |
 |  elapsed_time | int        | elapsed time of last execution  |
-|  state        | string     | execution status，CREATED,RUNNING,FAILED,NODE_SUSPENDED,SUSPENDED |
+|  state        | string     | execution status，CREATED,RUNNING,FAILED,NODE_SUSPENDED,FINISHED |
 |  skip         | bool       | skipped manually                   |
 |  retry        | int        | retry times                       |
 |  inputs       | dict       | inputs parameters, format is key：value      |
@@ -132,7 +123,7 @@ Query a task node execution details
 |  start_time   | string     | start time    |
 |  finish_time  | string     | finish time    |
 |  elapsed_time | int        | elapsed time   |
-|  state        | string     | execution status，CREATED,RUNNING,FAILED,NODE_SUSPENDED,SUSPENDED |
+|  state        | string     | execution status，CREATED,RUNNING,FAILED,NODE_SUSPENDED,FINISHED |
 |  skip         | bool       | skipped manually                   |
 |  retry        | int        | retry times                       |
 |  inputs       | dict       | inputs parameters, format is key：value      |

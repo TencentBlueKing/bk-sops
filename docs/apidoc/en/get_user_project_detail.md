@@ -1,6 +1,6 @@
 ### Functional description
 
-Get all plugins info for a business
+Get project detail
 
 ### Request Parameters
 
@@ -16,7 +16,6 @@ Get all plugins info for a business
 |   bk_username   |   string    |   NO     |  Current user username, APP in the white list, can use this field to specify the current user        |
 |   bk_biz_id   |   string   |   YES   |  the business ID             |
 |   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
-
 
 ### Request Parameters Example
 
@@ -34,38 +33,17 @@ Get all plugins info for a business
 ```
 {
     "result": true,
-    "data": [
-        {
-            "inputs": [],
-            "outputs": [
-                {
-                    "name": "result",
-                    "key": "_result",
-                    "type": "bool",
-                    "schema": {
-                        "type": "boolean",
-                        "description": "success",
-                        "enum": []
-                    }
-                },
-                {
-                    "name": "loop_time",
-                    "key": "_loop",
-                    "type": "int",
-                    "schema": {
-                        "type": "int",
-                        "description": "loop_time",
-                        "enum": []
-                    }
-                }
-            ],
-            "desc": "",
-            "code": "job_push_local_files",
-            "name": "push local file",
-            "group_name": "(JOB)",
-            "version": "1.0.0"
-        }
-    ]
+    "data": {
+        "project_id": 13,
+        "project_name": "blueking",
+        "bk_biz_id": 2,
+        "bk_biz_name": "blueking",
+        "bk_biz_developer": "",
+        "bk_biz_maintainer": "admin,gcloudadmin",
+        "bk_biz_tester": "",
+        "bk_biz_productor": ""
+    },
+    "code": 0
 }
 ```
 
@@ -74,17 +52,17 @@ Get all plugins info for a business
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
 |  result   |    bool    |      true or false, indicate success or failure                      |
-|  data     |    list    |      data returned when result is true, details are described below  |
+|  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
 
-##### data[item] 说明
-
+#### data
 | Field      | Type      | Description      |
-| ------------ | ---------- | ------------------------------ |
-|  inputs      |    array    |      plugin inputs list    |
-|  outputs      |    array    |      plugin output list    |
-|  desc      |    string    |      plugin description    |
-|  code      |    string    |      plugin code    |
-|  name      |    string    |      plugin name    |
-|  group_name      |    string    |      plugin group name    |
-|  version      |    name    |      plugin version    |
+| ------------  | ---------- | ------------------------------ |
+|  project_id | int        | project ID       |
+|  project_name  | string     | project name           |
+|  bk_biz_id | int        | bound cmdb business ID       |
+|  bk_biz_name  | string     | project name           |
+|  bk_biz_developer  | string     | business developers           |
+|  bk_biz_maintainer  | string     | business operators           |
+|  bk_biz_tester  | string     | business testers           |
+|  bk_biz_productor  | string     | business productors           |
