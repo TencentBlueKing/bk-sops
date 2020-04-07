@@ -11,13 +11,11 @@
 */
 <template>
     <li
-        :class="[
-            'clearfix',
-            'variable-item',
-            { 'variable-editing': isVariableEditing && theKeyOfEditing === constant.key }
+        :class="['clearfix', 'variable-item',
+                 { 'variable-editing': isVariableEditing && theKeyOfEditing === constant.key }
         ]">
         <div class="variable-content" @click="onEditVariable(constant.key, constant.index)">
-            <i v-if="!isSystemVar && !isShowVariableEdit" class="col-item-drag bk-icon icon-sort"></i>
+            <i v-if="!isSystemVar && !isShowVariableEdit && theKeyOfViewCited !== constant.key" class="col-item-drag bk-icon icon-sort"></i>
             <i v-if="isSystemVar" class="common-icon-lock-disable"></i>
             <span :title="constant.name" class="col-item col-name">
                 {{ constant.name }}
@@ -157,7 +155,6 @@
         ],
         data () {
             return {
-                isShowVariableCited: false,
                 copyText: '',
                 i18n: {
                     copied: gettext('已复制'),
@@ -250,7 +247,8 @@
             // 查看引用节点信息
             onViewCitedList () {
                 // 节点详情点开时不显示引用列表
-                if (!this.isShowVariableEdit && this.citedList.length > 0) {
+                if (this.citedList.length > 0) {
+                    this.onChangeEdit(false)
                     this.$emit('onViewCitedList', this.constant.key)
                 }
             },
@@ -286,9 +284,6 @@ $localBorderColor: #d8e2e7;
 .variable-item {
     position: relative;
     border-bottom: 1px solid #ebebeb;
-    &:hover {
-        background: $blueStatus;
-    }
     &.variable-editing {
         background: $blueStatus;
     }
@@ -300,6 +295,7 @@ $localBorderColor: #d8e2e7;
         line-height: 42px;
         cursor: pointer;
         &:hover {
+            background: $blueStatus;
             .col-item-drag {
                 display: inline-block;
             }
