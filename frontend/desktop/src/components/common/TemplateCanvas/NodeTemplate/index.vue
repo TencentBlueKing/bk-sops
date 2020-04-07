@@ -236,6 +236,7 @@
             right: -8px;
             font-size: 16px;
             color: #63656e;
+            background: #ffffff;
             border-radius: 50%;
             z-index: 2;
             cursor: pointer;
