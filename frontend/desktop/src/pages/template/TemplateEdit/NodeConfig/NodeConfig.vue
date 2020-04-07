@@ -25,7 +25,7 @@
                     v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
                     class="go-back"
                     @click="isSelectorPanelShow = false">
-                    <i class="common-icon-return-arrow"></i>
+                    <i class="common-icon-arrow-left"></i>
                 </div>
             </div>
             <template slot="content">
