@@ -84,10 +84,11 @@
         </bk-dialog>
         <bk-dialog
             v-model="previewDialogShow"
+            header-position="left"
             :fullscreen="true"
             :title="i18n.preview"
-            header-position="left"
-            :close-icon="false">
+            :show-footer="false"
+            :on-close="onPreviewClose">
             <div v-if="isPreviewMode" class="preview-panel">
                 <render-form
                     class="render-form"
@@ -96,9 +97,6 @@
                     v-model="renderFormData">
                 </render-form>
             </div>
-            <template v-slot:footer>
-                <bk-button theme="default" @click="onPreviewClose">{{ i18n.close }}</bk-button>
-            </template>
         </bk-dialog>
         <bk-dialog
             width="400"
