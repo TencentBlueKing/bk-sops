@@ -137,7 +137,7 @@
             border: 1px solid #ff5757;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            animation: ripple .8s ease-out infinite;
+            animation: ripple .8s ease-out 5;
         }
     }
     .dark-circle {
