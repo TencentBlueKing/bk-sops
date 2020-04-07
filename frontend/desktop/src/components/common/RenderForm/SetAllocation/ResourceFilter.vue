@@ -601,7 +601,7 @@
                 }
             },
             /**
-             * 根据接口返回的全量 host 数据，筛选出对应模块的 host 值
+             * 根据接口返回的全量 host 数据，筛选出对应模块的 host 值，每个集群(资源表格的每一行)主机资源不能重复
              * host 值需要同时满足筛选条件和排除条件
              * 非复用模块间主机不能重复，先分别计算所有满足模块条件的主机，再计算模块所需主机数与满足条件主机的比值，值大的模块优先在主机里取值
              * 模块复用时，取其复用的模块主机数据
@@ -613,84 +613,88 @@
              */
             filterModuleHost (data) {
                 let fullMdHosts = [] // 所有满足各模块的主机数据
-                const hosts = {} // 去重、按照实际数量截取的模块主机数据
+                const hosts = [] // 去重、按照实际数量截取的模块主机数据
                 const reuseOthers = []
                 const usedHosts = []
-                this.formData.modules.forEach(md => {
-                    const { filters, excludes, name, isReuse } = md
-                    const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
-                    const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
-                    let list = []
+                for (let i = 0; i < this.formData.clusterCount; i++) {
+                    const moduleHosts = {}
+                    this.formData.modules.forEach(md => {
+                        const { filters, excludes, name, isReuse } = md
+                        const validFilters = filters.filter(item => item.filed !== '' && item.value.length > 0)
+                        const validExclude = excludes.filter(item => item.filed !== '' && item.value.length > 0)
+                        let list = []
 
-                    if (isReuse) {
-                        reuseOthers.push(md)
-                    } else { // 未复用其他模块主机，则计算本模块数据
-                        if (validFilters.length === 0 && validExclude.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
-                            list = data.map(d => d.bk_host_innerip)
-                        } else {
-                            const filterObj = this.transFieldArrToObj(validFilters)
-                            const excludeObj = this.transFieldArrToObj(validExclude)
+                        if (isReuse) {
+                            reuseOthers.push(md)
+                        } else { // 未复用其他模块主机，则计算本模块数据
+                            if (validFilters.length === 0 && validExclude.length === 0) { // 筛选条件和排序条件为空，按照设置的主机数截取
+                                list = data.map(d => d.bk_host_innerip)
+                            } else {
+                                const filterObj = this.transFieldArrToObj(validFilters)
+                                const excludeObj = this.transFieldArrToObj(validExclude)
 
-                            data.forEach(item => {
-                                let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
-                                let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
+                                data.forEach(item => {
+                                    let included = false // 数据的条件值（筛选条件key）是否包含在用户填写的筛选条件里
+                                    let excluded = false // 数据的条件值（排除条件key）是否包含在用户填写的排除条件里
 
-                                if (validFilters.length === 0) {
-                                    included = true
-                                } else {
-                                    Object.keys(filterObj).some(filterKey => {
-                                        if (filterObj[filterKey].includes(item[filterKey])) {
-                                            included = true
-                                            return true
-                                        }
-                                    })
-                                }
-                                
-                                if (included) {
-                                    Object.keys(excludeObj).some(excludeKey => {
-                                        if (excludeObj[excludeKey].includes(item[excludeKey])) {
-                                            excluded = true
-                                            return true
-                                        }
-                                    })
-                                }
+                                    if (validFilters.length === 0) {
+                                        included = true
+                                    } else {
+                                        Object.keys(filterObj).some(filterKey => {
+                                            if (filterObj[filterKey].includes(item[filterKey])) {
+                                                included = true
+                                                return true
+                                            }
+                                        })
+                                    }
+                                    
+                                    if (included) {
+                                        Object.keys(excludeObj).some(excludeKey => {
+                                            if (excludeObj[excludeKey].includes(item[excludeKey])) {
+                                                excluded = true
+                                                return true
+                                            }
+                                        })
+                                    }
 
-                                if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
-                                    list.push(item.bk_host_innerip)
-                                }
+                                    if (included && !excluded) { // 数据同时满足条件值被包含在筛选条件且不被包含在排除条件里，才添加ip
+                                        list.push(item.bk_host_innerip)
+                                    }
+                                })
+                            }
+                            fullMdHosts.push({
+                                name,
+                                list,
+                                percent: data.length > 0 ? list.length / data.length : 0
                             })
                         }
-                        fullMdHosts.push({
-                            name,
-                            list,
-                            percent: data.length > 0 ? list.length / data.length : 0
+                    })
+                    fullMdHosts = fullMdHosts.sort((a, b) => b.percent - a.percent)
+                    fullMdHosts.forEach(item => {
+                        const md = this.formData.modules.find(m => m.name === item.name)
+                        moduleHosts[item.name] = []
+                        item.list.forEach(h => {
+                            if (!usedHosts.includes(h) && moduleHosts[item.name].length < md.count) {
+                                moduleHosts[item.name].push(h)
+                                usedHosts.push(h)
+                            }
                         })
-                    }
-                })
-                fullMdHosts = fullMdHosts.sort((a, b) => b.percent - a.percent)
-                fullMdHosts.forEach(item => {
-                    const md = this.formData.modules.find(m => m.name === item.name)
-                    hosts[item.name] = []
-                    item.list.forEach(h => {
-                        if (!usedHosts.includes(h) && hosts[item.name].length < md.count) {
-                            hosts[item.name].push(h)
-                            usedHosts.push(h)
-                        }
                     })
-                })
 
-                reuseOthers.forEach(md => { // 复用其他模块主机数据，数量取按照本模块设置数
-                    let citedModule = this.formData.modules.find(item => item.id === md.reuse)
-                    const citePath = [md]
-                    while (!hosts[citedModule.name]) {
-                        citePath.unshift(Object.assign({}, citedModule))
-                        citedModule = this.formData.modules.find(item => item.id === citedModule.reuse)
-                    }
-                    citePath.forEach(item => {
-                        const cModule = this.formData.modules.find(cm => cm.id === item.reuse)
-                        hosts[item.name] = hosts[cModule.name].slice(0, item.count)
+                    reuseOthers.forEach(md => { // 复用其他模块主机数据，数量取按照本模块设置数
+                        let citedModule = this.formData.modules.find(item => item.id === md.reuse)
+                        const citePath = [md]
+                        while (!moduleHosts[citedModule.name]) {
+                            citePath.unshift(Object.assign({}, citedModule))
+                            citedModule = this.formData.modules.find(item => item.id === citedModule.reuse)
+                        }
+                        citePath.forEach(item => {
+                            const cModule = this.formData.modules.find(cm => cm.id === item.reuse)
+                            moduleHosts[item.name] = moduleHosts[cModule.name].slice(0, item.count)
+                        })
                     })
-                })
+                    hosts.push(moduleHosts)
+                }
 
                 return hosts
             },

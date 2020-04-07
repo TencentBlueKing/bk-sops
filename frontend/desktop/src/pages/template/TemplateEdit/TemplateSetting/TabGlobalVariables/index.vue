@@ -173,7 +173,7 @@
                     attributes: gettext('属性'),
                     outputs: gettext('输出'),
                     cited: gettext('引用'),
-                    citedTips: gettext('引用全局变量的节点数量，点击数量可展开显示具体有哪些节点'),
+                    citedTips: gettext('直接引用全局变量的节点数量，点击数字查看引用详情'),
                     operation: gettext('操作'),
                     outputsTitle: gettext('输出：'),
                     attr: gettext('属性'),

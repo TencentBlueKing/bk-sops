@@ -12,17 +12,19 @@
 <template>
     <div class="selector-panel">
         <div class="search-area">
-            <bk-input
+            <bk-search-select
                 class="search-input"
-                v-model="searchStr"
-                right-icon="bk-icon icon-search"
-                :placeholder="i18n.placeholder"
-                @input="onSearchInput" />
+                :data="groupList"
+                :show-condition="false"
+                :show-popover-tag-change="false"
+                v-model="value"
+                @change="handleSelectChange">
+            </bk-search-select>
         </div>
         <div class="list-wrapper">
             <template v-if="listInPanel.length > 0">
                 <!-- 全部插件类表 -->
-                <template v-if="searchStr === ''">
+                <template v-if="value.length === 0">
                     <bk-collapse ext-cls="group-collapse" v-for="group in listInPanel" :key="group.type">
                         <bk-collapse-item :name="group.group_name">
                             <div class="group-header">
@@ -106,7 +108,7 @@
                     view: gettext('查看'),
                     placeholder: gettext('请输入名称')
                 },
-                searchStr: '',
+                value: [],
                 searchResult: []
             }
         },
@@ -115,30 +117,57 @@
                 return this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
             },
             listInPanel () {
-                return this.searchStr === '' ? this.listData : this.searchResult
+                return this.value.length === 0 ? this.listData : this.searchResult
+            },
+            groupList () {
+                if (this.value.length > 0 && this.value.some(item => item.values && item.values.length > 0)) {
+                    return []
+                }
+                const list = [{
+                    name: gettext('分组'),
+                    id: 'group',
+                    children: []
+                }]
+                this.listData.forEach(item => {
+                    list[0].children.push({
+                        name: item.group_name,
+                        id: item.type
+                    })
+                })
+                return list
             }
         },
         methods: {
-            /**
-             * 搜索值改变
-             */
-            onSearchInput () {
-                if (this.searchStr !== '') {
-                    const result = []
-                    this.listData.forEach(group => {
-                        if (group.list.length > 0) {
-                            group.list.forEach(item => {
-                                if (
-                                    typeof item.name === 'string'
-                                    && item.name.indexOf(this.searchStr) !== -1
-                                ) {
-                                    result.push(item)
-                                }
-                            })
-                        }
-                    })
-                    this.searchResult = result
+            handleSelectChange (val) {
+                if (val.length === 0) {
+                    return
                 }
+
+                let searchStr = ''
+                let group = []
+                let list = this.listData
+                const result = []
+                val.forEach(item => {
+                    if (item.values && item.values.length > 0) {
+                        group = item.values.map(v => v.id)
+                    } else {
+                        searchStr += item.id
+                    }
+                })
+
+                if (group.length > 0) {
+                    list = this.listData.filter(item => group.includes(item.type))
+                }
+                list.forEach(group => {
+                    if (group.list.length > 0) {
+                        group.list.forEach(item => {
+                            if (item.name.indexOf(searchStr) > -1) {
+                                result.push(item)
+                            }
+                        })
+                    }
+                })
+                this.searchResult = result
             },
             getIconCls (type) {
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(type))
@@ -192,7 +221,7 @@
 .search-area {
     float: right;
     margin: 16px;
-    width: 280px;
+    width: 450px;
 }
 .list-wrapper {
     clear: both;

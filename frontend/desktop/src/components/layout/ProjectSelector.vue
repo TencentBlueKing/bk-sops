@@ -23,6 +23,7 @@
             v-else
             v-show="show"
             class="project-select"
+            ext-popover-cls="project-select-comp-list"
             v-model="currentProject"
             :disabled="disabled || isLoading"
             :clearable="false"
@@ -31,7 +32,9 @@
                 v-for="(group, index) in projects"
                 :name="group.name"
                 :key="index">
-                <bk-option v-for="(option, i) in group.children"
+                <bk-option
+                    class="project-item"
+                    v-for="(option, i) in group.children"
                     :key="i"
                     :id="option.id"
                     :name="option.name">
@@ -253,6 +256,24 @@
         }
         to {
             transform: rotate(360deg);
+        }
+    }
+</style>
+<style lang="scss">
+    .project-select-comp-list {
+        .project-item.bk-option {
+            .bk-option-content {
+                padding: 0;
+                .bk-option-content-default {
+                    padding: 0;
+                    .bk-option-name {
+                        width: 100%;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                }
+            }
         }
     }
 </style>

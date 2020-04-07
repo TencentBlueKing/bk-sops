@@ -12,7 +12,7 @@
 <template>
     <div class="resource-allocation" v-bkloading="{ isLoading: colsLoading, opacity: 1 }">
         <resource-list
-            v-show="!showFilter"
+            v-if="!showFilter && !colsLoading"
             ref="resourceList"
             :editable="editable"
             :view-value="viewValue"
@@ -282,7 +282,7 @@
             updateConfig (conf, moduleData) {
                 const data = []
                 for (let i = 0; i < conf.set_count; i++) {
-                    data.push(Object.assign({}, moduleData))
+                    data.push(Object.assign({}, moduleData[i]))
                 }
 
                 this.localConfig = conf
