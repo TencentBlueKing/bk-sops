@@ -2,18 +2,19 @@
 
 Get task tree after node exclude
 
-### Request Parameters
+#### General Parameters
 
-{{ common_args_desc }}
-
-#### Interface Parameters
-
-|   Field         |  Type       | Required |  Description     |
-|-----------------|-------------|----------|------------------|
+|   Field         |  Type       | Required |  Description    |
+|-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
 |   bk_app_secret |   string    |   YES    |  APP Secret(APP TOKEN), which can be got via BlueKing Developer Center -> Click APP ID -> Basic Info |
 |   bk_token      |   string    |   NO     |  Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie      |
 |   bk_username   |   string    |   NO     |  Current user username, APP in the white list, can use this field to specify the current user        |
+
+#### Interface Parameters
+
+|   Field         |  Type       | Required |  Description     |
+|-----------------|-------------|---------|------------------|
 |   bk_biz_id   |   string   |   YES   |  the business ID             |
 |   scope       |   string     |   NO   | id scope, can be "cmdb_biz" or "project". if scope is "cmdb_biz" then bk_biz_id represent cmdb business ID, otherwise bk_biz_id represent proejct id. default is "cmdb_biz" |
 |   template_id       |   int     |   YES   |  template ID |

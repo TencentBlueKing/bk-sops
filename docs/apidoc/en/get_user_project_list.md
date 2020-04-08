@@ -2,18 +2,14 @@
 
 Get user project list
 
-### Request Parameters
+#### General Parameters
 
-{{ common_args_desc }}
-
-#### Interface Parameters
-
-|   Field         |  Type       | Required |  Description     |
-|-----------------|-------------|----------|------------------|
+|   Field         |  Type       | Required |  Description    |
+|-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
 |   bk_app_secret |   string    |   YES    |  APP Secret(APP TOKEN), which can be got via BlueKing Developer Center -> Click APP ID -> Basic Info |
 |   bk_token      |   string    |   NO     |  Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie      |
-
+|   bk_username   |   string    |   NO     |  Current user username, APP in the white list, can use this field to specify the current user        |
 
 ### Request Parameters Example
 

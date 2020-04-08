@@ -2,18 +2,19 @@
 
 获取模板的执行方案列表
 
-### 请求参数
+#### 通用参数
 
-{{ common_args_desc }}
+|   字段           |  类型       | 必选     |  描述             |
+|-----------------|-------------|---------|------------------|
+|   bk_app_code   |   string    |   是    |  应用ID |
+|   bk_app_secret |   string    |   是    |  安全密钥(应用 TOKEN)，可以通过 蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 获取 |
+|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与bk_username必须一个有效，bk_token可以通过Cookie获取  |
+|   bk_username   |   string    |   否    |  当前用户用户名，应用免登录态验证白名单中的应用，用此字段指定当前用户              |
 
 #### 接口参数
 
-|   参数名称   |    参数类型  |  必须  |     参数说明     |
-| ------------ | ------------ | ------ | ---------------- |
-|   app_code      |   string     |   是   |  蓝鲸应用编码    |
-|   app_secret    |   string     |   是   |  蓝鲸应用私密key |
-|   access_token |   string     |   否   |  用户登录票据，bk_token 为空时必填 |
-|   bk_token       |   string     |   否   |  用户登录票据，access_token 为空时必填 |
+| 字段          |  类型       | 必选   |  描述             |
+|-----------------|-------------|---------|------------------|
 |   bk_biz_id       |   string     |   是   |  项目唯一 ID，项目 ID 或 CMDB 业务 ID |
 |   template_id       |   int     |   是   |  模板 ID |
 |   scope       |   string     |   否   |  唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz |
