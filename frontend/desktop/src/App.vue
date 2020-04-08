@@ -104,7 +104,7 @@
             bus.$on('showMessage', info => {
                 this.$bkMessage({
                     message: info.message,
-                    isSingleLine: false,
+                    ellipsisLine: info.lines || 1,
                     theme: info.theme || 'error'
                 })
             })
