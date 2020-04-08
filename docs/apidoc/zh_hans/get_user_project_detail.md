@@ -37,6 +37,7 @@
         "project_id": 13,
         "project_name": "蓝鲸",
         "bk_biz_id": 2,
+        "from_cmdb": true,
         "bk_biz_name": "蓝鲸",
         "bk_biz_developer": "",
         "bk_biz_maintainer": "admin,gcloudadmin",
@@ -60,6 +61,7 @@
 |  project_id | int        | 项目 ID       |
 |  project_name  | string     | 项目名           |
 |  bk_biz_id | int        | 绑定的 CMDB 业务 ID       |
+|  from_cmdb | bool        | 该项目是否是从 CMDB 业务同步的       |
 |  bk_biz_name  | string     | 项目名           |
 |  bk_biz_developer  | string     | 业务开发人员列表           |
 |  bk_biz_maintainer  | string     | 业务运维人员列表           |

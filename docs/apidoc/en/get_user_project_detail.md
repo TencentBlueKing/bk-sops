@@ -37,6 +37,7 @@ Get project detail
         "project_id": 13,
         "project_name": "blueking",
         "bk_biz_id": 2,
+        "from_cmdb": true,
         "bk_biz_name": "blueking",
         "bk_biz_developer": "",
         "bk_biz_maintainer": "admin,gcloudadmin",
@@ -61,6 +62,7 @@ Get project detail
 |  project_id | int        | project ID       |
 |  project_name  | string     | project name           |
 |  bk_biz_id | int        | bound cmdb business ID       |
+|  from_cmdb | bool        | whether this business is sync from cmdb       |
 |  bk_biz_name  | string     | project name           |
 |  bk_biz_developer  | string     | business developers           |
 |  bk_biz_maintainer  | string     | business operators           |
