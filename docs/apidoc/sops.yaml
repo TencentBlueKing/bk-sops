@@ -202,7 +202,7 @@
 
 - path: /v2/sops/get_plugin_list/
   name: get_plugin_list
-  label: 查询某个项目下的插件列表
+  label: 查询某个业务下的插件列表
   label_en: Query plugin list
   method: GET
   api_type: query
@@ -262,7 +262,7 @@
 
 - path: /v2/sops/import_project_template/
   name: import_project_template
-  label: 导入项目流程模板
+  label: 导入业务流程模板
   label_en: Import project templates
   method: POST
   api_type: query
