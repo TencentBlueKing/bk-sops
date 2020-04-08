@@ -72,20 +72,12 @@ class PipelineTemplateWebWrapper(object):
         @param pipeline_data: pipeline 数据
         @return:
         """
+        from gcloud.tasktmpl3.models import TaskTemplate
         activities = pipeline_data[PWE.activities]
         for act_id, act in list(activities.items()):
             if act[PWE.type] == PWE.SubProcess:
-                subproc_data = PipelineTemplate.objects.get(template_id=act['template_id']) \
-                    .data_for_version(act.get('version'))
-
-                if 'constants' in pipeline_data:
-                    constants_inputs = act.pop('constants')
-                    # replace show constants with inputs
-                    for key, info in list(constants_inputs.items()):
-                        if 'form' in info:
-                            info.pop('form')
-                        subproc_data['constants'][key] = info
-
+                subproc_data = TaskTemplate.objects.get(pipeline_template__template_id=act['template_id']
+                                                        ).get_pipeline_tree_by_version(act.get('version'))
                 cls.unfold_subprocess(subproc_data)
 
                 subproc_data['id'] = act_id

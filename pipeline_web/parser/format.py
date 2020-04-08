@@ -160,7 +160,7 @@ def calculate_constants_type(to_calculate, calculated):
     return data
 
 
-def get_all_nodes(pipeline_tree):
+def get_all_nodes(pipeline_tree, with_subprocess=False):
     all_nodes = {}
     all_nodes.update(pipeline_tree[PWE.activities])
     all_nodes.update(pipeline_tree[PWE.gateways])
@@ -168,4 +168,8 @@ def get_all_nodes(pipeline_tree):
         pipeline_tree[PWE.start_event][PWE.id]: pipeline_tree[PWE.start_event],
         pipeline_tree[PWE.end_event][PWE.id]: pipeline_tree[PWE.end_event]
     })
+    if with_subprocess:
+        for act in pipeline_tree[PWE.activities].values():
+            if act[PWE.type] == PWE.SubProcess:
+                all_nodes.update(get_all_nodes(act[PWE.pipeline], with_subprocess=True))
     return all_nodes

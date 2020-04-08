@@ -87,7 +87,7 @@ def replace_all_id(pipeline_data):
         PE.activities: activity_id_maps,
         PE.gateways: gateway_id_maps,
         PE.flows: flow_id_maps,
-        'subprocess_detail': {}
+        PE.subprocess_detail: {}
     }
 
 

@@ -241,14 +241,15 @@ class TemplateManager(models.Manager):
         activities = pipeline_data[PE.activities]
         for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
-                subproc_data = self.get(template_id=act['template_id']) \
-                    .data_for_version(act.get('version'))
+                subproc_data = self.get(template_id=act[PE.template_id]) \
+                    .data_for_version(act.get(PE.version))
 
                 sub_id_maps = self.unfold_subprocess(subproc_data)
-                id_maps['subprocess_detail'].update({act_id: sub_id_maps})
+                # act_id is new id
+                id_maps[PE.subprocess_detail].update({act_id: sub_id_maps})
 
-                subproc_data['id'] = act_id
-                act['pipeline'] = subproc_data
+                subproc_data[PE.id] = act_id
+                act[PE.pipeline] = subproc_data
         return id_maps
 
     def replace_id(self, pipeline_data):
@@ -261,12 +262,13 @@ class TemplateManager(models.Manager):
         activities = pipeline_data[PE.activities]
         for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
-                subproc_data = act['pipeline']
+                subproc_data = act[PE.pipeline]
                 sub_id_maps = self.unfold_subprocess(subproc_data)
-                id_maps['subprocess_detail'].update({act_id: sub_id_maps})
+                # act_id is new id
+                id_maps[PE.subprocess_detail].update({act_id: sub_id_maps})
 
-                subproc_data['id'] = act_id
-                act['pipeline'] = subproc_data
+                subproc_data[PE.id] = act_id
+                act[PE.pipeline] = subproc_data
         return id_maps
 
 

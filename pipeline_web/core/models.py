@@ -107,7 +107,7 @@ class NodeInTemplateAttr(models.Model):
 class NodeInInstanceManager(models.Manager):
 
     def create_nodes_in_instance(self, pipeline_instance, pipeline_tree):
-        new_nodes = get_all_nodes(pipeline_tree)
+        new_nodes = get_all_nodes(pipeline_tree, with_subprocess=True)
         nodes_info = []
         for node_id, node in new_nodes.items():
             nodes_info.append(self.model(
