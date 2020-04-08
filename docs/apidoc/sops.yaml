@@ -212,7 +212,7 @@
 
 - path: /v2/sops/get_task_node_data/
   name: get_task_node_data
-  label: 获取用户有权限的项目列表
+  label: 获取节点执行数据
   label_en: Get task node data
   method: GET
   api_type: query

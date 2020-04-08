@@ -24,6 +24,18 @@
 
 ```
 {
+    "bk_app_code": "esb_test",
+    "bk_app_secret": "xxx",
+    "bk_token": "xxx",
+    "bk_biz_id": "2",
+    "task_id_list": [30000105, 30000101, 30000100]
+}
+```
+
+### 返回结果示例
+
+```
+{
     "result": true,
     "data": [
         {
@@ -130,10 +142,8 @@
 |  start_time      |    string    |     节点开始时间   |
 |  finish_time      |    string    |      节点完成时间    |
 
-##### data[children] 说明
-
-KEY：
+#### data.children KEY
 任务节点 执行态ID
 
-VALUE：
+#### data.children VALUE
 同 status 格式

@@ -73,14 +73,14 @@
 |  data         | object     | result=true 时返回数据，详情见下面说明 |
 |  message      | string     | result=false 时错误信息        |
 
-#### data说明
+#### data
 |      名称     |     类型   |               说明             |
 | ------------  | ---------- | ------------------------------ |
 |  inputs       | object     | 输入参数，key：value格式       |
 |  outputs      | array      | 输出参数，详情见下面说明       |
 |  ex_data      | string     | 节点执行失败详情，json字符串或者HTML字符串、普通字符串 |
 
-##### outputs[]说明
+##### outputs[]
 |      名称     |     类型   |               说明             |
 | ------------  | ---------- | ------------------------------ |
 |  name         | string     | 输出参数名称                   |

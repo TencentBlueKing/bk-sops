@@ -77,7 +77,7 @@
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
 
-##### data[item] 说明
+##### data[item]
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  inputs      |    array    |      插件输入参数列表    |
@@ -87,3 +87,42 @@
 |  name      |    string    |      插件名    |
 |  group_name      |    string    |      插件组名    |
 |  version      |    name    |      插件版本    |
+
+##### inputs
+
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+| required | bool | 是否是必填参数 |
+| type | string | 参数类型 |
+| name | string | 参数名 |
+| key | string | 参数唯一键 |
+| schema | dict | 参数 schema |
+
+###### inputs.schema
+
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+| type | string | 参数类型 |
+| enum | list | 参数可选范围 |
+|  description      |    string    |   参数描述   |
+| properties | dict | 对象属性 schema，当 type 为 object 时，会存在该字段，该对象的属性的值为另一个 schema 对象  |
+| items | dict | 列表元素 schema，当 type 为 array 时，会存在该字段 |
+
+##### outputs
+
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+| type | string | 参数类型 |
+| name | string | 参数名 |
+| key | string | 参数唯一键 |
+| schema | dict | 参数 schema |
+
+###### outputs.schema
+
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+| type | string | 参数类型 |
+| enum | list | 参数可选范围 |
+|  description      |    string    |   参数描述   |
+| properties | dict | 对象属性 schema，当 type 为 object 时，会存在该字段，该对象的属性的值为另一个 schema 对象  |
+| items | dict | 列表元素 schema，当 type 为 array 时，会存在该字段 |

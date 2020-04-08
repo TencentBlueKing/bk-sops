@@ -204,13 +204,13 @@
 |  data         | dict       | result=true 时返回数据，详情见下面说明 |
 |  message      | string     | result=false 时错误信息        |
 
-#### data说明
+#### data
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  pipeline_tree      |    dict   |      模板任务树信息，详细信息见下面说明   |
 | constants_not_referred | dict | 流程模板中未引用的全局变量，数据结构同pepeline[constants] |
 
-##### data[pipeline_tree] 说明
+##### data.pipeline_tree
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
 |  start_event      |    dict    |      开始节点信息     |
@@ -221,12 +221,11 @@
 |  constants      |    dict    |  全局变量信息，详情见下面    |
 |  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
 
-###### data[pipeline_tree][constants] 说明
+###### data.pipeline_tree.constants.KEY
 
-KEY：
 全局变量 KEY，${key} 格式
 
-VALUE：
+###### data.pipeline_tree.constants.VALUE
 
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |

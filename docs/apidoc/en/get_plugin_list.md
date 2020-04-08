@@ -78,7 +78,7 @@ Get all plugins info for a business
 |  data     |    list    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
 
-##### data[item] 说明
+##### data[item]
 
 | Field      | Type      | Description      |
 | ------------ | ---------- | ------------------------------ |
@@ -89,3 +89,42 @@ Get all plugins info for a business
 |  name      |    string    |      plugin name    |
 |  group_name      |    string    |      plugin group name    |
 |  version      |    name    |      plugin version    |
+
+##### inputs
+
+| Field      | Type      | Description      |
+| ------------ | ---------- | ------------------------------ |
+| required | bool | whether the input is required |
+| type | string | input type |
+| name | string | input name |
+| key | string | input unique key |
+| schema | dict | input schema |
+
+###### inputs.schema
+
+| Field      | Type      | Description      |
+| ------------ | ---------- | ------------------------------ |
+| type | string | input type |
+| enum | list | value enumeration |
+|  description      |    string    |   input description   |
+| properties | dict | object attribute schema, only exist when type is 'object' |
+| items | dict | array item schema, only exist when type is 'array' |
+
+##### outputs
+
+| Field      | Type      | Description      |
+| ------------ | ---------- | ------------------------------ |
+| type | string | output type |
+| name | string | output name |
+| key | string | output unique key |
+| schema | dict | output schema |
+
+###### outputs.schema
+
+| Field      | Type      | Description      |
+| ------------ | ---------- | ------------------------------ |
+| type | string | output type |
+| enum | list | value enumeration |
+|  description      |    string    |   output description   |
+| properties | dict | object attribute schema, only exist when type is 'object' |
+| items | dict | array item schema, only exist when type is 'array' |

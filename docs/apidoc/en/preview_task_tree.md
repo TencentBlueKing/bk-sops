@@ -206,7 +206,7 @@ Get task tree after node exclude
 |  pipeline_tree      |    dict   |      pipeline tree   |
 | constants_not_referred | dict | not referred constants in template, same as pepeline[constants] |
 
-##### data[pipeline_tree]
+##### data.pipeline_tree
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
 |  start_event      |    dict    |      start node     |
@@ -218,12 +218,11 @@ Get task tree after node exclude
 |  outputs      |    list    |    outputs info, indicate outputs field of global  |
 
 
-###### data[pipeline_tree][constants] 
+###### data.pipeline_tree.constants.KEY
 
-KEY：
-KEY, the format is like ${key}
+the format is like ${key}
 
-VALUE：
+###### data.pipeline_tree.constants.VALUE
 
 | Field      | Type      | Description      |
 | ------------ | ---------- | ------------------------------ |

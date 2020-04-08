@@ -56,7 +56,7 @@
 |  data         | dict       | result=true 时返回数据，详情见下面说明 |
 |  message      | string     | result=false 时错误信息        |
 
-#### data说明
+#### data
 |      名称     |     类型   |               说明             |
 | ------------  | ---------- | ------------------------------ |
 |  project_id | int        | 项目 ID       |
