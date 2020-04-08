@@ -1302,6 +1302,15 @@
                 const offsetX = 200 - x
                 const offsetY = 200 - y
                 this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
+
+                // 移动画布到选中节点位置的摇晃效果
+                const nodeEl = document.querySelector(`#${id} .canvas-node-item`)
+                if (nodeEl) {
+                    nodeEl.classList.add('node-shake')
+                    setTimeout(() => {
+                        nodeEl.classList.remove('node-shake')
+                    }, 2000)
+                }
             },
             // 开启子流程更新的小红点动画效果
             showDotAnimation (id) {
