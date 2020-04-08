@@ -18,9 +18,7 @@
                 v-for="(path, index) in nodeNav"
                 :key="path.id"
                 :title="showNodeList.includes(index) ? path.name : ''">
-                <span v-if="!!index && showNodeList.includes(index) || index === 1">
-                    &gt;
-                </span>
+                <span v-if="!!index && showNodeList.includes(index) || index === 1">/</span>
                 <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
                     {{path.name}}
                 </span>
@@ -215,13 +213,12 @@
         float: left;
         line-height: 50px;
         font-size: 14px;
+        font-weight: bold;
         color: #313238;
     }
     .bread-crumbs-wrapper {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
         display: inline-block;
+        margin-left: 20px;
         font-size: 14px;
         height: 50px;
         .path-item {

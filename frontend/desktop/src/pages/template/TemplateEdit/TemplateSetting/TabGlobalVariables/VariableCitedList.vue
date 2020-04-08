@@ -57,14 +57,30 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .variable-cited-list {
+    position: relative;
+    margin: 10px 30px;
+    background: #f0f1f5;
+    border: 1px solid #ebebeb;
+    border-radius: 2px;
+    &::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        right: 100px;
+        width: 8px;
+        height: 8px;
+        background: #f0f1f5;
+        border-style: solid;
+        border-width: 1px 1px 0 0;
+        border-color: #ebebeb #ebebeb transparent transparent;
+        transform: rotate(-45deg);
+        border-radius: 1px;
+    }
     .variable-cited-item {
-        padding-left: 50px;
-        width: 100%;
-        height: 42px;
-        line-height: 42px;
+        padding: 0 20px;
+        height: 40px;
+        line-height: 40px;
         color: #3a84ff;
-        background: #fafbfd;
-        border-top: 1px solid #ebebeb;
         .cited-name {
             cursor: pointer;
         }

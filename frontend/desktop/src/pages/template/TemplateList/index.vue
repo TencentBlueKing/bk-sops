@@ -195,12 +195,13 @@
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
         <bk-dialog
+            width="400"
             :mask-close="false"
             :header-position="'left'"
             :ext-cls="'common-dialog'"
             :title="i18n.delete"
-            width="400"
             :value="isDeleteDialogShow"
+            :auto-close="false"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">

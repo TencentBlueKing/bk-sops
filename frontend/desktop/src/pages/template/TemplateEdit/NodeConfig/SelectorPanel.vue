@@ -12,19 +12,32 @@
 <template>
     <div class="selector-panel">
         <div class="search-area">
-            <bk-search-select
+            <bk-select
+                class="select-group"
+                v-model="selectedGroup"
+                :clearable="false"
+                @selected="onSelectGroup">
+                <bk-option
+                    v-for="item in groupList"
+                    :key="item.type"
+                    :id="item.type"
+                    :name="item.group_name">
+                </bk-option>
+            </bk-select>
+            <bk-input
                 class="search-input"
-                :data="groupList"
-                :show-condition="false"
-                :show-popover-tag-change="false"
-                v-model="value"
-                @change="handleSelectChange">
-            </bk-search-select>
+                v-model="searchStr"
+                right-icon="bk-icon icon-search"
+                :placeholder="i18n.placeholder"
+                :clearable="true"
+                @input="onSearchInput"
+                @clear="onClearSearch">
+            </bk-input>
         </div>
         <div class="list-wrapper">
             <template v-if="listInPanel.length > 0">
                 <!-- 全部插件类表 -->
-                <template v-if="value.length === 0">
+                <template v-if="searchStr === '' && selectedGroup === 'all'">
                     <bk-collapse ext-cls="group-collapse" v-for="group in listInPanel" :key="group.type">
                         <bk-collapse-item :name="group.group_name">
                             <div class="group-header">
@@ -37,14 +50,14 @@
                                 </span>
                             </div>
                             <ul slot="content" class="list-item-wrap">
-                                <li class="list-item"
+                                <li
+                                    :class="['list-item', { selected: getSelectedStatus(item) }]"
                                     v-for="(item, index) in group.list"
-                                    :key="index">
+                                    :key="index"
+                                    @click="onSelect(item)">
                                     <span class="node-name">{{ item.name }}</span>
-                                    <span class="opt-btns">
-                                        <span v-if="getSelectedStatus(item)" class="opt-item selected">{{ i18n.selected }}</span>
-                                        <span v-else class="opt-item" @click="onSelect(item)">{{ i18n.choose }}</span>
-                                        <span v-if="isSubflow" class="opt-item" @click.stop="onViewSubflow(item)">{{ i18n.view }}</span>
+                                    <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                        <i class="common-icon-box-top-right-corner"></i>
                                     </span>
                                 </li>
                                 <div class="node-empty" v-if="group.list.length === 0">
@@ -57,14 +70,14 @@
                 <!-- 搜索结果插件列表 -->
                 <template v-else>
                     <ul slot="content" class="list-item-wrap">
-                        <li class="list-item"
+                        <li
+                            :class="['list-item', { selected: getSelectedStatus(item) }]"
                             v-for="(item, index) in searchResult"
-                            :key="index">
+                            :key="index"
+                            @click="onSelect(item)">
                             <span class="node-name">{{ item.name }}</span>
-                            <span class="opt-btns">
-                                <span v-if="getSelectedStatus(item)" class="opt-item selected">{{ i18n.selected }}</span>
-                                <span v-else class="opt-item" @click.stop="onSelect(item)">{{ i18n.choose }}</span>
-                                <span v-if="isSubflow" class="opt-item" @click.stop="onViewSubflow(item)">{{ i18n.view }}</span>
+                            <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                <i class="common-icon-box-top-right-corner"></i>
                             </span>
                         </li>
                         <div class="node-empty" v-if="searchResult.length === 0">
@@ -81,6 +94,7 @@
 <script>
     import '@/utils/i18n.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import toolsUtils from '@/utils/tools.js'
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
@@ -108,7 +122,8 @@
                     view: gettext('查看'),
                     placeholder: gettext('请输入名称')
                 },
-                value: [],
+                selectedGroup: 'all', // 标准插件/子流程搜索分组
+                searchStr: '',
                 searchResult: []
             }
         },
@@ -117,58 +132,27 @@
                 return this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
             },
             listInPanel () {
-                return this.value.length === 0 ? this.listData : this.searchResult
+                return (this.searchStr === '' && this.selectedGroup === 'all') ? this.listData : this.searchResult
             },
             groupList () {
-                if (this.value.length > 0 && this.value.some(item => item.values && item.values.length > 0)) {
-                    return []
-                }
-                const list = [{
-                    name: gettext('分组'),
-                    id: 'group',
-                    children: []
-                }]
+                const list = []
+                list.push({
+                    type: 'all',
+                    group_name: this.isSubflow ? gettext('所有分类') : gettext('所有分组')
+                })
                 this.listData.forEach(item => {
-                    list[0].children.push({
-                        name: item.group_name,
-                        id: item.type
+                    list.push({
+                        type: item.type,
+                        group_name: item.group_name
                     })
                 })
                 return list
             }
         },
+        created () {
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
         methods: {
-            handleSelectChange (val) {
-                if (val.length === 0) {
-                    return
-                }
-
-                let searchStr = ''
-                let group = []
-                let list = this.listData
-                const result = []
-                val.forEach(item => {
-                    if (item.values && item.values.length > 0) {
-                        group = item.values.map(v => v.id)
-                    } else {
-                        searchStr += item.id
-                    }
-                })
-
-                if (group.length > 0) {
-                    list = this.listData.filter(item => group.includes(item.type))
-                }
-                list.forEach(group => {
-                    if (group.list.length > 0) {
-                        group.list.forEach(item => {
-                            if (item.name.indexOf(searchStr) > -1) {
-                                result.push(item)
-                            }
-                        })
-                    }
-                })
-                this.searchResult = result
-            },
             getIconCls (type) {
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(type))
                 if (this.activeNodeListType === 'subflow') {
@@ -178,6 +162,42 @@
                     return `common-icon-sys-${systemType.toLowerCase()}`
                 }
                 return 'common-icon-sys-default'
+            },
+            onSelectGroup (val) {
+                this.selectedGroup = val
+                this.searchInputhandler()
+            },
+            onClearSearch () {
+                this.searchInputhandler()
+            },
+            searchInputhandler () {
+                let listData = this.listData
+                const result = []
+                if (this.selectedGroup !== 'all') {
+                    const list = listData.find(item => item.type === this.selectedGroup)
+                    listData = [list]
+                }
+                if (this.searchStr !== '') {
+                    const reg = new RegExp(this.searchStr)
+                    listData.forEach(group => {
+                        if (group.list.length > 0) {
+                            group.list.forEach(node => {
+                                if (reg.test(node.name)) {
+                                    result.push(node)
+                                }
+                            })
+                        }
+                    })
+                } else {
+                    listData.forEach(group => {
+                        if (group.list.length > 0) {
+                            group.list.forEach(node => {
+                                result.push(node)
+                            })
+                        }
+                    })
+                }
+                this.searchResult = result
             },
             /**
              * 选择插件/子流程
@@ -221,22 +241,33 @@
 .search-area {
     float: right;
     margin: 16px;
-    width: 450px;
+    .select-group {
+        float: left;
+        width: 220px;
+    }
+    .search-input {
+        float: left;
+        margin-left: 10px;
+        width: 260px;
+    }
 }
 .list-wrapper {
-    clear: both;
     height: calc(100vh - 232px);
-    overflow: scroll;
+    border-top: 1px solid #e2e4ed;
+    overflow: auto;
+    clear: both;
     @include scrollbar;
     .group-collapse {
-        /deep/ {
-            .bk-collapse-item-header {
-                width: 100%;
-                background: #fafbfd;
-                border-top: 1px solid #e2e4ed;
-            }
-            .bk-collapse-item-content {
-                padding: 0;
+        .bk-collapse-item {
+            border-bottom: 1px solid #e2e4ed;
+            /deep/ {
+                .bk-collapse-item-header {
+                    width: 100%;
+                    background: #fafbfd;
+                }
+                .bk-collapse-item-content {
+                    padding: 0;
+                }
             }
         }
     }
@@ -273,27 +304,23 @@
 }
 .list-item-wrap {
     .list-item {
-        clear: both;
-        height: 42px;
-        line-height: 42px;
-        border-top: 1px solid #e2e4ed;
-    }
-    .node-name {
-        margin-left: 38px;
+        padding-left: 38px;
+        height: 40px;
+        line-height: 40px;
         color: #63656e;
         font-size: 12px;
-    }
-    .opt-btns {
-        float: right;
-        margin-right: 30px;
-        .opt-item {
-            margin-left: 10px;
+        border-bottom: 1px solid #e2e4ed;
+        cursor: pointer;
+        &.selected .node-name {
             color: #3a84ff;
-            font-size: 12px;
-            cursor: pointer;
-            &.selected {
-                color: #c4c6cc;
-            }
+        }
+        &:hover {
+            color: #3a84ff;
+            background: #e1ecff;
+        }
+        .view-tpl {
+            float: right;
+            margin-right: 34px;
         }
     }
 }

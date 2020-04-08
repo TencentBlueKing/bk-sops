@@ -212,6 +212,20 @@
             color: $color;
         }
     }
+    @keyframes shake {
+        25% {
+            transform: rotate(-2deg);
+        }
+        50% {
+            transform: rotate(0);
+        }
+        75% {
+            transform: rotate(2deg);
+        }
+        100% {
+            transform: rotate(0);
+        }
+    }
     .jsflow-node.selected {
         outline: 1px dashed #348af3;
     }
@@ -229,6 +243,9 @@
         &>.subflow-node + .close-icon{
             right: 14px;
         }
+        &.node-shake {
+            animation: shake .5s ease-in-out 2;
+        }
         .close-icon {
             display: none;
             position: absolute;
@@ -236,6 +253,7 @@
             right: -8px;
             font-size: 16px;
             color: #63656e;
+            background: #ffffff;
             border-radius: 50%;
             z-index: 2;
             cursor: pointer;
