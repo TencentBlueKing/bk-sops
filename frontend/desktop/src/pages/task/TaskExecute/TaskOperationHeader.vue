@@ -148,7 +148,8 @@
                     checkFlow: gettext('查看流程'),
                     taskExecuteInfo: gettext('流程信息')
                 },
-                showNodeList: [0, 1, 2]
+                showNodeList: [0, 1, 2],
+                ellipsis: '...'
             }
         },
         computed: {

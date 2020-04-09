@@ -34,9 +34,7 @@
             </span>
         </div>
         <div class="task-container">
-            <div :class="['pipeline-nodes', {
-                'task-params-show': isTaskParamsShow
-            }]">
+            <div class="pipeline-nodes">
                 <TemplateCanvas
                     ref="templateCanvas"
                     v-if="!nodeSwitching"
@@ -119,6 +117,7 @@
     import '@/utils/i18n.js'
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
+    import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
@@ -197,12 +196,12 @@
 
             return {
                 taskId: this.instance_id,
-                isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
                 state: '',
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
+                cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、撤销时才存在
                 instanceStatus: {},
                 taskParamsType: '',
                 timer: null,
@@ -224,7 +223,6 @@
                 },
                 activeOperation: '', // 当前任务操作（头部区域操作按钮触发）
                 isRevokeDialogShow: false,
-                ellipsis: '...',
                 operateLoading: false,
                 retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
@@ -342,13 +340,16 @@
             async loadTaskStatus () {
                 try {
                     this.$emit('taskStatusLoadChange', true)
-
                     let instanceStatus = {}
-                    if (['FINISHED', 'FAILED'].includes(this.state)
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus) { // 总任务：完成/撤销时,取实例缓存数据
+                        instanceStatus = await this.getGlobalCacheStatus(this.taskId)
+                    } else if (
+                        this.instanceStatus.state
+                        && this.instanceStatus.state === 'FINISHED' // 任务实例才会出现撤销，子流程不存在
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
-                    ) {
-                        instanceStatus = await this.getCacheStatusData()
+                    ) { // 局部：完成时，取局部缓存数据
+                        instanceStatus = await this.getLocalCacheStatus()
                     } else {
                         if (source) {
                             source.cancel('cancelled') // 取消定时器里已经执行的请求
@@ -365,9 +366,17 @@
                         }
                         instanceStatus = await this.getInstanceStatus(data)
                     }
+                    // 处理返回数据
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
+                        if (
+                            !this.cacheStatus
+                            && ['FINISHED', 'REVOKED'].includes(this.state)
+                            && this.taskId === this.instance_id
+                        ) { // save cacheStatus
+                            this.cacheStatus = instanceStatus.data
+                        }
                         if (this.state === 'RUNNING') {
                             this.setTaskStatusTimer()
                         }
@@ -387,12 +396,30 @@
                 }
             },
             /**
-             * 获取缓存状态数据
+             * 从总任务实例状态信息中取数据
+             */
+            getGlobalCacheStatus (taskId) {
+                return new Promise((resolve) => {
+                    const levels = this.nodeNav.map(nav => nav.id).slice(1)
+                    let instanStatus = tools.deepClone(this.cacheStatus)
+                    levels.forEach(subNodeId => {
+                        instanStatus = instanStatus.children[subNodeId]
+                    })
+                    setTimeout(() => {
+                        resolve({
+                            data: instanStatus,
+                            result: true
+                        })
+                    }, 0)
+                })
+            },
+            /**
+             * 获取局部（子流程）缓存状态数据
              * @description
              * 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
              * 然后使用 updateCanvas 替代 v-if
              */
-            getCacheStatusData () {
+            getLocalCacheStatus () {
                 return new Promise((resolve) => {
                     const cacheStatus = this.instanceStatus.children
                     setTimeout(() => {
@@ -1165,47 +1192,6 @@
         }
     }
 
-}
-.task-params {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 750px;
-    height: 100%;
-    background: $whiteDefault;
-    border-left: 1px solid $commonBorderColor;
-    box-shadow: -1px 1px 8px rgba(130, 130, 130, .15), 1px -1px 8px rgba(130, 130, 130, .15);
-    z-index: 4;
-    .task-params-show {
-        width: 750px;
-        border-left: 1px solid $commonBorderColor;
-    }
-    .toggle-params-panel {
-        position: absolute;
-        top: 50%;
-        left: -20px;
-        margin-top: -12px;
-        width: 20px;
-        height: 38px;
-        line-height: 38px;
-        font-size: 12px;
-        color: $whiteDefault;
-        text-align: center;
-        background: $blueDefault;
-        border-right: none;
-        border-radius: 4px;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
-        cursor: pointer;
-        transform: rotate(0);
-        &:hover {
-            background: #0082ff;
-        }
-        &.actived {
-            transform: rotate(-180deg);
-        }
-    }
 }
 .node-info-panel {
     position: absolute;
