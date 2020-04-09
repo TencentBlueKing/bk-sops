@@ -14,34 +14,22 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
-from django.contrib import auth
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.utils.translation import check_for_language
-from django.utils.module_loading import import_string
 from django.shortcuts import render
+
+from blueapps.account.middlewares import LoginRequiredMiddleware
 
 from gcloud.conf import settings
 
 logger = logging.getLogger("root")
-
-AuthenticationForm = import_string(
-    "blueapps.account.components.{}.forms.AuthenticationForm".format(settings.USER_TOKEN_TYPE)
-)
 
 
 def page_not_found(request):
     if request.is_ajax() or request.path.startswith(settings.STATIC_URL):
         return HttpResponseNotFound()
 
-    user = None
-    form = AuthenticationForm(request.COOKIES)
-    if form.is_valid():
-        user_token = form.cleaned_data[settings.USER_TOKEN_TYPE]
-        auth_kwargs = {
-            "request": request,
-            settings.USER_TOKEN_TYPE: user_token
-        }
-        user = auth.authenticate(**auth_kwargs)
+    user = LoginRequiredMiddleware.authenticate(request)
 
     # 未登录重定向到首页，跳到登录页面
     if not user:

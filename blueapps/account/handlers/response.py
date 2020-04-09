@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.http import HttpResponseRedirect, JsonResponse
 try:
     from django.urls import reverse
@@ -31,6 +32,11 @@ class ResponseHandler(object):
         self._settings = _settings
 
     def build_401_response(self, request):
+
+        # 强制要求进行跳转的方式
+        if getattr(settings, 'IS_AJAX_PLAIN_MODE', False) and request.is_ajax():
+            return self._build_ajax_401_response(request)
+
         # Just redirect to PAAS-LOGIN-PLATRORM no matter whether request.is_ajax
         if self._conf.HAS_PLAIN:
             if request.is_ajax():
