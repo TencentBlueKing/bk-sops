@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,19 +18,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    initial = True
-
     dependencies = [
+        ('external_plugins', '0004_synctask'),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='UploadModuleFileTag',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('source_ip', models.CharField(max_length=128, verbose_name='file locate ip')),
-                ('file_name', models.TextField(verbose_name='file name')),
-                ('file_path', models.TextField(verbose_name='file locate path')),
-            ],
+        migrations.AlterField(
+            model_name='synctask',
+            name='create_method',
+            field=models.CharField(choices=[('manual', '手动触发'), ('auto', '部署自动触发')], default='manual', max_length=32, verbose_name='创建方式'),
+        ),
+        migrations.AlterField(
+            model_name='synctask',
+            name='status',
+            field=models.CharField(choices=[('RUNNING', '执行中'), ('SUCCEEDED', '成功'), ('FAILED', '失败')], default='RUNNING', max_length=32, verbose_name='同步状态'),
         ),
     ]

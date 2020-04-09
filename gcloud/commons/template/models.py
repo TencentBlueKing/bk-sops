@@ -411,17 +411,3 @@ class CommonTemplate(BaseTemplate):
     class Meta(BaseTemplate.Meta):
         verbose_name = _("公共流程模板 CommonTemplate")
         verbose_name_plural = _("公共流程模板 CommonTemplate")
-
-
-class CommonTmplPerm(models.Model):
-    """
-    @summary: common templates permissions, to handle person has different perms in different businesses
-    """
-    common_template_id = models.CharField(_("通用流程模板ID"), max_length=255)
-    biz_cc_id = models.CharField(_("通用流程模板ID"), max_length=255)
-
-    class Meta:
-        unique_together = ('common_template_id', 'biz_cc_id')
-        index_together = ['common_template_id', 'biz_cc_id']
-        verbose_name = _("公共流程模板权限 CommonTmplPerm")
-        verbose_name_plural = _("公共流程模板权限 CommonTmplPerm")

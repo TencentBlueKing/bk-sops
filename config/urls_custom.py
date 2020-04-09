@@ -16,12 +16,11 @@ from django.conf.urls import include, url
 # 用户自定义 urlconf
 urlpatterns_custom = [
     url(r'^', include('gcloud.core.urls')),
-    url(r'^config/', include('gcloud.config.urls')),
+    url(r'^', include('gcloud.webservice3.urls')),
     url(r'^apigw/', include('gcloud.apigw.urls')),
     url(r'^common_template/', include('gcloud.commons.template.urls')),
     url(r'^template/', include('gcloud.tasktmpl3.urls')),
     url(r'^taskflow/', include('gcloud.taskflow3.urls')),
-    url(r'^', include('gcloud.webservice3.urls')),
     url(r'^appmaker/', include('gcloud.contrib.appmaker.urls')),
     url(r'^develop/', include('gcloud.contrib.develop.urls')),
     url(r'^pipeline/', include('pipeline_plugins.base.urls')),
