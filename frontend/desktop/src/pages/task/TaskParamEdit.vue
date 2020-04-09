@@ -130,7 +130,7 @@
                             }
                         }
                         currentFormConfig.tag_code = key
-                        currentFormConfig.attrs.name = variable.name
+                        currentFormConfig.name = variable.name // 变量名称，全局变量编辑时填写的名称，和表单配置项 label 名称不同
                         currentFormConfig.attrs.desc = variable.desc
                         if (
                             variable.custom_type === 'input'

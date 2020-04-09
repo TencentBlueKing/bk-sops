@@ -25,8 +25,8 @@
         :style="{
             width: (scheme.attrs.cols ? scheme.attrs.cols / 12 * 100 : 100) + '%'
         }">
-        <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <span class="name">{{scheme.attrs.name}}</span>
+        <div v-if="showFormTitle" class="rf-group-name">
+            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
@@ -173,6 +173,11 @@
                     hooked: gettext('取消勾选'),
                     cancelHook: gettext('勾选参数作为全局变量')
                 }
+            }
+        },
+        computed: {
+            showFormTitle () {
+                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             }
         },
         watch: {
