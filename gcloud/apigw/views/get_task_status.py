@@ -43,30 +43,31 @@ except ImportError:
 )
 def get_task_status(request, task_id, project_id):
     project = request.project
-    try:
-        task = TaskFlowInstance.objects.get(
-            pk=task_id, project_id=project.id, is_deleted=False
-        )
-        task_status = task.get_status()
-        result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
-        return JsonResponse(result)
-    # 请求子流程的状态，直接通过pipeline api查询
-    except (ValueError, TaskFlowInstance.DoesNotExist):
-        logger.info("[API] get_task_status task[id=%s] does not exist" % task_id)
-    except Exception as e:
-        message = "task[id={task_id}] get status error: {error}".format(
-            task_id=task_id, error=e
-        )
-        logger.error(message)
-        result = {
-            "result": False,
-            "message": message,
-            "code": err_code.UNKNOW_ERROR.code,
-        }
-        return JsonResponse(result)
+    subprocess_id = request.GET.get("subprocess_id")
+
+    # request subprocess
+    if not subprocess_id:
+        try:
+            task = TaskFlowInstance.objects.get(
+                pk=task_id, project_id=project.id, is_deleted=False
+            )
+            task_status = task.get_status()
+            result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
+            return JsonResponse(result)
+        except Exception as e:
+            message = "task[id={task_id}] get status error: {error}".format(
+                task_id=task_id, error=e
+            )
+            logger.error(message)
+            result = {
+                "result": False,
+                "message": message,
+                "code": err_code.UNKNOW_ERROR.code,
+            }
+            return JsonResponse(result)
 
     try:
-        task_status = pipeline_api.get_status_tree(task_id, max_depth=99)
+        task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
         TaskFlowInstance.format_pipeline_status(task_status)
     except Exception as e:
         message = "[API] get_task_status task[id={task_id}] get status error: {error}".format(
