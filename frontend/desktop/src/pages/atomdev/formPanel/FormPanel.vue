@@ -136,15 +136,15 @@
     }
 </script>
 <style lang="scss">
+    // 表单面板被拖动元素样式
     .form-drag-area {
-        & > li.tag-item,
+        & > li.drag-entry,
         & > .sortable-ghost {
             position: relative;
             margin: 0 60px;
             height: 0;
             border-bottom: 2px solid #3a84ff;
-            i,
-            .content-wrapper {
+            .content {
                 display: none;
             }
             &:before {

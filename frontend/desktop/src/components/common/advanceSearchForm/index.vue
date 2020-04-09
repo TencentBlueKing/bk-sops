@@ -19,17 +19,22 @@
                 <advance-search
                     v-if="isShowSearch"
                     @input="onSearchInput"
-                    @onShow="onAdvanceShow"
+                    @onShow="onAdvanceOpen"
+                    :is-advance-open.sync="isAdvanceOpen"
                     :value="searchConfig.value"
                     :input-placeholader="searchConfig.placeholder">
+                    <template slot="extend">
+                        <slot name="search-extend"></slot>
+                    </template>
                 </advance-search>
             </div>
         </div>
-        <div class="advanced-search-form" v-if="isAdvancedSerachShow">
-            <bk-form form-type="inline">
+        <div class="advanced-search-form" v-if="isAdvanceOpen">
+            <bk-form form-type="inline" :model="formData">
                 <bk-form-item
-                    v-for="(item, index) in searchForm"
-                    :key="index"
+                    v-for="item in searchForm"
+                    :key="item.key"
+                    :property="item.key"
                     :label="item.label">
                     <template v-if="item.type === 'select'">
                         <bk-select
@@ -42,8 +47,8 @@
                             @clear="onClearFormItem(item.key)"
                             @change="onChangeFormItem($event, item.key)">
                             <bk-option
-                                v-for="(option, i) in item.list"
-                                :key="i"
+                                v-for="option in item.list"
+                                :key="option.value"
                                 :id="option.value"
                                 :name="option.name">
                             </bk-option>
@@ -105,25 +110,22 @@
                     query: gettext('搜索'),
                     reset: gettext('清空')
                 },
-                isAdvancedSerachShow: false,
+                isAdvanceOpen: false,
                 searchValue: '',
                 formData: {}
             }
         },
         created () {
             this.searchForm.forEach(m => {
-                this.formData[m.key] = ''
+                this.$set(this.formData, m.key, '')
             })
         },
         methods: {
             onSearchInput (val) {
                 this.$emit('onSearchInput', val)
             },
-            onAdvanceShow () {
-                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-            },
-            onButtonClick (emitName) {
-                this.$emit(emitName)
+            onAdvanceOpen (val) {
+                this.isAdvanceOpen = val === undefined ? !this.isAdvanceOpen : val
             },
             onClearFormItem (key) {
                 this.formData[key] = ''
@@ -135,14 +137,10 @@
                 this.$emit('submit', this.formData)
             },
             onResetForm () {
-                this.isAdvancedSerachShow = false
                 Object.keys(this.formData).forEach(key => {
                     this.$set(this.formData, key, '')
                 })
-                this.$nextTick(() => {
-                    this.isAdvancedSerachShow = true
-                    this.$emit('submit', this.formData)
-                })
+                this.$emit('submit', this.formData)
             }
         }
     }

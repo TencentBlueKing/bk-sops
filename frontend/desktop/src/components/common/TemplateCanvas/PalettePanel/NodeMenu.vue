@@ -16,16 +16,32 @@
                 <i class="common-icon-pin"></i>
             </div>
             <div class="search-wrap">
+                <bk-select
+                    class="select-group"
+                    v-model="selectedGroup"
+                    :clearable="false"
+                    @selected="onSelectGroup">
+                    <bk-option
+                        v-for="item in groupList"
+                        class="node-item-option"
+                        :key="item.type"
+                        :id="item.type"
+                        :name="item.group_name">
+                    </bk-option>
+                </bk-select>
                 <bk-input
                     class="search-input"
                     v-model="searchStr"
                     right-icon="bk-icon icon-search"
                     :placeholder="i18n.placeholder"
-                    @input="onSearchInput" />
+                    :clearable="true"
+                    @input="onSearchInput"
+                    @clear="onClearSearch">
+                </bk-input>
             </div>
             <div class="node-list-wrap">
                 <template v-if="listInPanel.length > 0">
-                    <template v-if="searchStr === ''">
+                    <template v-if="searchStr === '' && selectedGroup === 'all'">
                         <bk-collapse v-for="group in listInPanel" :key="group.type">
                             <bk-collapse-item :name="group.group_name">
                                 <div class="group-header">
@@ -105,17 +121,10 @@
             return {
                 loading: false,
                 isPinActived: false,
+                selectedGroup: 'all', // 标准插件/子流程搜索分组
                 searchStr: '',
-                isNoSearchResult: false,
-                isNoData: false,
-                taskNodeList: [],
-                subflowList: [],
                 searchResult: [],
                 isShowGroup: true,
-                pending: {
-                    tasknode: false,
-                    subflow: false
-                },
                 defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
                 i18n: {
                     placeholder: gettext('请输入名称')
@@ -124,12 +133,27 @@
         },
         computed: {
             listInPanel () {
-                return this.searchStr === '' ? this.nodes : this.searchResult
+                return (this.searchStr === '' && this.selectedGroup === 'all') ? this.nodes : this.searchResult
+            },
+            groupList () {
+                const list = []
+                list.push({
+                    type: 'all',
+                    group_name: this.activeNodeListType === 'tasknode' ? gettext('所有分组') : gettext('所有分类')
+                })
+                this.nodes.forEach(item => {
+                    list.push({
+                        type: item.type,
+                        group_name: item.group_name
+                    })
+                })
+                return list
             }
         },
         watch: {
             activeNodeListType () {
                 this.searchStr = ''
+                this.selectedGroup = 'all'
             }
         },
         created () {
@@ -149,11 +173,23 @@
             onClickPin () {
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
             },
+            onSelectGroup (val) {
+                this.selectedGroup = val
+                this.searchInputhandler()
+            },
+            onClearSearch () {
+                this.searchInputhandler()
+            },
             searchInputhandler () {
+                let listData = this.nodes
+                const result = []
+                if (this.selectedGroup !== 'all') {
+                    const list = listData.find(item => item.type === this.selectedGroup)
+                    listData = [list]
+                }
                 if (this.searchStr !== '') {
                     const reg = new RegExp(this.searchStr)
-                    const result = []
-                    this.nodes.forEach(group => {
+                    listData.forEach(group => {
                         if (group.list.length > 0) {
                             group.list.forEach(node => {
                                 if (reg.test(node.name)) {
@@ -162,14 +198,26 @@
                             })
                         }
                     })
-                    this.searchResult = result
+                } else {
+                    listData.forEach(group => {
+                        if (group.list.length > 0) {
+                            group.list.forEach(node => {
+                                result.push(node)
+                            })
+                        }
+                    })
                 }
+                this.searchResult = result
             },
             handleClickOutSide (e) {
                 if (!this.isFixedNodeMenu) {
-                    if (dom.parentClsContains('palette-item', e.target)) {
+                    if (
+                        dom.parentClsContains('palette-item', e.target) // 左侧节点
+                        || dom.parentClsContains('node-item-option', e.target) // 搜索分组选项
+                    ) {
                         return
                     }
+                    this.selectedGroup = 'all'
                     this.$emit('onCloseNodeMenu')
                 }
             }
@@ -191,10 +239,8 @@
     .panel-fixed-pin {
         position: absolute;
         top: 16px;
-        right: 14px;
-        width: 32px;
-        height: 32px;
-        line-height: 32px;
+        right: 16px;
+        padding: 5px 8px;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
         font-size: 14px;
@@ -210,9 +256,13 @@
         }
     }
     .search-wrap {
-        padding: 16px 56px 16px 14px;
+        padding: 16px;
         border-bottom: 1px solid #ccd0dd;
         background: #ffffff;
+        .select-group {
+            margin-bottom: 10px;
+            width: 220px;
+        }
     }
     .node-list-wrap {
         height: calc(100% - 71px);

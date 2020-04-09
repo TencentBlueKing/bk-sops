@@ -41,6 +41,7 @@ axios.interceptors.response.use(
             case 400:
                 const info = {
                     message: response.data.error || response.data.msg.error,
+                    lines: 2,
                     theme: 'error'
                 }
                 bus.$emit('showMessage', info)

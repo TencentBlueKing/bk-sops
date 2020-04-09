@@ -337,7 +337,7 @@ const api = {
     /**
      * 获取收藏列表
      */
-    getCollectList (data) {
+    loadCollectList (data) {
         const prefixUrl = this.getPrefix('collectList')
         const opts = {
             method: 'GET',
@@ -352,7 +352,7 @@ const api = {
      * 添加收藏
      * @param {String} list 列表
      */
-    collectSelect (list) {
+    addToCollectList (list) {
         const prefixUrl = this.getPrefix('collectList')
         const data = {
             objects: list
@@ -463,6 +463,19 @@ const api = {
         })
     },
     /**
+     * 获取项目下的子流程有更新的模板
+     * @param {*} data 项目参数 
+     */
+    getExpiredSubProcess (data) {
+        const prefixUrl = this.getPrefix('templateExpiredSubProcess')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: data
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程模板表单配置数据
      * @param {String} template_id 模板id
      * @param {String} version 版本
@@ -517,16 +530,12 @@ const api = {
         return request(opts)
     },
     getLayoutedPipeline (data) {
-        const { width, pipelineTree } = data
         const prefixUrl = this.getPrefix('templateAutoDraw')
 
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            data: {
-                canvas_width: width,
-                pipeline_tree: pipelineTree
-            }
+            data
         }
         return request(opts)
     },
@@ -591,13 +600,13 @@ const api = {
      */
     getTaskScheme (data) {
         const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
-        const { project_id, template_id } = data
+        const { project__id, template_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
             params: {
                 template_id,
-                'project__id': project_id
+                'project__id': project__id
             }
         }
         return request(opts)
@@ -1253,14 +1262,6 @@ const api = {
         }
         return request(opts)
     },
-    loadCollectList () {
-        const prefixUrl = this.getPrefix('loadCollectList')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
     /**
      * 设置定时任务执行状态
      * @param {Object} data task_id 定时任务id, enabled 需要切换的状态
@@ -1333,16 +1334,15 @@ const api = {
     },
     /**
      * 查询业务在 CMDB 的主机
-     * @param {Array} filels 主机查询字段
      */
-    loadHostInCC (fields) {
-        const prefixUrl = this.getPrefix('cc_search_host')
-
+    loadHostInCC (data) {
+        const { url, fields, topo } = data
         const opts = {
             method: 'GET',
-            url: prefixUrl,
+            url,
             params: {
-                fields: JSON.stringify(fields)
+                fields: JSON.stringify(fields),
+                topo: JSON.stringify(topo)
             }
         }
         return request(opts)
@@ -1350,24 +1350,58 @@ const api = {
     /**
      * 查询业务在 CMDB 的拓扑树
      */
-    loadTopoTreeInCC () {
-        const prefixUrl = this.getPrefix('cc_search_topo_tree')
-
+    loadTopoTreeInCC (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
         }
         return request(opts)
     },
     /**
      * 查询业务在 CMDB 的拓扑模型
      */
-    loadTopoModelInCC () {
-        const prefixUrl = this.getPrefix('cc_get_mainline_object_topo')
-
+    loadTopoModelInCC (data) {
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: data.url
+        }
+        return request(opts)
+    },
+    getCCSearchTopoSet (data) {
+        const opts = {
+            method: 'GET',
+            url: data.url
+        }
+        return request(opts)
+    },
+    getCCSearchTopoResource (data) {
+        const opts = {
+            method: 'GET',
+            url: data.url
+        }
+        return request(opts)
+    },
+    getCCSearchModule (data) {
+        const opts = {
+            method: 'GET',
+            url: data.url,
+            params: {
+                bk_set_id: data.bk_set_id
+            }
+        }
+        return request(opts)
+    },
+    getCCSearchObjAttrHost (data) {
+        const opts = {
+            method: 'GET',
+            url: data.url
+        }
+        return request(opts)
+    },
+    getCCSearchColAttrSet (data) {
+        const opts = {
+            method: 'GET',
+            url: data.url
         }
         return request(opts)
     },

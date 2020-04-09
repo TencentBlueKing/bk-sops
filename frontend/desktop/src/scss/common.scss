@@ -98,6 +98,16 @@
     font-size: 14px;
     color: #ffb400;
 }
+// 模板编辑设置面板 sideslider 通用样式
+.common-template-setting-sideslider {
+    position: absolute !important;
+    background: none !important;
+    .bk-sideslider-content {
+        max-height: none !important;
+        height: calc(100vh - 168px);
+        overflow: hidden;
+    }
+}
 
 .panagation {
     padding: 10px 20px;
@@ -158,4 +168,30 @@
 }
 .tippy-tooltip.guide-theme[x-placement^='right'] .tippy-arrow {
     border-right-color: #656e82;
+}
+
+// 列表页展开操作项
+.common-dropdown-btn-popver {
+    .tippy-tooltip[data-size="small"] {
+        padding: 2px 0;
+    }
+    .tippy-tooltip.light-theme[data-animatefill] {
+        background: #ffffff;
+    }
+    .opt-btn {
+        padding: 0 12px;
+        line-height: 32px;
+        color: #63656e;
+        cursor: pointer;
+        &:hover {
+            background: #eaf3ff;
+            color: #3a84ff;
+            a {
+                color: #3a84ff;
+            }
+        }
+        a {
+            color: #63656e;
+        }
+    }
 }

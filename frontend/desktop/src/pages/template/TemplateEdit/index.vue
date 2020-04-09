@@ -28,6 +28,15 @@
                 @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
+            <SubflowUpdateTips
+                v-if="subflowShouldUpdated.length > 0"
+                :class="['update-tips', { 'update-tips-with-menu-open': nodeMenuOpen }]"
+                :list="subflowShouldUpdated"
+                :locations="locations"
+                :node-menu-open="nodeMenuOpen"
+                @viewClick="viewUpdatedNode"
+                @foldClick="clearDotAnimation">
+            </SubflowUpdateTips>
             <TemplateCanvas
                 ref="templateCanvas"
                 class="template-canvas"
@@ -37,66 +46,68 @@
                 :name="name"
                 :type="type"
                 :common="common"
-                :template_id="template_id"
                 :canvas-data="canvasData"
+                :node-memu-open.sync="nodeMenuOpen"
                 @hook:mounted="canvasMounted"
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
                 @onNodeMousedown="onNodeMousedown"
                 @onShowNodeConfig="onShowNodeConfig"
-                @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
                 @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
-            <NodeConfig
-                ref="nodeConfig"
-                :project_id="project_id"
-                v-show="isNodeConfigPanelShow"
-                :template_id="template_id"
-                :single-atom="singleAtom"
-                :sub-atom="subAtom"
-                :is-setting-panel-show="isSettingPanelShow"
-                :is-node-config-panel-show="isNodeConfigPanelShow"
-                :id-of-node-in-config-panel="idOfNodeInConfigPanel"
-                :common="common"
-                @hideConfigPanel="hideConfigPanel"
-                @globalVariableUpdate="globalVariableUpdate"
-                @onUpdateNodeInfo="onUpdateNodeInfo">
-            </NodeConfig>
-            <ConditionEdit
-                ref="conditionEdit"
-                :condition-data="conditionData"
-                :is-setting-panel-show="isSettingPanelShow"
-                :is-show-condition-edit="isShowConditionEdit"
-                v-show="isShowConditionEdit"
-                @onCloseConditionEdit="onCloseConditionEdit">
-            </ConditionEdit>
-            <TemplateSetting
-                ref="templateSetting"
-                :draft-array="draftArray"
-                :is-global-variable-update="isGlobalVariableUpdate"
-                :project-info-loading="projectInfoLoading"
-                :is-template-config-valid="isTemplateConfigValid"
-                :is-setting-panel-show="isSettingPanelShow"
-                :variable-type-list="variableTypeList"
-                :local-template-data="localTemplateData"
-                :is-click-draft="isClickDraft"
-                @toggleSettingPanel="toggleSettingPanel"
-                @globalVariableUpdate="globalVariableUpdate"
-                @onDeleteConstant="onDeleteConstant"
-                @variableDataChanged="variableDataChanged"
-                @onSelectCategory="onSelectCategory"
-                @onDeleteDraft="onDeleteDraft"
-                @onReplaceTemplate="onReplaceTemplate"
-                @onNewDraft="onNewDraft"
-                @updateLocalTemplateData="updateLocalTemplateData"
-                @modifyTemplateData="modifyTemplateData"
-                @hideConfigPanel="hideConfigPanel"
-                @updataConditionData="updataConditionData">
-            </TemplateSetting>
+            <div class="side-content">
+                <node-config
+                    ref="nodeConfig"
+                    v-if="isNodeConfigPanelShow"
+                    :is-show="isNodeConfigPanelShow"
+                    :atom-list="atomList"
+                    :subflow-list="subflowList"
+                    :atom-type-list="atomTypeList"
+                    :common="common"
+                    :node-id="idOfNodeInConfigPanel"
+                    :is-setting-panel-show="isSettingPanelShow"
+                    :setting-active-tab="settingActiveTab"
+                    @globalVariableUpdate="globalVariableUpdate"
+                    @hide="hideConfigPanel">
+                </node-config>
+                <condition-edit
+                    ref="conditionEdit"
+                    :is-show="isShowConditionEdit"
+                    :condition-data="conditionData"
+                    :is-setting-panel-show="isSettingPanelShow"
+                    :is-show-condition-edit="isShowConditionEdit"
+                    @onCloseConditionEdit="onCloseConditionEdit">
+                </condition-edit>
+                <template-setting
+                    ref="templateSetting"
+                    :draft-array="draftArray"
+                    :is-global-variable-update="isGlobalVariableUpdate"
+                    :project-info-loading="projectInfoLoading"
+                    :is-template-config-valid="isTemplateConfigValid"
+                    :is-setting-panel-show="isSettingPanelShow"
+                    :is-node-config-panel-show="isNodeConfigPanelShow"
+                    :variable-type-list="variableTypeList"
+                    :local-template-data="localTemplateData"
+                    :is-click-draft="isClickDraft"
+                    :is-fixed-var-menu="isFixedVarMenu"
+                    @toggleSettingPanel="toggleSettingPanel"
+                    @globalVariableUpdate="globalVariableUpdate"
+                    @variableDataChanged="variableDataChanged"
+                    @fixedVarMenuChange="fixedVarMenuChange"
+                    @onSelectCategory="onSelectCategory"
+                    @onDeleteDraft="onDeleteDraft"
+                    @onReplaceTemplate="onReplaceTemplate"
+                    @onNewDraft="onNewDraft"
+                    @onCitedNodeClick="onCitedNodeClick"
+                    @updateLocalTemplateData="updateLocalTemplateData"
+                    @modifyTemplateData="modifyTemplateData"
+                    @hideConfigPanel="hideConfigPanel">
+                </template-setting>
+            </div>
             <bk-dialog
                 width="400"
                 ext-cls="common-dialog"
@@ -124,12 +135,14 @@
     import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
-    import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
-    import NodeConfig from './NodeConfig.vue'
+    import TemplateSetting from './TemplateSetting/index.vue'
+    import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
+    import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
     import { STRING_LENGTH } from '@/constants/index.js'
+    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     const i18n = {
         templateEdit: gettext('流程编辑'),
@@ -153,14 +166,13 @@
             TemplateCanvas,
             NodeConfig,
             ConditionEdit,
-            TemplateSetting
+            TemplateSetting,
+            SubflowUpdateTips
         },
         props: ['template_id', 'type', 'common'],
         data () {
             return {
                 i18n,
-                bkMessageInstance: null,
-                exception: {},
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
                 projectInfoLoading: false,
@@ -172,16 +184,25 @@
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
                 isSettingPanelShow: true,
+                isShowConditionEdit: false,
                 isNodeConfigPanelShow: false,
                 isLeaveDialogShow: false,
+                nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
+                isFixedVarMenu: false, // 全局变量面板铆钉
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
-                isShowConditionEdit: false,
+                settingActiveTab: 'globalVariableTab',
+                lastOpenPanelName: '', // 最近一次打开的面板名
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
-                subAtomGrouped: [],
+                atomList: [],
+                subflowList: [],
+                atomTypeList: {
+                    tasknode: [],
+                    subflow: []
+                },
                 draftArray: [],
                 intervalSaveTemplate: null,
                 intervalGetDraftArray: null,
@@ -217,9 +238,6 @@
         },
         computed: {
             ...mapState({
-                'singleAtom': state => state.atomList.singleAtom,
-                'subAtom': state => state.atomList.subAtom,
-                'searchAtomResult': state => state.atomList.searchAtomResult,
                 'atomConfig': state => state.atomForm.config,
                 'name': state => state.template.name,
                 'activities': state => state.template.activities,
@@ -231,39 +249,12 @@
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
-                'site_url': state => state.site_url,
-                'atomFormConfig': state => state.atomForm.config,
-                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
+                'site_url': state => state.site_url
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
                 'project_id': state => state.project_id
             }),
-            ...mapGetters('atomList/', [
-                'singleAtomGrouped'
-            ]),
-            atomTypeList () {
-                const subAtomGrouped = tools.deepClone(this.subAtomGrouped)
-                if (this.type !== 'new') {
-                    let theSameAtomIndex
-                    this.subAtomGrouped.some((group, groupIndex) => {
-                        const inTheGroup = group.list.some((item, index) => {
-                            if (item.id === Number(this.template_id)) {
-                                theSameAtomIndex = index
-                                return true
-                            }
-                        })
-                        if (inTheGroup) {
-                            subAtomGrouped[groupIndex].list.splice(theSameAtomIndex, 1)
-                        }
-                        return inTheGroup
-                    })
-                }
-                return {
-                    'tasknode': this.singleAtomGrouped,
-                    'subflow': subAtomGrouped
-                }
-            },
             projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
                 return this.common ? 'common' : this.project_id
             },
@@ -280,7 +271,7 @@
                     lines: this.lines,
                     locations: this.locations.map(location => {
                         let icon, group, code
-                        const atom = this.singleAtom.find(item => {
+                        const atom = this.atomList.find(item => {
                             if (location.type === 'tasknode') {
                                 return this.activities[location.id].component.code === item.code
                             }
@@ -311,6 +302,12 @@
             // draftProjectId
             draftProjectId () {
                 return this.common ? 'common' : this.project_id
+            },
+            subflowShouldUpdated () {
+                if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
+                    return this.subprocess_info.details
+                }
+                return []
             }
         },
         async created () {
@@ -354,17 +351,17 @@
             window.onbeforeunload = function () {
                 return i18n.tips
             }
+            window.addEventListener('click', this.handleSidesPanelShow, false)
+            window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             window.onbeforeunload = null
             this.resetTemplateData()
             this.hideGuideTips()
+            window.removeEventListener('click', this.handleSidesPanelShow, false)
+            window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
-            ...mapActions('atomList/', [
-                'loadSingleAtomList',
-                'loadSubAtomList'
-            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
                 'loadTemplateData',
@@ -375,13 +372,10 @@
                 'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
+                'loadSingleAtomList',
+                'loadSubflowList',
                 'loadAtomConfig',
                 'loadSubflowConfig'
-            ]),
-            ...mapMutations('atomList/', [
-                'setSingleAtom',
-                'setSubAtom',
-                'searchAtom'
             ]),
             ...mapMutations('template/', [
                 'initTemplateData',
@@ -403,8 +397,7 @@
                 'setPipelineTree'
             ]),
             ...mapMutations('atomForm/', [
-                'clearAtomForm',
-                'setVersionMap'
+                'clearAtomForm'
             ]),
             ...mapGetters('template/', [
                 'getLocalTemplateData',
@@ -414,8 +407,26 @@
                 this.singleAtomListLoading = true
                 try {
                     const data = await this.loadSingleAtomList()
-                    this.setSingleAtom(data)
-                    this.updateStoreVersionMap(data)
+                    const atomList = []
+                    data.forEach(item => {
+                        const atom = atomList.find(atom => atom.code === item.code)
+                        if (atom) {
+                            atom.list.push(item)
+                        } else {
+                            const { code, desc, name, group_name, group_icon } = item
+                            atomList.push({
+                                code,
+                                desc,
+                                name,
+                                group_name,
+                                group_icon,
+                                type: group_name,
+                                list: [item]
+                            })
+                        }
+                    })
+                    this.atomList = atomList
+                    this.handleAtomGroup(atomList)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -425,26 +436,26 @@
             async getProjectBaseInfo () {
                 this.projectInfoLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(data)
-                    const subAtomData = {
-                        project_id: this.project_id,
-                        common: this.common,
-                        templateId: this.template_id
-                    }
-                    this.getSubAtomList(subAtomData)
+                    const resp = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(resp)
+                    this.getSubflowList()
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.projectInfoLoading = false
                 }
             },
-            async getSubAtomList (subAtomData) {
+            async getSubflowList (subAtomData) {
                 this.subAtomListLoading = true
                 try {
-                    const data = await this.loadSubAtomList(subAtomData)
-                    this.setSubAtom(data)
-                    this.handleSubflowGroup()
+                    const data = {
+                        project_id: this.project_id,
+                        common: this.common,
+                        templateId: this.template_id
+                    }
+                    const resp = await this.loadSubflowList(data)
+                    this.subflowList = resp
+                    this.handleSubflowGroup(resp)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -479,6 +490,7 @@
                     this.customVarCollectionLoading = false
                 }
             },
+            // 获取模板详情
             async getTemplateData () {
                 try {
                     const data = {
@@ -499,18 +511,23 @@
                     this.templateDataLoading = false
                 }
             },
+            /**
+             * 新增节点时取输入参数配置项
+             * 优先取 store 里已保存的
+             */
             async getSingleAtomConfig (location) {
-                const atomType = location.atomId
-                const version = this.SingleAtomVersionMap[atomType]
-                if (this.atomConfig[atomType] && this.atomConfig[atomType][version]) {
-                    this.addSingleAtomActivities(location, this.atomConfig[atomType][version])
+                const code = location.atomId
+                const version = location.version
+                const atomConfig = this.atomConfig[code]
+                if (atomConfig && atomConfig[version]) {
+                    this.addSingleAtomActivities(location, atomConfig[version])
                     return
                 }
                 // 接口获取最新配置信息
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType, version })
-                    this.addSingleAtomActivities(location, $.atoms[atomType])
+                    await this.loadAtomConfig({ atom: code, version })
+                    this.addSingleAtomActivities(location, $.atoms[code])
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -524,13 +541,13 @@
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
-                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+                        const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
-                            await this.loadAtomConfig({ atomType, classify, saveName: atom })
+                        if (!atomFilter.isConfigExists(atom, version, this.atomConfig)) {
+                            await this.loadAtomConfig({ name, atom, classify, version })
                         }
-                        const atomConfig = this.atomFormConfig[atom][version]
+                        const atomConfig = this.atomConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                         if (currentFormConfig) {
@@ -602,41 +619,123 @@
                 activities.component.data = data
                 this.setActivities({ type: 'edit', location: activities })
             },
-            // 子流程分组
-            handleSubflowGroup () {
-                const primaryData = this.subAtom
-                const groups = []
-                const atomGrouped = []
-                this.projectBaseInfo.task_categories.forEach(item => {
-                    groups.push(item.value)
-                    atomGrouped.push({
-                        type: item.value,
-                        group_name: item.name,
-                        group_icon: '',
-                        list: []
-                    })
+            // 标准插件分组
+            handleAtomGroup (data) {
+                const grouped = []
+                data.forEach(item => {
+                    const group = grouped.find(atom => atom.type === item.type)
+                    if (group) {
+                        group.list.push(item)
+                    } else {
+                        const { type, group_name, group_icon } = item
+                        grouped.push({
+                            group_name: group_name,
+                            group_icon: group_icon,
+                            type: type,
+                            list: [item]
+                        })
+                    }
                 })
-                primaryData.forEach(item => {
-                    const type = item.category
-                    const index = groups.indexOf(type)
-                    if (index > -1) {
-                        atomGrouped[index].list.push(item)
+                this.atomTypeList.tasknode = grouped
+            },
+            // 子流程分组
+            handleSubflowGroup (data) {
+                const grouped = []
+                data.forEach(item => {
+                    const group = grouped.find(tpl => tpl.type === item.category)
+                    if (group) {
+                        if (item.id !== Number(this.template_id)) {
+                            group.list.push(item)
+                        }
+                    } else {
+                        grouped.push({
+                            type: item.category,
+                            group_name: item.category_name,
+                            group_icon: '',
+                            list: [item]
+                        })
                     }
                 })
 
-                this.subAtomGrouped = atomGrouped
+                this.atomTypeList.subflow = grouped
             },
-            toggleSettingPanel (isSettingPanelShow) {
+            toggleSettingPanel (isSettingPanelShow, activeTab) {
+                const clientX = document.body.clientWidth
+                // 分辨率 1920 以下，显示 setting 面板时需隐藏节点配置面板
+                if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
+                    this.hideConfigPanel()
+                }
+                if (this.isShowConditionEdit) {
+                    this.onCloseConditionEdit()
+                }
+                if (isSettingPanelShow) {
+                    this.lastOpenPanelName = 'settingPanel'
+                }
                 this.isSettingPanelShow = isSettingPanelShow
+                this.settingActiveTab = activeTab
             },
             showConfigPanel (id) {
                 this.variableDataChanged()
                 this.isNodeConfigPanelShow = true
                 this.idOfNodeInConfigPanel = id
+                this.lastOpenPanelName = 'nodeConfigPanel'
             },
-            hideConfigPanel () {
-                this.isNodeConfigPanelShow = false
-                this.idOfNodeInConfigPanel = ''
+            // 关闭配置面板
+            hideConfigPanel (asyncData = true) {
+                if (this.isNodeConfigPanelShow) {
+                    if (asyncData) {
+                        this.syncAndValidateNodeConfig().then(result => {
+                            this.isNodeConfigPanelShow = false
+                            this.idOfNodeInConfigPanel = ''
+                        }).catch(e => {
+                            this.isNodeConfigPanelShow = false
+                            this.idOfNodeInConfigPanel = ''
+                        })
+                    } else {
+                        this.isNodeConfigPanelShow = false
+                        this.idOfNodeInConfigPanel = ''
+                    }
+                }
+            },
+            syncAndValidateNodeConfig () {
+                const { skippable, retryable, selectable } = this.$refs.nodeConfig.getBasicInfo()
+                const config = {
+                    skippable,
+                    retryable,
+                    optional: selectable
+                }
+                this.$refs.nodeConfig.syncActivity()
+                return this.$refs.nodeConfig.validate().then(result => {
+                    config.status = result ? '' : 'FAILED'
+                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                    return result
+                }, validator => {
+                    config.status = 'FAILED'
+                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, config)
+                })
+            },
+            /**
+             * 1920 分辨率一下，在全局变量面板 isFixedVarMenu = true 的情况下:
+             * 切换到节点配置面板(会自动关闭变量面板)，保留状态，待节点配置面板关闭后重新打开
+             */
+            reopenGlobalVarPanel () {
+                if (this.isFixedVarMenu && document.body.clientWidth < 1920) {
+                    this.$refs.templateSetting.setErrorTab('globalVariableTab')
+                }
+            },
+            onWindowResize () {
+                const clientX = document.body.clientWidth
+                // 在配置面板和setting面板双开时，屏幕突然改变保留最近打开的面板
+                if (clientX < 1920
+                    && this.isNodeConfigPanelShow
+                    && this.isSettingPanelShow
+                    && ['templateDataEditTab', 'globalVariableTab'].includes(this.settingActiveTab)) {
+                    if (this.lastOpenPanelName === 'settingPanel') {
+                        this.hideConfigPanel()
+                    } else {
+                        this.toggleSettingPanel(false)
+                    }
+                }
             },
             /**
              * 标识模板是否被编辑
@@ -742,16 +841,6 @@
                 this.onUpdateNodeInfo(id, { status: 'FAILED' })
             },
             /**
-             * 节点搜索
-             */
-            onSearchAtom (data) {
-                const payload = {
-                    ...data,
-                    exclude: this.type !== 'new' ? [Number(this.template_id)] : []
-                }
-                this.searchAtom(payload)
-            },
-            /**
              * 节点 Mousedown 回调
              */
             onNodeMousedown (id) {
@@ -760,27 +849,21 @@
             /**
              * 打开节点配置面板
              */
-            onShowNodeConfig (id) {
+            onShowNodeConfig (id, hideSettingPanel = true) {
                 if (this.isShowConditionEdit) {
                     this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
                 }
-                this.toggleSettingPanel(false)
-                const nodeType = this.locations.filter(item => {
-                    return item.id === id
-                })[0].type
-                if (nodeType === 'tasknode' || nodeType === 'subflow') {
-                    if (this.isNodeConfigPanelShow) {
-                        this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
-                            this.showConfigPanel(id)
-                        })
-                    } else {
-                        this.showConfigPanel(id)
-                    }
+                if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
+                    this.toggleSettingPanel(false)
                 }
-            },
-            // 分支网关失焦
-            onLabelBlur (labelData) {
-                this.setBranchCondition(labelData)
+                const location = this.locations.find(item => item.id === id)
+                this.showConfigPanel(id)
+                this.$nextTick(() => {
+                    // 若节点参数错误，打开面板后执行一次表单校验
+                    if (location.status === 'FAILED') {
+                        this.$refs.nodeConfig.validate()
+                    }
+                })
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
@@ -793,10 +876,18 @@
                 }
                 this.canvasDataLoading = true // @todo 支持画布单独loading
                 try {
+                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
                     const pipelineTree = this.getPipelineTree()
                     const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
                     const width = canvasEl.offsetWidth - 200
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree })
+                    const res = await this.getLayoutedPipeline({
+                        canvas_width: width,
+                        pipeline_tree: pipelineTree,
+                        activity_size: ACTIVITY_SIZE,
+                        event_size: EVENT_SIZE,
+                        gateway_size: GATEWAY_SIZE,
+                        start: START_POSITION
+                    })
                     if (res.result) {
                         this.onNewDraft(undefined, false)
                         this.$refs.templateCanvas.removeAllConnector()
@@ -826,10 +917,16 @@
                     case 'subflow':
                         // 添加任务节点
                         if (changeType === 'add' && location.atomId) {
-                            this.setActivities({ type: 'add', location })
                             if (location.type === 'tasknode') {
+                                const atoms = this.atomList.find(item => item.code === location.atomId).list
+                                // @todo 需要确认插件最新版本的取值逻辑，暂时取最后一个
+                                const lastVersionAtom = atoms[atoms.length - 1]
+                                const version = lastVersionAtom.version
+                                location.version = version
+                                this.setActivities({ type: 'add', location })
                                 this.getSingleAtomConfig(location)
                             } else {
+                                this.setActivities({ type: 'add', location })
                                 this.getSubflowConfig(location)
                             }
                             return
@@ -862,6 +959,7 @@
             onLocationMoveDone (location) {
                 this.setLocationXY(location)
             },
+            // 全局变量是否有更新，面板收起的情况下增加、删除变量时在 icon 处显示小红点
             globalVariableUpdate (val) {
                 this.isGlobalVariableUpdate = val
             },
@@ -870,13 +968,6 @@
                 const updatedLocation = Object.assign(location, data)
                 this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
-            },
-            onDeleteConstant (key) {
-                this.variableDataChanged()
-                if (this.isNodeConfigPanelShow) {
-                    const constant = this.constants[key]
-                    this.$refs.nodeConfig.onDeleteConstant(constant)
-                }
             },
             // 流程名称修改
             onChangeName (name) {
@@ -940,9 +1031,11 @@
             // 同步节点配置面板数据
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
-                    this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
-                        if (!isValid) return
-                        this.asyncConditionData()
+                    this.syncAndValidateNodeConfig().then(result => {
+                        console.log(result)
+                        if (result) {
+                            this.asyncConditionData()
+                        }
                     })
                 } else {
                     this.asyncConditionData()
@@ -1086,19 +1179,9 @@
             // 打开分支条件编辑
             onOpenConditionEdit (data) {
                 this.toggleSettingPanel(false)
-                this.isNodeConfigPanelShow = false
+                this.hideConfigPanel()
                 this.isShowConditionEdit = true
                 this.$refs.conditionEdit.updateConditionData(data)
-            },
-            // 更新分支数据
-            updataConditionData (data) {
-                // 更新 store 数据
-                this.onLabelBlur(data)
-                // 更新 cavans 页面数据
-                this.$refs.templateCanvas.updataConditionCanvasData(data)
-                this.$nextTick(() => {
-                    this.checkConditionData()
-                })
             },
             // 校验分支数据
             checkConditionData (isShowError = false) {
@@ -1120,32 +1203,30 @@
                 }
                 return checkResult
             },
-            onCloseConditionEdit (data) {
+            // 关闭分支节点
+            onCloseConditionEdit () {
                 if (this.isShowConditionEdit) {
-                    this.isShowConditionEdit = false
+                    const data = this.$refs.conditionEdit.getConditionData()
                     this.updataConditionData(data)
+                    this.isShowConditionEdit = false
                     // 删除分支条件节点选中样式
                     document.querySelectorAll('.branch-condition.editing').forEach(dom => {
                         dom.classList.remove('editing')
                     })
                 }
             },
+            // 更新分支数据
+            updataConditionData (data) {
+                // 更新 store 数据
+                this.setBranchCondition(data)
+                // 更新 cavans 页面数据
+                this.$refs.templateCanvas.updataConditionCanvasData(data)
+                this.$nextTick(() => {
+                    this.checkConditionData()
+                })
+            },
             onSaveConditionData () {
                 return this.$refs.conditionEdit.checkCurrentConditionData()
-            },
-            // 更新标准插件最新版本列表
-            updateStoreVersionMap (data) {
-                const actions = {}
-                data.forEach(atom => {
-                    const value = actions[atom.code]
-                    if (value) {
-                        if (value < atom.version || value === 'legacy') actions[atom.code] = atom.version
-                    } else {
-                        actions[atom.code] = atom.version
-                    }
-                    // actions[atom.code] = atom.version
-                })
-                this.setVersionMap(actions)
             },
             // 流程模板数据编辑更新
             modifyTemplateData (data) {
@@ -1170,6 +1251,87 @@
             },
             canvasMounted () {
                 this.handlerGuideTips()
+            },
+            // 所有侧滑面板以外点击事件处理
+            handleSidesPanelShow (e) {
+                if (
+                    !this.isNodeConfigPanelShow
+                    && !this.isSettingPanelShow
+                    && !this.isShowConditionEdit
+                ) {
+                    return
+                }
+                let panel
+                if (this.isSettingPanelShow) {
+                    panel = document.querySelector('.setting-area-wrap .panel-item.active-tab .bk-sideslider-wrapper')
+                }
+                if (this.isShowConditionEdit) {
+                    panel = document.querySelector('.condition-edit .bk-sideslider-wrapper')
+                }
+                if (this.isNodeConfigPanelShow) {
+                    panel = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
+                }
+                if (panel) {
+                    const { left, top } = panel.getBoundingClientRect()
+                    const pageX = left + document.documentElement.scrollLeft
+                    const pageY = top + document.documentElement.scrollTop
+                    if (
+                        (e.pageX > 0 && e.pageY > 0) // 上传组件点击时，触发区域隐藏在页面左上角
+                        && (e.pageX < pageX || e.pageY < pageY)
+                    ) {
+                        this.isNodeConfigPanelShow && this.hideConfigPanel(true)
+                        !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
+                        this.isShowConditionEdit && this.onCloseConditionEdit()
+                    }
+                }
+            },
+            // 查看需要更新的子流程
+            viewUpdatedNode (id) {
+                this.moveNodeToView(id)
+                this.showDotAnimation(id)
+            },
+            // 全局变量引用节点点击回调
+            onCitedNodeClick (nodeId) {
+                this.moveNodeToView(nodeId)
+            },
+            /**
+             * 移动画布，将节点放到画布左上角
+             */
+            moveNodeToView (id) {
+                const { x, y } = this.locations.find(item => item.id === id)
+                const offsetX = 200 - x
+                const offsetY = 200 - y
+                this.$refs.templateCanvas.setCanvasPosition(offsetX, offsetY, true)
+
+                // 移动画布到选中节点位置的摇晃效果
+                const nodeEl = document.querySelector(`#${id} .canvas-node-item`)
+                if (nodeEl) {
+                    nodeEl.classList.add('node-shake')
+                    setTimeout(() => {
+                        nodeEl.classList.remove('node-shake')
+                    }, 2000)
+                }
+            },
+            // 开启子流程更新的小红点动画效果
+            showDotAnimation (id) {
+                this.clearDotAnimation()
+                if (!Array.isArray(id)) {
+                    id = [id]
+                }
+                id.forEach(item => {
+                    const nodeDot = document.querySelector(`#${item} .updated-dot`)
+                    nodeDot.classList.add('show-animation')
+                })
+            },
+            // 关闭所有子流程更新的小红点动画效果
+            clearDotAnimation () {
+                const updateNodesDot = document.querySelectorAll('.subflow-node .updated-dot')
+                updateNodesDot.forEach(item => {
+                    item.classList.remove('show-animation')
+                })
+            },
+            fixedVarMenuChange (val) {
+                this.isFixedVarMenu = val
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -1192,17 +1354,36 @@
     }
 </script>
 <style lang="scss" scoped>
-    @import '@/scss/config.scss';
     .template-page {
         position: relative;
         height: 100%;
         overflow: hidden;
     }
+    .update-tips {
+        position: absolute;
+        top: 76px;
+        left: 400px;
+        min-height: 40px;
+        overflow: hidden;
+        z-index: 4;
+        transition: left 0.5s ease;
+        &.update-tips-with-menu-open {
+            left: 700px;
+        }
+    }
     .pipeline-canvas-wrapper {
         height: 100%;
     }
     .template-canvas {
+        position: relative;
         height: calc(100% - 60px);
+    }
+    .side-content {
+        position: absolute;
+        top: 59px;
+        right: 0px;
+        height: calc(100% - 58px);
+        z-index: 5;
     }
     .leave-tips {
         padding: 30px;

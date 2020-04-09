@@ -10,48 +10,56 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['condition-edit', { 'position-right-side': !isSettingPanelShow }]" @click.stop>
-        <div class="condition-title">{{ i18n.conditionTitle }}</div>
-        <div class="condition-form">
-            <div class="form-item">
-                <label class="lable">
-                    {{ i18n.conditionName }}
-                    <span class="required">*</span>
-                </label>
-                <bk-input
-                    v-model="conditionName"
-                    v-validate="conditionRule"
-                    name="conditionName"
-                    :clearable="true">
-                </bk-input>
-                <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
+    <div class="condition-edit">
+        <bk-sideslider
+            :ext-cls="'common-template-setting-sideslider'"
+            :width="420"
+            :is-show="isShow"
+            :before-close="onBeforeClose"
+            :quick-close="true">
+            <div slot="header">
+                <span>{{ i18n.conditionTitle }}</span>
             </div>
-            <div class="form-item">
-                <label class="lable">
-                    {{ i18n.expression }}
-                    <span class="required">*</span>
-                </label>
-                <textarea
-                    v-model="expression"
-                    v-validate="expressionRule"
-                    name="expression"
-                    autocomplete="off"
-                    placeholder=""
-                    class="ui-textarea">
-                </textarea>
-                <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
+            <div class="condition-form" slot="content">
+                <div class="form-item">
+                    <label class="lable">
+                        {{ i18n.conditionName }}
+                        <span class="required">*</span>
+                    </label>
+                    <bk-input
+                        v-model="conditionName"
+                        v-validate="conditionRule"
+                        name="conditionName"
+                        :clearable="true">
+                    </bk-input>
+                    <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
+                </div>
+                <div class="form-item">
+                    <label class="lable">
+                        {{ i18n.expression }}
+                        <span class="required">*</span>
+                    </label>
+                    <textarea
+                        v-model="expression"
+                        v-validate="expressionRule"
+                        name="expression"
+                        autocomplete="off"
+                        placeholder=""
+                        class="ui-textarea">
+                    </textarea>
+                    <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
+                </div>
             </div>
-        </div>
+        </bk-sideslider>
     </div>
 </template>
 
 <script>
     import '@/utils/i18n.js'
-    import dom from '@/utils/dom.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     export default {
         name: 'conditionEdit',
-        props: ['isSettingPanelShow', 'isShowConditionEdit'],
+        props: ['isSettingPanelShow', 'isShowConditionEdit', 'isShow'],
         data () {
             return {
                 i18n: {
@@ -72,28 +80,20 @@
                 conditionData: {}
             }
         },
-        mounted () {
-            document.body.addEventListener('mousedown', this.handleConditionEdit, false)
-        },
-        beforeDestroy () {
-            document.body.removeEventListener('mousedown', this.handleConditionEdit, false)
-        },
         methods: {
             updateConditionData (data) {
                 this.conditionData = data
                 this.conditionName = data.name
                 this.expression = data.value
             },
-            /**
-             * 处理分支条件编辑面板之外的点击事件
-             */
-            handleConditionEdit (e) {
-                if (!this.isShowConditionEdit) {
-                    return
-                }
-                const condition = document.querySelector('.condition-edit')
-                if (condition && !dom.nodeContains(condition, e.target)) {
-                    this.closeConditionEdit()
+            getConditionData () {
+                const { id, nodeId, overlayId } = this.conditionData
+                return {
+                    id,
+                    nodeId,
+                    overlayId,
+                    value: this.expression,
+                    name: this.conditionName
                 }
             },
             closeConditionEdit () {
@@ -109,6 +109,10 @@
             checkCurrentConditionData () {
                 this.closeConditionEdit()
                 return this.$validator.validateAll()
+            },
+            // 关闭配置面板
+            onBeforeClose () {
+                this.closeConditionEdit()
             }
         }
     }
@@ -118,30 +122,12 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .condition-edit {
-    position: absolute;
-    top: 59px;
-    right: 476px;
-    padding: 20px;
-    width: 420px;
-    height: calc(100% - 50px);
-    background: #ffffff;
-    border-left: 1px solid #dddddd;
-    box-shadow: -4px 0 6px -4px rgba(0, 0, 0, .15);
-    overflow-y: auto;
     z-index: 5;
-    -webkit-transition: right 0.5s ease-in-out;
-    transition: right 0.5s ease-in-out;
-    &.position-right-side {
-        right: 56px;
-    }
-    .condition-title {
-        height: 35px;
-        line-height: 35px;
-        margin: 0px 20px;
-        border-bottom: 1px solid #cacecb;
-        font-size: 14px;
-        font-weight:600;
-        color:#313238;
+    transition: right 0.3s ease-in-out;
+    /deep/ {
+        .bk-sideslider-wrapper {
+            right: 56px;
+        }
     }
     .condition-form {
         .form-item {

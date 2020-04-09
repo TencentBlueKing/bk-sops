@@ -11,118 +11,30 @@
 */
 <template>
     <div class="task-operation">
-        <div class="operation-header clearfix">
-            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow && nodeNav.length > 1">
-                <span
-                    :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
-                    v-for="(path, index) in nodeNav"
-                    :key="path.id"
-                    :title="showNodeList.includes(index) ? path.name : ''">
-                    <span v-if="!!index && showNodeList.includes(index) || index === 1">
-                        &gt;
-                    </span>
-                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
-                        {{path.name}}
-                    </span>
-                    <span class="node-ellipsis" v-else-if="index === 1">
-                        {{ellipsis}}
-                    </span>
-                </span>
-            </div>
-            <div class="operation-container clearfix">
-                <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
-                    <template v-for="operation in taskOperationBtns">
-                        <bk-button
-                            :class="[
-                                'operation-btn',
-                                operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn',
-                                { 'btn-permission-disable': !hasPermission(['operate'], instanceActions, instanceOperations) }
-                            ]"
-                            theme="default"
-                            hide-text="true"
-                            :icon="'common-icon ' + operation.icon"
-                            :key="operation.action"
-                            :loading="operation.loading"
-                            :disabled="operation.disabled"
-                            v-bk-tooltips="{
-                                content: operation.text,
-                                placements: ['bottom']
-                            }"
-                            v-cursor="{ active: !hasPermission(['operate'], instanceActions, instanceOperations) }"
-                            @click="onOperationClick(operation.action)">
-                        </bk-button>
-                    </template>
-                </div>
-                <div class="task-params-btns">
-                    <i
-                        :class="[
-                            'params-btn',
-                            'solid-eye',
-                            'common-icon',
-                            'common-icon-solid-eye',
-                            {
-                                actived: nodeInfoType === 'viewParams'
-                            }
-                        ]"
-                        v-bk-tooltips="{
-                            content: i18n.params,
-                            placements: ['bottom']
-                        }"
-                        @click="onTaskParamsClick('viewParams')">
-                    </i>
-                    <i
-                        :class="[
-                            'params-btn',
-                            'common-icon',
-                            'common-icon-edit',
-                            {
-                                actived: nodeInfoType === 'modifyParams'
-                            }
-                        ]"
-                        v-bk-tooltips="{
-                            content: i18n.changeParams,
-                            placements: ['bottom']
-                        }"
-                        @click="onTaskParamsClick('modifyParams')">
-                    </i>
-                    <router-link
-                        v-if="isShowViewProcess"
-                        class="jump-tpl-page-btn common-icon-link"
-                        target="_blank"
-                        v-bk-tooltips="{
-                            content: i18n.checkFlow,
-                            placements: ['bottom']
-                        }"
-                        :to="getTplURL()">
-                    </router-link>
-                    <i
-                        v-if="adminView"
-                        :class="[
-                            'params-btn',
-                            'common-icon',
-                            'common-icon-paper',
-                            {
-                                actived: nodeInfoType === 'taskExecuteInfo'
-                            }
-                        ]"
-                        v-bk-tooltips="{
-                            content: i18n.taskExecuteInfo,
-                            placements: ['bottom']
-                        }"
-                        @click="onTaskParamsClick('taskExecuteInfo')">
-                    </i>
-                </div>
-            </div>
-        </div>
+        <task-operation-header
+            :node-nav="nodeNav"
+            :project_id="project_id"
+            :template_id="template_id"
+            :template-source="templateSource"
+            :node-info-type="nodeInfoType"
+            :task-operation-btns="taskOperationBtns"
+            :instance-actions="instanceActions"
+            :instance-operations="instanceOperations"
+            :admin-view="adminView"
+            :is-breadcrumb-show="isBreadcrumbShow"
+            :is-show-view-process="isShowViewProcess"
+            :is-task-operation-btns-show="isTaskOperationBtnsShow"
+            @onSelectSubflow="onSelectSubflow"
+            @onOperationClick="onOperationClick"
+            @onTaskParamsClick="onTaskParamsClick">
+        </task-operation-header>
         <div :class="['task-status', state]">
             <span class="task-status-name">
                 {{taskState}}
             </span>
         </div>
         <div class="task-container">
-            <div :class="['pipeline-nodes', {
-                'task-params-show': isTaskParamsShow
-            }]">
+            <div class="pipeline-nodes">
                 <TemplateCanvas
                     ref="templateCanvas"
                     v-if="!nodeSwitching"
@@ -205,6 +117,7 @@
     import '@/utils/i18n.js'
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
+    import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
@@ -218,6 +131,7 @@
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
     import permission from '@/mixins/permission.js'
+    import TaskOperationHeader from './TaskOperationHeader'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -262,7 +176,8 @@
             ModifyTime,
             TaskInfo,
             gatewaySelectDialog,
-            revokeDialog
+            revokeDialog,
+            TaskOperationHeader
         },
         mixins: [permission],
         props: [
@@ -280,19 +195,13 @@
             })
 
             return {
-                i18n: {
-                    params: gettext('查看参数'),
-                    changeParams: gettext('修改参数'),
-                    checkFlow: gettext('查看流程'),
-                    taskExecuteInfo: gettext('流程信息')
-                },
                 taskId: this.instance_id,
-                isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
                 state: '',
                 selectedNodeId: '',
                 selectedFlowPath: path, // 选择面包屑路径
+                cacheStatus: undefined, // 总任务缓存状态信息；只有总任务完成、撤销时才存在
                 instanceStatus: {},
                 taskParamsType: '',
                 timer: null,
@@ -314,8 +223,6 @@
                 },
                 activeOperation: '', // 当前任务操作（头部区域操作按钮触发）
                 isRevokeDialogShow: false,
-                showNodeList: [0, 1, 2],
-                ellipsis: '...',
                 operateLoading: false,
                 retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
@@ -402,15 +309,6 @@
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'
             }
         },
-        watch: {
-            nodeNav (val) {
-                if (val.length > 3) {
-                    this.showNodeList = [0, val.length - 1, val.length - 2]
-                } else {
-                    this.showNodeList = [0, 1, 2]
-                }
-            }
-        },
         mounted () {
             this.loadTaskStatus()
             window.addEventListener('click', this.handleNodeInfoPanelHide, false)
@@ -442,13 +340,16 @@
             async loadTaskStatus () {
                 try {
                     this.$emit('taskStatusLoadChange', true)
-
                     let instanceStatus = {}
-                    if (['FINISHED', 'FAILED'].includes(this.state)
+                    if (['FINISHED', 'REVOKED'].includes(this.state) && this.cacheStatus) { // 总任务：完成/撤销时,取实例缓存数据
+                        instanceStatus = await this.getGlobalCacheStatus(this.taskId)
+                    } else if (
+                        this.instanceStatus.state
+                        && this.instanceStatus.state === 'FINISHED' // 任务实例才会出现撤销，子流程不存在
                         && this.instanceStatus.children
                         && this.instanceStatus.children[this.taskId]
-                    ) {
-                        instanceStatus = await this.getCacheStatusData()
+                    ) { // 局部：完成时，取局部缓存数据
+                        instanceStatus = await this.getLocalCacheStatus()
                     } else {
                         if (source) {
                             source.cancel('cancelled') // 取消定时器里已经执行的请求
@@ -465,9 +366,17 @@
                         }
                         instanceStatus = await this.getInstanceStatus(data)
                     }
+                    // 处理返回数据
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
+                        if (
+                            !this.cacheStatus
+                            && ['FINISHED', 'REVOKED'].includes(this.state)
+                            && this.taskId === this.instance_id
+                        ) { // save cacheStatus
+                            this.cacheStatus = instanceStatus.data
+                        }
                         if (this.state === 'RUNNING') {
                             this.setTaskStatusTimer()
                         }
@@ -487,12 +396,30 @@
                 }
             },
             /**
-             * 获取缓存状态数据
+             * 从总任务实例状态信息中取数据
+             */
+            getGlobalCacheStatus (taskId) {
+                return new Promise((resolve) => {
+                    const levels = this.nodeNav.map(nav => nav.id).slice(1)
+                    let instanStatus = tools.deepClone(this.cacheStatus)
+                    levels.forEach(subNodeId => {
+                        instanStatus = instanStatus.children[subNodeId]
+                    })
+                    setTimeout(() => {
+                        resolve({
+                            data: instanStatus,
+                            result: true
+                        })
+                    }, 0)
+                })
+            },
+            /**
+             * 获取局部（子流程）缓存状态数据
              * @description
              * 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
              * 然后使用 updateCanvas 替代 v-if
              */
-            getCacheStatusData () {
+            getLocalCacheStatus () {
                 return new Promise((resolve) => {
                     const cacheStatus = this.instanceStatus.children
                     setTimeout(() => {
@@ -899,16 +826,7 @@
                     this.nodeInfoType = type
                 }
             },
-            getTplURL () {
-                let routerData = ''
-                // business 兼容老数据
-                if (this.templateSource === 'business' || this.templateSource === 'project') {
-                    routerData = `/template/edit/${this.project_id}/?template_id=${this.template_id}`
-                } else if (this.templateSource === 'common') {
-                    routerData = `/template/common/${this.project_id}/`
-                }
-                return routerData
-            },
+            
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
@@ -1184,7 +1102,7 @@
 @import '@/scss/animation/operate.scss';
 .task-operation {
     position: relative;
-    height: calc(100% - 118px);
+    height: 100%;
     min-height: 500px;
     overflow: hidden;
     background: #f4f7fa;
@@ -1249,129 +1167,7 @@
 /deep/ .atom-failed {
     font-size: 12px;
 }
-.operation-header {
-    margin: 0 20px;
-    height: 50px;
-    line-height: 50px;
-    background: #f4f7fa;
-    border-top: 1px solid #cacedb;
 
-    .bread-crumbs-wrapper {
-        display: inline-block;
-        font-size: 14px;
-        height: 50px;
-        .path-item {
-            display: inline-block;
-            overflow: hidden;
-            &.name-ellipsis {
-                max-width: 190px;
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-            }
-            .node-name {
-                margin: 0 4px;
-                font-size: 14px;
-                color: #3a84ff;
-                cursor: pointer;
-            }
-            .node-ellipsis {
-                margin-right: 4px;
-            }
-            &:first-child {
-                .node-name {
-                    margin-left: 0px;
-                }
-            }
-            &:last-child {
-                .node-name {
-                    &:last-child {
-                        color: #313238;
-                        cursor: text;
-                    }
-                }
-            }
-        }
-    }
-    .operation-container {
-        float: right;
-        .task-operation-btns,
-        .task-params-btns {
-            float: left;
-            .bk-button {
-                border: none;
-                background: transparent;
-                cursor: pointer;
-            }
-            /deep/ .bk-icon {
-                float: initial;
-                top: 0;
-                & + span {
-                    margin-left: 0;
-                }
-            }
-        }
-        .task-operation-btns {
-            margin: 9px 35px 0 0;
-            line-height: initial;
-            border-right: 1px solid #dde4eb;
-            .operation-btn {
-                margin-right: 35px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                &.btn-permission-disable {
-                    background: transparent !important;
-                }
-            }
-            .execute-btn {
-                width: 140px;
-                color: #ffffff;
-                background: #2dcb56; // 覆盖 bk-button important 规则
-                &:hover {
-                    background: #1f9c40; // 覆盖 bk-button important 规则
-                }
-                &.is-disabled {
-                    color: #ffffff; // 覆盖 bk-button important 规则
-                    opacity: 0.4;
-                    cursor: no-drop;
-                }
-                &.btn-permission-disable {
-                    border: 1px solid #e6e6e6;
-                }
-                /deep/ .bk-button-loading div {
-                    background: #ffffff;
-                }
-            }
-            .revoke-btn {
-                padding: 0;
-                background: transparent; // 覆盖 bk-button important 规则
-                color: #ea3636;
-                &:hover {
-                    color: #c32929;
-                }
-                &.is-disabled {
-                    color: #d8d8d8;
-                }
-            }
-        }
-        .task-params-btns {
-            .params-btn, .jump-tpl-page-btn {
-                margin-right: 36px;
-                padding: 0;
-                color: #979ba5;
-                font-size: 15px;
-                cursor: pointer;
-                &.actived {
-                    color: #63656e;
-                }
-                &:hover {
-                    color: #63656e;
-                }
-            }
-        }
-    }
-}
 .task-container {
     position: relative;
     width: 100%;
@@ -1397,47 +1193,6 @@
     }
 
 }
-.task-params {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 750px;
-    height: 100%;
-    background: $whiteDefault;
-    border-left: 1px solid $commonBorderColor;
-    box-shadow: -1px 1px 8px rgba(130, 130, 130, .15), 1px -1px 8px rgba(130, 130, 130, .15);
-    z-index: 4;
-    .task-params-show {
-        width: 750px;
-        border-left: 1px solid $commonBorderColor;
-    }
-    .toggle-params-panel {
-        position: absolute;
-        top: 50%;
-        left: -20px;
-        margin-top: -12px;
-        width: 20px;
-        height: 38px;
-        line-height: 38px;
-        font-size: 12px;
-        color: $whiteDefault;
-        text-align: center;
-        background: $blueDefault;
-        border-right: none;
-        border-radius: 4px;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
-        cursor: pointer;
-        transform: rotate(0);
-        &:hover {
-            background: #0082ff;
-        }
-        &.actived {
-            transform: rotate(-180deg);
-        }
-    }
-}
 .node-info-panel {
     position: absolute;
     top: 50px;
@@ -1458,7 +1213,7 @@
         font-size: 12px;
         color: $whiteDefault;
         text-align: center;
-        background:#3c96ff;
+        background:#3a84ff;
         border-right: none;
         border-radius: 4px;
         border-top-right-radius: 0;

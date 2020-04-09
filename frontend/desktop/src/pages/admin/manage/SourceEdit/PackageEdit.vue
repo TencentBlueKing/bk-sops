@@ -25,7 +25,7 @@
         </div>
         <div class="operate-area">
             <bk-button
-                theme="success"
+                theme="primary"
                 class="next-step"
                 @click="onNextStepClick">
                 {{ i18n.nextStep }}

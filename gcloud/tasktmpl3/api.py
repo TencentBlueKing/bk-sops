@@ -431,3 +431,11 @@ def draw_pipeline(request):
         logger.exception(e)
         return JsonResponse({'result': False, 'message': message})
     return JsonResponse({'result': True, 'data': {'pipeline_tree': pipeline_tree}})
+
+
+@require_GET
+def get_templates_with_expired_subprocess(request, project_id):
+    return JsonResponse({
+        'result': True,
+        'data': TaskTemplate.objects.get_templates_with_expired_subprocess(project_id)
+    })

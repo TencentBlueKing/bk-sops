@@ -292,6 +292,20 @@
                             }
                         }
                         break
+                    case 'set_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: []
+                            }
+                        }
+                        break
                     default:
                         valueFormat = {
                             type: 'String',
@@ -377,7 +391,7 @@
         }
     }
     &.show-label > .rf-tag-form {
-        margin-left: 120px;
+        margin-left: 130px;
     }
     .rf-tag-hook {
         position: absolute;

@@ -53,7 +53,9 @@
                                 <tr v-for="(item, key) in value.packages" :key="key">
                                     <td>{{key}}</td>
                                     <td>{{item.version}}</td>
-                                    <td>{{item.modules.join(',')}}</td>
+                                    <td>
+                                        <p v-for="(m, i) in item.modules" :key="i">{{ m }}</p>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
