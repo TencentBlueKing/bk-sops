@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,19 +18,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    initial = True
-
     dependencies = [
+        ('template', '0005_auto_20190523_1509'),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='UploadModuleFileTag',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('source_ip', models.CharField(max_length=128, verbose_name='file locate ip')),
-                ('file_name', models.TextField(verbose_name='file name')),
-                ('file_path', models.TextField(verbose_name='file locate path')),
-            ],
+        migrations.AlterField(
+            model_name='commontemplate',
+            name='category',
+            field=models.CharField(choices=[('OpsTools', '运维工具'), ('MonitorAlarm', '监控告警'), ('ConfManage', '配置管理'), ('DevTools', '开发工具'), ('EnterpriseIT', '企业IT'), ('OfficeApp', '办公应用'), ('Other', '其它')], default='Other', max_length=255, verbose_name='模板类型'),
         ),
     ]

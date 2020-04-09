@@ -151,8 +151,11 @@
                                                     @click.prevent="getJumpUrl('edit', props.row.id)">
                                                     {{i18n.edit}}
                                                 </a>
-                                            </li>
-                                            <li class="opt-btn">
+                                                <router-link
+                                                    v-if="project_id"
+                                                    :to="getExecuteHistoryUrl(props.row.id)">
+                                                    {{ i18n.executeHistory }}
+                                                </router-link>
                                                 <a
                                                     v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
                                                     href="javascript:void(0);"

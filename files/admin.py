@@ -25,4 +25,5 @@ class UploadModuleFileTagAdmin(admin.ModelAdmin):
 @admin.register(models.UploadTicket)
 class UploadTicketAdmin(admin.ModelAdmin):
     list_display = ["id", "code", "applicant", "apply_from", "created_at", "is_available", "used_at"]
-    search_fields = ["id", "code", "applicant", "apply_from", "created_at", "is_available", "used_at"]
+    search_fields = ["id", "code", "applicant", "apply_from"]
+    list_filter = ["is_available"]

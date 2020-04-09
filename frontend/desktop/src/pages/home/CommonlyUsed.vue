@@ -126,11 +126,16 @@
             getLimit () {
                 return document.body.clientWidth > 1920 ? 6 : 4
             },
-            openOtherApp (url) {
+            // 这里统一直接用后端提供的 host 跳转
+            openOtherApp (name) {
+                const HOST_MAP = {
+                    'bk_iam_app': window.BK_IAM_HOST,
+                    'bk_cmdb': window.BK_CC_HOST
+                }
                 if (self === top) {
-                    window.open(url, '__blank')
+                    window.open(HOST_MAP[name], '__blank')
                 } else {
-                    window.PAAS_API.open_other_app(url)
+                    window.PAAS_API.open_other_app(name, HOST_MAP[name])
                 }
             },
             onSwitchBusiness (id) {
