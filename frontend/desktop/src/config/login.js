@@ -9,8 +9,10 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-const topWindow = window.top
+const isCrossOrigin = isCrossOriginIFrame()
+const topWindow = isCrossOrigin ? window : window.top
 const topDocument = topWindow.document
+
 try {
     topWindow.BLUEKING.corefunc.open_login_dialog = openLoginDialog
     topWindow.BLUEKING.corefunc.close_login_dialog = closeLoginDialog
@@ -20,6 +22,13 @@ try {
             open_login_dialog: openLoginDialog,
             close_login_dialog: closeLoginDialog
         }
+    }
+}
+function isCrossOriginIFrame () {
+    try {
+        return !window.top.location.hostname
+    } catch (e) {
+        return true
     }
 }
 function openLoginDialog (src, width = 460, height = 490, method = 'get') {
