@@ -302,7 +302,7 @@
                     creator: gettext('提单人'),
                     claimant: gettext('认领人'),
                     claimStatus: gettext('认领状态'),
-                    taskStatus: gettext('任务状态'),
+                    taskStatus: gettext('执行状态'),
                     operation: gettext('操作'),
                     claim: gettext('认领'),
                     view: gettext('查看'),
@@ -548,11 +548,11 @@
                 const templateList = this.template.list
                 let resource_uri = ''
                 let name, tplAction
-                
+
                 if (id === undefined) {
                     return
                 }
-                
+
                 templateList.some(group => {
                     return group.children.some(item => {
                         if (item.id === id) {
