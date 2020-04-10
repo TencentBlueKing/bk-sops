@@ -93,7 +93,7 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="160">
+                    <bk-table-column :label="i18n.operation" width="190">
                         <template slot-scope="props">
                             <div class="task-operation">
                                 <!-- 事后鉴权，后续对接新版权限中心 -->

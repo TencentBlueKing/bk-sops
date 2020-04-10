@@ -92,7 +92,11 @@
                     reorderList = this.sortedList
                 } else {
                     const index = this.sortedList.findIndex(item => item.subprocess_node_id === this.curId)
-                    reorderList = this.sortedList.slice(index + 1).concat(this.sortedList.slice(0, index))
+                    if (index === this.sortedList.length - 1) {
+                        reorderList = this.sortedList
+                    } else {
+                        reorderList = this.sortedList.slice(index + 1).concat(this.sortedList.slice(0, index))
+                    }
                 }
                 reorderList.some(item => {
                     if (item.expired && this.locations.find(loc => loc.id === item.subprocess_node_id)) {

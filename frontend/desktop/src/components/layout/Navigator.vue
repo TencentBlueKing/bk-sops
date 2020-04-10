@@ -138,13 +138,13 @@
                     routerName: 'statisticsTemplate',
                     path: '/admin/statistics/',
                     name: gettext('运营数据')
+                },
+                {
+                    routerName: 'atomDev',
+                    path: '/admin/atomdev',
+                    name: gettext('插件开发')
                 }
             ]
-        },
-        {
-            routerName: 'atomDev',
-            path: '/atomdev',
-            name: gettext('插件开发')
         }
     ]
     const APPMAKER_ROUTER_LIST = [
@@ -212,7 +212,7 @@
             },
             isProjectHidden () {
                 const route = this.$route
-                const hiddenPathList = ['/home', '/common', '/admin', '/project', '/atomdev', '/audit', '/appmaker']
+                const hiddenPathList = ['/home', '/common', '/admin', '/project', '/audit', '/appmaker']
                 const hiddenRouteNames = ['appmakerTaskHome', 'functionHome']
                 return hiddenPathList.some(path => route.path.indexOf(path) === 0 || hiddenRouteNames.includes(route.name))
             },
@@ -467,7 +467,7 @@ header {
             &:first-child {
                 margin-left: 141px;
                 @media screen and (max-width: 1420px){
-                    margin-left: 60px;
+                    margin-left: 38px;
                 }
             }
             &:hover {
