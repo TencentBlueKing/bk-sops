@@ -50,7 +50,7 @@
             type: [Object, Function],
             required: true,
             default: '',
-            desc: gettext('组件内部调用接口的地址')
+            desc: gettext('组件内部调用接口地址')
         },
         value: {
             type: [Object, String],

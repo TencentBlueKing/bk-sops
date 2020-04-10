@@ -34,6 +34,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -203,7 +204,7 @@
                             type: 'textarea',
                             module: true, // module 字段用来标识表格列是否为模块数据
                             attrs: {
-                                name: gettext('模块:') + item.name + '(' + item.host_count + ')',
+                                name: gettext('模块：') + item.name + '(' + item.host_count + ')',
                                 editable: true,
                                 validation: [
                                     {

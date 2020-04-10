@@ -21,6 +21,7 @@
     </base-title>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import NotifyInfo from '@/components/common/NotifyInfo.vue'
 
