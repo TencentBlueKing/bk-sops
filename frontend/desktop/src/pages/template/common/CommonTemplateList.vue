@@ -748,12 +748,6 @@ a {
         height: 156px;
         background: #fff;
     }
-    .template-advanced-search {
-        float: right;
-        .base-search {
-            margin: 0px;
-        }
-    }
 }
 .template-table-content {
     background: #ffffff;

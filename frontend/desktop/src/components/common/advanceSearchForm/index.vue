@@ -10,24 +10,22 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="table-header">
+    <div class="advance-search-wrapper">
         <div class="operation-area clearfix">
             <div class="operation-btn">
                 <slot name="operation"></slot>
             </div>
-            <div class="template-advanced-search">
-                <advance-search
-                    v-if="isShowSearch"
-                    @input="onSearchInput"
-                    @onShow="onAdvanceOpen"
-                    :is-advance-open.sync="isAdvanceOpen"
-                    :value="searchConfig.value"
-                    :input-placeholader="searchConfig.placeholder">
-                    <template slot="extend">
-                        <slot name="search-extend"></slot>
-                    </template>
-                </advance-search>
-            </div>
+            <advance-search
+                v-if="isShowSearch"
+                @input="onSearchInput"
+                @onShow="onAdvanceOpen"
+                :is-advance-open.sync="isAdvanceOpen"
+                :value="searchConfig.value"
+                :input-placeholader="searchConfig.placeholder">
+                <template slot="extend">
+                    <slot name="search-extend"></slot>
+                </template>
+            </advance-search>
         </div>
         <div class="advanced-search-form" v-if="isAdvanceOpen">
             <bk-form form-type="inline" :model="formData">
@@ -146,20 +144,14 @@
     }
 </script>
 
-<style lang='scss'>
+<style lang='scss' scoped>
 @import '@/scss/config.scss';
-.table-header {
+.advance-search-wrapper {
     width: 100%;
     .operation-area {
         margin: 20px 0;
         .operation-btn {
             float: left;
-        }
-        .template-advanced-search {
-            float: right;
-            .base-search {
-                margin: 0px;
-            }
         }
     }
     .advanced-search-form {
@@ -168,14 +160,15 @@
         background: #ffffff;
         border: 1px solid #dde4eb;
         border-radius: 2px;
-        .bk-form-item {
-            margin: 20px 20px 0 0 !important;
+        /deep/ .bk-form-item {
+            margin-top: 20px !important;
+            margin-left: 8px;
             .bk-label {
-                min-width: 100px !important;
+                min-width: 160px !important;
             }
         }
         .query-button {
-            padding-left: 24px;
+            margin-left: 90px;
             .query-cancel {
                 margin-left: 5px;
             }
