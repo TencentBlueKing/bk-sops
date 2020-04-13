@@ -162,6 +162,7 @@ class MockSyncPackageSource(object):
 class MockComponentModel(object):
     def __init__(self, code):
         self.code = code
+        self.version = 'version'
 
 
 class MockComponent(object):
@@ -172,6 +173,7 @@ class MockComponent(object):
         self.code = code
         self.name = name
         self.group_name = group_name
+        self.version = 'version'
 
     def inputs_format(self):
         return self.inputs

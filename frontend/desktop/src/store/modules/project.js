@@ -33,7 +33,7 @@ const project = {
             state.timeZone = data
         },
         setProjectName (state, data) {
-            state.projectName = data.name
+            state.projectName = data
         },
         setProjectActions (state, data) {
             state.authActions = data

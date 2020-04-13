@@ -57,21 +57,21 @@
                         <template slot-scope="props">
                             <template
                                 v-for="(item, index) in OptBtnList">
-                                <bk-button
+                                <a
                                     v-if="isShowOptBtn(props.row.is_disable, item.name)"
                                     v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions, projectOperations) }"
                                     :key="index"
                                     :class="['operate-btn', {
                                         'text-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
                                     }]"
-                                    theme="default"
+                                    :text="true"
                                     @click="onClickOptBtn(props.row, item.name)">
                                     {{
                                         item.name === 'view'
                                             ? (!hasPermission([item.power], props.row.auth_actions, projectOperations) ? item.text : item.enter )
                                             : item.text
                                     }}
-                                </bk-button>
+                                </a>
                             </template>
                         </template>
                     </bk-table-column>
@@ -545,11 +545,9 @@
     }
 </script>
 <style lang="scss" scoped>
-    @import '@/scss/config.scss';
     .project-container {
         min-width: 1320px;
         min-height: calc(100% - 50px);
-        background: $whiteNodeBg;
         .dialog-content {
             word-break: break-all;
         }
@@ -594,7 +592,7 @@
         background: transparent;
         border: none;
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
         &.bk-button {
             min-width: unset;
         }

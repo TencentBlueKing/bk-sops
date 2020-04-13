@@ -24,8 +24,7 @@ from auth_backend.exceptions import AuthFailedException
 
 from blueapps.account.decorators import login_exempt
 
-from pipeline_plugins.components.utils import (
-    cc_get_inner_ip_by_module_id,
+from pipeline_plugins.base.utils.inject import (
     supplier_account_inject,
     supplier_id_inject,
 )
@@ -41,7 +40,7 @@ from files.factory import ManagerFactory, BartenderFactory
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from gcloud.exceptions import APIError
-from gcloud.core.models import Project, EnvironmentVariables
+from gcloud.core.models import EnvironmentVariables
 from gcloud.core.utils import get_user_business_list
 
 logger = logging.getLogger("root")
@@ -126,46 +125,16 @@ def cc_format_topo_data(data, obj_id, category):
         if category == "prev":
             if item["bk_obj_id"] != obj_id:
                 tree_data.append(tree_item)
-                if item.get("child"):
-                    tree_item["children"] = cc_format_topo_data(
-                        item["child"], obj_id, category
-                    )
+                if 'child' in item:
+                    tree_item['children'] = cc_format_topo_data(item['child'], obj_id, category)
         else:
             if item["bk_obj_id"] == obj_id:
                 tree_data.append(tree_item)
-            elif item.get("child"):
-                tree_item["children"] = cc_format_topo_data(
-                    item["child"], obj_id, category
-                )
+            elif 'child' in item:
+                tree_item['children'] = cc_format_topo_data(item['child'], obj_id, category)
                 tree_data.append(tree_item)
 
     return tree_data
-
-
-def cc_format_module_hosts(username, biz_cc_id, module_id_list, supplier_account):
-    module_host_list = cc_get_inner_ip_by_module_id(
-        username, biz_cc_id, module_id_list, supplier_account
-    )
-    module_host_dict = {}
-    for item in module_host_list:
-        for module in item["module"]:
-            if module_host_dict.get("module_%s" % module["bk_module_id"]):
-                module_host_dict["module_%s" % module["bk_module_id"]].append(
-                    {
-                        "id": "%s_%s"
-                        % (module["bk_module_id"], item["host"]["bk_host_innerip"]),
-                        "label": item["host"]["bk_host_innerip"],
-                    }
-                )
-            else:
-                module_host_dict["module_%s" % module["bk_module_id"]] = [
-                    {
-                        "id": "%s_%s"
-                        % (module["bk_module_id"], item["host"]["bk_host_innerip"]),
-                        "label": item["host"]["bk_host_innerip"],
-                    }
-                ]
-    return module_host_dict
 
 
 @supplier_account_inject
@@ -185,37 +154,12 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
 
-    if category in ["normal", "prev", "picker"]:
-        cc_topo = cc_format_topo_data(cc_result["data"], obj_id, category)
+    if category in ["normal", "prev"]:
+        cc_topo = cc_format_topo_data(cc_result['data'], obj_id, category)
     else:
         cc_topo = []
 
     return JsonResponse({"result": True, "data": cc_topo})
-
-
-@supplier_account_inject
-def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
-    """
-    查询模块对应主机
-    :param request:
-    :param biz_cc_id:
-    :return:
-    """
-    select_module_id = request.GET.getlist("query", [])
-    # 查询module对应的主机
-    module_hosts = cc_format_module_hosts(
-        request.user.username,
-        biz_cc_id,
-        [int(x) for x in select_module_id],
-        supplier_account,
-    )
-
-    for del_id in set(module_hosts.keys()) - set(
-        ["module_%s" % x for x in select_module_id]
-    ):
-        del module_hosts[del_id]
-
-    return JsonResponse({"result": True, "data": module_hosts})
 
 
 def job_get_script_list(request, biz_cc_id):
@@ -373,53 +317,19 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 
 
 @supplier_account_inject
-def cc_search_topo_tree(request, project_id, supplier_account):
-    project = Project.objects.get(id=project_id)
-    if project.from_cmdb:
-        return cmdb_search_topo_tree(request, project.bk_biz_id, supplier_account)
-    else:
-        ctx = {
-            "result": False,
-            "message": "cannot search topo tree by project which is not from CMDB",
-            "data": {},
-            "code": -1,
-        }
-        return JsonResponse(ctx)
+def cc_search_topo_tree(request, biz_cc_id, supplier_account):
+    return cmdb_search_topo_tree(request, biz_cc_id, supplier_account)
 
 
 @supplier_account_inject
 @supplier_id_inject
-def cc_search_host(request, project_id, supplier_account, supplier_id):
-    project = Project.objects.get(id=project_id)
-    if project.from_cmdb:
-        return cmdb_search_host(
-            request, project.bk_biz_id, supplier_account, supplier_id
-        )
-    else:
-        ctx = {
-            "result": False,
-            "message": "cannot search host by project which is not from CMDB",
-            "data": {},
-            "code": -1,
-        }
-        return JsonResponse(ctx)
+def cc_search_host(request, biz_cc_id, supplier_account, supplier_id):
+    return cmdb_search_host(request, biz_cc_id, supplier_account, supplier_id)
 
 
 @supplier_account_inject
-def cc_get_mainline_object_topo(request, project_id, supplier_account):
-    project = Project.objects.get(id=project_id)
-    if project.from_cmdb:
-        return cmdb_get_mainline_object_topo(
-            request, project.bk_biz_id, supplier_account
-        )
-    else:
-        ctx = {
-            "result": False,
-            "message": "cannot search mainline object topo by project which is not from CMDB",
-            "data": {},
-            "code": -1,
-        }
-        return JsonResponse(ctx)
+def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
+    return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
 
 
 def cc_get_business(request):
@@ -445,8 +355,11 @@ def cc_get_business(request):
     data = []
     for biz in business:
         # archive data filter
-        if biz.get("bk_data_status") != "disabled":
-            data.append({"text": biz["bk_biz_name"], "value": int(biz["bk_biz_id"])})
+        if biz.get('bk_data_status') != 'disabled':
+            data.append({
+                'text': biz['bk_biz_name'],
+                'value': int(biz['bk_biz_id'])
+            })
 
     return JsonResponse({"result": True, "data": data})
 
@@ -516,7 +429,6 @@ urlpatterns = [
         r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$",
         cc_search_topo,
     ),
-    url(r"^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$", cc_get_host_by_module_id),
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(
         r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$",
@@ -529,10 +441,10 @@ urlpatterns = [
         job_get_job_task_detail,
     ),
     # IP selector
-    url(r"^cc_search_topo_tree/(?P<project_id>\d+)/$", cc_search_topo_tree),
-    url(r"^cc_search_host/(?P<project_id>\d+)/$", cc_search_host),
+    url(r"^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$", cc_search_topo_tree),
+    url(r"^cc_search_host/(?P<biz_cc_id>\d+)/$", cc_search_host),
     url(
-        r"^cc_get_mainline_object_topo/(?P<project_id>\d+)/$",
+        r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$",
         cc_get_mainline_object_topo,
     ),
     url(r"^cc_get_business_list/$", cc_get_business),

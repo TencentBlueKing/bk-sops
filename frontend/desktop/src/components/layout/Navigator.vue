@@ -42,7 +42,8 @@
         <ul class="nav-right">
             <li v-if="showProjectSelect" class="project-select">
                 <ProjectSelector
-                    :disabled="isProjectDisabled"
+                    :show="!isProjectHidden"
+                    :read-only="isProjectReadOnly"
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
@@ -137,13 +138,13 @@
                     routerName: 'statisticsTemplate',
                     path: '/admin/statistics/',
                     name: gettext('运营数据')
+                },
+                {
+                    routerName: 'atomDev',
+                    path: '/admin/atomdev',
+                    name: gettext('插件开发')
                 }
             ]
-        },
-        {
-            routerName: 'atomDev',
-            path: '/atomdev',
-            name: gettext('插件开发')
         }
     ]
     const APPMAKER_ROUTER_LIST = [
@@ -204,12 +205,21 @@
                 authResource: state => state.authResource
             }),
             showProjectSelect () {
-                return this.view_mode !== 'appmaker' && this.projectList.length > 0
+                if (this.view_mode === 'appmaker') {
+                    return this.$route.name !== 'appmakerTaskHome'
+                }
+                return this.projectList.length > 0
             },
-            isProjectDisabled () {
+            isProjectHidden () {
                 const route = this.$route
-                const disabledPathList = ['/home', '/common', '/admin', '/function', '/project', '/atomdev', '/audit']
-                return disabledPathList.some(path => route.path.indexOf(path) === 0)
+                const hiddenPathList = ['/home', '/common', '/admin', '/project', '/audit', '/appmaker']
+                const hiddenRouteNames = ['appmakerTaskHome', 'functionHome']
+                return hiddenPathList.some(path => route.path.indexOf(path) === 0 || hiddenRouteNames.includes(route.name))
+            },
+            isProjectReadOnly () {
+                const currPath = this.$route.path
+                const readOnlyPathList = ['/appmaker', '/function']
+                return readOnlyPathList.some(path => currPath.indexOf(path) === 0)
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {
@@ -457,7 +467,7 @@ header {
             &:first-child {
                 margin-left: 141px;
                 @media screen and (max-width: 1420px){
-                    margin-left: 60px;
+                    margin-left: 38px;
                 }
             }
             &:hover {

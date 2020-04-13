@@ -25,7 +25,7 @@
                         :clearable="true"
                         :placeholder="i18n.schemaName">
                     </bk-input>
-                    <bk-button theme="success" @click="onAddScheme">{{i18n.confirm}}</bk-button>
+                    <bk-button theme="primary" @click="onAddScheme">{{i18n.confirm}}</bk-button>
                     <bk-button @click="onCancel">{{i18n.cancel}}</bk-button>
                     <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
                 </div>
@@ -60,7 +60,7 @@
                     <span>
                         {{i18n.previewMode}}
                     </span>
-                    <bk-switcher size="small" :value="isPreviewMode" @change="onChangePreviewNode"></bk-switcher>
+                    <bk-switcher size="small" theme="primary" :value="isPreviewMode" @change="onChangePreviewNode"></bk-switcher>
                 </div>
             </div>
         </div>
@@ -156,7 +156,7 @@
             }
         },
         created () {
-            this.loadTaskList()
+            this.loadSchemeList()
         },
         methods: {
             ...mapActions('task/', [
@@ -164,7 +164,7 @@
                 'createTaskScheme',
                 'deleteTaskScheme'
             ]),
-            async loadTaskList () {
+            async loadSchemeList () {
                 try {
                     this.schemaList = await this.loadTaskScheme({
                         project__id: this.project_id,
@@ -220,7 +220,7 @@
                         this.selectedScheme = newScheme.id
                         this.schemaName = ''
                         this.nameEditing = false
-                        this.loadTaskList()
+                        this.loadSchemeList()
                         this.$bkMessage({
                             message: gettext('方案添加成功'),
                             theme: 'success'
@@ -253,7 +253,7 @@
                 this.deleting = true
                 try {
                     await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
-                    this.loadTaskList()
+                    this.loadSchemeList()
                     this.$bkMessage({
                         message: gettext('方案删除成功'),
                         theme: 'success'

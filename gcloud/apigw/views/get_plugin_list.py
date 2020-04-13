@@ -38,7 +38,7 @@ def get_plugin_list(request, project_id):
 
     data = []
     for comp_model in components:
-        comp = ComponentLibrary.get_component_class(comp_model.code)
+        comp = ComponentLibrary.get_component_class(comp_model.code, comp_model.version)
         data.append(
             {
                 "inputs": comp.inputs_format(),
@@ -47,6 +47,7 @@ def get_plugin_list(request, project_id):
                 "code": comp.code,
                 "name": comp.name,
                 "group_name": comp.group_name,
+                "version": comp.version
             }
         )
 

@@ -145,7 +145,7 @@
         },
         computed: {
             viewValue () {
-                if (this.fileValue === 'undefined' || !this.fileValue.length) {
+                if (this.fileValue === 'undefined' || !Array.isArray(this.fileValue) || !this.fileValue.length) {
                     return '--'
                 }
                 return this.fileValue.map(item => item.name)

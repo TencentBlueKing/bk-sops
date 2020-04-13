@@ -55,6 +55,8 @@ class GetTemplateInfoAPITest(APITest):
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
+            pipeline_tree.pop("line")
+            pipeline_tree.pop("location")
             assert_data = {
                 "id": tmpl.id,
                 "name": tmpl.pipeline_template.name,
@@ -129,6 +131,8 @@ class GetTemplateInfoAPITest(APITest):
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
+            pipeline_tree.pop("line")
+            pipeline_tree.pop("location")
             assert_data = {
                 "id": tmpl.id,
                 "name": tmpl.pipeline_template.name,

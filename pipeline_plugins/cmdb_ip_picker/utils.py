@@ -165,7 +165,7 @@ def build_cmdb_search_host_kwargs(bk_biz_id, bk_supplier_account, kwargs, biz_to
         # transfer topo to modules
         topo_dct = {}
         for tp in topo:
-            topo_dct.setdefault(tp['bk_obj_id'], []).append(tp['bk_inst_id'])
+            topo_dct.setdefault(tp['bk_obj_id'], []).append(int(tp['bk_inst_id']))
         topo_objects = get_objects_of_topo_tree(biz_topo_tree, topo_dct)
         topo_modules = []
         for obj in topo_objects:

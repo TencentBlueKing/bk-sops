@@ -17,7 +17,7 @@ import os
 
 from django.conf import settings
 
-from gcloud.core.models import Business, Project
+from gcloud.core.models import Project, Business
 
 logger = logging.getLogger('root')
 

@@ -44,7 +44,13 @@
             type: Boolean,
             required: false,
             default: false,
-            desc: gettext('禁用组件')
+            desc: gettext('组件禁用态')
+        },
+        remote_url: {
+            type: [Object, Function],
+            required: true,
+            default: '',
+            desc: gettext('组件内部调用接口地址')
         },
         value: {
             type: [Object, String],
@@ -102,7 +108,7 @@
                 return !this.validateSet.includes('required')
             }
         },
-        created () {
+        mounted () {
             this.getData()
         },
         methods: {
@@ -114,11 +120,18 @@
             getData () {
                 this.loading = true
                 const staticIpExtraFields = ['agent']
-
+                const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
                 Promise.all([
-                    this.getHostInCC(staticIpExtraFields),
-                    this.getTopoTreeInCC(),
-                    this.getTopoModelInCC()
+                    this.getHostInCC({
+                        url: urls['cc_search_host'],
+                        fields: staticIpExtraFields
+                    }),
+                    this.getTopoTreeInCC({
+                        url: urls['cc_search_topo_tree']
+                    }),
+                    this.getTopoModelInCC({
+                        url: urls['cc_get_mainline_object_topo']
+                    })
                 ]).then(values => {
                     if (Array.isArray(values)) {
                         this.staticIpList = (values[0] && values[0].data) || []

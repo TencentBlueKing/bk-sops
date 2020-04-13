@@ -41,6 +41,8 @@ def info_data_from_period_task(task, detail=True):
 
 def format_template_data(template, project=None):
     pipeline_tree = template.pipeline_tree
+    pipeline_tree.pop("line")
+    pipeline_tree.pop("location")
     varschema.add_schema_for_input_vars(pipeline_tree)
 
     data = {
