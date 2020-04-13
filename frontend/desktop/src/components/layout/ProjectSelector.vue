@@ -21,7 +21,6 @@
         </div>
         <bk-select
             v-else
-            v-show="show"
             class="project-select"
             ext-popover-cls="project-select-comp-list"
             v-model="currentProject"
@@ -54,10 +53,6 @@
     export default {
         name: 'ProjectSelector',
         props: {
-            show: {
-                type: Boolean,
-                default: false
-            },
             readOnly: {
                 type: Boolean,
                 default: false
@@ -223,9 +218,10 @@
             height: 50px;
             line-height: 50px;
             .project-name {
-                max-width: 200px;
+                width: 200px;
                 color: #979ba5;
                 font-size: 14px;
+                text-align: center;
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;

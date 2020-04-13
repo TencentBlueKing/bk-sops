@@ -590,12 +590,6 @@
         margin-left: 5px;
         color: #313238;
     }
-    .task-advanced-search {
-        float: right;
-        .base-search {
-            margin: 0px;
-        }
-    }
 }
 .bk-select-inline {
     width: 260px;
