@@ -85,7 +85,7 @@
                             {{ transformCreateMethod(props.row.create_method) }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="i18n.status" width="120">
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
