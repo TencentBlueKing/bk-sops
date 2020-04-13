@@ -165,7 +165,8 @@
                                             type: 'GET',
                                             traditional: true,
                                             data: {
-                                                query: select_module_list
+                                                query: JSON.stringify(select_module_list),
+                                                format: 'tree'
                                             },
                                             dataType: 'json',
                                             success: function (resp) {
@@ -190,7 +191,7 @@
                                     if (value === 'tree') {
                                         self.show();
                                         $.ajax({
-                                            url: $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/picker/' + $.context.getBkBizId() + '/',
+                                            url: $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/',
                                             type: 'GET',
                                             dataType: 'json',
                                             success: function (resp) {
@@ -218,7 +219,8 @@
                                                             type: 'GET',
                                                             traditional: true,
                                                             data: {
-                                                                query: select_module_list
+                                                                query: JSON.stringify(select_module_list),
+                                                                format: 'tree'
                                                             },
                                                             dataType: 'json',
                                                             success: function (resp) {

@@ -177,6 +177,9 @@ def create_task(request, template_id, project_id):
     if create_with_tree:
         try:
             pipeline_tree = params["pipeline_tree"]
+            for key, value in params["constants"].items():
+                if key in pipeline_tree["constants"]:
+                    pipeline_tree["constants"][key]["value"] = value
             pipeline_node_name_handle(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
         except Exception as e:

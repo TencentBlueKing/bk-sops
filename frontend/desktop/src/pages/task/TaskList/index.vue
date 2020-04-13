@@ -13,8 +13,6 @@
     <div class="task-container">
         <div class="list-wrapper">
             <div class="operation-area">
-                <div class="operation-area clearfix">
-                </div>
                 <advance-search-form
                     :search-config="{ placeholder: i18n.taskNamePlaceholder }"
                     :search-form="searchForm"
@@ -37,8 +35,8 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.task_name" prop="name">
+                    <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.task_name" prop="name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -61,24 +59,28 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.start_time" prop="category_name">
+                    <bk-table-column :label="i18n.start_time" prop="start_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finish_time">
+                    <bk-table-column :label="i18n.finish_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.task_type" prop="category_name"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.executor" width="100">
+                    <bk-table-column :label="i18n.task_type" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120">
                         <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
+                            <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.createMethod">
+                    <bk-table-column :label="i18n.executor" width="120">
+                        <template slot-scope="props">
+                            <span :title="props.row.executor_name || '--'">{{ props.row.executor_name || '--' }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.createMethod" width="100">
                         <template slot-scope="props">
                             {{ transformCreateMethod(props.row.create_method) }}
                         </template>
@@ -91,9 +93,19 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="120">
+                    <bk-table-column :label="i18n.operation" width="190">
                         <template slot-scope="props">
                             <div class="task-operation">
+                                <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <router-link
+                                    class="template-operate-btn"
+                                    :to="{
+                                        name: 'taskStep',
+                                        query: { template_id: props.row.template_id },
+                                        params: { project_id: project_id, step: 'selectnode' }
+                                    }">
+                                    {{i18n.recreate}}
+                                </router-link>
                                 <a
                                     v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
                                     :class="['task-operation-clone', {
@@ -274,6 +286,7 @@
                     executor: gettext('执行人'),
                     status: gettext('状态'),
                     operation: gettext('操作'),
+                    recreate: gettext('再创建'),
                     clone: gettext('克隆'),
                     delete: gettext('删除'),
                     deleleTip: gettext('确认删除'),
@@ -577,12 +590,6 @@
         margin-left: 5px;
         color: #313238;
     }
-    .task-advanced-search {
-        float: right;
-        .base-search {
-            margin: 0px;
-        }
-    }
 }
 .bk-select-inline {
     width: 260px;
@@ -597,11 +604,6 @@
     font-size: 14px;
     vertical-align: middle;
 }
-.operation-area {
-    .bk-button {
-        min-width: 120px;
-    }
-}
 .task-table-content {
     background: #ffffff;
     a.task-name {
@@ -611,15 +613,14 @@
        @include ui-task-status;
     }
     .task-operation {
-        width: 150px;
         .task-operation-clone {
             padding: 5px;
-            color: #3C96FF;
+            color: #3a84ff;
             font-size: 12px;
         }
         .task-operation-delete {
             padding: 5px;
-            color: #3C96FF;
+            color: #3a84ff;
             font-size: 12px;
         }
     }
@@ -628,21 +629,6 @@
     }
     .template-operate-btn {
         color: $blueDefault;
-    }
-}
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #ffff;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 12px;
-    }
-    .bk-page {
-        display: inline-block;
     }
 }
 </style>

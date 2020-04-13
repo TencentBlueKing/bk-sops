@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
-
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
 from gcloud.apigw.views.create_task import create_task
 from gcloud.apigw.views.fast_create_task import fast_create_task

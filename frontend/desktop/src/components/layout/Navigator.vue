@@ -40,20 +40,23 @@
         </ul>
         <!-- 右侧项目选择和其他信息 -->
         <ul class="nav-right">
-            <li v-if="showProjectSelect" class="project-select">
+            <li v-if="!isProjectHidden" class="project-select">
                 <ProjectSelector
-                    :disabled="isProjectDisabled"
+                    :show="!isProjectHidden"
+                    :read-only="isProjectReadOnly"
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="right-icon help-doc">
+            <li class="right-icon help-doc" :title="i18n.help">
                 <a
                     class="common-icon-dark-circle-question"
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
                     target="_blank">
                 </a>
             </li>
-            <li class="right-icon version-log"><i class="common-icon-info" @click="onOpenVersion"></i></li>
+            <li class="right-icon version-log" :title="i18n.logVersion">
+                <i class="common-icon-info" @click="onOpenVersion"></i>
+            </li>
             <li class="right-icon user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
@@ -137,13 +140,13 @@
                     routerName: 'statisticsTemplate',
                     path: '/admin/statistics/',
                     name: gettext('运营数据')
+                },
+                {
+                    routerName: 'atomDev',
+                    path: '/admin/atomdev',
+                    name: gettext('插件开发')
                 }
             ]
-        },
-        {
-            routerName: 'atomDev',
-            path: '/atomdev',
-            name: gettext('插件开发')
         }
     ]
     const APPMAKER_ROUTER_LIST = [
@@ -173,6 +176,7 @@
                 logo: require('../../assets/images/logo/logo_icon.svg'),
                 i18n: {
                     help: gettext('帮助文档'),
+                    logVersion: gettext('版本日志'),
                     title: gettext('标准运维')
                 },
                 logList: [],
@@ -203,13 +207,21 @@
                 project_id: state => state.project_id,
                 authResource: state => state.authResource
             }),
-            showProjectSelect () {
-                return this.view_mode !== 'appmaker' && this.projectList.length > 0
+            // 隐藏右侧项目信息
+            isProjectHidden () {
+                if (this.view_mode !== 'appmaker' && this.projectList.length === 0) {
+                    return true
+                }
+                const paths = ['/home', '/common/', '/admin/', '/project/', '/function/home', '/audit/home']
+                return paths.some(path => this.$route.path.startsWith(path))
             },
-            isProjectDisabled () {
-                const route = this.$route
-                const disabledPathList = ['/home', '/common', '/admin', '/function', '/project', '/atomdev', '/audit']
-                return disabledPathList.some(path => route.path.indexOf(path) === 0)
+            // 项目名称只读
+            isProjectReadOnly () {
+                if (this.view_mode === 'appmaker') {
+                    return true
+                }
+                const paths = ['/audit/', '/function/']
+                return paths.some(path => this.$route.path.startsWith(path))
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {
@@ -457,7 +469,7 @@ header {
             &:first-child {
                 margin-left: 141px;
                 @media screen and (max-width: 1420px){
-                    margin-left: 60px;
+                    margin-left: 38px;
                 }
             }
             &:hover {

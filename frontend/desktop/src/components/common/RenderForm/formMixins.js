@@ -32,7 +32,8 @@ export const COMMON_ATTRS = {
         type: Array,
         default () {
             return []
-        }
+        },
+        desc: gettext('请输入校验规则，例如：[{type: required}, {type: custom, args: function(){ return {result: true, error_message: ""}}}]')
     },
     default: {
         type: [String, Number, Boolean, Array, Object],

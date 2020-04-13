@@ -41,7 +41,7 @@
                     { 'btn-permission-disable': !isSaveBtnEnable }]"
                 :loading="templateSaving"
                 v-cursor="{ active: !isSaveBtnEnable }"
-                @click="onSaveClick(false)">
+                @click.stop="onSaveClick(false)">
                 {{i18n.save}}
             </bk-button>
             <bk-button
@@ -51,7 +51,7 @@
                 }]"
                 :loading="createTaskSaving"
                 v-cursor="{ active: !isSaveAndCreateBtnEnable }"
-                @click="onSaveClick(true)">
+                @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
             <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>

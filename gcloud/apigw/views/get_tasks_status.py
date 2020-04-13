@@ -59,7 +59,7 @@ def get_tasks_status(request, project_id):
         )
     include_children_status = params.get("include_children_status", False)
 
-    tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project__id=project_id)
+    tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project__id=request.project.id)
 
     data = []
     for task in tasks:

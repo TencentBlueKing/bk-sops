@@ -70,26 +70,6 @@
   dest_path: /o/bk_sops/apigw/operate_task/{task_id}/{bk_biz_id}/
   dest_http_method: POST
 
-- path: /v2/sops/node_callback/
-  name: node_callback
-  label: 回调任务节点
-  label_en: Callback a specific node
-  method: POST
-  api_type: query
-  comp_codename: generic.v2.sops.sops_component
-  dest_path: /o/bk_sops/apigw/node_callback/{task_id}/{bk_biz_id}/
-  dest_http_method: POST
-
-- path: /v2/sops/import_common_template/
-  name: import_common_template
-  label: 导入公共流程
-  label_en: Import common flow
-  method: POST
-  api_type: operate
-  comp_codename: generic.v2.sops.sops_component
-  dest_path: /o/bk_sops/apigw/import_common_template/
-  dest_http_method: POST
-
 - path: /v2/sops/get_task_status/
   name: get_task_status
   label: 查询任务或任务节点执行状态
@@ -120,6 +100,16 @@
   dest_path: /o/bk_sops/apigw/get_task_node_detail/{task_id}/{bk_biz_id}/
   dest_http_method: GET
 
+- path: /v2/sops/node_callback/
+  name: node_callback
+  label: 回调任务节点
+  label_en: Callback a specific node
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/node_callback/{task_id}/{bk_biz_id}/
+  dest_http_method: POST
+
 - path: /v2/sops/query_task_count/
   name: query_task_count
   label: 查询任务分类统计总数
@@ -132,7 +122,7 @@
 
 - path: /v2/sops/get_periodic_task_list/
   name: get_periodic_task_list
-  label: 查询项目下的周期任务列表
+  label: 查询业务下的周期任务列表
   label_en: Query periodic task list
   method: GET
   api_type: query
@@ -142,7 +132,7 @@
 
 - path: /v2/sops/get_periodic_task_info/
   name: get_periodic_task_info
-  label: 查询项目下的某个周期任务详情
+  label: 查询业务下的某个周期任务详情
   label_en: Query periodic task detail
   method: GET
   api_type: query
@@ -190,6 +180,16 @@
   dest_path: /o/bk_sops/apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/
   dest_http_method: POST
 
+- path: /v2/sops/import_common_template/
+  name: import_common_template
+  label: 导入公共流程
+  label_en: Import common flow
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/import_common_template/
+  dest_http_method: POST
+
 - path: /v2/sops/fast_create_task/
   name: fast_create_task
   label: 快速新建一次性任务
@@ -197,15 +197,95 @@
   method: POST
   api_type: operate
   comp_codename: generic.v2.sops.sops_component
-  dest_path: /o/bk_sops/apigw/fast_create_task/{project_id}/
+  dest_path: /o/bk_sops/apigw/fast_create_task/{bk_biz_id}/
   dest_http_method: POST
 
 - path: /v2/sops/get_plugin_list/
   name: get_plugin_list
-  label: 查询某个项目下的插件列表
+  label: 查询某个业务下的插件列表
   label_en: Query plugin list
   method: GET
   api_type: query
   comp_codename: generic.v2.sops.sops_component
-  dest_path: /o/bk_sops/apigw/get_plugin_list/{project_id}/
+  dest_path: /o/bk_sops/apigw/get_plugin_list/{bk_biz_id}/
   dest_http_method: GET
+
+- path: /v2/sops/get_task_node_data/
+  name: get_task_node_data
+  label: 获取节点执行数据
+  label_en: Get task node data
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_task_node_data/{bk_biz_id}/{task_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_tasks_status/
+  name: get_tasks_status
+  label: 批量查询任务状态
+  label_en: Batch query task status
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_tasks_status/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/get_template_schemes/
+  name: get_template_schemes
+  label: 获取模板执行方案列表
+  label_en: Get template execution scheme list
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_template_schemes/{bk_biz_id}/{template_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_user_project_detail/
+  name: get_user_project_detail
+  label: 获取项目详情
+  label_en: Get project detail
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_user_project_detail/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_user_project_list/
+  name: get_user_project_list
+  label: 获取用户有权限的项目列表
+  label_en: Get user project list
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_user_project_list/
+  dest_http_method: GET
+
+- path: /v2/sops/import_project_template/
+  name: import_project_template
+  label: 导入业务流程模板
+  label_en: Import project templates
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/import_project_template/{project_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/operate_node/
+  name: operate_node
+  label: 操作任务中的节点
+  label_en: Operate node in task
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/operate_node/{bk_biz_id}/{task_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/preview_task_tree/
+  name: preview_task_tree
+  label: 获取节点选择后新的任务树
+  label_en: Get task tree after node exclude
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/preview_task_tree/{bk_biz_id}/{template_id}/
+  dest_http_method: POST

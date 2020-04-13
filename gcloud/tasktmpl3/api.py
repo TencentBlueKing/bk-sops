@@ -217,9 +217,14 @@ def import_templates(request, project_id):
         project = Project.objects.get(id=project_id)
         perms_tuples.append((project_resource, [project_resource.actions.create_template.id], project))
 
-    batch_verify_or_raise_auth_failed(principal_type='user',
-                                      principal_id=request.user.username,
-                                      perms_tuples=perms_tuples)
+    batch_verify_or_raise_auth_failed(
+        principal_type='user',
+        principal_id=request.user.username,
+        perms_tuples=perms_tuples
+    )
+
+    # reset biz_cc_id select in templates
+    _reset_biz_selector_value(templates_data, project.bk_biz_id)
 
     try:
         result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
@@ -231,6 +236,18 @@ def import_templates(request, project_id):
         })
 
     return JsonResponse(result)
+
+
+def _reset_biz_selector_value(templates_data, bk_biz_id):
+    for template in templates_data['pipeline_template_data']['template'].values():
+        for act in [act for act in template['tree']['activities'].values() if act['type'] == 'ServiceActivity']:
+            biz_cc_id_field = act['component']['data'].get('biz_cc_id')
+            if biz_cc_id_field and (not biz_cc_id_field['hook']):
+                biz_cc_id_field['value'] = bk_biz_id
+
+        for constant in template['tree']['constants'].values():
+            if constant['source_tag'].endswith('.biz_cc_id') and constant['value']:
+                constant['value'] = bk_biz_id
 
 
 @require_POST
@@ -414,3 +431,11 @@ def draw_pipeline(request):
         logger.exception(e)
         return JsonResponse({'result': False, 'message': message})
     return JsonResponse({'result': True, 'data': {'pipeline_tree': pipeline_tree}})
+
+
+@require_GET
+def get_templates_with_expired_subprocess(request, project_id):
+    return JsonResponse({
+        'result': True,
+        'data': TaskTemplate.objects.get_templates_with_expired_subprocess(project_id)
+    })

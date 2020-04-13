@@ -84,7 +84,7 @@ class GetUserProjectDetailAPITest(APITest):
             )
         ),
     )
-    def tes_get_user_project_detail__success(self):
+    def test_get_user_project_detail__success(self):
         response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
 
         data = json.loads(response.content)
@@ -96,6 +96,7 @@ class GetUserProjectDetailAPITest(APITest):
             {
                 "project_id": TEST_PROJECT_ID,
                 "project_name": TEST_PROJECT_NAME,
+                "from_cmdb": True,
                 "bk_biz_id": TEST_BIZ_CC_ID,
                 "bk_biz_name": TEST_BIZ_NAME,
                 "bk_biz_developer": TEST_BIZ_DEVELOPERS,

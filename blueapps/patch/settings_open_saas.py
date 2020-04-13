@@ -79,5 +79,17 @@ DEFAULT_BK_API_VER = locals().get('DEFAULT_BK_API_VER', 'v2')
 
 # STATIC_ROOT,静态文件收集文件夹,由于企业版需要用户手动收集,此处设为空,
 # 同时需要设置STATICFILES_DIRS不改变
-if not locals().get('STATIC_ROOT'):
-    STATIC_ROOT = None
+STATICFILES_DIRS = []
+STATIC_ROOT = "static"
+
+# DATABASES
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USERNAME'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
+    },
+}

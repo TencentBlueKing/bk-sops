@@ -13,41 +13,44 @@
     <div :class="['task-execute-container', { 'task-function-container': currentStep === 'functionalization' }]"
         v-if="!exception.code"
         v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <TaskStep
-            :list="stepList"
-            :current-step="currentStep"
-            :task-status="'TaskExecute'"
-            :is-functional="isFunctional"
-            :common="common"
-            :project_id="project_id"
-            :instance-name="instanceName"
-            :template-source="templateSource"
-            :async-template-id="templateId"
-            :all-finished="isAllStepsFinished">
-        </TaskStep>
-        <TaskFunctionalization
-            v-if="isFunctional && !loading"
-            :project_id="project_id"
-            :instance_id="instance_id"
-            :instance-name="instanceName"
-            :instance-flow="instanceFlow"
-            :instance-actions="instanceActions"
-            :instance-operations="instanceOperations"
-            :instance-resource="instanceResource">
-        </TaskFunctionalization>
-        <TaskOperation
-            v-if="!isFunctional && !loading"
-            :project_id="project_id"
-            :instance_id="instance_id"
-            :instance-name="instanceName"
-            :instance-flow="instanceFlow"
-            :template_id="templateId"
-            :template-source="templateSource"
-            :instance-actions="instanceActions"
-            :instance-operations="instanceOperations"
-            :instance-resource="instanceResource"
-            @taskStatusLoadChange="taskStatusLoadChange">
-        </TaskOperation>
+        <template v-if="!loading">
+            <TaskStep
+                v-if="isFunctional"
+                :list="stepList"
+                :current-step="currentStep"
+                :task-status="'TaskExecute'"
+                :is-functional="isFunctional"
+                :common="common"
+                :project_id="project_id"
+                :instance-name="instanceName"
+                :template-source="templateSource"
+                :async-template-id="templateId"
+                :all-finished="isAllStepsFinished">
+            </TaskStep>
+            <TaskFunctionalization
+                v-if="isFunctional"
+                :project_id="project_id"
+                :instance_id="instance_id"
+                :instance-name="instanceName"
+                :instance-flow="instanceFlow"
+                :instance-actions="instanceActions"
+                :instance-operations="instanceOperations"
+                :instance-resource="instanceResource">
+            </TaskFunctionalization>
+            <TaskOperation
+                v-if="!isFunctional"
+                :project_id="project_id"
+                :instance_id="instance_id"
+                :instance-name="instanceName"
+                :instance-flow="instanceFlow"
+                :template_id="templateId"
+                :template-source="templateSource"
+                :instance-actions="instanceActions"
+                :instance-operations="instanceOperations"
+                :instance-resource="instanceResource"
+                @taskStatusLoadChange="taskStatusLoadChange">
+            </TaskOperation>
+        </template>
     </div>
 </template>
 <script>

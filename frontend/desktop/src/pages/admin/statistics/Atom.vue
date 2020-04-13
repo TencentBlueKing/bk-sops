@@ -152,7 +152,8 @@
             },
             {
                 label: gettext('项目'),
-                prop: 'projectName'
+                prop: 'projectName',
+                width: 150
             },
             {
                 label: gettext('分类'),
@@ -167,6 +168,7 @@
             {
                 label: gettext('创建时间'),
                 prop: 'createTime',
+                width: 200,
                 sortable: true
             }
         ],
@@ -318,7 +320,7 @@
             this.getAtomList()
         },
         methods: {
-            ...mapActions('atomList', [
+            ...mapActions('atomForm', [
                 'queryAtomData',
                 'loadSingleAtomList'
             ]),

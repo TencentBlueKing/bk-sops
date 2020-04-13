@@ -26,6 +26,12 @@
             </bk-button>
         </div>
         <div class="content-wrapper">
+            <div class="selected-input" v-show="currentWay === 'selectGeneration'">
+                <bk-input :value="expressionShowText" :disabled="true"></bk-input>
+                <span class="clear-selected" @click.stop="clearRule">
+                    {{ i18n.clear }}
+                </span>
+            </div>
             <!-- 自动生成 -->
             <bk-tab
                 v-show="currentWay === 'selectGeneration'"
@@ -78,12 +84,6 @@
                                 @change="renderRule">
                                 {{ box.value | addZero(item.key) }}
                             </bk-checkbox>
-                        </div>
-                        <div class="expression">
-                            {{ i18n.expression }} {{ expressionShowText }}
-                            <span class="clear-selected" @click.stop="clearRule">
-                                {{ i18n.clearSelected }}
-                            </span>
                         </div>
                     </div>
                 </bk-tab-panel>
@@ -232,9 +232,8 @@
                 i18n: {
                     dayName: gettext('天'),
                     error_code: gettext('错误码'),
-                    expression: gettext('表达式：'),
                     manualInput: gettext('手动输入'),
-                    clearSelected: gettext('清空已选'),
+                    clear: gettext('清空'),
                     selectGeneration: gettext('选择生成'),
                     placeholder: gettext('0 12 * 10-17 */11'),
                     monthTips: gettext('0 表示星期天，6 表示星期六')
@@ -566,6 +565,23 @@ $bgBlue: #3a84ff;
     .content-wrapper {
         margin-top: 18px;
         background-color: $whiteDefault;
+        .selected-input {
+            margin-bottom: 18px;
+            & > .bk-form-control {
+                width: 450px;
+            }
+            .clear-selected {
+                float: right;
+                margin-top: 7px;
+                font-size: 12px;
+                color: #3a84ff;
+                cursor: pointer;
+            }
+            /deep/.bk-form-input {
+                color: #333333;
+                cursor: text;
+            }
+        }
         /deep/ .tab2-nav-item {
             width: 20%;
             border-bottom: 1px solid $commonBorderColor;
@@ -611,16 +627,6 @@ $bgBlue: #3a84ff;
                 margin-top: 18px;
                 padding: 0 20px 20px 20px;
                 border: 1px solid $commonBorderColor;
-            }
-            .expression {
-                margin-top: 20px;
-                font-size: 14px;
-                word-break: break-all;
-                .clear-selected {
-                    margin-left: 20px;
-                    color: $colorBlue;
-                    cursor: pointer;
-                }
             }
         }
     }

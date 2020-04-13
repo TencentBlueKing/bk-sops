@@ -51,6 +51,9 @@ const templateList = {
         },
         templateExport ({ commit }, data) {
             return api.templateExport(data).then(response => response.data)
+        },
+        getExpiredSubProcess ({ commit }, data) {
+            return api.getExpiredSubProcess(data).then(response => response.data)
         }
     },
     getters: {}
