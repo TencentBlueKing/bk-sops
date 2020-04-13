@@ -1309,7 +1309,7 @@
                     nodeEl.classList.add('node-shake')
                     setTimeout(() => {
                         nodeEl.classList.remove('node-shake')
-                    }, 2000)
+                    }, 500)
                 }
             },
             // 开启子流程更新的小红点动画效果

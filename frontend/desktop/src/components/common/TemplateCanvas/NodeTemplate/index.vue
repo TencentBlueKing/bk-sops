@@ -244,7 +244,7 @@
             right: 14px;
         }
         &.node-shake {
-            animation: shake .5s ease-in-out 2;
+            animation: shake .2s ease-in-out 2;
         }
         .close-icon {
             display: none;
