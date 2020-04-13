@@ -187,6 +187,19 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取任务节点标签列表
+     * @param {Object} data 请求参数
+     */
+    getLabels (data) {
+        const prefixUrl = this.getPrefix('nodeLabel')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: data
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程列表
      */
     getSubAtomList (data) {

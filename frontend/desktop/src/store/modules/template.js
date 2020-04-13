@@ -854,6 +854,10 @@ const template = {
             return api.getInternalVariableList().then(
                 response => response.data
             )
+        },
+        // 获取节点标签列表
+        getLabels ({ commit }, data) {
+            return api.getLabels(data).then(response => response.data)
         }
     },
     getters: {

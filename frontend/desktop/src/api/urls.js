@@ -24,6 +24,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         business: SITE_URL + 'api/v3/business/',
         component: SITE_URL + 'api/v3/component/',
         template: SITE_URL + 'api/v3/template/',
+        nodeLabel: SITE_URL + 'api/v3/label/',
         variable: SITE_URL + 'api/v3/variable/',
         instance: SITE_URL + 'api/v3/taskflow/',
         function: SITE_URL + 'api/v3/function_task/',
