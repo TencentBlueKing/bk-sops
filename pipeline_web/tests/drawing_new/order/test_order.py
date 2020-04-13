@@ -15,8 +15,7 @@ from __future__ import absolute_import
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
-
+from pipeline_web.constants import PWE
 from pipeline_web.drawing_new.order import order
 
 
@@ -25,106 +24,106 @@ class TestOrder(TestCase):
         self.pipeline = {
             'all_nodes': {
                 'node0': {
-                    PE.id: 'node0',
-                    PE.incoming: '',
-                    PE.outgoing: ['flow0', 'flow1', 'flow2']
+                    PWE.id: 'node0',
+                    PWE.incoming: '',
+                    PWE.outgoing: ['flow0', 'flow1', 'flow2']
                 },
                 'node1': {
-                    PE.id: 'node1',
-                    PE.incoming: 'flow0',
-                    PE.outgoing: ['flow3', 'flow4']
+                    PWE.id: 'node1',
+                    PWE.incoming: 'flow0',
+                    PWE.outgoing: ['flow3', 'flow4']
                 },
                 'node2': {
-                    PE.id: 'node2',
-                    PE.incoming: 'flow1',
-                    PE.outgoing: ['flow5', 'flow6', 'flow7']
+                    PWE.id: 'node2',
+                    PWE.incoming: 'flow1',
+                    PWE.outgoing: ['flow5', 'flow6', 'flow7']
                 },
                 'node3': {
-                    PE.id: 'node3',
-                    PE.incoming: 'flow2',
-                    PE.outgoing: ['flow8', 'flow9', 'flow10']
+                    PWE.id: 'node3',
+                    PWE.incoming: 'flow2',
+                    PWE.outgoing: ['flow8', 'flow9', 'flow10']
                 },
                 'node4': {
-                    PE.id: 'node4',
-                    PE.incoming: ['flow3', 'flow5', 'flow8'],
-                    PE.outgoing: ''
+                    PWE.id: 'node4',
+                    PWE.incoming: ['flow3', 'flow5', 'flow8'],
+                    PWE.outgoing: ''
                 },
                 'node5': {
-                    PE.id: 'node5',
-                    PE.incoming: ['flow4'],
-                    PE.outgoing: ''
+                    PWE.id: 'node5',
+                    PWE.incoming: ['flow4'],
+                    PWE.outgoing: ''
                 },
                 'node6': {
-                    PE.id: 'node6',
-                    PE.incoming: ['flow6'],
-                    PE.outgoing: ''
+                    PWE.id: 'node6',
+                    PWE.incoming: ['flow6'],
+                    PWE.outgoing: ''
                 },
                 'node7': {
-                    PE.id: 'node7',
-                    PE.incoming: ['flow7', 'flow9'],
-                    PE.outgoing: ''
+                    PWE.id: 'node7',
+                    PWE.incoming: ['flow7', 'flow9'],
+                    PWE.outgoing: ''
                 },
                 'node8': {
-                    PE.id: 'node8',
-                    PE.incoming: ['flow10'],
-                    PE.outgoing: ''
+                    PWE.id: 'node8',
+                    PWE.incoming: ['flow10'],
+                    PWE.outgoing: ''
                 }
             },
             'flows': {
                 'flow0': {
-                    PE.id: 'flow0',
-                    PE.source: 'node0',
-                    PE.target: 'node1'
+                    PWE.id: 'flow0',
+                    PWE.source: 'node0',
+                    PWE.target: 'node1'
                 },
                 'flow1': {
-                    PE.id: 'flow1',
-                    PE.source: 'node0',
-                    PE.target: 'node2'
+                    PWE.id: 'flow1',
+                    PWE.source: 'node0',
+                    PWE.target: 'node2'
                 },
                 'flow2': {
-                    PE.id: 'flow2',
-                    PE.source: 'node0',
-                    PE.target: 'node3'
+                    PWE.id: 'flow2',
+                    PWE.source: 'node0',
+                    PWE.target: 'node3'
                 },
                 'flow3': {
-                    PE.id: 'flow3',
-                    PE.source: 'node1',
-                    PE.target: 'node4'
+                    PWE.id: 'flow3',
+                    PWE.source: 'node1',
+                    PWE.target: 'node4'
                 },
                 'flow4': {
-                    PE.id: 'flow4',
-                    PE.source: 'node1',
-                    PE.target: 'node5'
+                    PWE.id: 'flow4',
+                    PWE.source: 'node1',
+                    PWE.target: 'node5'
                 },
                 'flow5': {
-                    PE.id: 'flow5',
-                    PE.source: 'node2',
-                    PE.target: 'node4'
+                    PWE.id: 'flow5',
+                    PWE.source: 'node2',
+                    PWE.target: 'node4'
                 },
                 'flow6': {
-                    PE.id: 'flow6',
-                    PE.source: 'node2',
-                    PE.target: 'node6'
+                    PWE.id: 'flow6',
+                    PWE.source: 'node2',
+                    PWE.target: 'node6'
                 },
                 'flow7': {
-                    PE.id: 'flow7',
-                    PE.source: 'node2',
-                    PE.target: 'node7'
+                    PWE.id: 'flow7',
+                    PWE.source: 'node2',
+                    PWE.target: 'node7'
                 },
                 'flow8': {
-                    PE.id: 'flow8',
-                    PE.source: 'node3',
-                    PE.target: 'node4'
+                    PWE.id: 'flow8',
+                    PWE.source: 'node3',
+                    PWE.target: 'node4'
                 },
                 'flow9': {
-                    PE.id: 'flow9',
-                    PE.source: 'node3',
-                    PE.target: 'node7'
+                    PWE.id: 'flow9',
+                    PWE.source: 'node3',
+                    PWE.target: 'node7'
                 },
                 'flow10': {
-                    PE.id: 'flow10',
-                    PE.source: 'node3',
-                    PE.target: 'node8'
+                    PWE.id: 'flow10',
+                    PWE.source: 'node3',
+                    PWE.target: 'node8'
                 }
             }
         }
@@ -177,8 +176,8 @@ class TestOrder(TestCase):
         self.assertEqual(order.median_value(refer_nodes, refer_layer_orders), 1)
 
     def test_refer_node_ids(self):
-        self.assertEqual(order.refer_node_ids(self.pipeline, 'node1', PE.outgoing), ['node4', 'node5'])
-        self.assertEqual(order.refer_node_ids(self.pipeline, 'node4', PE.incoming), ['node1', 'node2', 'node3'])
+        self.assertEqual(order.refer_node_ids(self.pipeline, 'node1', PWE.outgoing), ['node4', 'node5'])
+        self.assertEqual(order.refer_node_ids(self.pipeline, 'node4', PWE.incoming), ['node1', 'node2', 'node3'])
 
     def test_ordering(self):
         best_orders = {

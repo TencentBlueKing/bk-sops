@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,12 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline_web.parser.format import get_all_nodes
+from django.apps import AppConfig
 
 
-def normalize_run(pipeline):
-    pipeline['all_nodes'] = get_all_nodes(pipeline)
+class LabelConfig(AppConfig):
+    name = 'pipeline_web.label'
+    label = 'pipeline_web_label'
+    verbose_name = 'PipelineWebLabel'
 
-
-def normalize_undo(pipeline):
-    pipeline.pop('all_nodes')
+    def ready(self):
+        from pipeline_web.label.signals import dispatch
+        dispatch.dispatch()

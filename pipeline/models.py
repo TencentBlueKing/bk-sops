@@ -237,17 +237,20 @@ class TemplateManager(models.Manager):
         @param pipeline_data: pipeline 数据
         @return:
         """
-        replace_all_id(pipeline_data)
+        id_maps = replace_all_id(pipeline_data)
         activities = pipeline_data[PE.activities]
         for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
-                subproc_data = self.get(template_id=act['template_id']) \
-                    .data_for_version(act.get('version'))
+                subproc_data = self.get(template_id=act[PE.template_id]) \
+                    .data_for_version(act.get(PE.version))
 
-                self.unfold_subprocess(subproc_data)
+                sub_id_maps = self.unfold_subprocess(subproc_data)
+                # act_id is new id
+                id_maps[PE.subprocess_detail].update({act_id: sub_id_maps})
 
-                subproc_data['id'] = act_id
-                act['pipeline'] = subproc_data
+                subproc_data[PE.id] = act_id
+                act[PE.pipeline] = subproc_data
+        return id_maps
 
     def replace_id(self, pipeline_data):
         """
@@ -255,14 +258,18 @@ class TemplateManager(models.Manager):
         @param pipeline_data: pipeline 数据
         @return:
         """
-        replace_all_id(pipeline_data)
+        id_maps = replace_all_id(pipeline_data)
         activities = pipeline_data[PE.activities]
         for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
-                subproc_data = act['pipeline']
-                self.unfold_subprocess(subproc_data)
-                subproc_data['id'] = act_id
-                act['pipeline'] = subproc_data
+                subproc_data = act[PE.pipeline]
+                sub_id_maps = self.unfold_subprocess(subproc_data)
+                # act_id is new id
+                id_maps[PE.subprocess_detail].update({act_id: sub_id_maps})
+
+                subproc_data[PE.id] = act_id
+                act[PE.pipeline] = subproc_data
+        return id_maps
 
 
 class PipelineTemplate(models.Model):
@@ -400,12 +407,13 @@ class PipelineTemplate(models.Model):
         @param kwargs: 其他参数
         @return: 实例对象
         """
-        return PipelineInstance.objects.create_instance(
+        instance, _ = PipelineInstance.objects.create_instance(
             template=self,
             exec_data=copy.deepcopy(self.data),
             inputs=inputs,
             **kwargs
         )
+        return instance
 
     def set_has_subprocess_bit(self):
         acts = list(self.data[PE.activities].values())
@@ -521,9 +529,9 @@ class InstanceManager(models.Manager):
         @return: 实例对象
         """
         if not spread:
-            PipelineTemplate.objects.unfold_subprocess(exec_data)
+            id_maps = PipelineTemplate.objects.unfold_subprocess(exec_data)
         else:
-            PipelineTemplate.objects.replace_id(exec_data)
+            id_maps = PipelineTemplate.objects.replace_id(exec_data)
 
         inputs = inputs or {}
 
@@ -540,7 +548,7 @@ class InstanceManager(models.Manager):
             kwargs['snapshot_id'] = template.snapshot.id
         kwargs['instance_id'] = instance_id
         kwargs['execution_snapshot_id'] = exec_snapshot.id
-        return self.create(**kwargs)
+        return self.create(**kwargs), id_maps
 
     def delete_model(self, instance_ids):
         """

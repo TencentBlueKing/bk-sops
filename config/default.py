@@ -72,6 +72,8 @@ INSTALLED_APPS += (
     'pipeline_plugins',
     'pipeline_plugins.components',
     'pipeline_plugins.variables',
+    'pipeline_web.core',
+    'pipeline_web.label',
     'data_migration',
     'auth_backend',
     'auth_backend.contrib.consistency',

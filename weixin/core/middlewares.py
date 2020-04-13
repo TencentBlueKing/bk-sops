@@ -27,7 +27,7 @@ from .models import BkWeixinUser
 logger = logging.getLogger('root')
 
 
-def get_user(request):
+def get_weixin_user(request):
     user = None
     user_id = request.COOKIES.get('weixin_user_id')
     if user_id:
@@ -48,7 +48,7 @@ def get_bk_user(request):
             logger.warning('user[wx_userid=%s] not in UserProperty' % request.weixin_user.userid)
         else:
             bkuser = user_model.objects.get(username=user_property.user.username)
-    return bkuser or AnonymousUser()
+    return bkuser
 
 
 class WeixinProxyPatchMiddleware(MiddlewareMixin):
@@ -82,8 +82,10 @@ class WeixinAuthenticationMiddleware(MiddlewareMixin):
             "'django.contrib.sessions.middleware.SessionMiddleware' before "
             "'weixin.core.middleware.WeixinAuthenticationMiddleware'."
         )
-        setattr(request, 'weixin_user', SimpleLazyObject(lambda: get_user(request)))
-        setattr(request, 'user', SimpleLazyObject(lambda: get_bk_user(request)))
+        setattr(request, 'weixin_user', SimpleLazyObject(lambda: get_weixin_user(request)))
+        bk_user = get_bk_user(request)
+        if bk_user is not None:
+            setattr(request, 'user', SimpleLazyObject(lambda: bk_user))
 
     def process_response(self, request, response):
         """

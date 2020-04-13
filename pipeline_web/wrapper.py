@@ -18,11 +18,12 @@ from functools import cmp_to_key
 
 import ujson as json
 
-from pipeline.core.constants import PE
 from pipeline.utils.uniqid import uniqid
 from pipeline.parser.utils import replace_all_id
 from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.exceptions import SubprocessExpiredError
+
+from pipeline_web.constants import PWE
 
 
 class PipelineTemplateWebWrapper(object):
@@ -71,21 +72,12 @@ class PipelineTemplateWebWrapper(object):
         @param pipeline_data: pipeline 数据
         @return:
         """
-        replace_all_id(pipeline_data)
-        activities = pipeline_data[PE.activities]
+        from gcloud.tasktmpl3.models import TaskTemplate
+        activities = pipeline_data[PWE.activities]
         for act_id, act in list(activities.items()):
-            if act[PE.type] == PE.SubProcess:
-                subproc_data = PipelineTemplate.objects.get(template_id=act['template_id']) \
-                    .data_for_version(act.get('version'))
-
-                if 'constants' in pipeline_data:
-                    constants_inputs = act.pop('constants')
-                    # replace show constants with inputs
-                    for key, info in list(constants_inputs.items()):
-                        if 'form' in info:
-                            info.pop('form')
-                        subproc_data['constants'][key] = info
-
+            if act[PWE.type] == PWE.SubProcess:
+                subproc_data = TaskTemplate.objects.get(pipeline_template__template_id=act['template_id']
+                                                        ).get_pipeline_tree_by_version(act.get('version'))
                 cls.unfold_subprocess(subproc_data)
 
                 subproc_data['id'] = act_id
@@ -117,8 +109,8 @@ class PipelineTemplateWebWrapper(object):
         }
         tree = template_obj.data
 
-        for act_id, act in list(tree[PE.activities].items()):
-            if act[PE.type] == PE.SubProcess:
+        for act_id, act in list(tree[PWE.activities].items()):
+            if act[PWE.type] == PWE.SubProcess:
                 # record referencer id
                 # referenced template -> referencer -> reference act
                 refs.setdefault(act['template_id'], {}) \
@@ -219,8 +211,8 @@ class PipelineTemplateWebWrapper(object):
         @return:
         """
         for tid in order:
-            for act_id, act in list(template[tid]['tree'][PE.activities].items()):
-                if act[PE.type] == PE.SubProcess:
+            for act_id, act in list(template[tid]['tree'][PWE.activities].items()):
+                if act[PWE.type] == PWE.SubProcess:
                     subprocess_data = template[act['template_id']]['tree']
                     h = hashlib.md5()
                     h.update(json.dumps(subprocess_data).encode('utf-8'))
@@ -262,7 +254,7 @@ class PipelineTemplateWebWrapper(object):
                     # update subprocess template id
                     for referencer_id, act_ids in list(refs.get(tid, {}).items()):
                         for act_id in act_ids:
-                            template[referencer_id]['tree'][PE.activities][act_id]['template_id'] = new_template_id
+                            template[referencer_id]['tree'][PWE.activities][act_id]['template_id'] = new_template_id
 
                 # 2nd round: replace all node id
                 for tid in exist_str_id:
@@ -278,16 +270,16 @@ class PipelineTemplateWebWrapper(object):
                         referencer_id = new_referencer_id if referencer_id not in template else referencer_id
                         for act_id in act_ids:
                             # can not sure parent node id is replaced or not
-                            act_id = template_node_id_old_to_new.get(referencer_id, {}).get('activity', {}).get(
+                            act_id = template_node_id_old_to_new.get(referencer_id, {}).get(PWE.activities, {}).get(
                                 act_id,
                                 act_id)
-                            constant_dict = template[referencer_id]['tree'][PE.activities][act_id].get('constants',
-                                                                                                       {})
+                            constant_dict = template[referencer_id]['tree'][PWE.activities][act_id].get('constants',
+                                                                                                        {})
                             for key, constant in list(constant_dict.items()):
                                 source_info = constant['source_info']
                                 source_id_list = list(source_info.keys())
                                 for old_source_id in source_id_list:
-                                    new_source_id = node_id_maps['activity'][old_source_id]
+                                    new_source_id = node_id_maps[PWE.activities][old_source_id]
                                     source_info[new_source_id] = source_info.pop(old_source_id)
                     template[new_id] = template.pop(tid)
 
@@ -311,7 +303,7 @@ class PipelineTemplateWebWrapper(object):
                 referencer_info_dict = refs.get(import_id, {})
                 for referencer, nodes in list(referencer_info_dict.items()):
                     for node_id in nodes:
-                        template[referencer]['tree'][PE.activities][node_id]['template_id'] = reuse_id
+                        template[referencer]['tree'][PWE.activities][node_id]['template_id'] = reuse_id
 
             # 2. replace template id
             # use new dict to prevent override in template_id exchange

@@ -899,16 +899,8 @@ class HistoryData(models.Model):
     objects = DataManager()
 
 
-DO_NOT_RECORD_WHEN_RERUN = frozenset({
-    "<class 'pipeline.core.flow.activity.LoopServiceActivity'>"
-})
-
-
 class HistoryManager(models.Manager):
     def record(self, status, is_rerunning=False):
-        if is_rerunning and status.name in DO_NOT_RECORD_WHEN_RERUN:
-            return None
-
         data = Data.objects.get(id=status.id)
         history_data = HistoryData.objects.create(inputs=data.inputs, outputs=data.outputs, ex_data=data.ex_data)
         return self.create(identifier=status.id,

@@ -19,6 +19,8 @@ from pipeline.component_framework.constant import ConstantPool
 from pipeline.core.data.expression import ConstantTemplate, format_constant_key
 from pipeline.validators.utils import format_node_io_to_list
 
+from pipeline_web.constants import PWE
+
 
 def format_web_data_to_pipeline(web_pipeline, is_subprocess=False):
     """
@@ -156,3 +158,18 @@ def calculate_constants_type(to_calculate, calculated):
         })
 
     return data
+
+
+def get_all_nodes(pipeline_tree, with_subprocess=False):
+    all_nodes = {}
+    all_nodes.update(pipeline_tree[PWE.activities])
+    all_nodes.update(pipeline_tree[PWE.gateways])
+    all_nodes.update({
+        pipeline_tree[PWE.start_event][PWE.id]: pipeline_tree[PWE.start_event],
+        pipeline_tree[PWE.end_event][PWE.id]: pipeline_tree[PWE.end_event]
+    })
+    if with_subprocess:
+        for act in pipeline_tree[PWE.activities].values():
+            if act[PWE.type] == PWE.SubProcess:
+                all_nodes.update(get_all_nodes(act[PWE.pipeline], with_subprocess=True))
+    return all_nodes

@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from copy import deepcopy
 
-from pipeline.core.constants import PE
 from pipeline.validators.connection import validate_graph_without_circle
 
+from pipeline_web.constants import PWE
 from pipeline_web.drawing_new.utils import (
     add_flow_id_to_node_io,
     delete_flow_id_from_node_io
@@ -28,14 +28,14 @@ def remove_self_edges(pipeline):
     @return:
     """
     self_edges = {}
-    for flow_id, flow in list(pipeline[PE.flows].items()):
-        if flow[PE.source] == flow[PE.target]:
+    for flow_id, flow in list(pipeline[PWE.flows].items()):
+        if flow[PWE.source] == flow[PWE.target]:
             self_edges[flow_id] = flow
-            pipeline[PE.flows].pop(flow_id)
+            pipeline[PWE.flows].pop(flow_id)
             # delete flow id from node io
-            node_id = flow[PE.source]
-            delete_flow_id_from_node_io(pipeline['all_nodes'][node_id], flow_id, PE.incoming)
-            delete_flow_id_from_node_io(pipeline['all_nodes'][node_id], flow_id, PE.outgoing)
+            node_id = flow[PWE.source]
+            delete_flow_id_from_node_io(pipeline['all_nodes'][node_id], flow_id, PWE.incoming)
+            delete_flow_id_from_node_io(pipeline['all_nodes'][node_id], flow_id, PWE.outgoing)
     return self_edges
 
 
@@ -44,12 +44,12 @@ def insert_self_edges(pipeline, self_edges):
     @summary: 还原自环边
     @return:
     """
-    pipeline[PE.flows].update(self_edges)
+    pipeline[PWE.flows].update(self_edges)
     # add flow_id to node io
     for flow_id, flow in self_edges.items():
-        node_id = flow[PE.source]
-        add_flow_id_to_node_io(pipeline['all_nodes'][node_id], flow_id, PE.incoming)
-        add_flow_id_to_node_io(pipeline['all_nodes'][node_id], flow_id, PE.outgoing)
+        node_id = flow[PWE.source]
+        add_flow_id_to_node_io(pipeline['all_nodes'][node_id], flow_id, PWE.incoming)
+        add_flow_id_to_node_io(pipeline['all_nodes'][node_id], flow_id, PWE.outgoing)
 
 
 def acyclic_run(pipeline):
@@ -57,8 +57,8 @@ def acyclic_run(pipeline):
     @summary: 逆转反向边
     @return:
     """
-    deformed_flows = {'{}.{}'.format(flow[PE.source], flow[PE.target]): flow_id
-                      for flow_id, flow in pipeline[PE.flows].items()}
+    deformed_flows = {'{}.{}'.format(flow[PWE.source], flow[PWE.target]): flow_id
+                      for flow_id, flow in pipeline[PWE.flows].items()}
     reversed_flows = {}
     while True:
         no_circle = validate_graph_without_circle(pipeline)
@@ -69,19 +69,19 @@ def acyclic_run(pipeline):
         target = no_circle['error_data'][-1]
         circle_flow_key = '{}.{}'.format(source, target)
         flow_id = deformed_flows[circle_flow_key]
-        reversed_flows[flow_id] = deepcopy(pipeline[PE.flows][flow_id])
-        pipeline[PE.flows][flow_id].update({
-            PE.source: target,
-            PE.target: source
+        reversed_flows[flow_id] = deepcopy(pipeline[PWE.flows][flow_id])
+        pipeline[PWE.flows][flow_id].update({
+            PWE.source: target,
+            PWE.target: source
         })
 
         source_node = pipeline['all_nodes'][source]
-        delete_flow_id_from_node_io(source_node, flow_id, PE.outgoing)
-        add_flow_id_to_node_io(source_node, flow_id, PE.incoming)
+        delete_flow_id_from_node_io(source_node, flow_id, PWE.outgoing)
+        add_flow_id_to_node_io(source_node, flow_id, PWE.incoming)
 
         target_node = pipeline['all_nodes'][target]
-        delete_flow_id_from_node_io(target_node, flow_id, PE.incoming)
-        add_flow_id_to_node_io(target_node, flow_id, PE.outgoing)
+        delete_flow_id_from_node_io(target_node, flow_id, PWE.incoming)
+        add_flow_id_to_node_io(target_node, flow_id, PWE.outgoing)
 
     return reversed_flows
 
@@ -91,15 +91,15 @@ def acyclic_undo(pipeline, reversed_flows):
     @summary: 恢复反向边
     @return:
     """
-    pipeline[PE.flows].update(reversed_flows)
+    pipeline[PWE.flows].update(reversed_flows)
 
     for flow_id, flow in reversed_flows.items():
-        source = flow[PE.source]
+        source = flow[PWE.source]
         source_node = pipeline['all_nodes'][source]
-        delete_flow_id_from_node_io(source_node, flow_id, PE.incoming)
-        add_flow_id_to_node_io(source_node, flow_id, PE.outgoing)
+        delete_flow_id_from_node_io(source_node, flow_id, PWE.incoming)
+        add_flow_id_to_node_io(source_node, flow_id, PWE.outgoing)
 
-        target = flow[PE.target]
+        target = flow[PWE.target]
         target_node = pipeline['all_nodes'][target]
-        delete_flow_id_from_node_io(target_node, flow_id, PE.outgoing)
-        add_flow_id_to_node_io(target_node, flow_id, PE.incoming)
+        delete_flow_id_from_node_io(target_node, flow_id, PWE.outgoing)
+        add_flow_id_to_node_io(target_node, flow_id, PWE.incoming)
