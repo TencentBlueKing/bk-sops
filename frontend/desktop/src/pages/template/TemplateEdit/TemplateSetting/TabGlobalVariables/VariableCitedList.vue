@@ -16,7 +16,8 @@
                 v-for="item in list"
                 :key="item.id"
                 class="variable-cited-item">
-                <span class="cited-name"
+                <span
+                    :class="['cited-name', { 'name-error': !item.name }]"
                     @click.stop="onCitedNodeClick(item.id)">
                     {{ item.name || i18n.notNamed }}
                 </span>
@@ -85,11 +86,14 @@
     }
     .variable-cited-item {
         padding: 0 20px;
-        height: 40px;
-        line-height: 40px;
+        height: 32px;
+        line-height: 32px;
         color: #3a84ff;
         .cited-name {
             cursor: pointer;
+            &.name-error {
+                color: #ea3636;
+            }
         }
     }
 }
