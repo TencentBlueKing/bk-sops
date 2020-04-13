@@ -160,12 +160,17 @@
                 cardListDom.style.transform = `translateX(-${this.viewIndex * baseW}px)`
             },
             handlerWindowResize () {
-                if (!this.commonUsedList || this.commonUsedList.length === 0) {
+                const cardList = this.$refs.cardView
+                const cardItem = document.querySelector('.my-collection .card-list .card-item')
+                if (
+                    !this.commonUsedList
+                    || this.commonUsedList.length === 0
+                    || !cardList
+                    || !cardItem) {
                     return
                 }
-                const cardView = this.$refs.cardView.offsetWidth
-                const cardItemW = document.querySelector('.common-used .card-list .card-item').offsetWidth
-                this.limit = Math.floor(cardView / cardItemW)
+                
+                this.limit = Math.floor(cardList.offsetWidth / cardItem.offsetWidth)
                 this.viewIndex = 0
                 this.changeViewIndex()
             }
