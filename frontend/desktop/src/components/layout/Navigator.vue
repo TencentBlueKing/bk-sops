@@ -11,7 +11,12 @@
 */
 <template>
     <header>
-        <router-link :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
+        <!-- 轻应用打开页面，logo不支持单击和右键跳转到首页 -->
+        <span v-if="view_mode === 'appmaker'" class="nav-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{ i18n.title }}</span>
+        </span>
+        <router-link v-else :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
         </router-link>
