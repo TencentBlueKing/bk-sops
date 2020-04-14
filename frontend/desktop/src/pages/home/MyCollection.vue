@@ -273,12 +273,16 @@
                 this.isCreateTaskDialogShow = false
             },
             handlerWindowResize () {
-                if (!this.collectionList || this.collectionList.length === 0) {
+                const cardList = document.querySelector('.my-collection .card-list')
+                const cardItem = document.querySelector('.my-collection .card-list .card-item')
+                if (
+                    !this.collectionList
+                    || this.collectionList.length === 0
+                    || !cardList
+                    || !cardItem) {
                     return
                 }
-                const cardView = document.querySelector('.my-collection .card-list').offsetWidth
-                const cardItemW = document.querySelector('.my-collection .card-list .card-item').offsetWidth
-                this.limit = Math.floor(cardView / cardItemW)
+                this.limit = Math.floor(cardList.offsetWidth / cardItem.offsetWidth)
             }
         }
     }
