@@ -17,7 +17,7 @@
             :label-width="130"
             :model="formData"
             :rules="pluginRules">
-            <bk-form-item :label="i18n.plugin" :required="true" property="plugin">
+            <bk-form-item :label="i18n.plugin" :required="true" property="plugin" class="choose-plugin-input">
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
                         <div
@@ -352,6 +352,11 @@
             background: #e1ecff;
             text-align: center;
             cursor: pointer;
+        }
+        .choose-plugin-input {
+            .bk-form-input[readonly] {
+                border-color: #c4c6cc !important;
+            }
         }
         .update-tooltip {
             position: absolute;
