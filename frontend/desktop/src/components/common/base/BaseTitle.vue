@@ -88,8 +88,8 @@
 <style lang='scss' scoped>
 .base-title {
     position: relative;
-    padding: 20px 0;
-    min-height: 60px;
+    height: 60px;
+    line-height: 60px;
     border-bottom: 1px solid #dde4eb;
     .title-name {
         float: left;
@@ -116,14 +116,13 @@
             content: '';
             position: absolute;
             left: 0;
-            top: 0;
+            top: 21px;
             width: 0;
             height: 20px;
             border-left: 2px solid #dde4eb;
         }
         .base-tab-item {
             margin-left: 26px;
-            padding-bottom: 18px;
             font-size: 14px;
             height: 100%;
             cursor: pointer;
