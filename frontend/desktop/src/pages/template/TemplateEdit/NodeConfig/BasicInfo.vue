@@ -331,7 +331,9 @@
             color: #63656e;
         }
         .bk-form-control .group-box.group-append {
+            margin-left: -1px;
             z-index: 11;
+            border: 1px solid #3a84ff;
         }
         .form-item-tips {
             position: absolute;
@@ -343,9 +345,12 @@
             }
         }
         .choose-plugin-btn {
+            width: 68px;
+            height: 30px;
             line-height: 30px;
             color: #3a84ff;
             background: #e1ecff;
+            text-align: center;
             cursor: pointer;
         }
         .update-tooltip {
