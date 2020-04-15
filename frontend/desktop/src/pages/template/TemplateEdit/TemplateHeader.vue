@@ -352,14 +352,15 @@
             text-align: center;
         }
         .name-show-mode {
-            display: inline-block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
         .canvas-name {
             display: inline-block;
             margin: 0;
             max-width: 400px;
-            height: 30px;
-            line-height: 30px;
             font-size: 14px;
             font-weight: normal;
             overflow: hidden;
@@ -368,8 +369,7 @@
             color: #606266;
         }
         .common-icon-edit {
-            float: right;
-            margin: 9px 0 0 4px;
+            margin-left: 4px;
             font-size: 12px;
             color: #546a9e;
             cursor: pointer;
