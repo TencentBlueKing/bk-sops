@@ -121,52 +121,11 @@ $localBorderColor: #d8e2e7;
 .form-content {
     margin-left: 80px;
     min-height: 36px;
-    .bk-select {
-        background: #ffffff;
+    /deep/ .bk-textarea-wrapper {
+        border: none;
     }
-    input {
-        padding: 0 10px;
-        width: 100%;
-        height: 36px;
-        line-height: 36px;
-        font-size: 14px;
-        border: 1px solid $formBorderColor;
-        border-radius: 2px;
-        outline: none;
-        &:focus {
-            border-color: $blueDefault;
-        }
-        &[disabled] {
-            color: #aaa;
-            cursor: not-allowed;
-            background: #fafafa;
-        }
-    }
-    textarea {
-        padding: 10px;
-        width: 100%;
-        height: 70px;
-        border: 1px solid $formBorderColor;
-        border-radius: 2px;
-        outline: none;
-        resize: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: $blueDefault;
-        }
-        @include scrollbar;
-    }
-    /deep/ .el-input {
-        .el-input__inner {
-            padding: 0 10px;
-            height: 36px;
-            line-height: 36px;
-        }
-    }
-    /deep/ .tag-form {
-        margin-left: 0;
+    /deep/ .bk-form-textarea {
+        border: 1px solid #c4c6cc;
     }
 }
 </style>
