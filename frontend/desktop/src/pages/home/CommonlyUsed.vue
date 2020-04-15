@@ -204,6 +204,7 @@
                 height: 95px;
                 padding: 14px;
                 background: #f0f1f5;
+                border-radius: 2px;
                 cursor: pointer;
                 @media screen and (max-width: 1560px) {
                     width: calc( (100% - 48px) / 4 );

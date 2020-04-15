@@ -340,6 +340,7 @@
             .card-item {
                 display: inline-block;
                 margin-right: 0;
+                border-radius: 2px;
                 @media screen and (max-width: 1560px) {
                     &:not(:nth-child(4n)) {
                         margin-right: 16px;
