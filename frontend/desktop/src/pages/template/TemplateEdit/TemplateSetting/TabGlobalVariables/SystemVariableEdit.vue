@@ -76,7 +76,7 @@ $localBorderColor: #d8e2e7;
     padding-bottom: 40px;
     font-size: 14px;
     text-align: left;
-    background: $whiteThinBg;
+    background: #fafbfd;
     border-bottom: 1px solid $localBorderColor;
     cursor: auto;
 }

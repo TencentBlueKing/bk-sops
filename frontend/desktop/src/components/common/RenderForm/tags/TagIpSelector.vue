@@ -153,6 +153,6 @@
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
     padding: 10px;
-    border: 1px solid #ececec;
+    border: 1px solid #dcdee5;
 }
 </style>
