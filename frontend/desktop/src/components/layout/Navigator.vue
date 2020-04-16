@@ -427,9 +427,9 @@
             isNavActived (route) {
                 // 轻应用打开页面导航选中态
                 if (this.view_mode === 'appmaker') {
-                    // 任务创建、任务执行两个模块都激活新建任务导航项
-                    if (route.routerName === 'appmakerTaskCreate') {
-                        return ['appmakerTaskCreate', 'appmakerTaskExecute'].includes(this.$route.name)
+                    // 任务记录、任务执行两个模块都激活任务记录导航项
+                    if (route.routerName === 'appmakerTaskHome') {
+                        return ['appmakerTaskHome', 'appmakerTaskExecute'].includes(this.$route.name)
                     }
                     return this.$route.name === route.path
                 }
