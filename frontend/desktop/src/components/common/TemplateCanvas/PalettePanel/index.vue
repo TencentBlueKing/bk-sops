@@ -119,8 +119,7 @@
                 return this.lang === 'zh-cn' ? 'zh' : 'en'
             },
             nodes () {
-                const data = this.atomTypeList[this.activeNodeListType]
-                return data || []
+                return this.activeNodeListType ? this.atomTypeList[this.activeNodeListType] : []
             }
         },
         watch: {

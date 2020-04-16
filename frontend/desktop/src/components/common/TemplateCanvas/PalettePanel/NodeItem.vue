@@ -13,7 +13,6 @@
     <div
         class="node-item entry-item"
         :data-config-atom-id="type === 'tasknode' ? node.code : node.template_id"
-        :data-config-version="type === 'tasknode' ? '' : node.version"
         :data-config-name="node.name.replace(/\s/g, '')"
         :data-config-group="node.group_name"
         :data-config-icon="node.group_icon"

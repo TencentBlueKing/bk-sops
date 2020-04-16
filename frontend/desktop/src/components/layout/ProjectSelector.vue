@@ -10,10 +10,19 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="project-wrapper">
+    <div
+        :class="[
+            'project-wrapper',
+            { 'disabled': disabled },
+            { 'read-only': readOnly }
+        ]">
+        <div v-if="readOnly" :title="projectName" class="project-name">
+            {{ projectName }}
+        </div>
         <bk-select
-            v-show="!disabled"
+            v-else
             class="project-select"
+            ext-popover-cls="project-select-comp-list"
             v-model="currentProject"
             :disabled="disabled || isLoading"
             :clearable="false"
@@ -22,7 +31,9 @@
                 v-for="(group, index) in projects"
                 :name="group.name"
                 :key="index">
-                <bk-option v-for="(option, i) in group.children"
+                <bk-option
+                    class="project-item"
+                    v-for="(option, i) in group.children"
                     :key="i"
                     :id="option.id"
                     :name="option.name">
@@ -42,6 +53,10 @@
     export default {
         name: 'ProjectSelector',
         props: {
+            readOnly: {
+                type: Boolean,
+                default: false
+            },
             disabled: {
                 type: Boolean,
                 default: false
@@ -66,10 +81,13 @@
         },
         computed: {
             ...mapState({
-                site_url: state => state.site_url
+                site_url: state => state.site_url,
+                viewMode: state => state.view_mode
+                
             }),
             ...mapState('project', {
-                project_id: state => state.project_id
+                project_id: state => state.project_id,
+                projectName: state => state.projectName
             }),
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
@@ -191,6 +209,24 @@
         width: 200px;
         color: #979ba5;
         font-size: 14px;
+        &.disabled {
+            background: #252f43;
+        }
+        &.read-only {
+            margin-top: 0;
+            width: auto;
+            height: 50px;
+            line-height: 50px;
+            .project-name {
+                width: 200px;
+                color: #979ba5;
+                font-size: 14px;
+                text-align: center;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+        }
     }
     .project-select {
         border-color: #445060;
@@ -216,6 +252,24 @@
         }
         to {
             transform: rotate(360deg);
+        }
+    }
+</style>
+<style lang="scss">
+    .project-select-comp-list {
+        .project-item.bk-option {
+            .bk-option-content {
+                padding: 0;
+                .bk-option-content-default {
+                    padding: 0;
+                    .bk-option-name {
+                        width: 100%;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                }
+            }
         }
     }
 </style>

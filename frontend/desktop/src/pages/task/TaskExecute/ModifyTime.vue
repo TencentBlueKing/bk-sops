@@ -25,7 +25,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="success" @click="onModifyTime">{{ i18n.confirm }}</bk-button>
+            <bk-button theme="primary" @click="onModifyTime">{{ i18n.confirm }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
         </div>
     </div>
@@ -107,7 +107,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type, version })
+                        await this.loadAtomConfig({ atom: type, version })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)

@@ -15,8 +15,7 @@ const atomList = {
     namespaced: true,
     state: {
         singleAtom: [],
-        subAtom: [],
-        searchAtomResult: []
+        subAtom: []
     },
     mutations: {
         setSingleAtom (state, data) {
@@ -24,24 +23,13 @@ const atomList = {
         },
         setSubAtom (state, data) {
             state.subAtom = [...data]
-        },
-        searchAtom (state, payload) {
-            const dict = {
-                'tasknode': 'singleAtom',
-                'subflow': 'subAtom'
-            }
-            const data = state[dict[payload.type]]
-            const reg = new RegExp(payload.text)
-            state.searchAtomResult = data.filter(item => {
-                return payload.exclude.indexOf(item.id) === -1 && reg.test(item.name)
-            })
         }
     },
     actions: {
         loadSingleAtomList ({ commit }) {
             return api.getSingleAtomList().then(response => response.data.objects)
         },
-        loadSubAtomList ({ commit }, data) {
+        loadSubflowList ({ commit }, data) {
             return api.getSubAtomList(data).then(response => response.data.objects)
         },
         queryAtomData ({ commit }, data) {

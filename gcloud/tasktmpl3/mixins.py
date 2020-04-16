@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
@@ -22,7 +21,6 @@ from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentInTemplate, TemplateInPipeline
 from pipeline.contrib.periodic_task.models import PeriodicTask
 from pipeline.models import PipelineInstance, TemplateRelationship
-from pipeline.parser.utils import replace_all_id
 
 from gcloud.core.constant import TASK_CATEGORY, AE
 from gcloud.core.utils import format_datetime
@@ -260,28 +258,3 @@ class TaskTmplStatisticsMixin(ClassificationCountMixin):
         except Exception as e:
             message = "query_task_list params conditions[%s] have invalid key or value: %s" % (prefix_filters, e)
             return False, message, None, None
-
-    def replace_all_template_tree_node_id(self):
-        templates = self.filter(is_deleted=False)
-        success = 0
-        for template in templates:
-            tree_data = template.pipeline_template.data
-            try:
-                replace_all_id(tree_data)
-            except Exception:
-                continue
-            template.pipeline_template.update_template(tree_data)
-            success += 1
-        return len(templates), success
-
-    def get_collect_template(self, project_id, username):
-        user_model = get_user_model()
-        collected_templates = user_model.objects.get(username=username).tasktemplate_set.values_list('id', flat=True)
-        collected_templates_list = []
-        template_list = self.filter(is_deleted=False, project_id=project_id, id__in=list(collected_templates))
-        for template in template_list:
-            collected_templates_list.append({
-                'id': template.id,
-                'name': template.name
-            })
-        return True, collected_templates_list

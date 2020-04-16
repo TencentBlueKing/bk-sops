@@ -429,14 +429,14 @@ const routers = new VueRouter({
                             component: SourceSync
                         }
                     ]
+                },
+                {
+                    path: 'atomdev/',
+                    name: 'atomDev',
+                    pathToRegexpOptions: { strict: true },
+                    component: AtomDev
                 }
             ]
-        },
-        {
-            path: '/atomdev/',
-            name: 'atomDev',
-            pathToRegexpOptions: { strict: true },
-            component: AtomDev
         },
         {
             path: '/error/:code(401|403|405|406|500)/',

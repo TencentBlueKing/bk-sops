@@ -23,7 +23,7 @@
                 <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
             </div>
             <div class="node-name">
-                {{ node.name }}
+                <div class="name-text">{{ node.name }}</div>
             </div>
             <div class="node-options-icon">
                 <template v-if="node.optional">
@@ -176,57 +176,19 @@
     }
 </script>
 <style lang="scss" scoped>
-    .task-node {
-        position: relative;
-        width: 150px;
-        height: 42px;
-        text-align: center;
-        background: #ffffff;
-        border-radius: 4px;
-        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
-        cursor: pointer;
-        &.actived {
-            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
-        }
-        .node-name {
-            margin-left: 32px;
-            width: 118px;
-            height: 100%;
-            font-size: 12px;
-            word-break: break-all;
-        }
-    }
-    .node-status-block {
-        float: left;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 32px;
-        height: 100%;
-        background: #52699d;
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-        .node-icon {
-            width: 16px;
-        }
-        .node-icon-font {
-            font-size: 18px;
-            color: #ffffff;
-        }
-    }
-    .node-options-icon {
-        position: absolute;
-        top: -23px;
-        left: 0;
-        .bk-form-checkbox,
-        &>[class*="common-icon"] {
-            display: inline-block;
-            vertical-align: bottom;
-        }
-    }
     .dark-circle {
         font-size: 12px;
         color: #979ba5;
         margin-left: -2px;
+    }
+    #node-tooltip-content {
+        overflow: hidden;
+        .bk-button {
+            float: left;
+            padding: 0 8px;
+            &:not(:last-child) {
+                border-right: 1px solid #63656e;
+            }
+        }
     }
 </style>

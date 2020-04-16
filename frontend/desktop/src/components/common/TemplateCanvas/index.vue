@@ -428,6 +428,7 @@
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
+                this.$emit('update:nodeMemuOpen', val)
             },
             updateCanvas () {
                 const { locations: nodes, lines } = this.canvasData
@@ -965,9 +966,10 @@
                 this.idOfNodeShortcutPanel = id
             },
             // 节点后面追加
-            onAppendNode ({ location, line }) {
+            onAppendNode ({ location, line, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(line)
@@ -980,7 +982,8 @@
              * @param {String} endNode -后节点 id
              * @param {Object} location -新建节点的 location
              */
-            onInsertNode ({ startNodeId, endNodeId, location }) {
+            onInsertNode ({ startNodeId, endNodeId, location, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
                 if (!deleteLine) {
                     return false
@@ -1007,7 +1010,7 @@
                     }
                 }
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
@@ -1098,6 +1101,24 @@
                 const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
                 this.zoomOriginPosition.x = e.pageX - offsetX
                 this.zoomOriginPosition.y = e.pageY - offsetY
+            },
+            /**
+             * 设置画布偏移量
+             * @param {Number} x 画布向右偏移量
+             * @param {Number} y 画布向下偏移量
+             * @param {Boolean} animation 是否设置缓动动画
+             */
+            setCanvasPosition (x, y, animation = false) {
+                if (animation) {
+                    const canvas = this.$refs.jsFlow.$el.querySelector('#canvas-flow')
+                    canvas.style.transition = 'left 0.4s, top 0.4s'
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                    setTimeout(() => {
+                        canvas.style.transition = 'unset'
+                    }, 600)
+                } else {
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                }
             }
         }
     }

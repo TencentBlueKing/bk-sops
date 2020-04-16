@@ -18,7 +18,7 @@
                 <label class="required">{{ i18n.taskName }}</label>
                 <div class="common-form-content">
                     <bk-input
-                        class="common-form-content-size"
+                        class="task-name"
                         name="taskName"
                         v-model="name"
                         v-validate="taskNameRule">
@@ -34,12 +34,14 @@
                 </span>
             </div>
             <div class="param-info-division-line"></div>
-            <NoData v-if="isVariableEmpty"></NoData>
-            <TaskParamEdit
-                v-else
-                ref="TaskParamEdit"
-                :constants="pipelineData.constants">
-            </TaskParamEdit>
+            <div v-if="!isVariableEmpty" class="form-wrapper" v-bkloading="{ isLoading: isConfigLoading, opacity: 1 }">
+                <TaskParamEdit
+                    ref="TaskParamEdit"
+                    :constants="pipelineData.constants"
+                    @onChangeConfigLoading="changeLoading">
+                </TaskParamEdit>
+            </div>
+            <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
             <bk-button
@@ -48,7 +50,7 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
-                theme="success"
+                theme="primary"
                 :class="['task-claim-button', {
                     'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
                 }]"
@@ -114,6 +116,7 @@
                     taskPreview: gettext('任务流程预览')
                 },
                 isSubmit: false,
+                isConfigLoading: false,
                 previewDialogShow: false,
                 canvasShow: false,
                 previewDataLoading: false,
@@ -179,6 +182,9 @@
                 this.$nextTick(() => {
                     this.previewDataLoading = false
                 })
+            },
+            changeLoading (val) {
+                this.isConfigLoading = val
             },
             onTaskClaim () {
                 if (this.isSubmit) return
@@ -356,7 +362,10 @@
     padding-bottom: 0px;
 }
 .task-param-wrapper {
-    width: 720px;
+    width: 620px;
+}
+.form-wrapper {
+    min-height: 200px;
 }
 .action-wrapper {
     position: absolute;
@@ -381,13 +390,9 @@
     }
     .task-claim-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
-.step-form-content-size {
+.task-name {
     max-width: 500px;
 }
 /deep/ .bk-dialog-body {

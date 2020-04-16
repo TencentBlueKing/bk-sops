@@ -99,11 +99,11 @@
             onToggleUnreferenceShow () {
                 this.isUnrefVarShow = !this.isUnrefVarShow
             },
-            onRefVarLoadingChange () {
-                this.isRefVarLoading = false
+            onRefVarLoadingChange (val) {
+                this.isRefVarLoading = val
             },
-            onUnrefVarLoadingChange () {
-                this.isUnrefVarLoading = false
+            onUnrefVarLoadingChange (val) {
+                this.isUnrefVarLoading = val
             },
             // 获取 TaskParamEdit
             getTaskParamEdit () {

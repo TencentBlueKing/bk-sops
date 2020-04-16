@@ -12,8 +12,8 @@
 <template>
     <div class="rf-form-group" v-show="showForm">
         <!-- 分组名称和描述 -->
-        <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <h3 class="name">{{scheme.attrs.name}}</h3>
+        <div v-if="showFormTitle" class="rf-group-name">
+            <h3 class="name">{{scheme.name || scheme.attrs.name}}</h3>
             <div v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
@@ -121,6 +121,11 @@
                     hooked: gettext('取消勾选'),
                     cancelHook: gettext('勾选参数作为全局变量')
                 }
+            }
+        },
+        computed: {
+            showFormTitle () {
+                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
             }
         },
         watch: {

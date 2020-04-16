@@ -25,8 +25,8 @@
         :style="{
             width: (scheme.attrs.cols ? scheme.attrs.cols / 12 * 100 : 100) + '%'
         }">
-        <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <span class="name">{{scheme.attrs.name}}</span>
+        <div v-if="showFormTitle" class="rf-group-name">
+            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
@@ -175,6 +175,11 @@
                 }
             }
         },
+        computed: {
+            showFormTitle () {
+                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+            }
+        },
         watch: {
             scheme (val) {
                 this.tagComponent = `tag_${this.scheme.type}`
@@ -292,6 +297,20 @@
                             }
                         }
                         break
+                    case 'set_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: []
+                            }
+                        }
+                        break
                     default:
                         valueFormat = {
                             type: 'String',
@@ -377,7 +396,7 @@
         }
     }
     &.show-label > .rf-tag-form {
-        margin-left: 120px;
+        margin-left: 130px;
     }
     .rf-tag-hook {
         position: absolute;

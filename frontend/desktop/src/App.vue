@@ -104,7 +104,7 @@
             bus.$on('showMessage', info => {
                 this.$bkMessage({
                     message: info.message,
-                    isSingleLine: false,
+                    ellipsisLine: info.lines || 1,
                     theme: info.theme || 'error'
                 })
             })
@@ -172,6 +172,7 @@
                 this.appmakerDataLoading = true
                 try {
                     const res = await this.loadAppmakerDetail(this.appId)
+                    this.setProjectName(res.project.name)
                     this.setAppmakerDetail(res)
                 } catch (e) {
                     errorHandler(e, this)

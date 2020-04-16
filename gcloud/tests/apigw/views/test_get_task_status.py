@@ -27,6 +27,7 @@ TEST_BIZ_CC_ID = "123"
 TEST_TASKFLOW_ID = "2"
 TEST_DATA = "data"
 TEST_SUBPROCESS_STACK = "[1, 2, 3]"
+TEST_SUBPROCESS_ID = 'subprocess_id'
 
 
 class GetTaskStatusAPITest(APITest):
@@ -89,20 +90,18 @@ class GetTaskStatusAPITest(APITest):
         MagicMock(return_value=TEST_DATA),
     )
     def test_get_task_status__is_subprocess(self):
-        task = MockTaskFlowInstance(get_status_raise=TaskFlowInstance.DoesNotExist())
+        response = self.client.get(
+            path=self.url().format(
+                task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
+            ),
+            data={"subprocess_id": TEST_SUBPROCESS_ID}
+        )
 
-        with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
-            response = self.client.get(
-                path=self.url().format(
-                    task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID
-                )
-            )
+        TaskFlowInstance.format_pipeline_status.assert_called_once_with(TEST_DATA)
 
-            TaskFlowInstance.format_pipeline_status.assert_called_once_with(TEST_DATA)
-
-            data = json.loads(response.content)
-            self.assertTrue(data["result"], msg=data)
-            self.assertEqual(data["data"], TEST_DATA)
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(data["data"], TEST_DATA)
 
     @mock.patch(
         APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE,
