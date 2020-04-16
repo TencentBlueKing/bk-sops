@@ -295,7 +295,8 @@ class CommonProjectResource(GCloudModelResource):
         }
         q_fields = ['id', 'username', 'count']
 
-    def get_default_projects(self, empty_query, username):
+    @staticmethod
+    def get_default_projects(empty_query, username):
         """初始化并返回用户有权限的项目"""
 
         authorized_projects = project_resource.backend.search_authorized_resources(
@@ -312,12 +313,15 @@ class CommonProjectResource(GCloudModelResource):
             project_ids = []
         else:
             project_ids = [
-                ap[0]['resource_id']
+                int(ap[0]['resource_id'])
                 for ap in authorized_projects['data'][0]['resource_ids']
             ]
 
         if not len(project_ids):
             return empty_query
+
+        # 过滤脏数据
+        project_ids = list(Project.objects.filter(id__in=project_ids).values_list('id', flat=True))
 
         # 初始化用户有权限的项目
         ProjectCounter.objects.bulk_create([
