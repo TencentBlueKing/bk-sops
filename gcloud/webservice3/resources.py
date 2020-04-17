@@ -329,7 +329,7 @@ class CommonProjectResource(GCloudModelResource):
             for project_id in project_ids
         ])
 
-        return ProjectCounter.objects.filter(project_id__in=project_ids, project__is_disable=False)
+        return ProjectCounter.objects.filter(username=username, project_id__in=project_ids, project__is_disable=False)
 
     def get_object_list(self, request):
 
