@@ -27,5 +27,7 @@
         line-height: 24px;
         background: #f0f1f5;
         border-radius: 2px;
+        font-size: 12px;
+        color: #63656e;
     }
 </style>

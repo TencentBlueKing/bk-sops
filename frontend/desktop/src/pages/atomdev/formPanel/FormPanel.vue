@@ -20,12 +20,17 @@
             @end="onSortHandler">
             <div class="form-item" v-for="(form, index) in formList" :key="index">
                 <div :class="['content-wrapper', { active: tagInfo && tagInfo.tagCode === form.config.tag_code }]">
-                    <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label>
-                    <div class="form-item-content">
-                        <template v-if="form.tag">
-                            <component :is="form.tag" v-bind="getFormProps(form.config)"></component>
-                        </template>
+                    <div v-if="form.config.type === 'section'" class="form-item-section">
+                        <tag-section v-bind="getFormProps(form.config)"></tag-section>
                     </div>
+                    <template v-else>
+                        <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label>
+                        <div class="form-item-content">
+                            <template v-if="form.tag">
+                                <component :is="form.tag" v-bind="getFormProps(form.config)"></component>
+                            </template>
+                        </div>
+                    </template>
                     <div class="content-mask">
                         <i class="operation-btn common-icon-horizon-line-group"></i>
                         <i
