@@ -24,7 +24,8 @@ __all__ = ('MD_FILES_DIR', 'PARSED_HTML_FILES_DIR', 'NAME_PATTERN',
 # 默认设置
 VERSION_LOG = {
     'MD_FILES_DIR': 'version_logs_md',
-    'NAME_PATTERN': '[vV](\d+\.){2,4}md',  # noqa
+    # 形如 'V1.0.0_2020-01-01.md'
+    'NAME_PATTERN': '[vV]\d+(\.\d+){1,3}_\d{4}(-\d{2}){2}\.md',  # noqa
     'LATEST_VERSION_INFORM': False,
     'LATEST_VERSION_INFORM_TYPE': 'redirect',
     'ENTRANCE_URL': 'version_log/',

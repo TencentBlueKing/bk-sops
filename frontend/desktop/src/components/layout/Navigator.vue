@@ -11,7 +11,12 @@
 */
 <template>
     <header>
-        <router-link :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
+        <!-- 轻应用打开页面，logo不支持单击和右键跳转到首页 -->
+        <span v-if="view_mode === 'appmaker'" class="nav-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{ i18n.title }}</span>
+        </span>
+        <router-link v-else :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
         </router-link>
@@ -420,7 +425,12 @@
                 }
             },
             isNavActived (route) {
+                // 轻应用打开页面导航选中态
                 if (this.view_mode === 'appmaker') {
+                    // 任务记录、任务执行两个模块都激活任务记录导航项
+                    if (route.routerName === 'appmakerTaskHome') {
+                        return ['appmakerTaskHome', 'appmakerTaskExecute'].includes(this.$route.name)
+                    }
                     return this.$route.name === route.path
                 }
                 return this.$route.path.indexOf(route.path) === 0

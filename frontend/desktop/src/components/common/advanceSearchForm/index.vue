@@ -161,6 +161,8 @@
         border: 1px solid #dde4eb;
         border-radius: 2px;
         /deep/ .bk-form-item {
+            float: left;
+            height: 32px;
             margin-top: 20px !important;
             margin-left: 8px;
             .bk-label {
@@ -168,7 +170,7 @@
             }
         }
         .query-button {
-            margin-left: 90px;
+            margin-left: 168px;
             .query-cancel {
                 margin-left: 5px;
             }
