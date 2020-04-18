@@ -211,3 +211,8 @@
         }
     }
 </script>
+<style lang="scss">
+.el-upload__tip {
+    color: #666666;
+}
+</style>

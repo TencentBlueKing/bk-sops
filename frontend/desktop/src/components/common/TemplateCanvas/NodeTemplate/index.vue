@@ -360,7 +360,7 @@
                 display: flex;
                 align-items: center;
                 margin-left: 32px;
-                padding: 0 2px;
+                padding: 0 10px;
                 width: 118px;
                 height: 100%;
                 .name-text {

@@ -83,10 +83,10 @@
     }
     .number {
         display: inline-block;
-        margin-top: -4px;
-        padding: 1px;
+        padding: 0 1px;
         min-width: 18px;
         height: 18px;
+        line-height: 18px;
         font-size: 12px;
         border-radius: 9px;
         text-align: center;

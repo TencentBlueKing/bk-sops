@@ -497,17 +497,15 @@ $localBorderColor: #dcdee5;
         }
     }
     .global-variable-tootip {
-        vertical-align: middle;
         margin-left: 6px;
         color:#c4c6cc;
+        font-size: 16px;
         cursor: pointer;
         &:hover {
             color:#f4aa1a;
         }
         &.quote-info {
             margin-left: 0px;
-            vertical-align: initial;
-            font-size: 16px;
         }
     }
     .panel-fixed-pin {
