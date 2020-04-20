@@ -131,16 +131,6 @@
             <bk-form-item :label="i18n.nodeName" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @blur="updateData"></bk-input>
             </bk-form-item>
-            <bk-form-item :label="i18n.nodeLabel" property="label">
-                <bk-search-select
-                    primary-key="code"
-                    :clearable="true"
-                    :data="labelList"
-                    :show-condition="false"
-                    :values="filterLabelTree(formData.nodeLabel)"
-                    @change="onLabelChange">
-                </bk-search-select>
-            </bk-form-item>
             <bk-form-item :label="i18n.selectable">
                 <bk-switcher
                     :value="formData.selectable"
@@ -282,7 +272,9 @@
             }
         },
         created () {
-            this.getNodeLabelList()
+            if (!this.isSubflow) { // 子流程节点不展示节点标签表单
+                this.getNodeLabelList()
+            }
         },
         methods: {
             ...mapMutations('template/', [
