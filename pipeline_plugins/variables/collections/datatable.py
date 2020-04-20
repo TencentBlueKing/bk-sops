@@ -48,7 +48,7 @@ class DataTable(LazyVariable):
         """
         @summary: 返回 DataTableValue 对象
         @note： 引用表格变量某一列某一行的属性，如 ${table.columnA[0]} -> "test1"
-        @note： 引用表格变量某一列的全部属性，多行用换行分隔，如 ${table.flat__columnA} -> "test1\ntest2"
+        @note： 引用表格变量某一列的全部属性，多行用换行符 `\n` 分隔，如 ${table.flat__columnA} -> "test1\ntest2"
         @return:
         """
         return DataTableValue(self.value)

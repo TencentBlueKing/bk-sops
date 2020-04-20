@@ -16,7 +16,7 @@
             type: "member_selector",
             attrs: {
                 name: gettext("选择人员"),
-                placeholder: gettext("多个用 , 分隔"),
+                placeholder: gettext("多个用英文逗号 `,` 分隔"),
                 hookable: true,
                 validation: [
                     {

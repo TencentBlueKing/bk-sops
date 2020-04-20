@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-20 10:21+0800\n"
+"POT-Creation-Date: 2020-04-20 17:49+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -176,7 +176,7 @@ msgid "请选择"
 msgstr "Please select"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:51
-msgid "请输入，多个用换行符分隔"
+msgid "请输入，多个用换行分隔"
 msgstr "Please enter, multiple are separated by Line breaks"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:52
@@ -1983,8 +1983,8 @@ msgid "模块配置"
 msgstr "Modules Config"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:278
-msgid "请输入模块绝对路径，如a.b.c，多个用,或换行符分隔"
-msgstr "Absolute path, multiple are separated by , or line breaks"
+msgid "请输入模块绝对路径，如a.b.c，多个用英文逗号 `,` 或换行分隔"
+msgstr "Absolute path, multiple are separated by `,` or line breaks"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:279
 msgid "子模块名称"
@@ -4311,8 +4311,8 @@ msgid "附加人员"
 msgstr "More Receivers"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:110
-msgid "填写用户名，多个用户名用 , 分隔"
-msgstr "Enter username, multiple are separated by ,"
+msgid "填写用户名，多个用英文逗号 `,` 分隔"
+msgstr "Enter username, multiple are separated by `,`"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:125
 msgid "通知分组与附加人员不可同时为空"
@@ -4393,7 +4393,7 @@ msgstr "Host Inner IP"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:96
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:19
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:19
-msgid "请输入主机内网IP，多个用换行符分隔"
+msgid "请输入主机内网IP，多个用换行分隔"
 msgstr "Please enter host inner IP, multiple are separated by Line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:109
@@ -4559,7 +4559,7 @@ msgstr "Target IP"
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:90
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:106
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
-msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
+msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:383
@@ -4593,7 +4593,7 @@ msgstr "File"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:41
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:68
-msgid "多个请用换行分隔"
+msgid "多个用换行分隔"
 msgstr "Multiple are separated by line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:55
@@ -4747,8 +4747,8 @@ msgid "选择人员"
 msgstr "Select member"
 
 #: pipeline_plugins/variables/static/variables/bk_manage_user_selector.js:19
-msgid "多个用 , 分隔"
-msgstr "mutiple item seperated by ','"
+msgid "多个用英文逗号 `,` 分隔"
+msgstr "mutiple items seperated by `,`"
 
 #: pipeline_plugins/variables/static/variables/datatable.js:18
 #: pipeline_plugins/variables/static/variables/datatable.js:84

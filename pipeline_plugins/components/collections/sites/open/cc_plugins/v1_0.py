@@ -44,7 +44,7 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 def chunk_table_data(column):
     """
-    @summary: 表格参数值支持以换行符分隔的多条数据，对一行数据，当有一列有多条数据时（包含换行符），其他列要么也有相等个数的
+    @summary: 表格参数值支持以换行符 `\n` 分隔的多条数据，对一行数据，当有一列有多条数据时（包含换行符），其他列要么也有相等个数的
         数据（换行符个数相等），要么只有一条数据（不包含换行符，此时表示多条数据此列参数值都相同）
     @param column: 表格单行数据，字典格式
     @return:
@@ -186,7 +186,7 @@ class CCCreateSetService(Service):
 
 class CCCreateSetComponent(Component):
     """
-    @version log: 表格参数值支持以换行符分隔的多条数据，对一行数据，当有一列有多条数据时（包含换行符），其他列要么也有相等个数的
+    @version log: 表格参数值支持以换行符 `\n` 分隔的多条数据，对一行数据，当有一列有多条数据时（包含换行符），其他列要么也有相等个数的
         数据（换行符个数相等），要么只有一条数据（不包含换行符，此时表示多条数据此列参数值都相同）
     """
     name = _("创建集群")

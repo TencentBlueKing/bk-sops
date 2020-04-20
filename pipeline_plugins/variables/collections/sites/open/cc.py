@@ -140,7 +140,7 @@ class VarCmdbSetAllocation(LazyVariable):
         """
         @summary: 返回 SetDetailData 对象
         @note： 引用集群资源变量某一列某一行的属性，如 ${value.bk_set_name[0]} -> "集群1"
-        @note： 引用集群资源变量某一列的全部属性，多行用换行分隔，如 ${value.flat__bk_set_name} -> "集群1\n集群2"
+        @note： 引用集群资源变量某一列的全部属性，多行用换行符 `\n` 分隔，如 ${value.flat__bk_set_name} -> "集群1\n集群2"
         @note： 引用集群资源变量的模块分配的 IP ${value._module[0]["gamesvr"]} -> "127.0.0.1,127.0.0.2"
         @return:
         """
