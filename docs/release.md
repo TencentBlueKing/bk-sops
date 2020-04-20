@@ -1,5 +1,9 @@
 # Release
 
+## 3.4.21
+- bugfix
+  - 修复 open_paas 版本低于 2.10.7 时申请权限跳转链接错误问题
+
 ## 3.4.20
 - bugfix
   - 修复 open_paas 版本低于 2.10.7 时报错 BK_IAM_INNER_HOST 环境变量不存在的问题
