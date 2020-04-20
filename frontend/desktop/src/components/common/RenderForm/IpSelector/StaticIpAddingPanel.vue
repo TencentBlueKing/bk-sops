@@ -194,23 +194,21 @@
                     this.listAllSelected = checkedNumInPage === this.listInPage.length - 1 ? true : 'half'
                 }
             },
-            getSortIpList (list, way) {
+            getSortIpList (list, way = 'up') {
                 const srotList = list.slice(0)
+                const sortVal = way === 'up' ? 1 : -1
                 srotList.sort((a, b) => {
                     const srotA = a.bk_host_innerip.split('.')
                     const srotB = b.bk_host_innerip.split('.')
                     for (let i = 0; i < 4; i++) {
                         if (srotA[i] * 1 > srotB[i] * 1) {
-                            return 1
+                            return sortVal
                         } else if (srotA[i] * 1 < srotB[i] * 1) {
-                            return -1
+                            return -sortVal
                         }
                     }
                 })
-                if (way === 'up') {
-                    return srotList
-                }
-                return srotList.reverse()
+                return srotList
             },
             onIpSort (way) {
                 if (this.ipSortActive === way) {
