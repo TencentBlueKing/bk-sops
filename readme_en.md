@@ -59,6 +59,7 @@ If you want to know more about the above features, please refer to the
 - [Variables Engine](docs/features/variables_engine.md)
 - [Tag Usage And Develop](docs/develop/tag_usage_dev.md)
 - [Mobile Documents](docs/features/mobile.md)
+- [Plugins User Guide](docs/plugins/user_guide.md)
 
 
 ## Version plan
