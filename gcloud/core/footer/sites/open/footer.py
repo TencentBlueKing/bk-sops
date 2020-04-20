@@ -18,7 +18,7 @@ FOOTER = """
         <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">蓝鲸论坛</a>
         <a href="http://bk.tencent.com/" class="link-item" target="_blank">蓝鲸官网</a>
     </ul>
-    <div class="desc">Copyright &copy; 2012-{{year}} Tencent BlueKing. All Rights Reserved.</div>
+    <div class="desc">Copyright &copy; 2012-${year} Tencent BlueKing. All Rights Reserved.</div>
     <div>蓝鲸智云 版权所有</div>
 </div>
 """
