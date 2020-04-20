@@ -14,7 +14,7 @@ import api from '@/api/index.js'
 const project = {
     namespaced: true,
     state: {
-        project_id: Number(window.DEFAULT_PROJECT_ID),
+        project_id: window.DEFAULT_PROJECT_ID,
         projectName: '',
         projectList: [],
         timeZone: window.TIMEZONE,
@@ -26,8 +26,11 @@ const project = {
         setProjectList (state, data) {
             state.projectList = data
         },
-        setProjectId (state, data) {
-            state.project_id = data
+        setProjectId (state, id) {
+            if (typeof id !== 'number') {
+                id = isNaN(Number(id)) || id === '' ? '' : Number(id)
+            }
+            state.project_id = id
         },
         setTimeZone (state, data) {
             state.timeZone = data
