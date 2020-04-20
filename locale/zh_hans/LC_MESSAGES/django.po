@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-04-13 12:07+0800\n"
+"POT-Creation-Date: 2020-04-20 10:21+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -2826,7 +2826,7 @@ msgstr "请求数据异常: {error}"
 msgid "返回数据格式错误，不是合法 JSON 格式"
 msgstr "返回数据格式错误，不是合法 JSON 格式"
 
-#: version_log/config.py:31
+#: version_log/config.py:32
 msgid "版本日志"
 msgstr "版本日志"
 
@@ -2906,3 +2906,4 @@ msgstr "城市"
 #: weixin/core/models.py:68 weixin/core/models.py:69
 msgid "微信用户"
 msgstr "微信用户"
+
