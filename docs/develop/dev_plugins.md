@@ -227,7 +227,7 @@ TestCustomComponent 类详解：
             type: "textarea",
             attrs: {
                 name: gettext("参数2"),
-                placeholder: gettext("多个使用换行分隔"),
+                placeholder: gettext("多个用换行分隔"),
                 hookable: true,
                 validation: [
                     {
@@ -328,7 +328,7 @@ class TestCustomComponent(Component):
                 type: "textarea",
                 attrs: {
                     name: gettext("参数2"),
-                    placeholder: gettext("多个使用换行分隔"),
+                    placeholder: gettext("多个用换行分隔"),
                     hookable: true,
                     validation: [
                         {

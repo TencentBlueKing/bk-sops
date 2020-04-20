@@ -51,7 +51,7 @@ export default [
                     type: "input",
                     attrs: {
                         name: "附加人员",
-                        placeholder: "填写用户名，多个用户名用 , 分隔",
+                        placeholder: "填写用户名，多个用英文逗号 `,` 分隔",
                         validation: [
                             {
                                 type: "custom",

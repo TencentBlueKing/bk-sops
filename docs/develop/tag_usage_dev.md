@@ -277,7 +277,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `placeholder`：占位文本
   - `empty_text`：无数据提示
   - `disabled`：设置是否禁用组件
-  - `value`：选中项的 value，多选框的值以 , 分隔
+  - `value`：选中项的 value，多选框的值以英文逗号 `,` 分隔
 
 **方法**
 

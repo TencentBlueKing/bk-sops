@@ -303,7 +303,7 @@ class JobFastPushFileService(JobService):
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
-                schema=StringItemSchema(description=_('文件分发目标机器 IP，多个以 "," 分隔')),
+                schema=StringItemSchema(description=_('文件分发目标机器 IP，多个用英文逗号 `,` 分隔')),
             ),
             self.InputItem(
                 name=_("目标账户"),
@@ -464,7 +464,7 @@ class JobFastExecuteScriptService(JobService):
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
-                schema=StringItemSchema(description=_('执行脚本的目标机器 IP，多个以 "," 分隔')),
+                schema=StringItemSchema(description=_('执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔')),
             ),
             self.InputItem(
                 name=_("目标账户"),
