@@ -57,6 +57,7 @@
                     :clearable="true"
                     :data="labelList"
                     :show-condition="false"
+                    :show-popover-tag-change="false"
                     :values="filterLabelTree(formData.nodeLabel)"
                     @change="onLabelChange">
                 </bk-search-select>
@@ -159,7 +160,7 @@
         },
         data () {
             return {
-                labelList: [],
+                labelData: [],
                 labelLoading: false,
                 formData: { ...this.basicInfo },
                 pluginRules: {
@@ -264,6 +265,14 @@
                         return true
                     }
                 })
+            },
+            labelList () {
+                if (this.labelLoading || this.labelData.length === 0) {
+                    return []
+                }
+                return this.labelData.filter(groupItem => {
+                    return !this.formData.nodeLabel.find(item => groupItem.code === item.group)
+                })
             }
         },
         watch: {
@@ -288,7 +297,7 @@
                 try {
                     this.labelLoading = true
                     const resp = await this.getLabels({ limit: 0 })
-                    this.labelList = this.transLabelListToGroup(resp.objects)
+                    this.labelData = this.transLabelListToGroup(resp.objects)
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
@@ -326,7 +335,7 @@
 
                 const data = []
                 val.forEach(item => {
-                    const group = this.labelList.find(g => g.code === item.group)
+                    const group = this.labelData.find(g => g.code === item.group)
                     const label = group.children.find(l => l.code === item.label)
                     data.push({
                         code: group.code,
@@ -344,10 +353,12 @@
             onLabelChange (list) {
                 const val = []
                 list.forEach(item => {
-                    val.push({
-                        label: item.values[0].code,
-                        group: item.code
-                    })
+                    if (item.values && item.values.length > 0) {
+                        val.push({
+                            label: item.values[0].code,
+                            group: item.code
+                        })
+                    }
                 })
                 this.formData.nodeLabel = val
                 this.updateData()
