@@ -207,11 +207,11 @@
                             "default": false,
                             "items": [
                                 {
-                                    "name": "是",
+                                    "name": gettext("是"),
                                     "value": true
                                 },
                                 {
-                                    "name": "否",
+                                    "name": gettext("否"),
                                     "value": false
                                 }
                             ],
