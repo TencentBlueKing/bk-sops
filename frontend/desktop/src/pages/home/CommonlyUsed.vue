@@ -32,7 +32,7 @@
                     </div>
                 </li>
             </ul>
-            
+
         </div>
         <panel-nodata v-else>
             <span>{{ i18n.nodataDes1 }}</span>
@@ -129,7 +129,7 @@
             // 这里统一直接用后端提供的 host 跳转
             openOtherApp (name) {
                 const HOST_MAP = {
-                    'bk_iam_app': window.BK_IAM_HOST,
+                    'bk_iam_app': window.BK_IAM_SAAS_HOST,
                     'bk_cmdb': window.BK_CC_HOST
                 }
                 if (self === top) {
@@ -169,7 +169,7 @@
                     || !cardItem) {
                     return
                 }
-                
+
                 this.limit = Math.floor(cardList.offsetWidth / cardItem.offsetWidth)
                 this.viewIndex = 0
                 this.changeViewIndex()
