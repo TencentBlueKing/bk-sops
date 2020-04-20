@@ -285,20 +285,11 @@ BK_IAM_SYSTEM_MANAGERS = 'admin'
 BK_IAM_SYSTEM_CREATOR = 'admin'
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
-
-# 新版本 open_paas，BK_IAM_INNER_HOST -> 权限中心后台 host，BK_IAM_HOST -> 权限中心SaaS host
-if 'BK_IAM_INNER_HOST' in os.environ:
-    BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST')
-    BK_IAM_HOST = os.environ.get('BK_IAM_HOST', '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE))
-# 兼容老版本的 open_paas，此时只能从环境变量中获取权限中心后台 host: BK_IAM_HOST
-else:
-    BK_IAM_INNER_HOST = os.getenv('BK_IAM_HOST', '')
-    BK_IAM_HOST = '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE)
-
-# 用户管理配置
-BK_USER_MANAGE_HOST = '{}/o/{}'.format(BK_PAAS_HOST, 'bk_user_manage')
-
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
+# 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
+BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', os.getenv('BK_IAM_HOST', ''))
+# 权限中心 SaaS host
+BK_IAM_SAAS_HOST = os.environ.get('BKAPP_IAM_SAAS_HOST', '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE))
 
 AUTH_LEGACY_RESOURCES = [
     'project',
@@ -308,6 +299,9 @@ AUTH_LEGACY_RESOURCES = [
     'periodic_task',
     'task'
 ]
+
+# 用户管理配置
+BK_USER_MANAGE_HOST = '{}/o/{}'.format(BK_PAAS_HOST, 'bk_user_manage')
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']
