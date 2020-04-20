@@ -17,7 +17,7 @@ from pipeline.utils.http import http_post_request
 
 from gcloud.conf import settings
 
-BK_IAM_APPLY_URL_QUERY_URL = '{}/api/v1/apply-permission/url/'.format(settings.BK_IAM_HOST)
+BK_IAM_APPLY_URL_QUERY_URL = '{}/api/v1/apply-permission/url/'.format(settings.BK_IAM_SAAS_HOST)
 
 
 def apply_permission_url(permission):

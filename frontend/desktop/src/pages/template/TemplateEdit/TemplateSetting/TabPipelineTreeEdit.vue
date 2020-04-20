@@ -142,7 +142,7 @@
     }
     .save-btn {
         position: absolute;
-        right: 0;
+        left: 0;
         bottom: -44px;
     }
 }

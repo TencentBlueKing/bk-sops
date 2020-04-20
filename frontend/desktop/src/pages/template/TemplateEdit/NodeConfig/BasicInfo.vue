@@ -17,7 +17,7 @@
             :label-width="130"
             :model="formData"
             :rules="pluginRules">
-            <bk-form-item :label="i18n.plugin" :required="true" property="plugin">
+            <bk-form-item :label="i18n.plugin" :required="true" property="plugin" class="choose-plugin-input">
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
                         <div
@@ -430,7 +430,9 @@
             color: #63656e;
         }
         .bk-form-control .group-box.group-append {
+            margin-left: -1px;
             z-index: 11;
+            border: 1px solid #3a84ff;
         }
         .form-item-tips {
             position: absolute;
@@ -442,10 +444,18 @@
             }
         }
         .choose-plugin-btn {
+            width: 68px;
+            height: 30px;
             line-height: 30px;
             color: #3a84ff;
             background: #e1ecff;
+            text-align: center;
             cursor: pointer;
+        }
+        .choose-plugin-input {
+            .bk-form-input[readonly] {
+                border-color: #c4c6cc !important;
+            }
         }
         .update-tooltip {
             position: absolute;

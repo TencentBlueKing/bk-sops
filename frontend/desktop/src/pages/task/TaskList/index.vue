@@ -586,6 +586,9 @@
 }
 .operation-area {
     margin: 20px 0;
+    .task-btn {
+        width: 120px;
+    }
     .template-btn {
         margin-left: 5px;
         color: #313238;

@@ -727,7 +727,7 @@
             }
             &.position-right-var {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
+                    right: 857px;
                 }
             }
             &.position-right-basic-info{
