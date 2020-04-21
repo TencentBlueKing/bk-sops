@@ -316,7 +316,7 @@
                                     "tag_code": "namespace_name",
                                     "type": "input",
                                     "attrs": {
-                                        "name": "namespace名称"
+                                        "name": gettext("namespace名称")
                                     }
                                 },
                                 {
