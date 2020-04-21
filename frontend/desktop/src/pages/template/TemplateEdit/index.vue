@@ -853,14 +853,7 @@
                 if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
-                const location = this.locations.find(item => item.id === id)
                 this.showConfigPanel(id)
-                this.$nextTick(() => {
-                    // 若节点参数错误，打开面板后执行一次表单校验
-                    if (location.status === 'FAILED') {
-                        this.$refs.nodeConfig.validate()
-                    }
-                })
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
@@ -1029,7 +1022,6 @@
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
                     this.syncAndValidateNodeConfig().then(result => {
-                        console.log(result)
                         if (result) {
                             this.asyncConditionData()
                         }
