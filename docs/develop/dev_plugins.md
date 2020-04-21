@@ -160,6 +160,7 @@ TestCustomService 类详解：
 - `def execute`：标准插件执行逻辑，包含前端参数获取、API 参数组装、结果解析、结果输出。
 - `def schedule`：异步标准插件的轮询或者回调逻辑，同步标准插件不需要定义该方法。
 - `def outputs_format`：输出参数定义。
+- `def inputs_format`：输入参数定义。
 
 execute 函数详解：
 
@@ -176,6 +177,10 @@ outputs_format 函数详解：
 - 返回输出参数的列表。
 - 列表格式的每一项定义一个返回字段，是 `execute` 函数中的 `set_outputs` 输出的字段的子集；`key` 表示输出字段标识，`name` 表示输出
 字段含义，`type` 表示输出字段类型（`str`、`int` 等 `python` 数据结构）。
+
+inputs_format 函数详解：
+- 返回输入参数的列表。
+- 该方法对输入参数进行说明，不影响代码执行。
 
 schedule 函数详解：
 
@@ -266,7 +271,7 @@ TestCustomComponent 类详解：
 - `tag_code`：参数 code，请保持全局唯一，命名规范为"系统名_参数名"。
 - `type`：前端表单类型，可选 input、textarea、radio、checkbox、select、datetime、datatable、upload、combine等。
 - `attrs`：对应type的属性设置，如 name、validation等。
-
+详细字段说明可参考：[Tag 使用和开发说明](./tag_usage_dev.md)。
 
 ### 6. 标准插件远程加载
 
