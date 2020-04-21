@@ -47,7 +47,6 @@ def get_task_status(request, task_id, project_id):
     project = request.project
     subprocess_id = request.GET.get("subprocess_id")
 
-    # request subprocess
     if not subprocess_id:
         try:
             task = TaskFlowInstance.objects.get(
@@ -68,6 +67,7 @@ def get_task_status(request, task_id, project_id):
             }
             return JsonResponse(result)
 
+    # request subprocess
     try:
         task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
         TaskFlowInstance.format_pipeline_status(task_status)
