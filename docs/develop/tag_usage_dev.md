@@ -62,6 +62,8 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - `validation`：表单项的校验规则
 - `default`：表单项的默认值，不同的 Tag 组件支持的数据类型存在差异
 - `hidden`：是否默认隐藏
+- `formViewHidden`：查看模式下，表单是否隐藏
+- `col`：横向栅格占有的格数，总数为 12 格，设置该属性后，多个表单可横向布局
 - `value`：表单组件的值，需要在 Tag 里手动定义，并作为调用 `getFormMixins` 函数的参数传入
 
 ## 公共方法
@@ -85,12 +87,12 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 **属性**
 
   - `title`：按钮文字
-  - `type`：按钮类型
-  - `icon`：icon 类名, 取值参考 [element-ui icon](https://element.eleme.cn/#/zh-CN/component/icon)
-  - `size`：尺寸
-  - `plain`：是否为朴素按钮
-  - `round`：是否为圆角按钮
-  - `circle`： 是否为圆形按钮
+  - `type`：按钮类型，取值范围：default、primary、warning、success、danger
+  - `icon`：icon 类名, 取值参考 [蓝鲸 icon](https://magicbox.bk.tencent.com/#detail/show?id=bk_icon&isPro=1)
+  - `size`：尺寸，取值范围：small、normal、large
+  - `disabled`：是否禁用，禁用后按钮点击事件不生效
+  - `loading`：是否加载中，加载过程中按钮点击事件不生效
+  - `text`：是否是文字按钮
 
 **方法**
 
