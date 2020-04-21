@@ -97,8 +97,7 @@
                 hookable: false,
                 type: "primary",
                 title: '刷新',
-                plain: true,
-                size: "small",
+                size: "normal",
                 cols: 1,
                 formViewHidden: true
             }
