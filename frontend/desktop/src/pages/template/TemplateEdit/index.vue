@@ -637,24 +637,24 @@
             },
             // 子流程分组
             handleSubflowGroup (data) {
-                const grouped = []
+                const groups = this.projectBaseInfo.task_categories.map(item => {
+                    return {
+                        type: item.value,
+                        group_name: item.name,
+                        group_icon: '',
+                        list: []
+                    }
+                })
                 data.forEach(item => {
                     if (item.id !== Number(this.template_id)) {
-                        const group = grouped.find(tpl => tpl.type === item.category)
+                        const group = groups.find(tpl => tpl.type === item.category)
                         if (group) {
                             group.list.push(item)
-                        } else {
-                            grouped.push({
-                                type: item.category,
-                                group_name: item.category_name,
-                                group_icon: '',
-                                list: [item]
-                            })
                         }
                     }
                 })
 
-                this.atomTypeList.subflow = grouped
+                this.atomTypeList.subflow = groups
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth
