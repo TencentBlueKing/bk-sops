@@ -65,7 +65,6 @@
                     v-if="isNodeConfigPanelShow"
                     :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
-                    :subflow-list="subflowList"
                     :atom-type-list="atomTypeList"
                     :common="common"
                     :node-id="idOfNodeInConfigPanel"
@@ -198,7 +197,6 @@
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
                 atomList: [],
-                subflowList: [],
                 atomTypeList: {
                     tasknode: [],
                     subflow: []
@@ -454,7 +452,6 @@
                         templateId: this.template_id
                     }
                     const resp = await this.loadSubflowList(data)
-                    this.subflowList = resp
                     this.handleSubflowGroup(resp)
                 } catch (e) {
                     errorHandler(e, this)
@@ -642,18 +639,18 @@
             handleSubflowGroup (data) {
                 const grouped = []
                 data.forEach(item => {
-                    const group = grouped.find(tpl => tpl.type === item.category)
-                    if (group) {
-                        if (item.id !== Number(this.template_id)) {
+                    if (item.id !== Number(this.template_id)) {
+                        const group = grouped.find(tpl => tpl.type === item.category)
+                        if (group) {
                             group.list.push(item)
+                        } else {
+                            grouped.push({
+                                type: item.category,
+                                group_name: item.category_name,
+                                group_icon: '',
+                                list: [item]
+                            })
                         }
-                    } else {
-                        grouped.push({
-                            type: item.category,
-                            group_name: item.category_name,
-                            group_icon: '',
-                            list: [item]
-                        })
                     }
                 })
 
