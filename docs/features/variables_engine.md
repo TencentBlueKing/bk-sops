@@ -144,9 +144,11 @@ class AgentInstallService(Service):
 ```
 然后，在流程画布新增一个配置平台(CMDB)-创建集群插件，其中集群信息只需要填写一行数据，集群名为 `${table_var.flat__bk_set_name}`，
 集群描述为 `${table_var.flat__bk_set_desc}`，其他列类似。新建任务时，表格参数可以填写如下的值：
+
 ![](img/table_example.png)
 
 那么查看任务参数时就会发现表格参数被正确解析了，其中配置平台(CMDB)-创建集群的最终参数为：
+
 ![](img/table_used_example.png)
 
 ### 集群资源筛选变量
