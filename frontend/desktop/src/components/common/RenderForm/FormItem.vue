@@ -423,6 +423,14 @@
             font-size: 12px;
             border-radius: 2px !important;
         }
+        .el-input__prefix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+            .el-icon-time {
+                line-height: 36px;
+            }
+        }
         &.is-disabled {
             .el-input__inner{
                 background-color: #fafbfd !important;
@@ -430,7 +438,13 @@
             }
         }
     }
-    
+    .el-select {
+        .el-input__suffix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+        }
+    }
     .el-radio__label,
     .el-checkbox__label {
         font-size: 12px;

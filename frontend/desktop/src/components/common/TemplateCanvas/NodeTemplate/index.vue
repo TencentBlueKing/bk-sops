@@ -420,8 +420,8 @@
                 }
             }
             &.subflow-status {
-                right: 12px;
-                top: -14px;
+                right: -10px;
+                top: -10px;
                 z-index: 1;
             }
         }
