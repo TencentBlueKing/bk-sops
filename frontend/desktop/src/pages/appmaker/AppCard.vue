@@ -14,7 +14,7 @@
         <div class="card-basic">
             <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
-                    <i class="common-icon-blueking"></i>
+                    <img class="default-icon" :src="require(`@/assets/images/appmaker-default-icon-1.png`)" alt="default-icon-1">
                 </div>
                 <div v-else>
                     <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo" />
@@ -280,13 +280,10 @@
         width: 100%;
         height: 100%;
         text-align: center;
-        border: 1px dashed #1b7cef;
         border-radius: 6px;
-        .common-icon-blueking {
-            display: inline-block;
+        .default-icon {
             margin-top: 10px;
-            color: #1b7cef;
-            font-size: 40px;
+            max-height: 55px;
         }
     }
     .app-name-wrap {
