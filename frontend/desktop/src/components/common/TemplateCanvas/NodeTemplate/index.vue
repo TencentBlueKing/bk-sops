@@ -377,13 +377,19 @@
                 }
             }
             .node-options-icon {
+                display: flex;
+                align-items: flex-end;
                 position: absolute;
-                top: -23px;
+                top: -20px;
                 left: 0;
+                height: 18px;
+                overflow: hidden;
                 .bk-form-checkbox,
-                &>[class*="common-icon"] {
-                    display: inline-block;
-                    vertical-align: bottom;
+                .dark-circle {
+                    float: left;
+                    margin-right: 2px;
+                    font-size: 12px;
+                    color: #979ba5;
                 }
             }
         }

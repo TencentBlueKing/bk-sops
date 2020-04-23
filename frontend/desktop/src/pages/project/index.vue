@@ -593,6 +593,7 @@
         border: none;
         font-size: 12px;
         color: #3a84ff;
+        cursor: pointer;
         &.bk-button {
             min-width: unset;
         }

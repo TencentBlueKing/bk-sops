@@ -269,6 +269,11 @@
                     padding: 0;
                 }
             }
+            &.bk-collapse-item-active {
+                /deep/ .bk-collapse-item-header {
+                    border-bottom: 1px solid #e2e4ed;
+                }
+            }
         }
     }
 }
@@ -311,6 +316,9 @@
         font-size: 12px;
         border-bottom: 1px solid #e2e4ed;
         cursor: pointer;
+        &:last-child {
+            border-bottom: none;
+        }
         &.selected .node-name {
             color: #3a84ff;
         }

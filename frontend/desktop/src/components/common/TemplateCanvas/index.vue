@@ -1223,7 +1223,6 @@
             }
             & + .help-info-wrap {
                 .hot-key-panel {
-                    top: 124px;
                     left: 380px;
                     z-index: 5;
                 }

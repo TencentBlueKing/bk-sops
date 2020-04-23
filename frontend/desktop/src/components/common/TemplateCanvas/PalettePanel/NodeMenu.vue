@@ -240,7 +240,8 @@
         position: absolute;
         top: 16px;
         right: 16px;
-        padding: 5px 8px;
+        padding: 7px 8px 8px;
+        line-height: 1;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
         font-size: 14px;

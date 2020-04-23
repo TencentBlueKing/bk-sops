@@ -89,9 +89,6 @@
 .common-icon-clock-inversion:before {
 	content: "\efef";
 }
-.common-icon-clock-reload:before {
-	content: "\eff0";
-}
 .common-icon-close:before {
 	content: "\eff1";
 }
@@ -212,9 +209,6 @@
 .common-icon-node-startpoint-zh:before {
 	content: "\f01c";
 }
-.common-icon-paper:before {
-	content: "\f021";
-}
 .common-icon-pin:before {
 	content: "\f022";
 }
@@ -235,12 +229,6 @@
 }
 .common-icon-solid-eye:before {
 	content: "\f028";
-}
-.common-icon-square-attribute:before {
-	content: "\f029";
-}
-.common-icon-square-code:before {
-	content: "\f02a";
 }
 .common-icon-subflow-mark:before {
 	content: "\f02b";
@@ -374,18 +362,30 @@
 .common-icon-angle-right:before {
 	content: "\f215";
 }
-.common-icon-node-subflow-shortcut:before {
-	content: "\f244";
-}
-.common-icon-node-subflow:before {
-	content: "\f245";
-}
-.common-icon-node-tasknode-shortcut:before {
-	content: "\f246";
-}
-.common-icon-node-tasknode:before {
-	content: "\f247";
-}
 .common-icon-arrow-left:before {
 	content: "\fe53";
+}
+.common-icon-clock-reload:before {
+	content: "\1cf";
+}
+.common-icon-node-subflow-shortcut:before {
+	content: "\1d0";
+}
+.common-icon-node-subflow:before {
+	content: "\1d1";
+}
+.common-icon-node-tasknode-shortcut:before {
+	content: "\1d2";
+}
+.common-icon-node-tasknode:before {
+	content: "\1d3";
+}
+.common-icon-paper:before {
+	content: "\1d4";
+}
+.common-icon-square-attribute:before {
+	content: "\1d5";
+}
+.common-icon-square-code:before {
+	content: "\1d6";
 }

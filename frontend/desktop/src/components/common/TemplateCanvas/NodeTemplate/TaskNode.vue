@@ -184,11 +184,6 @@
 }
 </style>
 <style lang="scss" scoped>
-    .dark-circle {
-        font-size: 12px;
-        color: #979ba5;
-        margin-left: -2px;
-    }
     #node-tooltip-content {
         padding: 10px;
         background: #000000;
