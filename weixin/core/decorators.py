@@ -32,7 +32,7 @@ def weixin_login_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         # 验证OK
         weixin_account = WeixinAccount()
-        if weixin_account.is_weixin_visit(request) and not request.weixin_user.is_authenticated():
+        if WeixinAccount.is_weixin_visit(request) and not request.weixin_user.is_authenticated():
             return weixin_account.redirect_weixin_login(request)
         return view_func(request, *args, **kwargs)
 

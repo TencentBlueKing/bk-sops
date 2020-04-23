@@ -57,7 +57,8 @@ class WeixinAccount(WeixinAccountSingleton):
         else:
             self.weixin_api = WeiXinApi()
 
-    def is_weixin_visit(self, request):
+    @staticmethod
+    def is_weixin_visit(request):
         """
         是否来自微信访问
         """

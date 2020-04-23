@@ -37,6 +37,8 @@ class UserAdmin(admin.ModelAdmin):
     filter_horizontal = ['groups']
     list_display = ['username', 'nickname', 'is_active', 'is_staff',
                     'is_superuser', 'last_login']
+    search_fields = ['username']
+    list_filter = ['is_superuser', 'is_staff', 'is_active']
 
 
 admin.site.register(User, UserAdmin)
