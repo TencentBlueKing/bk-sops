@@ -490,7 +490,6 @@ header {
             }
             &.active > a{
                 color: $whiteDefault;
-                background: $blackDefault;
             }
             > a {
                 display: inline-block;
