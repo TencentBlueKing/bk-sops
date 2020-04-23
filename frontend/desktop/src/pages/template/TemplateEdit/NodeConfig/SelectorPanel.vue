@@ -323,5 +323,8 @@
             margin-right: 34px;
         }
     }
+    .node-empty {
+        padding: 20px 0;
+    }
 }
 </style>
