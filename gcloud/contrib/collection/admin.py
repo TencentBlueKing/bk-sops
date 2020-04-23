@@ -19,5 +19,5 @@ from gcloud.contrib.collection import models
 @admin.register(models.Collection)
 class CollectionAdmin(admin.ModelAdmin):
     list_display = ['id', 'username', 'category', 'extra_info']
-    list_filter = ['category']
+    list_filter = ['category', 'username']
     search_fields = ['id', 'username', 'category', 'extra_info']
