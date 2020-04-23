@@ -123,7 +123,10 @@ class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
     class Meta:
         serializer = AppSerializer()
         always_return_data = True
+        # 控制Resource一次显示多少个结果. 默认值为API_LIMIT_PER_PAGE设置（如果提供）或20（如果未指定）
         limit = 0
+        # 控制Resource一次显示的最大结果数. 如果用户指定的limit高于此limit ，它将被限制为该限制. 设置为0或None允许无限结果
+        max_limit = 0
 
 
 class BusinessResource(GCloudModelResource):
