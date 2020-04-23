@@ -11,13 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib import admin
-
-from gcloud.contrib.collection import models
-
-
-@admin.register(models.Collection)
-class CollectionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'category', 'extra_info']
-    list_filter = ['category', 'username']
-    search_fields = ['id', 'username', 'category', 'extra_info']
+FOOTER = """
+<div class="copyright">
+    <ul class="link-list">
+        <a href="tencent://message/?uin=800802001&site=qq&menu=yes" class="link-item">QQ咨询(800802001)</a>
+        <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">蓝鲸论坛</a>
+        <a href="http://bk.tencent.com/" class="link-item" target="_blank">蓝鲸官网</a>
+    </ul>
+    <div class="desc">Copyright &copy; 2012-${year} Tencent BlueKing. All Rights Reserved.</div>
+    <div>蓝鲸智云 版权所有</div>
+</div>
+"""

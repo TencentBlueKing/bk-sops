@@ -11,13 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib import admin
+import importlib
 
-from gcloud.contrib.collection import models
+from django.conf import settings
 
+footer_module = importlib.import_module("gcloud.core.footer.sites.{}.footer".format(settings.RUN_VER))
 
-@admin.register(models.Collection)
-class CollectionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'category', 'extra_info']
-    list_filter = ['category', 'username']
-    search_fields = ['id', 'username', 'category', 'extra_info']
+FOOTER = footer_module.FOOTER  # noqa

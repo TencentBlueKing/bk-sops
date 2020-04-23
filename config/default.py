@@ -97,9 +97,8 @@ INSTALLED_APPS += (
 #     'django.middleware.security.SecurityMiddleware',
 #     # 蓝鲸静态资源服务
 #     'whitenoise.middleware.WhiteNoiseMiddleware',
-#     # reload weixin settings
-#     'blueapps.middleware.wechatsettings.ReloadSettingsMiddleware',
 #     # Auth middleware
+#     'blueapps.account.middlewares.RioLoginRequiredMiddleware',
 #     'blueapps.account.middlewares.WeixinLoginRequiredMiddleware',
 #     'blueapps.account.middlewares.LoginRequiredMiddleware',
 #     # exception middleware

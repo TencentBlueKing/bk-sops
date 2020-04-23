@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-04-20 10:21+0800\n"
+"POT-Creation-Date: 2020-04-20 17:48+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2108,8 +2108,8 @@ msgstr "Host Inner IP"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:157
 #: pipeline_plugins/components/collections/sites/open/cc.py:229
-msgid "待转移的主机内网 IP，以 \",\" 分隔"
-msgstr "Inner IP of hosts to be transferred, multiple is separated by ,"
+msgid "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "Inner IP of hosts to be transferred, multiple is separated by `,`"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:158
 #: pipeline_plugins/components/collections/sites/open/cc.py:162
@@ -2346,24 +2346,24 @@ msgid "主机 IP"
 msgstr "Host IP"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:982
-msgid "转移到空闲机的主机内网 IP，多个以 \",\" 分隔"
-msgstr "IP of hosts transferred to idle module, multiple are separated by \",\""
+msgid "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "IP of hosts transferred to idle module, multiple are separated by `,`"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1023
 msgid "转移主机至空闲机"
 msgstr "Transfer Host To Idle Module"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1039
-msgid "转移到故障机的主机内网 IP，多个以 \",\" 分隔"
-msgstr "IP of hosts transferred to fault module, multiple are separated by \",\""
+msgid "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "IP of hosts transferred to fault module, multiple are separated by `,`"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1076
 msgid "转移主机到业务的故障机模块"
 msgstr "Transfer Host To Fault Module"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1092
-msgid "转移到资源池的主机内网 IP，多个以 \",\" 分隔"
-msgstr "IP of hosts transferred to resource module, multiple are separated by \",\""
+msgid "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "IP of hosts transferred to resource module, multiple are separated by `,`"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1129
 msgid "转移主机至资源池"
@@ -2457,8 +2457,8 @@ msgid "目标 IP"
 msgstr "Target IP"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:306
-msgid "文件分发目标机器 IP，多个以 \",\" 分隔"
-msgstr "Target IP which files are distributed to, multiple are separated by \",\""
+msgid "文件分发目标机器 IP，多个用英文逗号 `,` 分隔"
+msgstr "Target IP which files are distributed to, multiple are separated by `,`"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:309
 #: pipeline_plugins/components/collections/sites/open/job.py:470
@@ -2527,8 +2527,8 @@ msgid "脚本执行参数"
 msgstr "Execution script params"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:467
-msgid "执行脚本的目标机器 IP，多个以 \",\" 分隔"
-msgstr "IP of target hosts that executes script, multiple are separated by \",\""
+msgid "执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔"
+msgstr "IP of target hosts that executes script, multiple are separated by `,`"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:473
 msgid "执行脚本的目标机器账户"

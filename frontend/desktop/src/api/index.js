@@ -75,6 +75,14 @@ const api = {
         }
         return request(opts)
     },
+    getFooterContent () {
+        const prefixUrl = this.getPrefix('footer')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
     /**
      * 获取版本日志列表
      */

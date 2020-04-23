@@ -154,7 +154,7 @@ class CCTransferHostModuleService(Service):
             self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，多个用英文逗号 `,` 分隔'))),
             self.InputItem(name=_('模块 ID'),
                            key='cc_module_select',
                            type='array',
@@ -226,7 +226,7 @@ class CCUpdateHostService(Service):
             self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，多个用英文逗号 `,` 分隔'))),
             self.InputItem(name=_('主机属性'),
                            key='cc_host_property',
                            type='string',
@@ -979,7 +979,7 @@ class CCTransferHostToIdleService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到空闲机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
@@ -1036,7 +1036,7 @@ class CmdbTransferFaultHostService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到故障机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
@@ -1089,7 +1089,7 @@ class CmdbTransferHostResourceModuleService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []

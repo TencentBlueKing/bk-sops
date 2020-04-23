@@ -28,6 +28,7 @@ const store = new Vuex.Store({
             function: false,
             audit: false
         },
+        footer: '',
         hasAdminPerm: false, // 是否有管理员权限
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
@@ -44,6 +45,9 @@ const store = new Vuex.Store({
     mutations: {
         setAppId (state, id) {
             state.app_id = id
+        },
+        setPageFooter (state, content) {
+            state.footer = content
         },
         setAdminPerm (state, perm) {
             state.hasAdminPerm = perm
@@ -66,6 +70,9 @@ const store = new Vuex.Store({
         }
     },
     actions: {
+        getFooterContent () {
+            return api.getFooterContent().then(response => response.data)
+        },
         getVersionList () {
             return api.getVersionList().then(response => response.data)
         },
