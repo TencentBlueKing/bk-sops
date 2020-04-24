@@ -156,6 +156,12 @@ class VarCmdbAttributeSelector(LazyVariable):
     form = '%svariables/sites/%s/var_cmdb_attribute_selector.js' % (settings.STATIC_URL, settings.RUN_VER)
 
     def get_value(self):
+        """
+        @summary: 返回 dict 对象，将每个可从CMDB查询到的输入IP作为键，将从CMDB查询到的主机属性封装成字典作为值
+        @note： 引用127.0.0.1的所有属性，如 ${value["127.0.0.1"]} -> {"bk_host_id": 999, "import_from": 3, ...}
+        @note： 引用127.0.0.1的bk_host_id属性，如 ${value["127.0.0.1"]["bk_host_id"]} -> 999
+        @return:
+        """
         username = self.pipeline_data['executor']
         project_id = self.pipeline_data['project_id']
         bk_supplier_account = supplier_account_for_project(project_id)
