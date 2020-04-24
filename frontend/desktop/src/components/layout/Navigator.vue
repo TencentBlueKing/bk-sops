@@ -325,12 +325,7 @@
              */
             togglePermissionApplyPage (resource, action) {
                 const permissions = []
-                const res = []
                 const { scope_id, scope_name, scope_type, scope_type_name, system_id, system_name } = this.authResource
-                res.push([{
-                    resource_type: resource.type,
-                    resource_type_name: resource.name
-                }])
                 permissions.push({
                     scope_id,
                     scope_name,
@@ -340,7 +335,7 @@
                     scope_type,
                     system_id,
                     system_name,
-                    resources: res,
+                    resources: [],
                     action_id: action.id,
                     action_name: action.name
                 })
