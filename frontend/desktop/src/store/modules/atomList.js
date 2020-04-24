@@ -29,9 +29,6 @@ const atomList = {
         loadSingleAtomList ({ commit }) {
             return api.getSingleAtomList().then(response => response.data.objects)
         },
-        loadSubflowList ({ commit }, data) {
-            return api.getSubAtomList(data).then(response => response.data.objects)
-        },
         queryAtomData ({ commit }, data) {
             return api.queryAtom(data).then(response => response.data)
         }

@@ -435,7 +435,7 @@
                     let templateName = gettext('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
-                        this.atomTypeList.subflow.some(group => {
+                        this.atomTypeList.subflow.groups.some(group => {
                             return group.list.some(item => {
                                 if (item.template_id === Number(template_id)) {
                                     templateName = item.name

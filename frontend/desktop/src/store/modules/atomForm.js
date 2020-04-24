@@ -79,7 +79,7 @@ const atomForm = {
          * 加载全量子流程
          */
         loadSubflowList ({ commit }, data) {
-            return api.getSubAtomList(data).then(response => response.data.objects)
+            return api.getSubAtomList(data).then(response => response.data)
         },
         /**
          * 加载标准插件统计数据

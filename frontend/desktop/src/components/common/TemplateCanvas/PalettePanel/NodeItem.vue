@@ -11,7 +11,7 @@
 */
 <template>
     <div
-        class="node-item entry-item"
+        class="entry-item"
         :data-config-atom-id="type === 'tasknode' ? node.code : node.template_id"
         :data-config-name="node.name.replace(/\s/g, '')"
         :data-config-group="node.group_name"
@@ -39,29 +39,3 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-    @import '@/scss/config.scss';
-    @import '@/scss/mixins/scrollbar.scss';
-
-    .node-item {
-        background: #f0f1f5;
-        border-top: 1px solid #e2e4ed;
-        border-radius: 2px;
-        overflow: hidden;
-        cursor: move;
-        user-select: none;
-        &:first-child {
-            border-top: none;
-        }
-        &:hover {
-            background: #fafbfd;
-        }
-        .name-wrapper {
-            padding: 0 14px;
-            height: 40px;
-            line-height: 40px;
-            color: #63656e;
-            font-size: 12px;
-        }
-    }
-</style>
