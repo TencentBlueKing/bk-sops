@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import re
 import os
-import time
 from io import open
 
 import mistune
@@ -23,12 +22,14 @@ import version_log.config as config
 
 def get_parsed_html(log_version):
     """获取版本日志对应的html代码"""
-    md_filename = '{}.md'.format(log_version)
-    md_file_path = os.path.join(config.MD_FILES_DIR, md_filename)
-
-    # 文件不存在或文件名不合法的情况
-    if not os.path.isfile(md_file_path) or not _is_filename_legal(md_filename):
+    # 版本号不存在的情况
+    version_list = get_version_list()
+    versions = [ver[0] for ver in version_list]
+    if log_version not in versions:
         return None
+    date_updated = version_list[versions.index(log_version)][1]
+    md_filename = '{}_{}.md'.format(log_version, date_updated)
+    md_file_path = os.path.join(config.MD_FILES_DIR, md_filename)
 
     html_file_path = os.path.join(config.PARSED_HTML_FILES_DIR, '{}.html'.format(log_version))
     # 已有解析好的版本
@@ -50,8 +51,8 @@ def get_version_list():
     version_list = []
     for filename in os.listdir(config.MD_FILES_DIR):
         if _is_filename_legal(filename):
-            version = os.path.splitext(filename)[0]
-            date_updated = _get_file_modified_date(os.path.join(config.MD_FILES_DIR, filename))
+            real_name = os.path.splitext(filename)[0]
+            version, _, date_updated = real_name.partition('_')
             version_values = _get_version_parsed_list(version)
             version_list.append(((version, date_updated), version_values))
     # 根据版本号按照从新版本到旧版本排序
@@ -95,12 +96,6 @@ def _md_parse_to_html_and_save(md_file_path, html_file_path):
 def _is_filename_legal(filename):
     """判断文件名是否存在/合法，"""
     return False if re.match(config.NAME_PATTERN, filename) is None else True
-
-
-def _get_file_modified_date(file_path):
-    """返回存在的文件的最后修改日期"""
-    timestamp = os.stat(file_path).st_mtime
-    return time.strftime('%Y.%m.%d', time.localtime(timestamp))
 
 
 def _is_html_file_generated_after_md_file(html_file_path, md_file_path):

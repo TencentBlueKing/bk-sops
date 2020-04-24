@@ -65,7 +65,6 @@
                     v-if="isNodeConfigPanelShow"
                     :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
-                    :subflow-list="subflowList"
                     :atom-type-list="atomTypeList"
                     :common="common"
                     :node-id="idOfNodeInConfigPanel"
@@ -198,7 +197,6 @@
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
                 atomList: [],
-                subflowList: [],
                 atomTypeList: {
                     tasknode: [],
                     subflow: []
@@ -454,7 +452,6 @@
                         templateId: this.template_id
                     }
                     const resp = await this.loadSubflowList(data)
-                    this.subflowList = resp
                     this.handleSubflowGroup(resp)
                 } catch (e) {
                     errorHandler(e, this)
@@ -506,6 +503,9 @@
                     }
                     this.setTemplateData(templateData)
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     errorHandler(e, this)
                 } finally {
                     this.templateDataLoading = false
@@ -640,24 +640,24 @@
             },
             // 子流程分组
             handleSubflowGroup (data) {
-                const grouped = []
+                const groups = this.projectBaseInfo.task_categories.map(item => {
+                    return {
+                        type: item.value,
+                        group_name: item.name,
+                        group_icon: '',
+                        list: []
+                    }
+                })
                 data.forEach(item => {
-                    const group = grouped.find(tpl => tpl.type === item.category)
-                    if (group) {
-                        if (item.id !== Number(this.template_id)) {
+                    if (item.id !== Number(this.template_id)) {
+                        const group = groups.find(tpl => tpl.type === item.category)
+                        if (group) {
                             group.list.push(item)
                         }
-                    } else {
-                        grouped.push({
-                            type: item.category,
-                            group_name: item.category_name,
-                            group_icon: '',
-                            list: [item]
-                        })
                     }
                 })
 
-                this.atomTypeList.subflow = grouped
+                this.atomTypeList.subflow = groups
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth
@@ -856,14 +856,7 @@
                 if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
-                const location = this.locations.find(item => item.id === id)
                 this.showConfigPanel(id)
-                this.$nextTick(() => {
-                    // 若节点参数错误，打开面板后执行一次表单校验
-                    if (location.status === 'FAILED') {
-                        this.$refs.nodeConfig.validate()
-                    }
-                })
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
@@ -1032,7 +1025,6 @@
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
                     this.syncAndValidateNodeConfig().then(result => {
-                        console.log(result)
                         if (result) {
                             this.asyncConditionData()
                         }

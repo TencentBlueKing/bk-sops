@@ -283,7 +283,9 @@ $localBorderColor: #d8e2e7;
 }
 .variable-item {
     position: relative;
-    border-bottom: 1px solid #ebebeb;
+    &:not(:last-child) {
+        border-bottom: 1px solid #ebebeb;
+    }
     &.variable-editing {
         background: $blueStatus;
     }

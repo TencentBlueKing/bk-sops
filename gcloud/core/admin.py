@@ -51,3 +51,4 @@ class UserDefaultProjectAdmin(admin.ModelAdmin):
 class ProjectCounterAdmin(admin.ModelAdmin):
     list_display = ['username', 'project', 'count']
     search_fields = ['username']
+    list_filter = ['username']

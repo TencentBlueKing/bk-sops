@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-04-10 16:30+0800\n"
+"POT-Creation-Date: 2020-04-20 17:48+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -2108,8 +2108,8 @@ msgstr "主机内网 IP"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:157
 #: pipeline_plugins/components/collections/sites/open/cc.py:229
-msgid "待转移的主机内网 IP，以 \",\" 分隔"
-msgstr "待转移的主机内网 IP，以 \",\" 分隔"
+msgid "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:158
 #: pipeline_plugins/components/collections/sites/open/cc.py:162
@@ -2346,24 +2346,24 @@ msgid "主机 IP"
 msgstr "主机 IP"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:982
-msgid "转移到空闲机的主机内网 IP，多个以 \",\" 分隔"
-msgstr "转移到空闲机的主机内网 IP，多个以 \",\" 分隔"
+msgid "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1023
 msgid "转移主机至空闲机"
 msgstr "转移主机至空闲机"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1039
-msgid "转移到故障机的主机内网 IP，多个以 \",\" 分隔"
-msgstr "转移到故障机的主机内网 IP，多个以 \",\" 分隔"
+msgid "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1076
 msgid "转移主机到业务的故障机模块"
 msgstr "转移主机到业务的故障机模块"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1092
-msgid "转移到资源池的主机内网 IP，多个以 \",\" 分隔"
-msgstr "转移到资源池的主机内网 IP，多个以 \",\" 分隔"
+msgid "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc.py:1129
 msgid "转移主机至资源池"
@@ -2457,8 +2457,8 @@ msgid "目标 IP"
 msgstr "目标 IP"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:306
-msgid "文件分发目标机器 IP，多个以 \",\" 分隔"
-msgstr "文件分发目标机器 IP，多个以 \",\" 分隔"
+msgid "文件分发目标机器 IP，多个用英文逗号 `,` 分隔"
+msgstr "文件分发目标机器 IP，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:309
 #: pipeline_plugins/components/collections/sites/open/job.py:470
@@ -2527,8 +2527,8 @@ msgid "脚本执行参数"
 msgstr "脚本执行参数"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:467
-msgid "执行脚本的目标机器 IP，多个以 \",\" 分隔"
-msgstr "执行脚本的目标机器 IP，多个以 \",\" 分隔"
+msgid "执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔"
+msgstr "执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:473
 msgid "执行脚本的目标机器账户"
@@ -2826,7 +2826,7 @@ msgstr "请求数据异常: {error}"
 msgid "返回数据格式错误，不是合法 JSON 格式"
 msgstr "返回数据格式错误，不是合法 JSON 格式"
 
-#: version_log/config.py:31
+#: version_log/config.py:32
 msgid "版本日志"
 msgstr "版本日志"
 
@@ -2906,64 +2906,3 @@ msgstr "城市"
 #: weixin/core/models.py:68 weixin/core/models.py:69
 msgid "微信用户"
 msgstr "微信用户"
-
-#~ msgid "文件上传失败， 文件大小超过500M"
-#~ msgstr "文件上传失败， 文件大小超过500M"
-
-#~ msgid "非法业务 ID"
-#~ msgstr "非法业务 ID"
-
-#~ msgid "文件上传失败，路径不合法或者程序异常"
-#~ msgstr "文件上传失败，路径不合法或者程序异常"
-
-#~ msgid "IP选择器(简单版)"
-#~ msgstr "IP选择器(简单版)"
-
-#~ msgid "模板不存在，错误信息：%s"
-#~ msgstr "模板不存在，错误信息：%s"
-
-#~ msgid " login_ip为空或输入格式错误"
-#~ msgstr " login_ip为空或输入格式错误"
-
-#~ msgid "data_ip 为空或输入格式错误"
-#~ msgstr "data_ip 为空或输入格式错误"
-
-#~ msgid "cascade_ip 为空或输入格式错误"
-#~ msgstr "cascade_ip 为空或输入格式错误"
-
-#~ msgid "提交的任务的job_id"
-#~ msgstr "提交的任务的job_id"
-
-#~ msgid "您没有权限进行此操作"
-#~ msgstr "您没有权限进行此操作"
-
-#~ msgid "当前调度所处的循环计数"
-#~ msgstr "当前调度所处的循环计数"
-
-#~ msgid "本次循环计数"
-#~ msgstr "本次循环计数"
-
-#~ msgid "执行状态"
-#~ msgstr "执行状态"
-
-#~ msgid "本次循环次数"
-#~ msgstr "本次循环次数"
-
-#~ msgid "实际循环次数"
-#~ msgstr "实际循环次数"
-
-#~ msgid "所需循环次数"
-#~ msgstr "所需循环次数"
-
-#~ msgid "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。"
-#~ msgstr "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。"
-
-#~ msgid "通用流程模板ID"
-#~ msgstr "通用流程模板ID"
-
-#~ msgid "公共流程模板权限 CommonTmplPerm"
-#~ msgstr "公共流程模板权限 CommonTmplPerm"
-
-#~ msgid "变量类型，字符串(1) IP(2)"
-#~ msgstr "变量类型，字符串(1) IP(2)"
-

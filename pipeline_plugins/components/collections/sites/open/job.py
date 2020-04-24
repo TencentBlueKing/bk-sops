@@ -33,6 +33,7 @@ import base64
 import logging
 import traceback
 from functools import partial
+from copy import deepcopy
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
@@ -216,7 +217,7 @@ class JobExecuteTaskService(JobService):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        original_global_var = data.get_one_of_inputs("job_global_var")
+        original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
         for _value in original_global_var:
             # 3-IP
@@ -303,7 +304,7 @@ class JobFastPushFileService(JobService):
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
-                schema=StringItemSchema(description=_('文件分发目标机器 IP，多个以 "," 分隔')),
+                schema=StringItemSchema(description=_('文件分发目标机器 IP，多个用英文逗号 `,` 分隔')),
             ),
             self.InputItem(
                 name=_("目标账户"),
@@ -328,7 +329,7 @@ class JobFastPushFileService(JobService):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        original_source_files = data.get_one_of_inputs("job_source_files", [])
+        original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
         file_source = []
         for item in original_source_files:
             ip_info = cc_get_ips_info_by_str(
@@ -464,7 +465,7 @@ class JobFastExecuteScriptService(JobService):
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
-                schema=StringItemSchema(description=_('执行脚本的目标机器 IP，多个以 "," 分隔')),
+                schema=StringItemSchema(description=_('执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔')),
             ),
             self.InputItem(
                 name=_("目标账户"),

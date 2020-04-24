@@ -568,7 +568,7 @@ $bgBlue: #3a84ff;
         .selected-input {
             margin-bottom: 18px;
             & > .bk-form-control {
-                width: 466px;
+                width: 450px;
             }
             .clear-selected {
                 float: right;

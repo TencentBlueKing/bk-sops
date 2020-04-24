@@ -12,7 +12,7 @@
 <template>
     <bk-dialog
         width="850"
-        :ext-cls="'common-dialog'"
+        :ext-cls="'common-dialog add-collection'"
         :title="i18n.title"
         :mask-close="false"
         :value="isAddCollectionDialogShow"
@@ -500,6 +500,9 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
+/deep/ .common-dialog.add-collection .bk-dialog-tool{
+    min-height: 0;
+}
 .export-container {
     position: relative;
     height: 340px;
@@ -508,7 +511,7 @@
     }
     .template-wrapper {
         float: left;
-        padding: 20px 4px 20px 0;
+        padding: 40px 4px 20px 0;
         width: 557px;
         height: 100%;
         .template-list {
