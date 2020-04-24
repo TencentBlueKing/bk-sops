@@ -25,7 +25,8 @@ module.exports = merge(webpackBaseConfig, {
             new TerserPlugin({
                 cache: true,
                 parallel: true,
-                sourceMap: true
+                sourceMap: false,
+                extractComments: false
             })
         ]
     },
@@ -63,5 +64,5 @@ module.exports = merge(webpackBaseConfig, {
         // maxEntrypointSize: 500000,
         // hints: "error"
     },
-    devtool: 'source-map'
+    devtool: false
 })
