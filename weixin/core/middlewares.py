@@ -82,6 +82,10 @@ class WeixinAuthenticationMiddleware(MiddlewareMixin):
             "'django.contrib.sessions.middleware.SessionMiddleware' before "
             "'weixin.core.middleware.WeixinAuthenticationMiddleware'."
         )
+        # 非微信端访问不设置
+        if not WeixinAccount.is_weixin_visit(request):
+            return
+
         setattr(request, 'weixin_user', SimpleLazyObject(lambda: get_user(request)))
         setattr(request, 'user', SimpleLazyObject(lambda: get_bk_user(request)))
 
@@ -102,9 +106,8 @@ class WeixinLoginMiddleware(MiddlewareMixin):
 
     def process_view(self, request, view, args, kwargs):
         """process_view."""
-        weixin_account = WeixinAccount()
         # 非微信路径不验证
-        if not weixin_account.is_weixin_visit(request):
+        if not WeixinAccount.is_weixin_visit(request):
             return None
 
         # 豁免微信登录装饰器
@@ -115,5 +118,6 @@ class WeixinLoginMiddleware(MiddlewareMixin):
         if request.weixin_user.is_authenticated():
             return None
 
+        weixin_account = WeixinAccount()
         # 微信登录失效或者未通过验证，直接重定向到微信登录
         return weixin_account.redirect_weixin_login(request)

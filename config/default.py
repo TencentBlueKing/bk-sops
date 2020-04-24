@@ -97,9 +97,8 @@ INSTALLED_APPS += (
 #     'django.middleware.security.SecurityMiddleware',
 #     # 蓝鲸静态资源服务
 #     'whitenoise.middleware.WhiteNoiseMiddleware',
-#     # reload weixin settings
-#     'blueapps.middleware.wechatsettings.ReloadSettingsMiddleware',
 #     # Auth middleware
+#     'blueapps.account.middlewares.RioLoginRequiredMiddleware',
 #     'blueapps.account.middlewares.WeixinLoginRequiredMiddleware',
 #     'blueapps.account.middlewares.LoginRequiredMiddleware',
 #     # exception middleware
@@ -129,7 +128,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.5.4'
+STATIC_VERSION = '3.5.6'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -279,15 +278,13 @@ BK_IAM_QUERY_INTERFACE = ''
 BK_IAM_RELATED_SCOPE_TYPES = 'system'
 BK_IAM_SYSTEM_MANAGERS = 'admin'
 BK_IAM_SYSTEM_CREATOR = 'admin'
-BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', '')
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
-BK_IAM_HOST = os.environ.get('BK_IAM_HOST', '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE))
-
-# 用户管理配置
-BK_USER_MANAGE_HOST = '{}/o/{}'.format(BK_PAAS_HOST, 'bk_user_manage')
-
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
+# 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
+BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', os.getenv('BK_IAM_HOST', ''))
+# 权限中心 SaaS host
+BK_IAM_SAAS_HOST = os.environ.get('BKAPP_IAM_SAAS_HOST', '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE))
 
 AUTH_LEGACY_RESOURCES = [
     'project',
@@ -297,6 +294,9 @@ AUTH_LEGACY_RESOURCES = [
     'periodic_task',
     'task'
 ]
+
+# 用户管理配置
+BK_USER_MANAGE_HOST = '{}/o/{}'.format(BK_PAAS_HOST, 'bk_user_manage')
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']
@@ -350,5 +350,6 @@ for _setting in dir(ver_settings):
 
 # version log config
 VERSION_LOG = {
-    'PAGE_STYLE': 'gitbook'
+    'PAGE_STYLE': 'gitbook',
+    'MD_FILES_DIR': 'version_log/version_logs_md'
 }

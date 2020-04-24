@@ -369,6 +369,7 @@
     &.rf-col-layout {
         display: inline-block;
         margin: 0;
+        padding-right: 10px;
         vertical-align: top;
     }
     &.rf-view-mode {
@@ -380,7 +381,7 @@
         margin-top: 8px;
         width: 100px;
         font-size: 12px;
-        color: #313238;
+        color: #666666;
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
@@ -416,11 +417,21 @@
         line-height: 20px;
         width: 100%;
     }
-    .el-input__inner {
-        height: 32px;
-        line-height: 32px;
-        font-size: 12px;
+    .el-input {
+        .el-input__inner {
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
+            border-radius: 2px !important;
+        }
+        &.is-disabled {
+            .el-input__inner{
+                background-color: #fafbfd !important;
+                border-color: #dcdee5 !important;
+            }
+        }
     }
+    
     .el-radio__label,
     .el-checkbox__label {
         font-size: 12px;

@@ -25,12 +25,12 @@ from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.core.permissions import project_resource
 from gcloud.apigw.utils import get_project_with
-from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
+from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ, DEFAULT_APP_WHITELIST
 from gcloud.apigw.exceptions import UserNotExistError
 from gcloud.apigw.whitelist import EnvWhitelist
 
 app_whitelist = EnvWhitelist(
-    transient_list={"bk_fta", "bk_bcs"}, env_key="APP_WHITELIST"
+    transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST"
 )
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 

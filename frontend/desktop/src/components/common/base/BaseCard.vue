@@ -127,6 +127,8 @@
         color: #ffffff;
         vertical-align: middle;
         background: #c4c6cc;
+        border-top-left-radius:2px;
+        border-bottom-left-radius:2px;
         &.type-icon {
             word-break: break-word;
             font-size: 16px;

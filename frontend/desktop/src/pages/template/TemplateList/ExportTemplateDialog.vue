@@ -393,7 +393,7 @@
         height: 100%;
         .template-list {
             padding: 0 14px 0 20px;
-            height: 268px;
+            height: 284px;
             overflow-y: auto;
             @include scrollbar;
         }
@@ -415,6 +415,7 @@
             float: left;
             width: calc(( 100% - 16px) / 2);
             margin-right: 0;
+            border-radius: 2px;
             &:not(:nth-child(2n)) {
                 margin-right: 16px;
             }
@@ -453,7 +454,7 @@
     .template-checkbox {
         position: absolute;
         left: 20px;
-        bottom: -42px;
+        bottom: -38px;
     }
     .task-footer {
         position: absolute;

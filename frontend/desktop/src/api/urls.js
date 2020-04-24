@@ -16,6 +16,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         permission: SITE_URL + 'core/api/query_apply_permission_url/',
         permissionQuery: SITE_URL + 'core/api/query_resource_verify_perms/',
         userList: SITE_URL + 'core/api/get_user_list/',
+        footer: SITE_URL + 'core/footer/',
         // 更改默认项目
         projectDefaultChange: SITE_URL + 'core/api/change_default_project/',
         projectBaseInfo: SITE_URL + 'core/api/get_basic_info/',

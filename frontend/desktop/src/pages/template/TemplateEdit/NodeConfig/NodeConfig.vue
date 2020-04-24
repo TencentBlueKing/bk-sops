@@ -158,6 +158,7 @@
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output
             }),
@@ -281,6 +282,11 @@
                     await this.getSubflowDetail(tpl, version)
                     this.inputs = await this.getSubflowInputsConfig()
                     this.inputsParamValue = this.getSubflowInputsValue(forms)
+                }
+                // 节点参数错误时，配置项加载完成后，执行校验逻辑，提示用户错误信息
+                const location = this.locations.find(item => item.id === this.nodeConfig.id)
+                if (location && location.status === 'FAILED') {
+                    this.validate()
                 }
             },
             /**
@@ -721,7 +727,7 @@
             }
             &.position-right-var {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
+                    right: 857px;
                 }
             }
             &.position-right-basic-info{

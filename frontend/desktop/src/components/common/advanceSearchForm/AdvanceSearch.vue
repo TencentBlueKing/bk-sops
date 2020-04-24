@@ -12,10 +12,10 @@
 <template>
     <div class="advanced-search">
         <div class="search-content">
-            <div class="search-btn" @click="onShow">
+            <div :class="['toggle-open-btn', { opened: isAdvanceOpen }]" @click="onShow">
                 <span>{{i18n.advancedSearch}}</span>
                 <span class="advanced-shape">
-                    <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
+                    <i class="bk-icon icon-down-shape search-shape" v-if="!isAdvanceOpen"></i>
                     <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
                 </span>
             </div>
@@ -56,7 +56,6 @@
                     advancedSearch: gettext('高级搜索')
                 },
                 isAdvancedSerachShow: false,
-                shapeShow: false,
                 localValue: this.value
             }
         },
@@ -97,20 +96,21 @@
         color:#313238;
         font-size: 14px;
         font-weight: 400;
-        .search-btn {
+        .toggle-open-btn {
             display: inline-block;
             cursor: pointer;
+            &.opened,
             &:hover {
                 color: #3a84ff;
+                .advanced-shape {
+                    color: #3a84ff;
+                }
             }
             .advanced-shape {
                 display: inline-block;
                 margin-left: 5px;
                 font-size: 12px;
                 color:#cccccc;
-                &:hover {
-                    color: #3c96ff;
-                }
             }
         }
     }

@@ -11,7 +11,12 @@
 */
 <template>
     <header>
-        <router-link :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
+        <!-- 轻应用打开页面，logo不支持单击和右键跳转到首页 -->
+        <span v-if="view_mode === 'appmaker'" class="nav-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{ i18n.title }}</span>
+        </span>
+        <router-link v-else :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
         </router-link>
@@ -40,21 +45,23 @@
         </ul>
         <!-- 右侧项目选择和其他信息 -->
         <ul class="nav-right">
-            <li v-if="showProjectSelect" class="project-select">
+            <li v-if="!isProjectHidden" class="project-select">
                 <ProjectSelector
                     :show="!isProjectHidden"
                     :read-only="isProjectReadOnly"
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="right-icon help-doc">
+            <li class="right-icon help-doc" :title="i18n.help">
                 <a
                     class="common-icon-dark-circle-question"
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
                     target="_blank">
                 </a>
             </li>
-            <li class="right-icon version-log"><i class="common-icon-info" @click="onOpenVersion"></i></li>
+            <li class="right-icon version-log" :title="i18n.logVersion">
+                <i class="common-icon-info" @click="onOpenVersion"></i>
+            </li>
             <li class="right-icon user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
@@ -174,6 +181,7 @@
                 logo: require('../../assets/images/logo/logo_icon.svg'),
                 i18n: {
                     help: gettext('帮助文档'),
+                    logVersion: gettext('版本日志'),
                     title: gettext('标准运维')
                 },
                 logList: [],
@@ -204,22 +212,21 @@
                 project_id: state => state.project_id,
                 authResource: state => state.authResource
             }),
-            showProjectSelect () {
-                if (this.view_mode === 'appmaker') {
-                    return this.$route.name !== 'appmakerTaskHome'
-                }
-                return this.projectList.length > 0
-            },
+            // 隐藏右侧项目信息
             isProjectHidden () {
-                const route = this.$route
-                const hiddenPathList = ['/home', '/common', '/admin', '/project', '/audit', '/appmaker']
-                const hiddenRouteNames = ['appmakerTaskHome', 'functionHome']
-                return hiddenPathList.some(path => route.path.indexOf(path) === 0 || hiddenRouteNames.includes(route.name))
+                if (this.view_mode !== 'appmaker' && this.projectList.length === 0) {
+                    return true
+                }
+                const paths = ['/home', '/common/', '/admin/', '/project/', '/function/home', '/audit/home']
+                return paths.some(path => this.$route.path.startsWith(path))
             },
+            // 项目名称只读
             isProjectReadOnly () {
-                const currPath = this.$route.path
-                const readOnlyPathList = ['/appmaker', '/function']
-                return readOnlyPathList.some(path => currPath.indexOf(path) === 0)
+                if (this.view_mode === 'appmaker') {
+                    return true
+                }
+                const paths = ['/audit/', '/function/']
+                return paths.some(path => this.$route.path.startsWith(path))
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {
@@ -418,7 +425,12 @@
                 }
             },
             isNavActived (route) {
+                // 轻应用打开页面导航选中态
                 if (this.view_mode === 'appmaker') {
+                    // 任务记录、任务执行两个模块都激活任务记录导航项
+                    if (route.routerName === 'appmakerTaskHome') {
+                        return ['appmakerTaskHome', 'appmakerTaskExecute'].includes(this.$route.name)
+                    }
                     return this.$route.name === route.path
                 }
                 return this.$route.path.indexOf(route.path) === 0
