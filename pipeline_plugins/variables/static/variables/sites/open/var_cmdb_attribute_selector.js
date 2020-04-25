@@ -15,8 +15,8 @@
             tag_code: "attr_selector",
             type: "textarea",
             attrs: {
-                name: gettext("Host"),
-                placeholder: gettext("输入IP, 多个用英文','分隔"),
+                name: gettext("主机内网IP"),
+                placeholder: gettext("输入IP, 多个用英文逗号','或换行分隔"),
                 hookable: true,
                 validation: [
                     {

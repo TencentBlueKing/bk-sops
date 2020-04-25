@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.data.var import LazyVariable
 
-from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result, get_client_by_user
+from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_ip_by_regex
@@ -173,6 +173,8 @@ class VarCmdbAttributeSelector(LazyVariable):
                   "bk_supplier_account": bk_supplier_account
                   }
 
+        from gcloud.conf import settings
+        get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
         client = get_client_by_user(username)
         result = client.cc.search_host(kwargs)
 

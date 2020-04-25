@@ -197,7 +197,7 @@ class AgentInstallService(Service):
 - `bk_cpu_module`
 
 等，并且包含在CMDB中的主机自定义属性。
-和表格类似，需要通过变量高级语法使用返回值。如获取主机127.0.0.1的bk_host_id属性：`${value["127.0.0.1"]["bk_host_id"]}`
+和表格类似，需要通过变量高级语法使用返回值。如获取主机 `127.0.0.1` 的 `bk_host_id` 属性：`${value["127.0.0.1"]["bk_host_id"]}`
 
 ## 使用说明
 
