@@ -1180,9 +1180,10 @@
                 let checkResult = true
                 const branchConditionDoms = document.querySelectorAll('.jtk-overlay .branch-condition')
                 branchConditionDoms.forEach(dom => {
-                    const name = dom.textContent
-                    const value = dom.dataset.value
-                    if (!name || !value) {
+                    const nodeId = dom.dataset.nodeid
+                    const lineId = dom.dataset.lineid
+                    const { name, evaluate } = this.canvasData.branchConditions[nodeId][lineId]
+                    if (!name || !evaluate) {
                         dom.classList.add('failed')
                         checkResult = false
                     }
