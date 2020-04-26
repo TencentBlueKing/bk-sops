@@ -47,7 +47,7 @@
                 <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
             </div>
         </div>
-        <div id="node-tooltip-content" slot="content">
+        <div class="node-tooltip-content" slot="content">
             <template v-if="node.status === 'RUNNING'">
                 <bk-button @click="onSubflowPauseResumeClick('pause')">{{ i18n.pause }}</bk-button>
                 <bk-button v-if="hasAdminPerm" @click="$emit('onForceFail', node.id)">{{ i18n.forceFail }}</bk-button>
