@@ -89,13 +89,12 @@
                 <label>{{i18n.appLogo}}</label>
                 <div class="common-form-content">
                     <div class="app-logo-content">
-                        <div class="logo-body" @click="onLogoClick">
+                        <div class="logo-body">
                             <span class="logo-wrapper">
-                                <span class="change-tips">{{i18n.change}}</span>
-                                <div v-if="isShowDefaultLogo" class="default-logo">
-                                    <img class="default-icon" :src="require('@/assets/images/appmaker-default-icon-1.png')" alt="default-icon-1" />
-                                </div>
-                                <div v-else>
+                                <span
+                                    class="change-tips"
+                                    @click="onLogoClick">{{ i18n.change }}</span>
+                                <div>
                                     <img class="logo-pic" :src="logoUrl" @error="useDefaultLogo" />
                                 </div>
                             </span>
@@ -118,7 +117,7 @@
                             <div v-if="logoPanelActiveTab === 0" class="panel-content-default">
                                 <ul class="default-icon-list">
                                     <li class="default-icon-item"
-                                        v-for="item in [1, 2, 3, 4, 5, 6]"
+                                        v-for="item in 6"
                                         :key="item"
                                         :class="{ 'active': selectedLogoIndex === item }"
                                         @click="onChooseDefaultLogo(item)">
@@ -135,10 +134,7 @@
                                     <i class="common-icon-add"></i>
                                 </label>
                                 <div v-else>
-                                    <div v-if="isShowDefaultLogo" class="default-logo">
-                                        <img class="default-icon" :src="require('@/assets/images/appmaker-default-icon-1.png')" alt="default-icon-1">
-                                    </div>
-                                    <div v-else class="upload-logo">
+                                    <div class="upload-logo">
                                         <img class="logo-img" :src="logoUrl" @error="useDefaultLogo" />
                                         <label class="reload-btn" for="app-logo">{{ i18n.reUpload }}</label>
                                     </div>
@@ -279,6 +275,15 @@
                 this.selectedLogoIndex = null
                 this.isChooseLogoPanelShow = false
             },
+            isShowDefaultLogo: {
+                handler (val) {
+                    if (val) {
+                        // 自动选择默认图标
+                        this.onChooseDefaultLogo(1, false)
+                    }
+                },
+                immediate: true
+            },
             currentAppData: {
                 handler (val) {
                     const { template_id, name, template_scheme_id, desc, logo_url, auth_actions } = val
@@ -352,7 +357,6 @@
             // logo 上传
             onLogoChange (e) {
                 const pic = e.target.files[0]
-                console.log(pic)
                 const size = pic.size
                 if (size > 1024000) {
                     this.appData.appLogo = []
@@ -426,9 +430,12 @@
             // 打开选择图标面板
             onLogoClick () {
                 this.isChooseLogoPanelShow = !this.isChooseLogoPanelShow
+                this.logoPanelActiveTab = this.isCreateNewApp ? 0 : 1
             },
-            onChooseDefaultLogo (index) {
-                this.selectedLogoIndex = index
+            onChooseDefaultLogo (index, isSlected = true) {
+                if (isSlected) {
+                    this.selectedLogoIndex = index
+                }
                 const url = require(`@/assets/images/appmaker-default-icon-${index}.png`)
                 const blob = this.dataURLtoBlob(url)
                 const file = this.blobToFile(blob)
@@ -548,7 +555,7 @@
                 .tab-item {
                     display: inline-block;
                     padding: 6px 0;
-                    font-size: 16px;
+                    font-size: 14px;
                     color: #63656e;
                     cursor: pointer;
                     &:not(:first-child) {
@@ -589,6 +596,7 @@
             .panel-content-customize {
                 .upload-logo {
                     position: relative;
+                    margin-top: 10px;
                     padding: 10px 7px;
                     width: 60px;
                     height: 60px;

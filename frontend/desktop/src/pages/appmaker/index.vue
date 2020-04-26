@@ -55,7 +55,7 @@
                         <p class="appmaker-info-text">{{i18n.appmakerInfoContent}}</p>
                         <div class="appmaker-default-icons">
                             <img
-                                v-for="item in [1, 2, 3, 4, 5, 6]"
+                                v-for="item in 6"
                                 :key="item"
                                 :src="require(`@/assets/images/appmaker-default-icon-${item}.png`)"
                                 class="default-icon-item"
