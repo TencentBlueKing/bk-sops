@@ -34,6 +34,7 @@
                         <bk-select
                             v-model="formData.reused"
                             :disabled="!formData.isReuse"
+                            :popover-options="{ appendTo: 'parent' }"
                             :clearable="false">
                             <bk-option
                                 v-for="(option, index) in variables"
