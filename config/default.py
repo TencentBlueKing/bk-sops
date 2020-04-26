@@ -279,7 +279,7 @@ BK_IAM_RELATED_SCOPE_TYPES = 'system'
 BK_IAM_SYSTEM_MANAGERS = 'admin'
 BK_IAM_SYSTEM_CREATOR = 'admin'
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
-BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
+BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_APP_CODE', 'bk_iam_app')
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', os.getenv('BK_IAM_HOST', ''))
