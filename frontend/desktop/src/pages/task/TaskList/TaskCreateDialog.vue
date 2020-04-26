@@ -190,9 +190,6 @@
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
-            ...mapActions([
-                'getCategorys'
-            ]),
             async getBusinessData () {
                 this.taskListPending = true
                 try {

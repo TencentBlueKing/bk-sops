@@ -10,93 +10,330 @@
 * specific language governing permissions and limitations under the License.
 */
 import api from '@/api/index.js'
+import axios from 'axios'
+import qs from 'qs'
+import store from '@/store/index.js'
+
+const SITE_URL = '/t/bk_sops/'
 
 const task = {
     namespaced: true,
     actions: {
+        /**
+         * 获取任务可选节点的选择方案
+         * @param {Object} data 筛选条件
+         */
         loadTaskScheme ({ commit }, payload) {
-            return api.getTaskScheme(payload).then(response => response.data.objects)
+            const { isCommon, project__id, template_id } = payload
+            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
+
+            return axios.get(SITE_URL + url, {
+                params: {
+                    template_id,
+                    project__id: project__id
+                }
+            }).then(response => response.data.objects)
         },
+        /**
+         * 创建任务可选节点的选择方案
+         * @param {Object}} payload 方案配置数据
+         */
         createTaskScheme ({ commit }, payload) {
-            return api.createTaskScheme(payload).then(response => response.data)
+            const { isCommon, project_id, template_id, data, name } = payload
+            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
+
+            return axios.post(SITE_URL + url, {
+                project__id: project_id,
+                template_id,
+                data,
+                name
+            }).then(response => response.data)
         },
+        /**
+         * 删除任务节点选择方案
+         * @param {String} payload 方案参数
+         */
         deleteTaskScheme ({ commit }, payload) {
-            return api.deleteTaskScheme(payload).then(response => response.data)
+            const { isCommon, id } = payload
+            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
+
+            return axios.delete(SITE_URL + `${url}${id}/`).then(response => response.data)
         },
+        /**
+         * 获取任务节点选择方案详情
+         * @param {String} payload 方案参数
+         */
         getSchemeDetail ({ commit }, payload) {
-            return api.getSchemeDetail(payload).then(response => response.data)
+            const { isCommon, id } = payload
+            const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
+
+            return axios.get(SITE_URL + `${url}${id}/`).then(response => response.data)
         },
+        /**
+         * 获取任务节点预览数据
+         * @param {Object} payload 筛选条件
+         */
         loadPreviewNodeData ({ commit }, payload) {
-            return api.getPreviewNodeData(payload).then(response => response.data)
+            const { project_id } = store.state.project
+            const { templateId, excludeTaskNodesId, common, version } = payload
+            const dataJson = {
+                version,
+                template_id: templateId,
+                exclude_task_nodes_id: excludeTaskNodesId,
+                template_source: 'project'
+            }
+            if (common) {
+                dataJson['template_source'] = 'common'
+            }
+            const dataString = qs.stringify(dataJson)
+
+            return axios.post(SITE_URL + `taskflow/api/preview_task_tree/${project_id}/`, dataString, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 创建任务
+         * @param {Object} data 模板数据
+         */
         createTask ({ commit }, data) {
-            return api.createTask(data).then(response => response.data)
+            const { app_id, view_mode, username } = store.state
+            const { project_id } = store.state.project
+            const { templateId, name, description, execData, flowType, common } = data
+            const requestData = {
+                'project': `api/v3/project/${project_id}/`,
+                'template_id': templateId,
+                'creator': username,
+                'name': name,
+                'description': description,
+                'pipeline_tree': execData,
+                'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
+                'create_info': app_id,
+                'flow_type': flowType,
+                'template_source': 'project',
+                test: 1
+            }
+            if (common) {
+                requestData['template_source'] = 'common'
+            }
+
+            return axios.post(SITE_URL + 'api/v3/taskflow/', requestData).then(response => response.data)
         },
+        /**
+         * 获取任务实例详细数据
+         * @param {String} instance_id 实例id
+         */
         getTaskInstanceData ({ commit }, instance_id) {
-            return api.getTaskInstanceData(instance_id).then(response => response.data)
+            return axios.get(SITE_URL + `api/v3/taskflow/${instance_id}/`).then(response => response.data)
         },
+        /**
+         * 职能化认领
+         * @param {String} data 模板数据
+         */
         claimFuncTask ({ commit }, data) {
-            return api.claimFuncTask(data).then(response => response.data)
+            const { name, instance_id, constants, project_id } = data
+            const requestData = qs.stringify({
+                name,
+                instance_id,
+                constants
+            })
+            return axios.post(SITE_URL + `taskflow/api/flow/claim/${project_id}/`, requestData).then(response => response.data)
         },
+        /**
+         * 获取任务实例状态信息
+         * @param {String} data 实例数据
+         */
         getInstanceStatus ({ commit }, data) {
-            return api.getInstanceStatus(data).then(response => response.data)
+            const { instance_id, project_id, subprocess_id, cancelToken } = data
+            return axios.get(SITE_URL + `taskflow/api/status/${project_id}/`, {
+                params: {
+                    instance_id,
+                    subprocess_id
+                }
+            }, { cancelToken }).then(response => response.data)
         },
+        /**
+         * 开始执行任务实例
+         * @param {String} instance_id 实例id
+         */
         instanceStart ({ commit }, instance_id) {
-            return api.instanceStart(instance_id).then(response => response.data)
+            const { project_id } = store.state.project
+            const data = qs.stringify({ instance_id: instance_id })
+            return axios.post(SITE_URL + `taskflow/api/action/start/${project_id}/`, data, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 暂停执行任务实例
+         * @param {String} instance_id 实例id
+         */
         instancePause ({ commit }, instance_id) {
-            return api.instancePause(instance_id).then(response => response.data)
+            const { project_id } = store.state.project
+            const data = qs.stringify({ instance_id: instance_id })
+            return axios.post(SITE_URL + `taskflow/api/action/pause/${project_id}/`, data, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
-        subInstancePause ({ commit }, data) {
-            return api.subInstancePause(data).then(response => response.data)
-        },
+        /**
+         * 继续执行任务实例
+         * @param {String} instance_id 实例id
+         */
         instanceResume ({ commit }, instance_id) {
-            return api.instanceResume(instance_id).then(response => response.data)
+            const { project_id } = store.state.project
+            const data = qs.stringify({ instance_id: instance_id })
+            return axios.post(SITE_URL + `taskflow/api/action/resume/${project_id}/`, data, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
-        subInstanceResume ({ commit }, data) {
-            return api.subInstanceResume(data).then(response => response.data)
-        },
+        /**
+         * 撤销任务实例执行
+         * @param {String} instance_id 任务实例id
+         */
         instanceRevoke ({ commit }, instance_id) {
-            return api.instanceRevoke(instance_id).then(response => response.data)
+            const { project_id } = store.state.project
+            const data = qs.stringify({ instance_id: instance_id })
+            return axios.post(SITE_URL + `taskflow/api/action/revoke/${project_id}/`, data, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 暂停子流程任务
+         * @param {Object} data 子任务数据
+         */
+        subInstancePause ({ commit }, data) {
+            const { instance_id, node_id } = data
+            const { project_id } = store.state.project
+            const qsData = qs.stringify({ instance_id: instance_id, node_id: node_id })
+            return axios.post(SITE_URL + `taskflow/api/nodes/action/pause_subproc/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
+        },
+        /**
+         * 继续子流程任务
+         * @param {Object} data 子任务数据
+         */
+        subInstanceResume ({ commit }, data) {
+            const { instance_id, node_id } = data
+            const { project_id } = store.state.project
+            const qsData = qs.stringify({ instance_id: instance_id, node_id: node_id })
+            return axios.post(SITE_URL + `taskflow/api/nodes/action/resume_subproc/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
+        },
+        /**
+         * 修改实例参数
+         * @param {Object} data 表单配置数据
+         */
         instanceModifyParams ({ commit }, data) {
-            return api.instanceModifyParams(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const qsData = qs.stringify(data)
+            return axios.post(SITE_URL + `taskflow/api/inputs/modify/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 获取节点执行详情
+         * @param {Object} data 节点配置数据
+         */
         getNodeActDetail ({ commit }, data) {
-            return api.getNodeActDetail(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const { instance_id, node_id, component_code, subprocess_stack, loop } = data
+            return axios.get(SITE_URL + `taskflow/api/nodes/detail/${project_id}/`, {
+                params: {
+                    instance_id,
+                    node_id,
+                    component_code,
+                    subprocess_stack,
+                    loop
+                }
+            }).then(response => response.data)
         },
+        /**
+         * 获取节点执行信息
+         * @param {Object} data 节点配置数据
+         */
         getNodeActInfo ({ commit }, data) {
-            return api.getNodeActInfo(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const { instance_id, node_id, component_code, subprocess_stack } = data
+            return axios.get(SITE_URL + `taskflow/api/nodes/data/${project_id}/`, {
+                params: {
+                    instance_id,
+                    node_id,
+                    component_code,
+                    subprocess_stack
+                }
+            }).then(response => response.data)
         },
+        /**
+         * 重试任务节点
+         * @param {Object} data 任务实例数据
+         */
         instanceRetry ({ commit }, data) {
-            return api.instanceRetry(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const qsData = qs.stringify(data)
+            return axios.post(SITE_URL + `taskflow/api/nodes/action/retry/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 设置定时间节点时间
+         * @param {Object} data 节点配置数据
+         */
         setSleepNode ({ commit }, data) {
-            return api.setSleepNode(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const qsData = qs.stringify(data)
+            return axios.post(SITE_URL + `taskflow/api/nodes/spec/timer/reset/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 跳过失败节点
+         * @param {Object} data 节点配置数据
+         */
         instanceNodeSkip ({ commit }, data) {
-            return api.instanceNodeSkip(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const qsData = qs.stringify(data)
+            return axios.post(SITE_URL + `taskflow/api/nodes/action/skip/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 跳过分支网关节点
+         * @param {Object} data 节点配置数据
+         */
         skipExclusiveGateway ({ commit }, data) {
-            return api.instanceBranchSkip(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const qsData = qs.stringify(data)
+            return axios.post(SITE_URL + `taskflow/api/nodes/action/skip_exg/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 暂停节点继续
+         * @param {Object} data 节点配置数据
+         */
         pauseNodeResume ({ commit }, data) {
-            return api.pauseNodeResume(data).then(response => response.data)
-        },
-        loadAppmakerSummary () {
-            return api.loadAppmakerSummary().then(response => response.data)
-        },
-        loadTaskCount ({ commit }, params) {
-            return api.loadTaskCount(params).then(response => response.data)
+            const { project_id } = store.state.project
+            const qsData = qs.stringify(data)
+            return axios.post(SITE_URL + `taskflow/api/nodes/action/callback/${project_id}/`, qsData, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
         queryInstanceData ({ commit }, data) {
             return api.queryInstance(data).then(response => response.data)
         },
-        loadCreateMethod ({ commit }) {
-            return api.loadCreateMethod().then(response => response.data)
+        // 加载创建任务方式数据
+        loadCreateMethod () {
+            return axios.get(SITE_URL + 'taskflow/api/get_task_create_method/').then(response => response.data)
         },
+        /**
+         * 获取作业执行详情
+         * @param {Object} data 作业实例ID等信息
+         */
         getJobInstanceLog ({ commit }, data) {
-            return api.getJobInstanceLog(data).then(response => response.data)
+            const { job_instance_id, project_id } = data
+            return axios.get(SITE_URL + `taskflow/api/nodes/get_job_instance_log/${project_id}/`, {
+                params: { job_instance_id }
+            }).then(response => response.data)
         }
     }
 }

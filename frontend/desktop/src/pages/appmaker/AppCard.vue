@@ -139,7 +139,7 @@
             }
         },
         methods: {
-            ...mapActions('template/', [
+            ...mapActions([
                 'addToCollectList',
                 'deleteCollect'
             ]),
@@ -168,9 +168,6 @@
                     return
                 }
                 this.$emit('onCardEdit', this.appData)
-            },
-            onOpenPermissions (id) {
-                this.$emit('onOpenPermissions', this.appData)
             },
             onCardDelete () {
                 if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {

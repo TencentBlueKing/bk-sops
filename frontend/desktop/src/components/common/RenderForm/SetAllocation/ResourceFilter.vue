@@ -414,13 +414,17 @@
             },
             // 由集群ID递归查找集群名称
             filterSetName (id, list) {
-                let name
+                let name = ''
                 list.some(item => {
                     if (item.id === id) {
                         name = item.label
                         return true
                     } else if (item.children && item.children.length > 0) {
-                        name = this.filterSetName(id, item.children)
+                        const val = this.filterSetName(id, item.children)
+                        if (val) {
+                            name = val
+                            return true
+                        }
                     }
                 })
                 return name

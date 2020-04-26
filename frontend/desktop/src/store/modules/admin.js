@@ -16,6 +16,12 @@ const admin = {
     state: {},
     mutations: {},
     actions: {
+        /**
+         * 加载标准插件统计数据
+         */
+        // queryAtomData ({ commit }, data) {
+        //     return axios.post(SITE_URL + 'analysis/query_atom_by_group/', data).then(response => response.data)
+        // },
         search ({ commit }, data) {
             return api.adminSearch(data).then(
                 response => response.data
@@ -35,6 +41,9 @@ const admin = {
             return api.adminPeriodTask(data).then(
                 response => response.data
             )
+        },
+        queryTemplateData ({ commit }, data) {
+            return api.queryTemplate(data).then(response => response.data)
         },
         periodTaskHistory ({ commit }, data) {
             return api.adminPeriodTaskHistory(data).then(

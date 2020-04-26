@@ -32,9 +32,6 @@ const appmaker = {
         }
     },
     actions: {
-        loadAppmakerSummary ({ commit }, data) {
-            return api.loadAppmakerSummary(data).then(response => response.data)
-        },
         loadAppmakerDetail ({ commit }, id) {
             return api.loadAppmakerDetail(id).then(response => response.data)
         },

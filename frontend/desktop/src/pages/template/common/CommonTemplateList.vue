@@ -388,18 +388,17 @@
         },
         methods: {
             ...mapActions([
-                'queryUserPermission'
-            ]),
-            ...mapActions('template/', [
-                'loadProjectBaseInfo',
+                'queryUserPermission',
                 'addToCollectList',
                 'deleteCollect',
                 'loadCollectList'
             ]),
+            ...mapActions('template/', [
+                'loadProjectBaseInfo'
+            ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
                 'deleteTemplate',
-                'saveTemplatePersons',
                 'templateImport',
                 'templateExport',
                 'getExpiredSubProcess'
@@ -542,7 +541,7 @@
                 try {
                     const data = {
                         common: '1',
-                        list: JSON.stringify(list)
+                        list
                     }
                     const resp = await this.templateExport(data)
                     if (resp.result) {
@@ -611,23 +610,6 @@
             onDeleteCancel () {
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
-            },
-            async onAuthorityConfirm (data) {
-                if (this.pending.authority) return
-                this.pending.authority = true
-                try {
-                    await this.saveTemplatePersons(data)
-                    this.isAuthorityDialogShow = false
-                    this.theAuthorityManageId = undefined
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.pending.authority = false
-                }
-            },
-            onAuthorityCancel () {
-                this.isAuthorityDialogShow = false
-                this.theAuthorityManageId = undefined
             },
             /**
              * 获取模版操作的跳转链接

@@ -225,7 +225,7 @@
             }
         },
         methods: {
-            ...mapActions('template/', [
+            ...mapActions([
                 'addToCollectList'
             ]),
             ...mapActions('templateList/', [
