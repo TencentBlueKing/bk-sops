@@ -165,9 +165,9 @@ class AgentInstallService(Service):
 集群资源筛选变量的模块主机分配详情信息都存储在 `_module` 属性中，如取第一行模块(module1)的值：`${value._module[0]["module1"]}`，
 表示该模块分配的 IP，多个以英文逗号 `,` 分隔，如 `127.0.0.1,127.0.0.2`。
 
-### 主机属性选择器
+### 主机属性查询器
 主机属性选择器变量通过调用配置平台的接口，获取用户输入IP的主机属性。返回值是一个`python`字典对象，以每个可从CMDB查询到的输入IP作为键，
-将从CMDB查询到的主机属性封装为字典作为值。主机属性包含CMDB中主机的默认属性 
+将从CMDB查询到的主机属性封装为字典作为值。主机属性包含CMDB中主机的内置字段
 - `bk_cpu`
 - `bk_isp_name`
 - `bk_os_name`
@@ -196,7 +196,7 @@ class AgentInstallService(Service):
 - `bk_sn`
 - `bk_cpu_module`
 
-等，并且包含在CMDB中的主机自定义属性。
+等，并且包含在CMDB中的主机自定义字段。
 和表格类似，需要通过变量高级语法使用返回值。如获取主机 `127.0.0.1` 的 `bk_host_id` 属性：`${value["127.0.0.1"]["bk_host_id"]}`
 
 ## 使用说明

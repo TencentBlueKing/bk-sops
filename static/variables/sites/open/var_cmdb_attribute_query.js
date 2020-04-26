@@ -10,9 +10,9 @@
  * specific language governing permissions and limitations under the License.
  */
 (function () {
-    $.atoms.var_cmdb_attr_selector = [
+    $.atoms.var_cmdb_attr_query = [
         {
-            tag_code: "attr_selector",
+            tag_code: "attr_query",
             type: "textarea",
             attrs: {
                 name: gettext("主机内网IP"),

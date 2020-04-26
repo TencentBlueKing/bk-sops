@@ -148,12 +148,12 @@ class VarCmdbSetAllocation(LazyVariable):
         return SetDetailData(self.value['data'])
 
 
-class VarCmdbAttributeSelector(LazyVariable):
-    code = 'attribute_selector'
-    name = _("主机属性选择器")
+class VarCmdbAttributeQuery(LazyVariable):
+    code = 'attribute_query'
+    name = _("主机属性查询器")
     type = 'general'
-    tag = 'var_cmdb_attr_selector.attr_selector'
-    form = '%svariables/sites/%s/var_cmdb_attribute_selector.js' % (settings.STATIC_URL, settings.RUN_VER)
+    tag = 'var_cmdb_attr_query.attr_query'
+    form = '%svariables/sites/%s/var_cmdb_attribute_query.js' % (settings.STATIC_URL, settings.RUN_VER)
 
     def get_value(self):
         """
