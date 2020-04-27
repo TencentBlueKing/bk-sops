@@ -114,9 +114,9 @@
 
     const i18n = {
         copyIp: gettext('复制IP'),
-        copyAgentIp: gettext('复制Agent未安装IP'),
+        copyAgentIp: gettext('复制Agent异常IP'),
         clearIp: gettext('清空IP'),
-        clearFailedAgentIp: gettext('清空Agent未安装IP'),
+        clearFailedAgentIp: gettext('清空Agent异常IP'),
         add: gettext('添加'),
         moreOperations: gettext('更多操作'),
         selected: gettext('已选择'),
