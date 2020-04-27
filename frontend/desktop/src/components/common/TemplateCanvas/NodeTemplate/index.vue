@@ -377,13 +377,19 @@
                 }
             }
             .node-options-icon {
+                display: flex;
+                align-items: flex-end;
                 position: absolute;
-                top: -23px;
+                top: -20px;
                 left: 0;
+                height: 18px;
+                overflow: hidden;
                 .bk-form-checkbox,
-                &>[class*="common-icon"] {
-                    display: inline-block;
-                    vertical-align: bottom;
+                .dark-circle {
+                    float: left;
+                    margin-right: 2px;
+                    font-size: 12px;
+                    color: #979ba5;
                 }
             }
         }
@@ -429,9 +435,16 @@
     .task-node-tooltip.el-tooltip__popper {
         z-index: 4 !important;
     }
-    #node-tooltip-content {
+</style>
+<style lang="scss">
+    .node-tooltip-content {
+        padding: 10px;
+        background: #303133;
+        border-radius: 2px;
+        overflow: hidden;
         .bk-button {
-            padding: 0;
+            float: left;
+            padding: 0 10px;
             min-width: auto;
             height: 16px;
             line-height: 16px;
@@ -441,6 +454,15 @@
             border: none;
             &:hover {
                 color: #3a84ff;
+            }
+            &:first-child {
+                padding-left: 0;
+            }
+            &:last-child {
+                padding-right: 0;
+            }
+            &:not(:last-child) {
+                border-right: 1px solid #63656e;
             }
         }
     }

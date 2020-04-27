@@ -54,6 +54,14 @@ export const COMMON_ATTRS = {
         default: true,
         inner: true
     },
+    formViewHidden: { // 表单项为非编辑状态时，是否隐藏，例如(JOB执行作业刷新按钮)
+        type: Boolean,
+        default: false
+    },
+    cols: { // 横向栅格占有的格数，总数为 12 格
+        type: Number,
+        default: 0
+    },
     validateSet: {
         type: Array,
         inner: true,

@@ -88,12 +88,12 @@
 <style lang='scss' scoped>
 .base-title {
     position: relative;
-    height: 60px;
-    line-height: 60px;
     border-bottom: 1px solid #dde4eb;
+    overflow: hidden;
     .title-name {
         float: left;
         margin-left: 12px;
+        line-height: 60px;
         font-size: 14px;
         font-weight:600;
         color: #313238;
@@ -112,6 +112,7 @@
         float: left;
         display: flex;
         position: relative;
+        line-height: 60px;
         &:before {
             content: '';
             position: absolute;

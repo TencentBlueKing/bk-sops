@@ -369,6 +369,7 @@
     &.rf-col-layout {
         display: inline-block;
         margin: 0;
+        padding-right: 10px;
         vertical-align: top;
     }
     &.rf-view-mode {

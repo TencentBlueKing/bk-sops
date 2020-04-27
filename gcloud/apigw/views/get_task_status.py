@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -16,13 +16,15 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
+from pipeline.engine import api as pipeline_api
+from pipeline.engine.exceptions import InvalidOperationException
+
 from gcloud import err_code
 from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
-from pipeline.engine import api as pipeline_api
 from gcloud.apigw.views.utils import logger
 
 try:
@@ -45,7 +47,6 @@ def get_task_status(request, task_id, project_id):
     project = request.project
     subprocess_id = request.GET.get("subprocess_id")
 
-    # request subprocess
     if not subprocess_id:
         try:
             task = TaskFlowInstance.objects.get(
@@ -66,9 +67,21 @@ def get_task_status(request, task_id, project_id):
             }
             return JsonResponse(result)
 
+    # request subprocess
     try:
         task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
         TaskFlowInstance.format_pipeline_status(task_status)
+    except InvalidOperationException:
+        # do not raise error when subprocess not exist or has not been executed
+        task_status = {
+            "start_time": None,
+            "state": "CREATED",
+            "retry": 0,
+            "skip": 0,
+            "finish_time": None,
+            "elapsed_time": 0,
+            "children": {}
+        }
     except Exception as e:
         message = "[API] get_task_status task[id={task_id}] get status error: {error}".format(
             task_id=task_id, error=e

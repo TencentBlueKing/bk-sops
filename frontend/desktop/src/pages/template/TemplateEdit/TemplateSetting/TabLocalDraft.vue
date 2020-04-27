@@ -252,6 +252,7 @@
         tbody {
             display: block;
             height: calc(100% - 40px);
+            color: #63656e;
             overflow: auto;
             @include scrollbar;
             tr:not(.empty-draft-tip):hover {

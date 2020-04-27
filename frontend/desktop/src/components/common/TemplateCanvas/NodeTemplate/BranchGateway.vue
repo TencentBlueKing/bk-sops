@@ -19,7 +19,7 @@
             ]">
             <div class="node-type-icon common-icon-node-branchgateway"></div>
         </div>
-        <div id="node-tooltip-content" slot="content">
+        <div class="node-tooltip-content" slot="content">
             <bk-button @click.stop="onGatewaySelectionClick">{{ i18n.skip }}</bk-button>
         </div>
     </el-tooltip>

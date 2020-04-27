@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -154,7 +154,7 @@ class CCTransferHostModuleService(Service):
             self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，多个用英文逗号 `,` 分隔'))),
             self.InputItem(name=_('模块 ID'),
                            key='cc_module_select',
                            type='array',
@@ -226,7 +226,7 @@ class CCUpdateHostService(Service):
             self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，多个用英文逗号 `,` 分隔'))),
             self.InputItem(name=_('主机属性'),
                            key='cc_host_property',
                            type='string',
@@ -979,7 +979,7 @@ class CCTransferHostToIdleService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到空闲机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
@@ -1020,7 +1020,7 @@ class CCTransferHostToIdleService(Service):
 
 
 class CCTransferHostToIdleComponent(Component):
-    name = _("转移主机至空闲机")
+    name = _("转移主机至空闲机模块")
     code = 'cc_transfer_to_idle'
     bound_service = CCTransferHostToIdleService
     form = '%scomponents/atoms/cc/cc_transfer_to_idle.js' % settings.STATIC_URL
@@ -1036,16 +1036,16 @@ class CmdbTransferFaultHostService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到故障机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
@@ -1073,7 +1073,7 @@ class CmdbTransferFaultHostService(Service):
 
 
 class CmdbTransferFaultHostComponent(Component):
-    name = _('转移主机到业务的故障机模块')
+    name = _('转移主机至故障机模块')
     code = 'cmdb_transfer_fault_host'
     bound_service = CmdbTransferFaultHostService
     form = '%scomponents/atoms/cc/cmdb_transfer_fault_host.js' % settings.STATIC_URL
@@ -1089,16 +1089,16 @@ class CmdbTransferHostResourceModuleService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
@@ -1126,7 +1126,7 @@ class CmdbTransferHostResourceModuleService(Service):
 
 
 class CmdbTransferHostResourceModuleComponent(Component):
-    name = _('转移主机至资源池')
+    name = _('上交主机至资源池')
     code = 'cmdb_transfer_host_resource'
     bound_service = CmdbTransferHostResourceModuleService
     form = '%scomponents/atoms/cc/cmdb_transfer_host_resource.js' % settings.STATIC_URL

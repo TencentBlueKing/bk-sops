@@ -52,6 +52,7 @@
         },
         data () {
             return {
+                footerLoading: false,
                 permissinApplyShow: false,
                 permissionData: {
                     type: 'project', // 无权限类型: project、other
@@ -119,13 +120,15 @@
                     theme: type
                 })
             }
+            this.getPageFooter()
         },
         mounted () {
             this.initData()
         },
         methods: {
             ...mapActions([
-                'queryUserPermission'
+                'queryUserPermission',
+                'getFooterContent'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -142,6 +145,7 @@
                 'setProjectActions'
             ]),
             ...mapMutations([
+                'setPageFooter',
                 'setAdminPerm'
             ]),
             initData () {
@@ -214,6 +218,21 @@
                     this.adminPermLoading = false
                 } catch (err) {
                     errorHandler(err, this)
+                }
+            },
+            // 动态获取页面 footer
+            async getPageFooter () {
+                try {
+                    this.footerLoading = true
+                    const resp = await this.getFooterContent()
+                    if (resp.result) {
+                        this.setPageFooter(resp.data)
+                    }
+                } catch (err) {
+                    this.setPageFooter(`<div class="copyright"><div>蓝鲸智云 版权所有</div></div>`)
+                    errorHandler(err, this)
+                } finally {
+                    this.footerLoading = false
                 }
             },
             handleRouteChange () {

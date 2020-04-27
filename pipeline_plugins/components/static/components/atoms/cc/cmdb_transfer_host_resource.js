@@ -12,11 +12,38 @@
 (function(){
     $.atoms.cmdb_transfer_host_resource = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: true,
+                remote: true,
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: !$.context.canSelectBiz(),
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            },
+            methods: {
+                _tag_init: function () {
+                    if (this.value) {
+                        return
+                    }
+                    this._set_value($.context.getBkBizId())
+                }
+            }
+        },
+        {
             tag_code: "cc_host_ip",
             type: "textarea",
             attrs: {
                 name: gettext("主机内网IP"),
-                placeholder: gettext("请输入主机内网IP，多个用换行符分隔"),
+                placeholder: gettext("请输入主机内网IP，多个用换行分隔"),
                 hookable: true,
                 validation: [
                     {

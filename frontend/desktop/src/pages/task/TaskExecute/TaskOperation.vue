@@ -1205,7 +1205,7 @@
     z-index: 5;
     .close-node-info-panel {
         position: absolute;
-        top: 0;
+        top: -1px;
         left: -18px;
         width: 18px;
         height: 50px;
