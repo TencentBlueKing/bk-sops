@@ -11,25 +11,16 @@
 */
 <template>
     <div class="tag-button">
-        <el-button
-            v-if="title"
-            :type="type"
+        <bk-button
+            :theme="type"
             :size="size"
-            :plain="plain"
-            :circle="circle"
+            :disabled="disabled"
+            :loading="loading"
             :icon="icon"
+            :text="text"
             @click="onClick">
             {{ title }}
-        </el-button>
-        <el-button
-            v-else
-            :type="type"
-            :size="size"
-            :plain="plain"
-            :circle="circle"
-            :icon="icon"
-            @click="onClick">
-        </el-button>
+        </bk-button>
     </div>
 </template>
 <script>
@@ -47,38 +38,38 @@
             type: String,
             required: false,
             default: '',
-            desc: 'button type primary / success / warning / danger / info / text'
+            desc: 'button type primary / success / warning / danger'
         },
         icon: {
             type: String,
             required: false,
             default: '',
-            desc: 'button type primary / success / warning / danger / info / text'
+            desc: 'button icon'
         },
         size: {
             type: String,
             required: false,
-            default: 'small',
-            desc: 'button size medium / small / mini'
+            default: 'normal',
+            desc: 'button size small / normal / large'
 
         },
-        plain: {
+        disabled: {
             type: Boolean,
             required: false,
             default: false,
-            desc: 'determine whether it\'s a plain button'
+            desc: 'button disabled'
         },
-        round: {
+        loading: {
             type: Boolean,
             required: false,
             default: false,
-            desc: 'determine whether it\'s a round button'
+            desc: 'button loading'
         },
-        circle: {
+        text: {
             type: Boolean,
             required: false,
             default: false,
-            desc: 'determine whether it\'s a circle button'
+            desc: 'text button'
         }
     }
     export default {
@@ -94,6 +85,12 @@
 <style lang="scss" scoped>
     .tag-button {
         height: 32px;
-        line-height: 32px;
+        .bk-button,
+        .bk-button-text{
+            font-size: 12px;
+        }
+        .bk-button-text {
+            line-height: 32px;
+        }
     }
 </style>

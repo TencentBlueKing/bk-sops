@@ -199,6 +199,9 @@
                         }
                     })
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     errorHandler(e, this)
                 } finally {
                     this.templateLoading = false

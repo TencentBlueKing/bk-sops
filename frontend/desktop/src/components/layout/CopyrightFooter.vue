@@ -10,44 +10,23 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <footer class="footer-wrapper">
-        <div class="copyright">
-            <ul class="link-list">
-                <a href="tencent://message/?uin=800802001&site=qq&menu=yes" class="link-item">{{i18n.qq}}(800802001)</a>
-                <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">{{i18n.bkForum}}</a>
-                <a href="http://bk.tencent.com/" class="link-item" target="_blank">{{i18n.bk}}</a>
-            </ul>
-            <div class="desc">Copyright &copy; 2012-{{year}} Tencent BlueKing. All Rights Reserved.</div>
-            <div>{{i18n.copyRight}}</div>
-        </div>
-    </footer>
+    <footer id="page-footer-wrapper" v-html="footer"></footer>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { mapState } from 'vuex'
-    import moment from 'moment-timezone'
+
     export default {
         name: 'CopyrightFooter',
-        data () {
-            return {
-                year: moment.tz(this.timezone).year(),
-                i18n: {
-                    qq: gettext('QQ咨询'),
-                    bk: gettext('蓝鲸官网'),
-                    bkForum: gettext('蓝鲸论坛'),
-                    copyRight: gettext('蓝鲸智云 版权所有')
-                }
-            }
-        },
         computed: {
-            ...mapState('project', {
-                timezone: state => state.timezone
+            ...mapState({
+                footer: state => state.footer
             })
         }
     }
 </script>
-<style lang="scss" scoped>
-.footer-wrapper {
+<style lang="scss">
+#page-footer-wrapper {
     margin-top: 50px;
     padding-bottom: 30px;
     min-width: 1320px;

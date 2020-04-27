@@ -48,7 +48,7 @@
 
     const i18n = {
         select: gettext('请选择'),
-        desc: gettext('请输入，多个用换行符分隔'),
+        desc: gettext('请输入，多个用换行分隔'),
         notEmpty: gettext('必填项')
     }
 

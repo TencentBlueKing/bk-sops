@@ -43,7 +43,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("主机内网IP"),
-                placeholder: gettext("请输入主机内网IP，多个用换行符分隔"),
+                placeholder: gettext("请输入主机内网IP，多个用换行分隔"),
                 hookable: true,
                 validation: [
                     {

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,12 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from datetime import datetime
 
 import ujson as json
 from django.http import JsonResponse
 from django.contrib.auth.models import Group
 from django.views.decorators.http import require_POST, require_GET
 from django.utils.translation import ugettext_lazy as _
+
+from mako.template import Template
 
 from auth_backend.backends import get_backend_from_config
 from auth_backend.resources import resource_type_lib
@@ -174,4 +177,4 @@ def get_footer(request):
     @param request:
     @return:
     """
-    return JsonResponse({"result": True, "data": FOOTER})
+    return JsonResponse({"result": True, "data": Template(FOOTER).render(year=datetime.now().year)})
