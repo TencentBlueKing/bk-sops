@@ -52,15 +52,30 @@
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="right-icon help-doc" :title="i18n.help">
+            <li class="right-icon help-doc">
                 <a
                     class="common-icon-dark-circle-question"
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
-                    target="_blank">
+                    target="_blank"
+                    v-bk-tooltips="{
+                        content: i18n.help,
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }">
                 </a>
             </li>
-            <li class="right-icon version-log" :title="i18n.logVersion">
-                <i class="common-icon-info" @click="onOpenVersion"></i>
+            <li class="right-icon version-log">
+                <i
+                    class="common-icon-info"
+                    v-bk-tooltips="{
+                        content: i18n.logVersion,
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }"
+                    @click="onOpenVersion">
+                </i>
             </li>
             <li class="right-icon user-avatar">
                 <span
@@ -568,6 +583,9 @@ header {
         }
         .user-avatar {
             margin-left: 10px;
+            .common-icon-dark-circle-avatar {
+                cursor: text;
+            }
         }
         /deep/ .bk-select.is-disabled {
             background: none;

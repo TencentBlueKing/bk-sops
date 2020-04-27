@@ -740,6 +740,9 @@
         }
         .btns {
             float: right;
+            .bk-button {
+                font-size: 12px;
+            }
         }
     }
     .module-form {
