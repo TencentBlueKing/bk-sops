@@ -78,6 +78,7 @@
                     :is-show="isShowConditionEdit"
                     :condition-data="conditionData"
                     :is-setting-panel-show="isSettingPanelShow"
+                    :setting-active-tab="settingActiveTab"
                     :is-show-condition-edit="isShowConditionEdit"
                     @onCloseConditionEdit="onCloseConditionEdit">
                 </condition-edit>
@@ -665,7 +666,7 @@
                 if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
                     this.hideConfigPanel()
                 }
-                if (this.isShowConditionEdit) {
+                if (isSettingPanelShow && this.isShowConditionEdit && clientX < 1920) {
                     this.onCloseConditionEdit()
                 }
                 if (isSettingPanelShow) {
