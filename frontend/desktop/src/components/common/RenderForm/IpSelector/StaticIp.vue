@@ -293,6 +293,9 @@
 .operation-area {
     position: relative;
     margin: 20px 0;
+    .bk-button {
+        font-size: 12px;
+    }
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
         padding: 0px;
@@ -317,9 +320,6 @@
     .total-not-installed {
         color: #ea3636;
     }
-}
-/deep/.bk-button .bk-icon {
-    margin-left: 55px;
 }
 .ip-search-wrap {
     position: absolute;

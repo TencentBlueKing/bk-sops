@@ -208,9 +208,10 @@
         position: absolute;
         top: 0px;
         right: 0;
-        width: calc(100% - 144px);
+        width: calc(100% - 160px);
     }
     .bk-button {
+        font-size: 12px;
         height: 32px;
         line-height: 32px;
     }

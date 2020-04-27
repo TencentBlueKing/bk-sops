@@ -261,8 +261,12 @@
 <style lang="scss" scoped>
     .opt-btns {
         margin-bottom: 20px;
+        /deep/ .bk-button {
+            font-size: 12px;
+        }
         /deep/ .upload-btn {
             display: inline-block;
+            font-size: 12px;
         }
     }
     .data-table {
