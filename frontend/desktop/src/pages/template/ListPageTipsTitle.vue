@@ -68,6 +68,7 @@
 <style lang="scss" scoped>
     .title {
         margin-left: 12px;
+        height: 60px;
         line-height: 60px;
         font-size: 14px;
         font-weight:600;
