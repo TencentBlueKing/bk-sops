@@ -44,7 +44,7 @@
                                 content: i18n.tips,
                                 placement: 'right-end',
                                 duration: 0,
-                                width: 300
+                                width: 240
                             }">
                         </i>
                     </label>
