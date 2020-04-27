@@ -27,7 +27,7 @@
                         <span class="required">*</span>
                     </label>
                     <bk-input
-                        v-model="conditionName"
+                        v-model.trim="conditionName"
                         v-validate="conditionRule"
                         name="conditionName"
                         :clearable="true">
@@ -40,7 +40,7 @@
                         <span class="required">*</span>
                     </label>
                     <textarea
-                        v-model="expression"
+                        v-model.trim="expression"
                         v-validate="expressionRule"
                         name="expression"
                         autocomplete="off"
