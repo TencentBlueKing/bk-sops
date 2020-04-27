@@ -420,7 +420,11 @@
                         name = item.label
                         return true
                     } else if (item.children && item.children.length > 0) {
-                        name = this.filterSetName(id, item.children)
+                        const val = this.filterSetName(id, item.children)
+                        if (val) {
+                            name = val
+                            return true
+                        }
                     }
                 })
                 return name

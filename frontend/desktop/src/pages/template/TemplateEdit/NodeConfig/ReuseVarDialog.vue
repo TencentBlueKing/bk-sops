@@ -169,7 +169,6 @@
                     this.$emit('confirm', 'reuse', this.formData.reused)
                 } else {
                     this.$refs.form.validate().then(result => {
-                        console.log(result)
                         if (result) {
                             const { name, key } = this.formData
                             this.$emit('confirm', 'new', { name, key })
