@@ -140,6 +140,7 @@
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
+    import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
@@ -168,6 +169,7 @@
             TemplateSetting,
             SubflowUpdateTips
         },
+        mixins: [permission],
         props: ['template_id', 'type', 'common'],
         data () {
             return {
@@ -640,6 +642,7 @@
             },
             // 子流程分组
             handleSubflowGroup (data) {
+                const { meta, objects: tplList } = data
                 const groups = this.projectBaseInfo.task_categories.map(item => {
                     return {
                         type: item.value,
@@ -648,16 +651,21 @@
                         list: []
                     }
                 })
-                data.forEach(item => {
+                tplList.forEach(item => {
                     if (item.id !== Number(this.template_id)) {
                         const group = groups.find(tpl => tpl.type === item.category)
                         if (group) {
+                            item.hasPermission = this.hasPermission(['view'], item.auth_actions, meta.auth_operations)
                             group.list.push(item)
                         }
                     }
                 })
 
-                this.atomTypeList.subflow = groups
+                this.atomTypeList.subflow = {
+                    tplOperations: meta.auth_operations,
+                    tplResource: meta.auth_resource,
+                    groups
+                }
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth

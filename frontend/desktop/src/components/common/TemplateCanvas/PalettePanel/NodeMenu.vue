@@ -54,12 +54,26 @@
                                     </span>
                                 </div>
                                 <div slot="content" class="node-item-wrap">
-                                    <node-item
-                                        v-for="(node, index) in group.list"
-                                        :key="index"
-                                        :type="activeNodeListType"
-                                        :node="node">
-                                    </node-item>
+                                    <template v-for="(node, index) in group.list">
+                                        <node-item
+                                            v-if="activeNodeListType !== 'subflow' || node.hasPermission"
+                                            class="node-item"
+                                            :key="index"
+                                            :type="activeNodeListType"
+                                            :node="node">
+                                        </node-item>
+                                        <div
+                                            v-else
+                                            :key="index"
+                                            class="node-item">
+                                            <div
+                                                v-cursor
+                                                class="name-wrapper text-permission-disable"
+                                                @click="onApplyPermission(node)">
+                                                {{ node.name }}
+                                            </div>
+                                        </div>
+                                    </template>
                                     <div class="node-empty" v-if="group.list.length === 0">
                                         <no-data></no-data>
                                     </div>
@@ -69,12 +83,26 @@
                     </template>
                     <template v-else>
                         <div class="search-result">
-                            <node-item
-                                v-for="(node, index) in searchResult"
-                                :key="index"
-                                :type="activeNodeListType"
-                                :node="node">
-                            </node-item>
+                            <template v-for="(node, index) in searchResult">
+                                <node-item
+                                    v-if="activeNodeListType !== 'subflow' || node.hasPermission"
+                                    class="node-item"
+                                    :key="index"
+                                    :type="activeNodeListType"
+                                    :node="node">
+                                </node-item>
+                                <div
+                                    v-else
+                                    :key="index"
+                                    class="node-item">
+                                    <div
+                                        v-cursor
+                                        class="name-wrapper text-permission-disable"
+                                        @click="onApplyPermission(node)">
+                                        {{ node.name }}
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </template>
@@ -89,6 +117,7 @@
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
     import toolsUtils from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
@@ -97,6 +126,7 @@
             NoData,
             NodeItem
         },
+        mixins: [permission],
         props: {
             showNodeMenu: {
                 type: Boolean,
@@ -109,6 +139,18 @@
             isFixedNodeMenu: {
                 type: Boolean,
                 default: false
+            },
+            tplOperations: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplResource: {
+                type: Object,
+                default () {
+                    return {}
+                }
             },
             nodes: {
                 type: Array,
@@ -220,6 +262,9 @@
                     this.selectedGroup = 'all'
                     this.$emit('onCloseNodeMenu')
                 }
+            },
+            onApplyPermission (node) {
+                this.applyForPermission(['view'], node, this.tplOperations, this.tplResource)
             }
         }
     }
@@ -266,9 +311,30 @@
         }
     }
     .node-list-wrap {
-        height: calc(100% - 71px);
+        height: calc(100% - 107px);
         overflow-y: auto;
         @include scrollbar;
+    }
+    .node-item {
+        background: #f0f1f5;
+        border-top: 1px solid #e2e4ed;
+        border-radius: 2px;
+        overflow: hidden;
+        cursor: move;
+        user-select: none;
+        &:first-child {
+            border-top: none;
+        }
+        &:hover {
+            background: #fafbfd;
+        }
+        /deep/ .name-wrapper {
+            padding: 0 14px;
+            height: 40px;
+            line-height: 40px;
+            color: #63656e;
+            font-size: 12px;
+        }
     }
     .bk-collapse-item {
         border-bottom: 1px solid #e2e4ed;
