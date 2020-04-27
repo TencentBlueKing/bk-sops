@@ -449,6 +449,8 @@
                 this.metaTag = data.meta_tag
                 this.varType = data.type
 
+                const validateSet = this.getValidateSet()
+                this.$set(this.renderOption, 'validateSet', validateSet)
                 this.getAtomConfig()
             },
             /**
