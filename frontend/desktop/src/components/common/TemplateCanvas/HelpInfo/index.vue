@@ -16,7 +16,7 @@
             :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
-                    <p class="text title">{{ commonTitle + i18n.shortcuts }}</p>
+                    <p class="title">{{ commonTitle + i18n.shortcuts }}</p>
                     <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     <table>
                         <tbody>
@@ -159,6 +159,7 @@
         }
         .title {
             margin-bottom: 10px;
+            font-weight: bold;
         }
         .close {
             display: inline-block;

@@ -44,7 +44,7 @@
                 </router-link>
                 <bk-popover
                     theme="light"
-                    placement="right-bottom"
+                    placement="bottom-start"
                     ext-cls="common-dropdown-btn-popver"
                     :z-index="2000"
                     :distance="0"
@@ -57,6 +57,7 @@
                             href="javascript:void(0);"
                             :class="{
                                 'opt-btn': true,
+                                'disable': collectingId === appData.id || collectedLoading,
                                 'text-permission-disable': !hasPermission(['view'], appData.auth_actions, appOperations)
                             }"
                             @click="onCollectAppMaker(appData, $event)">
@@ -130,6 +131,7 @@
                     modifier: gettext('修改轻应用'),
                     jurisdiction: gettext('使用权限')
                 },
+                collectingId: '', // 正在被收藏/取消收藏的轻应用id
                 collectionList: []
             }
         },
@@ -204,11 +206,11 @@
                     this.onAppMakerPermissonCheck(['view'], this.appData, event)
                     return
                 }
-                // 收藏列表数据加载时，不执行操作
-                if (this.collectedLoading) {
+                if (typeof this.collectingId === 'number') {
                     return
                 }
                 try {
+                    this.collectingId = data.id
                     if (!this.isCollected(data.id)) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
@@ -229,6 +231,8 @@
                     this.$emit('getCollectList')
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
                 }
             },
             // 判断是否已在收藏列表
@@ -338,7 +342,7 @@
         font-size: 12px;
         li {
             padding: 0 12px;
-            width: 100%;
+            min-width: 80px;
             height: 32px;
             line-height: 32px;
             color: #63656e;
@@ -346,6 +350,9 @@
             &:hover {
                 color: #3a84ff;
                 background: #ebf4ff;
+            }
+            &.disable {
+                color: #dcdee5;
             }
         }
     }

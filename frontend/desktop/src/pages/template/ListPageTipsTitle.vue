@@ -68,6 +68,7 @@
 <style lang="scss" scoped>
     .title {
         margin-left: 12px;
+        line-height: 60px;
         font-size: 14px;
         font-weight:600;
         color: #313238;
@@ -100,6 +101,6 @@
         }
     }
     .tpl-update-message {
-        margin-top: 10px;
+        margin-bottom: 10px;
     }
 </style>

@@ -47,7 +47,7 @@
                 </template>
             </div>
         </div>
-        <div id="node-tooltip-content" slot="content">
+        <div class="node-tooltip-content" slot="content">
             <bk-button
                 v-if="isShowSkipBtn"
                 @click.stop="onRetryClick">
@@ -182,32 +182,4 @@
         color: #000000;
     }
 }
-</style>
-<style lang="scss" scoped>
-    .dark-circle {
-        font-size: 12px;
-        color: #979ba5;
-        margin-left: -2px;
-    }
-    #node-tooltip-content {
-        padding: 10px;
-        background: #000000;
-        border-radius: 2px;
-        overflow: hidden;
-        .bk-button {
-            float: left;
-            padding: 0 10px;
-            border: 1px solid transparent;
-            text-align: center;
-            &:first-child {
-                padding-left: 0;
-            }
-            &:last-child {
-                padding-right: 0;
-            }
-            &:not(:last-child) {
-                border-right: 1px solid #63656e;
-            }
-        }
-    }
 </style>

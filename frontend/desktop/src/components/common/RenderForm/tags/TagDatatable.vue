@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-datatable">
+    <div class="tag-datatable" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="button-area" v-if="editable && formMode">
             <bk-button
                 v-if="add_btn"
@@ -48,11 +48,11 @@
             </template>
         </div>
         <el-table
-            v-if="Array.isArray(value)"
+            v-if="Array.isArray(value) && !loading"
             style="width: 100%; font-size: 12px"
             :data="tableValue"
             :empty-text="empty_text"
-            v-loading="loading"
+            :fit="false"
             border>
             <template v-for="(item, cIndex) in columns">
                 <el-table-column

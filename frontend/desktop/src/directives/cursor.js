@@ -22,7 +22,7 @@ function init (el, binding) {
         const element = document.createElement('div')
         element.id = 'directive-ele'
         element.style.position = 'absolute'
-        element.style.zIndex = '1501'
+        element.style.zIndex = '2501'
         el.element = element
         document.body.appendChild(element)
         
