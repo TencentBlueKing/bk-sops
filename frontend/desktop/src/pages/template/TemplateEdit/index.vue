@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -78,6 +78,7 @@
                     :is-show="isShowConditionEdit"
                     :condition-data="conditionData"
                     :is-setting-panel-show="isSettingPanelShow"
+                    :setting-active-tab="settingActiveTab"
                     :is-show-condition-edit="isShowConditionEdit"
                     @onCloseConditionEdit="onCloseConditionEdit">
                 </condition-edit>
@@ -140,6 +141,7 @@
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
+    import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
@@ -168,6 +170,7 @@
             TemplateSetting,
             SubflowUpdateTips
         },
+        mixins: [permission],
         props: ['template_id', 'type', 'common'],
         data () {
             return {
@@ -640,6 +643,7 @@
             },
             // 子流程分组
             handleSubflowGroup (data) {
+                const { meta, objects: tplList } = data
                 const groups = this.projectBaseInfo.task_categories.map(item => {
                     return {
                         type: item.value,
@@ -648,16 +652,21 @@
                         list: []
                     }
                 })
-                data.forEach(item => {
+                tplList.forEach(item => {
                     if (item.id !== Number(this.template_id)) {
                         const group = groups.find(tpl => tpl.type === item.category)
                         if (group) {
+                            item.hasPermission = this.hasPermission(['view'], item.auth_actions, meta.auth_operations)
                             group.list.push(item)
                         }
                     }
                 })
 
-                this.atomTypeList.subflow = groups
+                this.atomTypeList.subflow = {
+                    tplOperations: meta.auth_operations,
+                    tplResource: meta.auth_resource,
+                    groups
+                }
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth
@@ -665,7 +674,7 @@
                 if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
                     this.hideConfigPanel()
                 }
-                if (this.isShowConditionEdit) {
+                if (isSettingPanelShow && this.isShowConditionEdit && clientX < 1920) {
                     this.onCloseConditionEdit()
                 }
                 if (isSettingPanelShow) {

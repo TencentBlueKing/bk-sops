@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -50,16 +50,26 @@
                                 </span>
                             </div>
                             <ul slot="content" class="list-item-wrap">
-                                <li
-                                    :class="['list-item', { selected: getSelectedStatus(item) }]"
-                                    v-for="(item, index) in group.list"
-                                    :key="index"
-                                    @click="onSelect(item)">
-                                    <span class="node-name">{{ item.name }}</span>
-                                    <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
-                                        <i class="common-icon-box-top-right-corner"></i>
-                                    </span>
-                                </li>
+                                <template v-for="(item, index) in group.list">
+                                    <li
+                                        v-if="!isSubflow || item.hasPermission"
+                                        :class="['list-item', { selected: getSelectedStatus(item) }]"
+                                        :key="index"
+                                        @click="onSelect(item)">
+                                        <span class="node-name">{{ item.name }}</span>
+                                        <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                            <i class="common-icon-box-top-right-corner"></i>
+                                        </span>
+                                    </li>
+                                    <li
+                                        v-else
+                                        class="list-item text-permission-disable"
+                                        :key="item.id"
+                                        v-cursor
+                                        @click="onApplyPermission(item)">
+                                        {{ item.name }}
+                                    </li>
+                                </template>
                                 <div class="node-empty" v-if="group.list.length === 0">
                                     <no-data></no-data>
                                 </div>
@@ -70,16 +80,26 @@
                 <!-- 搜索结果插件列表 -->
                 <template v-else>
                     <ul slot="content" class="list-item-wrap">
-                        <li
-                            :class="['list-item', { selected: getSelectedStatus(item) }]"
-                            v-for="(item, index) in searchResult"
-                            :key="index"
-                            @click="onSelect(item)">
-                            <span class="node-name">{{ item.name }}</span>
-                            <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
-                                <i class="common-icon-box-top-right-corner"></i>
-                            </span>
-                        </li>
+                        <template v-for="(item, index) in searchResult">
+                            <li
+                                v-if="!isSubflow || item.hasPermission"
+                                :class="['list-item', { selected: getSelectedStatus(item) }]"
+                                :key="index"
+                                @click="onSelect(item)">
+                                <span class="node-name">{{ item.name }}</span>
+                                <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                    <i class="common-icon-box-top-right-corner"></i>
+                                </span>
+                            </li>
+                            <li
+                                v-else
+                                class="list-item text-permission-disable"
+                                :key="item.id"
+                                v-cursor
+                                @click="onApplyPermission(item)">
+                                {{ item.name }}
+                            </li>
+                        </template>
                         <div class="node-empty" v-if="searchResult.length === 0">
                             <no-data></no-data>
                         </div>
@@ -95,6 +115,7 @@
     import '@/utils/i18n.js'
     import NoData from '@/components/common/base/NoData.vue'
     import toolsUtils from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
@@ -102,6 +123,7 @@
         components: {
             NoData
         },
+        mixins: [permission],
         props: {
             atomTypeList: {
                 type: Object
@@ -129,7 +151,7 @@
         },
         computed: {
             listData () {
-                return this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
+                return this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
             },
             listInPanel () {
                 return (this.searchStr === '' && this.selectedGroup === 'all') ? this.listData : this.searchResult
@@ -227,6 +249,10 @@
                     }
                 })
                 window.open(href, '_blank')
+            },
+            onApplyPermission (tpl) {
+                const { tplOperations, tplResource } = this.atomTypeList.subflow
+                this.applyForPermission(['view'], tpl, tplOperations, tplResource)
             }
         }
     }
@@ -252,7 +278,7 @@
     }
 }
 .list-wrapper {
-    height: calc(100vh - 232px);
+    height: calc(100vh - 234px);
     border-top: 1px solid #e2e4ed;
     overflow: auto;
     clear: both;

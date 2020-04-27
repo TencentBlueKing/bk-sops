@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -33,7 +33,13 @@
                             </span>
                         </th>
                         <th>{{i18n.cloudArea}}</th>
-                        <th>IP</th>
+                        <th>
+                            IP
+                            <span class="sort-group">
+                                <i :class="['sort-icon', 'up', { 'active': ipSortActive === 'up' }]" @click="onIpSort('up')"></i>
+                                <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
+                            </span>
+                        </th>
                         <th>{{i18n.status + i18n.error}}</th>
                     </tr>
                 </thead>
@@ -106,20 +112,31 @@
                 totalCount: this.staticIpList.length,
                 listCountPerPage,
                 listInPage,
-                i18n
-            }
-        },
-        computed: {
-            list () {
-                return this.isSearchMode ? this.searchResult : this.staticIpList
+                ipSortActive: '',
+                i18n,
+                list: this.staticIpList
             }
         },
         watch: {
             staticIpList (val) {
-                this.setPanigation(val)
+                this.setDisplayList()
+            },
+            isSearchMode () {
+                this.setDisplayList()
+            },
+            ipSortActive () {
+                this.setDisplayList()
             }
         },
         methods: {
+            setDisplayList () {
+                let list = this.isSearchMode ? this.searchResult : this.staticIpList
+                if (this.ipSortActive) {
+                    list = this.getSortIpList(list, this.ipSortActive)
+                }
+                this.list = list
+                this.setPanigation(list)
+            },
             setPanigation (list = []) {
                 this.listInPage = list.slice(0, this.listCountPerPage)
                 const totalPage = Math.ceil(list.length / this.listCountPerPage)
@@ -176,6 +193,29 @@
                     this.selectedIp.push(host)
                     this.listAllSelected = checkedNumInPage === this.listInPage.length - 1 ? true : 'half'
                 }
+            },
+            getSortIpList (list, way = 'up') {
+                const srotList = list.slice(0)
+                const sortVal = way === 'up' ? 1 : -1
+                srotList.sort((a, b) => {
+                    const srotA = a.bk_host_innerip.split('.')
+                    const srotB = b.bk_host_innerip.split('.')
+                    for (let i = 0; i < 4; i++) {
+                        if (srotA[i] * 1 > srotB[i] * 1) {
+                            return sortVal
+                        } else if (srotA[i] * 1 < srotB[i] * 1) {
+                            return -sortVal
+                        }
+                    }
+                })
+                return srotList
+            },
+            onIpSort (way) {
+                if (this.ipSortActive === way) {
+                    this.ipSortActive = ''
+                    return
+                }
+                this.ipSortActive = way
             },
             onPageChange (page) {
                 this.currentPage = page
@@ -287,6 +327,27 @@
                 height: 1px;
                 width: 8px;
                 background: #ffffff;
+            }
+        }
+    }
+    .sort-group {
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: top;
+        .sort-icon {
+            display: block;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 5px 5px 0 5px;
+            border-color: #c4c6cc transparent transparent transparent;
+            cursor: pointer;
+            &.up {
+                margin-bottom: 2px;
+                transform: rotate(180deg);
+            }
+            &.active {
+                border-color: #3a84ff transparent transparent transparent;
             }
         }
     }
