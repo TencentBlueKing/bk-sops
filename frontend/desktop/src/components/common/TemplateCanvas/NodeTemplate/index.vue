@@ -419,11 +419,6 @@
                     transform: rotate(360deg);
                 }
             }
-            &.subflow-status {
-                right: -10px;
-                top: -10px;
-                z-index: 1;
-            }
         }
     }
     .task-node-tooltip.el-tooltip__popper {
