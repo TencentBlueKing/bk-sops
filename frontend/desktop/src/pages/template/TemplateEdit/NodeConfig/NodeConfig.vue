@@ -727,22 +727,26 @@
             }
             &.position-right-var {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 857px;
+                    right: 856px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-basic-info{
                 /deep/ .bk-sideslider-wrapper {
-                    right: 477px;
+                    right: 476px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-cache {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 477px;
+                    right: 476px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-template-data {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 897px;
+                    right: 896px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
         }
