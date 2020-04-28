@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -404,8 +404,7 @@
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
-                const name = $branchEl.textContent
-                const value = $branchEl.dataset.value
+                const { name, evaluate: value } = this.canvasData.branchConditions[nodeId][lineId]
                 // 先去除选中样式
                 document.querySelectorAll('.branch-condition.editing').forEach(dom => {
                     dom.classList.remove('editing')
@@ -606,7 +605,6 @@
                             type: 'Label',
                             name: `<div class="branch-condition"
                                     title="${labelName}(${labelValue})"
-                                    data-value="${labelValue}"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
                             location: -70,
@@ -652,7 +650,7 @@
                 // 点击 overlay 类型
                 const TypeMap = [
                     { type: 'close', rule: /^(close_)(\w*)/ },
-                    { type: 'branchCondition', rule: /^(conditionline)(\w*)/ }
+                    { type: 'branchCondition', rule: /^(condition)(\w*)/ }
                 ]
                 let lineId = ''
                 const result = TypeMap.find(m => {
@@ -894,7 +892,6 @@
                         type: 'Label',
                         name: `<div class="branch-condition"
                                 title="${name}(${value})"
-                                data-value="${value}"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
                         location: -70,
@@ -1223,7 +1220,6 @@
             }
             & + .help-info-wrap {
                 .hot-key-panel {
-                    top: 124px;
                     left: 380px;
                     z-index: 5;
                 }

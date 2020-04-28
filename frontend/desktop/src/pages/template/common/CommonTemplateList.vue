@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -118,7 +118,7 @@
                                     <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
                                     <bk-popover
                                         theme="light"
-                                        placement="right-top"
+                                        placement="bottom-start"
                                         ext-cls="common-dropdown-btn-popver"
                                         :z-index="2000"
                                         :distance="0"
@@ -131,6 +131,7 @@
                                                     v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, tplOperations) }"
                                                     href="javascript:void(0);"
                                                     :class="{
+                                                        'disable': collectingId === props.row.id || collectListLoading,
                                                         'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, tplOperations)
                                                     }"
                                                     @click="onCollectTemplate(props.row, $event)">
@@ -330,6 +331,7 @@
                     delete: false // 删除
                 },
                 templateCategoryList: [],
+                collectListLoading: false,
                 collectionList: [],
                 category: undefined,
                 editEndTime: undefined,
@@ -350,6 +352,7 @@
                     'limit-list': [15, 20, 30]
                 },
                 createTplRequired: ['create'],
+                collectingId: '', // 正在被收藏/取消收藏的模板id
                 tplOperations: [], // 模板权限字典
                 tplResource: {}, // 模板资源信息
                 createCommonTplAction: [] // 创建公共流程权限
@@ -492,10 +495,13 @@
             },
             async getCollectList () {
                 try {
+                    this.collectListLoading = true
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.collectListLoading = false
                 }
             },
             checkCreatePermission () {
@@ -674,7 +680,12 @@
                     this.onTemplatePermissonCheck(['view'], template, event)
                     return
                 }
+                if (typeof this.collectingId === 'number') {
+                    return
+                }
+
                 try {
+                    this.collectingId = template.id
                     if (!this.isCollected(template.id)) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
@@ -695,6 +706,8 @@
                     this.getCollectList()
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
                 }
             },
             // 判断是否已在收藏列表
@@ -749,6 +762,8 @@ a {
         cursor: pointer;
         &:hover {
             color: #3a84ff;
+            background: #dcdee5;
+            border-radius: 50%;
         }
     }
     .empty-data {

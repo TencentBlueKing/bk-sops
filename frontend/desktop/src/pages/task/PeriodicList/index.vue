@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -126,7 +126,7 @@
                                 </router-link>
                                 <bk-popover
                                     theme="light"
-                                    placement="right-top"
+                                    placement="bottom-start"
                                     ext-cls="common-dropdown-btn-popver"
                                     :z-index="2000"
                                     :distance="0"
@@ -139,6 +139,7 @@
                                                 v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, periodicOperations) }"
                                                 href="javascript:void(0);"
                                                 :class="{
+                                                    'disable': props.row.id === collectingId || collectListLoading,
                                                     'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, periodicOperations)
                                                 }"
                                                 @click="onCollectTask(props.row, $event)">
@@ -299,6 +300,8 @@
                 isBootRecordDialogShow: false,
                 selectedPeriodicId: undefined,
                 periodicList: [],
+                collectingId: '', // 正在被收藏/取消收藏的周期任务id
+                collectListLoading: false,
                 collectionList: [],
                 selectedCron: undefined,
                 constants: {},
@@ -395,10 +398,13 @@
             },
             async getCollectList () {
                 try {
+                    this.collectListLoading = true
                     const res = await this.loadCollectList()
                     this.collectionList = res.objects
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.collectListLoading = false
                 }
             },
             searchInputhandler (data) {
@@ -543,19 +549,24 @@
                 this.getPeriodicList()
             },
             // 添加/取消收藏模板
-            async onCollectTask (template, event) {
-                if (!this.hasPermission(['view'], template.auth_actions, this.periodicOperations)) {
-                    this.onTemplatePermissonCheck(['view'], template, event)
+            async onCollectTask (task, event) {
+                if (!this.hasPermission(['view'], task.auth_actions, this.periodicOperations)) {
+                    this.onTemplatePermissonCheck(['view'], task, event)
                     return
                 }
+                if (typeof this.collectingId === 'number') {
+                    return
+                }
+
                 try {
-                    if (!this.isCollected(template.id)) { // add
+                    this.collectingId = task.id
+                    if (!this.isCollected(task.id)) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
-                                project_id: template.project.id,
-                                template_id: template.template_id,
-                                name: template.name,
-                                id: template.id
+                                project_id: task.project.id,
+                                template_id: task.template_id,
+                                name: task.name,
+                                id: task.id
                             },
                             category: 'periodic_task'
                         }])
@@ -563,13 +574,15 @@
                             this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
                         }
                     } else { // cancel
-                        const delId = this.collectionList.find(m => m.extra_info.id === template.id && m.category === 'periodic_task').id
+                        const delId = this.collectionList.find(m => m.extra_info.id === task.id && m.category === 'periodic_task').id
                         await this.deleteCollect(delId)
                         this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
                     }
                     this.getCollectList()
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
                 }
             },
             // 判断是否已在收藏列表
@@ -642,6 +655,8 @@
         cursor: pointer;
         &:hover {
             color: #3a84ff;
+            background: #dcdee5;
+            border-radius: 50%;
         }
     }
     .empty-data {

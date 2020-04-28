@@ -345,6 +345,7 @@
             }
         }
         .choose-plugin-btn {
+            padding: 0;
             width: 68px;
             height: 30px;
             line-height: 30px;

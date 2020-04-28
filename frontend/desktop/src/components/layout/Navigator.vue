@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -52,15 +52,30 @@
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="right-icon help-doc" :title="i18n.help">
+            <li class="right-icon help-doc">
                 <a
                     class="common-icon-dark-circle-question"
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
-                    target="_blank">
+                    target="_blank"
+                    v-bk-tooltips="{
+                        content: i18n.help,
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }">
                 </a>
             </li>
-            <li class="right-icon version-log" :title="i18n.logVersion">
-                <i class="common-icon-info" @click="onOpenVersion"></i>
+            <li class="right-icon version-log">
+                <i
+                    class="common-icon-info"
+                    v-bk-tooltips="{
+                        content: i18n.logVersion,
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }"
+                    @click="onOpenVersion">
+                </i>
             </li>
             <li class="right-icon user-avatar">
                 <span
@@ -325,12 +340,7 @@
              */
             togglePermissionApplyPage (resource, action) {
                 const permissions = []
-                const res = []
                 const { scope_id, scope_name, scope_type, scope_type_name, system_id, system_name } = this.authResource
-                res.push([{
-                    resource_type: resource.type,
-                    resource_type_name: resource.name
-                }])
                 permissions.push({
                     scope_id,
                     scope_name,
@@ -340,7 +350,7 @@
                     scope_type,
                     system_id,
                     system_name,
-                    resources: res,
+                    resources: [],
                     action_id: action.id,
                     action_name: action.name
                 })
@@ -490,7 +500,6 @@ header {
             }
             &.active > a{
                 color: $whiteDefault;
-                background: $blackDefault;
             }
             > a {
                 display: inline-block;
@@ -574,6 +583,9 @@ header {
         }
         .user-avatar {
             margin-left: 10px;
+            .common-icon-dark-circle-avatar {
+                cursor: text;
+            }
         }
         /deep/ .bk-select.is-disabled {
             background: none;
