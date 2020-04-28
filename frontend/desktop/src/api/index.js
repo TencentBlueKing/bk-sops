@@ -10,515 +10,114 @@
 * specific language governing permissions and limitations under the License.
 */
 import axios from 'axios'
-import qs from 'qs'
-import './interceptors.js'
-import store from '@/store/index.js'
+import axiosDefaults from 'axios/lib/defaults'
+import bus from '@/utils/bus.js'
+import { checkDataType } from '@/utils/checkDataType'
+import { setJqueryAjaxConfig } from '@/config/setting.js'
 
-import { getUrlSetting } from './urls.js'
-
-const axiosDefaults = require('axios/lib/defaults')
-
+axiosDefaults.baseURL = window.SITE_URL
 axiosDefaults.xsrfCookieName = window.APP_CODE + '_csrftoken'
 axiosDefaults.xsrfHeaderName = 'X-CSRFToken'
 axiosDefaults.withCredentials = true
 axiosDefaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 
-const fullURL = window.location.protocol + '//' + window.location.host
+// jquery ajax error handler
+setJqueryAjaxConfig()
 
-export function request (opts) {
-    const defaultOptions = {
-        method: 'GET',
-        url: '',
-        baseURL: fullURL,
-        data: {},
-        params: {}
+axios.interceptors.request.use(function (config) {
+    return config
+}, function (error) {
+    return Promise.reject(error)
+})
 
+axios.interceptors.response.use(
+    response => {
+        return response
+    },
+    error => {
+        // 取消接口请求
+        if (error.message === 'cancelled') {
+            console.warn('cancelled')
+            return Promise.reject(error)
+        }
+
+        const response = error.response
+        console.log(response)
+
+        switch (response.status) {
+            case 400:
+                const info = {
+                    message: response.data.error || response.data.msg.error,
+                    lines: 2,
+                    theme: 'error'
+                }
+                bus.$emit('showMessage', info)
+                break
+            case 401:
+                const data = response.data
+                if (data.has_plain) {
+                    window.top.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
+                }
+                break
+            case 403:
+            case 405:
+            case 406:
+            case 500:
+                bus.$emit('showErrorModal', response.status, response.data.responseText)
+                break
+            case 499:
+                const permissions = response.data.permission
+                let viewType = ''
+                const isViewApply = permissions.some(perm => {
+                    if (perm.action_id === 'view') {
+                        perm.resources.some(resource => {
+                            viewType = 'other'
+                            if (resource.find(item => item.resource_type === 'project')) {
+                                viewType = 'project'
+                                return true
+                            }
+                        })
+                        return true
+                    }
+                })
+                if (isViewApply) {
+                    bus.$emit('togglePermissionApplyPage', true, viewType, permissions)
+                } else {
+                    bus.$emit('showPermissionModal', permissions)
+                }
+                break
+        }
+        if (!response.data) {
+            const msg = gettext('接口数据返回为空')
+            console.warn(gettext('接口异常，'), gettext('HTTP状态码：'), response.status)
+            console.error(msg)
+            response.data = {
+                code: response.status,
+                msg: msg
+            }
+        } else {
+            const msg = response.data
+            response.data = {
+                code: response.status,
+                msg
+            }
+        }
+        if (response.data.message) {
+            if (checkDataType(response.data.message) === 'Object') {
+                const msg = []
+                for (const key in response.data.message) {
+                    msg.push(response.data.message[key].join(';'))
+                }
+                response.data.msg = msg.join(';')
+            } else if (checkDataType(response.data.message) === 'Array') {
+                response.data.msg = response.data.message.join(';')
+            } else {
+                response.data.msg = response.data.message
+            }
+        }
+        if (response.data.responseText) {
+            response.data.msg = response.data.responseText
+        }
+        return Promise.reject(response)
     }
-    const options = Object.assign({}, defaultOptions, opts)
-    return axios(options)
-}
-
-const api = {
-    /**
-     * 异步请求url配置项
-     * @param {String} path 路径名称
-     */
-    getPrefix (path) {
-        const { site_url } = store.state
-        const { project_id } = store.state.project
-        return getUrlSetting(site_url, project_id)[path]
-    },
-    /**
-     * 加载轻应用数据
-     */
-    loadAppmaker (data) {
-        const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data)
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: querystring
-        }
-        return request(opts)
-    },
-    /**
-     * 加载对应轻应用详情
-     * @param {String} id 轻应用id
-     */
-    loadAppmakerDetail (id) {
-        const prefixUrl = this.getPrefix('appmaker')
-        const opts = {
-            method: 'GET',
-            url: `${prefixUrl}${id}/`,
-            params: {
-                appmaker_id: id
-            }
-        }
-
-        return request(opts)
-    },
-    /**
-     * 编辑轻应用
-     * @param {Object} data 轻应用数据
-     */
-    appmakerEdit (data) {
-        const prefixUrl = this.getPrefix('appmakerEdit')
-        const opts = {
-            method: 'POST',
-            url: `${prefixUrl}`,
-            headers: { 'content-type': 'multipart/form-data' },
-            data
-        }
-
-        return request(opts)
-    },
-    /**
-     * 删除轻应用
-     * @param {String} id 轻应用id
-     */
-    appmakerDelete (id) {
-        const prefixUrl = this.getPrefix('appmaker')
-        const opts = {
-            method: 'DELETE',
-            url: `${prefixUrl}${id}/`
-        }
-
-        return request(opts)
-    },
-    queryTemplate (data) {
-        const prefixUrl = this.getPrefix('analysisTemplate')
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data
-        }
-        return request(opts)
-    },
-    queryAtom (data) {
-        const prefixUrl = this.getPrefix('analysisAtom')
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data
-        }
-        return request(opts)
-    },
-    queryInstance (data) {
-        const prefixUrl = this.getPrefix('analysisInstance')
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data
-        }
-        return request(opts)
-    },
-    queryAppmaker (data) {
-        const prefixUrl = this.getPrefix('analysisAppmaker')
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data
-        }
-        return request(opts)
-    },
-    getFunctionTaskList (data) {
-        const prefixUrl = this.getPrefix('function')
-        const querystring = Object.assign({}, data)
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: querystring
-        }
-        return request(opts)
-    },
-    loadAuditTaskList (data) {
-        const prefixUrl = this.getPrefix('instance')
-        const querystring = Object.assign({}, data)
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: querystring
-        }
-        return request(opts)
-    },
-    /**
-     * 创建定时任务
-     * @param {Object} data 包含 template_id模板名称, name定时名称, cron定时表达式
-     */
-    createPeriodic (data) {
-        const prefixUrl = this.getPrefix('periodic')
-        const { project_id } = store.state.project
-        const { name, cron, templateId, execData, templateSource } = data
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data: {
-                project: `api/v3/project/${project_id}/`,
-                cron: cron,
-                name: name,
-                template_id: templateId,
-                pipeline_tree: execData,
-                template_source: templateSource
-            }
-        }
-        return request(opts)
-    },
-    /**
-     * 获取定时任务列表
-     * @param {Object} data 筛选条件
-     */
-    getPeriodicList (data) {
-        const prefixUrl = this.getPrefix('periodic')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: { ...data }
-        }
-        return request(opts)
-    },
-    /**
-     * 设置定时任务执行状态
-     * @param {Object} data task_id 定时任务id, enabled 需要切换的状态
-     */
-    setPeriodicEnable (data) {
-        const { enabled, taskId } = data
-        const prefixUrl = this.getPrefix('periodicEnable') + taskId + '/'
-        const dataString = qs.stringify({
-            enabled
-        })
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: dataString
-        }
-        return request(opts)
-    },
-    /**
-     * 修改定时任务表达式
-     * @param {Object} data task_id 定时任务id, cron 表达式
-     */
-    modifyPeriodicCron (data) {
-        const { cron, taskId } = data
-        const prefixUrl = this.getPrefix('periodicModifyCron') + taskId + '/'
-        const dataString = qs.stringify({
-            'cron': cron
-        })
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: dataString
-        }
-        return request(opts)
-    },
-    getPeriodic (data) {
-        const { project_id } = store.state.project
-        const { taskId } = data
-        const querystring = Object.assign({}, { 'project_id': project_id })
-        const prefixUrl = this.getPrefix('periodic') + taskId + '/'
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: querystring
-        }
-        return request(opts)
-    },
-    modifyPeriodicConstants (data) {
-        const { constants, taskId } = data
-        const prefixUrl = this.getPrefix('periodicModifyConstants') + taskId + '/'
-        const dataString = qs.stringify({
-            'constants': constants
-        })
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            data: dataString
-        }
-        return request(opts)
-    },
-    deletePeriodic (id) {
-        const prefixUrl = this.getPrefix('periodic')
-        const opts = {
-            method: 'DELETE',
-            url: `${prefixUrl}${id}/`
-        }
-        return request(opts)
-    },
-    /**
-     * 加载插件包源配置
-     * @param {Object} fields 包源查询字段
-     */
-    loadPackageSource (fields) {
-        const prefixUrl = this.getPrefix('packageSource')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                fields: JSON.stringify(fields)
-            }
-        }
-        return request(opts)
-    },
-    /**
-     * 新增插件包源配置
-     * @param {Object} data 插件包源配置
-     */
-    createPackageSource (data) {
-        const { origins, caches } = data
-        const prefixUrl = this.getPrefix('packageSource')
-
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data: {
-                origins,
-                caches
-            }
-        }
-        return request(opts)
-    },
-    /**
-     * 删除所有插件包源
-     */
-    deletePackageSource (data) {
-        const prefixUrl = this.getPrefix('packageSource')
-
-        const opts = {
-            method: 'DELETE',
-            url: prefixUrl,
-            data
-        }
-        return request(opts)
-    },
-    /**
-     * 更新插件包源配置
-     * @param {Object} data 插件包源配置
-     */
-    updatePackageSource (data) {
-        const { origins, caches } = data
-        const prefixUrl = this.getPrefix('packageSource')
-
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            headers: {
-                'content-type': 'application/json',
-                'X-HTTP-Method-Override': 'PATCH'
-            },
-            data: {
-                origins,
-                caches
-            }
-        }
-        return request(opts)
-    },
-    /**
-     * 加载远程包源同步任务列表
-     */
-    loadSyncTask (params) {
-        const { limit, offset } = params
-        const prefixUrl = this.getPrefix('syncTask')
-
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                limit,
-                offset
-            }
-        }
-        return request(opts)
-    },
-    /**
-     * 创建远程包源同步
-     */
-    createSyncTask () {
-        const creator = store.state.username
-        const create_method = 'manual'
-        const prefixUrl = this.getPrefix('syncTask')
-
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data: {
-                creator,
-                create_method
-            }
-        }
-        return request(opts)
-    },
-    /**
-     * 获取人员列表
-     */
-    getMemberList () {
-        const prefixUrl = this.getPrefix('userList')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
-    loadApiList () {
-        const prefixUrl = this.getPrefix('esbGetSystems')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
-    loadApiComponent (params) {
-        const { name } = params
-        const prefixUrl = this.getPrefix('esbGetComponents')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                system_names: JSON.stringify(name)
-            }
-        }
-        return request(opts)
-    },
-    loadApiPluginCode (params) {
-        const { system, component } = params
-        const prefixUrl = this.getPrefix('esbGetPluginInitialCode')
-
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                esb_system: system,
-                esb_component: component
-            }
-        }
-        return request(opts)
-    },
-    adminSearch (data) {
-        const prefixUrl = this.getPrefix('adminSearch')
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data: {
-                keyword: data.keyword
-            }
-        }
-        return request(opts)
-    },
-    adminTemplate (data) {
-        const prefixUrl = this.getPrefix('adminTemplate')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: { ...data }
-        }
-        return request(opts)
-    },
-    adminTemplateRestore (data) {
-        const { template_id } = data
-        const prefixUrl = this.getPrefix('adminTemplateRestore')
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data: {
-                template_id
-            }
-        }
-        return request(opts)
-    },
-    adminTaskflow (data) {
-        const prefixUrl = this.getPrefix('adminTaskflow')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: { ...data }
-        }
-        return request(opts)
-    },
-    adminTaskflowDetail (data) {
-        const { task_id } = data
-
-        const prefixUrl = this.getPrefix('adminTaskflowDetail')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                task_id
-            }
-        }
-        return request(opts)
-    },
-    adminTaskflowHistroyLog (data) {
-        const prefixUrl = this.getPrefix('adminTaskflowHistroyLog')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: { ...data }
-        }
-        return request(opts)
-    },
-    adminTaskflowNodeForceFail (data) {
-        const { task_id, node_id } = data
-        const prefixUrl = this.getPrefix('taskflowNodeForceFail')
-        const opts = {
-            method: 'POST',
-            url: prefixUrl,
-            data: {
-                task_id,
-                node_id
-            }
-        }
-        return request(opts)
-    },
-    adminTaskflowNodeDetail (data) {
-        const prefixUrl = this.getPrefix('adminTaskflowNodeDetail')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: { ...data }
-        }
-        return request(opts)
-    },
-    adminPeriodTask (data) {
-        const prefixUrl = this.getPrefix('adminPeriodTask')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
-    adminPeriodTaskHistory (data) {
-        const { task_id } = data
-        const prefixUrl = this.getPrefix('adminPeriodTaskHistory')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                task_id
-            }
-        }
-        return request(opts)
-    }
-}
-
-export default api
+)

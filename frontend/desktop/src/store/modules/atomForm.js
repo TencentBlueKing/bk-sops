@@ -13,8 +13,6 @@ import Vue from 'vue'
 import axios from 'axios'
 import store from '@/store/index.js'
 
-const SITE_URL = '/t/bk_sops/'
-
 const META_FORM_TYPE = {
     'select': 'select_meta'
 }
@@ -76,7 +74,7 @@ const atomForm = {
          * 加载全量标准插件
          */
         loadSingleAtomList ({ commit }) {
-            return axios.get(SITE_URL + 'api/v3/component/').then(response => response.data.objects)
+            return axios.get('api/v3/component/').then(response => response.data.objects)
         },
         /**
          * 加载全量子流程
@@ -91,13 +89,7 @@ const atomForm = {
                 url = 'api/v3/template/'
                 params['project__id'] = project_id
             }
-            return axios.get(SITE_URL + url, { params }).then(response => response.data)
-        },
-        /**
-         * 加载标准插件统计数据
-         */
-        queryAtomData ({ commit }, data) {
-            return axios.post(SITE_URL + 'analysis/query_atom_by_group/', data).then(response => response.data)
+            return axios.get(url, { params }).then(response => response.data)
         },
         /**
          * 加载标准插件配置项
@@ -126,7 +118,7 @@ const atomForm = {
                     : `${url}${atomFile}/?version=${atomVersion}`
             }
 
-            await axios.get(SITE_URL + url).then(async response => {
+            await axios.get(url).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
                 commit('setAtomForm', { atomType: atom, data: response.data, isMeta, version: atomVersion })
@@ -165,7 +157,7 @@ const atomForm = {
                 url = `template/api/form/${project_id}/`
             }
 
-            return axios.get(SITE_URL + url, {
+            return axios.get(url, {
                 params: {
                     template_id: templateId,
                     version

@@ -13,8 +13,6 @@ import store from '@/store/index.js'
 import axios from 'axios'
 import { fileDownload } from '@/api/fileDownload.js'
 
-const SITE_URL = '/t/bk_sops/'
-
 const templateList = {
     namespaced: true,
     state: {
@@ -47,7 +45,7 @@ const templateList = {
             }
             const querystring = Object.assign({}, { 'project__id': project_id }, data)
 
-            return axios.get(SITE_URL + url, {
+            return axios.get(url, {
                 params: querystring
             }).then(response => response.data)
         },
@@ -60,7 +58,7 @@ const templateList = {
                 url = 'api/v3/template/'
             }
 
-            return axios.delete(SITE_URL + `${url}${templateId}/`).then(response => response.data.objects)
+            return axios.delete(`${url}${templateId}/`).then(response => response.data.objects)
         },
         /**
          * 检测上传模板合法性
@@ -77,9 +75,9 @@ const templateList = {
                 url = `template/api/import_check/${project_id}/`
             }
 
-            return axios.post(SITE_URL + url, formData, {
+            return axios.post(url, formData, {
                 headers: {
-                    'Content-Type': 'application/form-data'
+                    'content-type': 'application/form-data'
                 }
             }).then(response => response.data)
         },
@@ -96,7 +94,7 @@ const templateList = {
             } else {
                 url = `template/api/import/${project_id}/`
             }
-            return axios.post(SITE_URL + url, formData, {
+            return axios.post(url, formData, {
                 headers: { 'content-type': 'application/form-data' }
             }).then(response => response.data)
         },
@@ -114,7 +112,7 @@ const templateList = {
                 url = `template/api/export/${project_id}/`
             }
 
-            return axios.post(SITE_URL + url, {
+            return axios.post(url, {
                 template_id_list: list
             }, {
                 headers: {
@@ -145,7 +143,7 @@ const templateList = {
          */
         getExpiredSubProcess ({ commit }, data) {
             const { project_id } = store.state.project
-            return axios.get(SITE_URL + `template/api/get_templates_with_expired_subprocess/${project_id}/`).then(response => response.data)
+            return axios.get(`template/api/get_templates_with_expired_subprocess/${project_id}/`).then(response => response.data)
         }
     }
 }

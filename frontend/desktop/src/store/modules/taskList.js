@@ -13,8 +13,6 @@ import axios from 'axios'
 import qs from 'qs'
 import store from '@/store/index.js'
 
-const SITE_URL = '/t/bk_sops/'
-
 const taskList = {
     namespaced: true,
     state: {
@@ -35,12 +33,12 @@ const taskList = {
             if (common) {
                 querystring['template_source'] = 'common'
             }
-            return axios.get(SITE_URL + 'api/v3/taskflow/', {
+            return axios.get('api/v3/taskflow/', {
                 params: querystring
             }).then(response => response.data)
         },
         deleteTask ({ commit }, task_id) {
-            return axios.delete(SITE_URL + `api/v3/taskflow/${task_id}/`).then(response => response.data.objects)
+            return axios.delete(`api/v3/taskflow/${task_id}/`).then(response => response.data.objects)
         },
         cloneTask ({ commit }, data) {
             const { task_id, name } = data
@@ -53,7 +51,7 @@ const taskList = {
                 create_info: app_id,
                 test: 1
             })
-            return axios.post(SITE_URL + `taskflow/api/clone/${projectId}/`, dataString, {
+            return axios.post(`taskflow/api/clone/${projectId}/`, dataString, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         }

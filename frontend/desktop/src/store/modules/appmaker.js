@@ -9,7 +9,8 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
+import axios from 'axios'
+import store from '@/store/index.js'
 
 const appmaker = {
     namespaced: true,
@@ -32,20 +33,31 @@ const appmaker = {
         }
     },
     actions: {
+        // 加载轻应用列表
+        loadAppmaker ({ commit }, data) {
+            data.test = 6
+            const querystring = Object.assign({}, data)
+            return axios.get('api/v3/appmaker/', {
+                params: querystring
+            }).then(response => response.data)
+        },
+        /**
+         * 加载对应轻应用详情
+         * @param {String} id 轻应用id
+         */
         loadAppmakerDetail ({ commit }, id) {
-            return api.loadAppmakerDetail(id).then(response => response.data)
+            return axios.get(`api/v3/appmaker/${id}/`, {
+                params: { appmaker_id: id }
+            }).then(response => response.data)
         },
         appmakerEdit ({ commit }, data) {
-            return api.appmakerEdit(data).then(response => response.data)
+            const { project_id } = store.state.project
+            return axios.post(`appmaker/save/${project_id}/`, data, {
+                headers: { 'content-type': 'multipart/form-data' }
+            }).then(response => response.data)
         },
         appmakerDelete ({ commit }, id) {
-            return api.appmakerDelete(id).then(response => response.data)
-        },
-        queryAppmakerData ({ commit }, data) {
-            return api.queryAppmaker(data).then(response => response.data)
-        },
-        loadAppmaker ({ commit }, data) {
-            return api.loadAppmaker(data).then(response => response.data)
+            return axios.delete(`api/v3/appmaker/${id}/`).then(response => response.data)
         }
     }
 }

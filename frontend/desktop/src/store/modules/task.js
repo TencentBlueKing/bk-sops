@@ -9,12 +9,9 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
 import axios from 'axios'
 import qs from 'qs'
 import store from '@/store/index.js'
-
-const SITE_URL = '/t/bk_sops/'
 
 const task = {
     namespaced: true,
@@ -27,7 +24,7 @@ const task = {
             const { isCommon, project__id, template_id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.get(SITE_URL + url, {
+            return axios.get(url, {
                 params: {
                     template_id,
                     project__id: project__id
@@ -42,7 +39,7 @@ const task = {
             const { isCommon, project_id, template_id, data, name } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.post(SITE_URL + url, {
+            return axios.post(url, {
                 project__id: project_id,
                 template_id,
                 data,
@@ -57,7 +54,7 @@ const task = {
             const { isCommon, id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.delete(SITE_URL + `${url}${id}/`).then(response => response.data)
+            return axios.delete(`${url}${id}/`).then(response => response.data)
         },
         /**
          * 获取任务节点选择方案详情
@@ -67,7 +64,7 @@ const task = {
             const { isCommon, id } = payload
             const url = isCommon ? 'api/v3/common_scheme/' : 'api/v3/scheme/'
 
-            return axios.get(SITE_URL + `${url}${id}/`).then(response => response.data)
+            return axios.get(`${url}${id}/`).then(response => response.data)
         },
         /**
          * 获取任务节点预览数据
@@ -87,7 +84,7 @@ const task = {
             }
             const dataString = qs.stringify(dataJson)
 
-            return axios.post(SITE_URL + `taskflow/api/preview_task_tree/${project_id}/`, dataString, {
+            return axios.post(`taskflow/api/preview_task_tree/${project_id}/`, dataString, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -116,14 +113,14 @@ const task = {
                 requestData['template_source'] = 'common'
             }
 
-            return axios.post(SITE_URL + 'api/v3/taskflow/', requestData).then(response => response.data)
+            return axios.post('api/v3/taskflow/', requestData).then(response => response.data)
         },
         /**
          * 获取任务实例详细数据
          * @param {String} instance_id 实例id
          */
         getTaskInstanceData ({ commit }, instance_id) {
-            return axios.get(SITE_URL + `api/v3/taskflow/${instance_id}/`).then(response => response.data)
+            return axios.get(`api/v3/taskflow/${instance_id}/`).then(response => response.data)
         },
         /**
          * 职能化认领
@@ -136,7 +133,7 @@ const task = {
                 instance_id,
                 constants
             })
-            return axios.post(SITE_URL + `taskflow/api/flow/claim/${project_id}/`, requestData).then(response => response.data)
+            return axios.post(`taskflow/api/flow/claim/${project_id}/`, requestData).then(response => response.data)
         },
         /**
          * 获取任务实例状态信息
@@ -144,7 +141,7 @@ const task = {
          */
         getInstanceStatus ({ commit }, data) {
             const { instance_id, project_id, subprocess_id, cancelToken } = data
-            return axios.get(SITE_URL + `taskflow/api/status/${project_id}/`, {
+            return axios.get(`taskflow/api/status/${project_id}/`, {
                 params: {
                     instance_id,
                     subprocess_id
@@ -158,7 +155,7 @@ const task = {
         instanceStart ({ commit }, instance_id) {
             const { project_id } = store.state.project
             const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(SITE_URL + `taskflow/api/action/start/${project_id}/`, data, {
+            return axios.post(`taskflow/api/action/start/${project_id}/`, data, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -169,7 +166,7 @@ const task = {
         instancePause ({ commit }, instance_id) {
             const { project_id } = store.state.project
             const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(SITE_URL + `taskflow/api/action/pause/${project_id}/`, data, {
+            return axios.post(`taskflow/api/action/pause/${project_id}/`, data, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -180,7 +177,7 @@ const task = {
         instanceResume ({ commit }, instance_id) {
             const { project_id } = store.state.project
             const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(SITE_URL + `taskflow/api/action/resume/${project_id}/`, data, {
+            return axios.post(`taskflow/api/action/resume/${project_id}/`, data, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -191,7 +188,7 @@ const task = {
         instanceRevoke ({ commit }, instance_id) {
             const { project_id } = store.state.project
             const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(SITE_URL + `taskflow/api/action/revoke/${project_id}/`, data, {
+            return axios.post(`taskflow/api/action/revoke/${project_id}/`, data, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -203,7 +200,7 @@ const task = {
             const { instance_id, node_id } = data
             const { project_id } = store.state.project
             const qsData = qs.stringify({ instance_id: instance_id, node_id: node_id })
-            return axios.post(SITE_URL + `taskflow/api/nodes/action/pause_subproc/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/nodes/action/pause_subproc/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -215,7 +212,7 @@ const task = {
             const { instance_id, node_id } = data
             const { project_id } = store.state.project
             const qsData = qs.stringify({ instance_id: instance_id, node_id: node_id })
-            return axios.post(SITE_URL + `taskflow/api/nodes/action/resume_subproc/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/nodes/action/resume_subproc/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -226,7 +223,7 @@ const task = {
         instanceModifyParams ({ commit }, data) {
             const { project_id } = store.state.project
             const qsData = qs.stringify(data)
-            return axios.post(SITE_URL + `taskflow/api/inputs/modify/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/inputs/modify/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -237,7 +234,7 @@ const task = {
         getNodeActDetail ({ commit }, data) {
             const { project_id } = store.state.project
             const { instance_id, node_id, component_code, subprocess_stack, loop } = data
-            return axios.get(SITE_URL + `taskflow/api/nodes/detail/${project_id}/`, {
+            return axios.get(`taskflow/api/nodes/detail/${project_id}/`, {
                 params: {
                     instance_id,
                     node_id,
@@ -254,7 +251,7 @@ const task = {
         getNodeActInfo ({ commit }, data) {
             const { project_id } = store.state.project
             const { instance_id, node_id, component_code, subprocess_stack } = data
-            return axios.get(SITE_URL + `taskflow/api/nodes/data/${project_id}/`, {
+            return axios.get(`taskflow/api/nodes/data/${project_id}/`, {
                 params: {
                     instance_id,
                     node_id,
@@ -270,7 +267,7 @@ const task = {
         instanceRetry ({ commit }, data) {
             const { project_id } = store.state.project
             const qsData = qs.stringify(data)
-            return axios.post(SITE_URL + `taskflow/api/nodes/action/retry/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/nodes/action/retry/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -281,7 +278,7 @@ const task = {
         setSleepNode ({ commit }, data) {
             const { project_id } = store.state.project
             const qsData = qs.stringify(data)
-            return axios.post(SITE_URL + `taskflow/api/nodes/spec/timer/reset/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/nodes/spec/timer/reset/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -292,7 +289,7 @@ const task = {
         instanceNodeSkip ({ commit }, data) {
             const { project_id } = store.state.project
             const qsData = qs.stringify(data)
-            return axios.post(SITE_URL + `taskflow/api/nodes/action/skip/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/nodes/action/skip/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -303,7 +300,7 @@ const task = {
         skipExclusiveGateway ({ commit }, data) {
             const { project_id } = store.state.project
             const qsData = qs.stringify(data)
-            return axios.post(SITE_URL + `taskflow/api/nodes/action/skip_exg/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/nodes/action/skip_exg/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
@@ -314,16 +311,13 @@ const task = {
         pauseNodeResume ({ commit }, data) {
             const { project_id } = store.state.project
             const qsData = qs.stringify(data)
-            return axios.post(SITE_URL + `taskflow/api/nodes/action/callback/${project_id}/`, qsData, {
+            return axios.post(`taskflow/api/nodes/action/callback/${project_id}/`, qsData, {
                 headers: { 'content-type': 'application/x-www-form-urlencoded' }
             }).then(response => response.data)
         },
-        queryInstanceData ({ commit }, data) {
-            return api.queryInstance(data).then(response => response.data)
-        },
         // 加载创建任务方式数据
         loadCreateMethod () {
-            return axios.get(SITE_URL + 'taskflow/api/get_task_create_method/').then(response => response.data)
+            return axios.get('taskflow/api/get_task_create_method/').then(response => response.data)
         },
         /**
          * 获取作业执行详情
@@ -331,7 +325,7 @@ const task = {
          */
         getJobInstanceLog ({ commit }, data) {
             const { job_instance_id, project_id } = data
-            return axios.get(SITE_URL + `taskflow/api/nodes/get_job_instance_log/${project_id}/`, {
+            return axios.get(`taskflow/api/nodes/get_job_instance_log/${project_id}/`, {
                 params: { job_instance_id }
             }).then(response => response.data)
         }

@@ -16,8 +16,6 @@ import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
 import axios from 'axios'
 
-const SITE_URL = '/t/bk_sops/'
-
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
     endpoint: 'EmptyEndEvent',
@@ -758,7 +756,7 @@ const template = {
     },
     actions: {
         loadProjectBaseInfo () {
-            return axios.get(SITE_URL + 'core/api/get_basic_info/').then(response => response.data)
+            return axios.get('core/api/get_basic_info/').then(response => response.data)
         },
         loadTemplateData ({ commit }, data) {
             const { templateId, common } = data
@@ -768,10 +766,10 @@ const template = {
             } else {
                 prefixUrl = 'api/v3/template/'
             }
-            return axios.get(SITE_URL + `${prefixUrl}${templateId}/`).then(response => response.data)
+            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data)
         },
         loadCustomVarCollection () {
-            return axios.get(SITE_URL + 'api/v3/variable/').then(response => response.data.objects)
+            return axios.get('api/v3/variable/').then(response => response.data.objects)
         },
         /**
          * 保存模板数据
@@ -836,7 +834,7 @@ const template = {
                 headers['X-HTTP-Method-Override'] = 'PATCH'
             }
 
-            return axios.post(SITE_URL + url, {
+            return axios.post(url, {
                 name,
                 project,
                 category,
@@ -852,11 +850,11 @@ const template = {
         },
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
-            return axios.post(SITE_URL + 'template/api/draw_pipeline/', data).then(response => response.data)
+            return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
         },
         // 获取内置变量
         loadInternalVariable () {
-            return axios.get(SITE_URL + 'taskflow/api/context/').then(response => response.data)
+            return axios.get('taskflow/api/context/').then(response => response.data)
         }
     },
     getters: {

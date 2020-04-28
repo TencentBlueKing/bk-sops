@@ -9,71 +9,78 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
+import axios from 'axios'
 
 const admin = {
     namespaced: true,
-    state: {},
-    mutations: {},
     actions: {
-        /**
-         * 加载标准插件统计数据
-         */
-        // queryAtomData ({ commit }, data) {
-        //     return axios.post(SITE_URL + 'analysis/query_atom_by_group/', data).then(response => response.data)
-        // },
+        // 管理员搜索返回匹配结果
         search ({ commit }, data) {
-            return api.adminSearch(data).then(
-                response => response.data
-            )
+            return axios.post('admin/search/', { keyword: data.keyword }).then(response => response.data)
         },
+        // 管理员搜索模板列表
         template ({ commit }, data) {
-            return api.adminTemplate(data).then(
-                response => response.data
-            )
+            return axios.get('admin/api/v3/template/', {
+                params: { ...data }
+            }).then(response => response.data)
         },
+        // 管理员搜索任务列表
         taskflow ({ commit }, data) {
-            return api.adminTaskflow(data).then(
-                response => response.data
-            )
+            return axios.get('admin/api/v3/taskflow/', {
+                params: { ...data }
+            }).then(response => response.data)
         },
-        periodTask ({ commit }, data) {
-            return api.adminPeriodTask(data).then(
-                response => response.data
-            )
-        },
-        queryTemplateData ({ commit }, data) {
-            return api.queryTemplate(data).then(response => response.data)
-        },
+        // 周期任务启动记录
         periodTaskHistory ({ commit }, data) {
-            return api.adminPeriodTaskHistory(data).then(
-                response => response.data
-            )
+            const { task_id } = data
+            return axios.get('admin/api/v3/periodic_task_history/', {
+                params: { task_id }
+            }).then(response => response.data)
         },
+        // 恢复模板
         templateRestore ({ commit }, data) {
-            return api.adminTemplateRestore(data).then(
-                response => response.data
-            )
+            const { template_id } = data
+            return axios.post('admin/template/restore/', { template_id }).then(response => response.data)
         },
+        // 任务执行详情，管理员入口进入
         taskflowDetail ({ commit }, data) {
-            return api.adminTaskflowDetail(data).then(
-                response => response.data
-            )
+            const { task_id } = data
+            return axios.get('admin/taskflow/detail/', {
+                params: { task_id }
+            }).then(response => response.data)
         },
+        // 节点执行详情，管理员入口进入
         taskflowNodeDetail ({ commit }, data) {
-            return api.adminTaskflowNodeDetail(data).then(
-                response => response.data
-            )
+            return axios.get('admin/taskflow/node/detail/', {
+                params: { ...data }
+            }).then(response => response.data)
         },
+        // 节点执行历史记录，管理员入口进入
         taskflowHistroyLog ({ commit }, data) {
-            return api.adminTaskflowHistroyLog(data).then(
-                response => response.data
-            )
+            return axios.get('admin/taskflow/node/history/log/', {
+                params: { ...data }
+            }).then(response => response.data)
         },
+        // 节点强制失败，管理员入口进入
         taskflowNodeForceFail ({ commit }, data) {
-            return api.adminTaskflowNodeForceFail(data).then(
-                response => response.data
-            )
+            const { task_id, node_id } = data
+            return axios.post('admin/taskflow/node/force_fail/', { task_id, node_id }).then(response => response.data)
+        },
+        // 加载标准插件统计数据
+        queryTemplateData ({ commit }, data) {
+            return axios.post('analysis/query_template_by_group/', data).then(response => response.data)
+        },
+        // 加载标准插件统计数据
+        queryAtomData ({ commit }, data) {
+            return axios.post('analysis/query_atom_by_group/', data).then(response => response.data)
+        },
+        // 加载任务实例统计数据
+        queryInstanceData ({ commit }, data) {
+            return axios.post('analysis/query_instance_by_group/', data).then(response => response.data)
+        },
+        // 加载轻应用统计数据
+        queryAppmakerData ({ commit }, data) {
+            return axios.post('analysis/query_appmaker_by_group/', data).then(response => response.data)
         }
     }
 }

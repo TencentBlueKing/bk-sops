@@ -11,8 +11,6 @@
 */
 import axios from 'axios'
 
-const SITE_URL = '/t/bk_sops/'
-
 const project = {
     namespaced: true,
     state: {
@@ -51,11 +49,15 @@ const project = {
     actions: {
         // 更改用户的默认项目
         changeDefaultProject ({ state }, data) {
-            return axios.post(SITE_URL + `core/api/change_default_project/${state.project_id}/`).then(response => response.data)
+            return axios.post(`core/api/change_default_project/${state.project_id}/`, {
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
+            }).then(response => response.data)
         },
         loadProjectList ({ commit }, data) {
             const { limit, offset, is_disable = false, q } = data
-            return axios.get(SITE_URL + `api/v3/project/`, {
+            return axios.get(`api/v3/project/`, {
                 params: {
                     limit,
                     offset,
@@ -72,26 +74,26 @@ const project = {
         },
         // 获取常用业务
         loadCommonProject ({ commit }, data) {
-            return axios.get(SITE_URL + 'api/v3/common_use_project/').then(response => response.data)
+            return axios.get('api/v3/common_use_project/').then(response => response.data)
         },
         createProject ({ commit }, data) {
             const { name, time_zone, desc } = data
 
-            return axios.post(SITE_URL + `api/v3/project/`, {
+            return axios.post(`api/v3/project/`, {
                 name,
                 time_zone,
                 desc
             }).then(response => response.data)
         },
         loadProjectDetail ({ commit }, id) {
-            return axios.get(SITE_URL + `api/v3/project/${id}/`).then(
+            return axios.get(`api/v3/project/${id}/`).then(
                 response => response.data
             )
         },
         // 更新项目详情
         updateProject ({ commit }, data) {
             const { id, name, time_zone, desc, is_disable } = data
-            return axios.patch(SITE_URL + `api/v3/project/${id}/`, {
+            return axios.patch(`api/v3/project/${id}/`, {
                 name,
                 time_zone,
                 desc,

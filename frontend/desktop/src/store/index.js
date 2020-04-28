@@ -17,8 +17,6 @@ import axios from 'axios'
 
 Vue.use(Vuex)
 
-const SITE_URL = '/t/bk_sops/'
-
 function getAppLang () {
     return getCookie('blueking_language')
 }
@@ -75,28 +73,28 @@ const store = new Vuex.Store({
     actions: {
         // 获取页面动态 footer 内容
         getFooterContent () {
-            return axios.get(SITE_URL + 'core/footer/').then(response => response.data)
+            return axios.get('core/footer/').then(response => response.data)
         },
         // 获取项目版本更新日志列表
         getVersionList () {
-            return axios.get(SITE_URL + 'version_log/version_logs_list/').then(response => response.data)
+            return axios.get('version_log/version_logs_list/').then(response => response.data)
         },
         // 版本日志详情
         getVersionDetail ({ commit }, data) {
-            return axios.get(SITE_URL + 'version_log/version_log_detail/', {
+            return axios.get('version_log/version_log_detail/', {
                 params: {
                     log_version: data.version
                 }
             }).then(response => response.data)
         },
         getCategorys ({ commit }) {
-            axios.get(SITE_URL + 'analysis/get_task_category/').then(response => {
+            axios.get('analysis/get_task_category/').then(response => {
                 commit('setCategorys', response.data.data)
             })
         },
         // 获取收藏列表
         loadCollectList ({ commit }, data) {
-            return axios.get(SITE_URL + 'api/v3/collection/', {
+            return axios.get('api/v3/collection/', {
                 params: {
                     limit: 0
                 }
@@ -104,13 +102,17 @@ const store = new Vuex.Store({
         },
         // 收藏模板，批量操作
         addToCollectList ({ commit }, list) {
-            return axios.put(SITE_URL + 'api/v3/collection/', {
+            return axios.put('api/v3/collection/', {
                 objects: list
             }).then(response => response.data)
         },
         // 删除收藏模板，单个删除
         deleteCollect ({ commit }, id) {
-            return axios.delete(SITE_URL + `api/v3/collection/${id}/`).then(response => response.data)
+            return axios.delete(`api/v3/collection/${id}/`, {
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
+            }).then(response => response.data)
         },
         // ip 选择器接口 start --->
         // 查询业务在 CMDB 的主机
@@ -159,9 +161,9 @@ const store = new Vuex.Store({
          */
         getPermissionUrl ({ commit }, data) {
             const dataBody = qs.stringify({ permission: data })
-            return axios.post(SITE_URL + 'core/api/query_apply_permission_url/', dataBody, {
+            return axios.post('core/api/query_apply_permission_url/', dataBody, {
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'content-type': 'application/x-www-form-urlencoded'
                 }
             }).then(response => response.data)
         },
@@ -176,9 +178,9 @@ const store = new Vuex.Store({
                 instance_id,
                 action_ids
             })
-            return axios.post(SITE_URL + 'core/api/query_resource_verify_perms/', dataBody, {
+            return axios.post('core/api/query_resource_verify_perms/', dataBody, {
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'content-type': 'application/x-www-form-urlencoded'
                 }
             }).then(response => response.data)
         }

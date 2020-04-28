@@ -230,7 +230,7 @@
             this.getData()
         },
         methods: {
-            ...mapActions('appmaker', [
+            ...mapActions('admin', [
                 'queryAppmakerData'
             ]),
             getData () {

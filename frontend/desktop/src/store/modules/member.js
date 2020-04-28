@@ -9,7 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
+import axios from 'axios'
 
 const member = {
     namespaced: true,
@@ -22,10 +22,9 @@ const member = {
         }
     },
     actions: {
+        // 加载用户数据
         loadMemberList () {
-            return api.getMemberList().then(
-                response => response.data
-            )
+            return axios.get('core/api/get_user_list/').then(response => response.data)
         }
     }
 }
