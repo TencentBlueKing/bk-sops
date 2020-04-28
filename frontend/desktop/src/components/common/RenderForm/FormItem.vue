@@ -16,7 +16,7 @@
             'rf-form-item',
             'clearfix',
             {
-                'rf-has-hook': showHook,
+                'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
                 'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols
