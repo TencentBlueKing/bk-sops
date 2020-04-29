@@ -39,6 +39,20 @@
             }
         },
         {
+            tag_code: "cc_host_ip",
+            type: "textarea",
+            attrs: {
+                name: gettext("主机内网IP"),
+                placeholder: gettext("请输入主机内网IP，多个用换行分隔"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "cc_host_property",
             type: "select",
             attrs: {
@@ -87,20 +101,6 @@
                     }
                 }
             ],
-        },
-        {
-            tag_code: "cc_host_ip",
-            type: "textarea",
-            attrs: {
-                name: gettext("主机内网IP"),
-                placeholder: gettext("请输入主机内网IP，多个用换行符分隔"),
-                hookable: true,
-                validation: [
-                    {
-                        type: "required"
-                    }
-                ]
-            }
         },
         {
             tag_code: "cc_host_prop_value",

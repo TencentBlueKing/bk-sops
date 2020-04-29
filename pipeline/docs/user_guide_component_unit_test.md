@@ -18,7 +18,7 @@
 
 ### 组件测试类
 
-要使用框架提供的单元测试框架十分容易，只需要在定义测试类的时候将框架提供的测试混入类混入到当期类中即可：
+要使用框架提供的单元测试框架十分容易，只需要在定义测试类的时候将框架提供的测试混入类混入到当前类中即可：
 
 ```python
 
@@ -29,7 +29,7 @@ class AComponentTestCase(TestCase, ComponentTestMixin):
 
     @property
     def component_cls(self):
-        # return the component class which should be testet
+        # return the component class which should be tested
         return TheScheduleComponent
 
     @property
@@ -39,7 +39,7 @@ class AComponentTestCase(TestCase, ComponentTestMixin):
 
 ```
 
-将测试类混入到当期类中后，还需要定义两个属性：
+将测试类混入到当前类中后，还需要定义两个属性：
 
 - `component_cls`：该方法返回需要被测试的组件的类。
 - `cases`：该方法返回该组件的所有测试用例。
@@ -93,7 +93,6 @@ ComponentTestCase(name='case 1',
 
 - `name`：用例名，框架在用例运行失败时会使用当前用例名在日志信息中提示开发者，定义有意义的用例名能够方便我们快速了解该用例测试的功能以及在用例执行失败时快速定位。
 - `inputs`：组件执行输入数据，其中定义的数据在测试用例执行前会被设置到被测组件所绑定服务的 `execute(data, parent_data)` 及 `schedule(self, data, parent_data, callback_data=None)` 方法中 `data` 对象的 `inputs` 中。
-- `parent_data`：组件执行上下文数据，其中定义的数据在测试用例执行前会被设置到被测组件所绑定服务的 `execute(data, parent_data)` 及 `schedule(self, data, parent_data, callback_data=None)` 方法中 `data` 对象的 `inputs` 中。
 - `parent_data`：组件执行上下文数据，其中定义的数据在测试用例执行前会被设置到被测组件所绑定服务的 `execute(data, parent_data)` 及 `schedule(self, data, parent_data, callback_data=None)` 方法中 `parent_data` 对象的 `inputs` 中。
 - `execute_assertion`：执行断言，用于检测本次测试中组件绑定服务的 `execute` 方法的行为是否符合预期。
 - `schedule_assertion`：调度断言，用于检测本次测试中组件绑定服务的 `schedule` 方法的行为是否符合预期；对于非调度或断言型的组件，该字段留空即可。
@@ -146,6 +145,44 @@ CallAssertion(func='pipeline_test_use.components.collections.experience.need_pat
 - `calls`：对函数的调用断言，若要进行“没有被调用”的断言，传递空数组即可。
 - `any_order`：是否对 `calls` 中的调用断言没有顺序要求。
 
+#### 如何patch ESB接口调用
+大部分插件都会调用ESB接口，在单元测试中，我们可以将这个调用过程进行patch，使被测插件在执行时，接口调用并不实际发生，而是通过MagicMock返回我们给定的响应。比如对于作业平台job.fast_execute_script，
+我们可以编写这样的Mock类：
+```python
+class MockClient(object):
+    def __init__(self, fast_execute_script_return=None):
+        self.job = MagicMock()
+        self.job.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
+```
+实例化该类时，提供接口响应用例数据：
+```python
+success_result = {
+    'result': True,
+    'code': 0,
+    'message': 'success',
+    'data': {
+        'job_instance_name': 'API Quick execution script1521100521303',
+        'job_instance_id': 10000
+    },
+}
+mock_client = MockClient(fast_execute_script_return=success_result)
+```
+
+而在测试用例中，patch获取client的get_client_by_user函数为mock_client:
+```python
+from pipeline.component_framework.test import Patcher
+
+GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.job.get_client_by_user'
+
+
+ComponentTestCase(
+    ...
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=mock_client)
+    ]
+    ...
+    )
+```
 ## 示例
 
 让我们针对下面代码中定义的组件来编写一个测试类：
@@ -226,11 +263,9 @@ from pipeline_test_use.components.collections.experience import TheScheduleCompo
 
 class TheScheduleComponentTest(TestCase, ComponentTestMixin):
 
-    @property
     def component_cls(self):
         return TheScheduleComponent
 
-    @property
     def cases(self):
         return [
             ComponentTestCase(name='success case',
@@ -289,3 +324,4 @@ class TheScheduleComponentTest(TestCase, ComponentTestMixin):
 - `success case`：在这个用例中，我们测试了组件成功执行的情况。在执行断言中：我们根据组件的行为对输出数据进行了断言；在调度断言中，我们定义了三个断言对象，并根据组件的行为分别对不同调度中的输出数据及调度完成情况进行断言。
 - `execute fail case`：在这个用例中，我们测试了组件服务 `execute` 方法执行失败的情况，由于 `execute` 方法执行失败后不会再进入调度状态，所以我们没有设置调度断言。
 - `schedule fail case`：在这个用例中，我们测试了组件服务 `schedule` 方法执行失败的情况。
+

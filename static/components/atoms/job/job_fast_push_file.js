@@ -38,7 +38,7 @@
                         type: "textarea",
                         attrs: {
                             name: gettext("文件路径"),
-                            placeholder: gettext("多个请用换行分隔"),
+                            placeholder: gettext("多个用换行分隔"),
                             width: '200px',
                             editable: true,
                             validation: [
@@ -76,7 +76,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("目标IP"),
-                placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
+                placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
                 hookable: true,
                 validation: [
                     {

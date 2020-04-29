@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,7 +16,7 @@
             :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
-                    <p class="text title">{{ commonTitle + i18n.shortcuts }}</p>
+                    <p class="title">{{ commonTitle + i18n.shortcuts }}</p>
                     <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     <table>
                         <tbody>
@@ -159,6 +159,7 @@
         }
         .title {
             margin-bottom: 10px;
+            font-weight: bold;
         }
         .close {
             display: inline-block;

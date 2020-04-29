@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -88,12 +88,12 @@
 <style lang='scss' scoped>
 .base-title {
     position: relative;
-    height: 60px;
-    line-height: 60px;
     border-bottom: 1px solid #dde4eb;
+    overflow: hidden;
     .title-name {
         float: left;
         margin-left: 12px;
+        line-height: 60px;
         font-size: 14px;
         font-weight:600;
         color: #313238;
@@ -112,6 +112,7 @@
         float: left;
         display: flex;
         position: relative;
+        line-height: 60px;
         &:before {
             content: '';
             position: absolute;
