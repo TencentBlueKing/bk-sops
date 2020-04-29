@@ -136,7 +136,7 @@
             attrs: {
                 name: gettext("定时规则"),
                 hookable: true,
-                placeholder: gettext("Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"),
+                placeholder: gettext("Crontab定时规则，请参考JOB平台定时任务Crontab规则"),
                 validation: [
                     {
                         type: "required"
