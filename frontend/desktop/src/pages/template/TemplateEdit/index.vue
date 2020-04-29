@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -65,7 +65,6 @@
                     v-if="isNodeConfigPanelShow"
                     :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
-                    :subflow-list="subflowList"
                     :atom-type-list="atomTypeList"
                     :common="common"
                     :node-id="idOfNodeInConfigPanel"
@@ -79,6 +78,7 @@
                     :is-show="isShowConditionEdit"
                     :condition-data="conditionData"
                     :is-setting-panel-show="isSettingPanelShow"
+                    :setting-active-tab="settingActiveTab"
                     :is-show-condition-edit="isShowConditionEdit"
                     @onCloseConditionEdit="onCloseConditionEdit">
                 </condition-edit>
@@ -141,6 +141,7 @@
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
+    import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
@@ -169,6 +170,7 @@
             TemplateSetting,
             SubflowUpdateTips
         },
+        mixins: [permission],
         props: ['template_id', 'type', 'common'],
         data () {
             return {
@@ -198,7 +200,6 @@
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
                 atomList: [],
-                subflowList: [],
                 atomTypeList: {
                     tasknode: [],
                     subflow: []
@@ -454,7 +455,6 @@
                         templateId: this.template_id
                     }
                     const resp = await this.loadSubflowList(data)
-                    this.subflowList = resp
                     this.handleSubflowGroup(resp)
                 } catch (e) {
                     errorHandler(e, this)
@@ -506,6 +506,9 @@
                     }
                     this.setTemplateData(templateData)
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     errorHandler(e, this)
                 } finally {
                     this.templateDataLoading = false
@@ -640,24 +643,30 @@
             },
             // 子流程分组
             handleSubflowGroup (data) {
-                const grouped = []
-                data.forEach(item => {
-                    const group = grouped.find(tpl => tpl.type === item.category)
-                    if (group) {
-                        if (item.id !== Number(this.template_id)) {
+                const { meta, objects: tplList } = data
+                const groups = this.projectBaseInfo.task_categories.map(item => {
+                    return {
+                        type: item.value,
+                        group_name: item.name,
+                        group_icon: '',
+                        list: []
+                    }
+                })
+                tplList.forEach(item => {
+                    if (item.id !== Number(this.template_id)) {
+                        const group = groups.find(tpl => tpl.type === item.category)
+                        if (group) {
+                            item.hasPermission = this.hasPermission(['view'], item.auth_actions, meta.auth_operations)
                             group.list.push(item)
                         }
-                    } else {
-                        grouped.push({
-                            type: item.category,
-                            group_name: item.category_name,
-                            group_icon: '',
-                            list: [item]
-                        })
                     }
                 })
 
-                this.atomTypeList.subflow = grouped
+                this.atomTypeList.subflow = {
+                    tplOperations: meta.auth_operations,
+                    tplResource: meta.auth_resource,
+                    groups
+                }
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth
@@ -665,7 +674,7 @@
                 if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
                     this.hideConfigPanel()
                 }
-                if (this.isShowConditionEdit) {
+                if (isSettingPanelShow && this.isShowConditionEdit && clientX < 1920) {
                     this.onCloseConditionEdit()
                 }
                 if (isSettingPanelShow) {
@@ -856,14 +865,7 @@
                 if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
-                const location = this.locations.find(item => item.id === id)
                 this.showConfigPanel(id)
-                this.$nextTick(() => {
-                    // 若节点参数错误，打开面板后执行一次表单校验
-                    if (location.status === 'FAILED') {
-                        this.$refs.nodeConfig.validate()
-                    }
-                })
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
@@ -1032,7 +1034,6 @@
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
                     this.syncAndValidateNodeConfig().then(result => {
-                        console.log(result)
                         if (result) {
                             this.asyncConditionData()
                         }
@@ -1188,9 +1189,10 @@
                 let checkResult = true
                 const branchConditionDoms = document.querySelectorAll('.jtk-overlay .branch-condition')
                 branchConditionDoms.forEach(dom => {
-                    const name = dom.textContent
-                    const value = dom.dataset.value
-                    if (!name || !value) {
+                    const nodeId = dom.dataset.nodeid
+                    const lineId = dom.dataset.lineid
+                    const { name, evaluate } = this.canvasData.branchConditions[nodeId][lineId]
+                    if (!name || !evaluate) {
                         dom.classList.add('failed')
                         checkResult = false
                     }

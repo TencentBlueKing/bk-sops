@@ -20,11 +20,17 @@
                 hookable: true,
                 validation: [
                     {
+                        type: "required"
+                    },
+                    {
                         type: "custom",
                         args: function(value) {
                             var result = {
                                 result: false,
                                 error_message: gettext("请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)")
+                            }
+                            if (!value){
+                                result.result = true;
                             }
                             var number_regex = /^\d{1,8}$/;
                             if (number_regex.test(value)) {

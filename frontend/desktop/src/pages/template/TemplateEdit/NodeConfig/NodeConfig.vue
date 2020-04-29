@@ -158,6 +158,7 @@
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output
             }),
@@ -281,6 +282,11 @@
                     await this.getSubflowDetail(tpl, version)
                     this.inputs = await this.getSubflowInputsConfig()
                     this.inputsParamValue = this.getSubflowInputsValue(forms)
+                }
+                // 节点参数错误时，配置项加载完成后，执行校验逻辑，提示用户错误信息
+                const location = this.locations.find(item => item.id === this.nodeConfig.id)
+                if (location && location.status === 'FAILED') {
+                    this.validate()
                 }
             },
             /**
@@ -430,7 +436,7 @@
                     let templateName = gettext('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
-                        this.atomTypeList.subflow.some(group => {
+                        this.atomTypeList.subflow.groups.some(group => {
                             return group.list.some(item => {
                                 if (item.template_id === Number(template_id)) {
                                     templateName = item.name
@@ -727,22 +733,26 @@
             }
             &.position-right-var {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 857px;
+                    right: 856px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-basic-info{
                 /deep/ .bk-sideslider-wrapper {
-                    right: 477px;
+                    right: 476px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-cache {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 477px;
+                    right: 476px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-template-data {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 897px;
+                    right: 896px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
         }
