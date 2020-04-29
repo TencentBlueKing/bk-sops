@@ -151,8 +151,9 @@ class ProjectManager(models.Manager):
                 if not business:
                     continue
 
-                if exist_project.name != business['cc_name']:
+                if exist_project.name != business['cc_name'] or exist_project.time_zone != business['time_zone']:
                     exist_project.name = business['cc_name']
+                    exist_project.time_zone = business['time_zone']
                     exist_project.save()
 
             for cc_id in to_be_sync_cc_id:
