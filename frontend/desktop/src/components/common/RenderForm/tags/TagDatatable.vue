@@ -52,7 +52,7 @@
             style="width: 100%; font-size: 12px"
             :data="tableValue"
             :empty-text="empty_text"
-            :fit="false"
+            :fit="true"
             border>
             <template v-for="(item, cIndex) in columns">
                 <el-table-column

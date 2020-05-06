@@ -66,7 +66,7 @@
                         <li
                             :class="{
                                 'opt-btn': true,
-                                'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
+                                'text-permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                             }"
                             v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
                             @click="onCardDelete">
