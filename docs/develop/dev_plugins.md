@@ -37,7 +37,7 @@
             └── plugins_test
                 └── __init__.py
 ```
-其中，components 放置标准插件集合后台代码文件，static 放置标准插件集合前端静态代码文件，`plugin.py` 和 `plugin.js` 可以改为你开发的标准
+其中，components 放置标准插件集合后台代码文件，static 放置标准插件集合前端静态代码文件，`plugins.py` 和 `plugins.js` 可以改为你开发的标准
 插件对应的系统名简称，如 job、cmdb 等。
 
 
@@ -85,7 +85,7 @@ ComponentClient.setup_components(collections.AVAILABLE_COLLECTIONS)
 
 ### 4. 标准插件后台开发
 
-在 `plugin.py` 文件中编写插件后台逻辑，主要包括标准插件定义和后台执行逻辑，下面是示例代码
+在 `plugins.py` 文件中编写插件后台逻辑，主要包括标准插件定义和后台执行逻辑，下面是示例代码
 
 ```python
 # -*- coding: utf-8 -*-
@@ -143,9 +143,11 @@ class TestCustomComponent(Component):
     name = _(u"自定义插件测试")
     code = 'test_custom'
     bound_service = TestCustomService
-    form = '%scustom_plugins/plugin.js' % settings.STATIC_URL
+    form = '%s{CUSTOM PLUGINS NAME}/plugins.js' % settings.STATIC_URL
 
 ```
+
+*注： form 的引用路径部分需要把 `{CUSTOM PLUGINS NAME}` 替换成你定制开发的标准插件集合包名*
 
 其中各属性和类含义为：
 
@@ -193,7 +195,7 @@ TestCustomComponent 类详解：
 
 ### 5. 标准插件前端开发
 
-在 `plugin.js` 文件中编写前端逻辑，利用标准运维的前端插件框架，只需要配置就能生成前端表单，下面是示例代码
+在 `plugins.js` 文件中编写前端逻辑，利用标准运维的前端插件框架，只需要配置就能生成前端表单，下面是示例代码
 ```js
 (function(){
     $.atoms.test_custom = [
@@ -368,7 +370,7 @@ class TestCustomComponent(Component):
 
 ### 8. 标准插件功能测试
 
-开发完成后，先在根目录下执行 `python manage.py collectstatic –noinput` 收集静态资源。
+开发完成后，先在根目录下执行 `python manage.py collectstatic –-noinput` 收集静态资源。
 
 然后新建流程模板，并添加标准插件节点，标准插件类型选择新开发的标准插件，确保展示的输入参数和前端配置项一致，输出参数和后台
 outputs_format 一致，其中执行结果是系统默认，值是 `True` 或 `False`，表示节点执行结果是成功还是失败。
