@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-27 16:34+0800\n"
+"POT-Creation-Date: 2020-05-07 12:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1123,7 +1123,7 @@ msgid "请选择项目"
 msgstr "Choose project please"
 
 #: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:73
-#: frontend/desktop/src/components/layout/Navigator.vue:162
+#: frontend/desktop/src/components/layout/Navigator.vue:177
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:125
 #: frontend/desktop/src/pages/task/TaskStep.vue:62
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:147
@@ -1146,7 +1146,7 @@ msgstr "New"
 msgid "确定"
 msgstr "OK"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:98
+#: frontend/desktop/src/components/layout/Navigator.vue:113
 #: frontend/desktop/src/pages/functor/FunctionList.vue:343
 #: frontend/desktop/src/pages/home/AddCollectionDialog.vue:127
 #: frontend/desktop/src/pages/home/MyCollection.vue:177
@@ -1155,12 +1155,12 @@ msgstr "OK"
 msgid "项目流程"
 msgstr "Project Flow"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:104
+#: frontend/desktop/src/components/layout/Navigator.vue:119
 #: frontend/desktop/src/pages/task/TaskManage.vue:33
 msgid "任务管理"
 msgstr "Tasks"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:110
+#: frontend/desktop/src/components/layout/Navigator.vue:125
 #: frontend/desktop/src/pages/appmaker/index.vue:178
 #: frontend/desktop/src/pages/home/AddCollectionDialog.vue:135
 #: frontend/desktop/src/pages/home/MyCollection.vue:179
@@ -1168,7 +1168,7 @@ msgstr "Tasks"
 msgid "轻应用"
 msgstr "Mini-APP"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:116
+#: frontend/desktop/src/components/layout/Navigator.vue:131
 #: frontend/desktop/src/pages/functor/FunctionList.vue:347
 #: frontend/desktop/src/pages/home/AddCollectionDialog.vue:123
 #: frontend/desktop/src/pages/home/MyCollection.vue:178
@@ -1178,64 +1178,64 @@ msgstr "Mini-APP"
 msgid "公共流程"
 msgstr "Common Flow"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:122
+#: frontend/desktop/src/components/layout/Navigator.vue:137
 msgid "职能化"
 msgstr "Functional"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:127
+#: frontend/desktop/src/components/layout/Navigator.vue:142
 msgid "操作审计"
 msgstr "Audit"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:132
+#: frontend/desktop/src/components/layout/Navigator.vue:147
 #: frontend/desktop/src/pages/project/index.vue:239
 msgid "项目管理"
 msgstr "Projects"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:137
+#: frontend/desktop/src/components/layout/Navigator.vue:152
 msgid "管理员入口"
 msgstr "Admin"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:142
+#: frontend/desktop/src/components/layout/Navigator.vue:157
 #: frontend/desktop/src/pages/admin/manage/index.vue:53
 msgid "后台管理"
 msgstr "Backend"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:147
+#: frontend/desktop/src/components/layout/Navigator.vue:162
 #: frontend/desktop/src/pages/admin/statistics/index.vue:78
 msgid "运营数据"
 msgstr "Analysis"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:152
+#: frontend/desktop/src/components/layout/Navigator.vue:167
 #: frontend/desktop/src/pages/atomdev/index.vue:181
 msgid "插件开发"
 msgstr "Plugin Dev"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:168
+#: frontend/desktop/src/components/layout/Navigator.vue:183
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:167
 #: frontend/desktop/src/pages/task/TaskManage.vue:42
 msgid "任务记录"
 msgstr "Tasks"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:183
+#: frontend/desktop/src/components/layout/Navigator.vue:198
 msgid "帮助文档"
 msgstr "Help"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:184
+#: frontend/desktop/src/components/layout/Navigator.vue:199
 #: version_log/static/version_log/js/modal_frame.js:26
 msgid "版本日志"
 msgstr "Version log"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:185
+#: frontend/desktop/src/components/layout/Navigator.vue:200
 msgid "标准运维"
 msgstr "Standard OPS"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:298
+#: frontend/desktop/src/components/layout/Navigator.vue:313
 #: frontend/desktop/src/pages/functor/FunctionList.vue:293
 msgid "职能化中心"
 msgstr "Functional"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:302
 #: frontend/desktop/src/components/layout/Navigator.vue:317
+#: frontend/desktop/src/components/layout/Navigator.vue:332
 #: frontend/desktop/src/pages/audit/AuditList.vue:199
 #: frontend/desktop/src/pages/functor/FunctionList.vue:308
 #: frontend/desktop/src/pages/project/index.vue:173
@@ -1245,7 +1245,7 @@ msgstr "Functional"
 msgid "查看"
 msgstr "View"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:313
+#: frontend/desktop/src/components/layout/Navigator.vue:328
 #: frontend/desktop/src/pages/audit/AuditList.vue:188
 msgid "审计中心"
 msgstr "Audit"
@@ -4281,7 +4281,7 @@ msgstr "Notification Group and More Receivers cannot be empty at the same time"
 msgid "通知内容"
 msgstr "Content"
 
-#: pipeline_plugins/components/static/components/atoms/bk/timer.js:27
+#: pipeline_plugins/components/static/components/atoms/bk/timer.js:30
 msgid "请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)"
 msgstr "Fill in seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
 
@@ -4429,8 +4429,8 @@ msgid "定时规则"
 msgstr "Timing Rules"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:139
-msgid "Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"
-msgstr "Crontab rules, the meaning of each field is: second minute hour day month week year(optional).For example: 0 0/5 * * * ? means to execute every 5 minutes, 0 0 12 * * ? 2015 means trigger every day at 12 noon in 2015"
+msgid "Crontab定时规则，请参考JOB平台定时任务Crontab规则"
+msgstr "Crontab rules, please refer to JOB System"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:151
 msgid "定时作业状态"
@@ -4838,30 +4838,3 @@ msgstr "Server API error:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
-
-#~ msgid "QQ咨询"
-#~ msgstr "QQ"
-
-#~ msgid "蓝鲸官网"
-#~ msgstr "Official Website"
-
-#~ msgid "蓝鲸论坛"
-#~ msgstr "Blueking Forum"
-
-#~ msgid "蓝鲸智云 版权所有"
-#~ msgstr " "
-
-#~ msgid "执行者配置"
-#~ msgstr "Executor Config"
-
-#~ msgid "任务执行者"
-#~ msgstr "Task Executor"
-
-#~ msgid "强制生效"
-#~ msgstr "Force to take effect"
-
-#~ msgid "该字段默认在非运维人员执行任务时生效，为空则从配置平台(CMDB)随机获取运维身份"
-#~ msgstr "This field takes effect by default when a non-maintainer executes a task"
-
-#~ msgid "开启后，所有任务都使用任务执行者身份来执行"
-#~ msgstr "All tasks will be executed using identity of the task executor if opened"
