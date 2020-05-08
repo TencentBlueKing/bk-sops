@@ -11,7 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-FOOTER = """
+from django.utils.translation import ugettext_lazy as _
+
+FOOTER = _(
+"""
 <div class="copyright">
     <ul class="link-list">
         <a href="tencent://message/?uin=800802001&site=qq&menu=yes" class="link-item">QQ咨询(800802001)</a>
@@ -22,3 +25,4 @@ FOOTER = """
     <div>蓝鲸智云 版权所有</div>
 </div>
 """
+)

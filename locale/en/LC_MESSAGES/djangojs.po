@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-27 16:34+0800\n"
+"POT-Creation-Date: 2020-05-08 10:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -157,12 +157,10 @@ msgid "收起"
 msgstr "Collapse"
 
 #: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:121
-#: frontend/desktop/src/components/common/RenderForm/FormItem.vue:173
 msgid "取消勾选"
 msgstr "Check to cancel"
 
 #: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:122
-#: frontend/desktop/src/components/common/RenderForm/FormItem.vue:174
 msgid "勾选参数作为全局变量"
 msgstr "Check to adding the parameter to Global Variables"
 
@@ -184,7 +182,6 @@ msgstr "Please enter, multiple are separated by Line breaks"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:134
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:220
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:232
-#: frontend/desktop/src/components/common/RenderForm/formMixins.js:219
 #: frontend/desktop/src/main.js:87
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:179
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:285
@@ -193,7 +190,6 @@ msgstr "Please enter, multiple are separated by Line breaks"
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:94
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:111
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:92
-#: frontend/mobile/src/main.js:107
 msgid "必填项"
 msgstr "Required"
 
@@ -513,11 +509,6 @@ msgstr "Delete"
 msgid "保存"
 msgstr "Save"
 
-#: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:183
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:282
-msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
-msgstr "Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv"
-
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:207
 msgid "模块："
 msgstr "Module:"
@@ -669,9 +660,9 @@ msgstr "Type"
 msgid "参数值"
 msgstr "Value"
 
-#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:419
-msgid "请求表头数据失败，使用预置表头"
-msgstr "Requesting table titles failed, please config columns"
+#: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:282
+msgid "格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件"
+msgstr "Wrong format! Please select xlsx,xls,xlc,xlm,xlt,xlw or csv"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:36
 #: frontend/desktop/src/components/tags/TagTestDatetime.vue:35
@@ -1089,7 +1080,6 @@ msgstr "Apply"
 #: frontend/desktop/src/pages/admin/statistics/Atom.vue:187
 #: frontend/desktop/src/pages/admin/statistics/Instance.vue:169
 #: frontend/desktop/src/pages/admin/statistics/Template.vue:125
-#: frontend/desktop/src/pages/atomdev/configPanel/ContextEdit.vue:67
 #: frontend/desktop/src/pages/home/MyDynamic.vue:105
 #: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:186
 #: frontend/desktop/src/pages/project/index.vue:262
@@ -1123,7 +1113,7 @@ msgid "请选择项目"
 msgstr "Choose project please"
 
 #: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:73
-#: frontend/desktop/src/components/layout/Navigator.vue:162
+#: frontend/desktop/src/components/layout/Navigator.vue:177
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:125
 #: frontend/desktop/src/pages/task/TaskStep.vue:62
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:147
@@ -1146,7 +1136,7 @@ msgstr "New"
 msgid "确定"
 msgstr "OK"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:98
+#: frontend/desktop/src/components/layout/Navigator.vue:113
 #: frontend/desktop/src/pages/functor/FunctionList.vue:343
 #: frontend/desktop/src/pages/home/AddCollectionDialog.vue:127
 #: frontend/desktop/src/pages/home/MyCollection.vue:177
@@ -1155,12 +1145,12 @@ msgstr "OK"
 msgid "项目流程"
 msgstr "Project Flow"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:104
+#: frontend/desktop/src/components/layout/Navigator.vue:119
 #: frontend/desktop/src/pages/task/TaskManage.vue:33
 msgid "任务管理"
 msgstr "Tasks"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:110
+#: frontend/desktop/src/components/layout/Navigator.vue:125
 #: frontend/desktop/src/pages/appmaker/index.vue:178
 #: frontend/desktop/src/pages/home/AddCollectionDialog.vue:135
 #: frontend/desktop/src/pages/home/MyCollection.vue:179
@@ -1168,7 +1158,7 @@ msgstr "Tasks"
 msgid "轻应用"
 msgstr "Mini-APP"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:116
+#: frontend/desktop/src/components/layout/Navigator.vue:131
 #: frontend/desktop/src/pages/functor/FunctionList.vue:347
 #: frontend/desktop/src/pages/home/AddCollectionDialog.vue:123
 #: frontend/desktop/src/pages/home/MyCollection.vue:178
@@ -1178,64 +1168,64 @@ msgstr "Mini-APP"
 msgid "公共流程"
 msgstr "Common Flow"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:122
+#: frontend/desktop/src/components/layout/Navigator.vue:137
 msgid "职能化"
 msgstr "Functional"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:127
+#: frontend/desktop/src/components/layout/Navigator.vue:142
 msgid "操作审计"
 msgstr "Audit"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:132
+#: frontend/desktop/src/components/layout/Navigator.vue:147
 #: frontend/desktop/src/pages/project/index.vue:239
 msgid "项目管理"
 msgstr "Projects"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:137
+#: frontend/desktop/src/components/layout/Navigator.vue:152
 msgid "管理员入口"
 msgstr "Admin"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:142
+#: frontend/desktop/src/components/layout/Navigator.vue:157
 #: frontend/desktop/src/pages/admin/manage/index.vue:53
 msgid "后台管理"
 msgstr "Backend"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:147
+#: frontend/desktop/src/components/layout/Navigator.vue:162
 #: frontend/desktop/src/pages/admin/statistics/index.vue:78
 msgid "运营数据"
 msgstr "Analysis"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:152
+#: frontend/desktop/src/components/layout/Navigator.vue:167
 #: frontend/desktop/src/pages/atomdev/index.vue:181
 msgid "插件开发"
 msgstr "Plugin Dev"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:168
+#: frontend/desktop/src/components/layout/Navigator.vue:183
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:167
 #: frontend/desktop/src/pages/task/TaskManage.vue:42
 msgid "任务记录"
 msgstr "Tasks"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:183
+#: frontend/desktop/src/components/layout/Navigator.vue:198
 msgid "帮助文档"
 msgstr "Help"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:184
+#: frontend/desktop/src/components/layout/Navigator.vue:199
 #: version_log/static/version_log/js/modal_frame.js:26
 msgid "版本日志"
 msgstr "Version log"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:185
+#: frontend/desktop/src/components/layout/Navigator.vue:200
 msgid "标准运维"
 msgstr "Standard OPS"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:298
+#: frontend/desktop/src/components/layout/Navigator.vue:313
 #: frontend/desktop/src/pages/functor/FunctionList.vue:293
 msgid "职能化中心"
 msgstr "Functional"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:302
 #: frontend/desktop/src/components/layout/Navigator.vue:317
+#: frontend/desktop/src/components/layout/Navigator.vue:332
 #: frontend/desktop/src/pages/audit/AuditList.vue:199
 #: frontend/desktop/src/pages/functor/FunctionList.vue:308
 #: frontend/desktop/src/pages/project/index.vue:173
@@ -1245,7 +1235,7 @@ msgstr "Functional"
 msgid "查看"
 msgstr "View"
 
-#: frontend/desktop/src/components/layout/Navigator.vue:313
+#: frontend/desktop/src/components/layout/Navigator.vue:328
 #: frontend/desktop/src/pages/audit/AuditList.vue:188
 msgid "审计中心"
 msgstr "Audit"
@@ -1540,7 +1530,6 @@ msgid "变量KEY值长度不能超过"
 msgstr "Length cannot be larger than "
 
 #: frontend/desktop/src/main.js:113
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:133
 msgid "变量KEY值已存在"
 msgstr "KEY cannot repeat"
 
@@ -1556,7 +1545,7 @@ msgstr "Default does not match validation"
 msgid "正则校验不是合法的正则表达式"
 msgstr "Regular validation invalid"
 
-#: frontend/desktop/src/main.js:123 frontend/mobile/src/main.js:111
+#: frontend/desktop/src/main.js:123
 msgid "任务名称不能为空"
 msgstr "Task name cannot be empty"
 
@@ -2621,84 +2610,6 @@ msgstr "can not exceed 50 characters"
 msgid "输入字符必须由字母、数字、下划线组成，并且不能以数字开头"
 msgstr "Input is composed of letters, numbers, underline and cannot begin with number"
 
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:95
-msgid "输入不合法"
-msgstr "Invalid input"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:105
-msgid "请选择所监听表单的tag_code"
-msgstr "Select tag_code of event source"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:113
-msgid "请输入所监听表单的事件类型"
-msgstr "Input event type"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:123
-msgid "请输入所监听事件的回调方法，参数为所监听表单的值，eg: function (value) {}"
-msgstr "Event callback methd, parameter is form value. eg: function (value) {}"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:140
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:174
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:339
-msgid "请输入合法的函数"
-msgstr "Input valid function please"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:151
-msgid "请输入方法名称"
-msgstr "Input method name please"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:161
-msgid "请输方法内容, eg: function () { console.log(this.value) }"
-msgstr "Input method body please. eg: function () { console.log(this.value) }"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:213
-#: frontend/desktop/src/pages/atomdev/formPanel/FormPanel.vue:89
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:173
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:179
-msgid "属性"
-msgstr "Attribute"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:214
-msgid "关联事件"
-msgstr "Relate event"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:215
-msgid "方法"
-msgstr "Method"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:216
-msgid "请输入数组格式数据"
-msgstr "Enter array please"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:217
-msgid "请输入对象格式数据"
-msgstr "Enter object please"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:218
-msgid "请输入匿名函数"
-msgstr "Enter anonymous function please"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:254
-msgid "表单项唯一标识，单个标准插件内不能重复"
-msgstr "Form item identifier, must be unique in a plugin"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:264
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:160
-msgid "单个标准插件里表单项 tag_code 不能重复"
-msgstr "form's tag_code can not repeat in a plugin"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:323
-msgid "请输入合法的数组"
-msgstr "Enter valid array please"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:355
-msgid "请输入合法的对象"
-msgstr "Enter valid object please"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:490
-msgid "请检查表单配置项"
-msgstr "Check form configs please"
-
 #: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:145
 msgid "不能多于100个字符"
 msgstr "Can not exceed 100 characters"
@@ -2725,13 +2636,19 @@ msgstr "API"
 msgid "后台代码"
 msgstr "Backend code"
 
-#: frontend/desktop/src/pages/atomdev/configPanel/ContextEdit.vue:62
-msgid "请输入合法对象"
-msgstr "Enter valid object please"
+#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:160
+msgid "单个标准插件里表单项 tag_code 不能重复"
+msgstr "form's tag_code can not repeat in a plugin"
 
 #: frontend/desktop/src/pages/atomdev/formPanel/FormNotFound.vue:22
 msgid "未找到对应组件"
 msgstr "Component not found"
+
+#: frontend/desktop/src/pages/atomdev/formPanel/FormPanel.vue:89
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:173
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:179
+msgid "属性"
+msgstr "Attribute"
 
 #: frontend/desktop/src/pages/atomdev/index.vue:182
 msgid "插件配置"
@@ -3572,7 +3489,6 @@ msgid "基础信息"
 msgstr "Basic Info"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:153
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:435
 msgid "请选择子流程"
 msgstr "Please select SubProcess"
 
@@ -3584,34 +3500,6 @@ msgstr "Default value does not match the regular rule: "
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:175
 msgid "引用"
 msgstr "Refs"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:139
-msgid "复用变量"
-msgstr "Reuse Variable"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:140
-msgid "新建变量"
-msgstr "New"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:141
-msgid "变量名称"
-msgstr "Variable Name"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:142
-msgid "变量KEY"
-msgstr "Variable KEY"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:143
-msgid "已存在相同Key且版本不同的变量，请新建变量"
-msgstr "There is a variable from different version plugin with same key, create a new variable please"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:153
-msgid "创建新变量"
-msgstr "Create new variable"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:155
-msgid "是否复用变量"
-msgstr "Whether To Reuse Variable"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/SelectorPanel.vue:143
 msgid "已选"
@@ -3995,8 +3883,6 @@ msgstr "Search by flow name"
 
 #: frontend/desktop/src/store/modules/template.js:42
 #: frontend/desktop/src/store/modules/template.js:69
-#: frontend/desktop/src/store/modules/template.js:589
-#: frontend/desktop/src/store/modules/template.js:604
 msgid "步骤1"
 msgstr "Stage1"
 
@@ -4049,58 +3935,6 @@ msgstr " Day"
 msgid "节点不可连接自身"
 msgstr "Node can not link itself"
 
-#: frontend/desktop/src/utils/validatePipeline.js:102
-msgid "只能添加输入连线"
-msgstr " can add input flow only"
-
-#: frontend/desktop/src/utils/validatePipeline.js:108
-msgid "只能添加输出连线"
-msgstr " can add output flow only"
-
-#: frontend/desktop/src/utils/validatePipeline.js:114
-msgid "不能连接"
-msgstr " cannot be connected to "
-
-#: frontend/desktop/src/utils/validatePipeline.js:134
-msgid "相同节点不能回连"
-msgstr "Same node cannot be connected to self"
-
-#: frontend/desktop/src/utils/validatePipeline.js:139
-msgid "重复添加连线"
-msgstr " cannot add repeated flows"
-
-#: frontend/desktop/src/utils/validatePipeline.js:142
-msgid "已达到"
-msgstr " has reached "
-
-#: frontend/desktop/src/utils/validatePipeline.js:144
-msgid "最大输出连线条数"
-msgstr " max number of output flows"
-
-#: frontend/desktop/src/utils/validatePipeline.js:149
-msgid "最大输入连线条数"
-msgstr " max number of input flows"
-
-#: frontend/desktop/src/utils/validatePipeline.js:163
-msgid "在模板中只能添加一个"
-msgstr " can add just one in a flow template"
-
-#: frontend/desktop/src/utils/validatePipeline.js:196
-msgid "至少需要"
-msgstr " need as least "
-
-#: frontend/desktop/src/utils/validatePipeline.js:198
-msgid "条输入连线"
-msgstr " input flows"
-
-#: frontend/desktop/src/utils/validatePipeline.js:203
-msgid "条输出连线"
-msgstr " output flows"
-
-#: frontend/desktop/src/utils/validatePipeline.js:215
-msgid "请添加任务节点"
-msgstr "Please add a task node"
-
 #: frontend/desktop/src/utils/validatePipeline.js:242
 msgid "t equal to ${id}`)"
 msgstr "t equal to ${id}`)"
@@ -4109,18 +3943,6 @@ msgstr "t equal to ${id}`)"
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:140
 msgid "通知主题"
 msgstr "Title"
-
-#: frontend/mobile/src/main.js:112
-msgid "任务名称包含非法字符"
-msgstr "Task name contains invalid characters "
-
-#: frontend/mobile/src/main.js:113
-msgid "任务名称长度不能超过50个字符"
-msgstr "Length of name cannot be larger than 50 "
-
-#: frontend/mobile/src/main.js:116
-msgid "输入值不满足校验规则"
-msgstr "Input does not match validation"
 
 #: frontend/mobile/src/views/home/index.vue:46
 #: frontend/mobile/src/views/task/list.vue:79
@@ -4281,7 +4103,7 @@ msgstr "Notification Group and More Receivers cannot be empty at the same time"
 msgid "通知内容"
 msgstr "Content"
 
-#: pipeline_plugins/components/static/components/atoms/bk/timer.js:27
+#: pipeline_plugins/components/static/components/atoms/bk/timer.js:30
 msgid "请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)"
 msgstr "Fill in seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
 
@@ -4429,8 +4251,8 @@ msgid "定时规则"
 msgstr "Timing Rules"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:139
-msgid "Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"
-msgstr "Crontab rules, the meaning of each field is: second minute hour day month week year(optional).For example: 0 0/5 * * * ? means to execute every 5 minutes, 0 0 12 * * ? 2015 means trigger every day at 12 noon in 2015"
+msgid "Crontab定时规则，请参考JOB平台定时任务Crontab规则"
+msgstr ""
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:151
 msgid "定时作业状态"
@@ -4838,6 +4660,132 @@ msgstr "Server API error:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
+
+#~ msgid "请求表头数据失败，使用预置表头"
+#~ msgstr "Requesting table titles failed, please config columns"
+
+#~ msgid "输入不合法"
+#~ msgstr "Invalid input"
+
+#~ msgid "请选择所监听表单的tag_code"
+#~ msgstr "Select tag_code of event source"
+
+#~ msgid "请输入所监听表单的事件类型"
+#~ msgstr "Input event type"
+
+#~ msgid "请输入所监听事件的回调方法，参数为所监听表单的值，eg: function (value) {}"
+#~ msgstr "Event callback methd, parameter is form value. eg: function (value) {}"
+
+#~ msgid "请输入合法的函数"
+#~ msgstr "Input valid function please"
+
+#~ msgid "请输入方法名称"
+#~ msgstr "Input method name please"
+
+#~ msgid "请输方法内容, eg: function () { console.log(this.value) }"
+#~ msgstr "Input method body please. eg: function () { console.log(this.value) }"
+
+#~ msgid "关联事件"
+#~ msgstr "Relate event"
+
+#~ msgid "方法"
+#~ msgstr "Method"
+
+#~ msgid "请输入数组格式数据"
+#~ msgstr "Enter array please"
+
+#~ msgid "请输入对象格式数据"
+#~ msgstr "Enter object please"
+
+#~ msgid "请输入匿名函数"
+#~ msgstr "Enter anonymous function please"
+
+#~ msgid "表单项唯一标识，单个标准插件内不能重复"
+#~ msgstr "Form item identifier, must be unique in a plugin"
+
+#~ msgid "请输入合法的数组"
+#~ msgstr "Enter valid array please"
+
+#~ msgid "请输入合法的对象"
+#~ msgstr "Enter valid object please"
+
+#~ msgid "请检查表单配置项"
+#~ msgstr "Check form configs please"
+
+#~ msgid "请输入合法对象"
+#~ msgstr "Enter valid object please"
+
+#~ msgid "复用变量"
+#~ msgstr "Reuse Variable"
+
+#~ msgid "新建变量"
+#~ msgstr "New"
+
+#~ msgid "变量名称"
+#~ msgstr "Variable Name"
+
+#~ msgid "变量KEY"
+#~ msgstr "Variable KEY"
+
+#~ msgid "已存在相同Key且版本不同的变量，请新建变量"
+#~ msgstr "There is a variable from different version plugin with same key, create a new variable please"
+
+#~ msgid "创建新变量"
+#~ msgstr "Create new variable"
+
+#~ msgid "是否复用变量"
+#~ msgstr "Whether To Reuse Variable"
+
+#~ msgid "只能添加输入连线"
+#~ msgstr " can add input flow only"
+
+#~ msgid "只能添加输出连线"
+#~ msgstr " can add output flow only"
+
+#~ msgid "不能连接"
+#~ msgstr " cannot be connected to "
+
+#~ msgid "相同节点不能回连"
+#~ msgstr "Same node cannot be connected to self"
+
+#~ msgid "重复添加连线"
+#~ msgstr " cannot add repeated flows"
+
+#~ msgid "已达到"
+#~ msgstr " has reached "
+
+#~ msgid "最大输出连线条数"
+#~ msgstr " max number of output flows"
+
+#~ msgid "最大输入连线条数"
+#~ msgstr " max number of input flows"
+
+#~ msgid "在模板中只能添加一个"
+#~ msgstr " can add just one in a flow template"
+
+#~ msgid "至少需要"
+#~ msgstr " need as least "
+
+#~ msgid "条输入连线"
+#~ msgstr " input flows"
+
+#~ msgid "条输出连线"
+#~ msgstr " output flows"
+
+#~ msgid "请添加任务节点"
+#~ msgstr "Please add a task node"
+
+#~ msgid "任务名称包含非法字符"
+#~ msgstr "Task name contains invalid characters "
+
+#~ msgid "任务名称长度不能超过50个字符"
+#~ msgstr "Length of name cannot be larger than 50 "
+
+#~ msgid "输入值不满足校验规则"
+#~ msgstr "Input does not match validation"
+
+#~ msgid "Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"
+#~ msgstr "Crontab rules, the meaning of each field is: second minute hour day month week year(optional).For example: 0 0/5 * * * ? means to execute every 5 minutes, 0 0 12 * * ? 2015 means trigger every day at 12 noon in 2015"
 
 #~ msgid "QQ咨询"
 #~ msgstr "QQ"
