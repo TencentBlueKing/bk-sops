@@ -79,6 +79,7 @@ INSTALLED_APPS += (
     'weixin',
     'version_log',
     'files',
+    'corsheaders',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -114,6 +115,16 @@ MIDDLEWARE += (
     'gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware',
     'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
 )
+
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = ()
+if os.getenv("BKAPP_ENABLE_CORS_HEADERS", None):
+    MIDDLEWARE = ('corsheaders.middleware.CorsMiddleware',) + MIDDLEWARE
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ORIGIN_WHITELIST = os.getenv("BKAPP_CORS_WHITELIST", "").split(",")
+else:
+    CORS_ALLOW_CREDENTIALS = False
+
 
 MIDDLEWARE = ('weixin.core.middlewares.WeixinProxyPatchMiddleware',) + MIDDLEWARE
 
