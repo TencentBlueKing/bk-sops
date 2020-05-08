@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -27,6 +27,11 @@
                             {{i18n.new}}
                         </bk-button>
                     </template>
+                    <template v-slot:search-extend>
+                        <span class="auto-redraw" @click.stop>
+                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ i18n.autoRedraw }}</bk-checkbox>
+                        </span>
+                    </template>
                 </advance-search-form>
             </div>
             <div class="functor-table-content">
@@ -34,10 +39,15 @@
                     :data="functorList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange">
-                    <bk-table-column :label="i18n.business" prop="task.project.name" width="160"></bk-table-column>
-                    <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange">
+                    <bk-table-column :label="i18n.business" width="160">
+                        <template slot-scope="props">
+                            <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.taskId" prop="task.id" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
@@ -66,16 +76,24 @@
                             {{ props.row.claim_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="140"></bk-table-column>
-                    <bk-table-column :label="i18n.claimant" width="140">
+                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.claimant" width="120">
                         <template slot-scope="props">
                             {{ props.row.claimant || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="140">
+                    <bk-table-column :label="i18n.claimStatus" width="120">
                         <template slot-scope="props">
                             <span :class="statusClass(props.row.status)"></span>
                             {{statusMethod(props.row.status, props.row.status_name)}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.taskStatus" width="120">
+                        <template slot-scope="props">
+                            <div class="task-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                            </div>
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.operation" width="100">
@@ -221,6 +239,7 @@
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
+    import task from '@/mixins/task.js'
     const searchForm = [
         {
             type: 'select',
@@ -266,7 +285,7 @@
             BaseTitle,
             NoData
         },
-        mixins: [permission],
+        mixins: [permission, task],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -282,12 +301,13 @@
                     billTimePlaceholder: gettext('请选择时间'),
                     creator: gettext('提单人'),
                     claimant: gettext('认领人'),
-                    status: gettext('状态'),
+                    claimStatus: gettext('认领状态'),
+                    taskStatus: gettext('执行状态'),
                     operation: gettext('操作'),
                     claim: gettext('认领'),
                     view: gettext('查看'),
                     new: gettext('新建'),
-                    choiceBusiness: gettext('选择业务'),
+                    choiceBusiness: gettext('选择项目'),
                     choiceTemplate: gettext('选择模板'),
                     tips: gettext('如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
                     total: gettext('共'),
@@ -300,7 +320,8 @@
                     query: gettext('搜索'),
                     reset: gettext('清空'),
                     confirm: gettext('确认'),
-                    cancel: gettext('取消')
+                    cancel: gettext('取消'),
+                    autoRedraw: gettext('实时刷新')
                 },
                 listLoading: true,
                 functorSync: 0,
@@ -308,6 +329,7 @@
                 isShowNewTaskDialog: false,
                 functorBasicInfoLoading: true,
                 functorList: [],
+                executeStatus: [], // 任务执行状态
                 business: {
                     list: [],
                     loading: false,
@@ -334,6 +356,8 @@
                     disabled: false
                 },
                 isCommonTemplate: false,
+                isAutoRedraw: false,
+                autoRedrawTimer: null,
                 status: undefined,
                 functorCategory: [],
                 requestData: {
@@ -347,8 +371,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 tplAuthResource: {},
                 commonTplAuthResource: {},
@@ -379,6 +402,9 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
         },
+        beforeDestroy () {
+            this.clearAutoRedraw()
+        },
         methods: {
             ...mapActions('functionTask/', [
                 'loadFunctionTaskList'
@@ -401,7 +427,7 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__pipeline_instance__name__contains: flowName || undefined,
                         creator: creator || undefined,
-                        project__id: selectedProject || undefined,
+                        task__project__id: selectedProject || undefined,
                         status: statusSync || undefined
                     }
                     if (executeTime[0] && executeTime[1]) {
@@ -415,10 +441,13 @@
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
+                    const taskList = functorListData.objects.map(m => m.task)
                     this.tplAuthOperations = functorListData.meta.auth_operations
                     this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.pagination.count = functorListData.meta.total_count
+                    // mixins getExecuteStatus
+                    this.getExecuteStatus('executeStatus', taskList)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -428,6 +457,8 @@
             onPageChange (page) {
                 this.pagination.current = page
                 this.loadFunctionTask()
+                // 重置自动刷新时间
+                this.onOpenAutoRedraw()
             },
             searchInputhandler (data) {
                 this.requestData.flowName = data
@@ -504,7 +535,7 @@
                     this.template.loading = false
                 }
             },
-            onSelectedBusiness (id, data) {
+            onSelectedBusiness (id) {
                 this.business.id = id
                 this.getTemplateList()
                 this.business.empty = false
@@ -517,11 +548,11 @@
                 const templateList = this.template.list
                 let resource_uri = ''
                 let name, tplAction
-                
+
                 if (id === undefined) {
                     return
                 }
-                
+
                 templateList.some(group => {
                     return group.children.some(item => {
                         if (item.id === id) {
@@ -568,13 +599,13 @@
                     this.$router.push({
                         name: 'functionTemplateStep',
                         params: { project_id: this.business.id, step: 'selectnode' },
-                        query: { template_id: this.template.id, common: 1 }
+                        query: { template_id: this.template.id, common: 1, entrance: 'function' }
                     })
                 } else {
                     this.$router.push({
                         name: 'functionTemplateStep',
                         params: { project_id: this.business.id, step: 'selectnode' },
-                        query: { template_id: this.template.id }
+                        query: { template_id: this.template.id, entrance: 'function' }
                     })
                 }
             },
@@ -602,12 +633,42 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.loadFunctionTask()
+            },
+            onAutoRedrawChange (val) {
+                if (val) {
+                    return this.onOpenAutoRedraw()
+                }
+                this.clearAutoRedraw()
+            },
+            // 开启自动刷新
+            onOpenAutoRedraw () {
+                if (!this.isAutoRedraw) {
+                    return this.clearAutoRedraw()
+                }
+                clearTimeout(this.autoRedrawTimer)
+                this.autoRedrawTimer = setTimeout(() => {
+                    this.loadFunctionTask()
+                    this.onOpenAutoRedraw()
+                }, 15000)
+            },
+            // 关闭自动刷新
+            clearAutoRedraw () {
+                clearTimeout(this.autoRedrawTimer)
+                this.autoRedrawTimer = null
+                this.isAutoRedraw = false
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.onOpenAutoRedraw() // 重置自动刷新时间
+                this.loadFunctionTask()
             }
         }
     }
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/task.scss';
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;
@@ -626,6 +687,10 @@
     .task-create-btn {
         min-width: 120px;
     }
+    .auto-redraw {
+        margin-left: 30px;
+        display: inline-block;
+    }
 }
 .advanced-search {
     margin: 0;
@@ -637,10 +702,13 @@
         color: $blueDefault;
     }
     .functor-operation-btn {
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .task-status {
+       @include ui-task-status;
     }
 }
 .panagation {

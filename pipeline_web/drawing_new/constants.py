@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -19,9 +19,9 @@ DUMMY_FLOW_TYPE = 'DummyFlow'
 
 CANVAS_WIDTH = 1300
 POSITION = {
-    'activity_size': (168, 42),
-    'event_size': (42, 42),
-    'gateway_size': (32, 32),
+    'activity_size': (150, 54),
+    'event_size': (44, 44),
+    'gateway_size': (34, 34),
     'start': (60, 100)
 }
 PIPELINE_ELEMENT_TO_WEB = {

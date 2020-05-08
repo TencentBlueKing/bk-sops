@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -52,6 +52,7 @@
         },
         data () {
             return {
+                footerLoading: false,
                 permissinApplyShow: false,
                 permissionData: {
                     type: 'project', // 无权限类型: project、other
@@ -104,7 +105,7 @@
             bus.$on('showMessage', info => {
                 this.$bkMessage({
                     message: info.message,
-                    isSingleLine: false,
+                    ellipsisLine: info.lines || 1,
                     theme: info.theme || 'error'
                 })
             })
@@ -119,13 +120,15 @@
                     theme: type
                 })
             }
+            this.getPageFooter()
         },
         mounted () {
             this.initData()
         },
         methods: {
             ...mapActions([
-                'queryUserPermission'
+                'queryUserPermission',
+                'getFooterContent'
             ]),
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
@@ -142,6 +145,7 @@
                 'setProjectActions'
             ]),
             ...mapMutations([
+                'setPageFooter',
                 'setAdminPerm'
             ]),
             initData () {
@@ -172,6 +176,7 @@
                 this.appmakerDataLoading = true
                 try {
                     const res = await this.loadAppmakerDetail(this.appId)
+                    this.setProjectName(res.project.name)
                     this.setAppmakerDetail(res)
                 } catch (e) {
                     errorHandler(e, this)
@@ -213,6 +218,21 @@
                     this.adminPermLoading = false
                 } catch (err) {
                     errorHandler(err, this)
+                }
+            },
+            // 动态获取页面 footer
+            async getPageFooter () {
+                try {
+                    this.footerLoading = true
+                    const resp = await this.getFooterContent()
+                    if (resp.result) {
+                        this.setPageFooter(resp.data)
+                    }
+                } catch (err) {
+                    this.setPageFooter(`<div class="copyright"><div>蓝鲸智云 版权所有</div></div>`)
+                    errorHandler(err, this)
+                } finally {
+                    this.footerLoading = false
                 }
             },
             handleRouteChange () {

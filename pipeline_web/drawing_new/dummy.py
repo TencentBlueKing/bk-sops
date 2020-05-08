@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from pipeline.core.constants import PE
 from pipeline.utils.uniqid import line_uniqid, node_uniqid
 
-from pipeline_web.drawing_new.rank.longest_path import slack
+from pipeline_web.drawing_new.rank.utils import slack
 from pipeline_web.drawing_new.constants import MIN_LEN, DUMMY_NODE_TYPE, DUMMY_FLOW_TYPE
 from pipeline_web.drawing_new.utils import delete_flow_id_from_node_io, add_flow_id_to_node_io
 

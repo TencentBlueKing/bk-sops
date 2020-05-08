@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,9 +12,14 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.commonFlow"></base-title>
+            <list-page-tips-title
+                :title="i18n.commonFlow"
+                :num="expiredSubflowTplList.length"
+                @viewClick="handleSubflowFilter">
+            </list-page-tips-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    ref="advanceSearch"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -49,9 +54,10 @@
                     :data="commonTemplateData"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange">
+                    @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
@@ -69,11 +75,9 @@
                             </a>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.type" prop="category_name"></bk-table-column>
-                    <bk-table-column :label="i18n.updateTime" prop="edit_time"></bk-table-column>
-                    <bk-table-column
-                        width="120"
-                        :label="i18n.subflowUpdate">
+                    <bk-table-column :label="i18n.type" prop="category_name" width="180"></bk-table-column>
+                    <bk-table-column :label="i18n.updateTime" prop="edit_time" width="200"></bk-table-column>
+                    <bk-table-column width="120" :label="i18n.subflowUpdate">
                         <template slot-scope="props">
                             <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
                                 {{getSubflowContent(props.row)}}
@@ -81,11 +85,10 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="180" class="operation-cell">
+                    <bk-table-column :label="i18n.operation" width="240" class="operation-cell">
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
-                                    <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                     <a
                                         v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
                                         v-cursor
@@ -100,48 +103,69 @@
                                         {{i18n.newTemplate}}
                                     </a>
                                     <a
-                                        v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
-                                        {{i18n.edit}}
+                                        @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
+                                        {{i18n.clone}}
                                     </a>
                                     <a
                                         v-else
                                         class="template-operate-btn"
-                                        @click.prevent="getJumpUrl('edit', props.row.id)">
-                                        {{i18n.edit}}
+                                        @click.prevent="getJumpUrl('clone', props.row.id)">
+                                        {{i18n.clone}}
                                     </a>
-                                    <a
-                                        v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
-                                        href="javascript:void(0);"
-                                        class="template-operate-btn"
-                                        :class="{
-                                            'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
-                                        }"
-                                        @click="onDeleteTemplate(props.row, $event)">
-                                        {{i18n.delete}}
-                                    </a>
-                                    <bk-dropdown-menu>
-                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul class="bk-dropdown-list" slot="dropdown-content">
-                                            <li>
-                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
+                                    <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
+                                    <bk-popover
+                                        theme="light"
+                                        placement="bottom-start"
+                                        ext-cls="common-dropdown-btn-popver"
+                                        :z-index="2000"
+                                        :distance="0"
+                                        :arrow="false"
+                                        :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                        <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                        <ul slot="content">
+                                            <li class="opt-btn">
                                                 <a
-                                                    v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
+                                                    v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, tplOperations) }"
+                                                    href="javascript:void(0);"
+                                                    :class="{
+                                                        'disable': collectingId === props.row.id || collectListLoading,
+                                                        'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, tplOperations)
+                                                    }"
+                                                    @click="onCollectTemplate(props.row, $event)">
+                                                    {{ isCollected(props.row.id) ? i18n.cancelCollection : i18n.collect }}
+                                                </a>
+                                            </li>
+                                            <li class="opt-btn">
+                                                <a
+                                                    v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
                                                     v-cursor
                                                     class="text-permission-disable"
-                                                    @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
-                                                    {{i18n.clone}}
+                                                    @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
+                                                    {{i18n.edit}}
                                                 </a>
                                                 <a
                                                     v-else
-                                                    @click.prevent="getJumpUrl('clone', props.row.id)">
-                                                    {{i18n.clone}}
+                                                    class="template-operate-btn"
+                                                    @click.prevent="getJumpUrl('edit', props.row.id)">
+                                                    {{i18n.edit}}
+                                                </a>
+                                            </li>
+                                            <li class="opt-btn">
+                                                <a
+                                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                                    href="javascript:void(0);"
+                                                    :class="{
+                                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                                    }"
+                                                    @click="onDeleteTemplate(props.row, $event)">
+                                                    {{i18n.delete}}
                                                 </a>
                                             </li>
                                         </ul>
-                                    </bk-dropdown-menu>
+                                    </bk-popover>
                                 </template>
                             </div>
                         </template>
@@ -166,7 +190,8 @@
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
         <ProjectSelectorModal
-            ref="ProjectSelectorModal">
+            ref="ProjectSelectorModal"
+            @confirm="selectedProjectToNewTask">
         </ProjectSelectorModal>
         <bk-dialog
             :mask-close="false"
@@ -191,13 +216,14 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from '../TemplateList/ImportTemplateDialog.vue'
     import ExportTemplateDialog from '../TemplateList/ExportTemplateDialog.vue'
-    import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
+    import ListPageTipsTitle from '../ListPageTipsTitle.vue'
+
     const searchForm = [
         {
             type: 'select',
@@ -240,7 +266,7 @@
             ImportTemplateDialog,
             ExportTemplateDialog,
             ProjectSelectorModal,
-            BaseTitle,
+            ListPageTipsTitle,
             AdvanceSearchForm,
             NoData
         },
@@ -261,6 +287,10 @@
                     edit: gettext('编辑'),
                     clone: gettext('克隆'),
                     delete: gettext('删除'),
+                    collect: gettext('收藏'),
+                    cancelCollection: gettext('取消收藏'),
+                    addCollectSuccess: gettext('添加收藏成功！'),
+                    cancelCollectSuccess: gettext('取消收藏成功！'),
                     executeHistory: gettext('执行历史'),
                     deleleTip: gettext('确认删除'),
                     import_v1_template: gettext('导入 V1 模板'),
@@ -287,7 +317,7 @@
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
-                totalPage: 1,
+                expiredSubflowTplList: [],
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isExportDialogShow: false,
@@ -301,6 +331,8 @@
                     delete: false // 删除
                 },
                 templateCategoryList: [],
+                collectListLoading: false,
+                collectionList: [],
                 category: undefined,
                 editEndTime: undefined,
                 templateType: this.common_template,
@@ -312,14 +344,15 @@
                     creator: '',
                     flowName: ''
                 },
+                totalPage: 1,
                 pagination: {
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 createTplRequired: ['create'],
+                collectingId: '', // 正在被收藏/取消收藏的模板id
                 tplOperations: [], // 模板权限字典
                 tplResource: {}, // 模板资源信息
                 createCommonTplAction: [] // 创建公共流程权限
@@ -350,8 +383,10 @@
         },
         created () {
             this.getTemplateList()
+            this.getCollectList()
             this.getProjectBaseInfo()
             this.queryCreateCommonTplPerm()
+            // this.getExpiredSubflowData() 公共流程暂时不显示子流程更新提示
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -359,14 +394,18 @@
                 'queryUserPermission'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'addToCollectList',
+                'deleteCollect',
+                'loadCollectList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
                 'deleteTemplate',
                 'saveTemplatePersons',
                 'templateImport',
-                'templateExport'
+                'templateExport',
+                'getExpiredSubProcess'
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
@@ -443,6 +482,29 @@
                     this.categoryLoading = false
                 }
             },
+            async getExpiredSubflowData () {
+                try {
+                    const resp = await this.getExpiredSubProcess()
+                    if (resp.result) {
+                        this.expiredSubflowTplList = resp.data
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            async getCollectList () {
+                try {
+                    this.collectListLoading = true
+                    const res = await this.loadCollectList()
+                    this.collectionList = res.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectListLoading = false
+                }
+            },
             checkCreatePermission () {
                 if (!this.hasPermission(this.createTplRequired, this.createCommonTplAction, this.tplOperations)) {
                     const resourceData = {
@@ -486,7 +548,7 @@
                 try {
                     const data = {
                         common: '1',
-                        list: JSON.stringify(list)
+                        list
                     }
                     const resp = await this.templateExport(data)
                     if (resp.result) {
@@ -590,15 +652,23 @@
                     template_id,
                     common: '1'
                 }
-                if (name === 'newTask' && !this.project_id) {
-                    this.$refs.ProjectSelectorModal.show(urlMap[name])
+                if (name === 'newTask') {
+                    this.$refs.ProjectSelectorModal.show(template_id)
                     return false
                 }
                 this.$router.push(url)
             },
+            // 选完项目后新建任务
+            selectedProjectToNewTask (projectId, templateId) {
+                this.$router.push({
+                    name: 'taskStep',
+                    query: { template_id: templateId, common: '1' },
+                    params: { project_id: projectId, step: 'selectnode' }
+                })
+            },
             getExecuteHistoryUrl (id) {
                 return {
-                    name: 'commonProcessList',
+                    name: 'taskList',
                     params: { project_id: this.project_id },
                     query: { template_id: id }
                 }
@@ -609,6 +679,58 @@
                     return '--'
                 }
                 return item.subprocess_has_update ? this.i18n.yes : this.i18n.no
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.getTemplateList()
+            },
+            // 标题提示信息，查看子流程更新
+            handleSubflowFilter () {
+                const searchComp = this.$refs.advanceSearch
+                searchComp.onAdvanceOpen(true)
+                searchComp.onChangeFormItem(1, searchForm[2].key)
+                searchComp.submit()
+            },
+            // 添加/取消收藏模板
+            async onCollectTemplate (template, event) {
+                if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
+                    this.onTemplatePermissonCheck(['view'], template, event)
+                    return
+                }
+                if (typeof this.collectingId === 'number') {
+                    return
+                }
+
+                try {
+                    this.collectingId = template.id
+                    if (!this.isCollected(template.id)) { // add
+                        const res = await this.addToCollectList([{
+                            extra_info: {
+                                template_id: template.template_id,
+                                name: template.name,
+                                id: template.id
+                            },
+                            category: 'common_flow'
+                        }])
+                        if (res.objects.length) {
+                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                        }
+                    } else { // cancel
+                        const delId = this.collectionList.find(m => m.extra_info.id === template.id && m.category === 'common_flow').id
+                        await this.deleteCollect(delId)
+                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                    }
+                    this.getCollectList()
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
+                }
+            },
+            // 判断是否已在收藏列表
+            isCollected (id) {
+                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'common_flow')
             }
         }
     }
@@ -639,39 +761,27 @@ a {
         height: 156px;
         background: #fff;
     }
-    .template-advanced-search {
-        float: right;
-        .base-search {
-            margin: 0px;
-        }
-    }
 }
 .template-table-content {
     background: #ffffff;
     a.template-name {
         color: $blueDefault;
     }
-    /deep/ .bk-table {
-        overflow: visible;
-        .bk-table-body-wrapper,.is-scrolling-none,
-        td.is-last .cell {
-            overflow: visible;
-        }
-    }
     .template-operation > .text-permission-disable {
         padding: 5px;
     }
     .template-operate-btn {
         padding: 5px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .drop-icon-ellipsis {
-        position: absolute;
-        top: -13px;
         font-size: 18px;
+        vertical-align: -3px;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
+            background: #dcdee5;
+            border-radius: 50%;
         }
     }
     .empty-data {
@@ -680,8 +790,5 @@ a {
     .subflow-has-update {
         color: $redDefault;
     }
-}
-.bk-dropdown-menu .bk-dropdown-list > li > a {
-    font-size: 12px;
 }
 </style>

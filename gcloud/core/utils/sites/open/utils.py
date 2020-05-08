@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -50,7 +50,6 @@ def get_all_business_list(use_cache=True):
     return data
 
 
-# LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是非法值
 def get_user_business_list(username, use_cache=True):
     """Get authorized business list for a exact username.
 
@@ -80,6 +79,44 @@ def get_user_business_list(username, use_cache=True):
             )
 
     return data
+
+
+def get_user_business_detail(username, bk_biz_id):
+    """Get authorized business list for a exact username.
+
+    :param object username: User username
+    :param bool use_cache: (Optional)
+    """
+
+    user_info = _get_user_info(username)
+    client = get_client_by_user(username)
+    result = client.cc.search_business({
+        'bk_supplier_account': user_info['bk_supplier_account'],
+        'condition': {
+            'bk_data_status': {'$in': ['enable', 'disabled', None]},
+            'bk_biz_id': bk_biz_id
+        }
+    })
+
+    if result['result']:
+        data = result['data']['info']
+    else:
+        raise exceptions.APIError(
+            system='cc',
+            api='search_business',
+            message=result['message'],
+            result=result
+        )
+
+    if len(data) != 1:
+        raise exceptions.APIError(
+            system='cc',
+            api='search_business',
+            message=result['message'],
+            result=result
+        )
+
+    return data[0]
 
 
 def _get_user_info(username, use_cache=True):

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
-from pipeline_plugins.variables import query
+from pipeline_plugins.variables.query import select
 
 
 urlpatterns = [
-    url(r'^variable_select_source_data_proxy/$', query.variable_select_source_data_proxy),
+    url(r'^variable_select_source_data_proxy/$', select.variable_select_source_data_proxy),
 ]

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-upload">
-        <div v-if="editable">
+        <div v-if="formMode">
             <el-upload
                 ref="upload"
                 :action="url"
@@ -19,6 +19,7 @@
                 :limit="limit"
                 :auto-upload="auto_upload"
                 :headers="headers"
+                :disabled="!editable || disabled"
                 :on-success="handleSuccess.bind(this)"
                 :on-remove="handleRemove.bind(this)"
                 :on-error="handleError.bind(this)"
@@ -32,11 +33,14 @@
             <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
-        <span v-else class="rf-view-value">{{viewValue}}</span>
+        <span v-else class="rf-view-value">
+            <p v-for="(file, index) in viewValue" :key="index">{{ file }}</p>
+        </span>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import tools from '@/utils/tools.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -78,6 +82,12 @@
             required: false,
             default: 100,
             desc: 'max of files'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'disable upload'
         },
         placeholder: {
             type: String,
@@ -125,6 +135,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
+                fileValue: tools.deepClone(this.value),
                 i18n: {
                     submit: gettext('提交'),
                     upload: gettext('点击上传'),
@@ -133,22 +144,24 @@
             }
         },
         computed: {
-            fileValue: {
-                get () {
-                    return this.value
-                },
-                set (val) {
-                    this.updateForm(val)
-                }
-            },
             viewValue () {
-                if (this.fileValue === 'undefined' || !this.fileValue.length) {
+                if (this.fileValue === 'undefined' || !Array.isArray(this.fileValue) || !this.fileValue.length) {
                     return '--'
                 }
-                return this.fileValue.join(',')
+                return this.fileValue.map(item => item.name)
             },
             uploadText () {
                 return this.text || (this.auto_upload ? this.i18n.upload : this.i18n.select)
+            }
+        },
+        watch: {
+            value: {
+                handler (val, oldVal) {
+                    if (!tools.isDataEqual(val, oldVal)) {
+                        this.fileValue = tools.deepClone(val)
+                    }
+                },
+                deep: true
             }
         },
         methods: {
@@ -198,3 +211,8 @@
         }
     }
 </script>
+<style lang="scss">
+.el-upload__tip {
+    color: #666666;
+}
+</style>

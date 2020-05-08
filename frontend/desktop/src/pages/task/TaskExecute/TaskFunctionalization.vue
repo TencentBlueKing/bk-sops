@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -18,7 +18,7 @@
                 <label class="required">{{ i18n.taskName }}</label>
                 <div class="common-form-content">
                     <bk-input
-                        class="common-form-content-size"
+                        class="task-name"
                         name="taskName"
                         v-model="name"
                         v-validate="taskNameRule">
@@ -34,12 +34,14 @@
                 </span>
             </div>
             <div class="param-info-division-line"></div>
-            <NoData v-if="isVariableEmpty"></NoData>
-            <TaskParamEdit
-                v-else
-                ref="TaskParamEdit"
-                :constants="pipelineData.constants">
-            </TaskParamEdit>
+            <div v-if="!isVariableEmpty" class="form-wrapper" v-bkloading="{ isLoading: isConfigLoading, opacity: 1 }">
+                <TaskParamEdit
+                    ref="TaskParamEdit"
+                    :constants="pipelineData.constants"
+                    @onChangeConfigLoading="changeLoading">
+                </TaskParamEdit>
+            </div>
+            <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
             <bk-button
@@ -48,7 +50,7 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
-                theme="success"
+                theme="primary"
                 :class="['task-claim-button', {
                     'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
                 }]"
@@ -68,7 +70,7 @@
             width="1000"
             @cancel="onCancel">
             <NodePreview
-                v-if="previewDialogShow"
+                v-if="canvasShow"
                 ref="nodePreviewRef"
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData(previewData)"
@@ -114,7 +116,9 @@
                     taskPreview: gettext('任务流程预览')
                 },
                 isSubmit: false,
+                isConfigLoading: false,
                 previewDialogShow: false,
+                canvasShow: false,
                 previewDataLoading: false,
                 name: this.instanceName,
                 nodeSwitching: false,
@@ -134,6 +138,22 @@
             }),
             isVariableEmpty () {
                 return Object.keys(this.pipelineData.constants).length === 0
+            }
+        },
+        watch: {
+            /** HACK
+             * magicbox V2.1.8 版本，dialog 组件在切换为显示状态后，画布组件开始渲染，
+             * 弹窗内容区域 display 属性仍为 none，在 $nextTick 里才变更，
+             * 导致画布组件首次渲染时因为容器高度为 0，连线不能正确渲染位置
+             */
+            previewDialogShow (val) {
+                if (val) {
+                    setTimeout(() => {
+                        this.canvasShow = true
+                    }, 0)
+                } else {
+                    this.canvasShow = false
+                }
             }
         },
         methods: {
@@ -162,6 +182,9 @@
                 this.$nextTick(() => {
                     this.previewDataLoading = false
                 })
+            },
+            changeLoading (val) {
+                this.isConfigLoading = val
             },
             onTaskClaim () {
                 if (this.isSubmit) return
@@ -245,9 +268,8 @@
 @import '@/scss/config.scss';
 .functionalization-wrapper {
     position: relative;
-    margin: 0 40px;
+    padding: 0 40px;
     padding-top: 30px;
-    width: calc(100% - 80px);
     min-height: calc(100vh - 50px - 139px);
     background-color: #ffffff;
     @media screen and (max-width: 1300px){
@@ -340,7 +362,10 @@
     padding-bottom: 0px;
 }
 .task-param-wrapper {
-    width: 720px;
+    width: 620px;
+}
+.form-wrapper {
+    min-height: 200px;
 }
 .action-wrapper {
     position: absolute;
@@ -365,13 +390,9 @@
     }
     .task-claim-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
-.step-form-content-size {
+.task-name {
     max-width: 500px;
 }
 /deep/ .bk-dialog-body {

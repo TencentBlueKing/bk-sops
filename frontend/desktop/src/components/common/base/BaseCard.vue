@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,12 +11,21 @@
 */
 <template>
     <li
-        :class="['card-item', {
-            'permission-disable': isApplyPermission
-        }]"
+        :class="[
+            'card-item',
+            { 'permission-disable': isApplyPermission },
+            { 'selected': selected }]"
         @click="onCardClick">
-        <div class="card-icon">
+        <div v-if="!iconText" class="card-icon">
             {{ displayName.trim().substr(0,1).toUpperCase() }}
+        </div>
+        <div
+            v-else
+            :class="[
+                'card-icon',
+                'type-icon',
+                { 'zh-en': lang === 'en' }]">
+            {{ iconText }}
         </div>
         <div class="card-content">
             <p class="text">{{ displayName }}</p>
@@ -24,11 +33,12 @@
         <div v-if="isApplyPermission" class="apply-permission-mask">
             <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
         </div>
-        <div v-if="!isApplyPermission && showDelete" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
+        <div v-if="showDelete" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
     </li>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
     export default {
         name: 'BaseCard',
         props: {
@@ -40,11 +50,19 @@
                 type: Boolean,
                 default: false
             },
+            selected: {
+                type: Boolean,
+                default: false
+            },
             showDelete: {
                 type: Boolean,
-                default: true
+                default: false
             },
             setName: {
+                type: String,
+                default: ''
+            },
+            iconText: {
                 type: String,
                 default: ''
             }
@@ -57,6 +75,9 @@
             }
         },
         computed: {
+            ...mapState({
+                lang: state => state.lang
+            }),
             displayName () {
                 return this.setName || this.data.name
             }
@@ -75,6 +96,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 .card-item {
+    display: table;
     position: relative;
     margin-top: 20px;
     margin-right: 16px;
@@ -82,7 +104,8 @@
     height: 60px;
     cursor: pointer;
     background: #f0f1f5;
-    &:not(.permission-disable):hover {
+    border-radius: 2px;
+    &:not(.permission-disable, .selected):hover {
         .card-icon {
             background: #b9bbc1;
         }
@@ -94,20 +117,34 @@
         }
     }
     .card-icon {
-        float: left;
+        display: table-cell;
         width: 60px;
+        min-width: 60px;
         height: 60px;
         line-height: 60px;
         text-align: center;
         font-size: 32px;
         color: #ffffff;
+        vertical-align: middle;
         background: #c4c6cc;
+        border-top-left-radius:2px;
+        border-bottom-left-radius:2px;
+        &.type-icon {
+            word-break: break-word;
+            font-size: 16px;
+            line-height: normal;
+            padding: 8px;
+        }
+        &.zh-en {
+            font-size: 14px;
+        }
     }
     .card-content {
-        display: flex;
-        align-items: center;
+        display: table-cell;
         padding: 12px 33px 12px 12px;
+        width: 100%;
         height: 60px;
+        vertical-align: middle;
         .text {
             font-size: 12px;
             color: #313238;
@@ -122,13 +159,14 @@
     }
      &.permission-disable {
         background: #f7f7f7;
+        border: 1px solid #dcdee5;
+        height: auto;
         .card-icon {
             color: #dcdee5;
             background: #f7f7f7;
-            border: 1px solid #dcdee5;
+            border-right: 1px solid #dcdee5;
         }
         .card-content {
-            border: 1px solid #dcdee5;
             border-left: none;
         }
         .text {
@@ -147,6 +185,23 @@
         }
         &:hover .apply-permission-mask {
             display: block;
+        }
+    }
+    &.selected {
+        .card-icon {
+            background: #666a7c;
+        }
+        .text, .card-content {
+            background: #838799;
+            color: #ffffff;
+            &:after {
+                background: #838799;
+            }
+        }
+        &:hover {
+            .text::after {
+                background: #838799;
+            }
         }
     }
     &:hover {
@@ -169,7 +224,9 @@
         position: absolute;
         right: -8px;
         top: -8px;
+        font-size: 16px;
         color: #838799;
+        background: #ffffff;
         border-radius: 50%;
         border: 2px solid #ffffff;
     }

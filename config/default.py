@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -45,9 +45,7 @@ if OPEN_VER == 'open':
 
 # 请在这里加入你的自定义 APP
 INSTALLED_APPS += (
-    'guardian',
     'gcloud.core',
-    'gcloud.config',
     'gcloud.tasktmpl3',
     'gcloud.taskflow3',
     'gcloud.webservice3',
@@ -79,6 +77,8 @@ INSTALLED_APPS += (
     'auth_backend.contrib.consistency',
     'weixin.core',
     'weixin',
+    'version_log',
+    'files',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -97,9 +97,8 @@ INSTALLED_APPS += (
 #     'django.middleware.security.SecurityMiddleware',
 #     # 蓝鲸静态资源服务
 #     'whitenoise.middleware.WhiteNoiseMiddleware',
-#     # reload weixin settings
-#     'blueapps.middleware.wechatsettings.ReloadSettingsMiddleware',
 #     # Auth middleware
+#     'blueapps.account.middlewares.RioLoginRequiredMiddleware',
 #     'blueapps.account.middlewares.WeixinLoginRequiredMiddleware',
 #     'blueapps.account.middlewares.LoginRequiredMiddleware',
 #     # exception middleware
@@ -129,7 +128,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.5.1'
+STATIC_VERSION = '3.5.7'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -191,11 +190,6 @@ USE_L10N = True
 
 LANGUAGE_SESSION_KEY = 'blueking_language'
 LANGUAGE_COOKIE_NAME = 'blueking_language'
-
-AUTHENTICATION_BACKENDS += (
-    'guardian.backends.ObjectPermissionBackend',
-    'gcloud.core.backends.GCloudPermissionBackend',
-)
 
 HAYSTACK_CONNECTIONS = {
     'default': {
@@ -284,11 +278,13 @@ BK_IAM_QUERY_INTERFACE = ''
 BK_IAM_RELATED_SCOPE_TYPES = 'system'
 BK_IAM_SYSTEM_MANAGERS = 'admin'
 BK_IAM_SYSTEM_CREATOR = 'admin'
-BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
-BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
-
+BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_APP_CODE', 'bk_iam_app')
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
+# 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
+BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', os.getenv('BK_IAM_HOST', ''))
+# 权限中心 SaaS host
+BK_IAM_SAAS_HOST = os.environ.get('BKAPP_IAM_SAAS_HOST', '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE))
 
 AUTH_LEGACY_RESOURCES = [
     'project',
@@ -298,6 +294,9 @@ AUTH_LEGACY_RESOURCES = [
     'periodic_task',
     'task'
 ]
+
+# 用户管理配置
+BK_USER_MANAGE_HOST = '{}/o/{}'.format(BK_PAAS_HOST, 'bk_user_manage')
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']
@@ -318,7 +317,9 @@ PIPELINE_INSTANCE_CONTEXT = 'gcloud.taskflow3.utils.get_instance_context'
 
 COMPONENT_PATH = [
     'components.collections.http',
-    'components.collections.sites.%s' % RUN_VER]
+    'components.collections.sites.%s' % RUN_VER,
+    'components.collections.sites.%s.cc_plugins' % RUN_VER
+]
 VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
 
 PIPELINE_PARSER_CLASS = 'pipeline_web.parser.WebPipelineAdapter'
@@ -346,3 +347,9 @@ ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER
 for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
+
+# version log config
+VERSION_LOG = {
+    'PAGE_STYLE': 'gitbook',
+    'MD_FILES_DIR': 'version_log/version_logs_md'
+}

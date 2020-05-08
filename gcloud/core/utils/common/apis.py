@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -17,7 +17,7 @@ from pipeline.utils.http import http_post_request
 
 from gcloud.conf import settings
 
-BK_IAM_APPLY_URL_QUERY_URL = '%s/o/%s/api/v1/apply-permission/url/' % (settings.BK_PAAS_HOST, settings.BK_IAM_APP_CODE)
+BK_IAM_APPLY_URL_QUERY_URL = '{}/api/v1/apply-permission/url/'.format(settings.BK_IAM_SAAS_HOST)
 
 
 def apply_permission_url(permission):

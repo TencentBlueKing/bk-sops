@@ -1,5 +1,5 @@
 # Base
-Django==1.11.23
+Django==1.11.28
 PyMySQL==0.6.7
 requests==2.20.0
 celery==3.1.25
@@ -15,13 +15,13 @@ suds-jurko==0.6
 jsonschema==2.5.1
 django-tastypie==0.13.3
 setuptools_scm==1.11.1
-django-guardian==1.4.8
 django-haystack==2.4.1
 rsa==3.4.2
 django-nose==1.4.5
 coverage==4.5.1
 python-magic==0.4.15
 cryptography==2.3.1
+gitdb2==2.0.6
 GitPython==2.1.11
 PyJWT==1.6.1
 future==0.18.1
@@ -35,3 +35,7 @@ django-timezone-field==3.0
 mock==2.0.0
 factory_boy==2.11.1
 boto3==1.9.130
+gevent==1.2.2
+
+# version log
+mistune==0.8.4

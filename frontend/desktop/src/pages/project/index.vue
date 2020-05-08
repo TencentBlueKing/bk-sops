@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -43,7 +43,8 @@
                     :data="projectList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: loading, opacity: 1 }"
-                    @page-change="onPageChange">
+                    @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.projectName" prop="name"></bk-table-column>
                     <bk-table-column :label="i18n.projectDesc">
@@ -52,25 +53,25 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.operation">
                         <template slot-scope="props">
                             <template
                                 v-for="(item, index) in OptBtnList">
-                                <bk-button
+                                <a
                                     v-if="isShowOptBtn(props.row.is_disable, item.name)"
                                     v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions, projectOperations) }"
                                     :key="index"
                                     :class="['operate-btn', {
                                         'text-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
                                     }]"
-                                    theme="default"
+                                    :text="true"
                                     @click="onClickOptBtn(props.row, item.name)">
                                     {{
                                         item.name === 'view'
                                             ? (!hasPermission([item.power], props.row.auth_actions, projectOperations) ? item.text : item.enter )
                                             : item.text
                                     }}
-                                </bk-button>
+                                </a>
                             </template>
                         </template>
                     </bk-table-column>
@@ -156,7 +157,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapActions } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -202,7 +203,6 @@
                 searchStr: '',
                 projectList: [],
                 loading: true,
-                countPerPage: 15,
                 totalPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
@@ -233,8 +233,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 i18n: {
                     projectManage: gettext('项目管理'),
@@ -283,6 +282,9 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapMutations('project', [
+                'setTimeZone'
+            ]),
             ...mapActions([
                 'queryUserPermission'
             ]),
@@ -290,7 +292,8 @@
                 'loadProjectList',
                 'createProject',
                 'loadProjectDetail',
-                'updateProject'
+                'updateProject',
+                'changeDefaultProject'
             ]),
             async queryProjectCreatePerm () {
                 try {
@@ -313,8 +316,8 @@
 
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.pagination.current - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         is_disable: this.isClosedShow
                     }
                     
@@ -327,7 +330,7 @@
                     this.pagination.count = projectList.meta.total_count
                     this.projectOperations = projectList.meta.auth_operations
                     this.projectResource = projectList.meta.auth_resource
-                    const totalPage = Math.ceil(this.pagination.count / this.countPerPage)
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -434,12 +437,22 @@
                     this.isProjectDialogShow = true
                 }
             },
-            onViewProject (project) {
+            async onViewProject (project) {
                 if (!this.hasPermission(['view'], project.auth_actions, this.projectOperations)) {
                     this.applyForPermission(['view'], project, this.projectOperations, this.projectResource)
                     return
                 }
-                this.$router.push({ name: 'home' })
+                const id = project.id
+                // 切换项目上下文
+                await this.changeDefaultProject(id)
+                const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
+                this.setTimeZone(timeZone)
+                $.atoms = {}
+
+                this.$router.push({
+                    name: 'process',
+                    params: { project_id: id }
+                })
             },
             onEditProject (project) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
@@ -522,16 +535,19 @@
                     default:
                         _this.onChangeProjectStatus(item, name)
                 }
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.getProjectList()
             }
         }
     }
 </script>
 <style lang="scss" scoped>
-    @import '@/scss/config.scss';
     .project-container {
         min-width: 1320px;
         min-height: calc(100% - 50px);
-        background: $whiteNodeBg;
         .dialog-content {
             word-break: break-all;
         }
@@ -570,13 +586,14 @@
     }
     .operate-btn {
         margin-right: 5px;
-        padding: 0;
+        padding: 5px;
         height: auto;
         line-height: 1;
         background: transparent;
         border: none;
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
+        cursor: pointer;
         &.bk-button {
             min-width: unset;
         }

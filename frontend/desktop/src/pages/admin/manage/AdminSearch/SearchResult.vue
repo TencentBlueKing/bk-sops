@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -25,7 +25,8 @@
                         v-bkloading="{ isLoading: tplDataLoading, opacity: 1 }"
                         :data="tplData"
                         :pagination="tplPagination"
-                        @page-change="handlePageChange($event, 'tpl')">
+                        @page-change="handlePageChange($event, 'tpl')"
+                        @page-limit-change="handlePageLimitChange($event, 'tpl')">
                         <bk-table-column
                             v-for="col in tplListColumn"
                             :key="col.props"
@@ -60,10 +61,7 @@
                                 <template v-else-if="col.prop === 'operation'">
                                     <span
                                         v-if="props.row.is_deleted"
-                                        v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, tplOperations) }"
-                                        :class="['table-link', {
-                                            'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, tplOperations)
-                                        }]"
+                                        class="table-link"
                                         @click="onRestoreTemplate(props.row)">
                                         {{ i18n.restore }}
                                     </span>
@@ -95,7 +93,8 @@
                         v-bkloading="{ isLoading: taskDataLoading, opacity: 1 }"
                         :data="taskData"
                         :pagination="taskPagination"
-                        @page-change="handlePageChange($event, 'task')">
+                        @page-change="handlePageChange($event, 'task')"
+                        @page-limit-change="handlePageLimitChange($event, 'task')">
                         <bk-table-column
                             v-for="col in taskListColumn"
                             :key="col.props"
@@ -284,15 +283,13 @@
                 tplPagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15],
-                    'show-limit': false,
+                    'limit-list': [15, 20, 30],
                     limit: 15
                 },
                 taskPagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15],
-                    'show-limit': false,
+                    'limit-list': [15, 20, 30],
                     limit: 15
                 },
                 i18n: {
@@ -471,12 +468,8 @@
                 this.applyForPermission(required, data, operations, resource)
             },
             onRestoreTemplate (tpl) {
-                if (this.hasPermission(['edit'], tpl.auth_actions, this.tplOperations)) {
-                    this.isRestoreDialogShow = true
-                    this.restoreData = tpl
-                } else {
-                    this.onApplyPerm(['edit'], tpl, 'tpl')
-                }
+                this.isRestoreDialogShow = true
+                this.restoreData = tpl
             },
             async onRestoreConfirm () {
                 if (this.restorePending) {
@@ -504,6 +497,17 @@
                     this.getAdminTemplate()
                 } else {
                     this.taskPagination.current = val
+                    this.getAdminTask()
+                }
+            },
+            handlePageLimitChange (val, type) {
+                if (type === 'tpl') {
+                    this.tplPagination.limit = val
+                    this.tplPagination.current = 1
+                    this.getAdminTemplate()
+                } else {
+                    this.taskPagination.limit = val
+                    this.taskPagination.current = 1
                     this.getAdminTask()
                 }
             }
@@ -549,7 +553,7 @@
                 vertical-align: middle;
             }
             .common-icon-dark-circle-ellipsis {
-                color: #3c96ff;
+                color: #3a84ff;
                 font-size: 14px;
                 vertical-align: middle;
             }

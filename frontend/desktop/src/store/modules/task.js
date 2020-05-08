@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -15,8 +15,7 @@ const task = {
     namespaced: true,
     actions: {
         loadTaskScheme ({ commit }, payload) {
-            const { project_id, template_id, isCommon } = payload
-            return api.getTaskScheme({ project_id, template_id, isCommon }).then(response => response.data.objects)
+            return api.getTaskScheme(payload).then(response => response.data.objects)
         },
         createTaskScheme ({ commit }, payload) {
             return api.createTaskScheme(payload).then(response => response.data)

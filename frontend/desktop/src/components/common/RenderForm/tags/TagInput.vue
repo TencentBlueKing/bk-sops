@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,12 +11,12 @@
 */
 <template>
     <div class="tag-input">
-        <div v-if="formMode">
-            <div class="rf-form-wrapper">
+        <div class="rf-form-wrapper">
+            <template v-if="formMode">
                 <el-input
                     type="text"
                     v-model="inputValue"
-                    :disabled="!editable"
+                    :disabled="!editable || disabled"
                     :placeholder="placeholder"
                     @input="onInput">
                 </el-input>
@@ -33,10 +33,10 @@
                         </ul>
                     </div>
                 </transition>
-            </div>
-            <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
+            </template>
+            <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
         </div>
-        <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
+        <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
 <script>
@@ -53,6 +53,12 @@
             required: false,
             default: '',
             desc: 'placeholder'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('禁用表单输入')
         },
         value: {
             type: String,
@@ -173,7 +179,7 @@
             cursor: pointer;
             &:hover {
                 background: #eef6fe;
-                color: #3c96ff;
+                color: #3a84ff;
             }
         }
     }

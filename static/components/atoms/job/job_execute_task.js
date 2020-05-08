@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -97,21 +97,10 @@
                 hookable: false,
                 type: "primary",
                 title: '刷新',
-                plain: true,
-                size: "small",
+                size: "normal",
                 cols: 1,
                 formViewHidden: true
-            },
-            events: [
-                {
-                    source: "button_refresh",
-                    type: "click",
-                    action: function (value) {
-                        const job_id = this.get_parent().get_child("job_task_id").value;
-                        this.emit_event("job_task_id", "change", job_id)
-                    }
-                }
-            ]
+            }
         },
         {
             tag_code: "job_global_var",
@@ -119,6 +108,7 @@
             attrs: {
                 name: gettext("全局变量"),
                 hookable: true,
+                deleteable: false,
                 empty_text: gettext("没选中作业模板或当前作业模板全局变量为空"),
                 columns: [
                     {
@@ -158,10 +148,6 @@
                     source: "job_task_id",
                     type: "change",
                     action: function (value) {
-                        if ($.job_execute_task_data === undefined) {
-                            $.job_execute_task_data = {}
-                        }
-                        $.job_execute_task_data['current_job_task_id'] = value;
                         var $this = this;
                         this.changeHook(false);
                         if (value === '') {
@@ -175,11 +161,42 @@
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {
-                                if ($.job_execute_task_data[value] === undefined) {
-                                    $.job_execute_task_data[value] = resp.data.global_var;
-                                    $this._set_value(resp.data.global_var);
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
                                 } else {
-                                    var global_var = $.job_execute_task_data[value];
+                                    $this._set_value(resp.data.global_var)
+                                }
+                                
+                                $this.set_loading(false);
+                            },
+                            error: function () {
+                                $this._set_value([]);
+                                $this.set_loading(false);
+                                show_msg('request job detail error', 'error');
+                            }
+                        });
+                    }
+                },
+                {
+                    source: "button_refresh",
+                    type: "click",
+                    action: function (value) {
+                        const job_id = this.get_parent().get_child("job_task_id").value;
+                        var $this = this;
+                        this.changeHook(false);
+                        if (job_id === '') {
+                            this._set_value([]);
+                            return;
+                        }
+                        this.set_loading(true);
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        $.ajax({
+                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + job_id + '/',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (resp) {
+                                var global_var = $this._get_value()
+                                if (global_var) {
                                     var new_global_var = resp.data.global_var.map(function (item) {
                                         var target = global_var.find(function (old_item) {
                                             return old_item.name === item.name;
@@ -202,14 +219,6 @@
                                 show_msg('request job detail error', 'error');
                             }
                         });
-                    }
-                },
-                {
-                    source: "job_global_var",
-                    type: "change",
-                    action: function (value) {
-                        var task_job_id = $.job_execute_task_data['current_job_task_id'];
-                        $.job_execute_task_data[task_job_id] = value;
                     }
                 }
             ]

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -170,7 +170,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
         # upload app logo
         if not fake and app_params['logo_content']:
-            logo = base64.b64encode(app_params['logo_content'].encode('utf-8'))
+            logo = base64.b64encode(app_params['logo_content'])
             app_logo_result = modify_app_logo(app_maker_obj.creator, app_code, logo)
             if not app_logo_result['result']:
                 logger.warning("AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,

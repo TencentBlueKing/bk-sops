@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -10,6 +10,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
+import copy
 
 from pipeline.core.constants import PE
 
@@ -62,27 +64,36 @@ def position(pipeline,
 
     min_rk = min(list(orders.keys()))
     max_rk = max(list(orders.keys()))
+    # 之前的位置信息
+    old_locations = {location['id']: location for location in pipeline.get('location', [])}
     # 先分配节点位置
     locations = {}
     rank_x, rank_y = start
+    new_line_y = rank_y
     # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
     for rk in range(min_rk, max_rk + MIN_LEN, MIN_LEN):
         layer_nodes = orders[rk]
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
-        new_line_y = rank_y + shift_y
         for node_id in layer_nodes:
             if node_id in pipeline['all_nodes']:
                 node = pipeline['all_nodes'][node_id]
                 node_y = int(order_y + pipeline_element_shift_y[node[PE.type]])
-                locations[node[PE.id]] = {
-                    'id': node[PE.id],
-                    'type': PIPELINE_ELEMENT_TO_WEB.get(node[PE.type], node[PE.type]),
-                    'name': node.get(PE.name, ''),
-                    'status': '',
-                    'x': int(order_x),
-                    'y': node_y
-                }
+                if node_id in old_locations:
+                    locations[node_id] = copy.deepcopy(old_locations[node_id])
+                    locations[node_id].update({
+                        'x': int(order_x),
+                        'y': node_y
+                    })
+                else:
+                    locations[node_id] = {
+                        'id': node_id,
+                        'type': PIPELINE_ELEMENT_TO_WEB.get(node[PE.type], node[PE.type]),
+                        'name': node.get(PE.name, ''),
+                        'status': '',
+                        'x': int(order_x),
+                        'y': node_y
+                    }
                 if node_y > new_line_y:
                     new_line_y = node_y + shift_y
             order_y += shift_y

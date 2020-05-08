@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -25,14 +25,14 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="success" :loading="retrying" @click="onRetryTask">{{ i18n.confirm }}</bk-button>
+            <bk-button theme="primary" :loading="retrying" @click="onRetryTask">{{ i18n.confirm }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
         </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -83,9 +83,6 @@
             ...mapActions('atomForm/', [
                 'loadAtomConfig'
             ]),
-            ...mapMutations('atomForm/', [
-                'setAtomConfig'
-            ]),
             async loadNodeInfo () {
                 this.loading = true
                 try {
@@ -112,7 +109,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type, version })
+                        await this.loadAtomConfig({ atom: type, version })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)

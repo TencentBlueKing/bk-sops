@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -25,7 +25,7 @@
                             class="step-form-content-size"
                             name="taskName">
                         </bk-input>
-                        <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
+                        <span v-show="errors.has('taskName')" class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
                 <div
@@ -33,7 +33,7 @@
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
-                        <div class="button-group">
+                        <div class="bk-button-group">
                             <bk-button
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
@@ -105,7 +105,7 @@
                 :class="['next-step-button', {
                     'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
                 }]"
-                theme="success"
+                theme="primary"
                 :loading="isSubmit"
                 v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
@@ -125,6 +125,8 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
+
     export default {
         name: 'TaskParamFill',
         components: {
@@ -192,7 +194,7 @@
                 'appmakerDetail': state => state.appmakerDetail
             }),
             isTaskTypeShow () {
-                return !this.userRights.function && this.isStartNow
+                return this.entrance !== 'function' && this.isStartNow
             },
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && !this.userRights.function && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
@@ -220,7 +222,7 @@
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
-                return this.common || this.viewMode === 'appmaker' || this.userRights.function || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
+                return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -287,6 +289,9 @@
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     errorHandler(e, this)
                 } finally {
                     this.taskMessageLoading = false
@@ -298,8 +303,16 @@
              */
             async getLayoutedPosition (data) {
                 try {
+                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
                     const width = document.body.scrollWidth - 90
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
+                    const res = await this.getLayoutedPipeline({
+                        canvas_width: width,
+                        pipeline_tree: data,
+                        activity_size: ACTIVITY_SIZE,
+                        event_size: EVENT_SIZE,
+                        gateway_size: GATEWAY_SIZE,
+                        start: START_POSITION
+                    })
                     if (res.result) {
                         return res.data.pipeline_tree
                     } else {
@@ -324,11 +337,15 @@
                 this.$emit('setFunctionalStep', isSelectFunctionalType)
             },
             onGotoSelectNode () {
-                this.$emit('setFunctionalStep', false)
                 const url = {
                     name: 'taskStep',
                     params: { project_id: this.project_id, step: 'selectnode' },
                     query: { 'template_id': this.template_id, common: this.common || undefined, entrance: this.entrance || undefined }
+                }
+                if (this.entrance !== 'function') {
+                    this.$emit('setFunctionalStep', false)
+                } else {
+                    url.name = 'functionTemplateStep'
                 }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
@@ -348,8 +365,9 @@
                 }
 
                 const loopRule = !this.isStartNow ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
-                if (!loopRule.check) return
-                if (this.isSubmit) return
+                if (!loopRule.check || this.isSubmit) {
+                    return false
+                }
                 // 页面中是否有 TaskParamEdit 组件
                 const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
                 this.$validator.validateAll().then(async (result) => {
@@ -366,10 +384,15 @@
 
                     this.isSubmit = true
                     let flowType
-                    if (this.userRights.function) {
+                    if (
+                        (this.$route.name === 'functionTemplateStep'
+                        && this.entrance === 'function')
+                        || this.isSelectFunctionalType) {
+                        // 职能化任务
                         flowType = 'common_func'
                     } else {
-                        flowType = this.isSelectFunctionalType ? 'common_func' : 'common'
+                        // 普通任务
+                        flowType = 'common'
                     }
                     if (this.isStartNow) {
                         const data = {
@@ -396,17 +419,23 @@
                                         query: { instance_id: taskData.instance_id }
                                     }
                                 }
-                            } else if (this.isSelectFunctionalType) {
+                            } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                                url = {
+                                    name: 'functionTaskExecute',
+                                    params: { project_id: this.project_id },
+                                    query: { instance_id: taskData.instance_id, common: this.common }
+                                }
+                            } else if (this.isSelectFunctionalType) { // 手动选择职能化流程
                                 url = {
                                     name: 'taskList',
                                     params: { project_id: this.project_id },
-                                    query: { common: this.common } // 公共流程创建职能化任务
+                                    query: { common: this.common }
                                 }
                             } else {
                                 url = {
                                     name: 'taskExecute',
                                     params: { project_id: this.project_id },
-                                    query: { instance_id: this.instance_id, common: this.common } // 公共流程创建职能化任务
+                                    query: { instance_id: taskData.instance_id, common: this.common } // 公共流程创建职能化任务
                                 }
                             }
                             this.$router.push(url)
@@ -515,7 +544,7 @@
 }
 .bk-button-group {
     .bk-button {
-        width: 150px;
+        width: 250px;
         margin: 0px;
     }
     .bk-button.bk-primary {
@@ -597,11 +626,6 @@
     }
     .next-step-button {
         width: 140px;
-        height: 32px;
-        line-height: 32px;
-        color: #ffffff;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
     }
 }
 </style>

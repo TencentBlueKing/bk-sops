@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -71,6 +71,7 @@ from gcloud.taskflow3.constants import (
 )
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
 
@@ -514,8 +515,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             execute_data[component['component_code']] = value
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+
+            processed_components.add(code)
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -536,8 +544,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         failed_dict = {item['component_code']: item['failed_times'] for item in component_failed_data}
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -563,8 +578,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             execute_data[component['component_code']] = value
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -596,8 +618,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 )
 
         groups = []
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get('code')
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -984,7 +1013,7 @@ class TaskFlowInstance(models.Model):
 
         if component_code:
             outputs_table = []
-            version = self.get_act_web_info(node_id).get('version', None)
+            version = self.get_act_web_info(node_id).get('component', {}).get('version', None)
             try:
                 component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
@@ -1356,3 +1385,21 @@ class TaskFlowInstance(models.Model):
             }
 
         return TaskFlowInstance.objects.callback(act_id, data)
+
+    def get_stakeholders(self):
+        notify_receivers = json.loads(self.template.notify_receivers)
+        receiver_group = notify_receivers.get('receiver_group', [])
+        receivers = [self.executor]
+
+        if self.project.from_cmdb:
+            group_members = get_business_group_members(
+                self.project.bk_biz_id,
+                receiver_group
+            )
+
+            receivers.extend(group_members)
+
+        return receivers
+
+    def get_notify_type(self):
+        return json.loads(self.template.notify_type)

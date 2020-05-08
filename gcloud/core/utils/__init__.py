@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -36,7 +36,8 @@ ver_exports = [
     'convert_group_name',
     'convert_readable_username',
     'get_user_business_list',
-    'get_all_business_list'
+    'get_all_business_list',
+    'get_user_business_detail'
 ]
 for func in ver_exports:
     locals()[func] = getattr(ver_utils, func)

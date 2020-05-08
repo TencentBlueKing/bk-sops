@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -28,22 +28,23 @@ def handle_api_error(system, api_name, params, result):
         permission = result.get('permission', [])
         apply_result = apply_permission_url(permission)
         if not apply_result['result']:
-            logger.error(u"获取申请权限链接失败: {msg}".format(msg=apply_result['message']))
+            logger.error("获取申请权限链接失败: {msg}".format(msg=apply_result['message']))
 
         url = apply_result.get('data', {}).get('url', '')
 
-        message = _(u"调用{system}接口{api_name}无权限: "
-                    u"<a href='{url}' target='_blank'>申请权限</a>。\n details:"
-                    u"params={params}, error={error}").format(
+        message = _("调用{system}接口{api_name}无权限：<a href='{url}' target='_blank'>申请权限</a>。").format(
             system=system,
             api_name=api_name,
-            url=url,
+            url=url
+        )
+        message = "{prefix}\n details: params={params}, error={error}".format(
+            prefix=message,
             params=json.dumps(params),
             error=result.get('message', '')
         )
 
     else:
-        message = _(u"调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
+        message = _("调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
             system=system,
             api_name=api_name,
             params=json.dumps(params),

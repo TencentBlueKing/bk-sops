@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,6 +15,8 @@ import logging
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
+
+from gcloud.core.models import Business
 
 logger = logging.getLogger("root")
 
@@ -33,6 +35,10 @@ class TaskContext(object):
         self.project_name = taskflow.project.name
         self.bk_biz_id = taskflow.project.bk_biz_id
         self.bk_biz_name = taskflow.project.name
+        if taskflow.project.from_cmdb:
+            self.biz_supplier_account = Business.objects.get(cc_id=taskflow.project.bk_biz_id).cc_owner
+        else:
+            self.biz_supplier_account = None
         self.operator = operator
         # 调用ESB接口的执行者，V3.4.X版本后和操作员一致，如无权限请前往对应系统申请
         self.executor = operator

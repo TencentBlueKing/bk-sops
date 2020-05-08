@@ -27,6 +27,14 @@
     }
 }
 
+// NOTICE:
+// 插件开发页面，插件的默认icon
+// 规则与 common-icon-tag-default 相同，icon 更新后需要同步修改这里的 content
+.tag-default-icon:before {
+	content: "\f1db";
+}
+
+// icons
 .common-icon-add:before {
 	content: "\efde";
 }
@@ -81,9 +89,6 @@
 .common-icon-clock-inversion:before {
 	content: "\efef";
 }
-.common-icon-clock-reload:before {
-	content: "\eff0";
-}
 .common-icon-close:before {
 	content: "\eff1";
 }
@@ -99,20 +104,11 @@
 .common-icon-dark-circle-ellipsis:before {
 	content: "\eff5";
 }
-.common-icon-dark-circle-i:before {
-	content: "\eff6";
-}
 .common-icon-dark-circle-pause:before {
 	content: "\eff7";
 }
 .common-icon-dark-circle-question:before {
 	content: "\eff8";
-}
-.common-icon-dark-circle-r:before {
-	content: "\eff9";
-}
-.common-icon-dark-circle-s:before {
-	content: "\effa";
 }
 .common-icon-dark-circle-shape:before {
 	content: "\effb";
@@ -213,21 +209,6 @@
 .common-icon-node-startpoint-zh:before {
 	content: "\f01c";
 }
-.common-icon-node-subflow:before {
-	content: "\f01d";
-}
-.common-icon-node-subflow-shortcut:before {
-	content: "\f01e";
-}
-.common-icon-node-tasknode:before {
-	content: "\f01f";
-}
-.common-icon-node-tasknode-shortcut:before {
-	content: "\f020";
-}
-.common-icon-paper:before {
-	content: "\f021";
-}
 .common-icon-pin:before {
 	content: "\f022";
 }
@@ -248,12 +229,6 @@
 }
 .common-icon-solid-eye:before {
 	content: "\f028";
-}
-.common-icon-square-attribute:before {
-	content: "\f029";
-}
-.common-icon-square-code:before {
-	content: "\f02a";
 }
 .common-icon-subflow-mark:before {
 	content: "\f02b";
@@ -350,4 +325,67 @@
 }
 .common-icon-tag-checkbox:before {
 	content: "\f04d";
+}
+.common-icon-dark-circle-checkbox:before {
+	content: "\f096";
+}
+.common-icon-dark-circle-i:before {
+	content: "\f097";
+}
+.common-icon-dark-circle-r:before {
+	content: "\f098";
+}
+.common-icon-dark-circle-s:before {
+	content: "\f099";
+}
+.common-icon-loading-ring:before {
+	content: "\f09a";
+}
+.common-icon-next-triangle-shape:before {
+	content: "\f0b6";
+}
+.common-icon-prev-triangle-shape:before {
+	content: "\f0b7";
+}
+.common-icon-tag-cascader:before {
+	content: "\f0ca";
+}
+.common-icon-tag-default:before {
+	content: "\f1db";
+}
+.common-icon-circle-ellipsis:before {
+	content: "\f1fd";
+}
+.common-icon-double-paper-2:before {
+	content: "\f206";
+}
+.common-icon-angle-right:before {
+	content: "\f215";
+}
+.common-icon-arrow-left:before {
+	content: "\fe53";
+}
+.common-icon-clock-reload:before {
+	content: "\1cf";
+}
+.common-icon-node-subflow-shortcut:before {
+	content: "\1d0";
+}
+.common-icon-node-subflow:before {
+	content: "\1d1";
+}
+.common-icon-node-tasknode-shortcut:before {
+	content: "\1d2";
+}
+.common-icon-node-tasknode:before {
+	content: "\1d3";
+}
+.common-icon-paper:before {
+	content: "\1d4";
+}
+.common-icon-square-attribute:before {
+	content: "\1d5";
+}
+.common-icon-square-code:before {
+	content: "\1d6";
 }

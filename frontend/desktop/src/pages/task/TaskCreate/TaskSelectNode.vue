@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -52,6 +52,7 @@
         </div>
         <div class="action-wrapper" slot="action-wrapper">
             <bk-button
+                theme="primary"
                 class="next-button"
                 @click="onGotoParamFill">
                 {{ i18n.next }}
@@ -66,6 +67,7 @@
     import TaskScheme from './TaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
+    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     export default {
         name: 'TaskSelectNode',
@@ -197,6 +199,9 @@
                         }
                     })
                 } catch (e) {
+                    if (e.status === 404) {
+                        this.$router.push({ name: 'notFoundPage' })
+                    }
                     errorHandler(e, this)
                 } finally {
                     this.templateLoading = false
@@ -242,9 +247,17 @@
              */
             async getLayoutedPosition (data) {
                 try {
+                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
                     const canvasEl = document.querySelector('.canvas-content')
                     const width = canvasEl.offsetWidth - 90
-                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
+                    const res = await this.getLayoutedPipeline({
+                        canvas_width: width,
+                        pipeline_tree: data,
+                        activity_size: ACTIVITY_SIZE,
+                        event_size: EVENT_SIZE,
+                        gateway_size: GATEWAY_SIZE,
+                        start: START_POSITION
+                    })
                     if (res.result) {
                         return res.data.pipeline_tree
                     } else {
@@ -262,6 +275,9 @@
                     name: 'taskStep',
                     params: { project_id: this.project_id, step: 'paramfill' },
                     query: { template_id: this.template_id, common: this.common, entrance: this.entrance }
+                }
+                if (this.entrance === 'function') {
+                    url.name = 'functionTemplateStep'
                 }
                 if (this.viewMode === 'appmaker') {
                     url.name = 'appmakerTaskCreate'
@@ -431,19 +447,9 @@
 }
 .next-button {
     width:140px;
-    height:32px;
-    line-height: 32px;
-    margin-left: 40px;
-    background-color: #2dcb56;
-    border-radius:2px;
-    border-color: #2dcb56;
-    vertical-align: middle;
-    /deep/ span {
-        color: #ffffff;
-        font-size: 14px;
-    }
 }
 .action-wrapper {
+    padding-left: 40px;
     border-top: 1px solid #cacedb;
     background-color: #e1e4e8;
 }

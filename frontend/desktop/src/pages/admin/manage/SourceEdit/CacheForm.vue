@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -298,10 +298,10 @@
                 color: #63656e;
                 outline: none;
                 &:hover {
-                    border-color: #3c96ff;
+                    border-color: #3a84ff;
                 }
                 &:active {
-                    border-color: #3c96ff;
+                    border-color: #3a84ff;
                 }
                 &[disabled="disabled"] {
                     color: #aaa;
@@ -325,10 +325,10 @@
                 min-height: 102px;
                 max-height: 140px;
                 &:hover {
-                    border-color: #3c96ff;
+                    border-color: #3a84ff;
                 }
                 &:active {
-                    border-color: #3c96ff;
+                    border-color: #3a84ff;
                 }
             }
         }
@@ -350,7 +350,7 @@
             .td-with-input {
                 &:hover {
                     border-style: double;
-                    border-color: #3c96ff;
+                    border-color: #3a84ff;
                 }
                 @include common-input-error;
             }

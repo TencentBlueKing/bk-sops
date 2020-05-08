@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,7 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.contrib import admin
 
-from .models import ComponentInTemplate, ComponentExecuteData, TemplateInPipeline, InstanceInPipeline
+from .models import (ComponentExecuteData, ComponentInTemplate,
+                     InstanceInPipeline, TemplateInPipeline)
 
 
 @admin.register(ComponentInTemplate)
@@ -24,6 +25,7 @@ class ComponentInTemplateAdmin(admin.ModelAdmin):
         'template_id',
         'node_id',
         'is_sub',
+        'version'
     )
     search_fields = (
         'template_id',
@@ -45,7 +47,8 @@ class ComponentExecuteDataAdmin(admin.ModelAdmin):
         'elapsed_time',
         'status',
         'is_skip',
-        'is_retry'
+        'is_retry',
+        'version'
     )
     search_fields = (
         'instance_id',

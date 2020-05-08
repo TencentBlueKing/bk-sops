@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -41,35 +41,40 @@
                     { 'btn-permission-disable': !isSaveBtnEnable }]"
                 :loading="templateSaving"
                 v-cursor="{ active: !isSaveBtnEnable }"
-                @click="onSaveTemplate(false)">
+                @click.stop="onSaveClick(false)">
                 {{i18n.save}}
             </bk-button>
             <bk-button
-                v-if="isShowNewTask"
                 theme="primary"
                 :class="['task-btn', {
                     'btn-permission-disable': !isSaveAndCreateBtnEnable
                 }]"
                 :loading="createTaskSaving"
                 v-cursor="{ active: !isSaveAndCreateBtnEnable }"
-                @click="onSaveTemplate(true)">
+                @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
             <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>
         </div>
+        <ProjectSelectorModal
+            :is-new-task="false"
+            ref="ProjectSelectorModal">
+        </ProjectSelectorModal>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-
+    import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
     export default {
         name: 'TemplateHeader',
         components: {
-            BaseTitle
+            BaseTitle,
+            ProjectSelectorModal
         },
         mixins: [permission],
         props: {
@@ -133,6 +138,7 @@
                     regex: NAME_REG
                 },
                 isShowMode: true,
+                hasCreateTplPerm: false, // 是否有创建公共流程权限
                 i18n: {
                     placeholder: gettext('请输入名称'),
                     create: gettext('新建流程'),
@@ -154,44 +160,54 @@
                 return this.$route.query.template_id === undefined ? this.i18n.create : this.i18n.edit
             },
             isSaveAndCreateTaskType () {
-                return this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone'
+                return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
             },
             createTaskBtnText () {
                 return this.isSaveAndCreateTaskType ? this.i18n.saveAndCreateTask : this.i18n.createTask
             },
-            createTaskBtnIsPass () {
-                if (this.type === 'new') {
-                    return this.perm.create_task.isPass && this.perm.edit.isPass
+            saveRequiredPerm () {
+                if (['new', 'clone'].includes(this.type)) {
+                    return this.common ? ['create'] : ['create_template'] // 新建、克隆流程保存按钮对公共流程和普通流程的权限要求
                 } else {
-                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                    return ['edit']
                 }
             },
-            saveRequiredPerm () {
-                return this.type === 'new' ? ['create_template'] : ['edit']
-            },
             saveAndCreateRequiredPerm () {
-                if (this.type === 'new') {
-                    return ['create_template']
+                if (['new', 'clone'].includes(this.type)) {
+                    return this.common ? ['create'] : ['create_template']
                 } else {
                     return this.isTemplateDataChanged ? ['create_task', 'edit'] : ['create_task']
                 }
             },
             isSaveBtnEnable () {
-                if (this.type === 'new') {
-                    return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
-                } else {
-                    return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                if (!this.common) { // 普通流程保存/新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
+                        return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
+                    } else {
+                        return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                    }
+                } else { // 公共流程保存/新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
+                        return this.hasCreateTplPerm
+                    } else {
+                        return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                    }
                 }
             },
             isSaveAndCreateBtnEnable () {
-                if (this.type === 'new') {
-                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
-                } else {
-                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                if (!this.common) { // 普通流程新建任务/保存并新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
+                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
+                    } else {
+                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                    }
+                } else { // 公共流程新建任务/保存并新建按钮是否可用
+                    if (['new', 'clone'].includes(this.type)) {
+                        return this.hasCreateTplPerm
+                    } else {
+                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                    }
                 }
-            },
-            isShowNewTask () {
-                return !this.common
             }
         },
         watch: {
@@ -199,19 +215,39 @@
                 this.tName = val
             }
         },
+        created () {
+            if (['new', 'clone'].includes(this.type) && this.common) { // 公共流程新建、克隆需要单独查询权限
+                this.queryCreateCommonTplPerm()
+            }
+        },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapMutations('template/', [
                 'setTemplateName'
             ]),
             onInputName (val) {
                 this.$emit('onChangeName', val)
             },
-            onSaveTemplate (saveAndCreate = false) {
+            onSaveClick (saveAndCreate = false) {
+                if (saveAndCreate && this.common) {
+                    this.$refs.ProjectSelectorModal.show()
+                    this.$refs.ProjectSelectorModal.$on('confirm', (projectId) => {
+                        this.saveTemplate(true)
+                    })
+                    return false
+                }
+                this.saveTemplate(saveAndCreate)
+            },
+            saveTemplate (saveAndCreate = false, projectId) {
                 const { resourceData, operations, actions, resource } = this.getPermissionData()
                 const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
-                if (!this.hasPermission(required, actions, operations)) {
-                    this.applyForPermission(required, resourceData, operations, resource)
-                    return
+                if (!this.common || !['new', 'clone'].includes(this.type)) { // 创建、克隆公共流程执行事后校验
+                    if (!this.hasPermission(required, actions, operations)) {
+                        this.applyForPermission(required, resourceData, operations, resource)
+                        return
+                    }
                 }
 
                 this.$validator.validateAll().then((result) => {
@@ -227,7 +263,7 @@
             },
             getPermissionData () {
                 let resourceData, operations, actions, resource
-                if (this.type === 'new') {
+                if (['new', 'clone'].includes(this.type)) {
                     resourceData = {
                         id: this.project_id,
                         name: gettext('项目'),
@@ -281,6 +317,19 @@
                     }
                     this.isShowMode = true
                 })
+            },
+            async queryCreateCommonTplPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'common_flow',
+                        action_ids: JSON.stringify(['create'])
+                    })
+                    this.hasCreateTplPerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create' && item.is_pass
+                    })
+                } catch (err) {
+                    errorHandler(err, this)
+                }
             }
         }
     }
@@ -303,14 +352,15 @@
             text-align: center;
         }
         .name-show-mode {
-            display: inline-block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
         .canvas-name {
             display: inline-block;
             margin: 0;
             max-width: 400px;
-            height: 30px;
-            line-height: 30px;
             font-size: 14px;
             font-weight: normal;
             overflow: hidden;
@@ -319,8 +369,7 @@
             color: #606266;
         }
         .common-icon-edit {
-            float: right;
-            margin: 9px 0 0 4px;
+            margin-left: 4px;
             font-size: 12px;
             color: #546a9e;
             cursor: pointer;

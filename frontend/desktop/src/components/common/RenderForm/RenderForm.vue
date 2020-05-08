@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -44,8 +44,6 @@
         showLabel: false, // 是否显示标准插件名称
         formEdit: true, // 是否可编辑
         formMode: true, // 是否为表单模式（查看参数时，input、textarea等不需要用表单展示）
-        formViewHidden: false, // 改表单项为非编辑状态时，是否隐藏
-        cols: 0, // 横向栅格占有的格数，总数为 12 格
         validateSet: ['required', 'custom', 'regex'] // 选择开启的校验类型，默认都开启
     }
 
@@ -100,19 +98,19 @@
         watch: {
             scheme: {
                 handler: function (val) {
-                    this.setDefaultValue(val, this.formData)
+                    this.setDefaultValue(val, this.value)
                 },
                 deep: true
             },
             formData: {
-                handler: function (val) {
+                handler: function (val, oldVal) {
                     this.value = tools.deepClone(val)
                 },
                 deep: true
             }
         },
         created () {
-            this.setDefaultValue(this.scheme, this.formData)
+            this.setDefaultValue(this.scheme, this.value)
         },
         methods: {
             /**
@@ -124,6 +122,7 @@
             setDefaultValue (scheme, data) {
                 if (!scheme || !Array.isArray(scheme)) return
 
+                let isSetValueToFormData = false // 传入的 formData 中不包含 scheme 项中的值
                 scheme.forEach(item => {
                     const key = item.tag_code
 
@@ -135,13 +134,14 @@
                     if (item.type === 'combine') {
                         if (!this.hooked || !this.hooked[item.tag_code]) {
                             if (!(key in data)) {
+                                isSetValueToFormData = true
                                 this.$set(data, key, {})
-                                this.$set(this.value, key, {})
                             }
                             this.setDefaultValue(item.attrs.children, data[key])
                         }
                     } else {
                         if (!(key in data)) {
+                            isSetValueToFormData = true
                             let val
                             if ('value' in item.attrs) {
                                 val = tools.deepClone(item.attrs.value)
@@ -176,7 +176,8 @@
                                             ip: [],
                                             topo: [],
                                             filters: [],
-                                            excludes: []
+                                            excludes: [],
+                                            with_cloud_id: false
                                         }
                                         break
                                     default:
@@ -187,16 +188,19 @@
                         }
                     }
                 })
+                if (isSetValueToFormData) {
+                    this.$emit('change', tools.deepClone(data))
+                }
             },
             getFormValue (atom) {
                 /** warning 前端tag结构变化数据兼容 */
                 if (atom.tag_code === 'job_task') {
                     this.value[atom.tag_code] = this.reloadValue(atom, this.value)
                 }
-                return this.formData[atom.tag_code]
+                return this.value[atom.tag_code]
             },
             updateForm (fieldArr, val) {
-                const fieldDataObj = tools.deepClone(this.formData)
+                const fieldDataObj = tools.deepClone(this.value)
                 fieldArr.reduce((acc, cur, index, arr) => {
                     if (index === arr.length - 1) {
                         acc[cur] = val

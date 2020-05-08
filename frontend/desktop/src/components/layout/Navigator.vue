@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,7 +11,12 @@
 */
 <template>
     <header>
-        <router-link to="" class="nav-logo" @click.native="onLogoClick()">
+        <!-- 轻应用打开页面，logo不支持单击和右键跳转到首页 -->
+        <span v-if="view_mode === 'appmaker'" class="nav-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{ i18n.title }}</span>
+        </span>
+        <router-link v-else :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
             <span class="header-title">{{ i18n.title }}</span>
         </router-link>
@@ -20,7 +25,7 @@
                 v-for="(item, index) in showRouterList"
                 :key="index"
                 :class="['nav-item', { 'active': isNavActived(item) }]">
-                <router-link to="" @click.native="onGoToPath(item)">
+                <router-link :to="getNavPath(item)" :event="''" @click.native="onGoToPath(item)">
                     {{ item.name }}
                 </router-link>
                 <div
@@ -29,29 +34,50 @@
                     <router-link
                         v-for="(sub, subIndex) in item.children"
                         :key="subIndex"
-                        to=""
+                        :to="{ name: item.routerName }"
                         :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
+                        :event="''"
                         @click.native="onGoToPath(sub)">
                         {{ sub.name }}
                     </router-link>
                 </div>
             </li>
         </ul>
+        <!-- 右侧项目选择和其他信息 -->
         <ul class="nav-right">
-            <li v-if="showProjectSelect" class="project-select">
+            <li v-if="!isProjectHidden" class="project-select">
                 <ProjectSelector
-                    :disabled="isProjectDisabled"
+                    :show="!isProjectHidden"
+                    :read-only="isProjectReadOnly"
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="help-doc">
+            <li class="right-icon help-doc">
                 <a
                     class="common-icon-dark-circle-question"
-                    href="http://docs.bk.tencent.com/product_white_paper/gcloud/"
-                    target="_blank">
+                    href="https://bk.tencent.com/docs/document/5.1/3/22"
+                    target="_blank"
+                    v-bk-tooltips="{
+                        content: i18n.help,
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }">
                 </a>
             </li>
-            <li class="user-avatar">
+            <li class="right-icon version-log">
+                <i
+                    class="common-icon-info"
+                    v-bk-tooltips="{
+                        content: i18n.logVersion,
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }"
+                    @click="onOpenVersion">
+                </i>
+            </li>
+            <li class="right-icon user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
                     v-bk-tooltips="{
@@ -63,24 +89,28 @@
                 </span>
             </li>
         </ul>
+        <!-- 日志组件 -->
+        <version-log
+            ref="versionLog"
+            :log-list="logList"
+            :log-detail="logDetail"
+            :loading="logListLoading || logDetailLoading"
+            @active-change="handleVersionChange">
+        </version-log>
     </header>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import bus from '@/utils/bus.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
-    import bus from '@/utils/bus.js'
+    import VersionLog from './VersionLog.vue'
 
     const ROUTE_LIST = [
         {
-            routerName: 'commonProcessList',
-            name: gettext('公共流程'),
-            path: '/common'
-        },
-        {
             routerName: 'process',
-            name: gettext('业务流程'),
+            name: gettext('项目流程'),
             path: '/template/',
             params: ['project_id']
         },
@@ -95,6 +125,11 @@
             name: gettext('轻应用'),
             path: '/appmaker/',
             params: ['project_id']
+        },
+        {
+            routerName: 'commonProcessList',
+            name: gettext('公共流程'),
+            path: '/common'
         },
         {
             routerName: 'functionHome',
@@ -117,14 +152,19 @@
             name: gettext('管理员入口'),
             children: [
                 {
-                    routerName: 'sourceManage',
-                    path: '/admin/manage',
+                    routerName: 'adminSearch',
+                    path: '/admin/manage/',
                     name: gettext('后台管理')
                 },
                 {
                     routerName: 'statisticsTemplate',
-                    path: '/admin/statistics/template',
+                    path: '/admin/statistics/',
                     name: gettext('运营数据')
+                },
+                {
+                    routerName: 'atomDev',
+                    path: '/admin/atomdev',
+                    name: gettext('插件开发')
                 }
             ]
         }
@@ -132,14 +172,13 @@
     const APPMAKER_ROUTER_LIST = [
         {
             routerName: 'appmakerTaskCreate',
-            path: 'appMakerList',
+            path: 'appmakerTaskCreate',
             params: ['app_id', 'project_id'],
-            query: ['appmakerTemplateId'],
             name: gettext('新建任务')
         },
         {
-            routerName: 'appmakerTaskList',
-            path: 'appmakerTaskList',
+            routerName: 'appmakerTaskHome',
+            path: 'appmakerTaskHome',
             params: ['project_id'],
             name: gettext('任务记录')
         }
@@ -148,7 +187,8 @@
         inject: ['reload'],
         name: 'Navigator',
         components: {
-            ProjectSelector
+            ProjectSelector,
+            VersionLog
         },
         props: ['appmakerDataLoading'],
         data () {
@@ -156,8 +196,13 @@
                 logo: require('../../assets/images/logo/logo_icon.svg'),
                 i18n: {
                     help: gettext('帮助文档'),
+                    logVersion: gettext('版本日志'),
                     title: gettext('标准运维')
                 },
+                logList: [],
+                logDetail: '',
+                logListLoading: false,
+                logDetailLoading: false,
                 routerList: ROUTE_LIST,
                 appmakerRouterList: APPMAKER_ROUTER_LIST,
                 hasAdminPerm: false // 管理员入口权限
@@ -165,6 +210,7 @@
         },
         computed: {
             ...mapState({
+                site_url: state => state.site_url,
                 view_mode: state => state.view_mode,
                 username: state => state.username,
                 app_id: state => state.app_id,
@@ -181,12 +227,21 @@
                 project_id: state => state.project_id,
                 authResource: state => state.authResource
             }),
-            showProjectSelect () {
-                return this.view_mode !== 'appmaker' && this.projectList.length > 0
+            // 隐藏右侧项目信息
+            isProjectHidden () {
+                if (this.view_mode !== 'appmaker' && this.projectList.length === 0) {
+                    return true
+                }
+                const paths = ['/home', '/common/', '/admin/', '/project/', '/function/home', '/audit/home']
+                return paths.some(path => this.$route.path.startsWith(path))
             },
-            isProjectDisabled () {
-                const route = this.$route
-                return route.path.indexOf('/admin/') === 0
+            // 项目名称只读
+            isProjectReadOnly () {
+                if (this.view_mode === 'appmaker') {
+                    return true
+                }
+                const paths = ['/audit/', '/function/']
+                return paths.some(path => this.$route.path.startsWith(path))
             },
             showRouterList () {
                 if (this.view_mode === 'appmaker') {
@@ -214,9 +269,12 @@
                 'setAdminPerm'
             ]),
             ...mapActions([
-                'queryUserPermission'
+                'queryUserPermission',
+                'getVersionList',
+                'getVersionDetail'
             ]),
-            onLogoClick () {
+            onLogoClick (e) {
+                e.preventDefault()
                 if (this.view_mode !== 'app') {
                     return false
                 }
@@ -282,12 +340,7 @@
              */
             togglePermissionApplyPage (resource, action) {
                 const permissions = []
-                const res = []
                 const { scope_id, scope_name, scope_type, scope_type_name, system_id, system_name } = this.authResource
-                res.push([{
-                    resource_type: resource.type,
-                    resource_type_name: resource.name
-                }])
                 permissions.push({
                     scope_id,
                     scope_name,
@@ -297,11 +350,11 @@
                     scope_type,
                     system_id,
                     system_name,
-                    resources: res,
+                    resources: [],
                     action_id: action.id,
                     action_name: action.name
                 })
-                bus.$emit('togglePermissionApplyPage', true, 'function_center', permissions)
+                bus.$emit('togglePermissionApplyPage', true, resource.type, permissions)
             },
             /**
              * 获取单个类型的权限
@@ -321,8 +374,28 @@
                     errorHandler(err, this)
                 }
             },
+            // 获取导航的链接，供右键点击跳转
+            getNavPath (route) {
+                const params = {}
+                const query = {}
+                route.params && route.params.forEach(m => {
+                    params[m] = this[m] || undefined
+                })
+                route.query && route.query.forEach(m => {
+                    query[m] = this[m] || undefined
+                })
+                if (route.routerName === 'appmakerTaskCreate') {
+                    params['step'] = 'selectnode'
+                    query['template_id'] = this.appmakerTemplateId
+                }
+                return {
+                    name: route.routerName,
+                    params,
+                    query
+                }
+            },
             /**
-             * 导航跳转
+             * 左键点击导航跳转
              * @param {Object} route 路由信息
              */
             onGoToPath (route) {
@@ -333,28 +406,48 @@
                 if (this.notFoundPage && this.view_mode === 'app') {
                     return this.$router.push({ name: 'home' })
                 }
+                const config = this.getNavPath(route)
+                this.$router.push(config)
                 this.checkRouterPerm(route.routerName)
-                const params = {}
-                const query = {}
-                route.params && route.params.forEach(m => {
-                    params[m] = this[m] || undefined
-                })
-                route.query && route.query.forEach(m => {
-                    query[m] = this[m] || undefined
-                })
-                this.$router.push({
-                    name: route.routerName,
-                    params,
-                    query
-                }).catch(err => {
-                    errorHandler(err, this)
-                })
+            },
+            /* 打开版本日志 */
+            async onOpenVersion () {
+                this.$refs.versionLog.show()
+                try {
+                    this.logListLoding = true
+                    const res = await this.getVersionList()
+                    this.logList = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.logListLoding = false
+                }
+            },
+            async loadLogDetail (version) {
+                try {
+                    this.logDetailLoding = true
+                    const res = await this.getVersionDetail({ version })
+                    this.logDetail = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.logDetailLoding = false
+                }
             },
             isNavActived (route) {
+                // 轻应用打开页面导航选中态
                 if (this.view_mode === 'appmaker') {
+                    // 任务记录、任务执行两个模块都激活任务记录导航项
+                    if (route.routerName === 'appmakerTaskHome') {
+                        return ['appmakerTaskHome', 'appmakerTaskExecute'].includes(this.$route.name)
+                    }
                     return this.$route.name === route.path
                 }
-                return this.$route.path.indexOf(route.path) > -1
+                return this.$route.path.indexOf(route.path) === 0
+            },
+            handleVersionChange (data) {
+                const version = data[0]
+                this.loadLogDetail(version)
             },
             reloadHome () {
                 this.reload()
@@ -395,6 +488,9 @@ header {
             float: left;
             &:first-child {
                 margin-left: 141px;
+                @media screen and (max-width: 1420px){
+                    margin-left: 38px;
+                }
             }
             &:hover {
                 color: $whiteDefault;
@@ -404,7 +500,6 @@ header {
             }
             &.active > a{
                 color: $whiteDefault;
-                background: $blackDefault;
             }
             > a {
                 display: inline-block;
@@ -463,29 +558,33 @@ header {
         .project-select {
             float: left;
         }
-        .help-doc {
+        .right-icon {
             float: left;
-            margin-left: 25px;
             height: 50px;
             font-size: 16px;
-            .common-icon-dark-circle-question {
+            & > [class^='common-icon'] {
                 margin-top: 17px;
                 display: inline-block;
                 color: #63656e;
+                cursor: pointer;
                 &:hover {
                     color: #616d7d;
                 }
             }
         }
+        .help-doc {
+            margin-left: 18px;
+        }
+        .version-log {
+            margin-left: 10px;
+            & > .common-icon-info {
+                font-size: 18px;
+            }
+        }
         .user-avatar {
-            float: left;
-            margin-left: 25px;
-            height: 50px;
-            font-size: 16px;
-            color: #63656e;
+            margin-left: 10px;
             .common-icon-dark-circle-avatar {
-                display: inline-block;
-                margin-top: 17px;
+                cursor: text;
             }
         }
         /deep/ .bk-select.is-disabled {

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import sys
 import logging
 
 from django.apps import AppConfig
@@ -20,6 +21,9 @@ from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
 
 logger = logging.getLogger('root')
+
+DJANGO_MANAGE_CMD = 'manage.py'
+INIT_PASS_TRIGGER = {'migrate'}
 
 
 class ComponentFrameworkConfig(AppConfig):
@@ -31,6 +35,10 @@ class ComponentFrameworkConfig(AppConfig):
         @summary: 注册公共部分和当前RUN_VER下的标准插件到数据库
         @return:
         """
+
+        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD and sys.argv[1] in INIT_PASS_TRIGGER:
+            logger.info("ignore components init for command: {}".format(sys.argv))
+            return
 
         for path in settings.COMPONENT_AUTO_DISCOVER_PATH:
             autodiscover_collections(path)

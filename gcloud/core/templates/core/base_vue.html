@@ -11,7 +11,11 @@
         var RUN_VER = '{{RUN_VER}}';
         var SITE_URL = '{{SITE_URL}}';
         var USERNAME = '{{USERNAME}}';
+        var BK_PAAS_HOST = '{{BK_PAAS_HOST}}';
         var BK_CC_HOST = '{{BK_CC_HOST}}';
+        var BK_JOB_HOST = '{{BK_JOB_HOST}}';
+        var BK_IAM_SAAS_HOST = '{{BK_IAM_SAAS_HOST}}';
+        var BK_USER_MANAGE_HOST = '{{BK_USER_MANAGE_HOST}}';
         // 隐藏头部，目前需要嵌入到其他 APP 作为 iframe 子页面
         var HIDE_HEADER = Number('{{HIDE_HEADER}}');
         // 用户身份：管理员
@@ -33,6 +37,7 @@
         var IMPORT_V1_FLAG = Number('{{import_v1_flag}}');
         var RSA_PUB_KEY = '{{RSA_PUB_KEY}}';
         var APP_CODE = '{{APP_CODE}}';
+        var FILE_UPLOAD_ENTRY = '{{FILE_UPLOAD_ENTRY}}';
         function getCookie(name) {
             var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
             return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;

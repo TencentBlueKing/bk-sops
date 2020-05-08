@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -14,7 +14,7 @@
         <div v-if="formMode && typeof ipValue === 'object'" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
-                :editable="editable"
+                :editable="editable && !disabled"
                 :is-multiple="isMultiple"
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
@@ -40,6 +40,18 @@
             default: false,
             desc: 'checkbox or radio'
         },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: gettext('组件禁用态')
+        },
+        remote_url: {
+            type: [Object, Function],
+            required: true,
+            default: '',
+            desc: gettext('组件内部调用接口地址')
+        },
         value: {
             type: [Object, String],
             required: false,
@@ -49,7 +61,8 @@
                     ip: [],
                     topo: [],
                     filters: [],
-                    excludes: []
+                    excludes: [],
+                    with_cloud_id: false
                 }
             }
         }
@@ -95,7 +108,7 @@
                 return !this.validateSet.includes('required')
             }
         },
-        created () {
+        mounted () {
             this.getData()
         },
         methods: {
@@ -107,11 +120,18 @@
             getData () {
                 this.loading = true
                 const staticIpExtraFields = ['agent']
-
+                const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
                 Promise.all([
-                    this.getHostInCC(staticIpExtraFields),
-                    this.getTopoTreeInCC(),
-                    this.getTopoModelInCC()
+                    this.getHostInCC({
+                        url: urls['cc_search_host'],
+                        fields: staticIpExtraFields
+                    }),
+                    this.getTopoTreeInCC({
+                        url: urls['cc_search_topo_tree']
+                    }),
+                    this.getTopoModelInCC({
+                        url: urls['cc_get_mainline_object_topo']
+                    })
                 ]).then(values => {
                     if (Array.isArray(values)) {
                         this.staticIpList = (values[0] && values[0].data) || []
@@ -133,6 +153,6 @@
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
     padding: 10px;
-    border: 1px solid #ececec;
+    border: 1px solid #dcdee5;
 }
 </style>

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -16,6 +16,7 @@ import datetime
 import logging
 import time
 import pytz
+import math
 
 from django.utils import timezone
 
@@ -96,6 +97,6 @@ def add_months(dt, months):
     :return:
     """
     month = dt.month - 1 + months
-    year = dt.year + month / 12
+    year = dt.year + math.floor(month / 12)
     month = month % 12 + 1
     return dt.replace(year=year, month=month)

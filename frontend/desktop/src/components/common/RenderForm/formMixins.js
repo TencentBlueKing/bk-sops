@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -32,7 +32,8 @@ export const COMMON_ATTRS = {
         type: Array,
         default () {
             return []
-        }
+        },
+        desc: gettext('请输入校验规则，例如：[{type: required}, {type: custom, args: function(){ return {result: true, error_message: ""}}}]')
     },
     default: {
         type: [String, Number, Boolean, Array, Object],
@@ -52,6 +53,14 @@ export const COMMON_ATTRS = {
         type: Boolean,
         default: true,
         inner: true
+    },
+    formViewHidden: { // 表单项为非编辑状态时，是否隐藏，例如(JOB执行作业刷新按钮)
+        type: Boolean,
+        default: false
+    },
+    cols: { // 横向栅格占有的格数，总数为 12 格
+        type: Number,
+        default: 0
     },
     validateSet: {
         type: Array,

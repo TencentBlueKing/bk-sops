@@ -1,5 +1,5 @@
 # Base
-Django==1.11.23
+Django==1.11.28
 requests==2.20.0
 celery==3.1.25
 kombu==3.0.37
@@ -15,7 +15,6 @@ mysqlclient==1.4.4
 jsonschema==2.5.1
 django-tastypie==0.13.3
 setuptools_scm==1.11.1
-django-guardian==1.4.8
 django-haystack==2.4.1
 rsa==3.4.2
 djangorestframework==3.3.3

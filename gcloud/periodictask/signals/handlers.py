@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,15 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import traceback
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from gcloud.constants import PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTaskHistory
-from gcloud.commons.message import send_periodic_task_message
+from gcloud.shortcuts.message import send_periodic_task_message
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.signals import pre_periodic_task_start, periodic_task_start_failed
@@ -51,11 +51,10 @@ def periodic_task_history_post_save_handler(sender, instance, created, **kwargs)
 
 @receiver(periodic_task_start_failed, sender=PipelinePeriodicTask)
 def periodic_task_start_failed_handler(sender, periodic_task, history, **kwargs):
-    extra_info = periodic_task.extra_info
     try:
-        template = TaskTemplate.objects.get(project_id=extra_info['project_id'],
-                                            id=extra_info['template_num_id'])
-        send_periodic_task_message(template, periodic_task, history)
-    except Exception as e:
-        logger.error('periodic_task_start_failed_handler[template_id=%s] send message error: %s' %
-                     (extra_info['template_num_id'], e))
+        send_periodic_task_message(periodic_task, history)
+    except Exception:
+        logger.error(
+            'periodic_task_start_failed_handler[template_id=%s] send message error: %s' %
+            (periodic_task.extra_info['template_num_id'], traceback.format_exc())
+        )

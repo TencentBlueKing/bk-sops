@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -24,7 +24,13 @@ from pipeline_plugins.components.utils import format_sundry_ip
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
-from .utils import get_cmdb_topo_tree
+from .utils import (
+    get_cmdb_topo_tree,
+    get_bk_cloud_id_for_host,
+    get_objects_of_topo_tree,
+    get_modules_of_bk_obj,
+    get_modules_id
+)
 from .constants import NO_ERROR, ERROR_CODES
 
 logger = logging.getLogger('root')
@@ -66,15 +72,47 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
             'fields': [],
         })
     if 'module' in fields:
-        condition.append({
+        condition_module = {
             'bk_obj_id': 'module',
             'fields': [],
-        })
+        }
+        condition.append(condition_module)
     kwargs = {
         'bk_biz_id': bk_biz_id,
         'bk_supplier_account': bk_supplier_account,
         'condition': condition
     }
+    if request.GET.get('topo', None):
+        topo = json.loads(request.GET.get('topo'))
+        topo_result = get_cmdb_topo_tree(request.user.username, bk_biz_id, bk_supplier_account)
+        if not topo_result['result']:
+            return JsonResponse(topo_result)
+        biz_topo_tree = topo_result['data'][0]
+        topo_dct = {}
+        for tp in topo:
+            topo_dct.setdefault(tp['bk_obj_id'], []).append(int(tp['bk_inst_id']))
+        topo_objects = get_objects_of_topo_tree(biz_topo_tree, topo_dct)
+        topo_modules = []
+        for obj in topo_objects:
+            topo_modules += get_modules_of_bk_obj(obj)
+        topo_modules_id = get_modules_id(topo_modules)
+        if 'module' in fields:
+            condition_module['condition'] = [{
+                'field': 'bk_module_id',
+                'operator': '$in',
+                'value': topo_modules_id
+            }]
+        else:
+            kwargs['condition'].append({
+                'bk_obj_id': 'module',
+                'fields': ['bk_module_id', 'bk_module_name'],
+                'condition': [{
+                    'field': 'bk_module_id',
+                    'operator': '$in',
+                    'value': topo_modules_id
+                }]
+            })
+
     host_result = client.cc.search_host(kwargs)
     if not host_result['result']:
         message = handle_api_error(_("配置平台(CMDB)"), 'cc.search_host', kwargs, host_result)
@@ -102,7 +140,8 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
             agent_kwargs = {
                 'bk_biz_id': bk_biz_id,
                 'bk_supplier_id': bk_supplier_id,
-                'hosts': [{'bk_cloud_id': host['cloud'][0]['id'], 'ip': host['bk_host_innerip']} for host in data]
+                'hosts': [{'bk_cloud_id': get_bk_cloud_id_for_host(host, 'cloud'),
+                           'ip': host['bk_host_innerip']} for host in data]
             }
             agent_result = client.gse.get_agent_status(agent_kwargs)
             if not agent_result['result']:
@@ -116,7 +155,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
             agent_data = agent_result['data']
             for host in data:
                 # agent在线状态，0为不在线，1为在线，-1为未知
-                agent_info = agent_data.get('{cloud}:{ip}'.format(cloud=host['cloud'][0]['id'],
+                agent_info = agent_data.get('{cloud}:{ip}'.format(cloud=get_bk_cloud_id_for_host(host, 'cloud'),
                                                                   ip=host['bk_host_innerip']), {})
                 host['agent'] = agent_info.get('bk_agent_alive', -1)
 

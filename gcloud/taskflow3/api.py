@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import copy
 import logging
 import traceback
 
@@ -35,10 +34,9 @@ from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
+from gcloud.taskflow3.utils import preview_template_tree
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -265,23 +263,24 @@ def preview_task_tree(request, project_id):
     template_source = request.POST.get('template_source', PROJECT)
     template_id = request.POST.get('template_id')
     version = request.POST.get('version')
-    if template_source == PROJECT:
-        template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
-    else:
-        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
     exclude_task_nodes_id = json.loads(request.POST.get('exclude_task_nodes_id', '[]'))
-    pipeline_tree = template.get_pipeline_tree_by_version(version)
-    template_constants = copy.deepcopy(pipeline_tree['constants'])
+
     try:
-        TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
+        data = preview_template_tree(
+            project_id,
+            template_source,
+            template_id,
+            version,
+            exclude_task_nodes_id
+        )
     except Exception as e:
-        logger.exception(e)
-        return JsonResponse({'result': False, 'message': str(e)})
-    constants_not_referred = {key: value for key, value in list(template_constants.items())
-                              if key not in pipeline_tree['constants']}
+        err_msg = 'preview_template_tree fail: {}'.format(e)
+        logger.exception(err_msg)
+        return JsonResponse({'result': False, 'message': err_msg})
+
     return JsonResponse({
         'result': True,
-        'data': {'pipeline_tree': pipeline_tree, 'constants_not_referred': constants_not_referred}
+        'data': data
     })
 
 
@@ -366,11 +365,16 @@ def node_callback(request, token):
             'message': 'invalid request body'
         }, status=400)
 
-    callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
-    logger.info('result of callback call({}): {}'.format(
-        token,
-        callback_result
-    ))
+    # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
+    # 增加失败重试机制
+    for i in range(3):
+        callback_result = TaskFlowInstance.objects.callback(node_id, callback_data)
+        logger.info('result of callback call({}): {}'.format(
+            token,
+            callback_result
+        ))
+        if callback_result['result']:
+            break
 
     return JsonResponse(callback_result)
 

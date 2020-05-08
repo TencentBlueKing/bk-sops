@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -54,15 +54,18 @@
             :quick-close="true"
             :width="600"
             :title="i18n.formSetting"
-            :before-close="onAtomSettingBeforeClose">
+            :before-close="closeSettingPanel">
             <atom-setting
                 slot="content"
                 ref="atomSetting"
                 v-if="showAtomSetting"
                 :editing-form="editingForm"
-                :tag-code-list="tagCodeList"
-                @onCloseSettingPanel="onCloseSettingPanel">
+                :atom-forms="atomForms">
             </atom-setting>
+            <div slot="footer" class="slider-footer">
+                <bk-button theme="primary" @click="onSaveAtomSetting">{{ i18n.confirm }}</bk-button>
+                <bk-button theme="default" @click="closeSettingPanel">{{ i18n.cancel }}</bk-button>
+            </div>
         </bk-sideslider>
         <bk-dialog
             v-model="showUploadDialog"
@@ -81,10 +84,11 @@
         </bk-dialog>
         <bk-dialog
             v-model="previewDialogShow"
+            header-position="left"
             :fullscreen="true"
             :title="i18n.preview"
-            header-position="left"
-            :close-icon="false">
+            :show-footer="false"
+            :on-close="onPreviewClose">
             <div v-if="isPreviewMode" class="preview-panel">
                 <render-form
                     class="render-form"
@@ -93,9 +97,18 @@
                     v-model="renderFormData">
                 </render-form>
             </div>
-            <template v-slot:footer>
-                <bk-button theme="default" @click="onPreviewClose">{{ i18n.close }}</bk-button>
-            </template>
+        </bk-dialog>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.leave"
+            :value="isLeaveDialogShow"
+            @confirm="onLeaveConfirm"
+            @cancel="onLeaveCancel">
+            <div class="leave-tips">{{ i18n.tips }}</div>
         </bk-dialog>
     </div>
 </template>
@@ -145,6 +158,9 @@
                 atomConfig: [],
                 atomConfigStr: '',
                 atomStringError: '',
+                allowLeave: false,
+                leaveToPath: '',
+                contentChange: '', // 配置项内容有变更，用来做离开页面的二次确认
                 apiCodeStr: '',
                 editingForm: {},
                 isPreviewMode: false,
@@ -152,6 +168,7 @@
                 hideFormPanel: false,
                 showUploadDialog: false,
                 previewDialogShow: false,
+                isLeaveDialogShow: false,
                 fileUploading: false,
                 renderFormOption: {
                     showGroup: false,
@@ -169,13 +186,22 @@
                     importTitle: gettext('导入文件'),
                     formCode: gettext('前端代码'),
                     apiCode: gettext('后台代码'),
-                    close: gettext('关闭')
+                    close: gettext('关闭'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消'),
+                    leave: gettext('离开页面'),
+                    tips: gettext('系统不会保存您所做的更改，确认离开？')
                 }
             }
         },
         computed: {
-            tagCodeList () {
-                return this.forms.map(item => item.config.tag_code)
+            atomForms () {
+                return this.forms.map(item => {
+                    return {
+                        tagCode: item.config.tag_code,
+                        name: item.config.attrs.name.value
+                    }
+                })
             }
         },
         watch: {
@@ -253,19 +279,11 @@
                     this.hideFormPanel = false
                 }, 0)
             },
-            onAtomSettingBeforeClose () {
-                this.$refs.atomSetting && this.$refs.atomSetting.validate()
-            },
-            onCloseSettingPanel (form) {
-                this.showAtomSetting = false
-                const index = this.forms.findIndex(item => item.config.tag_code === this.editingForm.config.tag_code)
-                this.forms.splice(index, 1, form)
-                this.refreshFormPanel()
-            },
             atomEditError (error) {
                 this.atomStringError = error
             },
             atomConfigUpdate (val) {
+                this.contentChange = true
                 const formConfig = tools.deepClone(val)
                 const forms = formConfig.map((item, index) => {
                     const tagName = item.type.split('_').map(tp => tp.replace(/^\S/, s => s.toUpperCase())).join('')
@@ -344,6 +362,35 @@
                     }
                     self.$refs.configPanel.scroll(type)
                 }
+            },
+            async onSaveAtomSetting () {
+                const form = await this.$refs.atomSetting.validate()
+                if (form) {
+                    this.closeSettingPanel()
+                    const index = this.forms.findIndex(item => item.config.tag_code === this.editingForm.config.tag_code)
+                    this.forms.splice(index, 1, form)
+                    this.refreshFormPanel()
+                }
+            },
+            closeSettingPanel () {
+                this.showAtomSetting = false
+            },
+            onLeaveConfirm () {
+                this.allowLeave = true
+                this.$router.push({ path: this.leaveToPath })
+            },
+            onLeaveCancel () {
+                this.allowLeave = false
+                this.leaveToPath = ''
+                this.isLeaveDialogShow = false
+            }
+        },
+        beforeRouteLeave (to, from, next) {
+            if (this.allowLeave || !this.contentChange) {
+                next()
+            } else {
+                this.leaveToPath = to.fullPath
+                this.isLeaveDialogShow = true
             }
         }
     }
@@ -372,7 +419,7 @@
         height: calc(100% - 50px);
     }
     .tag-panel-col {
-        width: 56px;
+        width: 111px;
         height: 100%;
         border-right: 1px solid #dde4eb;
     }
@@ -381,10 +428,13 @@
         height: 100%;
     }
     .config-panel-col {
-        width: calc(100% - 806px);
+        width: calc(100% - 861px);
         height: 100%;
         background: #ffffff;
         border-left: 1px solid #dde4eb;
+    }
+    .slider-footer {
+        padding: 0 20px;
     }
     .preview-panel {
         margin: 0 auto;
@@ -411,5 +461,8 @@
             height: 32px;
             border: none;
         }
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -23,11 +23,11 @@
                 <i v-else :class="['node-icon-font', getIconCls(node)]"></i>
             </div>
             <div class="node-name">
-                {{ node.name }}
+                <div class="name-text">{{ node.name }}</div>
             </div>
             <div class="node-options-icon">
                 <template v-if="node.optional">
-                    <span v-if="node.mode === 'edit'" class="optional-icon"></span>
+                    <span v-if="node.mode === 'edit'" class="dark-circle common-icon-dark-circle-checkbox"></span>
                     <bk-checkbox
                         v-else-if="node.mode === 'select'"
                         :value="node.checked"
@@ -47,7 +47,7 @@
                 </template>
             </div>
         </div>
-        <div id="node-tooltip-content" slot="content">
+        <div class="node-tooltip-content" slot="content">
             <bk-button
                 v-if="isShowSkipBtn"
                 @click.stop="onRetryClick">
@@ -175,83 +175,11 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-    .task-node {
-        position: relative;
-        width: 150px;
-        height: 42px;
-        text-align: center;
-        background: #ffffff;
-        border-radius: 4px;
-        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.15);
-        cursor: pointer;
-        &.actived {
-            box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
-        }
-        .node-name {
-            margin-left: 32px;
-            width: 118px;
-            height: 100%;
-            font-size: 12px;
-            word-break: break-all;
-        }
+<style lang="scss">
+.task-node-tooltip {
+    padding: 0;
+    .popper__arrow {
+        color: #000000;
     }
-    .node-status-block {
-        float: left;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 32px;
-        height: 100%;
-        background: #52699d;
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-        .node-icon {
-            width: 16px;
-        }
-        .node-icon-font {
-            font-size: 18px;
-            color: #ffffff;
-        }
-    }
-    .node-options-icon {
-        position: absolute;
-        top: -25px;
-        left: 0;
-        .bk-form-checkbox,
-        &>[class*="common-icon"] {
-            display: inline-block;
-            vertical-align: bottom;
-        }
-    }
-    .optional-icon {
-        display: inline-block;
-        position: relative;
-        width: 12px;
-        height: 12px;
-        line-height: 12px;
-        font-size: 13px;
-        color: #ffffff;
-        text-align: center;
-        border-radius: 100%;
-        background: #979ba5;
-        vertical-align: bottom;
-        &::after {
-            content: "";
-            position: absolute;
-            left: 3px;
-            top: 4px;
-            height: 2px;
-            width: 5px;
-            border-left: 1px solid;
-            border-bottom: 1px solid;
-            border-color: #ffffff;
-            transform: rotate(-45deg);
-        }
-    }
-    .dark-circle {
-        font-size: 12px;
-        color: #979ba5;
-        margin-left: -2px;
-    }
+}
 </style>

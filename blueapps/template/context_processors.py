@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import json
 import logging
+import datetime
 
 from django.conf import settings
 
@@ -39,6 +40,8 @@ def blue_settings(request):
             'APP_PATH': request.get_full_path(),
             # 运行模式
             'RUN_MODE': settings.RUN_MODE,
+            # 运行版本（内部版、混合云版...）
+            'RUN_VER': settings.RUN_VER,
             # 在蓝鲸系统中注册的  "应用编码"
             'APP_CODE': settings.APP_CODE,
             # URL前缀
@@ -49,6 +52,8 @@ def blue_settings(request):
             'STATIC_VERSION': settings.STATIC_VERSION,
             # 蓝鲸平台URL
             'BK_URL': settings.BK_URL,
+            # 蓝鲸开发者页面
+            'BK_DEV_URL': settings.BK_DEV_URL,
             # 用户名
             'USERNAME': username,
             # 用户昵称
@@ -62,7 +67,11 @@ def blue_settings(request):
             # WEIXIN 远程静态资源链接
             'WEIXIN_REMOTE_STATIC_URL': settings.WEIXIN_REMOTE_STATIC_URL,
             # 是否调试模式
-            'DEBUG': json.dumps(settings.DEBUG)
+            'DEBUG': json.dumps(settings.DEBUG),
+            # 当前时间
+            'NOW': datetime.datetime.now(),
+            # 前后端联合开发的静态资源路径, 这个变量可选配置
+            'BK_STATIC_URL': getattr(settings, 'BK_STATIC_URL', ''),
         }
     except Exception:
         logger.exception(u"自定义模板上下文异常")

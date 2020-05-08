@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 KEY_PATTERN = r"^((\$\{[a-zA-Z0-9_]+\})|([a-zA-Z0-9_]+))$"
+SYSTEM_KEY_PATTERN = r"^((\$\{[a-zA-Z0-9_\.]+\})|([a-zA-Z0-9_\.]+))$"
 ACT_MAX_LENGTH = 50
 CONSTANT_MAX_LENGTH = 30
 ONE_FLOW = {
@@ -231,7 +232,7 @@ WEB_PIPELINE_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "string",
-                "pattern": KEY_PATTERN
+                "pattern": SYSTEM_KEY_PATTERN
             }
         }
     },

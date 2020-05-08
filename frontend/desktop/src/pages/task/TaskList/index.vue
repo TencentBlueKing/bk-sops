@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,8 +13,6 @@
     <div class="task-container">
         <div class="list-wrapper">
             <div class="operation-area">
-                <div class="operation-area clearfix">
-                </div>
                 <advance-search-form
                     :search-config="{ placeholder: i18n.taskNamePlaceholder }"
                     :search-form="searchForm"
@@ -35,9 +33,10 @@
                     :data="taskList"
                     :pagination="pagination"
                     @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.task_name" prop="name">
+                    <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.task_name" prop="name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -60,24 +59,28 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.start_time" prop="category_name">
+                    <bk-table-column :label="i18n.start_time" prop="start_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finish_time">
+                    <bk-table-column :label="i18n.finish_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.task_type" prop="category_name"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.executor" width="100">
+                    <bk-table-column :label="i18n.task_type" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120">
                         <template slot-scope="props">
-                            {{ props.row.executor_name || '--' }}
+                            <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.createMethod">
+                    <bk-table-column :label="i18n.executor" width="120">
+                        <template slot-scope="props">
+                            <span :title="props.row.executor_name || '--'">{{ props.row.executor_name || '--' }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.createMethod" width="100">
                         <template slot-scope="props">
                             {{ transformCreateMethod(props.row.create_method) }}
                         </template>
@@ -90,9 +93,19 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="120">
+                    <bk-table-column :label="i18n.operation" width="190">
                         <template slot-scope="props">
                             <div class="task-operation">
+                                <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <router-link
+                                    class="template-operate-btn"
+                                    :to="{
+                                        name: 'taskStep',
+                                        query: { template_id: props.row.template_id },
+                                        params: { project_id: project_id, step: 'selectnode' }
+                                    }">
+                                    {{i18n.recreate}}
+                                </router-link>
                                 <a
                                     v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
                                     :class="['task-operation-clone', {
@@ -273,6 +286,7 @@
                     executor: gettext('执行人'),
                     status: gettext('状态'),
                     operation: gettext('操作'),
+                    recreate: gettext('再创建'),
                     clone: gettext('克隆'),
                     delete: gettext('删除'),
                     deleleTip: gettext('确认删除'),
@@ -306,8 +320,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 }
             }
         },
@@ -374,7 +387,8 @@
                         pipeline_instance__name__contains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
-                        create_method: createMethod || undefined
+                        create_method: createMethod || undefined,
+                        project__id: this.project_id
                     }
 
                     if (executeTime[0] && executeTime[1]) {
@@ -546,6 +560,11 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.getTaskList()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.getTaskList()
             }
         }
     }
@@ -567,15 +586,12 @@
 }
 .operation-area {
     margin: 20px 0;
+    .task-btn {
+        width: 120px;
+    }
     .template-btn {
         margin-left: 5px;
         color: #313238;
-    }
-    .task-advanced-search {
-        float: right;
-        .base-search {
-            margin: 0px;
-        }
     }
 }
 .bk-select-inline {
@@ -591,11 +607,6 @@
     font-size: 14px;
     vertical-align: middle;
 }
-.operation-area {
-    .bk-button {
-        min-width: 120px;
-    }
-}
 .task-table-content {
     background: #ffffff;
     a.task-name {
@@ -605,14 +616,14 @@
        @include ui-task-status;
     }
     .task-operation {
-        width: 150px;
         .task-operation-clone {
-            color: #3C96FF;
+            padding: 5px;
+            color: #3a84ff;
             font-size: 12px;
         }
         .task-operation-delete {
             padding: 5px;
-            color: #3C96FF;
+            color: #3a84ff;
             font-size: 12px;
         }
     }
@@ -621,21 +632,6 @@
     }
     .template-operate-btn {
         color: $blueDefault;
-    }
-}
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #ffff;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 12px;
-    }
-    .bk-page {
-        display: inline-block;
     }
 }
 </style>

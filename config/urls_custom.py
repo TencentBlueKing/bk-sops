@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -16,14 +16,14 @@ from django.conf.urls import include, url
 # 用户自定义 urlconf
 urlpatterns_custom = [
     url(r'^', include('gcloud.core.urls')),
-    url(r'^config/', include('gcloud.config.urls')),
+    url(r'^', include('gcloud.webservice3.urls')),
     url(r'^apigw/', include('gcloud.apigw.urls')),
     url(r'^common_template/', include('gcloud.commons.template.urls')),
     url(r'^template/', include('gcloud.tasktmpl3.urls')),
     url(r'^taskflow/', include('gcloud.taskflow3.urls')),
-    url(r'^', include('gcloud.webservice3.urls')),
     url(r'^appmaker/', include('gcloud.contrib.appmaker.urls')),
     url(r'^develop/', include('gcloud.contrib.develop.urls')),
+    url(r'^pipeline/', include('pipeline_plugins.base.urls')),
     url(r'^pipeline/', include('pipeline_plugins.components.urls')),
     url(r'^pipeline/', include('pipeline_plugins.variables.urls')),
     url(r'^analysis/', include('gcloud.contrib.analysis.urls')),
