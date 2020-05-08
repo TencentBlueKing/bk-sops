@@ -13,16 +13,19 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
-FOOTER = _(
-"""
-<div class="copyright">
-    <ul class="link-list">
-        <a href="tencent://message/?uin=800802001&site=qq&menu=yes" class="link-item">QQ咨询(800802001)</a>
-        <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">蓝鲸论坛</a>
-        <a href="http://bk.tencent.com/" class="link-item" target="_blank">蓝鲸官网</a>
-    </ul>
-    <div class="desc">Copyright &copy; 2012-${year} Tencent BlueKing. All Rights Reserved.</div>
-    <div>蓝鲸智云 版权所有</div>
-</div>
-"""
-)
+
+def i18n_footer():
+    return """
+        <div class="copyright">
+            <ul class="link-list">
+                <a href="tencent://message/?uin=800802001&site=qq&menu=yes" class="link-item">{}(800802001)</a>
+                <a href="http://bk.tencent.com/s-mart/community/" class="link-item" target="_blank">{}</a>
+                <a href="http://bk.tencent.com/" class="link-item" target="_blank">{}</a>
+            </ul>
+            <div class="desc">Copyright &copy; 2012-${year} Tencent BlueKing. All Rights Reserved.</div>
+            <div>{}</div>
+        </div>
+        """.format(_("QQ咨询"), _("蓝鲸论坛"), _("蓝鲸官网"), _("蓝鲸智云 版权所有"), year="year")
+
+
+FOOTER = i18n_footer
