@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-05-07 12:38+0800\n"
+"POT-Creation-Date: 2020-05-08 12:14+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -729,6 +729,22 @@ msgstr "Remote service called failed, HTTP request data return format error!"
 #, python-format
 msgid "调用远程服务失败，Http请求错误状态码：%(code)s， 请求url：%(url)s"
 msgstr "Remote service called failed, HTTP request error status error: %(code)s, request url: %(url)s"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "QQ咨询"
+msgstr "QQ"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "蓝鲸论坛"
+msgstr "Blueking Forum"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "蓝鲸官网"
+msgstr "Official Website"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "蓝鲸智云 版权所有"
+msgstr " "
 
 #: gcloud/external_plugins/models/base.py:79
 msgid "包源类型"
@@ -2906,16 +2922,4 @@ msgstr "City"
 #: weixin/core/models.py:68 weixin/core/models.py:69
 msgid "微信用户"
 msgstr "Wechat User"
-
-#~ msgid "QQ咨询"
-#~ msgstr "QQ"
-
-#~ msgid "蓝鲸论坛"
-#~ msgstr "Blueking Forum"
-
-#~ msgid "蓝鲸官网"
-#~ msgstr "Official Website"
-
-#~ msgid "蓝鲸智云 版权所有"
-#~ msgstr " "
 
