@@ -118,7 +118,7 @@ MIDDLEWARE += (
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
-if os.getenv("BKAPP_ENABLE_CORS_HEADERS", None):
+if os.getenv("BKAPP_CORS_ALLOW", None):
     MIDDLEWARE = ('corsheaders.middleware.CorsMiddleware',) + MIDDLEWARE
     CORS_ALLOW_CREDENTIALS = True
     CORS_ORIGIN_WHITELIST = os.getenv("BKAPP_CORS_WHITELIST", "").split(",")
