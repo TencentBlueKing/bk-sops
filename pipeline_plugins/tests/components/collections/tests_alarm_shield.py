@@ -41,7 +41,7 @@ class Data(object):
             'bk_alarm_shield_begin_time': "2019-11-04 00:00:00",
             'bk_alarm_shield_end_time': "2019-11-05 00:00:00",
             'bk_alarm_shield_strategy_begin_time': "2019-11-04 00:00:00",
-            'bbk_alarm_shield_strategy_end_time': "2019-11-05 00:00:00"
+            'bk_alarm_shield_strategy_end_time': "2019-11-05 00:00:00"
         }
         return ret_map[param]
 

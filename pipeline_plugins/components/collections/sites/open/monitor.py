@@ -21,7 +21,7 @@ from packages.blueking.component.shortcuts import get_client_by_user
 from pipeline.component_framework.component import Component
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema
+from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
 from gcloud.utils.handlers import handle_api_error
 
 __group_name__ = _(u"蓝鲸监控(BK)")
@@ -97,24 +97,21 @@ class AlarmShieldService(Service):
 class AlarmShieldScopeService(AlarmShieldService):
 
     def inputs_format(self):
-        return [self.InputItem(name=_('业务 ID'),
-                               key='biz_cc_id',
-                               type='string',
-                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_('屏蔽范围类型'),
-                               key='bk_alarm_shield_scope',
-                               type='string',
-                               schema=StringItemSchema(description=_('需要执行屏蔽的范围类型'))),
+        return [self.InputItem(name=_('屏蔽范围类型'),
+                               key='bk_alarm_shield_info',
+                               type='object',
+                               schema=ObjectItemSchema(description=_(u'屏蔽范围类型'),
+                                                       property_schemas={})),
                 self.InputItem(name=_('策略 ID'),
                                key='bk_alarm_shield_target',
                                type='string',
                                schema=StringItemSchema(description=_('需要执行屏蔽的指标'))),
                 self.InputItem(name=_('屏蔽开始时间'),
-                               key='bk_alarm_shield_strategy_begin_time',
+                               key='bk_alarm_shield_begin_time',
                                type='string',
                                schema=StringItemSchema(description=_('开始屏蔽的时间'))),
                 self.InputItem(name=_('屏蔽结束时间'),
-                               key='bbk_alarm_shield_strategy_end_time',
+                               key='bk_alarm_shield_end_time',
                                type='string',
                                schema=StringItemSchema(description=_('结束屏蔽的时间'))),
                 ]
@@ -197,11 +194,7 @@ class AlarmShieldScopeService(AlarmShieldService):
 class AlarmShieldStrategyService(AlarmShieldService):
 
     def inputs_format(self):
-        return [self.InputItem(name=_('业务 ID'),
-                               key='biz_cc_id',
-                               type='string',
-                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_('策略 ID'),
+        return [self.InputItem(name=_('策略 ID'),
                                key='bk_alarm_shield_strategy',
                                type='string',
                                schema=StringItemSchema(description=_('需要执行屏蔽的策略 ID'))),
@@ -210,7 +203,7 @@ class AlarmShieldStrategyService(AlarmShieldService):
                                type='string',
                                schema=StringItemSchema(description=_('开始屏蔽的时间'))),
                 self.InputItem(name=_('屏蔽结束时间'),
-                               key='bbk_alarm_shield_strategy_end_time',
+                               key='bk_alarm_shield_strategy_end_time',
                                type='string',
                                schema=StringItemSchema(description=_('结束屏蔽的时间'))),
                 ]
@@ -224,7 +217,7 @@ class AlarmShieldStrategyService(AlarmShieldService):
         client = get_client_by_user(executor)
         strategy = data.get_one_of_inputs('bk_alarm_shield_strategy')
         begin_time = data.get_one_of_inputs('bk_alarm_shield_strategy_begin_time')
-        end_time = data.get_one_of_inputs('bbk_alarm_shield_strategy_end_time')
+        end_time = data.get_one_of_inputs('bk_alarm_shield_strategy_end_time')
 
         request_body = self.get_request_body(bk_biz_id, begin_time, end_time, 'strategy', strategy, client)
 
@@ -239,11 +232,7 @@ class AlarmShieldStrategyService(AlarmShieldService):
 class AlarmShieldDisableService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_('业务 ID'),
-                               key='biz_cc_id',
-                               type='string',
-                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_('业务 ID'),
+        return [self.InputItem(name=_('屏蔽 ID'),
                                key='bk_alarm_shield_id_input',
                                type='string',
                                schema=StringItemSchema(description=_('当前操作的屏蔽 ID')))

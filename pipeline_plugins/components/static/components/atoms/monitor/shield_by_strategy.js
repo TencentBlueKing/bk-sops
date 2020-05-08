@@ -42,7 +42,7 @@
             }
         },
         {
-            tag_code: "bbk_alarm_shield_strategy_end_time",
+            tag_code: "bk_alarm_shield_strategy_end_time",
             type: "input",
             attrs: {
                 name: gettext("结束时间"),
