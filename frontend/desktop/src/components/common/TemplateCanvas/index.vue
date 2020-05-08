@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -96,7 +96,6 @@
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
-        <div ref="dragReferenceLine" class="drag-reference-line"></div>
     </div>
 </template>
 <script>
@@ -216,6 +215,10 @@
                     id: '',
                     arrow: ''
                 },
+                zoomOriginPosition: {
+                    x: 0,
+                    y: 0
+                },
                 flowData,
                 endpointOptions: combinedEndpointOptions,
                 connectorOptions
@@ -234,20 +237,43 @@
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
             document.body.addEventListener('click', this.handleShortcutPanelHide, false)
+            // 画布快捷键缩放
+            const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
+            canvasPaintArea.addEventListener('mousewheel', this.onMouseWheel, false)
+            canvasPaintArea.addEventListener('DOMMouseScroll', this.onMouseWheel, false)
+            canvasPaintArea.addEventListener('mousemove', this.onCanvasMouseMove, false)
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
             document.removeEventListener('keydown', this.nodeSelectedhandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
-            document.body.removeEventListener('click', this.handleReferenceLineHide, false)
+            // 画布快捷键缩放
+            const canvasPaintArea = document.querySelector('.canvas-flow-wrap')
+            if (canvasPaintArea) {
+                canvasPaintArea.removeEventListener('mousewheel', this.onMouseWheel, false)
+                canvasPaintArea.removeEventListener('DOMMouseScroll', this.onMouseWheel, false)
+                canvasPaintArea.removeEventListener('mousemove', this.onCanvasMouseMove, false)
+            }
         },
         methods: {
-            onZoomIn () {
-                this.$refs.jsFlow.zoomIn()
+            onZoomIn (pos) {
+                if (pos) {
+                    const { x, y } = pos
+                    this.$refs.jsFlow.zoomIn(1.1, x, y)
+                } else {
+                    this.$refs.jsFlow.zoomIn(1.1, 0, 0)
+                }
+                this.clearReferenceLine()
             },
-            onZoomOut () {
-                this.$refs.jsFlow.zoomOut()
+            onZoomOut (pos) {
+                if (pos) {
+                    const { x, y } = pos
+                    this.$refs.jsFlow.zoomOut(0.9, x, y)
+                } else {
+                    this.$refs.jsFlow.zoomOut(0.9, 0, 0)
+                }
+                this.clearReferenceLine()
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
@@ -259,11 +285,11 @@
                 this.isSelectionOpen = true
                 this.$refs.jsFlow.frameSelect()
             },
-            onFrameSelectEnd (nodes, x, y) {
+            onFrameSelectEnd (nodes) {
                 this.selectedNodes = nodes
                 this.copyNodes = tools.deepClone(nodes)
                 this.isSelectionOpen = false
-                this.selectionOriginPos = { x, y }
+                this.selectionOriginPos = this.getNodesLocationOnLeftTop(nodes)
                 this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
                 document.addEventListener('keydown', this.nodeSelectedhandler)
                 document.addEventListener('keydown', this.nodeLineDeletehandler, { once: true })
@@ -378,8 +404,7 @@
                 const $branchEl = e.target
                 const lineId = $branchEl.dataset.lineid
                 const nodeId = $branchEl.dataset.nodeid
-                const name = $branchEl.textContent
-                const value = $branchEl.dataset.value
+                const { name, evaluate: value } = this.canvasData.branchConditions[nodeId][lineId]
                 // 先去除选中样式
                 document.querySelectorAll('.branch-condition.editing').forEach(dom => {
                     dom.classList.remove('editing')
@@ -402,6 +427,7 @@
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
+                this.$emit('update:nodeMemuOpen', val)
             },
             updateCanvas () {
                 const { locations: nodes, lines } = this.canvasData
@@ -579,7 +605,6 @@
                             type: 'Label',
                             name: `<div class="branch-condition"
                                     title="${labelName}(${labelValue})"
-                                    data-value="${labelValue}"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
                             location: -70,
@@ -625,7 +650,7 @@
                 // 点击 overlay 类型
                 const TypeMap = [
                     { type: 'close', rule: /^(close_)(\w*)/ },
-                    { type: 'branchCondition', rule: /^(conditionline)(\w*)/ }
+                    { type: 'branchCondition', rule: /^(condition)(\w*)/ }
                 ]
                 let lineId = ''
                 const result = TypeMap.find(m => {
@@ -656,27 +681,80 @@
             },
             onBeforeDrag (data) {
                 if (this.referenceLine.id && this.referenceLine.id === data.sourceId) {
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                 }
             },
             // 节点拖动回调
             onNodeMoving (node) {
                 // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
                 if (this.referenceLine.id && this.referenceLine.id === node.id) {
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                 }
                 if (node.id !== this.idOfNodeShortcutPanel) {
                     this.handleShortcutPanelHide()
                 }
+            },
+            // 初始化生成参考线
+            createReferenceLine () {
+                const canvas = document.querySelector('.canvas-flow-wrap')
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+                svg.setAttribute('id', 'referenceLine')
+                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+                svg.setAttribute('version', '1.1')
+                svg.setAttribute('style', 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events: none;')
+
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+                const marker = `
+                    <marker id="arrow" markerWidth="10" markerHeight="10" refx="0" refy="2" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,4 L6,2 z" fill="#979ba5" />
+                    </marker>
+                `
+                defs.innerHTML = marker
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+                line.setAttribute('id', 'referencePath')
+                line.setAttribute('marker-end', 'url(#arrow)')
+                line.setAttribute('x1', '0')
+                line.setAttribute('y1', '0')
+                line.setAttribute('x2', '0')
+                line.setAttribute('y2', '0')
+                line.setAttribute('style', 'stroke:#979ba5;stroke-width:2')
+                line.setAttribute('id', 'referencePath')
+
+                svg.appendChild(defs)
+                svg.appendChild(line)
+                canvas.appendChild(svg)
+                document.body.addEventListener('mousedown', this.clearReferenceLine, { once: true })
+            },
+            // 更新参考线位置
+            updataReferenceLinePositon (startPos, endPos) {
+                const referencePath = document.getElementById('referencePath')
+                if (referencePath) {
+                    referencePath.setAttribute('x1', startPos.x)
+                    referencePath.setAttribute('y1', startPos.y)
+                    referencePath.setAttribute('x2', endPos.x)
+                    referencePath.setAttribute('y2', endPos.y)
+                }
+            },
+            // 清除参考线
+            clearReferenceLine () {
+                const canvas = document.querySelector('.canvas-flow-wrap')
+                const line = document.getElementById('referenceLine')
+                if (canvas && line) {
+                    canvas.removeChild(line)
+                }
+                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
+                this.referenceLine = {}
             },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
                 if (!this.editable) {
                     return false
                 }
-                const { pageX, pageY, offsetX, offsetY } = event
-                const bX = pageX - offsetX + 5
-                const bY = pageY - 50 - offsetY + 5
+                const { pageX, pageY } = event
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const bX = pageX - offsetX
+                const bY = pageY - offsetY
                 const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
@@ -684,50 +762,28 @@
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
                     )
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                     return false
                 }
-                const line = this.$refs.dragReferenceLine
-                line.style.left = bX + 'px'
-                line.style.top = bY + 'px'
+                this.createReferenceLine()
                 this.referenceLine = { x: bX, y: bY, id: endpoint.elementId, arrow: type }
                 document.getElementById('canvasContainer').addEventListener('mousemove', this.handleReferenceLine, false)
             },
-            // 生成参考线
+            // 鼠标移动更新参考线
             handleReferenceLine (e) {
-                const line = this.$refs.dragReferenceLine
-                const { x: startX, y: startY } = this.referenceLine
                 const { pageX, pageY } = e
-                const pX = pageX - startX
-                const pY = pageY - startY - 56
-                let r = Math.atan2(Math.abs(pY), Math.abs(pX)) / (Math.PI / 180)
-                if (pX < 0 && pY > 0) r = 180 - r
-                if (pX < 0 && pY < 0) r = r + 180
-                if (pX > 0 && pY < 0) r = 360 - r
-                // set style
-                const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
-                window.requestAnimationFrame(() => {
-                    line.style.display = 'block'
-                    line.style.width = len - 8 + 'px'
-                    line.style.transformOrigin = `top left`
-                    line.style.transform = 'rotate(' + r + 'deg)'
-                    if (!this.referenceLine.id) {
-                        this.handleReferenceLineHide()
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                const bX = pageX - offsetX
+                const bY = pageY - offsetY
+                const endPos = { x: bX, y: bY }
+                const animationFrame = () => {
+                    return window.requestAnimationFrame || function (fn) {
+                        setTimeout(fn, 1000 / 60)
                     }
-                })
-                document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
-            },
-            // 移出参考线
-            handleReferenceLineHide (e) {
-                const line = this.$refs.dragReferenceLine
-                if (line) {
-                    line.style.display = 'none'
                 }
-                this.referenceLine.id = ''
-                document.getElementById('canvasContainer').removeEventListener('mousemove', this.handleReferenceLine, false)
-                document.body.removeEventListener('mousedown', this.handleReferenceLineHide, false)
+                animationFrame(this.updataReferenceLinePositon(this.referenceLine, endPos))
             },
-            // 创建连线
+            // 创建节点间连线
             createLine (source, target) {
                 if (source.id === target.id) {
                     return false
@@ -780,6 +836,8 @@
              * 单个添加选中节点
              */
             addNodeToSelectedList (selectedNode) {
+                document.removeEventListener('keydown', this.nodeLineDeletehandler)
+                document.addEventListener('keydown', this.nodeLineDeletehandler)
                 const index = this.selectedNodes.findIndex(m => m.id === selectedNode.id)
                 if (index > -1) { // 已存在
                     this.$refs.jsFlow.clearNodesDragSelection()
@@ -800,7 +858,7 @@
                 this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
             },
             /**
-             * 失焦时移出选中节点
+             * 失焦时移除选中节点
              */
             handleClearDragSelection () {
                 this.selectedNodes = []
@@ -808,6 +866,8 @@
                 this.$refs.jsFlow.clearNodesDragSelection()
                 document.removeEventListener('mousedown', this.handleClearDragSelection, { once: true })
                 document.removeEventListener('keydown', this.nodeSelectedhandler)
+                document.removeEventListener('keydown', this.nodeLineDeletehandler)
+
                 this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
             },
             /**
@@ -832,7 +892,6 @@
                         type: 'Label',
                         name: `<div class="branch-condition"
                                 title="${name}(${value})"
-                                data-value="${value}"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
                         location: -70,
@@ -858,7 +917,7 @@
                     // 自动连线
                     this.onConnectionDragStop({ id: this.referenceLine.id, arrow: this.referenceLine.arrow }, id, event)
                     // 移出参考线
-                    this.handleReferenceLineHide()
+                    this.clearReferenceLine()
                     return
                 }
                 if (type !== 'endpoint') {
@@ -904,9 +963,10 @@
                 this.idOfNodeShortcutPanel = id
             },
             // 节点后面追加
-            onAppendNode ({ location, line }) {
+            onAppendNode ({ location, line, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', line)
                 this.$nextTick(() => {
                     this.$refs.jsFlow.createConnector(line)
@@ -919,7 +979,8 @@
              * @param {String} endNode -后节点 id
              * @param {Object} location -新建节点的 location
              */
-            onInsertNode ({ startNodeId, endNodeId, location }) {
+            onInsertNode ({ startNodeId, endNodeId, location, isFillParam }) {
+                const type = isFillParam ? 'copy' : 'add'
                 const deleteLine = this.canvasData.lines.find(line => line.source.id === startNodeId && line.target.id === endNodeId)
                 if (!deleteLine) {
                     return false
@@ -946,7 +1007,7 @@
                     }
                 }
                 this.$refs.jsFlow.createNode(location)
-                this.$emit('onLocationChange', 'add', location)
+                this.$emit('onLocationChange', type, location)
                 this.$emit('onLineChange', 'add', startLine)
                 this.$emit('onLineChange', 'add', endLine)
                 this.$nextTick(() => {
@@ -1015,6 +1076,46 @@
                         ins.revalidate(el)
                     })
                 })
+            },
+            // 画布滚轮缩放
+            onMouseWheel (e) {
+                if (!e.ctrlKey) {
+                    return false
+                }
+                e.preventDefault()
+                const ev = e || window.event
+                let down = true
+                down = ev.wheelDelta ? ev.wheelDelta < 0 : ev.detail > 0
+                if (down) {
+                    this.onZoomOut(this.zoomOriginPosition)
+                } else {
+                    this.onZoomIn(this.zoomOriginPosition)
+                }
+                return false
+            },
+            // 记录缩放点
+            onCanvasMouseMove (e) {
+                const { x: offsetX, y: offsetY } = document.querySelector('.canvas-flow-wrap').getBoundingClientRect()
+                this.zoomOriginPosition.x = e.pageX - offsetX
+                this.zoomOriginPosition.y = e.pageY - offsetY
+            },
+            /**
+             * 设置画布偏移量
+             * @param {Number} x 画布向右偏移量
+             * @param {Number} y 画布向下偏移量
+             * @param {Boolean} animation 是否设置缓动动画
+             */
+            setCanvasPosition (x, y, animation = false) {
+                if (animation) {
+                    const canvas = this.$refs.jsFlow.$el.querySelector('#canvas-flow')
+                    canvas.style.transition = 'left 0.4s, top 0.4s'
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                    setTimeout(() => {
+                        canvas.style.transition = 'unset'
+                    }, 600)
+                } else {
+                    this.$refs.jsFlow.setCanvasPosition(x, y)
+                }
             }
         }
     }
@@ -1033,7 +1134,7 @@
         .tool-panel-wrap {
             top: 20px;
             left: 80px;
-            padding: 7px 0;
+            padding: 5px 0 7px 0;
             background: #c4c6cc;
             border-radius: 18px;
             opacity: 0.8;
@@ -1119,7 +1220,6 @@
             }
             & + .help-info-wrap {
                 .hot-key-panel {
-                    top: 124px;
                     left: 380px;
                     z-index: 5;
                 }

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -21,10 +21,9 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import (
-    get_ip_by_regex,
-    supplier_account_for_business
-)
+
+from pipeline_plugins.components.utils import get_ip_by_regex
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -155,7 +154,7 @@ class CCTransferHostModuleService(Service):
             self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，多个用英文逗号 `,` 分隔'))),
             self.InputItem(name=_('模块 ID'),
                            key='cc_module_select',
                            type='array',
@@ -227,7 +226,7 @@ class CCUpdateHostService(Service):
             self.InputItem(name=_('主机内网 IP'),
                            key='cc_host_ip',
                            type='string',
-                           schema=StringItemSchema(description=_('待转移的主机内网 IP，以 "," 分隔'))),
+                           schema=StringItemSchema(description=_('待转移的主机内网 IP，多个用英文逗号 `,` 分隔'))),
             self.InputItem(name=_('主机属性'),
                            key='cc_host_property',
                            type='string',
@@ -703,63 +702,70 @@ class CCCreateSetService(Service):
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_parent_select'))
         cc_set_info = data.get_one_of_inputs('cc_set_info')
-        cc_kwargs = {
-            'bk_biz_id': biz_cc_id,
-            'bk_supplier_account': supplier_account,
-            'data': {}
-        }
+
+        bk_set_env = cc_format_prop_data(executor,
+                                         'set',
+                                         'bk_set_env',
+                                         parent_data.get_one_of_inputs('language'),
+                                         supplier_account)
+        if not bk_set_env['result']:
+            data.set_outputs('ex_data', bk_set_env['message'])
+            return False
+
+        bk_service_status = cc_format_prop_data(executor,
+                                                'set',
+                                                'bk_service_status',
+                                                parent_data.get_one_of_inputs('language'),
+                                                supplier_account)
+        if not bk_service_status['result']:
+            data.set_outputs('ex_data', bk_service_status['message'])
+            return False
+
+        set_list = []
+        for set_params in cc_set_info:
+            set_property = {}
+            for key, value in list(set_params.items()):
+                if value:
+                    if key == "bk_set_env":
+                        value = bk_set_env['data'].get(value)
+                        if not value:
+                            data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
+                            return False
+
+                    elif key == "bk_service_status":
+                        value = bk_service_status['data'].get(value)
+                        if not value:
+                            data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
+                            return False
+
+                    elif key == "bk_capacity":
+                        try:
+                            value = int(value)
+                        except Exception:
+                            self.logger.error(traceback.format_exc())
+                            data.set_outputs('ex_data', _("集群容量必须为整数"))
+                            return False
+
+                    set_property[key] = value
+            set_list.append(set_property)
 
         for parent_id in cc_set_parent_select:
-            cc_kwargs['data']['bk_parent_id'] = parent_id
-            for set_params in cc_set_info:
-                for key, value in list(set_params.items()):
-                    if value:
-                        if key == "bk_set_env":
-                            bk_set_env = cc_format_prop_data(executor,
-                                                             'set',
-                                                             'bk_set_env',
-                                                             parent_data.get_one_of_inputs('language'),
-                                                             supplier_account)
-                            if not bk_set_env['result']:
-                                data.set_outputs('ex_data', bk_set_env['message'])
-                                return False
-
-                            value = bk_set_env['data'].get(value)
-                            if not value:
-                                data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
-                                return False
-
-                        elif key == "bk_service_status":
-                            bk_service_status = cc_format_prop_data(executor,
-                                                                    'set',
-                                                                    'bk_service_status',
-                                                                    parent_data.get_one_of_inputs('language'),
-                                                                    supplier_account)
-                            if not bk_service_status['result']:
-                                data.set_outputs('ex_data', bk_service_status['message'])
-                                return False
-
-                            value = bk_service_status['data'].get(value)
-                            if not value:
-                                data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
-                                return False
-
-                        elif key == "bk_capacity":
-                            try:
-                                value = int(value)
-                            except Exception:
-                                self.logger.error(traceback.format_exc())
-                                data.set_outputs('ex_data', _("集群容量必须为整数"))
-                                return False
-
-                        cc_kwargs['data'][key] = value
-
+            for set_data in set_list:
+                cc_kwargs = {
+                    'bk_biz_id': biz_cc_id,
+                    'bk_supplier_account': supplier_account,
+                    'data': {
+                        'bk_parent_id': parent_id
+                    }
+                }
+                cc_kwargs['data'].update(set_data)
                 cc_result = client.cc.create_set(cc_kwargs)
                 if not cc_result['result']:
                     message = cc_handle_api_error('cc.create_set', cc_kwargs, cc_result)
                     self.logger.error(message)
                     data.set_outputs('ex_data', message)
                     return False
+
         return True
 
 
@@ -835,6 +841,14 @@ class CCUpdateSetService(Service):
             cc_set_prop_value = bk_set_env['data'].get(data.get_one_of_inputs('cc_set_prop_value'))
             if not cc_set_prop_value:
                 data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
+                return False
+
+        elif cc_set_property == "bk_capacity":
+            try:
+                cc_set_prop_value = int(data.get_one_of_inputs('cc_set_prop_value'))
+            except Exception:
+                self.logger.error(traceback.format_exc())
+                data.set_outputs('ex_data', _("集群容量必须为整数"))
                 return False
 
         else:
@@ -965,7 +979,7 @@ class CCTransferHostToIdleService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到空闲机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
@@ -1006,7 +1020,7 @@ class CCTransferHostToIdleService(Service):
 
 
 class CCTransferHostToIdleComponent(Component):
-    name = _("转移主机至空闲机")
+    name = _("转移主机至空闲机模块")
     code = 'cc_transfer_to_idle'
     bound_service = CCTransferHostToIdleService
     form = '%scomponents/atoms/cc/cc_transfer_to_idle.js' % settings.STATIC_URL
@@ -1022,16 +1036,16 @@ class CmdbTransferFaultHostService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到故障机的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
@@ -1059,7 +1073,7 @@ class CmdbTransferFaultHostService(Service):
 
 
 class CmdbTransferFaultHostComponent(Component):
-    name = _('转移主机到业务的故障机模块')
+    name = _('转移主机至故障机模块')
     code = 'cmdb_transfer_fault_host'
     bound_service = CmdbTransferFaultHostService
     form = '%scomponents/atoms/cc/cmdb_transfer_fault_host.js' % settings.STATIC_URL
@@ -1075,16 +1089,16 @@ class CmdbTransferHostResourceModuleService(Service):
                 self.InputItem(name=_('主机 IP'),
                                key='cc_host_ip',
                                type='string',
-                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个以 "," 分隔')))]
+                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔')))]
 
     def outputs_format(self):
         return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
@@ -1112,7 +1126,7 @@ class CmdbTransferHostResourceModuleService(Service):
 
 
 class CmdbTransferHostResourceModuleComponent(Component):
-    name = _('转移主机至资源池')
+    name = _('上交主机至资源池')
     code = 'cmdb_transfer_host_resource'
     bound_service = CmdbTransferHostResourceModuleService
     form = '%scomponents/atoms/cc/cmdb_transfer_host_resource.js' % settings.STATIC_URL

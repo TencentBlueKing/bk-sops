@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -81,9 +81,6 @@
                 'loadAtomConfig'
             ]),
             ...mapMutations('atomForm/', [
-                'setAtomConfig'
-            ]),
-            ...mapMutations('atomForm/', [
                 'clearAtomForm'
             ]),
             /**
@@ -107,14 +104,18 @@
                     return a.index - b.index
                 })
 
+                if (variableArray.length > 0) {
+                    this.isConfigLoading = true
+                    this.$emit('onChangeConfigLoading', true)
+                }
+
                 for (const variable of variableArray) {
                     const { key } = variable
-                    const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+                    const { name, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
-                    if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
-                        this.isConfigLoading = true
-                        await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
+                    if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
+                        await this.loadAtomConfig({ name, atom, classify, version })
                     }
                     const atomConfig = this.atomFormConfig[atom][version]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
@@ -129,7 +130,7 @@
                             }
                         }
                         currentFormConfig.tag_code = key
-                        currentFormConfig.attrs.name = variable.name
+                        currentFormConfig.name = variable.name // 变量名称，全局变量编辑时填写的名称，和表单配置项 label 名称不同
                         currentFormConfig.attrs.desc = variable.desc
                         if (
                             variable.custom_type === 'input'
@@ -165,7 +166,7 @@
                         const [atomType, tagCode] = sourceTag.split('.')
                         const atomVersion = variable.version || 'legacy'
                         if (!atomFilter.isConfigExists(atomType, atomVersion, this.atomFormConfig)) {
-                            this.loadAtomConfig({ atomType, atomVersion })
+                            this.loadAtomConfig({ atom: atomType, version: atomVersion })
                         }
                         const atomConfig = this.atomFormConfig[atomType]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))

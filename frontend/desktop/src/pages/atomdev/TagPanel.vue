@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,7 +11,53 @@
 */
 <template>
     <div class="tag-panel">
-        <ul class="tag-list">
+        <draggable
+            :group="{
+                name: 'tag',
+                pull: 'clone',
+                put: false
+            }"
+            class="tag-list"
+            ref="tagList"
+            tag="ul"
+            ghost-class="tag-ghost"
+            filter=".disabled"
+            handle=".drag-entry"
+            :sort="false"
+            :list="tagMenu"
+            :clone="handleTagClone"
+            @end="handleDragEnd">
+            <template v-for="menuItem in tagMenu">
+                <li
+                    :class="['menu-item', 'has-sub-menu', { 'disabled': disabled }]"
+                    v-if="menuItem.group"
+                    :key="menuItem.group"
+                    :draggable="false"
+                    @mouseenter="handleMenuEnter($event, menuItem)"
+                    @mouseleave="handleMenuLeave">
+                    <i :class="['menu-icon', 'tag-default-icon', `common-icon-tag-${menuItem.group}`]"></i>
+                    <i class="sub-icon common-icon-right-triangle"></i>
+                    <div>{{ menuItem.group }}</div>
+                </li>
+                <li
+                    v-else
+                    :class="['menu-item', 'drag-entry', { 'disabled': disabled }]"
+                    :key="menuItem.tag"
+                    :draggable="true">
+                    <div class="content">
+                        <i :class="['menu-icon', 'tag-default-icon', `common-icon-tag-${menuItem.config.type}`]"></i>
+                        <div>{{ menuItem.tag }}</div>
+                    </div>
+                </li>
+            </template>
+        </draggable>
+        <div
+            v-if="isSubMenuShow"
+            class="sub-menu"
+            ref="subMenu"
+            :style="subMenuStyle"
+            @mouseenter="isSubMenuShow = true"
+            @mouseleave="isSubMenuShow = false">
             <draggable
                 :group="{
                     name: 'tag',
@@ -20,31 +66,44 @@
                 }"
                 ghost-class="tag-ghost"
                 filter=".disabled"
+                handle=".drag-entry"
+                :list="subMenu"
                 :sort="false"
-                :list="list"
                 :clone="handleTagClone"
                 @end="handleDragEnd">
-                <li
-                    :class="['tag-item', { 'disabled': disabled }]"
-                    v-for="(item, name) in tags"
-                    v-bk-tooltips="{
-                        content: item.tag,
-                        placement: 'right',
-                        boundary: 'window',
-                        delay: 500
-                    }"
-                    :key="name"
-                    :draggable="true">
-                    <i :class="getIconCls(item)"></i>
-                </li>
+                <div
+                    v-for="item in subMenu"
+                    :key="item.tag"
+                    class="drag-entry">
+                    <div class="content">{{ item.tag }}</div>
+                </div>
             </draggable>
-        </ul>
+        </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
+
+    const ORDER_GROUP_MAP = [
+        {
+            group: 'input',
+            items: ['TagInput', 'TagMemberSelector', 'TagPassword', 'TagInt', 'TagTextarea']
+        },
+        {
+            group: 'select',
+            items: ['TagSelect', 'TagCascader', 'TagDatetime']
+        },
+        'TagRadio',
+        'TagCheckbox',
+        'TagButton',
+        'TagUpload',
+        'TagTree',
+        'TagText',
+        'TagIpSelector',
+        'TagDatatable'
+    ]
 
     export default {
         name: 'TagPanel',
@@ -65,23 +124,47 @@
         },
         data () {
             return {
-                draggedCount: 1
+                draggedCount: 1,
+                isSubMenuShow: false,
+                subMenu: [],
+                subMenuStyle: {}
             }
         },
         computed: {
-            list () {
-                const list = []
-                Object.keys(this.tags).forEach(tag => {
-                    list.push(this.tags[tag])
+            tagMenu () {
+                const menu = []
+                ORDER_GROUP_MAP.forEach(tag => {
+                    if (tag.items) {
+                        const data = {
+                            group: tag.group,
+                            items: []
+                        }
+                        tag.items.forEach(item => {
+                            if (this.tags[item]) {
+                                data.items.push(this.tags[item])
+                            }
+                        })
+                        menu.push(data)
+                    } else {
+                        if (this.tags[tag]) {
+                            menu.push(this.tags[tag])
+                        }
+                    }
                 })
-                return list
+                Object.keys(this.tags).forEach(tag => {
+                    const item = this.tags[tag]
+                    const existTag = menu.find(menuItem => {
+                        return menuItem.items ? menuItem.items.find(subItem => subItem.tag === item.tag) : menuItem.tag === item.tag
+                    })
+                    if (!existTag) {
+                        menu.push(item)
+                    }
+                })
+
+                return menu
             }
         },
         methods: {
-            getIconCls (tag) {
-                const type = tag.config.type
-                return ['tag-icon', `common-icon-tag-${type}`]
-            },
             handleTagClone (origin) {
                 const tag = tools.deepClone(origin)
                 tag.config.attrs.name.value = gettext('表单项') + this.draggedCount
@@ -93,6 +176,28 @@
                 if (event.pullMode === 'clone') {
                     this.draggedCount += 1
                 }
+            },
+            handleMenuEnter (event, group) {
+                this.subMenu = group.items
+                this.isSubMenuShow = true
+                this.$nextTick(() => {
+                    let verticalPos
+                    const memuEl = event.target
+                    const topGap = memuEl.offsetTop - this.$refs.tagList.$el.scrollTop
+                    const tagListRect = this.$refs.tagList.$el.getBoundingClientRect()
+                    const subMenuRect = this.$refs.subMenu.getBoundingClientRect()
+                    if (topGap < 0) {
+                        verticalPos = { top: '10px' }
+                    } else if (subMenuRect.height + topGap > tagListRect.height) {
+                        verticalPos = { bottom: '10px' }
+                    } else {
+                        verticalPos = { top: `${topGap + 10}px` }
+                    }
+                    this.subMenuStyle = verticalPos
+                })
+            },
+            handleMenuLeave (event) {
+                this.isSubMenuShow = false
             }
         }
     }
@@ -116,26 +221,61 @@
     }
     .tag-list {
         height: 100%;
+        overflow-x: hidden;
         overflow-y: auto;
         @include scrollbar;
-        .tag-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 48px;
+        .menu-item {
+            position: relative;
+            padding: 10px 0;
+            height: 68px;
             color: #62667d;
-            font-size: 32px;
+            font-size: 12px;
             user-select: none;
-            overflow: hidden;
             &:not(.disabled):hover {
                 color: #3a84ff;;
                 cursor: move;
+                &.has-sub-menu {
+                    background: #ecedf3;
+                    color: #62667d;
+                    cursor: pointer;
+                }
             }
             &.disabled {
                 cursor: not-allowed;
             }
-            .tag-icon {
+            .menu-icon {
                 display: inline-block;
+                font-size: 32px;
+            }
+            .sub-icon {
+                position: absolute;
+                right: 4px;
+                top: 30px;
+                font-size: 12px;
+                transform: scale(0.6);
+            }
+        }
+    }
+    .sub-menu {
+        position: absolute;
+        right: -148px;
+        padding: 6px 0;
+        width: 152px;
+        font-size: 12px;
+        text-align: left;
+        background: #ffffff;
+        border-radius: 2px;
+        box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.3);
+        z-index: 2;
+        .drag-entry {
+            padding: 0 12px;
+            height: 28px;
+            line-height: 28px;
+            color: #62667d;
+            &:hover {
+                background: #ecedf3;
+                color: #3a84ff;
+                cursor: move;
             }
         }
     }

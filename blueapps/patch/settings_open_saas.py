@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -25,6 +25,9 @@ if not locals().get('ESB_SDK_NAME'):
 
 # 蓝鲸PASS平台URL
 BK_PAAS_HOST = os.getenv('BK_PAAS_HOST', BK_URL)
+
+# 蓝鲸开发者页面
+BK_DEV_URL = '%s/app/list/' % BK_PAAS_HOST
 
 # 兼容component的APP_ID,APP_TOKEN
 APP_CODE = APP_ID = os.environ.get('APP_ID', APP_CODE)
@@ -50,12 +53,12 @@ if 'BK_BROKER_URL' in os.environ:
 # SITE_URL,STATIC_URL,,FORCE_SCRIPT_NAME
 # 测试环境
 if os.getenv('BK_ENV') == 'testing':
-    BK_URL = os.environ.get("BK_URL", "%s/console" % BK_PAAS_HOST)
+    BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
     SITE_URL = os.environ.get("BK_SITE_URL", '/t/%s/' % APP_CODE)
     STATIC_URL = '%sstatic/' % SITE_URL
 # 正式环境
 if os.getenv('BK_ENV') == 'production':
-    BK_URL = os.environ.get("BK_URL", "%s/console" % BK_PAAS_HOST)
+    BK_URL = os.environ.get("BK_URL", "%s/console/" % BK_PAAS_HOST)
     SITE_URL = os.environ.get("BK_SITE_URL", '/o/%s/' % APP_CODE)
     STATIC_URL = '%sstatic/' % SITE_URL
 

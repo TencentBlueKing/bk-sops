@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,22 +11,34 @@
 */
 <template>
     <bk-dialog
-        width="670"
-        :title="i18n.new"
+        width="600"
+        :title="title"
         :value="isModalShow"
         :header-position="'left'"
         :ext-cls="'common-dialog'"
         :has-header="false"
         :mask-close="false">
         <div class="select-wrapper">
-            <label class="label-project" for="">{{ i18n.select }}</label>
-            <project-selector
-                :redirect="false">
-            </project-selector>
+            <div class="common-form-item">
+                <label class="required">{{ i18n.select }}</label>
+                <div class="common-form-content">
+                    <project-selector
+                        :show="true"
+                        :redirect="false"
+                        @loading="onLoading">
+                    </project-selector>
+                </div>
+                <span v-if="!Number(project_id)" class="common-error-tip error-msg">{{ i18n.required }}</span>
+            </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
             <div class="bk-button-group">
-                <bk-button style="margin-right:10px" theme="primary" @click="newTask">{{ i18n.newTask }}</bk-button>
+                <bk-button
+                    :loading="isLoading"
+                    style="margin-right:10px" theme="primary"
+                    @click="onCreateTask">
+                    {{ confirm }}
+                </bk-button>
                 <bk-button theme="default" @click="cancel"> {{ i18n.cancel }} </bk-button>
             </div>
         </div>
@@ -41,16 +53,25 @@
         components: {
             ProjectSelector
         },
+        props: {
+            // 是否新建任务
+            isNewTask: {
+                type: Boolean,
+                default: true
+            }
+        },
         data () {
             return {
                 i18n: {
-                    new: gettext('新建任务'),
-                    select: gettext('选择业务：'),
-                    newTask: gettext('去新建'),
-                    cancel: gettext('取消')
+                    select: gettext('选择项目'),
+                    cancel: gettext('取消'),
+                    required: gettext('请选择项目')
                 },
                 isModalShow: false,
-                route: {}
+                isLoading: false,
+                templateId: '',
+                title: this.isNewTask ? gettext('新建任务') : gettext('选择项目'),
+                confirm: this.isNewTask ? gettext('去新建') : gettext('确定')
             }
         },
         computed: {
@@ -59,16 +80,23 @@
             })
         },
         methods: {
-            show (route) {
+            show (templateId) {
                 this.isModalShow = true
-                this.route = route
+                this.templateId = templateId
             },
-            newTask () {
-                this.$router.push(this.route)
+            onCreateTask () {
+                if (isNaN(Number(this.project_id))) {
+                    return
+                }
+                this.$emit('confirm', this.project_id, this.templateId)
+                this.isModalShow = false
             },
             cancel () {
-                this.route = {}
+                this.templateId = ''
                 this.isModalShow = false
+            },
+            onLoading (val) {
+                this.isLoading = val
             }
         }
     }
@@ -78,13 +106,8 @@
 .select-wrapper {
     padding: 30px;
     overflow: hidden;
-    .label-project {
-        display: block;
-        float: left;
-        width: 180px;
-        height: 30px;
-        line-height: 30px;
-        text-align: left;
+    .error-msg {
+        margin-left: 120px;
     }
     /deep/ {
         .project-wrapper {

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -59,6 +59,7 @@ const atomFilter = {
                         case 'datatable':
                         case 'tree':
                         case 'upload':
+                        case 'cascader':
                             val = []
                             break
                         case 'select':
@@ -73,7 +74,19 @@ const atomFilter = {
                                 ip: [],
                                 topo: [],
                                 filters: [],
-                                excludes: []
+                                excludes: [],
+                                with_cloud_id: false
+                            }
+                            break
+                        case 'set_allocation':
+                            val = {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: []
                             }
                             break
                         default:
@@ -91,28 +104,28 @@ const atomFilter = {
      * 通过变量配置项获取需要加载标准插件的相关参数
      * @param {Object} variable 变量配置项
      *
-     * @return {String} atomType 标准插件code
-     * @return {String} atom 标准插件注册名称
+     * @return {String} name 标准插件文件名称
+     * @return {String} atom 标准插件注册在 $.atoms 上的名称
      * @return {String} tagCode 标准插件中的某一项表单tagCode
      * @return {String} classify 标准插件分类：变量、组件
      */
     getVariableArgs (variable) {
         const { source_tag, custom_type } = variable
-        let atomType = '' // 需要加载标准插件文件的code
-        let atom = '' // 标准插件名称，对应绑定在$.atoms上的key
+        let name = ''
+        let atom = ''
         let tagCode = ''
         let classify = ''
         if (custom_type) {
-            atomType = custom_type
+            name = custom_type
             atom = source_tag ? source_tag.split('.')[0] : custom_type // 兼容旧数据自定义变量source_tag为空
             tagCode = source_tag ? source_tag.split('.')[1] : custom_type
             classify = 'variable'
         } else {
-            [atomType, tagCode] = source_tag.split('.')
-            atom = atomType
+            [name, tagCode] = source_tag.split('.')
+            atom = name
             classify = 'component'
         }
-        return { atomType, atom, tagCode, classify }
+        return { name, atom, tagCode, classify }
     },
     /**
      * 判断 atom 配置文件是否存在

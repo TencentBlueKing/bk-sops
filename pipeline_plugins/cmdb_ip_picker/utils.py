@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -21,6 +21,7 @@ from gcloud.utils.handlers import handle_api_error
 from .constants import NO_ERROR, ERROR_CODES
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+DEFAULT_BK_CLOUD_ID = '-1'
 
 
 def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
@@ -55,7 +56,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     # IP选择器
     selector = kwargs['selectors'][0]
     if selector == 'ip':
-        ip_list = ['{cloud}:{ip}'.format(cloud=host['cloud'][0]['id'],
+        ip_list = ['{cloud}:{ip}'.format(cloud=get_bk_cloud_id_for_host(host, 'cloud'),
                                          ip=host['bk_host_innerip']) for host in kwargs['ip']]
     else:
         ip_list = []
@@ -63,14 +64,14 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     for host in host_info:
         host_modules_id = get_modules_id(host['module'])
         host_innerip = format_sundry_ip(host['host']['bk_host_innerip'])
-        if selector == 'topo' or '{cloud}:{ip}'.format(cloud=host['host']['bk_cloud_id'][0]['id'],
+        if selector == 'topo' or '{cloud}:{ip}'.format(cloud=get_bk_cloud_id_for_host(host['host'], 'bk_cloud_id'),
                                                        ip=host_innerip) in ip_list:
             data.append({
                 'bk_host_id': host['host']['bk_host_id'],
                 'bk_host_innerip': host_innerip,
                 'bk_host_outerip': host['host']['bk_host_outerip'],
                 'bk_host_name': host['host']['bk_host_name'],
-                'bk_cloud_id': host['host']['bk_cloud_id'][0]['id'],
+                'bk_cloud_id': get_bk_cloud_id_for_host(host['host'], 'bk_cloud_id'),
                 'host_modules_id': host_modules_id
             })
 
@@ -164,7 +165,7 @@ def build_cmdb_search_host_kwargs(bk_biz_id, bk_supplier_account, kwargs, biz_to
         # transfer topo to modules
         topo_dct = {}
         for tp in topo:
-            topo_dct.setdefault(tp['bk_obj_id'], []).append(tp['bk_inst_id'])
+            topo_dct.setdefault(tp['bk_obj_id'], []).append(int(tp['bk_inst_id']))
         topo_objects = get_objects_of_topo_tree(biz_topo_tree, topo_dct)
         topo_modules = []
         for obj in topo_objects:
@@ -295,3 +296,15 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
         }
         data[0]['child'].insert(0, default_set)
     return {'result': True, 'code': NO_ERROR, 'data': data, 'messsage': ''}
+
+
+def get_bk_cloud_id_for_host(host_info, cloud_key='cloud'):
+    """
+    @summary: 从 host 信息中心获取 bk_cloud_id，cloud_key 不存在时返回默认值
+    @param host_info:
+    @param cloud_key:
+    @return:
+    """
+    if not host_info.get(cloud_key, []):
+        return DEFAULT_BK_CLOUD_ID
+    return host_info[cloud_key][0]['id']

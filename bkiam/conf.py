@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,7 +18,7 @@ try:
     SECRET_KEY = settings.SECRET_KEY
     SYSTEM_ID = getattr(settings, 'BK_IAM_SYSTEM_ID', APP_CODE)
     SYSTEM_NAME = getattr(settings, 'BK_IAM_SYSTEM_NAME', APP_CODE)
-    BK_IAM_HOST = getattr(settings, 'BK_IAM_HOST', '')
+    BK_IAM_INNER_HOST = getattr(settings, 'BK_IAM_INNER_HOST', '')
     BK_IAM_API_VERSION = getattr(settings, 'BK_IAM_API_VERSION', 'v1')
 
 except Exception:
@@ -26,5 +26,5 @@ except Exception:
     SECRET_KEY = ''
     SYSTEM_ID = ''
     SYSTEM_NAME = ''
-    BK_IAM_HOST = ''
+    BK_IAM_INNER_HOST = ''
     BK_IAM_API_VERSION = 'v1'

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-title">{{ title }}</div>
+    <div class="page-title">{{ title }}<span class="sup-words">beta</span></div>
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -39,6 +39,13 @@
             width: 0;
             height: 20px;
             border-left: 2px solid #a3c5fd;
+        }
+        .sup-words {
+            position: absolute;
+            top: -4px;
+            right: -28px;
+            font-size: 12px;
+            color: #c4c6cc;
         }
     }
 </style>

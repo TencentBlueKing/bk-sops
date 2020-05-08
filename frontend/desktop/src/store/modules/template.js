@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -30,21 +30,21 @@ function generateInitLocation () {
     return [
         {
             id: 'node' + uuid(),
-            x: 80,
+            x: 20,
             y: 150,
             type: 'startpoint'
         },
         {
             id: 'node' + uuid(),
-            x: 300,
-            y: 150,
+            x: 240,
+            y: 145,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
         },
         {
             id: 'node' + uuid(),
-            x: 600,
+            x: 540,
             y: 150,
             type: 'endpoint'
         }
@@ -203,12 +203,11 @@ const template = {
         },
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some(item => {
-                if (
-                    subflow.template_id === item.template_id
-                    && subflow.subprocess_node_id === item.subprocess_node_id
-                ) {
+                if (subflow.subprocess_node_id === item.subprocess_node_id) {
                     item.expired = false
-                    subflow.version && (item.version = subflow.version)
+                    if (subflow.version) {
+                        item.version = subflow.version
+                    }
                     return true
                 }
             })
@@ -220,26 +219,48 @@ const template = {
             ]
             pipelineTreeOrder.forEach(key => {
                 let val = data[key]
-                if (key !== 'constants') {
-                    val = nodeFilter.convertInvalidIdData(key, val) // convert old invalid data =_=!
-                }
-                if (key === 'location') {
-                    val = val.map(item => {
-                        if (item.type === 'tasknode' || item.type === 'subflow') {
-                            const node = state.activities[item.id]
-                            const loc = Object.assign({}, item, {
-                                name: node.name,
-                                stage_name: node.stage_name,
-                                optional: node.optional,
-                                error_ignorable: node.error_ignorable,
-                                retryable: node.can_retry || node.retryable,
-                                skippable: node.isSkipped || node.skippable
-                            })
-                            return loc
+
+                if (key === 'constants') {
+                    // 全局变量 index 修正，3.5版本之前变量 index 存在不连续的情况，导致新增变量时 index 不正确
+                    Object.keys(val).map(varKey => val[varKey])
+                        .sort((a, b) => a.index - b.index)
+                        .forEach((item, index) => {
+                            item.index = index
+                        })
+                } else {
+                    // 节点、连线不和规则 id 替换
+                    // 3.1版本之前节点和连线的 id 可能存在以数字开头的情况，导致使用 docuement.getElementById 等查找DOM节点失败
+                    val = nodeFilter.convertInvalidIdData(key, val)
+                    if (key === 'activities') { // 兼容脏数据 can_retry、isSkipped 字段不存在问题
+                        for (const nodeId in val) {
+                            const item = val[nodeId]
+                            if (!item.hasOwnProperty('can_retry') && !item.hasOwnProperty('retryable')) {
+                                item.can_retry = true
+                            }
+                            if (!item.hasOwnProperty('isSkipped') && !item.hasOwnProperty('skippable')) {
+                                item.isSkipped = true
+                            }
                         }
-                        return item
-                    })
+                    }
+                    if (key === 'location') {
+                        val = val.map(item => {
+                            if (item.type === 'tasknode' || item.type === 'subflow') {
+                                const node = state.activities[item.id]
+                                const loc = Object.assign({}, item, {
+                                    name: node.name,
+                                    stage_name: node.stage_name,
+                                    optional: node.optional,
+                                    error_ignorable: node.error_ignorable,
+                                    retryable: node.can_retry || node.retryable,
+                                    skippable: node.isSkipped || node.skippable
+                                })
+                                return loc
+                            }
+                            return item
+                        })
+                    }
                 }
+                
                 state[key] = val
             })
         },
@@ -319,6 +340,7 @@ const template = {
             const constant = state.constants[key]
             const { source_info } = constant
 
+            // 遍历节点，去掉表单的勾选状态，并将变量值复制给对应表单
             for (const id in source_info) {
                 if (state.activities[id]) {
                     source_info[id].forEach(item => {
@@ -336,8 +358,19 @@ const template = {
                     })
                 }
             }
-            const vIndex = state.outputs.indexOf(key)
-            vIndex > -1 && state.outputs.splice(vIndex, 1)
+            // 删除输出变量的勾选状态
+            if (state.outputs.includes(key)) {
+                state.outputs.splice(state.outputs.indexOf(key), 1)
+            }
+
+            for (const key in state.constants) {
+                const varItem = state.constants[key]
+                console.log(varItem.name, varItem.index, constant.index)
+                if (varItem.index > constant.index) {
+                    varItem.index = varItem.index - 1
+                }
+            }
+
             Vue.delete(state.constants, key)
         },
         // 配置全局变量 source_info 字段
@@ -364,6 +397,9 @@ const template = {
                         }
                     })
                     sourceInfo[id].splice(atomIndex, 1)
+                }
+                if (!Object.keys(sourceInfo).length) {
+                    this.commit('template/deleteVariable', key)
                 }
             }
         },
@@ -458,14 +494,12 @@ const template = {
                             let name = evaluate
                             // copy 连线，需复制原来的分支条件信息
                             if (line.oldSouceId) {
-                                for (const key in state.gateways) {
-                                    const item = state.gateways[key]
-                                    const conditionsList = Object.keys(item.conditions)
-                                    if (conditionsList.indexOf(line.oldSouceId) > -1) {
-                                        evaluate = item.conditions[line.oldSouceId].evaluate
-                                        name = item.conditions[line.oldSouceId].name
-                                    }
-                                }
+                                const sourceNodeId = state.flows[line.oldSouceId].source
+                                const sourceGateWayNode = state.gateways[sourceNodeId]
+                                const sourceCondition = sourceGateWayNode.conditions[line.oldSouceId]
+
+                                evaluate = sourceCondition.evaluate || sourceCondition.name
+                                name = sourceCondition.name
                             }
                             const conditionItem = {
                                 evaluate: evaluate,
@@ -537,8 +571,9 @@ const template = {
             const { type, location } = payload
             if (type === 'add') {
                 if (!state.activities[location.id]) {
+                    let activity = {}
                     if (location.type === 'tasknode') {
-                        state.activities[location.id] = {
+                        activity = {
                             component: {
                                 code: location.atomId,
                                 data: location.data,
@@ -557,7 +592,7 @@ const template = {
                             skippable: true
                         }
                     } else if (location.type === 'subflow') {
-                        state.activities[location.id] = {
+                        activity = {
                             constants: {},
                             hooked_constants: [],
                             id: location.id,
@@ -572,9 +607,10 @@ const template = {
                             type: 'SubProcess'
                         }
                     }
+                    Vue.set(state.activities, location.id, activity)
                 }
             } else if (type === 'edit') {
-                state.activities[location.id] = location
+                Vue.set(state.activities, location.id, location)
                 state.location.some(item => {
                     if (item.id === location.id) {
                         Vue.set(item, 'name', location.name)
@@ -791,12 +827,12 @@ const template = {
             return api.getCommonProject(data).then(response => response.data)
         },
         // 获取收藏列表
-        getCollectList ({ commit }, data) {
-            return api.getCollectList(data).then(response => response.data)
+        loadCollectList ({ commit }, data) {
+            return api.loadCollectList(data).then(response => response.data)
         },
         // 收藏模板，批量操作
-        collectSelect ({ commit }, list) {
-            return api.collectSelect(list).then(response => response.data)
+        addToCollectList ({ commit }, list) {
+            return api.addToCollectList(list).then(response => response.data)
         },
         // 删除收藏模板，单个删除
         deleteCollect ({ commit }, id) {
@@ -807,9 +843,6 @@ const template = {
         },
         loadTemplateSummary ({ commit }, data) {
             return api.loadTemplateSummary(data).then(response => response.data)
-        },
-        loadCollectList ({ commit }) {
-            return api.loadCollectList().then(response => response.data)
         },
         getCollectedTemplateDetail ({ commit }, ids) {
             return api.getCollectedTemplateDetail(ids).then(

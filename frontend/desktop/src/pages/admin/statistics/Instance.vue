@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -81,13 +81,15 @@
                         :data="instanceData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
-                        @page-change="handlePageChange">
+                        @page-change="handlePageChange"
+                        @page-limit-change="handlePageLimitChange">
                         <bk-table-column
                             v-for="item in tableColumn"
                             :key="item.prop"
                             :label="item.label"
                             :prop="item.prop"
                             :width="item.hasOwnProperty('width') ? item.width : 'auto'"
+                            :min-width="item.hasOwnProperty('minWidth') ? item.minWidth : 'auto'"
                             :sortable="item.sortable">
                             <template slot-scope="props">
                                 <a
@@ -160,11 +162,13 @@
         },
         {
             label: gettext('任务名称'),
-            prop: 'instanceName'
+            prop: 'instanceName',
+            minWidth: 200
         },
         {
             label: gettext('项目'),
-            prop: 'projectName'
+            prop: 'projectName',
+            width: 150
         },
         {
             label: gettext('分类'),
@@ -178,7 +182,8 @@
         },
         {
             label: gettext('创建时间'),
-            prop: 'createTime'
+            prop: 'createTime',
+            width: 200
         },
         {
             label: gettext('插件数'),
@@ -278,8 +283,7 @@
                 pagination: {
                     current: 1,
                     count: 0,
-                    'limit-list': [15],
-                    'show-limit': false,
+                    'limit-list': [15, 20, 30],
                     limit: 15
                 },
                 i18n: {
@@ -459,6 +463,11 @@
                 this.getTableData()
             },
             onTabChange (val) {
+                this.pagination.current = 1
+                this.getTableData()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
                 this.pagination.current = 1
                 this.getTableData()
             }

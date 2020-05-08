@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -17,7 +17,7 @@
                 <bk-select
                     class="bk-select-inline"
                     v-model="currentMethod"
-                    :loading="isCreateMethosLoading"
+                    :loading="isCreateMethodsLoading"
                     :popover-width="260"
                     :clearable="false"
                     :placeholder="i18n.methodsPlaceholder"
@@ -35,8 +35,7 @@
             class="tab-data-table"
             v-bkloading="{ isLoading: isTableLoading, opacity: 1 }"
             :data="dynamicData"
-            :pagination="pagination"
-            @page-change="handlePageChange">
+            :pagination="pagination">
             <bk-table-column
                 v-for="item in tableColumn"
                 :key="item.prop"
@@ -50,6 +49,27 @@
                             <span :class="executeStatus[props.$index].cls"></span>
                             <span>{{ executeStatus[props.$index].text }}</span>
                         </div>
+                    </template>
+                    <template v-else-if="item.prop === 'name'">
+                        <a
+                            v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                            v-cursor
+                            class="text-permission-disable"
+                            :title="props.row.name"
+                            @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                            {{ props.row[item.prop] }}
+                        </a>
+                        <router-link
+                            v-else
+                            class="task-name"
+                            :title="props.row.name"
+                            :to="{
+                                name: 'taskExecute',
+                                params: { project_id: props.row.project.id },
+                                query: { instance_id: props.row.id }
+                            }">
+                            {{ props.row[item.prop] }}
+                        </router-link>
                     </template>
                     <template v-else-if="item.prop === 'project'">
                         {{ props.row[item.prop].name }}
@@ -69,6 +89,7 @@
     import { mapState, mapActions } from 'vuex'
     import task from '@/mixins/task.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
     const tableColumn = [
         {
             label: 'ID',
@@ -81,7 +102,7 @@
             width: '300'
         },
         {
-            label: gettext('业务'),
+            label: gettext('项目'),
             prop: 'project'
         },
         {
@@ -108,7 +129,7 @@
         components: {
             NoData
         },
-        mixins: [task],
+        mixins: [permission, task],
         data () {
             return {
                 i18n: {
@@ -121,6 +142,8 @@
                 }],
                 dynamicData: [],
                 executeStatus: [],
+                taskOperations: [],
+                taskResource: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -130,7 +153,7 @@
                 },
                 tableColumn: tableColumn,
                 isTableLoading: false,
-                isCreateMethosLoading: false,
+                isCreateMethodsLoading: false,
                 currentMethod: 'all'
             }
         },
@@ -139,11 +162,9 @@
                 username: state => state.username
             })
         },
-        created () {
-        },
-        mounted () {
+        async created () {
+            await this.getCreateMethods()
             this.getTaskList()
-            this.getCreateMethos()
         },
         methods: {
             ...mapActions('taskList/', [
@@ -158,27 +179,34 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: 0,
-                        pipeline_instance__creator: this.username,
                         pipeline_instance__is_started: true,
-                        creator_or_executor: true,
+                        creator_or_executor: this.username,
                         create_method: this.currentMethod === 'all' ? undefined : this.currentMethod
                     }
                     const res = await this.loadTaskList(data)
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', res.objects)
+                    
                     this.dynamicData = res.objects
+                    this.dynamicData.forEach(m => {
+                        const item = this.createMethods.find(method => method.value === m.create_method)
+                        if (item) {
+                            m.create_method = item.name
+                        }
+                    })
+                    this.taskOperations = res.meta.auth_operations
+                    this.taskResource = res.meta.auth_resource
                     this.isTableLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
             },
-            getCreateMethos () {
+            async getCreateMethods () {
                 try {
-                    this.isCreateMethosLoading = true
-                    this.loadCreateMethod().then(res => {
-                        this.createMethods = [...this.createMethods, ...res.data]
-                        this.isCreateMethosLoading = false
-                    })
+                    this.isCreateMethodsLoading = true
+                    const res = await this.loadCreateMethod()
+                    this.createMethods = [...this.createMethods, ...res.data]
+                    this.isCreateMethodsLoading = false
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -187,8 +215,9 @@
                 this.currentMethod = val
                 this.getTaskList()
             },
-            handlePageChange () {
-
+            onTaskPermissonCheck (required, task, event) {
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
+                event.preventDefault()
             }
         }
     }
@@ -201,6 +230,8 @@
     padding: 20px 24px 28px 24px;
     background: #ffffff;
     .panel-title {
+        margin-top: 0;
+        margin-bottom: 20px;
         .panel-name {
             color: #313238;
             font-size: 16px;
@@ -215,6 +246,9 @@
     }
     .ui-task-status {
         @include ui-task-status;
+    }
+    .task-name {
+        color: #3a84ff;
     }
 }
 </style>

@@ -1,7 +1,7 @@
 /**
  * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
  * Edition) available.
- * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * http://opensource.org/licenses/MIT
@@ -136,7 +136,7 @@
             attrs: {
                 name: gettext("定时规则"),
                 hookable: true,
-                placeholder: gettext("Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"),
+                placeholder: gettext("Crontab定时规则，请参考JOB平台定时任务Crontab规则"),
                 validation: [
                     {
                         type: "required"

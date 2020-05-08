@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -27,16 +27,20 @@
             </div>
             <div v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <div v-if="appList.length" class="app-list clearfix">
-                    <AppCard
+                    <app-card
                         v-for="item in appList"
                         :key="item.id"
                         :app-data="item"
                         :app-resource="appResource"
                         :app-operations="appOperations"
                         :project_id="project_id"
+                        :collected-loading="collectedLoading"
+                        :collected-list="collectedList"
                         @onCardEdit="onCardEdit"
                         @onCardDelete="onCardDelete"
-                        @onOpenPermissions="onOpenPermissions" />
+                        @onOpenPermissions="onOpenPermissions"
+                        @getCollectList="getCollectList">
+                    </app-card>
                 </div>
                 <div v-else class="empty-app-list">
                     <NoData>
@@ -76,7 +80,7 @@
             :title="i18n.jurisdiction"
             :value="isPermissionsDialog"
             @cancel="onCloseWindows">
-            <div class="permission-content-dialog" v-bkloading="{ isLoading: loadingAuthority, opacity: 1 }">
+            <div class="permission-content-dialog" v-bkloading="{ isLoading: authorityLoading, opacity: 1 }">
                 <p class="jurisdiction-hint">{{i18n.jurisdictionHint}}</p>
                 <div class="permission-item">
                     <span class="addJurisdiction">{{i18n.addJurisdiction }}:</span>
@@ -142,8 +146,10 @@
         data () {
             return {
                 loading: true,
-                loadingAuthority: false,
+                authorityLoading: false,
+                collectedLoading: false,
                 list: [],
+                collectedList: [],
                 searchMode: false,
                 searchList: [],
                 currentAppData: undefined,
@@ -198,6 +204,7 @@
         },
         created () {
             this.loadData()
+            this.getCollectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -209,6 +216,9 @@
             ...mapActions('templateList/', [
                 'getTemplatePersons'
             ]),
+            ...mapActions('template/', [
+                'loadCollectList'
+            ]),
             async loadData () {
                 this.loading = true
                 if (this.editStartTime === '') {
@@ -217,7 +227,8 @@
                 try {
                     const { updateTime, editor } = this.requestData
                     const data = {
-                        editor: editor || undefined
+                        editor: editor || undefined,
+                        project__id: this.project_id
                     }
                     if (updateTime[0] && updateTime[1]) {
                         data['edit_time__gte'] = moment.tz(updateTime[0], this.timeZone).format('YYYY-MM-DD')
@@ -231,6 +242,17 @@
                     errorHandler(e, this)
                 } finally {
                     this.loading = false
+                }
+            },
+            async getCollectList () {
+                try {
+                    this.collectedLoading = true
+                    const res = await this.loadCollectList()
+                    this.collectedList = res.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectedLoading = false
                 }
             },
             searchInputhandler (data) {
@@ -261,7 +283,7 @@
                 this.loadTemplatePersons(app.template_id)
             },
             async loadTemplatePersons (id) {
-                this.loadingAuthority = true
+                this.authorityLoading = true
                 try {
                     const data = {
                         templateId: id
@@ -271,7 +293,7 @@
                         this.createdTaskPerList = res.data.create_task.map(item => item.show_name).join('、')
                         this.modifyParamsPerList = res.data.fill_params.map(item => item.show_name).join('、')
                         this.executeTaskPerList = res.data.execute_task.map(item => item.show_name).join('、')
-                        this.loadingAuthority = false
+                        this.authorityLoading = false
                     } else {
                         errorHandler(res, this)
                         return []

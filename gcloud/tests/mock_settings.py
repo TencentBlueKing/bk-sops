@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -21,12 +21,16 @@ TASKTEMPLATE_GET = 'gcloud.tasktmpl3.models.TaskTemplate.objects.get'
 TASKTEMPLATE_CREATE_PIPELINE_TEMPLATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.create_pipeline_template'
 TASKTEMPLATE_MODEL = 'gcloud.tasktmpl3.models.TaskTemplate.objects.model'
 
+TEMPLATESCHEME_FILTER = 'pipeline.models.TemplateScheme.objects.filter'
+
 COMMONTEMPLATE_GET = 'gcloud.commons.template.models.CommonTemplate.objects.get'
 COMMONTEMPLATE_SELECT_RELATE = 'gcloud.commons.template.models.CommonTemplate.objects.select_related'
 COMMONTEMPLATE_IMPORT_TEMPLATES = 'gcloud.commons.template.models.CommonTemplate.objects.import_templates'
 
+TASKFLOW_OBJECTS_FILTER = 'gcloud.taskflow3.models.TaskFlowInstance.objects.filter'
 TASKINSTANCE_CREATE_PIPELINE = \
     'gcloud.taskflow3.models.TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes'
+TASKINSTANCE_CREATE_PIPELINE_INSTANCE = 'gcloud.taskflow3.models.TaskFlowInstance.objects.create_pipeline_instance'
 TASKINSTANCE_CREATE = 'gcloud.taskflow3.models.TaskFlowInstance.objects.create'
 TASKINSTANCE_GET = 'gcloud.taskflow3.models.TaskFlowInstance.objects.get'
 TASKINSTANCE_FORMAT_STATUS = 'gcloud.taskflow3.models.TaskFlowInstance.format_pipeline_status'
@@ -43,22 +47,21 @@ PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK = 'gcloud.periodictask.models.P
 
 PERIODIC_TASK_HISTORY_CREATE = 'gcloud.periodictask.models.PeriodicTaskHistory.objects.create'
 
-APIGW_BIZ_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_business'
-APIGW_TASK_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_task'
-APIGW_VIEW_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.jsonschema.validate'
-APIGW_VIEW_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.pipeline_api.get_status_tree'
+APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.create_task.jsonschema.validate'
+APIGW_CREATE_TASK_NODE_NAME_HANDLE = 'gcloud.apigw.views.create_task.pipeline_node_name_handle'
+APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE = 'gcloud.apigw.views.create_task.validate_web_pipeline_tree'
+APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.create_periodic_task.jsonschema.validate'
+APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.create_periodic_task.replace_template_id'
+APIGW_GET_TASK_STATUS_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.get_task_status.pipeline_api.get_status_tree'
+APIGW_IMPORT_COMMON_TEMPLATE_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.import_common_template.read_encoded_template_data'  # noqa
+APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.get_plugin_list.ComponentModel.objects.filter'
+APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.get_plugin_list.ComponentLibrary.get_component_class'  # noqa
+APIGW_GET_USER_PROJECT_LIST_GET_USER_BUSINESS_LIST = 'gcloud.apigw.views.get_user_project_list.get_user_business_list'
+APIGW_GET_USER_PROJECT_DETAIL_GET_BUSINESS_DETAIL = 'gcloud.apigw.views.get_user_project_detail.get_business_detail'
+APIGW_PREVIEW_TASK_TREE_PREVIEW_TEMPLATE_TREE = 'gcloud.apigw.views.preview_task_tree.preview_template_tree'
 APIGW_DECORATOR_CHECK_WHITE_LIST = 'gcloud.apigw.decorators.check_white_apps'
 APIGW_DECORATOR_GET_USER_MODEL = 'gcloud.apigw.decorators.get_user_model'
 APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
-
-APIGW_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.ComponentModel.objects.filter'
-APIGW_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.ComponentLibrary.get_component_class'
-
-APIGW_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.read_encoded_template_data'
-APIGW_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.replace_template_id'
-
-APIGW_VIEW_APIGW_REQUIRED = 'gcloud.apigw.views.apigw_required'
-APIGW_DECORATOR_APIGW_REQUIRED = 'gcloud.apigw.decorators.apigw_required'
 
 MAIN_PACKAGE_SOURCE_GET = 'gcloud.external_plugins.models.main_source.MainPackageSource.objects.get'
 

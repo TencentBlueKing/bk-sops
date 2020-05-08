@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,8 +20,8 @@
             <span>{{i18n.theTime}}</span>
             <bk-select
                 :clearable="false"
-                v-model="theExecuteTime"
-                @change="onSelectExecuteTime">
+                :value="theExecuteTime"
+                @selected="onSelectExecuteTime">
                 <bk-option
                     v-for="index in loopTimes"
                     :key="index"
@@ -184,7 +184,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
@@ -458,17 +458,19 @@
                 'taskflowNodeDetail',
                 'taskflowHistroyLog'
             ]),
-            ...mapMutations('atomForm/', [
-                'setAtomConfig'
-            ]),
             async loadNodeInfo () {
                 this.loading = true
+
                 try {
                     const respData = await this.getTaskNodeDetail()
                     const { execution_info, outputs, inputs, log, history } = respData
                     
                     const version = this.nodeDetailConfig.version
-                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+
+                    // 任务节点需要加载标准插件
+                    if (this.nodeDetailConfig.component_code) {
+                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+                    }
 
                     if (this.adminView) {
                         this.executeInfo = execution_info
@@ -485,21 +487,25 @@
                     } else {
                         this.executeInfo = respData
                         this.inputsInfo = inputs
-                        this.outputsInfo = outputs
                         this.historyInfo = respData.histories
-                        this.outputsInfo = outputs.filter(output => output.preset)
+                        
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
                         
-                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.outputsInfo.hasOwnProperty('job_global_var')) {
-                            this.outputsInfo = this.outputsInfo.filter(output => {
-                                const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
+                        // 兼容 JOB 执行作业输出参数
+                        // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
+                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
+                            this.outputsInfo = outputs.filter(output => {
+                                const outputIndex = this.inputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
                                 if (!output.preset && outputIndex === -1) {
                                     return false
                                 }
                                 return true
                             })
+                        } else {
+                            // 普通插件展示 preset 为 true 的输出参数
+                            this.outputsInfo = outputs.filter(output => output.preset)
                         }
                         
                         if (this.theExecuteTime === undefined) {
@@ -528,6 +534,11 @@
                 try {
                     let query = Object.assign({}, this.nodeDetailConfig, { loop: this.theExecuteTime })
                     let getData = this.getNodeActDetail
+
+                    // 分支网关请求参数不传 component_code
+                    if (!this.nodeDetailConfig.component_code) {
+                        delete query.component_code
+                    }
                     
                     if (this.adminView) {
                         const { instance_id: task_id, node_id, subprocess_stack } = this.nodeDetailConfig
@@ -550,7 +561,7 @@
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type, version })
+                        await this.loadAtomConfig({ atom: type, version })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({
@@ -614,7 +625,8 @@
                 }
                 return output.name
             },
-            onSelectExecuteTime () {
+            onSelectExecuteTime (val) {
+                this.theExecuteTime = val
                 this.loadNodeInfo()
             },
             onHistoyExpand (row, expended) {
@@ -739,7 +751,7 @@
     }
     .common-icon-dark-circle-ellipsis {
         font-size: 12px;
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .common-icon-dark-circle-pause {
         font-size: 12px;

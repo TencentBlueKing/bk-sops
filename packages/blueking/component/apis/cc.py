@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -605,4 +605,9 @@ class CollectionsCC(object):
             client=self.client, method='POST',
             path='/api/c/compapi{bk_api_ver}/cc/batch_update_host/',
             description='批量更新主机属性'
+        )
+        self.list_biz_hosts = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/cc/list_biz_hosts/',
+            description='查询业务下的主机'
         )

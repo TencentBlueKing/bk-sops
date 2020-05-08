@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -27,6 +27,9 @@ from pipeline.core.pipeline import PipelineShell
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.core.data.var import Variable
 from pipeline.service import task_service
+from pipeline.core.flow.activity import Activity
+from pipeline.core.flow.gateway import Gateway
+from pipeline.core.flow.event import StartEvent, EndEvent
 
 from gcloud.core.permissions import admin_operate_resource
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -214,18 +217,29 @@ def get_taskflow_node_detail(request):
 
     process = PipelineModel.objects.get(id=taskflow.pipeline_instance.instance_id).process
 
+    # only process activity's inputs and outputs
     if process.root_pipeline:
 
         target_pipeline = process.root_pipeline
-
         for sub_id in subprocess_stack:
             subprocess_act = [x for x in target_pipeline.spec.activities if x.id == sub_id][0]
             target_pipeline = subprocess_act.pipeline
 
-        act = target_pipeline.spec.objects[node_id]
+        node = target_pipeline.spec.objects[node_id]
 
-        data['inputs'] = hydrate_inputs(act.data.inputs)
-        data['outputs'] = act.data.outputs
+        if isinstance(node, Activity):
+            data['inputs'] = hydrate_inputs(node.data.inputs)
+            data['outputs'] = node.data.outputs
+
+        elif isinstance(node, Gateway):
+            data['inputs'] = data['outputs'] = 'gateway object does not have data'
+
+        elif isinstance(node, StartEvent):
+            data['inputs'] = data['outputs'] = 'start event object does not have data'
+
+        elif isinstance(node, EndEvent):
+            data['inputs'] = node.data.inputs
+            data['outputs'] = node.data.outputs
 
     elif taskflow.pipeline_instance.is_finished or taskflow.pipeline_instance.is_revoked:
         data['inputs'] = data['outputs'] = 'pipeline had finished or had been revoked'

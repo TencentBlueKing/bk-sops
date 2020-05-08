@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -52,19 +52,19 @@ class TzAwareCrontab(schedules.crontab):
         Return tuple of (is_due, next_time_to_check).
         The last_run_at argument needs to be timezone aware.
         """
-        logger.info('################### is_due begin ###################')
-        logger.info('native last_run_at: %s' % last_run_at)
+        logger.debug('################### is_due begin ###################')
+        logger.debug('native last_run_at: %s' % last_run_at)
 
         last_run_at = last_run_at.astimezone(self.tz)
 
         now = datetime.now(self.tz)
-        logger.info('last_run_at: %s' % last_run_at)
-        logger.info('now: %s' % now)
+        logger.debug('last_run_at: %s' % last_run_at)
+        logger.debug('now: %s' % now)
 
         rem_delta = self.remaining_estimate(last_run_at)
 
-        logger.info('rem_delta: %s' % rem_delta)
-        logger.info('next run at: %s' % (now + rem_delta))
+        logger.debug('rem_delta: %s' % rem_delta)
+        logger.debug('next run at: %s' % (now + rem_delta))
 
         rem = max(rem_delta.total_seconds(), 0)
         due = rem == 0
@@ -72,9 +72,9 @@ class TzAwareCrontab(schedules.crontab):
             rem_delta = self.remaining_estimate(self.now())
             rem = max(rem_delta.total_seconds(), 0)
 
-        logger.info('self: %s' % self)
-        logger.info('due: %s %s %s' % (self.tz, due, rem))
-        logger.info('################### is_due end ###################')
+        logger.debug('self: %s' % self)
+        logger.debug('due: %s %s %s' % (self.tz, due, rem))
+        logger.debug('################### is_due end ###################')
         return schedstate(due, rem)
 
     # Needed to support pickling

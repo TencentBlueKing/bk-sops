@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -35,14 +35,15 @@
                     :data="periodicList"
                     :pagination="pagination"
                     @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.periodicName" prop="name">
+                    <bk-table-column :label="i18n.periodicName" prop="name" min-width="200">
                         <template slot-scope="props">
                             <span :title="props.row.name">{{props.row.name}}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.periodicTemplate">
+                    <bk-table-column :label="i18n.periodicTemplate" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, periodicOperations)"
@@ -60,22 +61,22 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column v-if="adminView" :label="i18n.project" :width="140">
+                    <bk-table-column v-if="adminView" :label="i18n.project" width="140">
                         <template slot-scope="props">
                             <span :title="props.row.project.name">{{ props.row.project.name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.periodicRule">
+                    <bk-table-column :label="i18n.periodicRule" width="150">
                         <template slot-scope="props">
                             <div :title="splitPeriodicCron(props.row.cron)">{{ splitPeriodicCron(props.row.cron) }}</div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.lastRunAt">
+                    <bk-table-column :label="i18n.lastRunAt" width="200">
                         <template slot-scope="props">
                             <div>{{ props.row.last_run_at || '--' }}</div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="110"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
                     <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="100"></bk-table-column>
                     <bk-table-column :label="i18n.enabled" width="100">
                         <template slot-scope="props" class="periodic-status">
@@ -83,7 +84,7 @@
                             {{props.row.enabled ? i18n.start : i18n.pause}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="120">
+                    <bk-table-column :label="i18n.operation" width="240">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <template v-if="!adminView">
@@ -115,12 +116,37 @@
                                     @click="onRecordView(props.row, $event)">
                                     {{ i18n.bootRecord }}
                                 </a>
-                                <bk-dropdown-menu>
-                                    <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                    <ul
-                                        slot="dropdown-content"
-                                        class="bk-dropdown-list">
-                                        <li>
+                                <router-link
+                                    :to="{
+                                        name: 'taskList',
+                                        params: { project_id: project_id },
+                                        query: { template_id: props.row.template_id, create_method: 'periodic' }
+                                    }">
+                                    {{ i18n.executeHistory }}
+                                </router-link>
+                                <bk-popover
+                                    theme="light"
+                                    placement="bottom-start"
+                                    ext-cls="common-dropdown-btn-popver"
+                                    :z-index="2000"
+                                    :distance="0"
+                                    :arrow="false"
+                                    :tippy-options="{ boundary: 'window', duration: [0, 0] }">
+                                    <i class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                    <ul slot="content">
+                                        <li class="opt-btn">
+                                            <a
+                                                v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, periodicOperations) }"
+                                                href="javascript:void(0);"
+                                                :class="{
+                                                    'disable': props.row.id === collectingId || collectListLoading,
+                                                    'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, periodicOperations)
+                                                }"
+                                                @click="onCollectTask(props.row, $event)">
+                                                {{ isCollected(props.row.id) ? i18n.cancelCollection : i18n.collect }}
+                                            </a>
+                                        </li>
+                                        <li class="opt-btn">
                                             <a
                                                 v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, periodicOperations) }"
                                                 href="javascript:void(0);"
@@ -131,18 +157,8 @@
                                                 {{ i18n.delete }}
                                             </a>
                                         </li>
-                                        <li>
-                                            <router-link
-                                                :to="{
-                                                    name: 'taskList',
-                                                    params: { project_id: project_id },
-                                                    query: { template_id: props.row.template_id, create_method: 'periodic' }
-                                                }">
-                                                {{ i18n.executeHistory }}
-                                            </router-link>
-                                        </li>
                                     </ul>
-                                </bk-dropdown-menu>
+                                </bk-popover>
                             </div>
                         </template>
                     </bk-table-column>
@@ -253,6 +269,10 @@
                     delete: gettext('删除'),
                     edit: gettext('编辑'),
                     pause: gettext('暂停'),
+                    collect: gettext('收藏'),
+                    cancelCollection: gettext('取消收藏'),
+                    addCollectSuccess: gettext('添加收藏成功！'),
+                    cancelCollectSuccess: gettext('取消收藏成功！'),
                     totalRunCount: gettext('运行次数'),
                     total: gettext('共'),
                     item: gettext('条记录'),
@@ -280,6 +300,9 @@
                 isBootRecordDialogShow: false,
                 selectedPeriodicId: undefined,
                 periodicList: [],
+                collectingId: '', // 正在被收藏/取消收藏的周期任务id
+                collectListLoading: false,
+                collectionList: [],
                 selectedCron: undefined,
                 constants: {},
                 modifyDialogLoading: false,
@@ -296,8 +319,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 periodicOperations: [],
                 periodicResource: {}
@@ -314,6 +336,7 @@
         created () {
             this.getPeriodicList()
             this.getBizBaseInfo()
+            this.getCollectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -324,7 +347,10 @@
                 'deletePeriodic'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'addToCollectList',
+                'deleteCollect',
+                'loadCollectList'
             ]),
             async getPeriodicList () {
                 this.listLoading = true
@@ -366,6 +392,17 @@
                     this.taskCategory = projectBasicInfo.task_categories
                 } catch (e) {
                     errorHandler(e, this)
+                }
+            },
+            async getCollectList () {
+                try {
+                    this.collectListLoading = true
+                    const res = await this.loadCollectList()
+                    this.collectionList = res.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectListLoading = false
                 }
             },
             searchInputhandler (data) {
@@ -503,6 +540,52 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.getPeriodicList()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.getPeriodicList()
+            },
+            // 添加/取消收藏模板
+            async onCollectTask (task, event) {
+                if (!this.hasPermission(['view'], task.auth_actions, this.periodicOperations)) {
+                    this.onTemplatePermissonCheck(['view'], task, event)
+                    return
+                }
+                if (typeof this.collectingId === 'number') {
+                    return
+                }
+
+                try {
+                    this.collectingId = task.id
+                    if (!this.isCollected(task.id)) { // add
+                        const res = await this.addToCollectList([{
+                            extra_info: {
+                                project_id: task.project.id,
+                                template_id: task.template_id,
+                                name: task.name,
+                                id: task.id
+                            },
+                            category: 'periodic_task'
+                        }])
+                        if (res.objects.length) {
+                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                        }
+                    } else { // cancel
+                        const delId = this.collectionList.find(m => m.extra_info.id === task.id && m.category === 'periodic_task').id
+                        await this.deleteCollect(delId)
+                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                    }
+                    this.getCollectList()
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
+                }
+            },
+            // 判断是否已在收藏列表
+            isCollected (id) {
+                return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'periodic_task')
             }
         }
     }
@@ -516,7 +599,6 @@
     }
     .operation-area{
         margin: 20px 0px;
-        height: 32px;
         .task-create-btn {
             min-width: 120px;
         }
@@ -541,8 +623,6 @@
     margin-top: 25px;
     background: #ffffff;
     /deep/ .bk-table {
-        overflow: visible;
-        .bk-table-body-wrapper,.is-scrolling-none,
         td.is-last .cell {
             overflow: visible;
         }
@@ -551,8 +631,9 @@
         color: #30d878;
     }
     a.periodic-name,
-    .periodic-operation a {
+    .periodic-operation>a {
         color: $blueDefault;
+        padding: 5px;
         &.periodic-bk-disable {
             color:#cccccc;
             cursor: not-allowed;
@@ -567,41 +648,17 @@
         font-size: 12px;
     }
     .drop-icon-ellipsis {
-        position: absolute;
-        top: -13px;
         font-size: 18px;
+        vertical-align: -3px;
         cursor: pointer;
         &:hover {
-            color: #3c96ff;
+            color: #3a84ff;
+            background: #dcdee5;
+            border-radius: 50%;
         }
     }
     .empty-data {
         padding: 120px 0;
     }
-}
-
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #fafbfd;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 14px;
-    }
-    .bk-page {
-        display: inline-block;
-    }
-}
-.btn-size-mini {
-    height: 24px;
-    line-height: 22px;
-    padding: 0 11px;
-    font-size: 12px;
-}
-.bk-dropdown-menu .bk-dropdown-list > li > a {
-    font-size: 12px;
 }
 </style>

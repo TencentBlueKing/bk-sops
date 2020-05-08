@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,7 +16,7 @@
             'rf-form-item',
             'clearfix',
             {
-                'rf-has-hook': showHook,
+                'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
                 'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols
@@ -25,8 +25,8 @@
         :style="{
             width: (scheme.attrs.cols ? scheme.attrs.cols / 12 * 100 : 100) + '%'
         }">
-        <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <span class="name">{{scheme.attrs.name}}</span>
+        <div v-if="showFormTitle" class="rf-group-name">
+            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
@@ -175,6 +175,11 @@
                 }
             }
         },
+        computed: {
+            showFormTitle () {
+                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+            }
+        },
         watch: {
             scheme (val) {
                 this.tagComponent = `tag_${this.scheme.type}`
@@ -255,6 +260,7 @@
                     case 'datatable':
                     case 'tree':
                     case 'upload':
+                    case 'cascader':
                         valueFormat = {
                             type: 'Array',
                             value: []
@@ -288,6 +294,20 @@
                                 topo: [],
                                 filters: [],
                                 excludes: []
+                            }
+                        }
+                        break
+                    case 'set_allocation':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                config: {
+                                    set_count: 0,
+                                    set_template_id: '',
+                                    host_resources: [],
+                                    module_detail: []
+                                },
+                                data: []
                             }
                         }
                         break
@@ -349,6 +369,8 @@
     &.rf-col-layout {
         display: inline-block;
         margin: 0;
+        padding-right: 10px;
+        vertical-align: top;
     }
     &.rf-view-mode {
         margin: 8px 0;
@@ -359,7 +381,7 @@
         margin-top: 8px;
         width: 100px;
         font-size: 12px;
-        color: #313238;
+        color: #666666;
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
@@ -375,7 +397,7 @@
         }
     }
     &.show-label > .rf-tag-form {
-        margin-left: 120px;
+        margin-left: 130px;
     }
     .rf-tag-hook {
         position: absolute;
@@ -395,10 +417,34 @@
         line-height: 20px;
         width: 100%;
     }
-    .el-input__inner {
-        height: 32px;
-        line-height: 32px;
-        font-size: 12px;
+    .el-input {
+        .el-input__inner {
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
+            border-radius: 2px !important;
+        }
+        .el-input__prefix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+            .el-icon-time {
+                line-height: 36px;
+            }
+        }
+        &.is-disabled {
+            .el-input__inner{
+                background-color: #fafbfd !important;
+                border-color: #dcdee5 !important;
+            }
+        }
+    }
+    .el-select {
+        .el-input__suffix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+        }
     }
     .el-radio__label,
     .el-checkbox__label {
@@ -413,5 +459,8 @@
 }
 .el-select-dropdown .el-select-dropdown__item {
     font-size: 12px;
+}
+.el-input__icon {
+    line-height: 32px;
 }
 </style>

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -78,8 +78,11 @@ class TestConstantTemplate(TestCase):
         not_exists = '{a}'
         self.assertEqual(cons_tmpl.resolve_template(not_exists, {}), not_exists)
 
-        syntax_error = '${a.b}'
-        self.assertEqual(cons_tmpl.resolve_template(syntax_error, {}), syntax_error)
+        resolve_syntax_error = '${a.b}'
+        self.assertEqual(cons_tmpl.resolve_template(resolve_syntax_error, {}), resolve_syntax_error)
+
+        template_syntax_error = '${a:b}'
+        self.assertEqual(cons_tmpl.resolve_template(template_syntax_error, {}), template_syntax_error)
 
     def test_resolve(self):
         list_template = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])

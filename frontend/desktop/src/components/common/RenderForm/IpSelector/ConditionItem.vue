@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -18,7 +18,7 @@
                 :placeholder="i18n.select"
                 @selected="onConditionSelect">
                 <bk-option
-                    v-for="(option, i) in filedsData"
+                    v-for="(option, i) in fieldsList"
                     :key="i"
                     :id="option.id"
                     :name="option.name">
@@ -48,13 +48,34 @@
 
     const i18n = {
         select: gettext('请选择'),
-        desc: gettext('请输入拓扑实例名称，多个用换行符分隔'),
+        desc: gettext('请输入，多个用换行分隔'),
         notEmpty: gettext('必填项')
     }
 
     export default {
         name: 'ConditionItem',
-        props: ['editable', 'data', 'fieldsList', 'index'],
+        props: {
+            editable: {
+                type: Boolean,
+                default: true
+            },
+            data: {
+                type: Object,
+                default () {
+                    return {
+                        field: '',
+                        value: []
+                    }
+                }
+            },
+            fieldsList: {
+                type: Array,
+                default: []
+            },
+            index: {
+                type: Number
+            }
+        },
         data () {
             return {
                 isDropdownShow: false,
@@ -65,16 +86,6 @@
                     value: this.data.value.join('\n')
                 },
                 i18n
-            }
-        },
-        computed: {
-            filedsData () {
-                return this.fieldsList.map(item => {
-                    return {
-                        id: item.bk_obj_id,
-                        name: item.bk_obj_name
-                    }
-                })
             }
         },
         watch: {

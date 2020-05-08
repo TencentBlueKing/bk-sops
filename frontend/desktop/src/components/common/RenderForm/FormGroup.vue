@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,8 +12,8 @@
 <template>
     <div class="rf-form-group" v-show="showForm">
         <!-- 分组名称和描述 -->
-        <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <h3 class="name">{{scheme.attrs.name}}</h3>
+        <div v-if="showFormTitle" class="rf-group-name">
+            <h3 class="name">{{scheme.name || scheme.attrs.name}}</h3>
             <div v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
                     v-bk-tooltips="{
@@ -123,6 +123,11 @@
                 }
             }
         },
+        computed: {
+            showFormTitle () {
+                return !this.hook && this.option.showGroup && !!(this.scheme.name || this.scheme.attrs.name)
+            }
+        },
         watch: {
             option: {
                 handler: function (val) {
@@ -170,6 +175,9 @@
             },
             onHookForm (val) {
                 this.$emit('onHook', this.scheme.tag_code, val)
+            },
+            get_parent () {
+                return this.$parent
             },
             /**
              * 获取 combine 类型组件的子组件实例

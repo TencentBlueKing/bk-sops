@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,9 +16,11 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         permission: SITE_URL + 'core/api/query_apply_permission_url/',
         permissionQuery: SITE_URL + 'core/api/query_resource_verify_perms/',
         userList: SITE_URL + 'core/api/get_user_list/',
+        footer: SITE_URL + 'core/footer/',
         // 更改默认项目
         projectDefaultChange: SITE_URL + 'core/api/change_default_project/',
         projectBaseInfo: SITE_URL + 'core/api/get_basic_info/',
+        versionLog: SITE_URL + 'version_log/',
         homelist: SITE_URL + 'taskflow/home/' + PROJECT_ID + '/',
         business: SITE_URL + 'api/v3/business/',
         component: SITE_URL + 'api/v3/component/',
@@ -29,7 +31,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         periodic: SITE_URL + 'api/v3/periodic_task/',
         project: SITE_URL + 'api/v3/project/',
         collectList: SITE_URL + 'api/v3/collection/',
-        commonProject: SITE_URL + 'api/v3/common_project/',
+        commonProject: SITE_URL + 'api/v3/common_use_project/',
         subform: SITE_URL + 'template/api/form/' + PROJECT_ID + '/',
         // 有某模板权限的人员列表
         templatePersons: SITE_URL + 'template/api/get_perms/' + PROJECT_ID + '/',
@@ -40,6 +42,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         templateExport: SITE_URL + 'template/api/export/' + PROJECT_ID + '/',
         templateSummary: SITE_URL + 'template/api/get_template_count/' + PROJECT_ID + '/',
         templateAutoDraw: SITE_URL + 'template/api/draw_pipeline/',
+        templateExpiredSubProcess: SITE_URL + 'template/api/get_templates_with_expired_subprocess/' + PROJECT_ID + '/',
         instanceClone: SITE_URL + 'taskflow/api/clone/' + PROJECT_ID + '/',
         instancePreview: SITE_URL + 'taskflow/api/preview_task_tree/' + PROJECT_ID + '/',
         instanceStart: SITE_URL + 'taskflow/api/action/start/' + PROJECT_ID + '/',
@@ -87,14 +90,11 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         commonTemplateExport: SITE_URL + 'common_template/api/export/',
         commonTemplateUploadCheck: SITE_URL + 'common_template/api/import_check/',
         taskCreateMethod: SITE_URL + 'taskflow/api/get_task_create_method/',
-        cc_search_host: SITE_URL + 'pipeline/cc_search_host/' + PROJECT_ID + '/',
-        cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + PROJECT_ID + '/',
-        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + PROJECT_ID + '/',
         packageSource: SITE_URL + 'api/v3/package_source/',
         syncTask: SITE_URL + 'api/v3/sync_task/',
         esbGetSystems: SITE_URL + 'develop/api/esb_get_systems/',
         esbGetComponents: SITE_URL + 'develop/api/esb_get_components/',
-        esbGetPluginInitialCode: SITE_URL + 'develop/api/esb_get_plugin_initial_code/',
+        esbGetPluginInitialCode: SITE_URL + 'develop/api/get_plugin_initial_code/',
         adminSearch: SITE_URL + 'admin/search/',
         adminTemplate: SITE_URL + 'admin/api/v3/template/',
         adminTemplateRestore: SITE_URL + 'admin/template/restore/',

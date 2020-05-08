@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <bk-dialog
         width="850"
-        :ext-cls="'common-dialog'"
+        :ext-cls="'common-dialog add-collection'"
         :title="i18n.title"
         :mask-close="false"
         :value="isAddCollectionDialogShow"
@@ -25,11 +25,13 @@
                 <div class="search-wrapper">
                     <bk-search-select
                         ref="bkSearchSelect"
-                        :filter="true"
+                        :popover-zindex="2002"
                         :show-condition="false"
-                        :data="showFilterList"
+                        :data="searchOptionalList"
+                        :show-popover-tag-change="searchOptionalList.length !== 0"
                         v-model="searchValue"
-                        @change="onSearchChange">
+                        @change="onSearchChange"
+                        @chip-del="onChipDel">
                     </bk-search-select>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: collectionPending, opacity: 1 }">
@@ -148,7 +150,16 @@
             DialogLoadingBtn
         },
         mixins: [permission],
-        props: ['isAddCollectionDialogShow'],
+        props: {
+            isAddCollectionDialogShow: {
+                type: Boolean,
+                default: false
+            },
+            collectionList: {
+                type: Array,
+                default: () => ([])
+            }
+        },
         data () {
             return {
                 i18n: {
@@ -162,6 +173,7 @@
                 selectError: false,
                 collectionPending: false,
                 tplOperations: [],
+                tplResource: {},
                 panelList: [],
                 selectedList: [],
                 dialogFooterData: [
@@ -189,7 +201,7 @@
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
             }),
-            showFilterList: {
+            searchOptionalList: {
                 get () {
                     return this.filterList.map(m => {
                         if (m.id === 'project') {
@@ -206,14 +218,15 @@
         watch: {
             isAddCollectionDialogShow (val) {
                 if (val) {
+                    this.panelList = []
+                    this.selectedList = []
                     this.getData()
                 }
             }
         },
         methods: {
             ...mapActions('template/', [
-                'loadCollectList',
-                'collectSelect'
+                'addToCollectList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
@@ -260,7 +273,8 @@
                         default:
                             panelList = []
                     }
-                    this.panelList = this.getGroupData(panelList, reqType)
+                    const displayList = this.getFilterCollected(panelList)
+                    this.panelList = this.getGroupData(displayList, reqType)
                     this.collectionPending = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -279,11 +293,12 @@
                     pipeline_template__name__contains: searchStr || undefined
                 })
                 this.tplOperations = data.meta.auth_operations
+                this.tplResource = data.meta.auth_resource
                 return data.objects || []
             },
             async getAppMakerList (projectId, searchStr) {
                 const data = await this.loadAppmaker({
-                    project_id: projectId,
+                    project__id: projectId,
                     q: searchStr || undefined
                 })
                 return data.objects || []
@@ -313,6 +328,18 @@
                     }
                 })
                 return group
+            },
+            getFilterCollected (list) {
+                const filterList = list.filter(m => {
+                    for (let i = 0; i < this.collectionList.length; i++) {
+                        const collect = this.collectionList[i]
+                        if (m.id === collect.extra_info.id && m.name === collect.extra_info.name) {
+                            return false
+                        }
+                    }
+                    return true
+                })
+                return filterList
             },
             // 获取 icon
             getTemplateIcon (template) {
@@ -344,26 +371,26 @@
                 const list = baseList.filter(m => (m.id && (m.id === 'type' || m.id === 'project')))
                 switch (list.length) {
                     case 0:
-                        this.showFilterList = toolsUtils.deepClone(FILTER_LIST)
+                        this.searchOptionalList = toolsUtils.deepClone(FILTER_LIST)
                         break
                     case 1:
                         const item = list[0]
                         // type
                         if (item.id === 'type') {
                             if (item.values[0].id === 'common') {
-                                this.showFilterList = []
+                                this.searchOptionalList = []
                                 break
                             }
-                            this.showFilterList = [toolsUtils.deepClone(FILTER_LIST[1])]
+                            this.searchOptionalList = [toolsUtils.deepClone(FILTER_LIST[1])]
                             break
                         }
                         // project
                         const fList = toolsUtils.deepClone(FILTER_LIST[0])
                         fList.children.splice(0, 1)
-                        this.showFilterList = [fList]
+                        this.searchOptionalList = [fList]
                         break
                     default:
-                        this.showFilterList = []
+                        this.searchOptionalList = []
                 }
             },
             // 搜索值改变
@@ -380,27 +407,33 @@
                     return false
                 }
                 this.dialogFooterData[0].loading = true
-                let projectId
                 const project = this.searchValue.find(m => m.id === 'project')
+                let projectId
                 if (project) {
                     projectId = project.values[0].id
                 }
                 const saveList = this.selectedList.map(template => {
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
+                    const saveCategoryMap = {
+                        'process': 'flow',
+                        'common': 'common_flow',
+                        'periodic': 'periodic_task',
+                        'app_maker': 'mini_app'
+                    }
                     return {
                         extra_info,
-                        category: template.collectType
+                        category: saveCategoryMap[template.collectType]
                     }
                 })
                 try {
-                    const res = await this.collectSelect(saveList)
+                    const res = await this.addToCollectList(saveList)
                     this.dialogFooterData[0].loading = false
                     if (res.objects) {
                         this.$bkMessage({
                             message: gettext('保存成功'),
                             theme: 'success'
                         })
-                        this.$emit('onCloseDialog')
+                        this.$emit('onCloseDialog', true)
                     } else {
                         errorHandler(res, this)
                     }
@@ -449,6 +482,16 @@
             },
             onCancel () {
                 this.$emit('onCloseDialog')
+            },
+            onChipDel (name) {
+                /**
+                 * 兼容方法，待 magicbox 版本 2.1.9 稳定更新后删除、
+                 * 解决：当前版本 magicbox 2.1.9-beta.5，searchSelect 组件点击 x 并不能同步更新待选面板数据
+                 */
+                const instance = this.$refs.bkSearchSelect
+                this.$nextTick(() => {
+                    instance && instance.showMenu()
+                })
             }
         }
     }
@@ -457,6 +500,9 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
+/deep/ .common-dialog.add-collection .bk-dialog-tool{
+    min-height: 0;
+}
 .export-container {
     position: relative;
     height: 340px;
@@ -465,7 +511,7 @@
     }
     .template-wrapper {
         float: left;
-        padding: 20px 4px 20px 0;
+        padding: 40px 4px 20px 0;
         width: 557px;
         height: 100%;
         .template-list {
@@ -583,7 +629,7 @@
         }
     }
     .empty-template {
-        padding-top: 40px;
+        padding-top: 104px;
     }
     .selected-wrapper {
         width: 292px;

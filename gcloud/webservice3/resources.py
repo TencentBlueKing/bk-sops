@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -18,21 +18,21 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from haystack.query import SearchQuerySet
 from tastypie import fields
-from tastypie.validation import FormValidation
-from tastypie.constants import ALL
-from tastypie.exceptions import NotFound, ImmediateHttpResponse
-from tastypie.resources import ModelResource
-from tastypie.exceptions import BadRequest
 from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.constants import ALL
+from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
 from tastypie.http import HttpForbidden
+from tastypie.resources import ModelResource
+from tastypie.validation import FormValidation
 
+from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization, BkSaaSReadOnlyAuthorization
 from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
-
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
-from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+
 from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.core.permissions import project_resource
 from gcloud.webservice3.serializers import AppSerializer
@@ -123,13 +123,16 @@ class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
     class Meta:
         serializer = AppSerializer()
         always_return_data = True
+        # 控制 Resource 一次显示多少个结果。默认值为 API_LIMIT_PER_PAGE 设置（如果设置）或20（如果未设置）
         limit = 0
+        # 控制 Resource 一次显示的最大结果数。如果用户指定的 limit 高于 max_limit，它将被限制为 max_limit
+        max_limit = 0
 
 
 class BusinessResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = Business.objects.exclude(status='disabled') \
-                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")])
+            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")])
         authorization = ReadOnlyAuthorization()
         resource_name = 'business'
         detail_uri_name = 'cc_id'
@@ -295,6 +298,49 @@ class CommonProjectResource(GCloudModelResource):
         }
         q_fields = ['id', 'username', 'count']
 
+    @staticmethod
+    def get_default_projects(empty_query, username):
+        """初始化并返回用户有权限的项目"""
+
+        authorized_projects = project_resource.backend.search_authorized_resources(
+            resource=project_resource,
+            principal_type=PRINCIPAL_TYPE_USER,
+            principal_id=username,
+            action_ids=[project_resource.actions.view.id],
+        )
+
+        if not authorized_projects['result']:
+            logger.error("Get authorized projects error: {error}".format(
+                error=authorized_projects['message']
+            ))
+            project_ids = []
+        else:
+            project_ids = [
+                int(ap[0]['resource_id'])
+                for ap in authorized_projects['data'][0]['resource_ids']
+            ]
+
+        if not len(project_ids):
+            return empty_query
+
+        # 过滤脏数据
+        project_ids = list(Project.objects.filter(id__in=project_ids).values_list('id', flat=True))
+
+        # 初始化用户有权限的项目
+        ProjectCounter.objects.bulk_create([
+            ProjectCounter(username=username, project_id=project_id)
+            for project_id in project_ids
+        ])
+
+        return ProjectCounter.objects.filter(username=username, project_id__in=project_ids, project__is_disable=False)
+
     def get_object_list(self, request):
+
         query = super(GCloudModelResource, self).get_object_list(request)
-        return query.filter(username=request.user.username)
+        query = query.filter(username=request.user.username, project__is_disable=False)
+
+        # 第一次访问或无被授权的项目
+        if not query.exists():
+            query = self.get_default_projects(query, request.user.username)
+
+        return query

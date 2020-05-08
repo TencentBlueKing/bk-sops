@@ -29,6 +29,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 目前标准运维系统内置的 Tag 组件包含：
 
 - button
+- cascader
 - checkbox
 - datatable
 - datetime
@@ -43,6 +44,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - tree
 - upload
 - memberSelector
+- setAllocation
 # Tag 组件属性、方法
 
 标准插件中定义的配置项在页面渲染时，会作为属性传入到 Tag 组件中。Tag 组件根据不同的属性值，可以灵活的扩展多种表单配置，例如 `TagSelect` 组件可以通过 `multiple` 属性来区分下拉框为单选还是多选，`TagUpload` 组件可以通过 `remote_data_init` 属性来自定义加载数据后的处理逻辑。
@@ -60,6 +62,8 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - `validation`：表单项的校验规则
 - `default`：表单项的默认值，不同的 Tag 组件支持的数据类型存在差异
 - `hidden`：是否默认隐藏
+- `formViewHidden`：查看模式下，表单是否隐藏
+- `col`：横向栅格占有的格数，总数为 12 格，设置该属性后，多个表单可横向布局
 - `value`：表单组件的值，需要在 Tag 里手动定义，并作为调用 `getFormMixins` 函数的参数传入
 
 ## 公共方法
@@ -83,31 +87,51 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 **属性**
 
   - `title`：按钮文字
-  - `type`：按钮类型
-  - `icon`：icon 类名, 取值参考 [element-ui icon](https://element.eleme.cn/#/zh-CN/component/icon)
-  - `size`：尺寸
-  - `plain`：是否为朴素按钮
-  - `round`：是否为圆角按钮
-  - `circle`： 是否为圆形按钮
+  - `type`：按钮类型，取值范围：default、primary、warning、success、danger
+  - `icon`：icon 类名, 取值参考 [蓝鲸 icon](https://magicbox.bk.tencent.com/#detail/show?id=bk_icon&isPro=1)
+  - `size`：尺寸，取值范围：small、normal、large
+  - `disabled`：是否禁用，禁用后按钮点击事件不生效
+  - `loading`：是否加载中，加载过程中按钮点击事件不生效
+  - `text`：是否是文字按钮
 
 **方法**
 
 *none*
 
-## 2. TagCheckbox
+### 2. TagCascader
+
+级联组件，一般用于逐级查看和选择多层级结构的数据。
+
+**属性**
+
+  - `items`：：提供选择的级联选项，eg: [{label: '', value: '', children: [...]}, {label: '', value: '', children: [...]}]
+  - `value`：级联选择器的选中值
+  - `disabled`：设置是否禁用组件
+  - `multiple`：设置是否可多选
+  - `filterable`：设置是否可搜索
+  - `placeholder`：占位文本
+  - `lazy`：是否开启远程加载
+  - `lazyLoad`：远程加载方法, 文档参考element-ui cascader组件lazyload说明
+
+**方法**
+
+*none*
+
+### 3. TagCheckbox
 
 多选框，通过配置项传入可选项，提供给使用者选择。
 
 **属性**
 
   - `item`：提供选择的多选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+  - `disabled`：设置是否禁用组件
   - `value`：选中项的 value
 
 **方法**
 
 *none*
 
-### 3. TagDatatable*
+### 4. TagDatatable
 
 表格，用来展示多条并列数据，支持远程加载数据、单独添加数据、数据编辑。
 
@@ -139,10 +163,12 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
       }
     }
   ]
-  - `editable`：是否显示编辑、删除按钮列
+  - `editable`：是否显示表格操作列，包含编辑、删除、保存、取消按钮
+  - `deleteable`：是否显示删除按钮，用来单独控制表格操作列的删除按钮
   - `add_btn`： 是否显示添加按钮
+  - `table_buttons`: 自定义配置表格按钮，eg: [{text: '点击', callback: function(){console.log(1)}, type: 'xxx or import'}, ...]，其中 type 为非必需字段，值为 import 时，点击回调使用内置的上传函数
   - `empty_text`：无数据提示
-  - `remote_url`：表格数据远程加载，支持 url 和方法
+  - `remote_url`：表格数据远程加载，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：加载数据后的处理函数
   - `value`：表格的值
 
@@ -151,21 +177,23 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `validateSubCom`：校验表格内的数据是否符合规则（规则由对应的列的标准插件配置项指定）
   - `set_loading`：传入布尔类型参数来设置表格是否为 loading 状态
   - `remoteMethod`：远程加载数据
+  - `export2Excel`：将表格数据导出到 excel 文件
 
-### 4. TagDatetime
+### 5. TagDatetime
 
 日期时间选择器。
 
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：时间值
 
 **方法**
 
 *none*
 
-### 5. TagInput
+### 6. TagInput
 
 文本框，一般用来输入单行文本。
 
@@ -173,32 +201,36 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
   - `placeholder`：占位文本
   - `min`：最小值，默认为 -Infinity
   - `max`：最大值，默认为 Infinity
+  - `disabled`：设置是否禁用组件
   - `value`：文本框值
 
 **方法**
 
 *none*
 
-### 6. TagInt
+### 7. TagInt
 
 整数输入框，用来输入正整数。
 
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：整数输入框值
 
 **方法**
 
 *none*
 
-### 7. TagIpSelector
+### 8. TagIpSelector
 
 ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 **属性**
 
   - `isMultiple`：ip 选择器是否为多选（单选为选择静态或者动态 ip，多选为同时选择静态、动态 ip）
+  - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
+  - `disabled`：设置是否禁用组件
   - `value`：选择的 ip 值
 
 **方法**
@@ -206,32 +238,34 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 *none*
 
 
-### 8. TagPassword
+### 9. TagPassword
 
 密码输入框。
 
 **属性**
 
-- `value`：加密后的密码值
+  - `disabled`：设置是否禁用组件
+  - `value`：加密后的密码值
 
 **方法**
 
 *none*
 
-### 9. TagRadio
+### 10. TagRadio
 
 单选框，通过配置项传入可选项，提供给使用者选择。
 
 **属性**
 
   - `items`：提供选择的单选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+  - `disabled`：设置是否禁用组件
   - `value`：选中项的 value
 
 **方法**
 
 *none*
 
-### 10. TagSelect
+### 11. TagSelect
 
 下拉框，通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -240,17 +274,19 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `items`：提供选择的下拉框选项， eg:[{text: '微信', value: 'weixin'}, {text: '邮件', value: 'mail'}]
   - `multiple`：是否为多选
   - `remote`：是否开远程加载
+  - `remote_url`:  远程加载 url，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：远程加载后的数据处理函数
   - `placeholder`：占位文本
   - `empty_text`：无数据提示
-  - `value`：选中项的 value，多选框的值以 , 分隔
+  - `disabled`：设置是否禁用组件
+  - `value`：选中项的 value，多选框的值以英文逗号 `,` 分隔
 
 **方法**
 
   - `set_loading`：传入布尔类型参数来设置下拉框是否为 loading 状态
   - `remoteMethod`：远程加载数据
 
-### 11. TagText
+### 12. TagText
 
 文本组件，不可编辑，一般用来展示文本信息。
 
@@ -262,20 +298,21 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 12. TagTextarea
+### 13. TagTextarea
 
 多行文本框。
 
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：文本框的值
 
 **方法**
 
 *none*
 
-### 13. TagTree
+### 14. TagTree
 
 树形选择组件，一般用来多个分组层级数据的选择。通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
 
@@ -313,7 +350,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `show_checkbox`：节点是否可被选择
   - `default_expand_all`： 是否默认全部展开
   - `remote`： 是否开启远程加载
-  - `remote_url`： 远程加载 url
+  - `remote_url`： 远程加载 url，支持 url 字符串以及返回 url 字符串的方法
   - `remote_data_init`：远程加载后的数据处理函数
   - `value`：选中的值
 
@@ -321,7 +358,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remoteMethod`：远程加载数据
 
 
-**14. TagUpload**
+### 15. TagUpload
 
 上传组件。
 
@@ -335,6 +372,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `limit`：上传文件个数
   - `placeholder`：占位文本
   - `text`：上传按钮的文字
+  - `disabled`：设置是否禁用组件
   - `value`：上传的文件
 
 **方法**
@@ -346,14 +384,29 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `fileChange`: 上传文件变更时的钩子函数，添加文件、上传成功和上传失败时都会被调用，参数 file， fileList
   - `onError`: 文件上传失败时的钩子函数，参数 err, file， fileList
 
-**15. TagMemberSelector**
+### 16. TagMemberSelector
 
 人员选择组件
 
 **属性**
 
   - `placeholder`：占位文本
+  - `disabled`：设置是否禁用组件
   - `value`：选择人员名字，名字间以 ',' 隔开。eg:"xiaoming,xiaozhang,xiaoli"
+
+**方法**
+
+*none*
+
+### 17. TagSetAllocation
+
+开区资源选择器。
+
+**属性**
+
+  - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
+  - `disabled`：设置是否禁用组件
+  - `value`：选择的资源值以及筛选配置
 
 **方法**
 

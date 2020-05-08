@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -41,15 +41,20 @@
                 <bk-select
                     v-model="selectedApi"
                     style="max-width: 536px"
-                    :searchable="false"
-                    :disabled="apiListLoading || previewMode"
+                    searchable
+                    :disabled="systemListLoading || previewMode"
                     @change="onSelectApi">
-                    <bk-option
-                        v-for="item in apiList"
-                        :key="item.id"
-                        :id="item.name"
-                        :name="item.label">
-                    </bk-option>
+                    <bk-option-group
+                        v-for="group in systemList"
+                        :name="group.name"
+                        :key="group.key">
+                        <bk-option
+                            v-for="item in group.children"
+                            :key="item.name"
+                            :id="item.name"
+                            :name="item.label">
+                        </bk-option>
+                    </bk-option-group>
                 </bk-select>
             </div>
             <div class="config-section api-config-section">
@@ -120,8 +125,9 @@
             return {
                 name: '',
                 selectedApi: '',
-                apiList: [],
-                apiListLoading: false,
+                systemList: [],
+                systemListLoading: false,
+                componentList: [],
                 apiCodeLoading: false,
                 showContextDialog: false,
                 contextValue: {
@@ -141,7 +147,7 @@
                     },
                     {
                         regex: /^[A-Za-z_][a-zA-Z0-9_]*/,
-                        message: gettext('请输入正确邮箱地址'),
+                        message: gettext('请输入正确的插件名称，名称由字母、数字、下划线组成，且不能以数字开头'),
                         trigger: 'blur'
                     }
                 ],
@@ -161,7 +167,7 @@
             }
         },
         created () {
-            this.getApiList()
+            this.getSystemList()
         },
         methods: {
             ...mapActions('atomDev/', [
@@ -169,38 +175,51 @@
                 'loadApiComponent',
                 'loadApiPluginCode'
             ]),
-            async getApiList () {
+            async getSystemList () {
                 try {
-                    this.apiListLoading = true
+                    this.systemListLoading = true
                     const res = await this.loadApiList()
                     if (res.result) {
-                        this.apiList = res.data
+                        const componentRes = await this.loadApiComponent({ name: res.data.map(item => item.name) })
+                        const systemList = []
+                        if (componentRes.result) {
+                            this.componentList = componentRes.data
+                            componentRes.data.forEach(item => {
+                                let system = systemList.find(sys => sys.id === item.system_id)
+                                if (system) {
+                                    system.children.push(item)
+                                } else {
+                                    system = {
+                                        id: item.system_id,
+                                        name: item.system_name,
+                                        children: [item]
+                                    }
+                                    systemList.push(system)
+                                }
+                            })
+                        }
+                        this.systemList = systemList
                     } else {
                         errorHandler(res, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
-                    this.apiListLoading = false
+                    this.systemListLoading = false
                 }
             },
-            async getApiCode () {
+            async getApiCode (comp) {
                 try {
                     this.apiCodeLoading = true
-                    const componentData = await this.loadApiComponent({ name: this.selectedApi })
-                    if (componentData.result) {
-                        const res = await this.loadApiPluginCode({
-                            system: this.selectedApi,
-                            component: componentData.name
-                        })
-                        if (res.result) {
-                            const apiCodeStr = res.data
-                            this.apiCodeUpdate(apiCodeStr)
-                        } else {
-                            errorHandler(res, this)
-                        }
+                    const res = await this.loadApiPluginCode({
+                        system: comp.system_name,
+                        component: comp.name
+                    })
+                    if (res.result) {
+                        const apiCodeStr = res.data
+                        this.apiCodeUpdate(apiCodeStr)
                     } else {
-                        errorHandler(componentData, this)
+                        errorHandler(res, this)
                     }
                 } catch (error) {
                     errorHandler(error, this)
@@ -250,9 +269,10 @@
             apiCodeUpdate (val) {
                 this.$emit('apiCodeUpdate', val)
             },
-            onSelectApi (val) {
+            onSelectApi (val, options) {
                 this.selectedApi = val
-                this.getApiCode()
+                const comp = this.componentList.find(item => item.name === val)
+                this.getApiCode(comp)
             },
             validate () {
                 return this.$refs.atomConfig.validate()

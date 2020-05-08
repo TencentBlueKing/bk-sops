@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -26,10 +26,15 @@
                     :data="auditList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
-                    @page-change="onPageChange">
+                    @page-change="onPageChange"
+                    @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.business" prop="project.name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.name">
+                    <bk-table-column :label="i18n.business" width="120">
+                        <template slot-scope="props">
+                            <span :title="props.row.project.name">{{ props.row.project.name }}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -62,9 +67,9 @@
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.category" prop="category_name" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.operator" width="100">
+                    <bk-table-column :label="i18n.category" prop="category_name" width="140"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="140"></bk-table-column>
+                    <bk-table-column :label="i18n.operator" width="140">
                         <template slot-scope="props">
                             {{ props.row.executor_name || '--' }}
                         </template>
@@ -230,8 +235,7 @@
                     current: 1,
                     count: 0,
                     limit: 15,
-                    'limit-list': [15],
-                    'show-limit': false
+                    'limit-list': [15, 20, 30]
                 },
                 taskOperations: [],
                 taskResource: {}
@@ -357,6 +361,11 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.loadAuditTask()
+            },
+            handlePageLimitChange (val) {
+                this.pagination.limit = val
+                this.pagination.current = 1
+                this.loadAuditTask()
             }
         }
     }
@@ -402,7 +411,7 @@
         @include ui-task-status;
     }
     .audit-operation-btn {
-        color: #3c96ff;
+        color: #3a84ff;
     }
     .empty-data {
         padding: 120px 0;

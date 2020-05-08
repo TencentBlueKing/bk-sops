@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -31,20 +31,20 @@ class BKIAMClient(object):
         self,
         app_code=None,
         app_secret=None,
-        bk_iam_host=None,
+        bk_iam_inner_host=None,
         version=None,
         system_id=None,
         system_name=None
     ):
         self.app_code = app_code or conf.APP_CODE
         self.app_secret = app_secret or conf.SECRET_KEY
-        self.bk_iam_host = (bk_iam_host or conf.BK_IAM_HOST).rstrip('/')
+        self.bk_iam_inner_host = (bk_iam_inner_host or conf.BK_IAM_INNER_HOST).rstrip('/')
         self.version = version or conf.BK_IAM_API_VERSION
         self.system_id = system_id or conf.SYSTEM_ID
         self.system_name = system_name or conf.SYSTEM_NAME
 
         self._bk_iam_api_base = '{host}/{prefix}'.format(
-            host=self.bk_iam_host,
+            host=self.bk_iam_inner_host,
             prefix='bkiam/api'
         )
 

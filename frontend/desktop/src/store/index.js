@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -28,6 +28,7 @@ const store = new Vuex.Store({
             function: false,
             audit: false
         },
+        footer: '',
         hasAdminPerm: false, // 是否有管理员权限
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
@@ -44,6 +45,9 @@ const store = new Vuex.Store({
     mutations: {
         setAppId (state, id) {
             state.app_id = id
+        },
+        setPageFooter (state, content) {
+            state.footer = content
         },
         setAdminPerm (state, perm) {
             state.hasAdminPerm = perm
@@ -66,6 +70,15 @@ const store = new Vuex.Store({
         }
     },
     actions: {
+        getFooterContent () {
+            return api.getFooterContent().then(response => response.data)
+        },
+        getVersionList () {
+            return api.getVersionList().then(response => response.data)
+        },
+        getVersionDetail ({ commit }, data) {
+            return api.getVersionDetail(data).then(response => response.data)
+        },
         getCategorys ({ commit }) {
             api.getCategorys().then(response => {
                 commit('setCategorys', response.data.data)
@@ -76,15 +89,34 @@ const store = new Vuex.Store({
                 commit('setSingleAtomList', response.data.objects)
             })
         },
-        getHostInCC ({ commmit }, fields) {
-            return api.loadHostInCC(fields).then(response => response.data)
+        // ip 选择器接口 start --->
+        getHostInCC ({ commmit }, data) {
+            return api.loadHostInCC(data).then(response => response.data)
         },
-        getTopoTreeInCC ({ commmit }) {
-            return api.loadTopoTreeInCC().then(response => response.data)
+        getTopoTreeInCC ({ commmit }, data) {
+            return api.loadTopoTreeInCC(data).then(response => response.data)
         },
-        getTopoModelInCC ({ commit }) {
-            return api.loadTopoModelInCC().then(response => response.data)
+        getTopoModelInCC ({ commit }, data) {
+            return api.loadTopoModelInCC(data).then(response => response.data)
         },
+        // <--- ip 选择器接口 end
+        // 开区资源选择器接口 start --->
+        getCCSearchTopoSet ({ commit }, data) {
+            return api.getCCSearchTopoSet(data).then(response => response.data)
+        },
+        getCCSearchTopoResource ({ commit }, data) {
+            return api.getCCSearchTopoResource(data).then(response => response.data)
+        },
+        getCCSearchModule ({ commit }, data) {
+            return api.getCCSearchModule(data).then(response => response.data)
+        },
+        getCCSearchObjAttrHost ({ commit }, data) {
+            return api.getCCSearchObjAttrHost(data).then(response => response.data)
+        },
+        getCCSearchColAttrSet ({ commit }, data) {
+            return api.getCCSearchColAttrSet(data).then(response => response.data)
+        },
+        // <--- 开区资源选择器接口 end
         getPermissionUrl ({ commit }, data) {
             return api.getPermissionUrl(data).then(response => response.data)
         },

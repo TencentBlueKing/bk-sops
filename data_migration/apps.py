@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+
+from __future__ import unicode_literals
 import datetime
 
 from django.db import connection
@@ -40,9 +42,16 @@ class DataMigrationConfig(AppConfig):
                     return
 
                 # insert djcelery migration record
-                cursor.execute('select * from `django_migrations` where app=\'djcelery\' and name=\'0001_initial\';')
+                cursor.execute(
+                    'select * from `django_migrations` where app=\'djcelery\' and name=\'0001_initial\';')
                 row = cursor.fetchall()
                 if not row:
-                    cursor.execute('insert into `django_migrations` (app, name, applied) '
-                                   'values (\'djcelery\', \'0001_initial\', \'%s\');' %
-                                   datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    cursor.execute(
+                        'insert into `django_migrations` (app, name, applied) '
+                        'values (\'djcelery\', \'0001_initial\', \'%s\');' %
+                        datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    )
+
+        # account model patch
+        from data_migration.account.patch import patch as user_patch
+        user_patch()

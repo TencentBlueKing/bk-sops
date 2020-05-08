@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -15,8 +15,7 @@ const atomList = {
     namespaced: true,
     state: {
         singleAtom: [],
-        subAtom: [],
-        searchAtomResult: []
+        subAtom: []
     },
     mutations: {
         setSingleAtom (state, data) {
@@ -24,25 +23,11 @@ const atomList = {
         },
         setSubAtom (state, data) {
             state.subAtom = [...data]
-        },
-        searchAtom (state, payload) {
-            const dict = {
-                'tasknode': 'singleAtom',
-                'subflow': 'subAtom'
-            }
-            const data = state[dict[payload.type]]
-            const reg = new RegExp(payload.text)
-            state.searchAtomResult = data.filter(item => {
-                return payload.exclude.indexOf(item.id) === -1 && reg.test(item.name)
-            })
         }
     },
     actions: {
         loadSingleAtomList ({ commit }) {
             return api.getSingleAtomList().then(response => response.data.objects)
-        },
-        loadSubAtomList ({ commit }, data) {
-            return api.getSubAtomList(data).then(response => response.data.objects)
         },
         queryAtomData ({ commit }, data) {
             return api.queryAtom(data).then(response => response.data)

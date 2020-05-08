@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -35,8 +35,7 @@
             <div
                 :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
                 data-type="tasknode"
-                @mousedown="onNodeMouseDown('tasknode', $event)"
-                @click="onOpenNodeMenu('tasknode', $event)">
+                @mousedown="onNodeMouseDown('tasknode', $event)">
                 <div class="node-type-icon common-icon-node-tasknode"></div>
             </div>
             <div
@@ -59,6 +58,8 @@
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
+            :tpl-operations="tplOperations"
+            :tpl-resource="tplResource"
             :nodes="nodes"
             @onCloseNodeMenu="onCloseNodeMenu"
             @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
@@ -68,6 +69,7 @@
 <script>
     import '@/utils/i18n.js'
     import NodeMenu from './NodeMenu.vue'
+    import Guide from '@/utils/guide.js'
     import { mapState } from 'vuex'
     export default {
         name: 'PalattePanel',
@@ -95,6 +97,7 @@
                 activeNodeListType: '',
                 showNodeMenu: false,
                 isFixedNodeMenu: false,
+                isMenuTypeChange: false,
                 nodeMouse: {
                     type: '',
                     startX: null,
@@ -117,9 +120,21 @@
             langSuffix () {
                 return this.lang === 'zh-cn' ? 'zh' : 'en'
             },
+            tplResource () {
+                return this.activeNodeListType === 'subflow' ? this.atomTypeList.subflow.tplResource : {}
+            },
+            tplOperations () {
+                return this.activeNodeListType === 'subflow' ? this.atomTypeList.subflow.tplOperations : []
+            },
             nodes () {
-                const data = this.atomTypeList[this.activeNodeListType]
-                return data || []
+                if (!this.activeNodeListType) {
+                    return []
+                }
+                if (this.activeNodeListType === 'tasknode') {
+                    return this.atomTypeList.tasknode
+                } else {
+                    return this.atomTypeList.subflow.groups
+                }
             }
         },
         watch: {
@@ -129,6 +144,7 @@
         },
         mounted () {
             this.$emit('registerPaletteEvent')
+            this.renderGuide()
         },
         methods: {
             onMouseDown (e) {
@@ -156,6 +172,7 @@
             onNodeMouseDown (type, e) {
                 this.nodeMouse.startX = e.pageX
                 this.nodeMouse.startY = e.pageY
+                this.isMenuTypeChange = this.nodeMouse.type !== type
                 this.nodeMouse.type = type
                 document.addEventListener('mouseup', this.mouseUpHandler)
             },
@@ -165,14 +182,107 @@
                 const max = Math.max(endX - this.nodeMouse.startX, endY - this.nodeMouse.startY)
                 // 移动距离小于 3 像素，认为是点击事件
                 if (max < 3) {
-                    this.onOpenNodeMenu()
+                    this.showNodeMenu && !this.isMenuTypeChange ? this.onCloseNodeMenu() : this.onOpenNodeMenu()
                 }
                 document.removeEventListener('mouseup', this.mouseUpHandler)
+            },
+            renderGuide () {
+                const nodesGuide = [
+                    {
+                        el: '.entry-item[data-type=tasknode]',
+                        url: require('@/assets/images/left-tasknode-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('标准插件节点：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('已封装好的可用插件，可直接选中拖拽至画布中。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=subflow]',
+                        url: require('@/assets/images/left-subflow-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('子流程：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=parallelgateway]',
+                        url: require('@/assets/images/left-parallelgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('并行网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('有多个流出分支，并且多个流出分支都默认执行。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=branchgateway]',
+                        url: require('@/assets/images/left-branchgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('分支网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=convergegateway]',
+                        url: require('@/assets/images/left-convergegateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: gettext('汇聚网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: gettext('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
+                            }
+                        ]
+                    }
+                ]
+                const baseConfig = {
+                    el: '',
+                    width: 330,
+                    delay: 500,
+                    arrow: false,
+                    placement: 'right',
+                    trigger: 'mouseenter',
+                    img: {
+                        height: 155,
+                        url: ''
+                    },
+                    text: []
+                }
+                nodesGuide.forEach(m => {
+                    baseConfig.img.url = m.url
+                    baseConfig.text = m.text
+                    const guide = new Guide(baseConfig)
+                    guide.mount(document.querySelector(m.el))
+                })
             }
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
     .palette-panel {
         position: relative;
         width: 60px;

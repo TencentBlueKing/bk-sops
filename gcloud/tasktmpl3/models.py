@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import ujson as json
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Count
@@ -165,8 +164,15 @@ class TaskTemplateManager(BaseTemplateManager):
             # 总数不能通过查询获得，需要通过循环计数
         groups = []
         # 循环聚合信息
+        # todo 多版本插件先聚合到一起显示，暂不分开
+        processed_components = set()
         for data in component_list:
             code = data.get("code")
+
+            if code in processed_components:
+                continue
+            processed_components.add(code)
+
             groups.append({
                 'code': code,
                 'name': component_dict.get(code, None),
@@ -359,6 +365,10 @@ class TaskTemplateManager(BaseTemplateManager):
             })
         return True, collected_templates_list
 
+    def get_templates_with_expired_subprocess(self, project_id):
+        tmpl_and_pipeline_id = self.filter(project_id=project_id, is_deleted=False).values('id', 'pipeline_template_id')
+        return self.check_templates_subprocess_expired(tmpl_and_pipeline_id)
+
 
 class TaskTemplate(BaseTemplate):
     project = models.ForeignKey(Project,
@@ -375,10 +385,3 @@ class TaskTemplate(BaseTemplate):
     class Meta(BaseTemplate.Meta):
         verbose_name = _("流程模板 TaskTemplate")
         verbose_name_plural = _("流程模板 TaskTemplate")
-
-    def get_notify_receivers_list(self, username):
-        notify_receivers = json.loads(self.notify_receivers)
-        receiver_group = notify_receivers.get('receiver_group', [])  # noqa
-        more_receiver = notify_receivers.get('more_receiver', '')  # noqa
-        receivers = [username]  # TODO get project notify receivers
-        return receivers

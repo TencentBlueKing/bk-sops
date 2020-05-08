@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -14,7 +14,7 @@
         <div v-if="formMode">
             <el-radio-group v-model="checkedValue">
                 <div class="radio-item" v-for="item in items" :key="item.name">
-                    <el-radio :label="item.value" :disabled="!editable">{{item.name}}</el-radio>
+                    <el-radio :label="item.value" :disabled="!editable || disabled">{{item.name}}</el-radio>
                 </div>
             </el-radio-group>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
@@ -47,6 +47,12 @@
                 ]
             },
             desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'disable radio'
         },
         value: {
             type: String,

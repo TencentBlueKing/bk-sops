@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -193,7 +193,7 @@
                     return {}
                 }
             },
-            tagCodeList: {
+            atomForms: {
                 type: Array,
                 default () {
                     return []
@@ -229,18 +229,21 @@
                     this.eventConfig = this.getEventConfig()
                 }
             },
-            tagCodeList (val) {
+            atomsForms (val) {
                 this.eventConfig = this.getEventConfig()
-                this.attrForms = this.transformAttrs(val.config)
+                // this.attrForms = this.transformAttrs(val.config)
             }
         },
         methods: {
+            /**
+             * 将标准插件配置项转换为表单项
+             */
             transformAttrs (config = {}) {
                 const { tag_code, attrs } = config
                 const value = {}
                 const setting = []
                 const rules = {}
-                const tagCodeList = this.tagCodeList.filter(item => item !== tag_code)
+                const otherFormTagCode = this.atomForms.filter(item => item.tagCode !== tag_code).map(v => v.tagCode)
 
                 value['tag_code'] = tag_code
                 setting.push({
@@ -256,7 +259,7 @@
                     ...NAME_RULE,
                     {
                         validator (val) {
-                            return !tagCodeList.includes(val)
+                            return !otherFormTagCode.includes(val)
                         },
                         message: gettext('单个标准插件里表单项 tag_code 不能重复'),
                         trigger: 'blur'
@@ -370,9 +373,9 @@
                 return EVENT_CONFIG.map(item => {
                     const config = tools.deepClone(item)
                     if (config.name === 'source' && this.editingForm.config) {
-                        const tagCodeList = this.tagCodeList.filter(item => item !== this.editingForm.config.tag_code)
-                        config.props.list = tagCodeList.map(tagCode => {
-                            return { id: tagCode, name: tagCode }
+                        const otherForms = this.atomForms.filter(item => item.tagCode !== this.editingForm.config.tag_code)
+                        config.props.list = otherForms.map(item => {
+                            return { id: item.tagCode, name: item.name }
                         })
                     }
                     return config
@@ -479,10 +482,9 @@
                     if (this.$refs.methodForm && this.$refs.methodForm.length > 0) {
                         await Promise.all(this.$refs.methodForm.map(item => item.validate()))
                     }
-                    const formConfig = this.getFormConfig()
-                    this.$emit('onCloseSettingPanel', formConfig)
+                    return this.getFormConfig()
                 } catch (err) {
-                    console.log(err)
+                    console.error(err)
                     this.$bkMessage({
                         theme: 'warning',
                         message: gettext('请检查表单配置项')
@@ -494,7 +496,7 @@
 </script>
 <style lang="scss" scoped>
     .setting-wrapper {
-        padding: 10px 20px;
+        padding: 10px 20px 30px;
     }
     .setting-section {
         & > h3 {

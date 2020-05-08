@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -41,6 +41,7 @@ axios.interceptors.response.use(
             case 400:
                 const info = {
                     message: response.data.error || response.data.msg.error,
+                    lines: 2,
                     theme: 'error'
                 }
                 bus.$emit('showMessage', info)
@@ -48,7 +49,7 @@ axios.interceptors.response.use(
             case 401:
                 const data = response.data
                 if (data.has_plain) {
-                    window.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
+                    window.top.BLUEKING.corefunc.open_login_dialog(data.login_url, data.width, data.height, response.config.method)
                 }
                 break
             case 403:

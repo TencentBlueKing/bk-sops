@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -57,7 +57,7 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <div v-show="isShowprojectError" class="error-info">{{ i18n.projectPlaceholder }}</div>
+                    <div v-show="isShowProjectError" class="error-info">{{ i18n.projectPlaceholder }}</div>
                 </bk-form-item>
             </bk-form>
         </div>
@@ -108,7 +108,7 @@
                     selectedProject: ''
                 },
                 isShowtaskError: false,
-                isShowprojectError: false,
+                isShowProjectError: false,
                 hasCreateTaskPer: true, // 新建任务权限
                 hasUseCommonTplPer: true // 使用公共流程权限
             }
@@ -130,20 +130,17 @@
                     this.formData.taskType = ''
                     this.formData.selectedProject = ''
                     this.isShowtaskError = false
-                    this.isShowprojectError = false
+                    this.isShowProjectError = false
+                    this.hasCreateTaskPer = true
+                    this.hasUseCommonTplPer = true
                 }
             }
         },
         methods: {
             onConfirm () {
                 const templateId = this.createTaskItem.extra_info.template_id
-                if (!this.formData.taskType) {
-                    this.isShowtaskError = true
-                    return
-                }
-                if (!this.formData.selectedProject) {
-                    this.isShowprojectError = true
-                    return
+                if (!this.checkEmpty()) {
+                    return false
                 }
                 if (!this.hasCreateTaskPer) {
                     this.applyForPermission(['create_task'], this.createTaskItem, this.tplOperations, this.tplResource)
@@ -163,7 +160,16 @@
             onCancel () {
                 this.$emit('cancel')
             },
+            checkEmpty () {
+                this.isShowtaskError = !this.formData.taskType
+                this.isShowProjectError = !this.formData.selectedProject
+                if (!this.formData.taskType || !this.formData.selectedProject) {
+                    return false
+                }
+                return true
+            },
             checkPermission () {
+                this.checkEmpty()
                 const { taskType, selectedProject } = this.formData
                 if (taskType && selectedProject) {
                     const { auth_actions } = this.createTaskItem

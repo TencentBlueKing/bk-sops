@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -14,10 +14,29 @@ specific language governing permissions and limitations under the License.
 from pipeline.core.constants import PE
 from pipeline.validators.utils import format_to_list
 
-from pipeline_web.drawing_new.rank.longest_path import slack
+from pipeline_web.drawing_new.rank.utils import slack
 
 
 def feasible_tree_ranker(pipeline, ranks):
+    """
+    @summary: 最优可行树分配层级
+    @param pipeline:
+    @param ranks:
+    @return:
+    @example:
+                +---+        +---+        +---+
+               >| B |------->| C |------->| E |
+             -/ +---+        +---+        +---+
+           -/     -1           0            1
+    +---+-/     +---+        +---+
+    | A |------>| D |------->| F |
+    +---+-\     +---+        +---+
+     -2    -\     -1           0
+             -\ +---+        +---+        +---+        +---+
+               >| G |------->| H |------->| I |------->| J |
+                +---+        +---+        +---+        +---+
+                  -1           0            1            2
+    """  # noqa
     part_tree = {
         'all_nodes': {
             pipeline[PE.start_event][PE.id]: pipeline[PE.start_event]
