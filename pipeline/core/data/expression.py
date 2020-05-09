@@ -134,7 +134,7 @@ class ConstantTemplate(object):
             raise exceptions.ConstantTypeException('constant resolve error, template[%s] is not a string' % template)
         try:
             tm = Template(template)
-        except MakoException as e:
+        except (MakoException, SyntaxError) as e:
             logger.error('pipeline resolve template[%s] error[%s]' % (template, e))
             return template
         try:
