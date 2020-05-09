@@ -12,7 +12,7 @@
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import isEqual from 'lodash/isEqual'
 import { checkDataType } from './checkDataType.js'
-import moment from 'moment-timezone'
+import moment from 'moment'
 
 const tools = {
     /**
