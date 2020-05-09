@@ -222,6 +222,10 @@
         {
             title: gettext('插件版本'),
             id: 'plugin_version'
+        },
+        {
+            title: gettext('插件名称'),
+            id: 'plugin_name'
         }
     ]
 
@@ -301,6 +305,10 @@
         {
             title: gettext('插件版本'),
             id: 'plugin_version'
+        },
+        {
+            title: gettext('插件名称'),
+            id: 'plugin_name'
         }
     ]
 
@@ -400,7 +408,8 @@
         },
         computed: {
             ...mapState({
-                'atomFormConfig': state => state.atomForm.config
+                'atomFormConfig': state => state.atomForm.config,
+                'atomFormInfo': state => state.atomForm.form
             }),
             isEmptyParams () {
                 return this.renderConfig && this.renderConfig.length === 0
@@ -466,10 +475,10 @@
                     const { execution_info, outputs, inputs, log, history } = respData
                     
                     const version = this.nodeDetailConfig.version
-
+                    const componentCode = this.nodeDetailConfig.component_code
                     // 任务节点需要加载标准插件
-                    if (this.nodeDetailConfig.component_code) {
-                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
+                    if (componentCode) {
+                        this.renderConfig = await this.getNodeConfig(componentCode, version)
                     }
 
                     if (this.adminView) {
@@ -495,7 +504,7 @@
                         
                         // 兼容 JOB 执行作业输出参数
                         // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
-                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
+                        if (componentCode === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
                             this.outputsInfo = outputs.filter(output => {
                                 const outputIndex = this.inputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
                                 if (!output.preset && outputIndex === -1) {
@@ -513,8 +522,11 @@
                             this.theExecuteTime = respData.loop
                         }
                     }
-
-                    this.executeInfo.plugin_version = this.nodeDetailConfig.version
+                    this.executeInfo.plugin_version = version
+                    if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                        const pluginInfo = this.atomFormInfo[componentCode][version]
+                        this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
+                    }
                     this.historyInfo.forEach(item => {
                         item.last_time = this.getLastTime(item.elapsed_time)
                     })
