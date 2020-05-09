@@ -16,17 +16,17 @@ import ujson as json
 import traceback
 
 
-def post(url, params, logger):
-    return http_do('post', url, params, logger)
+def post(url, params, logger, headers=None):
+    return http_do('post', url, params, logger, headers)
 
 
-def get(url, params, logger):
-    return http_do('get', url, params, logger)
+def get(url, params, logger, headers=None):
+    return http_do('get', url, params, logger, headers)
 
 
-def http_do(method, url, params, logger):
+def http_do(method, url, params, logger, headers=None):
     try:
-        resp = getattr(requests, method)(url, data=json.dumps(params))
+        resp = getattr(requests, method)(url, data=json.dumps(params), headers=headers)
     except Exception as e:
         logger.error(traceback.format_exc())
         return False, {'result': False, 'message': str(e)}
