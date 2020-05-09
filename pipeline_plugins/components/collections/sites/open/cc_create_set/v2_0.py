@@ -89,11 +89,8 @@ class CCCreateSetService(Service):
                     name=_(u"填参方式"),
                     key="cc_select_set_parent_method",
                     type="string",
-                    schema=StringItemSchema(
-                        description=_("父实例填入方式，拓扑(topo)，层级文本(text)"),
-                        enum=["topo", "text"],
-                    ),
-                ),
+                    schema=StringItemSchema(description=_("父实例填入方式，拓扑(topo)，层级文本(text)"),
+                                            enum=["topo", "text"])),
                 self.InputItem(name=_(u'拓扑-父实例'),
                                key='cc_set_parent_select_topo',
                                type='array',
@@ -134,9 +131,9 @@ class CCCreateSetService(Service):
             # 文本路径解析，example：'a>b>c/n a>b' -> [[a, b, c], [a, b]]
             path_list = cc_parse_textarea_path(textarea_path=cc_set_parent_select_text)
             # 获取主线模型业务拓扑
-            mainline = client.cc.get_mainline_object_topo({'bk_supplier_account': supplier_account})['data']
+            mainline = client.cc.get_mainline_object_topo({'bk_supplier_account': supplier_account})
             # 自定义层级数 = 主线模型的业务拓扑级数 - 业务层级数（1） - 集群/模块/主机（3）
-            custom_level_length = len(mainline) - 4
+            custom_level_length = len(mainline['data']) - 4
 
             for path in path_list:
                 # 输入路径中自定义层级数 = 主线模型业务拓扑的自定义层级数
