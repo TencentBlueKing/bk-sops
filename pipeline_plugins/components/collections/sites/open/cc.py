@@ -143,6 +143,36 @@ def cc_format_tree_mode_id(front_id_list):
     return [int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x) for x in front_id_list]
 
 
+def cc_parse_textarea_path(textarea_path):
+    """
+    将目标主机/模块/自定义层级的文本路径解析为列表形式，支持空格/空行容错解析
+    :param textarea_path: 目标主机/模块/自定义层级的文本路径
+    :return:路径列表，每个路径是一个节点列表
+    example:
+    a > b > c > s
+       a>v>c
+    a
+    解析结果
+    [
+        [a, b, c, s],
+        [a, v, c],
+        [a]
+    ]
+    """
+    text_path_list = textarea_path.split('\n')
+    path_list = []
+    for text_path in text_path_list:
+        text_path = text_path.strip()
+        path = []
+        if len(text_path) != 0:
+            for text_node in text_path.split('>'):
+                text_node = text_node.strip()
+                if len(text_node) != 0:
+                    path.append(text_node)
+            path_list.append(path)
+    return path_list
+
+
 class CCTransferHostModuleService(Service):
 
     def inputs_format(self):
