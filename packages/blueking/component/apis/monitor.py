@@ -21,17 +21,17 @@ class CollectionsMonitor(object):
         self.client = client
 
         self.query_strategy = ComponentAPI(
-            client=self.client, method='GET',
-            path='/api/c/compapi/v3/monitor/search_alarm_strategy/',
+            client=self.client, method='POST',
+            path='/api/c/compapi/v2/monitor_v3/search_alarm_strategy/',
             description=u'查询策略'
         )
         self.create_shield = ComponentAPI(
             client=self.client, method='POST',
-            path='/api/c/compapi/v3/monitor/add_shield/',
+            path='/api/c/compapi/v2/monitor_v3/add_shield/',
             description=u'创建告警屏蔽'
         )
         self.disable_shield = ComponentAPI(
             client=self.client, method='POST',
-            path='/api/c/compapi/v3/monitor/disable_shield/',
+            path='/api/c/compapi/v2/monitor_v3/disable_shield/',
             description=u'解除告警屏蔽'
         )

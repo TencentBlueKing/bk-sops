@@ -86,7 +86,7 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={'shield_id': '',
-                 'message': '调用蓝鲸监控(BK)接口monitor.create_shield返回失败, '
+                 'message': '调用蓝鲸监控(Monitor)接口monitor.create_shield返回失败, '
                             'params={"begin_time":"2019-11-04 00:00:00","bk_biz_id":2,"category":"scope",'
                             '"cycle_config":{"begin_time":"","end_time":"","day_list":[],"week_list":[],"type":1},'
                             '"description":"shield by bk_sops",'

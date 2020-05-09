@@ -78,7 +78,7 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'data': {'result': '调用蓝鲸监控(BK)接口monitor.disable_shield返回失败, '
+        outputs={'data': {'result': '调用蓝鲸监控(Monitor)接口monitor.disable_shield返回失败, '
                                     'params={"bk_biz_id":2,"id":"1"}, error=disable shield fail'},
                  'status_code': 500}
     ),
