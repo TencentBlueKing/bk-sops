@@ -249,7 +249,10 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CAST = ComponentTestCase(
     }),
     schedule_assertion=[],
     execute_call_assertion=[],
-    patchers=[]
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+    ]
 )
 
 SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
@@ -275,7 +278,10 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CAST = ComponentTestCase(
     }),
     schedule_assertion=[],
     execute_call_assertion=[],
-    patchers=[]
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+    ]
 )
 
 SELECT_BY_TOPO_SUCCESS_INPUTS = {
