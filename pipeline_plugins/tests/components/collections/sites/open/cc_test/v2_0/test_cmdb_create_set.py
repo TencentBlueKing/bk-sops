@@ -39,6 +39,7 @@ class CCCreateSetComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None, create_set_return=None):
+        self.set_bk_api_ver = MagicMock()
         self.cc = MagicMock()
         self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
         self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
@@ -191,7 +192,6 @@ PARENT_DATA = {
     'biz_cc_id': 2
 }
 
-
 SELECT_BY_TEXT_SUCCESS_INPUTS = {
     'biz_cc_id': 2,
     'cc_select_set_parent_method': 'text',
@@ -225,7 +225,6 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     ]
 )
 
-
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
     'biz_cc_id': 2,
     'cc_select_set_parent_method': 'text',
@@ -240,7 +239,6 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
         'bk_capacity': '1'}],
     '_loop': 1
 }
-
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CAST = ComponentTestCase(
     name='fail case: select parent bt text with error level',
@@ -280,7 +278,6 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CAST = ComponentTestCase(
     patchers=[]
 )
 
-
 SELECT_BY_TOPO_SUCCESS_INPUTS = {
     'biz_cc_id': 2,
     'cc_select_set_parent_method': 'topo',
@@ -313,4 +310,3 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
     ]
 )
-
