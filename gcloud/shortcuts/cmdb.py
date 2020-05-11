@@ -23,6 +23,9 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def get_business_group_members(bk_biz_id, groups):
+    if not groups:
+        return []
+
     client = get_client_by_user(settings.SYSTEM_USE_API_ACCOUNT)
 
     group_fileds = [roles.CC_V2_ROLE_MAP.get(group) for group in groups]

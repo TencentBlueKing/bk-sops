@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-04-27 16:33+0800\n"
+"POT-Creation-Date: 2020-05-08 12:14+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -304,7 +304,7 @@ msgstr "gcloud链接"
 msgid "创建人"
 msgstr "创建人"
 
-#: gcloud/contrib/appmaker/models.py:267 gcloud/core/models.py:185
+#: gcloud/contrib/appmaker/models.py:267 gcloud/core/models.py:186
 #: pipeline/engine/models/core.py:845 pipeline/models.py:76
 #: pipeline/models.py:274 pipeline/models.py:618
 msgid "创建时间"
@@ -349,8 +349,8 @@ msgstr "项目流程"
 msgid "周期任务"
 msgstr "周期任务"
 
-#: gcloud/contrib/collection/models.py:25 gcloud/core/models.py:214
-#: gcloud/core/models.py:241 version_log/models.py:42
+#: gcloud/contrib/collection/models.py:25 gcloud/core/models.py:215
+#: gcloud/core/models.py:242 version_log/models.py:42
 msgid "用户名"
 msgstr "用户名"
 
@@ -608,60 +608,60 @@ msgstr "变量值"
 msgid "环境变量 EnvironmentVariables"
 msgstr "环境变量 EnvironmentVariables"
 
-#: gcloud/core/models.py:181
+#: gcloud/core/models.py:182
 msgid "项目名"
 msgstr "项目名"
 
-#: gcloud/core/models.py:182
+#: gcloud/core/models.py:183
 msgid "项目时区"
 msgstr "项目时区"
 
-#: gcloud/core/models.py:183 pipeline/contrib/periodic_task/models.py:312
+#: gcloud/core/models.py:184 pipeline/contrib/periodic_task/models.py:312
 #: pipeline/models.py:275 pipeline/models.py:617
 msgid "创建者"
 msgstr "创建者"
 
-#: gcloud/core/models.py:184
+#: gcloud/core/models.py:185
 msgid "项目描述"
 msgstr "项目描述"
 
-#: gcloud/core/models.py:186
+#: gcloud/core/models.py:187
 msgid "是否是从 CMDB 业务同步过来的项目"
 msgstr "是否是从 CMDB 业务同步过来的项目"
 
-#: gcloud/core/models.py:187
+#: gcloud/core/models.py:188
 msgid "业务同步项目对应的 CMDB 业务 ID"
 msgstr "业务同步项目对应的 CMDB 业务 ID"
 
-#: gcloud/core/models.py:188
+#: gcloud/core/models.py:189
 msgid "是否已停用"
 msgstr "是否已停用"
 
-#: gcloud/core/models.py:189
+#: gcloud/core/models.py:190
 msgid "关联项目"
 msgstr "关联项目"
 
-#: gcloud/core/models.py:194 gcloud/core/models.py:195
+#: gcloud/core/models.py:195 gcloud/core/models.py:196
 msgid "项目 Project"
 msgstr "项目 Project"
 
-#: gcloud/core/models.py:215
+#: gcloud/core/models.py:216
 msgid "用户默认项目"
 msgstr "用户默认项目"
 
-#: gcloud/core/models.py:220 gcloud/core/models.py:221
+#: gcloud/core/models.py:221 gcloud/core/models.py:222
 msgid "用户默认项目 UserDefaultProject"
 msgstr "用户默认项目 UserDefaultProject"
 
-#: gcloud/core/models.py:242 gcloud/core/permissions.py:26
+#: gcloud/core/models.py:243 gcloud/core/permissions.py:26
 msgid "项目"
 msgstr "项目"
 
-#: gcloud/core/models.py:243
+#: gcloud/core/models.py:244
 msgid "项目访问次数"
 msgstr "项目访问次数"
 
-#: gcloud/core/models.py:248 gcloud/core/models.py:249
+#: gcloud/core/models.py:249 gcloud/core/models.py:250
 msgid "用户访问项目计数 ProjectCounter"
 msgstr "用户访问项目计数 ProjectCounter"
 
@@ -729,6 +729,22 @@ msgstr "调用远程服务失败，Http请求返回数据格式错误!"
 #, python-format
 msgid "调用远程服务失败，Http请求错误状态码：%(code)s， 请求url：%(url)s"
 msgstr "调用远程服务失败，Http请求错误状态码：%(code)s， 请求url：%(url)s"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "QQ咨询"
+msgstr "QQ咨询"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "蓝鲸论坛"
+msgstr "蓝鲸论坛"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "蓝鲸官网"
+msgstr "蓝鲸官网"
+
+#: gcloud/core/footer/sites/open/footer.py:28
+msgid "蓝鲸智云 版权所有"
+msgstr "蓝鲸智云 版权所有"
 
 #: gcloud/external_plugins/models/base.py:79
 msgid "包源类型"
@@ -2906,13 +2922,4 @@ msgstr "城市"
 #: weixin/core/models.py:68 weixin/core/models.py:69
 msgid "微信用户"
 msgstr "微信用户"
-
-#~ msgid "转移主机至空闲机"
-#~ msgstr "转移主机至空闲机"
-
-#~ msgid "转移主机到业务的故障机模块"
-#~ msgstr "转移主机到业务的故障机模块"
-
-#~ msgid "转移主机至资源池"
-#~ msgstr "转移主机至资源池"
 
