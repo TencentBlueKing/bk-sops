@@ -173,6 +173,35 @@ def cc_parse_textarea_path(textarea_path):
     return path_list
 
 
+def cc_list_match_node_inst_id(topo_tree, path_list):
+    """
+    路径匹配，对path_list中的所有路径与拓扑树进行路径匹配
+    :param topo_tree: 业务拓扑
+    :param path_list: 路径列表，example: [[a, b], [a, c]]
+    :return:
+        True: list -匹配父节点的bk_inst_id
+        False: message -错误信息
+    """
+    inst_id_list = []
+    for path in path_list:
+        index = 0
+        topo_node_list = topo_tree
+        while len(path) > index:
+            match_node = None
+            for topo_node in topo_node_list:
+                if path[index] == topo_node['bk_inst_name']:
+                    match_node = topo_node
+                    break
+            if match_node:
+                index = index + 1
+                if index == len(path):
+                    inst_id_list.append(match_node['bk_inst_id'])
+                topo_node_list = match_node['child']
+            else:
+                return {'result': False, 'message': u'不存在该拓扑路径：{}'.format('>'.join(path))}
+    return {'result': True, 'data': inst_id_list}
+
+
 class CCTransferHostModuleService(Service):
 
     def inputs_format(self):
