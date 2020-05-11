@@ -190,6 +190,8 @@
                         } else {
                             this.$router.push(redirectMap[key])
                         }
+                    } else { // 默认跳转到项目流程页面
+                        this.$router.push(redirectMap['/template'])
                     }
                     this.isLoading = false
                     this.$emit('loading', false)
