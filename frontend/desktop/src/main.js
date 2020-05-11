@@ -15,8 +15,9 @@ import router from './routers/index.js'
 import store from './store/index.js'
 import './directives/index.js'
 import './config/login.js'
-import App from './App.vue'
 import './api/index.js'
+import i18n from './config/i18n/index.js'
+import App from './App.vue'
 import bkMagicVue, { locale, lang } from 'bk-magic-vue'
 import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, InputNumber, Select, Radio, RadioGroup, RadioButton, Checkbox,
@@ -207,6 +208,7 @@ Validator.localize({
 })
 
 new Vue({
+    i18n,
     router,
     store,
     render: h => h(App)
