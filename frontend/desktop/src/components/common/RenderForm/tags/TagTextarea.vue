@@ -12,6 +12,7 @@
 <template>
     <div class="tag-textarea">
         <el-input
+            ref="tagTextarea"
             type="textarea"
             v-model="textareaValue"
             :class="{ 'rf-view-textarea-value': !formMode }"
@@ -60,6 +61,14 @@
                 set (val) {
                     this.updateForm(val)
                 }
+            }
+        },
+        watch: {
+            formMode () {
+                // 重新计算 textarea 高度
+                this.$nextTick(() => {
+                    this.$refs.tagTextarea.resizeTextarea()
+                })
             }
         }
     }
