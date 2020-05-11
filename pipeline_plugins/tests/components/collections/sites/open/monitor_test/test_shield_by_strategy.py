@@ -38,9 +38,11 @@ class AlarmShieldStrategyComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, create_shield_result=None):
+    def __init__(self, create_shield_result=None, search_host=None):
         self.monitor = MagicMock()
         self.monitor.create_shield = MagicMock(return_value=create_shield_result)
+        self.cc = MagicMock()
+        self.cc.search_host = MagicMock(return_value=search_host)
 
 
 # mock path
@@ -51,6 +53,15 @@ CREATE_SHIELD_FAIL_CLIENT = MockClient(
     create_shield_result={
         'result': False,
         'message': 'create shield fail'
+    },
+    search_host={
+        "message": "OK",
+        "code": 200,
+        "data": {'info': [{'host': {'bk_host_id': 2, 'bk_host_innerip': '10.0.1.11',
+                                    'bk_cloud_id': [{'id': '0', 'bk_inst_id': 0, }],
+                                    'bk_supplier_account': '0'},
+                           'biz': [{'bk_biz_id': 2, 'bk_supplier_account': '0', 'bk_supplier_id': 0}]}]},
+        "result": True
     }
 )
 
@@ -61,6 +72,15 @@ CREATE_SHIELD_SUCCESS_CLIENT = MockClient(
             'id': '1',
         },
         'message': 'success'
+    },
+    search_host={
+        "message": "OK",
+        "code": 200,
+        "data": {'info': [{'host': {'bk_host_id': 2, 'bk_host_innerip': '10.0.1.11',
+                                    'bk_cloud_id': [{'id': '0', 'bk_inst_id': 0, }],
+                                    'bk_supplier_account': '0'},
+                           'biz': [{'bk_biz_id': 2, 'bk_supplier_account': '0', 'bk_supplier_id': 0}]}]},
+        "result": True
     }
 )
 
@@ -69,6 +89,7 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
     name='create shield fail case',
     inputs={
         'bk_alarm_shield_strategy': '123',
+        'bk_alarm_shield_IP': '10.0.1.11',
         'bk_alarm_shield_strategy_begin_time': "2019-11-04 00:00:00",
         'bk_alarm_shield_strategy_end_time': "2019-11-05 00:00:00",
     },
@@ -82,7 +103,8 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
                  'message': '调用蓝鲸监控(Monitor)接口monitor.create_shield返回失败, '
                             'params={"begin_time":"2019-11-04 00:00:00","bk_biz_id":2,"category":"strategy",'
                             '"cycle_config":{"begin_time":"","end_time":"","day_list":[],"week_list":[],"type":1},'
-                            '"description":"shield by bk_sops","dimension_config":{"id":"123"},'
+                            '"description":"shield by bk_sops","dimension_config":{"id":"123","scope_type":"ip",'
+                            '"target":[{"ip":"10.0.1.11","bk_cloud_id":0,"bk_supplier_id":0}]},'
                             '"end_time":"2019-11-05 00:00:00","notice_config":{},'
                             '"shield_notice":false,"source":"bk_sops"}, error=create shield fail'}
     ),
@@ -94,7 +116,8 @@ ALTER_BILL_FAIL_CASE = ComponentTestCase(
                      'category': 'strategy',
                      'cycle_config': {'begin_time': "", 'end_time': "", 'day_list': [], 'week_list': [], 'type': 1},
                      'description': "shield by bk_sops",
-                     'dimension_config': {'id': '123'},
+                     'dimension_config': {"id": "123", "scope_type": "ip",
+                                          "target": [{"ip": "10.0.1.11", "bk_cloud_id": 0, "bk_supplier_id": 0}]},
                      'end_time': "2019-11-05 00:00:00",
                      'notice_config': {},
                      'shield_notice': False,
@@ -109,6 +132,7 @@ ALTER_BILL_SUCCESS_CASE = ComponentTestCase(
     name='create shield success case',
     inputs={
         'bk_alarm_shield_strategy': '123',
+        'bk_alarm_shield_IP': '10.0.1.11',
         'bk_alarm_shield_strategy_begin_time': "2019-11-04 00:00:00",
         'bk_alarm_shield_strategy_end_time': "2019-11-05 00:00:00",
     },
@@ -129,7 +153,8 @@ ALTER_BILL_SUCCESS_CASE = ComponentTestCase(
                      'category': 'strategy',
                      'cycle_config': {'begin_time': "", 'end_time': "", 'day_list': [], 'week_list': [], 'type': 1},
                      'description': "shield by bk_sops",
-                     'dimension_config': {'id': '123'},
+                     'dimension_config': {"id": "123", "scope_type": "ip",
+                                          "target": [{"ip": "10.0.1.11", "bk_cloud_id": 0, "bk_supplier_id": 0}]},
                      'end_time': "2019-11-05 00:00:00",
                      'notice_config': {},
                      'shield_notice': False,

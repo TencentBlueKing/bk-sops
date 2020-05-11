@@ -93,6 +93,41 @@ class AlarmShieldService(Service):
     def get_dimension_config(self, shied_type, shied_value, bk_biz_id, client):
         pass
 
+    def get_ip_dimension(self, scope_value, bk_biz_id, client):
+        ip_list = scope_value.split(',')
+        request_body = {
+            'ip': {
+                'exact': 1,
+                'flag': 'bk_host_innerip',
+                'data': ip_list
+            }, 'condition': [{
+                'bk_obj_id': 'biz',
+                'fields': [],
+                'condition': [{
+                    'operator': '$in',
+                    'field': 'bk_biz_id',
+                    'value': [bk_biz_id]
+                }]
+            }]
+        }
+        response = client.cc.search_host(request_body)
+        if not response['result']:
+            message = monitor_handle_api_error('cc.search_host', request_body, response)
+            self.logger.error(message)
+            raise message
+        target = []
+        response_data = response['data']["info"]
+
+        for ip_detail in response_data:
+            bk_supplier_id = ip_detail['biz'][0]['bk_supplier_id']
+            for bk_cloud_id in ip_detail["host"]["bk_cloud_id"]:
+                target.append({
+                    'ip': ip_detail["host"]['bk_host_innerip'],
+                    'bk_cloud_id': bk_cloud_id["bk_inst_id"],
+                    'bk_supplier_id': bk_supplier_id
+                })
+        return {'scope_type': "ip", 'target': target}
+
 
 class AlarmShieldScopeService(AlarmShieldService):
 
@@ -155,41 +190,6 @@ class AlarmShieldScopeService(AlarmShieldService):
                   for node in scope_value]
         return {'scope_type': "node", 'target': target}
 
-    def get_ip_dimension(self, scope_value, bk_biz_id, client):
-        ip_list = scope_value.split(',')
-        request_body = {
-            'ip': {
-                'exact': 1,
-                'flag': 'bk_host_innerip',
-                'data': ip_list
-            }, 'condition': [{
-                'bk_obj_id': 'biz',
-                'fields': [],
-                'condition': [{
-                    'operator': '$in',
-                    'field': 'bk_biz_id',
-                    'value': [bk_biz_id]
-                }]
-            }]
-        }
-        response = client.cc.search_host(request_body)
-        if not response['result']:
-            message = monitor_handle_api_error('cc.search_host', request_body, response)
-            self.logger.error(message)
-            raise message
-        target = []
-        response_data = response['data']["info"]
-
-        for ip_detail in response_data:
-            bk_supplier_id = ip_detail['biz'][0]['bk_supplier_id']
-            for bk_cloud_id in ip_detail["host"]["bk_cloud_id"]:
-                target.append({
-                    'ip': ip_detail["host"]['bk_host_innerip'],
-                    'bk_cloud_id': bk_cloud_id["bk_inst_id"],
-                    'bk_supplier_id': bk_supplier_id
-                })
-        return {'scope_type': "ip", 'target': target}
-
 
 class AlarmShieldStrategyService(AlarmShieldService):
 
@@ -198,6 +198,10 @@ class AlarmShieldStrategyService(AlarmShieldService):
                                key='bk_alarm_shield_strategy',
                                type='string',
                                schema=StringItemSchema(description=_('需要执行屏蔽的策略 ID'))),
+                self.InputItem(name=_('IP'),
+                               key='bk_alarm_shield_IP',
+                               type='string',
+                               schema=StringItemSchema(description=_('IP'))),
                 self.InputItem(name=_('屏蔽开始时间'),
                                key='bk_alarm_shield_strategy_begin_time',
                                type='string',
@@ -218,8 +222,12 @@ class AlarmShieldStrategyService(AlarmShieldService):
         strategy = data.get_one_of_inputs('bk_alarm_shield_strategy')
         begin_time = data.get_one_of_inputs('bk_alarm_shield_strategy_begin_time')
         end_time = data.get_one_of_inputs('bk_alarm_shield_strategy_end_time')
+        scope_value = data.get_one_of_inputs('bk_alarm_shield_IP')
 
         request_body = self.get_request_body(bk_biz_id, begin_time, end_time, 'strategy', strategy, client)
+        if scope_value:
+            target = self.get_ip_dimension(scope_value, bk_biz_id, client)
+            request_body['dimension_config'].update(target)
 
         result_flag = self.send_request(request_body, data, client)
 

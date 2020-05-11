@@ -29,6 +29,15 @@
             },
         },
         {
+            tag_code: "bk_alarm_shield_IP",
+            type: "input",
+            attrs: {
+                name: gettext("IP"),
+                hookable: true,
+                placeholder: gettext("请输入主机IP，多个用逗号分隔"),
+            }
+        },
+        {
             tag_code: "bk_alarm_shield_strategy_begin_time",
             type: "input",
             attrs: {

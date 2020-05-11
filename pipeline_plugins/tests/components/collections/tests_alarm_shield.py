@@ -35,6 +35,7 @@ class Data(object):
                 'bk_alarm_shield_IP': '10.0.0.1,10.0.0.2'
             },
             'bk_alarm_shield_target': [1, 2, 3],
+            'bk_alarm_shield_IP': '10.0.0.1,10.0.0.2',
             'bk_alarm_shield_id': 1,
             'bk_alarm_shield_id_input': 1,
             'bk_alarm_shield_strategy': 29,
@@ -100,10 +101,15 @@ class TestAlarmShield(TestCase):
 
     @patch.object(BaseComponentClient, 'request')
     def test_strategy(self, mock_request):
-        strategy_detail = {"message": "OK", "code": 200, "data": {"item_list": [{"level": [2, 3]}], 'id': 1},
-                           "result": True}
+        host_detail = {"message": "OK",
+                       "code": 200,
+                       "data": {'info': [{'host': {'bk_host_id': 2, 'bk_host_innerip': '10.0.1.11',
+                                                   'bk_cloud_id': [{'id': '0', 'bk_inst_id': 0, }],
+                                                   'bk_supplier_account': '0'},
+                                          'biz': [{'bk_biz_id': 2, 'bk_supplier_account': '0', 'bk_supplier_id': 0}]}]},
+                       "result": True}
         mock_request.side_effect = [
-            Response(strategy_detail),
+            Response(host_detail),
             Response({'result': True, 'data': {'id': 1, 'message': 'success'}, 'code': 200, 'message': 'success'}),
         ]
         data = Data('strategy')
