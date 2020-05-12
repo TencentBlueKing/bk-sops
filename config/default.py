@@ -331,6 +331,8 @@ COMPONENT_PATH = [
     'components.collections.sites.%s' % RUN_VER,
     'components.collections.sites.%s.cc_plugins' % RUN_VER,
     'components.collections.sites.%s.cc_create_set' % RUN_VER,
+    'components.collections.sites.%s.cc_transfer_host_module' % RUN_VER,
+    'components.collections.sites.%s.cc_update_module' % RUN_VER,
 ]
 VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
 
