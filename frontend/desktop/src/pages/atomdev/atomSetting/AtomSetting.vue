@@ -417,6 +417,18 @@
                         if ([Array, Object, Function].includes(type)) {
                             if (value.trim() !== '') {
                                 attr.value = eval(`(${value})`)
+                            } else {
+                                switch (attr.type) {
+                                    case Array:
+                                        attr.value = []
+                                        break
+                                    case Object:
+                                        attr.value = {}
+                                        break
+                                    case Function:
+                                        attr.value = ''
+                                        break
+                                }
                             }
                         } else {
                             attr.value = value
