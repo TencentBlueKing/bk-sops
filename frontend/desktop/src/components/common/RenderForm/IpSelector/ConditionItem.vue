@@ -44,12 +44,11 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
-
-    const i18n = {
-        select: gettext('请选择'),
-        desc: gettext('请输入，多个用换行分隔'),
-        notEmpty: gettext('必填项')
+    import i18n from '@/config/i18n/index.js'
+    const i18nText = {
+        select: i18n.t('请选择'),
+        desc: i18n.t('请输入，多个用换行分隔'),
+        notEmpty: i18n.t('必填项')
     }
 
     export default {
@@ -85,7 +84,7 @@
                     field: this.data.field,
                     value: this.data.value.join('\n')
                 },
-                i18n
+                i18n: i18nText
             }
         },
         watch: {

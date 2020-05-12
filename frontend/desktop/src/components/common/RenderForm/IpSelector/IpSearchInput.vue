@@ -24,10 +24,10 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import i18nText from '@/config/i18n/index.js' // ip选择器兼容标准运维国际化
 
     const i18n = {
-        placeholder: gettext('搜索IP，多个以逗号隔开')
+        placeholder: i18nText.t('搜索IP，多个以逗号隔开')
     }
 
     export default {

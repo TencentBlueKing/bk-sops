@@ -12,7 +12,7 @@
 <template>
     <div class="resource-filter">
         <header class="set-form">
-            <span class="title">{{ i18n.title }}</span>
+            <span class="title">{{ $t('资源筛选') }}</span>
             <div class="btns">
                 <bk-button theme="primary" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
                 <bk-button
@@ -146,7 +146,7 @@
     </div>
 </template>
 <script >
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -195,21 +195,21 @@
                     clusterCount: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: i18n.t('必选项'),
                             trigger: 'blur'
                         }
                     ],
                     set: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: i18n.t('必选项'),
                             trigger: 'blur'
                         }
                     ],
                     resource: [
                         {
                             required: true,
-                            message: gettext('必选项'),
+                            message: i18n.t('必选项'),
                             trigger: 'blur'
                         }
                     ]
@@ -217,7 +217,7 @@
                 moduleRules: {
                     count: [{
                         required: true,
-                        message: gettext('必填项'),
+                        message: i18n.t('必填项'),
                         trigger: 'blur'
                     }],
                     reuse: [{
@@ -229,7 +229,7 @@
                             }
                             return true
                         },
-                        message: gettext('必填项'),
+                        message: i18n.t('必填项'),
                         trigger: 'blur'
                     }]
                 },
@@ -247,17 +247,17 @@
                     host: false
                 },
                 i18n: {
-                    title: gettext('资源筛选'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消'),
-                    cluster: gettext('集群个数'),
-                    set: gettext('集群模板'),
-                    resource: gettext('主机资源所属'),
-                    resourceNum: gettext('主机数量'),
-                    reuse: gettext('复用其他模块机器'),
-                    reuseModule: gettext('复用模块'),
-                    filter: gettext('主机筛选条件'),
-                    exclude: gettext('主机排除条件')
+                    title: i18n.t('资源筛选'),
+                    confirm: i18n.t('确认'),
+                    cancel: i18n.t('取消'),
+                    cluster: i18n.t('集群个数'),
+                    set: i18n.t('集群模板'),
+                    resource: i18n.t('主机资源所属'),
+                    resourceNum: i18n.t('主机数量'),
+                    reuse: i18n.t('复用其他模块机器'),
+                    reuseModule: i18n.t('复用模块'),
+                    filter: i18n.t('主机筛选条件'),
+                    exclude: i18n.t('主机排除条件')
                 }
             }
         },
@@ -517,7 +517,7 @@
                 // 节点循环引用退出保存，弹出提示
                 if (cycleCiting) {
                     errorHandler({
-                        message: gettext('模块') + cycled.join(',') + gettext('存在循环引用')
+                        message: i18n.t('模块') + cycled.join(',') + i18n.t('存在循环引用')
                     }, this)
                     return
                 }
@@ -539,7 +539,7 @@
                     if (tabValid) {
                         this.getHostsAndSave()
                     } else {
-                        errorHandler({ message: gettext('参数错误，请检查模块表单项') }, this)
+                        errorHandler({ message: i18n.t('参数错误，请检查模块表单项') }, this)
                     }
                 })
             },

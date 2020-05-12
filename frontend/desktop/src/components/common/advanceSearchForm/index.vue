@@ -78,7 +78,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import AdvanceSearch from './AdvanceSearch.vue'
     export default {
         name: 'AdvanceSearchForm',
@@ -93,7 +93,7 @@
             searchConfig: {
                 type: Object,
                 default: () => ({
-                    placeholder: gettext('请输入'),
+                    placeholder: i18n.t('请输入'),
                     value: ''
                 })
             },
@@ -105,8 +105,8 @@
         data () {
             return {
                 i18n: {
-                    query: gettext('搜索'),
-                    reset: gettext('清空')
+                    query: i18n.t('搜索'),
+                    reset: i18n.t('清空')
                 },
                 isAdvanceOpen: false,
                 searchValue: '',

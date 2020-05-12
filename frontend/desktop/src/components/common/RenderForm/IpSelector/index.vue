@@ -67,17 +67,17 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import i18nText from '@/config/i18n/index.js' // ip选择器兼容标准运维国际化
     import SingleIpSelector from './SingleIpSelector.vue'
     import MultipleIpSelector from './MultipleIpSelector.vue'
     import SelectCondition from './SelectCondition.vue'
 
     const i18n = {
-        staticIp: gettext('静态IP'),
-        dynamicIp: gettext('动态IP'),
-        filter: gettext('筛选条件'),
-        exclude: gettext('排除条件'),
-        showCloudArea: gettext('变量值是否带云区域：')
+        staticIp: i18nText.t('静态IP'),
+        dynamicIp: i18nText.t('动态IP'),
+        filter: i18nText.t('筛选条件'),
+        exclude: i18nText.t('排除条件'),
+        showCloudArea: i18nText.t('变量值是否带云区域：')
     }
 
     // ip选择器兼容标准运维国际化

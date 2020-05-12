@@ -25,7 +25,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'LoadingBtnDialog',
         props: {
@@ -34,10 +34,10 @@
                 default: function () {
                     return [{
                         type: 'primary',
-                        btnText: gettext('确认'),
+                        btnText: i18n.t('确认'),
                         click: 'onConfirm'
                     }, {
-                        btnText: gettext('取消'),
+                        btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }]
                 }

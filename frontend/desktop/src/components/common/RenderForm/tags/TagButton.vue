@@ -24,14 +24,14 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
         title: {
             type: String,
             required: false,
-            default: gettext('按钮文本'),
+            default: i18n.t('按钮文本'),
             desc: 'determine whether it\'s a plain button'
         },
         type: {

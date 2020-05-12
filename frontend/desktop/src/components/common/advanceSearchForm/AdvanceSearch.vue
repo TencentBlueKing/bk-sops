@@ -33,7 +33,7 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'AdvanceSearch',
         props: {
@@ -53,7 +53,7 @@
         data () {
             return {
                 i18n: {
-                    advancedSearch: gettext('高级搜索')
+                    advancedSearch: i18n.t('高级搜索')
                 },
                 isAdvancedSerachShow: false,
                 localValue: this.value

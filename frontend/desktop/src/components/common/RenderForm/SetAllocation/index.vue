@@ -34,12 +34,12 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ResourceList from './ResourceList.vue'
     import ResourceFilter from './ResourceFilter.vue'
+    import i18n from '@/config/i18n/index.js'
 
     export default {
         name: 'ResourceAllocation',
@@ -204,7 +204,7 @@
                             type: 'textarea',
                             module: true, // module 字段用来标识表格列是否为模块数据
                             attrs: {
-                                name: gettext('模块：') + item.name + '(' + item.host_count + ')',
+                                name: i18n.t('模块：') + item.name + '(' + item.host_count + ')',
                                 editable: true,
                                 validation: [
                                     {
@@ -215,7 +215,7 @@
                                             const hosts = val.split('\n').map(item => item.trim()).filter(item => item !== '')
                                             if (hosts.length < count) {
                                                 result = false
-                                                message = gettext('资源不足')
+                                                message = i18n.t('资源不足')
                                             }
                                             return {
                                                 result,
@@ -235,7 +235,7 @@
                         config: {
                             tag_code: 'tb_btns',
                             attrs: {
-                                name: gettext('操作')
+                                name: i18n.t('操作')
                             }
                         }
                     })
