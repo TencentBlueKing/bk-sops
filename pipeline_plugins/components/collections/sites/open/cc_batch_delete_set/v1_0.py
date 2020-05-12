@@ -22,9 +22,7 @@ from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.cc import (
     cc_format_tree_mode_id,
     cc_parse_textarea_path,
-    cc_list_match_node_inst_id,
-    cc_format_prop_data,
-    get_module_set_id
+    cc_list_match_node_inst_id
 )
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
@@ -48,11 +46,21 @@ class CCBatchDeleteSetService(Service):
                                key='biz_cc_id',
                                type='string',
                                schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_('集群列表'),
-                               key='cc_set_select',
+                self.InputItem(
+                    name=_(u'填参方式'),
+                    key="cc_set_select_method",
+                    type="string",
+                    schema=StringItemSchema(description=_(u'模块填入方式，拓扑(topo)，层级文本(text)'),
+                                            enum=["topo", "text"])),
+                self.InputItem(name=_('拓扑 -集群列表'),
+                               key='cc_set_select_topo',
                                type='array',
                                schema=ArrayItemSchema(description=_('需要清空的集群 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_('集群 ID'))))]
+                                                      item_schema=IntItemSchema(description=_('集群 ID')))),
+                self.InputItem(name=_(u'文本路径 -模块'),
+                               key='cc_set_select_text',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'模块文本路径')))]
 
     def outputs_format(self):
         return []
@@ -67,9 +75,43 @@ class CCBatchDeleteSetService(Service):
 
         biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
+        cc_set_select_method = data.get_one_of_inputs('cc_set_select_method')
+        cc_set_select = []
 
-        cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
+        if cc_set_select_method == 'topo':
+            cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select_topo'))
+        elif cc_set_select_method == 'text':
+            kwargs = {
+                "bk_biz_id": biz_cc_id,
+                "bk_supplier_account": supplier_account
+            }
+            topo_tree = client.cc.search_biz_inst_topo(kwargs)
+            if not topo_tree['result']:
+                message = cc_handle_api_error('cc.search_biz_inst_topo', kwargs, topo_tree)
+                self.logger.error(message)
+                data.set_outputs('ex_data', message)
+                return False
+            # 文本路径解析
+            cc_set_select_text = data.get_one_of_inputs('cc_set_select_text')
+            path_list = cc_parse_textarea_path(textarea_path=cc_set_select_text)
 
+            # 获取主线模型业务拓扑
+            mainline = client.cc.get_mainline_object_topo({'bk_supplier_account': supplier_account})
+            # 主线模型中集群所处的深度（包含集群）= 主线模型的业务拓扑级数 - 主机/模块（2）
+            set_depth = len(mainline['data']) - 2
+            for path in path_list:
+                if len(path) != set_depth:
+                    data.set_outputs('ex_data', '输入文本路径[{}]与业务拓扑层级不匹配'.format('>'.join(path)))
+                    return False
+            # 获取集群bk_inst_id
+            cc_list_match_node_inst_id_result = cc_list_match_node_inst_id(topo_tree['data'], path_list)
+            if cc_list_match_node_inst_id_result['result']:
+                cc_set_select = cc_list_match_node_inst_id_result['data']
+            else:
+                data.set_outputs('ex_data', cc_list_match_node_inst_id_result['message'])
+                return False
+        else:
+            data.set_outputs('ex_data', u'请选择填参方式')
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,
             "bk_supplier_account": supplier_account,
