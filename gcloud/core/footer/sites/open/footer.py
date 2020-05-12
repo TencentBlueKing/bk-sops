@@ -13,9 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.core.models import EnvironmentVariables
+
 
 def i18n_footer():
-    return """
+    default = """
         <div class="copyright">
             <ul class="link-list">
                 <a href="tencent://message/?uin=800802001&site=qq&menu=yes" class="link-item">{}(800802001)</a>
@@ -25,7 +27,11 @@ def i18n_footer():
             <div class="desc">Copyright &copy; 2012-${{year}} Tencent BlueKing. All Rights Reserved.</div>
             <div>{}</div>
         </div>
-        """.format(_("QQ咨询"), _("蓝鲸论坛"), _("蓝鲸官网"), _("蓝鲸智云 版权所有"))
+        """.format(
+        _("QQ咨询"), _("蓝鲸论坛"), _("蓝鲸官网"), _("蓝鲸智云 版权所有")
+    )
+
+    return EnvironmentVariables.objects.get_var("BKAPP_FOOTER", default)
 
 
 FOOTER = i18n_footer
