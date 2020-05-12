@@ -157,7 +157,6 @@ class CCTransferHostModuleComponent(Component):
     name = _(u"转移主机模块")
     code = 'cc_transfer_host_module'
     bound_service = CCTransferHostModuleService
-    form = '%scomponents/atoms/cc/cc_transfer_host_module.js' % settings.STATIC_URL
     form = '{static_url}components/atoms/cc/{ver}/cc_transfer_host_module.js'.format(static_url=settings.STATIC_URL,
                                                                                      ver=VERSION)
     version = VERSION

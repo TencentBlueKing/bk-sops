@@ -185,7 +185,7 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
 }
 
 SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
-    name='success case: select parent set by text(include newline/space)',
+    name='success case: select module by text(include newline/space)',
     inputs=SELECT_BY_TEXT_SUCCESS_INPUTS,
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
@@ -284,7 +284,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
 }
 
 SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
-    name='fail case: select parent bt text with error path',
+    name='fail case: select module by text text with error path',
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
@@ -320,7 +320,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
 }
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
-    name='fail case: select parent bt text with error level',
+    name='fail case: select module by text text with error level',
     inputs=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(
