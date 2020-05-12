@@ -18,23 +18,11 @@ CONSTANT_MAX_LENGTH = 30
 ONE_FLOW = {
     "anyOf": [
         {"type": "string"},
-        {
-            "type": "array",
-            "items": {"type": "string", "minLength": 1},
-            "minItems": 1,
-            "maxItems": 1
-        }
+        {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "maxItems": 1},
     ]
 }
 MULTIPLE_FLOW = {
-    "anyOf": [
-        {"type": "string"},
-        {
-            "type": "array",
-            "items": {"type": "string", "minLength": 1},
-            "minItems": 1
-        }
-    ]
+    "anyOf": [{"type": "string"}, {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}]
 }
 
 WEB_PIPELINE_SCHEMA = {
@@ -49,14 +37,9 @@ WEB_PIPELINE_SCHEMA = {
                 "id": {"type": "string"},
                 "name": {"type": "string"},
                 "type": {"type": "string", "enum": ["EmptyStartEvent"]},
-                "outgoing": ONE_FLOW
+                "outgoing": ONE_FLOW,
             },
-            "required": [
-                "id",
-                "name",
-                "type",
-                "outgoing"
-            ]
+            "required": ["id", "name", "type", "outgoing"],
         },
         "end_event": {
             "type": "object",
@@ -66,12 +49,7 @@ WEB_PIPELINE_SCHEMA = {
                 "type": {"type": "string", "enum": ["EmptyEndEvent"]},
                 "incoming": MULTIPLE_FLOW,
             },
-            "required": [
-                "id",
-                "name",
-                "type",
-                "incoming",
-            ]
+            "required": ["id", "name", "type", "incoming"],
         },
         "flows": {
             "type": "object",
@@ -81,14 +59,11 @@ WEB_PIPELINE_SCHEMA = {
                     "properties": {
                         "id": {"type": "string"},
                         "source": {"type": "string"},
-                        "target": {"type": "string"}
+                        "target": {"type": "string"},
                     },
-                    "required": [
-                        "id", "source", "target"
-                    ]
+                    "required": ["id", "source", "target"],
                 }
-            }
-
+            },
         },
         "gateways": {
             "type": "object",
@@ -102,11 +77,9 @@ WEB_PIPELINE_SCHEMA = {
                                 "type": {"type": "string", "enum": ["ConvergeGateway"]},
                                 "name": {"type": "string", "maxLength": ACT_MAX_LENGTH},
                                 "incoming": MULTIPLE_FLOW,
-                                "outgoing": ONE_FLOW
+                                "outgoing": ONE_FLOW,
                             },
-                            "required": [
-                                "id", "type", "name", "incoming", "outgoing"
-                            ]
+                            "required": ["id", "type", "name", "incoming", "outgoing"],
                         },
                         {
                             "type": "object",
@@ -115,11 +88,9 @@ WEB_PIPELINE_SCHEMA = {
                                 "type": {"type": "string", "enum": ["ParallelGateway"]},
                                 "name": {"type": "string", "maxLength": ACT_MAX_LENGTH},
                                 "incoming": MULTIPLE_FLOW,
-                                "outgoing": MULTIPLE_FLOW
+                                "outgoing": MULTIPLE_FLOW,
                             },
-                            "required": [
-                                "id", "type", "name", "incoming", "outgoing",
-                            ]
+                            "required": ["id", "type", "name", "incoming", "outgoing"],
                         },
                         {
                             "type": "object",
@@ -132,26 +103,19 @@ WEB_PIPELINE_SCHEMA = {
                                     "patternProperties": {
                                         "^\\w+$": {
                                             "type": "object",
-                                            "properties": {
-                                                "evaluate": {"type": "string"},
-                                            },
-                                            "required": [
-                                                "evaluate"
-                                            ]
+                                            "properties": {"evaluate": {"type": "string"}},
+                                            "required": ["evaluate"],
                                         }
-                                    }
+                                    },
                                 },
                                 "incoming": MULTIPLE_FLOW,
-                                "outgoing": MULTIPLE_FLOW
+                                "outgoing": MULTIPLE_FLOW,
                             },
-                            "required": [
-                                "id", "type", "name", "incoming", "outgoing", "conditions"
-                            ]
-                        }
+                            "required": ["id", "type", "name", "incoming", "outgoing", "conditions"],
+                        },
                     ]
-
                 }
-            }
+            },
         },
         "activities": {
             "type": "object",
@@ -176,25 +140,20 @@ WEB_PIPELINE_SCHEMA = {
                                             "properties": {
                                                 "hook": {"type": "boolean"},
                                                 "value": {
-                                                    "type": ["string", "boolean", "object", "null", "number", "array"]}
+                                                    "type": ["string", "boolean", "object", "null", "number", "array"]
+                                                },
                                             },
-                                            "required": [
-                                                "hook", "value"
-                                            ]
+                                            "required": ["hook", "value"],
                                         }
-                                    }
-                                }
+                                    },
+                                },
                             },
-                            "required": [
-                                "code", "data"
-                            ]
-                        }
+                            "required": ["code", "data"],
+                        },
                     },
-                    "required": [
-                        "id", "name", "type", "incoming", "outgoing"
-                    ]
+                    "required": ["id", "name", "type", "incoming", "outgoing"],
                 }
-            }
+            },
         },
         "constants": {
             "type": "object",
@@ -205,43 +164,23 @@ WEB_PIPELINE_SCHEMA = {
                         "source_tag": {"type": "string"},
                         "name": {"type": "string", "minLength": 1, "maxLength": CONSTANT_MAX_LENGTH},
                         "custom_type": {"type": "string"},
-                        "source_type": {"type": "string",
-                                        "enum": ["component_inputs", "component_outputs", "custom", "system"]},
+                        "source_type": {
+                            "type": "string",
+                            "enum": ["component_inputs", "component_outputs", "custom", "system"],
+                        },
                         "validation": {"type": "string"},
                         "source_info": {
                             "type": "object",
-                            "patternProperties": {
-                                "^\\w+$": {
-                                    "type": "array",
-                                    "items": {"type": "string"}
-                                }
-                            },
+                            "patternProperties": {"^\\w+$": {"type": "array", "items": {"type": "string"}}},
                         },
-                        "key": {
-                            "type": "string",
-                            "pattern": KEY_PATTERN,
-                            "maxLength": CONSTANT_MAX_LENGTH
-                        },
+                        "key": {"type": "string", "pattern": KEY_PATTERN},
                         "desc": {"type": "string"},
-                        "show_type": {"type": "string", "enum": ["show", "hide"]}
-                    }
+                        "show_type": {"type": "string", "enum": ["show", "hide"]},
+                    },
                 }
-            }
+            },
         },
-        "outputs": {
-            "type": "array",
-            "items": {
-                "type": "string",
-                "pattern": SYSTEM_KEY_PATTERN
-            }
-        }
+        "outputs": {"type": "array", "items": {"type": "string", "pattern": SYSTEM_KEY_PATTERN}},
     },
-    "required": [
-        "start_event",
-        "end_event",
-        "activities",
-        "gateways",
-        "outputs",
-        "constants"
-    ]
+    "required": ["start_event", "end_event", "activities", "gateways", "outputs", "constants"],
 }
