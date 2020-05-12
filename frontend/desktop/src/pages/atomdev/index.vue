@@ -51,7 +51,7 @@
         </div>
         <bk-sideslider
             :is-show="showAtomSetting"
-            :quick-close="true"
+            :quick-close="false"
             :width="600"
             :title="i18n.formSetting"
             :before-close="closeSettingPanel">
