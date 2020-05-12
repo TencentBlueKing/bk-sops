@@ -24,7 +24,7 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
 from gcloud.utils.handlers import handle_api_error
 
-__group_name__ = _(u"蓝鲸监控(Monitor)")
+__group_name__ = _(u"监控平台(Monitor)")
 
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
 
