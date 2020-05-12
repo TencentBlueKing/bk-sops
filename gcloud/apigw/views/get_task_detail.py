@@ -52,10 +52,10 @@ def get_task_detail(request, task_id, project_id):
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = "[API] get_task_detail task[id={task_id}] "
-        "of project[project_id={{project_id}, biz_id{biz_id}}] does not exist".format(
-            task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
-        )
+        message = "[API] get_task_detail task[id={task_id}] " \
+                  "of project[project_id={{project_id}, biz_id{biz_id}}] does not exist".format(
+                      task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
+                  )
         logger.exception(message)
         return JsonResponse(
             {
