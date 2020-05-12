@@ -61,7 +61,7 @@ def node_callback(request, task_id, project_id):
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
         message = "[API] node_callback task[id={task_id}] "
-        "of project[project_id={project_id, biz_id{biz_id}}] does not exist".format(
+        "of project[project_id={project_id}, biz_id{biz_id}}] does not exist".format(
             task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
         )
         logger.exception(message)
