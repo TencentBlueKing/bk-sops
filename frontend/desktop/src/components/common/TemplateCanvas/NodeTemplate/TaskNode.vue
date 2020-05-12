@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -47,7 +47,7 @@
                 </template>
             </div>
         </div>
-        <div id="node-tooltip-content" slot="content">
+        <div class="node-tooltip-content" slot="content">
             <bk-button
                 v-if="isShowSkipBtn"
                 @click.stop="onRetryClick">
@@ -175,20 +175,11 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-    .dark-circle {
-        font-size: 12px;
-        color: #979ba5;
-        margin-left: -2px;
+<style lang="scss">
+.task-node-tooltip {
+    padding: 0;
+    .popper__arrow {
+        color: #000000;
     }
-    #node-tooltip-content {
-        overflow: hidden;
-        .bk-button {
-            float: left;
-            padding: 0 8px;
-            &:not(:last-child) {
-                border-right: 1px solid #63656e;
-            }
-        }
-    }
+}
 </style>

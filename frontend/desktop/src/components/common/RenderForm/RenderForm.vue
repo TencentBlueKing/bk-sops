@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -44,8 +44,6 @@
         showLabel: false, // 是否显示标准插件名称
         formEdit: true, // 是否可编辑
         formMode: true, // 是否为表单模式（查看参数时，input、textarea等不需要用表单展示）
-        formViewHidden: false, // 改表单项为非编辑状态时，是否隐藏
-        cols: 0, // 横向栅格占有的格数，总数为 12 格
         validateSet: ['required', 'custom', 'regex'] // 选择开启的校验类型，默认都开启
     }
 

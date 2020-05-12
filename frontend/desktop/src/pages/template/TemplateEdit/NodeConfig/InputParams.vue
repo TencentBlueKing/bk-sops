@@ -251,7 +251,7 @@
                     const config = this.getNewVarConfig(name, key)
                     this.createVariable(config)
                 } else { // 复用已有全局变量
-                    const variableKey = varKeyReg.test(this.hookingVarForm) ? this.hookingVarForm : `\${${this.hookingVarForm}}`
+                    const variableKey = data
                     this.setVariableSourceInfo({
                         type: 'add',
                         id: this.nodeId,

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,7 +16,7 @@
             'rf-form-item',
             'clearfix',
             {
-                'rf-has-hook': showHook,
+                'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
                 'rf-view-mode': !option.formMode,
                 'rf-col-layout': scheme.attrs.cols,
@@ -381,6 +381,7 @@
     &.rf-col-layout {
         display: inline-block;
         margin: 0;
+        padding-right: 10px;
         vertical-align: top;
     }
     &.rf-view-mode {
@@ -395,6 +396,7 @@
         margin-top: 8px;
         width: 100px;
         font-size: 12px;
+        color: #666666;
         text-align: right;
         word-wrap: break-word;
         word-break: break-all;
@@ -430,10 +432,34 @@
         line-height: 20px;
         width: 100%;
     }
-    .el-input__inner {
-        height: 32px;
-        line-height: 32px;
-        font-size: 12px;
+    .el-input {
+        .el-input__inner {
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
+            border-radius: 2px !important;
+        }
+        .el-input__prefix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+            .el-icon-time {
+                line-height: 36px;
+            }
+        }
+        &.is-disabled {
+            .el-input__inner{
+                background-color: #fafbfd !important;
+                border-color: #dcdee5 !important;
+            }
+        }
+    }
+    .el-select {
+        .el-input__suffix {
+            .el-input__icon {
+                line-height: 32px;
+            }
+        }
     }
     .el-radio__label,
     .el-checkbox__label {

@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -366,7 +366,7 @@ class TaskTemplateManager(BaseTemplateManager):
         return True, collected_templates_list
 
     def get_templates_with_expired_subprocess(self, project_id):
-        tmpl_and_pipeline_id = self.filter(project_id=project_id).values('id', 'pipeline_template_id')
+        tmpl_and_pipeline_id = self.filter(project_id=project_id, is_deleted=False).values('id', 'pipeline_template_id')
         return self.check_templates_subprocess_expired(tmpl_and_pipeline_id)
 
 

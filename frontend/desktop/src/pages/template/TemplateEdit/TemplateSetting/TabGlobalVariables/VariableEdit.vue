@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -449,6 +449,8 @@
                 this.metaTag = data.meta_tag
                 this.varType = data.type
 
+                const validateSet = this.getValidateSet()
+                this.$set(this.renderOption, 'validateSet', validateSet)
                 this.getAtomConfig()
             },
             /**
@@ -548,7 +550,7 @@ $localBorderColor: #d8e2e7;
 .variable-edit-wrapper {
     font-size: 14px;
     text-align: left;
-    background: $whiteThinBg;
+    background: #fafbfd;
     border-bottom: 1px solid $localBorderColor;
     cursor: auto;
 }
@@ -597,56 +599,29 @@ $localBorderColor: #d8e2e7;
 .form-content {
     margin-left: 80px;
     min-height: 36px;
-    .bk-select {
-        background: #ffffff;
-    }
-    input {
-        padding: 0 10px;
-        width: 100%;
-        height: 36px;
-        line-height: 36px;
-        font-size: 14px;
-        border: 1px solid $formBorderColor;
-        border-radius: 2px;
-        outline: none;
-        &:focus {
-            border-color: $blueDefault;
+    /deep/ {
+        .bk-select {
+            background: #ffffff;
+            &.is-disabled {
+                background-color: #fafbfd !important;
+                border-color: #dcdee5 !important;
+            }
         }
-        &[disabled] {
-            color: #aaa;
-            cursor: not-allowed;
-            background: #fafafa;
+        .el-input {
+            .el-input__inner {
+                padding: 0 10px;
+                height: 36px;
+                line-height: 36px;
+            }
         }
-    }
-    textarea {
-        padding: 10px;
-        width: 100%;
-        height: 70px;
-        border: 1px solid $formBorderColor;
-        border-radius: 2px;
-        outline: none;
-        resize: none;
-        &:hover {
-            border-color: #c0c4cc;
+        .tag-form {
+            margin-left: 0;
         }
-        &:focus {
-            border-color: $blueDefault;
-        }
-        @include scrollbar;
-    }
-    /deep/ .el-input {
-        .el-input__inner {
-            padding: 0 10px;
-            height: 36px;
-            line-height: 36px;
-        }
-    }
-    /deep/ .tag-form {
-        margin-left: 0;
     }
 }
 .action-wrapper {
     padding-left: 80px;
+    font-size: 0;
     button:first-child {
         margin-right: 10px;
     }

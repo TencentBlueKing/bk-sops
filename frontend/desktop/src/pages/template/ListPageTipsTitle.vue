@@ -68,6 +68,8 @@
 <style lang="scss" scoped>
     .title {
         margin-left: 12px;
+        height: 60px;
+        line-height: 60px;
         font-size: 14px;
         font-weight:600;
         color: #313238;
@@ -83,10 +85,10 @@
     }
     .number {
         display: inline-block;
-        margin-top: -4px;
-        padding: 1px;
+        padding: 0 1px;
         min-width: 18px;
         height: 18px;
+        line-height: 18px;
         font-size: 12px;
         border-radius: 9px;
         text-align: center;
@@ -100,6 +102,6 @@
         }
     }
     .tpl-update-message {
-        margin-top: 10px;
+        margin-bottom: 10px;
     }
 </style>

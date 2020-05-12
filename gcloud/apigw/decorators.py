@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -25,12 +25,12 @@ from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.core.permissions import project_resource
 from gcloud.apigw.utils import get_project_with
-from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
+from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ, DEFAULT_APP_WHITELIST
 from gcloud.apigw.exceptions import UserNotExistError
 from gcloud.apigw.whitelist import EnvWhitelist
 
 app_whitelist = EnvWhitelist(
-    transient_list={"bk_fta", "bk_bcs"}, env_key="APP_WHITELIST"
+    transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST"
 )
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <bk-dialog
         width="850"
-        :ext-cls="'common-dialog'"
+        :ext-cls="'common-dialog add-collection'"
         :title="i18n.title"
         :mask-close="false"
         :value="isAddCollectionDialogShow"
@@ -500,6 +500,9 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
+/deep/ .common-dialog.add-collection .bk-dialog-tool{
+    min-height: 0;
+}
 .export-container {
     position: relative;
     height: 340px;
@@ -508,7 +511,7 @@
     }
     .template-wrapper {
         float: left;
-        padding: 20px 4px 20px 0;
+        padding: 40px 4px 20px 0;
         width: 557px;
         height: 100%;
         .template-list {
