@@ -143,7 +143,7 @@ def cc_format_tree_mode_id(front_id_list):
     return [int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x) for x in front_id_list]
 
 
-def cc_parse_textarea_path(path_text):
+def cc_parse_path_text(path_text):
     """
     将目标主机/模块/自定义层级的文本路径解析为列表形式，支持空格/空行容错解析
     :param path_text: 目标主机/模块/自定义层级的文本路径
