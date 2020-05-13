@@ -143,10 +143,10 @@ def cc_format_tree_mode_id(front_id_list):
     return [int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x) for x in front_id_list]
 
 
-def cc_parse_textarea_path(textarea_path):
+def cc_parse_textarea_path(path_text):
     """
     将目标主机/模块/自定义层级的文本路径解析为列表形式，支持空格/空行容错解析
-    :param textarea_path: 目标主机/模块/自定义层级的文本路径
+    :param path_text: 目标主机/模块/自定义层级的文本路径
     :return:路径列表，每个路径是一个节点列表
     example:
     a > b > c > s
@@ -159,7 +159,7 @@ def cc_parse_textarea_path(textarea_path):
         [a]
     ]
     """
-    text_path_list = textarea_path.split('\n')
+    text_path_list = path_text.split('\n')
     path_list = []
     for text_path in text_path_list:
         text_path = text_path.strip()
@@ -176,7 +176,35 @@ def cc_parse_textarea_path(textarea_path):
 def cc_list_match_node_inst_id(topo_tree, path_list):
     """
     路径匹配，对path_list中的所有路径与拓扑树进行路径匹配
-    :param topo_tree: 业务拓扑
+    :param topo_tree: 业务拓扑 list
+    [
+        {
+            "bk_inst_id": 2,
+            "bk_inst_name": "blueking",
+            "bk_obj_id": "biz",
+            "bk_obj_name": "business",
+            "child": [
+                {
+                    "bk_inst_id": 3,
+                    "bk_inst_name": "job",
+                    "bk_obj_id": "set",
+                    "bk_obj_name": "set",
+                    "child": [
+                        {
+                            "bk_inst_id": 5,
+                            "bk_inst_name": "job",
+                            "bk_obj_id": "module",
+                            "bk_obj_name": "module",
+                            "child": []
+                        },
+                        {
+                            ...
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
     :param path_list: 路径列表，example: [[a, b], [a, c]]
     :return:
         True: list -匹配父节点的bk_inst_id
