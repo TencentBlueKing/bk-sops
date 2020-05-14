@@ -50,17 +50,17 @@ class CCBatchDeleteSetService(Service):
                     name=_(u'填参方式'),
                     key="cc_set_select_method",
                     type="string",
-                    schema=StringItemSchema(description=_(u'模块填入方式，拓扑(topo)，层级文本(text)'),
+                    schema=StringItemSchema(description=_(u'集群填入方式，拓扑(topo)，层级文本(text)'),
                                             enum=["topo", "text"])),
                 self.InputItem(name=_('拓扑 -集群列表'),
                                key='cc_set_select_topo',
                                type='array',
                                schema=ArrayItemSchema(description=_('需要清空的集群 ID 列表'),
                                                       item_schema=IntItemSchema(description=_('集群 ID')))),
-                self.InputItem(name=_(u'文本路径 -模块'),
+                self.InputItem(name=_(u'文本路径 -集群'),
                                key='cc_set_select_text',
                                type='string',
-                               schema=StringItemSchema(description=_(u'模块文本路径')))]
+                               schema=StringItemSchema(description=_(u'集群文本路径')))]
 
     def outputs_format(self):
         return []
