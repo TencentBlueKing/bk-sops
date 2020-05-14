@@ -70,8 +70,8 @@
                     </template>
                 </bk-form-item>
                 <bk-form-item class="query-button">
-                    <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{i18n.query}}</bk-button>
-                    <bk-button class="query-cancel" @click.prevent="onResetForm">{{i18n.reset}}</bk-button>
+                    <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{$t('搜索')}}</bk-button>
+                    <bk-button class="query-cancel" @click.prevent="onResetForm">{{$t('清空')}}</bk-button>
                 </bk-form-item>
             </bk-form>
         </div>
@@ -104,10 +104,6 @@
         },
         data () {
             return {
-                i18n: {
-                    query: i18n.t('搜索'),
-                    reset: i18n.t('清空')
-                },
                 isAdvanceOpen: false,
                 searchValue: '',
                 formData: {}

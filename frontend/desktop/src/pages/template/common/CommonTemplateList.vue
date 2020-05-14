@@ -467,7 +467,7 @@
             checkCreatePermission () {
                 if (!this.hasPermission(this.createTplRequired, this.createCommonTplAction, this.tplOperations)) {
                     const resourceData = {
-                        name: gettext('公共流程'),
+                        name: i18n.t('公共流程'),
                         id: '',
                         auth_actions: this.createCommonTplAction
                     }

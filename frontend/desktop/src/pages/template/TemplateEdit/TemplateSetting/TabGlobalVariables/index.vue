@@ -145,6 +145,7 @@
 </template>
 
 <script>
+    import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapState } from 'vuex'
     import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
@@ -221,11 +222,10 @@
             },
             // 操作变量提示 title
             varOperatingTips () {
-                const { new: newText, edit, globalVar } = this.i18n
                 if (this.theKeyOfEditing) {
-                    return edit + globalVar
+                    return i18n.t('编辑') + i18n.t('全局变量')
                 }
-                return newText + globalVar
+                return i18n.t('新建') + i18n.t('全局变量')
             },
             systemConstantsList () {
                 const list = []

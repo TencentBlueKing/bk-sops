@@ -47,20 +47,12 @@
         components: {
             BaseTitle
         },
-        data () {
-            return {
-                i18n: {
-                    manage: i18n.t('后台管理'),
-                    editSource: i18n.t('编辑包源')
-                }
-            }
-        },
         computed: {
             routers () {
                 return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? [] : ROUTERS
             },
             title () {
-                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? this.i18n.editSource : this.i18n.manage
+                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? i18n.t('编辑包源') : i18n.t('后台管理')
             }
         }
     }

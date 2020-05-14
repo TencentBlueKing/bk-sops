@@ -31,13 +31,6 @@
     export default {
         name: 'DeletePeriodicDialog',
         props: ['isDeleteDialogShow', 'templateName', 'deleting'],
-        data () {
-            return {
-                i18n: {
-                    deleteTips: gettext('确认删除')
-                }
-            }
-        },
         computed: {
             deleteInfo () {
                 return i18n.t('确认删除') + '"' + this.templateName + '"' + i18n.t('？')

@@ -13,7 +13,7 @@
     <div class="advanced-search">
         <div class="search-content">
             <div :class="['toggle-open-btn', { opened: isAdvanceOpen }]" @click="onShow">
-                <span>{{i18n.advancedSearch}}</span>
+                <span>{{$t('高级搜索')}}</span>
                 <span class="advanced-shape">
                     <i class="bk-icon icon-down-shape search-shape" v-if="!isAdvanceOpen"></i>
                     <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
@@ -33,7 +33,6 @@
 </template>
 
 <script>
-    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'AdvanceSearch',
         props: {
@@ -52,9 +51,6 @@
         },
         data () {
             return {
-                i18n: {
-                    advancedSearch: i18n.t('高级搜索')
-                },
                 isAdvancedSerachShow: false,
                 localValue: this.value
             }
