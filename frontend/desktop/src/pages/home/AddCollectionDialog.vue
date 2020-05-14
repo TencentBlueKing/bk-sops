@@ -13,7 +13,7 @@
     <bk-dialog
         width="850"
         :ext-cls="'common-dialog add-collection'"
-        :title="$t('添加收藏')"
+        :title="$t('')"
         :mask-close="false"
         :value="isAddCollectionDialogShow"
         :header-position="'left'"
