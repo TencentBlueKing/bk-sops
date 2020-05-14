@@ -25,14 +25,14 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { getFormMixins } from '@/components/common/RenderForm/formMixins.js'
     const datetimeAttrs = {
         placeholder: {
             type: String,
             required: false,
             default () {
-                return gettext('请选择日期时间')
+                return i18n.t('请选择日期时间')
             },
             desc: 'placeholder'
         },

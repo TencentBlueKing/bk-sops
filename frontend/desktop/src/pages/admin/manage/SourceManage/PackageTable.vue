@@ -14,19 +14,19 @@
         <table>
             <tbody>
                 <tr>
-                    <th class="source-label">{{i18n.name}}</th>
+                    <th class="source-label">{{$t('名称')}}</th>
                     <td class="source-content-item">{{value.name}}</td>
                 </tr>
                 <tr>
-                    <th class="source-label">{{i18n.type}}</th>
+                    <th class="source-label">{{$t('类型')}}</th>
                     <td class="source-content-item">{{packageName}}</td>
                 </tr>
                 <tr>
-                    <th class="source-label">{{i18n.desc}}</th>
+                    <th class="source-label">{{$t('描述')}}</th>
                     <td class="source-content-item">{{value.desc}}</td>
                 </tr>
                 <tr>
-                    <th class="source-label">{{i18n.detail}}</th>
+                    <th class="source-label">{{$t('详细信息')}}</th>
                     <td class="source-content-item">
                         <table class="detail-table">
                             <tbody>
@@ -39,14 +39,14 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="source-label">{{i18n.module}}</th>
+                    <th class="source-label">{{$t('模块配置')}}</th>
                     <td class="source-content-item">
                         <table class="content-item-table">
                             <thead>
                                 <tr>
-                                    <th>{{i18n.rootModule}}</th>
-                                    <th>{{i18n.version}}</th>
-                                    <th>{{i18n.importedModule}}</th>
+                                    <th>{{$t('根模块')}}</th>
+                                    <th>{{$t('版本')}}</th>
+                                    <th>{{$t('已导入模块')}}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -62,14 +62,14 @@
                     </td>
                 </tr>
                 <tr>
-                    <th class="source-label">{{i18n.importedPlugin}}</th>
+                    <th class="source-label">{{$t('已导入插件')}}</th>
                     <td class="source-content-item">
                         <table class="content-item-table">
                             <thead>
                                 <tr>
-                                    <th>{{i18n.pluginName}}</th>
-                                    <th>{{i18n.clsName}}</th>
-                                    <th>{{i18n.moduleBelong}}</th>
+                                    <th>{{$t('插件名')}}</th>
+                                    <th>{{$t('类名')}}</th>
+                                    <th>{{$t('所属模块')}}</th>
                                 </tr>
                             </thead>
                             <tbody v-if="value.imported_plugins">
@@ -88,7 +88,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
     import NoData from '@/components/common/base/NoData'
     export default {
@@ -107,21 +106,7 @@
         data () {
             const detailFields = this.getSourceKeys(this.value.type)
             return {
-                detailFields,
-                i18n: {
-                    name: gettext('名称'),
-                    type: gettext('类型'),
-                    desc: gettext('描述'),
-                    detail: gettext('详细信息'),
-                    module: gettext('模块配置'),
-                    importedPlugin: gettext('已导入插件'),
-                    rootModule: gettext('根模块'),
-                    version: gettext('版本'),
-                    importedModule: gettext('已导入模块'),
-                    pluginName: gettext('插件名'),
-                    clsName: gettext('类名'),
-                    moduleBelong: gettext('所属模块')
-                }
+                detailFields
             }
         },
         computed: {

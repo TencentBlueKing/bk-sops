@@ -12,12 +12,11 @@
 <template>
     <div :class="['circle-node', 'end-point', node.status ? node.status.toLowerCase() : '']">
         <div class="circle-node-text">
-            {{ i18n.end }}
+            {{ $t('结束') }}
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
 
     export default {
         name: 'EndPoint',
@@ -26,13 +25,6 @@
                 type: Object,
                 default () {
                     return {}
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    end: gettext('结束')
                 }
             }
         }

@@ -33,13 +33,13 @@
     </div>
 </template>
 <script>
-    import i18nText from '@/config/i18n/index.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import ConditionItem from './ConditionItem.vue'
 
     const i18n = {
-        allSatisfy: i18nText.t('（同时满足）'),
-        addItem: i18nText.t('增加一条')
+        allSatisfy: gettext('（同时满足）'),
+        addItem: gettext('增加一条')
     }
 
     export default {

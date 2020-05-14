@@ -41,16 +41,16 @@
     </div>
 </template>
 <script>
-    import i18nText from '@/config/i18n/index.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import IpSearchInput from './IpSearchInput.vue'
 
     const i18n = {
-        selected: i18nText.t('已选择'),
-        dynamicNum: i18nText.t('个节点'),
-        searchNode: i18nText.t('搜索节点'),
-        noData: i18nText.t('无数据'),
-        notEmpty: i18nText.t('必填项')
+        selected: gettext('已选择'),
+        dynamicNum: gettext('个节点'),
+        searchNode: gettext('搜索节点'),
+        noData: gettext('无数据'),
+        notEmpty: gettext('必填项')
     }
 
     export default {

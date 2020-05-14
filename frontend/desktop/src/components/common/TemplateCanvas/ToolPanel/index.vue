@@ -15,7 +15,7 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.zoomIn,
+                    content: $t('放大'),
                     delay: 1000,
                     placements: ['bottom']
                 }"
@@ -25,7 +25,7 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.zoomOut,
+                    content: $t('放大'),
                     delay: 1000,
                     placements: ['bottom']
                 }"
@@ -35,7 +35,7 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.resetZoom,
+                    content: $t('复位'),
                     delay: 1000,
                     placements: ['bottom']
                 }"
@@ -48,7 +48,7 @@
                 }]"
                 v-if="editable"
                 v-bk-tooltips="{
-                    content: i18n.nodeSelection,
+                    content: $t('节点框选'),
                     delay: 1000,
                     placements: ['bottom']
                 }"
@@ -59,7 +59,7 @@
                 class="tool-icon"
                 v-if="editable"
                 v-bk-tooltips="{
-                    content: i18n.formatPosition,
+                    content: $t('排版'),
                     delay: 1000,
                     placements: ['bottom']
                 }"
@@ -83,7 +83,7 @@
             <div
                 class="tool-icon"
                 v-bk-tooltips="{
-                    content: i18n.hotKey,
+                    content: $t('快捷键'),
                     delay: 1000,
                     placements: ['bottom']
                 }"
@@ -94,7 +94,7 @@
     </transition>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
 
     export default {
         name: 'ToolPanel',
@@ -122,22 +122,12 @@
         },
         data () {
             return {
-                i18n: {
-                    resetZoom: gettext('复位'),
-                    zoomIn: gettext('放大'),
-                    zoomOut: gettext('缩小'),
-                    nodeSelection: gettext('节点框选'),
-                    formatPosition: gettext('排版'),
-                    choiceAll: gettext('全选'),
-                    cancelChoiceAll: gettext('反选'),
-                    hotKey: gettext('快捷键')
-                },
                 isShowHotKey: false
             }
         },
         computed: {
             selectNodeName () {
-                return this.isAllSelected ? this.i18n.choiceAll : this.i18n.cancelChoiceAll
+                return this.isAllSelected ? i18n.t('全选') : i18n.t('反选')
             }
         },
         methods: {

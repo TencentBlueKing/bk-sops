@@ -107,31 +107,31 @@
     </div>
 </template>
 <script>
-    import i18nText from '@/config/i18n/index.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import StaticIpAddingPanel from './StaticIpAddingPanel.vue'
     import IpSearchInput from './IpSearchInput.vue'
 
     const i18n = {
-        copyIp: i18nText.t('复制IP'),
-        copyAgentIp: i18nText.t('复制Agent异常IP'),
-        clearIp: i18nText.t('清空IP'),
-        clearFailedAgentIp: i18nText.t('清空Agent异常IP'),
-        add: i18nText.t('添加'),
-        moreOperations: i18nText.t('更多操作'),
-        selected: i18nText.t('已选择'),
-        staticIpNum: i18nText.t('个静态IP(未安装agent'),
-        num: i18nText.t('个)'),
-        cloudArea: i18nText.t('云区域'),
-        status: i18nText.t('状态'),
-        error: i18nText.t('异常'),
-        operation: i18nText.t('操作'),
-        remove: i18nText.t('移除'),
-        normal: i18nText.t('正常'),
-        noDataClick: i18nText.t('无数据，点击'),
-        server: i18nText.t('服务器'),
-        noData: i18nText.t('无数据'),
-        notEmpty: i18nText.t('必填项')
+        copyIp: gettext('复制IP'),
+        copyAgentIp: gettext('复制Agent异常IP'),
+        clearIp: gettext('清空IP'),
+        clearFailedAgentIp: gettext('清空Agent异常IP'),
+        add: gettext('添加'),
+        moreOperations: gettext('更多操作'),
+        selected: gettext('已选择'),
+        staticIpNum: gettext('个静态IP(未安装agent'),
+        num: gettext('个)'),
+        cloudArea: gettext('云区域'),
+        status: gettext('状态'),
+        error: gettext('异常'),
+        operation: gettext('操作'),
+        remove: gettext('移除'),
+        normal: gettext('正常'),
+        noDataClick: gettext('无数据，点击'),
+        server: gettext('服务器'),
+        noData: gettext('无数据'),
+        notEmpty: gettext('必填项')
     }
 
     export default {

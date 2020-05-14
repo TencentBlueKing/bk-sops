@@ -10,9 +10,10 @@ const messages = {
     en,
     'zh-cn': cn
 }
-
+console.log(store, 'storestorestore')
 // const localeLang = store.state.lang === 'en' ? 'zh-cn' : 'en'
-const localeLang = store.state.lang === 'en' ? 'en' : 'zh-cn'
+// const localeLang = store.state.lang === 'en' ? 'en' : 'zh-cn'
+const localeLang = getCookie('blueking_language') === 'en' ? 'en' : 'zh-cn'
 
 const i18n = new VueI18n({
     locale: localeLang,

@@ -44,11 +44,11 @@
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
+    import '@/utils/i18n.js'
     const i18nText = {
-        select: i18n.t('请选择'),
-        desc: i18n.t('请输入，多个用换行分隔'),
-        notEmpty: i18n.t('必填项')
+        select: gettext('请选择'),
+        desc: gettext('请输入，多个用换行分隔'),
+        notEmpty: gettext('必填项')
     }
 
     export default {

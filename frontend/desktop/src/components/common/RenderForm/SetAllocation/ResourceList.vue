@@ -80,7 +80,7 @@
     </div>
 </template>
 <script >
-    import i18n from '@/config/i18n/index.js'
+    import '@/utils/i18n.js'
     import XLSX from 'xlsx'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -129,13 +129,13 @@
                 editRow: '',
                 tableData: tools.deepClone(this.value),
                 i18n: {
-                    resourceFilter: i18n.t('资源筛选'),
-                    export: i18n.t('导出'),
-                    import: i18n.t('导入'),
-                    edit: i18n.t('编辑'),
-                    delete: i18n.t('删除'),
-                    save: i18n.t('保存'),
-                    cancel: i18n.t('取消')
+                    resourceFilter: gettext('资源筛选'),
+                    export: gettext('导出'),
+                    import: gettext('导入'),
+                    edit: gettext('编辑'),
+                    delete: gettext('删除'),
+                    save: gettext('保存'),
+                    cancel: gettext('取消')
                 }
             }
         },
@@ -180,7 +180,7 @@
                 const types = file.name.split('.')[1]
                 const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
                 if (!fileType) {
-                    errorHandler(i18n.t('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
+                    errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
                     return
                 }
                 this.readFileData(file).then(data => {

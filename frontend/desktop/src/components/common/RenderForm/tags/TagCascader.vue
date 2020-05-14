@@ -29,7 +29,7 @@
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
+    import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -39,37 +39,37 @@
             default () {
                 return [
                     {
-                        label: i18n.t('一级分组1'),
+                        label: gettext('一级分组1'),
                         value: 'group1',
                         children: [
                             {
-                                label: i18n.t('二级分组1'),
+                                label: gettext('二级分组1'),
                                 value: 'subgroup1',
                                 children: [
                                     {
-                                        label: i18n.t('三级分组1'),
+                                        label: gettext('三级分组1'),
                                         value: 'sub1'
                                     },
                                     {
-                                        label: i18n.t('三级分组2'),
+                                        label: gettext('三级分组2'),
                                         value: 'sub2'
                                     }
                                 ]
                             },
                             {
-                                label: i18n.t('二级分组2'),
+                                label: gettext('二级分组2'),
                                 value: 'subgroup2',
                                 children: [
                                     {
-                                        label: i18n.t('三级分组3'),
+                                        label: gettext('三级分组3'),
                                         value: 'sub3'
                                     },
                                     {
-                                        label: i18n.t('三级分组4'),
+                                        label: gettext('三级分组4'),
                                         value: 'sub4'
                                     },
                                     {
-                                        label: i18n.t('三级分组5'),
+                                        label: gettext('三级分组5'),
                                         value: 'sub5'
                                     }
                                 ]
@@ -77,37 +77,37 @@
                         ]
                     },
                     {
-                        label: i18n.t('一级分组2'),
+                        label: gettext('一级分组2'),
                         value: 'group2',
                         children: [
                             {
-                                label: i18n.t('二级分组3'),
+                                label: gettext('二级分组3'),
                                 value: 'subgroup3',
                                 children: [
                                     {
-                                        label: i18n.t('三级分组6'),
+                                        label: gettext('三级分组6'),
                                         value: 'sub6'
                                     },
                                     {
-                                        label: i18n.t('三级分组7'),
+                                        label: gettext('三级分组7'),
                                         value: 'sub7'
                                     }
                                 ]
                             },
                             {
-                                label: i18n.t('二级分组4'),
+                                label: gettext('二级分组4'),
                                 value: 'subgroup4',
                                 children: [
                                     {
-                                        label: i18n.t('三级分组8'),
+                                        label: gettext('三级分组8'),
                                         value: 'sub8'
                                     },
                                     {
-                                        label: i18n.t('三级分组9'),
+                                        label: gettext('三级分组9'),
                                         value: 'sub9'
                                     },
                                     {
-                                        label: i18n.t('三级分组10'),
+                                        label: gettext('三级分组10'),
                                         value: 'sub10'
                                     }
                                 ]
@@ -124,37 +124,37 @@
             default () {
                 return []
             },
-            desc: i18n.t('级联选择器的选中值')
+            desc: gettext('级联选择器的选中值')
         },
         disabled: {
             type: Boolean,
             required: false,
             default: false,
-            desc: i18n.t('禁用选择器')
+            desc: gettext('禁用选择器')
         },
         multiple: {
             type: Boolean,
             required: false,
             default: true,
-            desc: i18n.t('设置是否可多选')
+            desc: gettext('设置是否可多选')
         },
         filterable: {
             type: Boolean,
             required: false,
             default: true,
-            desc: i18n.t('设置是否可搜索')
+            desc: gettext('设置是否可搜索')
         },
         placeholder: {
             type: String,
             required: false,
-            default: i18n.t('请输入'),
+            default: gettext('请输入'),
             desc: 'placeholder'
         },
         lazy: {
             type: Boolean,
             required: false,
             default: true,
-            desc: i18n.t('是否开启远程加载')
+            desc: gettext('是否开启远程加载')
         },
         lazyLoad: {
             type: Function,
@@ -164,7 +164,7 @@
                     resolve([])
                 }, 500)
             },
-            desc: i18n.t('远程加载方法, 文档参考element-ui cascader组件lazyload说明')
+            desc: gettext('远程加载方法, 文档参考element-ui cascader组件lazyload说明')
         }
     }
 

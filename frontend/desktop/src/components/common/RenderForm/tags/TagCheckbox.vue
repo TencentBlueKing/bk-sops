@@ -23,7 +23,7 @@
     </div>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
+    import '@/utils/i18n.js'
     import { getFormMixins } from '../formMixins.js'
 
     export const attrs = {
@@ -33,15 +33,15 @@
             default () {
                 return [
                     {
-                        name: i18n.t('选项1'),
+                        name: gettext('选项1'),
                         value: 'value1'
                     },
                     {
-                        name: i18n.t('选项2'),
+                        name: gettext('选项2'),
                         value: 'value2'
                     },
                     {
-                        name: i18n.t('选项3'),
+                        name: gettext('选项3'),
                         value: 'value3'
                     }
                 ]

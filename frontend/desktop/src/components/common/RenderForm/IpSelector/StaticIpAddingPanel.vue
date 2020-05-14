@@ -77,18 +77,18 @@
     </div>
 </template>
 <script>
-    import i18nText from '@/config/i18n/index.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
     import IpSearchInput from './IpSearchInput.vue'
 
     const i18n = {
-        add: i18nText.t('添加'),
-        cloudArea: i18nText.t('云区域'),
-        status: i18nText.t('状态'),
-        error: i18nText.t('异常'),
-        noData: i18nText.t('无数据'),
-        normal: i18nText.t('正常'),
-        cancel: i18nText.t('取消')
+        add: gettext('添加'),
+        cloudArea: gettext('云区域'),
+        status: gettext('状态'),
+        error: gettext('异常'),
+        noData: gettext('无数据'),
+        normal: gettext('正常'),
+        cancel: gettext('取消')
     }
 
     export default {

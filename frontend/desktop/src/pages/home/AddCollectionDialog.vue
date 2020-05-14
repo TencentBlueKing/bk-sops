@@ -13,7 +13,7 @@
     <bk-dialog
         width="850"
         :ext-cls="'common-dialog add-collection'"
-        :title="i18n.title"
+        :title="$t('添加收藏')"
         :mask-close="false"
         :value="isAddCollectionDialogShow"
         :header-position="'left'"
@@ -63,7 +63,7 @@
                                             <div class="template-item-name">{{template.name}}</div>
                                         </div>
                                         <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
+                                            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>
@@ -75,9 +75,9 @@
             </div>
             <div class="selected-wrapper">
                 <div class="selected-area-title">
-                    {{i18n.selected}}
+                    {{$t('已选择')}}
                     <span class="select-count">{{selectedList.length}}</span>
-                    {{i18n.num}}
+                    {{$t('项')}}
                 </div>
                 <ul class="selected-list">
                     <li
@@ -95,7 +95,7 @@
                 </ul>
             </div>
             <div class="task-footer" v-if="selectError">
-                <span class="error-info">{{i18n.errorInfo}}</span>
+                <span class="error-info">{{$t('请选择收藏项')}}</span>
             </div>
         </div>
         <DialogLoadingBtn
@@ -107,7 +107,7 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapGetters, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -116,29 +116,29 @@
     import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     const FILTER_LIST = [
         {
-            name: gettext('选择类型'),
+            name: i18n.t('选择类型'),
             id: 'type',
             children: [
                 {
-                    name: gettext('公共流程'),
+                    name: i18n.t('公共流程'),
                     id: 'common'
                 },
                 {
-                    name: gettext('项目流程'),
+                    name: i18n.t('项目流程'),
                     id: 'process'
                 },
                 {
-                    name: gettext('周期任务'),
+                    name: i18n.t('周期任务'),
                     id: 'periodic'
                 },
                 {
-                    name: gettext('轻应用'),
+                    name: i18n.t('轻应用'),
                     id: 'app_maker'
                 }
             ]
         },
         {
-            name: gettext('选择项目'),
+            name: i18n.t('选择项目'),
             id: 'project',
             children: []
         }
@@ -162,14 +162,6 @@
         },
         data () {
             return {
-                i18n: {
-                    num: gettext('项'),
-                    delete: gettext('删除'),
-                    selected: gettext('已选择'),
-                    errorInfo: gettext('请选择收藏项'),
-                    applyPermission: gettext('申请权限'),
-                    noSearchResult: gettext('搜索结果为空')
-                },
                 selectError: false,
                 collectionPending: false,
                 tplOperations: [],
@@ -180,10 +172,10 @@
                     {
                         type: 'primary',
                         loading: false,
-                        btnText: gettext('确认'),
+                        btnText: i18n.t('确认'),
                         click: 'onConfirm'
                     }, {
-                        btnText: gettext('取消'),
+                        btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }
                 ],
@@ -191,7 +183,7 @@
                 searchValue: [ // 搜索值
                     {
                         id: 'type',
-                        name: gettext('选择类型'),
+                        name: i18n.t('选择类型'),
                         values: [{ id: 'common', name: '公共流程' }]
                     }
                 ]
@@ -430,7 +422,7 @@
                     this.dialogFooterData[0].loading = false
                     if (res.objects) {
                         this.$bkMessage({
-                            message: gettext('保存成功'),
+                            message: i18n.t('保存成功'),
                             theme: 'success'
                         })
                         this.$emit('onCloseDialog', true)

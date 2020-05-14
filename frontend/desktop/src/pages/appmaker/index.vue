@@ -13,14 +13,14 @@
     <div class="appmaker-page">
         <div class="page-content">
             <div class="appmaker-table-content">
-                <base-title :title="i18n.title"></base-title>
+                <base-title :title="$t('轻应用')"></base-title>
                 <div class="operation-wrapper">
                     <advance-search-form
                         :search-form="searchForm"
                         @onSearchInput="onSearchInput"
                         @submit="onSearchFormSubmit">
                         <template v-slot:operation>
-                            <bk-button theme="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
+                            <bk-button theme="primary" @click="onCreateApp">{{$t('新建')}}</bk-button>
                         </template>
                     </advance-search-form>
                 </div>
@@ -63,12 +63,12 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.delete"
+            :title="$t('删除')"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
-                {{i18n.deleteTips}}
+                {{$t('确认删除轻应用？')}}
             </div>
         </bk-dialog>
         <bk-dialog
@@ -77,21 +77,21 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.jurisdiction"
+            :title="$t('使用权限')"
             :value="isPermissionsDialog"
             @cancel="onCloseWindows">
             <div class="permission-content-dialog" v-bkloading="{ isLoading: authorityLoading, opacity: 1 }">
-                <p class="jurisdiction-hint">{{i18n.jurisdictionHint}}</p>
+                <p class="jurisdiction-hint">{{$t('轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。')}}</p>
                 <div class="permission-item">
-                    <span class="addJurisdiction">{{i18n.addJurisdiction }}:</span>
+                    <span class="addJurisdiction">{{$t('新建任务权限') }}:</span>
                     <span>{{createdTaskPerList || '--'}}</span>
                 </div>
                 <div class="permission-item">
-                    <span class="getJurisdiction">{{i18n.getJurisdiction}}:</span>
+                    <span class="getJurisdiction">{{$t('认领任务权限')}}:</span>
                     <span>{{modifyParamsPerList || '--'}}</span>
                 </div>
                 <div class="permission-item">
-                    <span class="executeJurisdiction">{{i18n.executeJurisdiction}}:</span>
+                    <span class="executeJurisdiction">{{$t('执行任务权限')}}:</span>
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
             </div>
@@ -99,14 +99,14 @@
                 <bk-button
                     theme="default"
                     @click="onCloseWindows">
-                    {{i18n.close}}
+                    {{$t('关闭')}}
                 </bk-button>
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
@@ -121,15 +121,15 @@
         {
             type: 'input',
             key: 'editor',
-            label: gettext('更新人'),
-            placeholder: gettext('请输入更新人'),
+            label: i18n.t('更新人'),
+            placeholder: i18n.t('请输入更新人'),
             value: ''
         },
         {
             type: 'dateRange',
             key: 'updateTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('更新时间'),
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('更新时间'),
             value: []
         }
     ]
@@ -173,21 +173,6 @@
                     updateTime: [],
                     editor: '',
                     flowName: ''
-                },
-                i18n: {
-                    title: gettext('轻应用'),
-                    addApp: gettext('新建'),
-                    placeholder: gettext('请输入轻应用名称'),
-                    jurisdiction: gettext('使用权限'),
-                    jurisdictionHint: gettext('轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。'),
-                    addJurisdiction: gettext('新建任务权限'),
-                    getJurisdiction: gettext('认领任务权限'),
-                    executeJurisdiction: gettext('执行任务权限'),
-                    delete: gettext('删除'),
-                    deleteTips: gettext('确认删除轻应用？'),
-                    close: gettext('关闭'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空')
                 }
             }
         },
@@ -199,7 +184,7 @@
                 return this.searchMode ? this.searchList : this.list
             },
             emptyTips () {
-                return this.searchMode ? gettext('未找到相关轻应用') : gettext('暂未添加轻应用')
+                return this.searchMode ? i18n.t('未找到相关轻应用') : i18n.t('暂未添加轻应用')
             }
         },
         created () {
