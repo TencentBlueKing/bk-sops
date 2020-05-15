@@ -19,7 +19,7 @@ from pipeline.component_framework.test import (
     CallAssertion,
     ExecuteAssertion,
     Call,
-    Patcher
+    Patcher,
 )
 from pipeline_plugins.components.collections.sites.open.cc_create_set.v2_0 import CCCreateSetComponent
 
@@ -33,7 +33,7 @@ class CCCreateSetComponentTest(TestCase, ComponentTestMixin):
             SELECT_BY_TEXT_SUCCESS_CASE,
             SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CAST,
             SELECT_BY_TEXT_ERROR_PATH_FAIL_CAST,
-            SELECT_BY_TOPO_SUCCESS_CASE
+            SELECT_BY_TOPO_SUCCESS_CASE,
         ]
 
 
@@ -46,16 +46,16 @@ class MockClient(object):
         self.cc.create_set = MagicMock(return_value=create_set_return)
 
 
-CC_FORMAT_PROP_DATA_SET_ENV = {'result': True, 'data': {'测试': '1', '体验': '2', '正式': '3'}}
-CC_FORMAT_PROP_DATA_SERVICE_STATUS = {'result': True, 'data': {'开放': '1', '关闭': '2'}}
+CC_FORMAT_PROP_DATA_SET_ENV = {"result": True, "data": {"测试": "1", "体验": "2", "正式": "3"}}
+CC_FORMAT_PROP_DATA_SERVICE_STATUS = {"result": True, "data": {"开放": "1", "关闭": "2"}}
 
-GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc_create_set.v2_0.get_client_by_user'
-CC_FORMAT_PROP_DATA = 'pipeline_plugins.components.collections.sites.open.cc_create_set.v2_0.cc_format_prop_data'
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc_create_set.v2_0.get_client_by_user"
+CC_FORMAT_PROP_DATA = "pipeline_plugins.components.collections.sites.open.cc_create_set.v2_0.cc_format_prop_data"
 
 
 # 根据prop_i确定CC_FORMAT_PROP_DATA接口的返回值
 def cc_format_prop_data_return(executor, obj_id, prop_id, language, supplier_account):
-    if prop_id == 'bk_set_env':
+    if prop_id == "bk_set_env":
         return CC_FORMAT_PROP_DATA_SET_ENV
     else:
         return CC_FORMAT_PROP_DATA_SERVICE_STATUS
@@ -75,7 +75,7 @@ COMMON_CLIENT = MockClient(
                 "bk_next_obj": "set",
                 "bk_next_name": "集群",
                 "bk_pre_obj_id": "",
-                "bk_pre_obj_name": ""
+                "bk_pre_obj_name": "",
             },
             {
                 "bk_obj_id": "custom",
@@ -84,7 +84,7 @@ COMMON_CLIENT = MockClient(
                 "bk_next_obj": "set",
                 "bk_next_name": "集群",
                 "bk_pre_obj_id": "biz",
-                "bk_pre_obj_name": "业务"
+                "bk_pre_obj_name": "业务",
             },
             {
                 "bk_obj_id": "set",
@@ -93,7 +93,7 @@ COMMON_CLIENT = MockClient(
                 "bk_next_obj": "module",
                 "bk_next_name": "模块",
                 "bk_pre_obj_id": "custom",
-                "bk_pre_obj_name": "自定义层级"
+                "bk_pre_obj_name": "自定义层级",
             },
             {
                 "bk_obj_id": "module",
@@ -102,7 +102,7 @@ COMMON_CLIENT = MockClient(
                 "bk_next_obj": "host",
                 "bk_next_name": "主机",
                 "bk_pre_obj_id": "set",
-                "bk_pre_obj_name": "集群"
+                "bk_pre_obj_name": "集群",
             },
             {
                 "bk_obj_id": "host",
@@ -111,9 +111,9 @@ COMMON_CLIENT = MockClient(
                 "bk_next_obj": "",
                 "bk_next_name": "",
                 "bk_pre_obj_id": "module",
-                "bk_pre_obj_name": "模块"
-            }
-        ]
+                "bk_pre_obj_name": "模块",
+            },
+        ],
     },
     search_biz_inst_topo_return={
         "result": True,
@@ -149,26 +149,19 @@ COMMON_CLIENT = MockClient(
                                                 "bk_inst_name": "host",
                                                 "bk_obj_id": "host",
                                                 "bk_obj_name": "host",
-                                                "child": []
+                                                "child": [],
                                             }
-                                        ]
+                                        ],
                                     }
-                                ]
+                                ],
                             }
-                        ]
+                        ],
                     }
-                ]
+                ],
             }
-        ]
+        ],
     },
-    create_set_return={
-        "result": True,
-        "code": 0,
-        "message": "",
-        "data": {
-            "bk_set_id": 1
-        }
-    }
+    create_set_return={"result": True, "code": 0, "message": "", "data": {"bk_set_id": 1}},
 )
 
 # 调用 create_set 的通用参数
@@ -176,143 +169,142 @@ COMMON_CREAT_SET_API_KWARGS = {
     "bk_supplier_account": 0,
     "bk_biz_id": 2,
     "data": {
-        'bk_parent_id': 3,
-        'bk_set_name': '1',
-        'bk_set_desc': '1',
-        'bk_set_env': '1',
-        'bk_service_status': '2',
-        'description': '1',
-        'bk_capacity': 1
-    }
+        "bk_parent_id": 3,
+        "bk_set_name": "1",
+        "bk_set_desc": "1",
+        "bk_set_env": "1",
+        "bk_service_status": "2",
+        "description": "1",
+        "bk_capacity": 1,
+    },
 }
 
 # parent_data
-PARENT_DATA = {
-    'executor': 'admin',
-    'biz_cc_id': 2
-}
+PARENT_DATA = {"executor": "admin", "biz_cc_id": 2}
 
 SELECT_BY_TEXT_SUCCESS_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_select_set_parent_method': 'text',
-    'cc_set_parent_select_topo': [],
-    'cc_set_parent_select_text': u'蓝鲸>Tun\n\n   ',
-    'cc_set_info': [{
-        'bk_set_name': '1',
-        'bk_set_desc': '1',
-        'bk_set_env': '测试',
-        'bk_service_status': '关闭',
-        'description': '1',
-        'bk_capacity': '1'}],
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "text",
+    "cc_set_parent_select_topo": [],
+    "cc_set_parent_select_text": u"蓝鲸>Tun\n\n   ",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "测试",
+            "bk_service_status": "关闭",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
 }
 
 SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
-    name='success case: select parent set by text(include newline/space)',
+    name="success case: select parent set by text(include newline/space)",
     inputs=SELECT_BY_TEXT_SUCCESS_INPUTS,
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=[],
     execute_call_assertion=[
-        CallAssertion(
-            func=COMMON_CLIENT.cc.create_set,
-            calls=[Call(COMMON_CREAT_SET_API_KWARGS)]
-        ),
+        CallAssertion(func=COMMON_CLIENT.cc.create_set, calls=[Call(COMMON_CREAT_SET_API_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
         Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
-    ]
+    ],
 )
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_select_set_parent_method': 'text',
-    'cc_set_parent_select_topo': [],
-    'cc_set_parent_select_text': u'蓝鲸>blue>Tun\n\n   ',
-    'cc_set_info': [{
-        'bk_set_name': '1',
-        'bk_set_desc': '1',
-        'bk_set_env': '测试',
-        'bk_service_status': '关闭',
-        'description': '1',
-        'bk_capacity': '1'}],
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "text",
+    "cc_set_parent_select_topo": [],
+    "cc_set_parent_select_text": u"蓝鲸>blue>Tun\n\n   ",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "测试",
+            "bk_service_status": "关闭",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
 }
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CAST = ComponentTestCase(
-    name='fail case: select parent bt text with error level',
+    name="fail case: select parent bt text with error level",
     inputs=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs={
-        'ex_data': u'输入文本路径[蓝鲸>blue>Tun]与业务层级拓扑层级不匹配'
-    }),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": u"输入文本路径[蓝鲸>blue>Tun]与业务层级拓扑层级不匹配"}),
     schedule_assertion=[],
     execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
         Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
-    ]
+    ],
 )
 
 SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_select_set_parent_method': 'text',
-    'cc_set_parent_select_topo': [],
-    'cc_set_parent_select_text': u'蓝鲸 > blue',
-    'cc_set_info': [{
-        'bk_set_name': '1',
-        'bk_set_desc': '1',
-        'bk_set_env': '测试',
-        'bk_service_status': '关闭',
-        'description': '1',
-        'bk_capacity': '1'}],
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "text",
+    "cc_set_parent_select_topo": [],
+    "cc_set_parent_select_text": u"蓝鲸 > blue",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "测试",
+            "bk_service_status": "关闭",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
 }
 SELECT_BY_TEXT_ERROR_PATH_FAIL_CAST = ComponentTestCase(
-    name='fail case: select parent bt text with error path',
+    name="fail case: select parent bt text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=PARENT_DATA,
-    execute_assertion=ExecuteAssertion(success=False, outputs={
-        'ex_data': u'不存在该拓扑路径：蓝鲸>blue'
-    }),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": u"不存在该拓扑路径：蓝鲸>blue"}),
     schedule_assertion=[],
     execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
         Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
-    ]
+    ],
 )
 
 SELECT_BY_TOPO_SUCCESS_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_select_set_parent_method': 'topo',
-    'cc_set_parent_select_topo': ['Tun_3'],
-    'cc_set_parent_select_text': '',
-    'cc_set_info': [{
-        'bk_set_name': '1',
-        'bk_set_desc': '1',
-        'bk_set_env': '测试',
-        'bk_service_status': '关闭',
-        'description': '1',
-        'bk_capacity': '1'}],
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_select_set_parent_method": "topo",
+    "cc_set_parent_select_topo": ["Tun_3"],
+    "cc_set_parent_select_text": "",
+    "cc_set_info": [
+        {
+            "bk_set_name": "1",
+            "bk_set_desc": "1",
+            "bk_set_env": "测试",
+            "bk_service_status": "关闭",
+            "description": "1",
+            "bk_capacity": "1",
+        }
+    ],
+    "_loop": 1,
 }
 
 SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
-    name='success case: select parent set by topo',
+    name="success case: select parent set by topo",
     inputs=SELECT_BY_TOPO_SUCCESS_INPUTS,
     parent_data=PARENT_DATA,
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=[],
     execute_call_assertion=[
-        CallAssertion(
-            func=COMMON_CLIENT.cc.create_set,
-            calls=[Call(COMMON_CREAT_SET_API_KWARGS)]
-        ),
+        CallAssertion(func=COMMON_CLIENT.cc.create_set, calls=[Call(COMMON_CREAT_SET_API_KWARGS)]),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
         Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
-    ]
+    ],
 )
