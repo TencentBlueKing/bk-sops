@@ -367,6 +367,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `url`： 服务器 url
   - `multiple`：是否支持多个上传
   - `headers`：http 请求头
+  - `data_params`：文件上传附加参数，eg: { filename: 'test.zip', filetype: 'zip' }
   - `auto_upload`：是否开启自动上传，默认值为 true，自动上传(选择文件后自动触发上传)，手动上传(选择文件后需要点击上传按钮，调用自定义的 submit 方法回调)
   - `submit`：自定义上传方法
   - `limit`：上传文件个数
