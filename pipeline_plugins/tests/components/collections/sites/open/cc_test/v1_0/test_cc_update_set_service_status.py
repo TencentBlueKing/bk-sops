@@ -19,10 +19,10 @@ from pipeline.component_framework.test import (
     CallAssertion,
     ExecuteAssertion,
     Call,
-    Patcher
+    Patcher,
 )
 from pipeline_plugins.components.collections.sites.open.cc_update_set_service_status.v1_0 import (
-    CCUpdateSetServiceStatusComponent
+    CCUpdateSetServiceStatusComponent,
 )
 
 
@@ -35,21 +35,21 @@ class CCUpdateSetServiceStatusComponentTest(TestCase, ComponentTestMixin):
             SELECT_BY_TEXT_SUCCESS_CASE,
             SELECT_BY_TOPO_SUCCESS_CASE,
             SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE,
-            SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE
+            SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE,
         ]
 
 
 class MockClient(object):
-    def __init__(self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None,
-                 update_set_return=None):
+    def __init__(self, get_mainline_object_topo_return=None, search_biz_inst_topo_return=None, update_set_return=None):
         self.cc = MagicMock()
         self.cc.get_mainline_object_topo = MagicMock(return_value=get_mainline_object_topo_return)
         self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
         self.cc.update_set = MagicMock(return_value=update_set_return)
 
 
-GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc_update_set_service_status.v1_0' \
-                     '.get_client_by_user'
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.cc_update_set_service_status.v1_0" ".get_client_by_user"
+)
 
 COMMON_MAINLINE = {
     "result": True,
@@ -63,7 +63,7 @@ COMMON_MAINLINE = {
             "bk_next_obj": "set",
             "bk_next_name": "集群",
             "bk_pre_obj_id": "",
-            "bk_pre_obj_name": ""
+            "bk_pre_obj_name": "",
         },
         {
             "bk_obj_id": "custom",
@@ -72,7 +72,7 @@ COMMON_MAINLINE = {
             "bk_next_obj": "set",
             "bk_next_name": "集群",
             "bk_pre_obj_id": "biz",
-            "bk_pre_obj_name": "业务"
+            "bk_pre_obj_name": "业务",
         },
         {
             "bk_obj_id": "set",
@@ -81,7 +81,7 @@ COMMON_MAINLINE = {
             "bk_next_obj": "module",
             "bk_next_name": "模块",
             "bk_pre_obj_id": "custom",
-            "bk_pre_obj_name": "自定义层级"
+            "bk_pre_obj_name": "自定义层级",
         },
         {
             "bk_obj_id": "module",
@@ -90,7 +90,7 @@ COMMON_MAINLINE = {
             "bk_next_obj": "host",
             "bk_next_name": "主机",
             "bk_pre_obj_id": "set",
-            "bk_pre_obj_name": "集群"
+            "bk_pre_obj_name": "集群",
         },
         {
             "bk_obj_id": "host",
@@ -99,9 +99,9 @@ COMMON_MAINLINE = {
             "bk_next_obj": "",
             "bk_next_name": "",
             "bk_pre_obj_id": "module",
-            "bk_pre_obj_name": "模块"
-        }
-    ]
+            "bk_pre_obj_name": "模块",
+        },
+    ],
 }
 
 COMMON_TOPO = {
@@ -138,176 +138,132 @@ COMMON_TOPO = {
                                             "bk_inst_name": "host",
                                             "bk_obj_id": "host",
                                             "bk_obj_name": "host",
-                                            "child": []
+                                            "child": [],
                                         }
-                                    ]
+                                    ],
                                 }
-                            ]
+                            ],
                         }
-                    ]
+                    ],
                 }
-            ]
+            ],
         }
-    ]
+    ],
 }
 
-COMMON_PARENT = {
-    'executor': 'admin',
-    'biz_cc_id': 2,
-    'biz_supplier_account': 0
-}
+COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
 
 SELECT_BY_TEXT_SUCCESS_CLIENT = MockClient(
     get_mainline_object_topo_return=COMMON_MAINLINE,
     search_biz_inst_topo_return=COMMON_TOPO,
-    update_set_return={
-        "result": True,
-        "code": 0,
-        "message": "",
-        "data": {}
-    }
+    update_set_return={"result": True, "code": 0, "message": "", "data": {}},
 )
 
 SELECT_BY_TEXT_SUCCESS_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_set_select_method': 'text',
-    'cc_set_select_topo': [],
-    'cc_set_select_text': u'    蓝鲸>Tun>set\n\n',
-    'cc_set_status': '1',
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_set_select_method": "text",
+    "cc_set_select_topo": [],
+    "cc_set_select_text": u"    蓝鲸>Tun>set\n\n",
+    "cc_set_status": "1",
+    "_loop": 1,
 }
 
 SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
-    name='success case: select set by text(include newline/space)',
+    name="success case: select set by text(include newline/space)",
     inputs=SELECT_BY_TEXT_SUCCESS_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(
-        success=True,
-        outputs={}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
             func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.update_set,
             calls=[
-                Call({
-                    'bk_biz_id': 2,
-                    'bk_supplier_account': 0,
-                    'bk_set_id': 5,
-                    'data': {'bk_service_status': '1'}
-                })
-            ]
+                Call({"bk_biz_id": 2, "bk_supplier_account": 0, "bk_set_id": 5, "data": {"bk_service_status": "1"}})
+            ],
         )
     ],
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
-    ]
+    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),],
 )
 
 
 SELECT_BY_TOPO_SUCCESS_CLIENT = MockClient(
     get_mainline_object_topo_return=COMMON_MAINLINE,
     search_biz_inst_topo_return=COMMON_TOPO,
-    update_set_return={
-        "result": True,
-        "code": 0,
-        "message": "",
-        "data": {}
-    }
+    update_set_return={"result": True, "code": 0, "message": "", "data": {}},
 )
 
 SELECT_BY_TOPO_SUCCESS_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_set_select_method': 'topo',
-    'cc_set_select_topo': ['set_5'],
-    'cc_set_select_text': None,
-    'cc_set_status': '1',
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_set_select_method": "topo",
+    "cc_set_select_topo": ["set_5"],
+    "cc_set_select_text": None,
+    "cc_set_status": "1",
+    "_loop": 1,
 }
 
 SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
-    name='success case: select set by topo',
+    name="success case: select set by topo",
     inputs=SELECT_BY_TOPO_SUCCESS_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(
-        success=True,
-        outputs={}),
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(
             func=SELECT_BY_TOPO_SUCCESS_CLIENT.cc.update_set,
             calls=[
-                Call({
-                    'bk_biz_id': 2,
-                    'bk_supplier_account': 0,
-                    'bk_set_id': 5,
-                    'data': {'bk_service_status': '1'}
-                })
-            ]
+                Call({"bk_biz_id": 2, "bk_supplier_account": 0, "bk_set_id": 5, "data": {"bk_service_status": "1"}})
+            ],
         )
     ],
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
-    ]
+    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),],
 )
 
 
 SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT = MockClient(
-    get_mainline_object_topo_return=COMMON_MAINLINE,
-    search_biz_inst_topo_return=COMMON_TOPO
+    get_mainline_object_topo_return=COMMON_MAINLINE, search_biz_inst_topo_return=COMMON_TOPO
 )
 
 
 SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_set_select_method': 'text',
-    'cc_set_select_topo': [],
-    'cc_set_select_text': u'    蓝鲸>Yun >set\n\n',
-    'cc_set_status': '1',
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_set_select_method": "text",
+    "cc_set_select_topo": [],
+    "cc_set_select_text": u"    蓝鲸>Yun >set\n\n",
+    "cc_set_status": "1",
+    "_loop": 1,
 }
 
 SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
-    name='fail case: select set by text with error path',
+    name="fail case: select set by text with error path",
     inputs=SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(
-        success=False, outputs={
-            'ex_data': u'不存在该拓扑路径：蓝鲸>Yun>set'
-        }),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": u"不存在该拓扑路径：蓝鲸>Yun>set"}),
     schedule_assertion=None,
     execute_call_assertion=None,
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
-    ]
+    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),],
 )
 
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT = MockClient(
-    get_mainline_object_topo_return=COMMON_MAINLINE,
-    search_biz_inst_topo_return=COMMON_TOPO
+    get_mainline_object_topo_return=COMMON_MAINLINE, search_biz_inst_topo_return=COMMON_TOPO
 )
 
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
-    'biz_cc_id': 2,
-    'cc_set_select_method': 'text',
-    'cc_set_select_topo': [],
-    'cc_set_select_text': u'    蓝鲸>Yun\n\n',
-    'cc_set_status': '1',
-    '_loop': 1
+    "biz_cc_id": 2,
+    "cc_set_select_method": "text",
+    "cc_set_select_topo": [],
+    "cc_set_select_text": u"    蓝鲸>Yun\n\n",
+    "cc_set_status": "1",
+    "_loop": 1,
 }
 
 SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
-    name='fail case: select set by text with error level',
+    name="fail case: select set by text with error level",
     inputs=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(
-        success=False, outputs={
-            'ex_data': u'输入文本路径[蓝鲸>Yun]与业务拓扑层级不匹配'
-        }),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": u"输入文本路径[蓝鲸>Yun]与业务拓扑层级不匹配"}),
     schedule_assertion=None,
     execute_call_assertion=None,
-    patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
-    ]
+    patchers=[Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),],
 )
