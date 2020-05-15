@@ -65,7 +65,10 @@
         },
         watch: {
             formMode () {
-                // 重新计算 textarea 高度
+                /**
+                 * 重新计算 textarea 高度，解决 disabled 下有滚动条和空白问题
+                 * resizeTextarea 为非官方暴露 api，后续需关注 element textarea 组件该问题修复后删除
+                 */
                 this.$nextTick(() => {
                     this.$refs.tagTextarea.resizeTextarea()
                 })
