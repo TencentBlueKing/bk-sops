@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,11 +20,17 @@
                 hookable: true,
                 validation: [
                     {
+                        type: "required"
+                    },
+                    {
                         type: "custom",
                         args: function(value) {
                             var result = {
                                 result: false,
                                 error_message: gettext("请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)")
+                            }
+                            if (!value){
+                                result.result = true;
                             }
                             var number_regex = /^\d{1,8}$/;
                             if (number_regex.test(value)) {

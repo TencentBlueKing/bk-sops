@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -141,6 +141,93 @@ def cc_format_tree_mode_id(front_id_list):
     if front_id_list is None:
         return []
     return [int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x) for x in front_id_list]
+
+
+def cc_parse_path_text(path_text):
+    """
+    将目标主机/模块/自定义层级的文本路径解析为列表形式，支持空格/空行容错解析
+    :param path_text: 目标主机/模块/自定义层级的文本路径
+    :return:路径列表，每个路径是一个节点列表
+    example:
+    a > b > c > s
+       a>v>c
+    a
+    解析结果
+    [
+        [a, b, c, s],
+        [a, v, c],
+        [a]
+    ]
+    """
+    text_path_list = path_text.split('\n')
+    path_list = []
+    for text_path in text_path_list:
+        text_path = text_path.strip()
+        path = []
+        if len(text_path) != 0:
+            for text_node in text_path.split('>'):
+                text_node = text_node.strip()
+                if len(text_node) != 0:
+                    path.append(text_node)
+            path_list.append(path)
+    return path_list
+
+
+def cc_list_match_node_inst_id(topo_tree, path_list):
+    """
+    路径匹配，对path_list中的所有路径与拓扑树进行路径匹配
+    :param topo_tree: 业务拓扑 list
+    [
+        {
+            "bk_inst_id": 2,
+            "bk_inst_name": "blueking",
+            "bk_obj_id": "biz",
+            "bk_obj_name": "business",
+            "child": [
+                {
+                    "bk_inst_id": 3,
+                    "bk_inst_name": "job",
+                    "bk_obj_id": "set",
+                    "bk_obj_name": "set",
+                    "child": [
+                        {
+                            "bk_inst_id": 5,
+                            "bk_inst_name": "job",
+                            "bk_obj_id": "module",
+                            "bk_obj_name": "module",
+                            "child": []
+                        },
+                        {
+                            ...
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    :param path_list: 路径列表，example: [[a, b], [a, c]]
+    :return:
+        True: list -匹配父节点的bk_inst_id
+        False: message -错误信息
+    """
+    inst_id_list = []
+    for path in path_list:
+        index = 0
+        topo_node_list = topo_tree
+        while len(path) > index:
+            match_node = None
+            for topo_node in topo_node_list:
+                if path[index] == topo_node['bk_inst_name']:
+                    match_node = topo_node
+                    break
+            if match_node:
+                index = index + 1
+                if index == len(path):
+                    inst_id_list.append(match_node['bk_inst_id'])
+                topo_node_list = match_node['child']
+            else:
+                return {'result': False, 'message': u'不存在该拓扑路径：{}'.format('>'.join(path))}
+    return {'result': True, 'data': inst_id_list}
 
 
 class CCTransferHostModuleService(Service):
@@ -1020,7 +1107,7 @@ class CCTransferHostToIdleService(Service):
 
 
 class CCTransferHostToIdleComponent(Component):
-    name = _("转移主机至空闲机")
+    name = _("转移主机至空闲机模块")
     code = 'cc_transfer_to_idle'
     bound_service = CCTransferHostToIdleService
     form = '%scomponents/atoms/cc/cc_transfer_to_idle.js' % settings.STATIC_URL
@@ -1043,9 +1130,9 @@ class CmdbTransferFaultHostService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
@@ -1073,7 +1160,7 @@ class CmdbTransferFaultHostService(Service):
 
 
 class CmdbTransferFaultHostComponent(Component):
-    name = _('转移主机到业务的故障机模块')
+    name = _('转移主机至故障机模块')
     code = 'cmdb_transfer_fault_host'
     bound_service = CmdbTransferFaultHostService
     form = '%scomponents/atoms/cc/cmdb_transfer_fault_host.js' % settings.STATIC_URL
@@ -1096,9 +1183,9 @@ class CmdbTransferHostResourceModuleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
@@ -1126,7 +1213,7 @@ class CmdbTransferHostResourceModuleService(Service):
 
 
 class CmdbTransferHostResourceModuleComponent(Component):
-    name = _('转移主机至资源池')
+    name = _('上交主机至资源池')
     code = 'cmdb_transfer_host_resource'
     bound_service = CmdbTransferHostResourceModuleService
     form = '%scomponents/atoms/cc/cmdb_transfer_host_resource.js' % settings.STATIC_URL

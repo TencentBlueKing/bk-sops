@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -487,21 +487,25 @@
                     } else {
                         this.executeInfo = respData
                         this.inputsInfo = inputs
-                        this.outputsInfo = outputs
                         this.historyInfo = respData.histories
-                        this.outputsInfo = outputs.filter(output => output.preset)
+                        
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
                         
-                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.outputsInfo.hasOwnProperty('job_global_var')) {
-                            this.outputsInfo = this.outputsInfo.filter(output => {
-                                const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
+                        // 兼容 JOB 执行作业输出参数
+                        // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
+                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
+                            this.outputsInfo = outputs.filter(output => {
+                                const outputIndex = this.inputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
                                 if (!output.preset && outputIndex === -1) {
                                     return false
                                 }
                                 return true
                             })
+                        } else {
+                            // 普通插件展示 preset 为 true 的输出参数
+                            this.outputsInfo = outputs.filter(output => output.preset)
                         }
                         
                         if (this.theExecuteTime === undefined) {

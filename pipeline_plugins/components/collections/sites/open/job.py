@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -33,6 +33,7 @@ import base64
 import logging
 import traceback
 from functools import partial
+from copy import deepcopy
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
@@ -216,7 +217,7 @@ class JobExecuteTaskService(JobService):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        original_global_var = data.get_one_of_inputs("job_global_var")
+        original_global_var = deepcopy(data.get_one_of_inputs("job_global_var"))
         global_vars = []
         for _value in original_global_var:
             # 3-IP
@@ -328,7 +329,7 @@ class JobFastPushFileService(JobService):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        original_source_files = data.get_one_of_inputs("job_source_files", [])
+        original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
         file_source = []
         for item in original_source_files:
             ip_info = cc_get_ips_info_by_str(

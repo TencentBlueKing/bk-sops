@@ -49,7 +49,7 @@
                 </bk-select>
             </bk-form-item>
             <bk-form-item :label="i18n.nodeName" :required="true" property="nodeName">
-                <bk-input v-model="formData.nodeName" @blur="updateData"></bk-input>
+                <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="i18n.errorHandle" class="error-handle">
                 <bk-checkbox
@@ -119,7 +119,7 @@
                 </i>
             </bk-form-item>
             <bk-form-item :label="i18n.nodeName" :required="true" property="nodeName">
-                <bk-input v-model="formData.nodeName" @blur="updateData"></bk-input>
+                <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
             <bk-form-item :label="i18n.selectable">
                 <bk-switcher
@@ -345,6 +345,7 @@
             }
         }
         .choose-plugin-btn {
+            padding: 0;
             width: 68px;
             height: 30px;
             line-height: 30px;

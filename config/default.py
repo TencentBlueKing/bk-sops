@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -79,6 +79,7 @@ INSTALLED_APPS += (
     'weixin',
     'version_log',
     'files',
+    'corsheaders',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -115,6 +116,16 @@ MIDDLEWARE += (
     'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
 )
 
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = ()
+if os.getenv("BKAPP_CORS_ALLOW", None):
+    MIDDLEWARE = ('corsheaders.middleware.CorsMiddleware',) + MIDDLEWARE
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ORIGIN_WHITELIST = os.getenv("BKAPP_CORS_WHITELIST", "").split(",")
+else:
+    CORS_ALLOW_CREDENTIALS = False
+
+
 MIDDLEWARE = ('weixin.core.middlewares.WeixinProxyPatchMiddleware',) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
@@ -128,7 +139,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.5.6'
+STATIC_VERSION = '3.5.8'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
@@ -279,7 +290,7 @@ BK_IAM_RELATED_SCOPE_TYPES = 'system'
 BK_IAM_SYSTEM_MANAGERS = 'admin'
 BK_IAM_SYSTEM_CREATOR = 'admin'
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
-BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
+BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_APP_CODE', 'bk_iam_app')
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', os.getenv('BK_IAM_HOST', ''))

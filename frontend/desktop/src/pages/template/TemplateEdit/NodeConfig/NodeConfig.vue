@@ -435,7 +435,7 @@
                     let templateName = gettext('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
-                        this.atomTypeList.subflow.some(group => {
+                        this.atomTypeList.subflow.groups.some(group => {
                             return group.list.some(item => {
                                 if (item.template_id === Number(template_id)) {
                                     templateName = item.name
@@ -727,22 +727,26 @@
             }
             &.position-right-var {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 857px;
+                    right: 856px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-basic-info{
                 /deep/ .bk-sideslider-wrapper {
-                    right: 477px;
+                    right: 476px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-cache {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 477px;
+                    right: 476px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
             &.position-right-template-data {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 897px;
+                    right: 896px;
+                    border-right: 1px solid #dcdee5;
                 }
             }
         }
