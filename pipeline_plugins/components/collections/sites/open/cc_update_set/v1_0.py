@@ -24,7 +24,7 @@ from pipeline_plugins.components.collections.sites.open.cc import (
     cc_format_tree_mode_id,
     cc_parse_path_text,
     cc_list_match_node_inst_id,
-    cc_format_prop_data
+    cc_format_prop_data,
 )
 
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
@@ -32,161 +32,163 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
-VERSION = 'v1.0'
+VERSION = "v1.0"
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class CCUpdateSetService(Service):
-
     def inputs_format(self):
-        return [self.InputItem(name=_('业务 ID'),
-                               key='biz_cc_id',
-                               type='string',
-                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'填参方式'),
-                               key="cc_set_select_method",
-                               type="string",
-                               schema=StringItemSchema(description=_(u'模块填入方式，拓扑(topo)，层级文本(text)'),
-                                                       enum=["topo", "text"])),
-                self.InputItem(name=_('拓扑 -集群列表'),
-                               key='cc_set_select_topo',
-                               type='array',
-                               schema=ArrayItemSchema(description=_('需要清空的集群 ID 列表'),
-                                                      item_schema=IntItemSchema(description=_('集群 ID')))),
-                self.InputItem(name=_(u'文本路径 -集群'),
-                               key='cc_set_select_text',
-                               type='string',
-                               schema=StringItemSchema(description=_(u'集群文本路径'))),
-                self.InputItem(name=_('集群属性'),
-                               key='cc_set_property',
-                               type='string',
-                               schema=StringItemSchema(description=_('需要修改的集群属性'))),
-                self.InputItem(name=_('属性值'),
-                               key='cc_set_prop_value',
-                               type='string',
-                               schema=StringItemSchema(description=_('集群属性更新后的值')))]
+        return [
+            self.InputItem(
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="string",
+                schema=StringItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_(u"填参方式"),
+                key="cc_set_select_method",
+                type="string",
+                schema=StringItemSchema(description=_(u"模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
+            ),
+            self.InputItem(
+                name=_("拓扑 -集群列表"),
+                key="cc_set_select_topo",
+                type="array",
+                schema=ArrayItemSchema(
+                    description=_("需要清空的集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
+                ),
+            ),
+            self.InputItem(
+                name=_(u"文本路径 -集群"),
+                key="cc_set_select_text",
+                type="string",
+                schema=StringItemSchema(description=_(u"集群文本路径")),
+            ),
+            self.InputItem(
+                name=_("集群属性"),
+                key="cc_set_property",
+                type="string",
+                schema=StringItemSchema(description=_("需要修改的集群属性")),
+            ),
+            self.InputItem(
+                name=_("属性值"),
+                key="cc_set_prop_value",
+                type="string",
+                schema=StringItemSchema(description=_("集群属性更新后的值")),
+            ),
+        ]
 
     def outputs_format(self):
         return []
 
     def execute(self, data, parent_data):
-        executor = parent_data.get_one_of_inputs('executor')
+        executor = parent_data.get_one_of_inputs("executor")
 
         client = get_client_by_user(executor)
-        if parent_data.get_one_of_inputs('language'):
-            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
-            translation.activate(parent_data.get_one_of_inputs('language'))
+        if parent_data.get_one_of_inputs("language"):
+            setattr(client, "language", parent_data.get_one_of_inputs("language"))
+            translation.activate(parent_data.get_one_of_inputs("language"))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
-        cc_set_select_method = data.get_one_of_inputs('cc_set_select_method')
+        cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
         # 选中集群bk_inst_id列表
         cc_set_select = []
 
-        if cc_set_select_method == 'topo':
-            cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select_topo'))
-        elif cc_set_select_method == 'text':
-            kwargs = {
-                "bk_biz_id": biz_cc_id,
-                "bk_supplier_account": supplier_account
-            }
+        if cc_set_select_method == "topo":
+            cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
+        elif cc_set_select_method == "text":
+            kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
             topo_tree = client.cc.search_biz_inst_topo(kwargs)
-            if not topo_tree['result']:
-                message = cc_handle_api_error('cc.search_biz_inst_topo', kwargs, topo_tree)
+            if not topo_tree["result"]:
+                message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, topo_tree)
                 self.logger.error(message)
-                data.set_outputs('ex_data', message)
+                data.set_outputs("ex_data", message)
                 return False
             # 文本路径解析
-            cc_set_select_text = data.get_one_of_inputs('cc_set_select_text')
+            cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             path_list = cc_parse_path_text(cc_set_select_text)
 
             # 获取主线模型业务拓扑
-            mainline = client.cc.get_mainline_object_topo({'bk_supplier_account': supplier_account})
+            mainline = client.cc.get_mainline_object_topo({"bk_supplier_account": supplier_account})
             # 主线模型中集群所处的深度（包含集群）= 主线模型的业务拓扑级数 - 主机/模块（2）
-            set_depth = len(mainline['data']) - 2
+            set_depth = len(mainline["data"]) - 2
             for path in path_list:
                 if len(path) != set_depth:
-                    data.set_outputs('ex_data', '输入文本路径[{}]与业务拓扑层级不匹配'.format('>'.join(path)))
+                    data.set_outputs("ex_data", "输入文本路径[{}]与业务拓扑层级不匹配".format(">".join(path)))
                     return False
             # 获取集群bk_inst_id
-            cc_list_match_node_inst_id_result = cc_list_match_node_inst_id(topo_tree['data'], path_list)
-            if cc_list_match_node_inst_id_result['result']:
-                cc_set_select = cc_list_match_node_inst_id_result['data']
-            else:
-                data.set_outputs('ex_data', cc_list_match_node_inst_id_result['message'])
+            cc_list_match_node_inst_id_result = cc_list_match_node_inst_id(topo_tree["data"], path_list)
+            if not cc_list_match_node_inst_id_result["result"]:
+                data.set_outputs("ex_data", cc_list_match_node_inst_id_result["message"])
                 return False
+            cc_set_select = cc_list_match_node_inst_id_result["data"]
         else:
-            data.set_outputs('ex_data', u'请选择填参方式')
+            data.set_outputs("ex_data", u"请选择填参方式")
 
-        cc_set_property = data.get_one_of_inputs('cc_set_property')
+        cc_set_property = data.get_one_of_inputs("cc_set_property")
         if cc_set_property == "bk_service_status":
-            bk_service_status = cc_format_prop_data(executor,
-                                                    'set',
-                                                    'bk_service_status',
-                                                    parent_data.get_one_of_inputs('language'),
-                                                    supplier_account)
-            if not bk_service_status['result']:
-                data.set_outputs('ex_data', bk_service_status['message'])
+            bk_service_status = cc_format_prop_data(
+                executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"), supplier_account
+            )
+            if not bk_service_status["result"]:
+                data.set_outputs("ex_data", bk_service_status["message"])
                 return False
 
-            cc_set_prop_value = bk_service_status['data'].get(data.get_one_of_inputs('cc_set_prop_value'))
+            cc_set_prop_value = bk_service_status["data"].get(data.get_one_of_inputs("cc_set_prop_value"))
             if not cc_set_prop_value:
-                data.set_outputs('ex_data', _("服务状态校验失败，请重试并修改为正确的服务状态"))
+                data.set_outputs("ex_data", _("服务状态校验失败，请重试并修改为正确的服务状态"))
                 return False
 
         elif cc_set_property == "bk_set_env":
-            bk_set_env = cc_format_prop_data(executor,
-                                             'set',
-                                             'bk_set_env',
-                                             parent_data.get_one_of_inputs('language'),
-                                             supplier_account)
-            if not bk_set_env['result']:
-                data.set_outputs('ex_data', bk_set_env['message'])
+            bk_set_env = cc_format_prop_data(
+                executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"), supplier_account
+            )
+            if not bk_set_env["result"]:
+                data.set_outputs("ex_data", bk_set_env["message"])
                 return False
 
-            cc_set_prop_value = bk_set_env['data'].get(data.get_one_of_inputs('cc_set_prop_value'))
+            cc_set_prop_value = bk_set_env["data"].get(data.get_one_of_inputs("cc_set_prop_value"))
             if not cc_set_prop_value:
-                data.set_outputs('ex_data', _("环境类型校验失败，请重试并修改为正确的环境类型"))
+                data.set_outputs("ex_data", _("环境类型校验失败，请重试并修改为正确的环境类型"))
                 return False
 
         elif cc_set_property == "bk_capacity":
             try:
-                cc_set_prop_value = int(data.get_one_of_inputs('cc_set_prop_value'))
+                cc_set_prop_value = int(data.get_one_of_inputs("cc_set_prop_value"))
             except Exception:
                 self.logger.error(traceback.format_exc())
-                data.set_outputs('ex_data', _("集群容量必须为整数"))
+                data.set_outputs("ex_data", _("集群容量必须为整数"))
                 return False
 
         else:
-            cc_set_prop_value = data.get_one_of_inputs('cc_set_prop_value')
+            cc_set_prop_value = data.get_one_of_inputs("cc_set_prop_value")
 
         for set_id in cc_set_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
                 "bk_supplier_account": supplier_account,
                 "bk_set_id": set_id,
-                "data": {
-                    cc_set_property: cc_set_prop_value
-                }
+                "data": {cc_set_property: cc_set_prop_value},
             }
             cc_result = client.cc.update_set(cc_kwargs)
-            if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_set', cc_kwargs, cc_result)
+            if not cc_result["result"]:
+                message = cc_handle_api_error("cc.update_set", cc_kwargs, cc_result)
                 self.logger.error(message)
-                data.set_outputs('ex_data', message)
+                data.set_outputs("ex_data", message)
                 return False
         return True
 
 
 class CCUpdateSetComponent(Component):
     name = _("更新集群属性")
-    code = 'cc_update_set'
+    code = "cc_update_set"
     bound_service = CCUpdateSetService
-    form = '{static_url}components/atoms/cc/{ver}/cc_update_set.js'.format(static_url=settings.STATIC_URL,
-                                                                           ver=VERSION)
+    form = "{static_url}components/atoms/cc/{ver}/cc_update_set.js".format(static_url=settings.STATIC_URL, ver=VERSION)
     version = VERSION
