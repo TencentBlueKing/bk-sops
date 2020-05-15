@@ -34,12 +34,12 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ResourceList from './ResourceList.vue'
     import ResourceFilter from './ResourceFilter.vue'
-    import '@/utils/i18n.js'
 
     export default {
         name: 'ResourceAllocation',

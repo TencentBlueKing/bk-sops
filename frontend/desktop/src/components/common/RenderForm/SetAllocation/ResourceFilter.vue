@@ -12,7 +12,7 @@
 <template>
     <div class="resource-filter">
         <header class="set-form">
-            <span class="title">{{ $t('资源筛选') }}</span>
+            <span class="title">{{ i18n.title }}</span>
             <div class="btns">
                 <bk-button theme="primary" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
                 <bk-button

@@ -45,7 +45,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    const i18nText = {
+    const i18n = {
         select: gettext('请选择'),
         desc: gettext('请输入，多个用换行分隔'),
         notEmpty: gettext('必填项')
@@ -84,7 +84,7 @@
                     field: this.data.field,
                     value: this.data.value.join('\n')
                 },
-                i18n: i18nText
+                i18n
             }
         },
         watch: {
