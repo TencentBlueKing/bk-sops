@@ -114,7 +114,7 @@
                 lang: state => state.lang
             }),
             langSuffix () {
-                return this.lang === 'zh-cn' ? 'zh' : 'en'
+                return this.lang === 'en' ? 'en' : 'zh'
             },
             tplResource () {
                 return this.activeNodeListType === 'subflow' ? this.atomTypeList.subflow.tplResource : {}
