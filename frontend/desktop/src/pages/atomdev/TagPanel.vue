@@ -160,7 +160,18 @@
                         menu.push(item)
                     }
                 })
-
+                menu.push({
+                    tag: 'combine',
+                    config: {
+                        type: 'combine',
+                        attrs: {
+                            name: {}
+                        },
+                        children: [],
+                        events: [],
+                        methods: {}
+                    }
+                })
                 return menu
             }
         },
