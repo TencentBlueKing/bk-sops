@@ -467,7 +467,7 @@
              * 3.子流程更新时，先判断数据 custom_type(自定义全局变量)或者 source_tag(标准插件表单项)是否相同，
              * 相同取旧数据里的表单值，否则取新数据
              */
-            getSubflowInputsValue (forms = {}, oldForms = {}) {
+            getSubflowInputsValue (forms, oldForms = {}) {
                 return Object.keys(forms).reduce((acc, cur) => {
                     const variable = forms[cur]
                     if (variable.show_type === 'show') {
@@ -479,11 +479,6 @@
                             } else {
                                 canReuse = variable.source_tag === oldVariable.source_tag
                             }
-                        }
-                        if (cur === '${job_args}') {
-                            console.log(canReuse)
-                            console.log(this.inputsParamValue[cur])
-                            console.log(variable.value)
                         }
                         const val = canReuse ? this.inputsParamValue[cur] : variable.value
                         acc[variable.key] = tools.deepClone(val)
