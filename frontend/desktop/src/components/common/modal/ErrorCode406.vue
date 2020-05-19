@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,35 +11,22 @@
 */
 <template>
     <div class="content-wrapper">
-        <h3 class="error-title">{{ i18n.sorry }}</h3>
+        <h3 class="error-title">{{ $t('对不起，您没有项目权限') }}</h3>
         <ul>
-            <li>{{ i18n.contact1 }}
-                <a href="javascript:void(0);" @click.prevent="onGotoCC">{{ i18n.cc_system }}</a>
-                {{ i18n.cc_roles }}
+            <li>{{ $t('1.联系项目运维为您添加') }}
+                <a href="javascript:void(0);" @click.prevent="onGotoCC">{{ $t('配置平台') }}</a>
+                {{ $t('对应项目的角色，如运维人员、开发人员、产品人员、测试人员') }}
             </li>
-            <li>{{ i18n.goto }}
-                <a href="javascript:void(0);" @click.prevent="onGotoCC">{{ i18n.cc_system }}</a>
-                {{ i18n.create_biz }}
+            <li>{{ $t('2.或者前往') }}
+                <a href="javascript:void(0);" @click.prevent="onGotoCC">{{ $t('配置平台') }}</a>
+                {{ $t('创建属于自己的项目') }}
             </li>
         </ul>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'ErrorCode406',
-        data () {
-            return {
-                i18n: {
-                    sorry: gettext('对不起，您没有项目权限'),
-                    contact1: gettext('1.联系项目运维为您添加'),
-                    cc_system: gettext('配置平台'),
-                    cc_roles: gettext('对应项目的角色，如运维人员、开发人员、产品人员、测试人员'),
-                    goto: gettext('2.或者前往'),
-                    create_biz: gettext('创建属于自己的项目')
-                }
-            }
-        },
         methods: {
             onGotoCC () {
                 window.PAAS_API.open_other_app('bk_cmdb')

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -46,7 +46,13 @@
                     <thead>
                         <tr>
                             <th width="">{{i18n.cloudArea}}</th>
-                            <th width="">IP</th>
+                            <th width="">
+                                IP
+                                <span class="sort-group">
+                                    <i :class="['sort-icon', 'up', { 'active': ipSortActive === 'up' }]" @click="onIpSort('up')"></i>
+                                    <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
+                                </span>
+                            </th>
                             <th width="">{{i18n.status + i18n.error}}</th>
                             <th width="50">{{i18n.operation}}</th>
                         </tr>
@@ -108,9 +114,9 @@
 
     const i18n = {
         copyIp: gettext('复制IP'),
-        copyAgentIp: gettext('复制Agent未安装IP'),
+        copyAgentIp: gettext('复制Agent异常IP'),
         clearIp: gettext('清空IP'),
-        clearFailedAgentIp: gettext('清空Agent未安装IP'),
+        clearFailedAgentIp: gettext('清空Agent异常IP'),
         add: gettext('添加'),
         moreOperations: gettext('更多操作'),
         selected: gettext('已选择'),
@@ -143,7 +149,9 @@
                 isIpAddingPanelShow: false,
                 isSearchMode: false,
                 copyText: '',
+                ipSortActive: '', // ip 排序方式
                 searchResult: [],
+                list: this.staticIps,
                 isPaginationShow: totalPage > 1,
                 currentPage: 1,
                 totalCount: this.staticIps.length,
@@ -177,20 +185,31 @@
             },
             isShowQuantity () {
                 return this.staticIps.length
-            },
-            list () {
-                return this.isSearchMode ? this.searchResult : this.staticIps
             }
         },
         watch: {
             staticIps (val) {
-                this.setPanigation(val)
+                this.setDisplayList()
                 if (this.staticIps.length !== 0) {
                     this.dataError = false
                 }
+            },
+            isSearchMode () {
+                this.setDisplayList()
+            },
+            ipSortActive () {
+                this.setDisplayList()
             }
         },
         methods: {
+            setDisplayList () {
+                let list = this.isSearchMode ? this.searchResult : this.staticIps
+                if (this.ipSortActive) {
+                    list = this.getSortIpList(list, this.ipSortActive)
+                }
+                this.list = list
+                this.setPanigation(list)
+            },
             setPanigation (list = []) {
                 this.listInPage = list.slice(0, this.listCountPerPage)
                 const totalPage = Math.ceil(list.length / this.listCountPerPage)
@@ -285,6 +304,29 @@
                     this.onAddIpCancel()
                     return false
                 }
+            },
+            getSortIpList (list, way = 'up') {
+                const srotList = list.slice(0)
+                const sortVal = way === 'up' ? 1 : -1
+                srotList.sort((a, b) => {
+                    const srotA = a.bk_host_innerip.split('.')
+                    const srotB = b.bk_host_innerip.split('.')
+                    for (let i = 0; i < 4; i++) {
+                        if (srotA[i] * 1 > srotB[i] * 1) {
+                            return sortVal
+                        } else if (srotA[i] * 1 < srotB[i] * 1) {
+                            return -sortVal
+                        }
+                    }
+                })
+                return srotList
+            },
+            onIpSort (way) {
+                if (this.ipSortActive === way) {
+                    this.ipSortActive = ''
+                    return
+                }
+                this.ipSortActive = way
             }
         }
     }
@@ -293,6 +335,9 @@
 .operation-area {
     position: relative;
     margin: 20px 0;
+    .bk-button {
+        font-size: 12px;
+    }
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
         padding: 0px;
@@ -317,9 +362,6 @@
     .total-not-installed {
         color: #ea3636;
     }
-}
-/deep/.bk-button .bk-icon {
-    margin-left: 55px;
 }
 .ip-search-wrap {
     position: absolute;
@@ -371,6 +413,27 @@
     &.disabled {
         th, td {
             color: #cccccc;
+        }
+    }
+    .sort-group {
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: top;
+        .sort-icon {
+            display: block;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 5px 5px 0 5px;
+            border-color: #c4c6cc transparent transparent transparent;
+            cursor: pointer;
+            &.up {
+                margin-bottom: 2px;
+                transform: rotate(180deg);
+            }
+            &.active {
+                border-color: #3a84ff transparent transparent transparent;
+            }
         }
     }
 }

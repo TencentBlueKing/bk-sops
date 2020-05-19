@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -47,17 +47,16 @@
                 <i v-if="node.status === 'RUNNING'" class="common-icon-loading"></i>
             </div>
         </div>
-        <div id="node-tooltip-content" slot="content">
+        <div class="node-tooltip-content" slot="content">
             <template v-if="node.status === 'RUNNING'">
-                <bk-button @click="onSubflowPauseResumeClick('pause')">{{ i18n.pause }}</bk-button>
-                <bk-button v-if="hasAdminPerm" @click="$emit('onForceFail', node.id)">{{ i18n.forceFail }}</bk-button>
+                <bk-button @click="onSubflowPauseResumeClick('pause')">{{ $t('暂停') }}</bk-button>
+                <bk-button v-if="hasAdminPerm" @click="$emit('onForceFail', node.id)">{{ $t('强制失败') }}</bk-button>
             </template>
-            <bk-button v-if="node.status === 'SUSPENDED'" @click="onSubflowPauseResumeClick('resume')">{{ i18n.resume }}</bk-button>
+            <bk-button v-if="node.status === 'SUSPENDED'" @click="onSubflowPauseResumeClick('resume')">{{ $t('继续') }}</bk-button>
         </div>
     </el-tooltip>
 </template>
 <script>
-    import '@/utils/i18n.js'
 
     export default {
         name: 'Subflow',
@@ -70,15 +69,6 @@
                 type: Object,
                 default () {
                     return {}
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    pause: gettext('暂停'),
-                    resume: gettext('继续'),
-                    forceFail: gettext('强制失败')
                 }
             }
         },
@@ -110,11 +100,13 @@
                 bottom: 0;
                 right: 0;
                 background: linear-gradient(to left top,
-                    #999 40%, #fff 50%, #fff) 100% 0 no-repeat;
-                width: 10px;
-                height: 10px;
+                    #a2a5ad, #9fa3aa 40%, #82848a 50%, #ffffff 60%, #ffffff) 100% 0 no-repeat;
+                width: 11px;
+                height: 11px;
+                border-top: 1px solid #e5e5e5;
+                border-left: 1px solid #e5e5e5;
                 border-bottom-right-radius: 4px;
-                box-shadow: -1px -1px 6px -2px rgba(0, 0, 0, .5);
+                box-shadow: -1px -1px 2px -2px rgba(0, 0, 0, .5);
             }
         }
     }
@@ -139,11 +131,6 @@
             transform: translate(-50%, -50%);
             animation: ripple .8s ease-out 5;
         }
-    }
-    .dark-circle {
-        font-size: 12px;
-        color: #979ba5;
-        margin-left: -2px;
     }
     @keyframes ripple {
         100% {

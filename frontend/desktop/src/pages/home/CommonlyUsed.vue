@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,7 +11,7 @@
 */
 <template>
     <div class="common-used" v-bkloading="{ isLoading: commonlyUsedloading, opacity: 1 }">
-        <h3 class="panel-title">{{ i18n.title }}</h3>
+        <h3 class="panel-title">{{ $t('常用项目') }}</h3>
         <div ref="cardView" v-if="commonUsedList.length" class="card-view">
             <ul ref="cardList" class="card-list scroll-body">
                 <li
@@ -22,11 +22,11 @@
                     <p class="business-name">{{ item.project.name }}</p>
                     <div class="business-info">
                         <p class="info-item">
-                            <label class="label">{{ i18n.businessId }}</label>
+                            <label class="label">{{ $t('项目id：') }}</label>
                             <span class="text">{{ item.project.id }}</span>
                         </p>
                         <p class="info-item">
-                            <label class="label">{{ i18n.timeZone }}</label>
+                            <label class="label">{{ $t('时区：') }}</label>
                             <span class="text">{{ item.project.create_at | getTimeZone }}</span>
                         </p>
                     </div>
@@ -35,10 +35,10 @@
 
         </div>
         <panel-nodata v-else>
-            <span>{{ i18n.nodataDes1 }}</span>
-            <span class="link-text" @click="openOtherApp('bk_iam_app')">{{ i18n.nodataDes2 }}</span>
-            <span>{{ i18n.nodataDes3 }}</span>
-            <span class="link-text" @click="openOtherApp('bk_cmdb')">{{ i18n.nodataDes4 }}</span>
+            <span>{{ $t('项目，项目集的权限请前往') }}</span>
+            <span class="link-text" @click="openOtherApp('bk_iam_app')">{{ $t('权限中心') }}</span>
+            <span>{{ $t('进行申请；如需新建项目，项目集请前往') }}</span>
+            <span class="link-text" @click="openOtherApp('bk_cmdb')">{{ $t('配置平台') }}</span>
         </panel-nodata>
         <span
             v-if="viewIndex > 0"
@@ -53,7 +53,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import PanelNodata from './PanelNodata.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions, mapMutations } from 'vuex'
@@ -71,16 +70,6 @@
         },
         data () {
             return {
-                i18n: {
-                    title: gettext('常用项目'),
-                    nodataDes1: gettext('项目，项目集的权限请前往'),
-                    nodataDes2: gettext('权限中心'),
-                    nodataDes3: gettext('进行申请；如需新建项目，项目集请前往'),
-                    nodataDes4: gettext('配置平台'),
-                    businessId: gettext('项目id：'),
-                    timeZone: gettext('时区：')
-
-                },
                 commonlyUsedloading: false,
                 commonUsedList: [],
                 viewIndex: 0,

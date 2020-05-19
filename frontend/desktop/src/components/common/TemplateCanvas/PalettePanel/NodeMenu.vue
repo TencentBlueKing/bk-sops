@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -33,7 +33,7 @@
                     class="search-input"
                     v-model="searchStr"
                     right-icon="bk-icon icon-search"
-                    :placeholder="i18n.placeholder"
+                    :placeholder="$t('请输入名称')"
                     :clearable="true"
                     @input="onSearchInput"
                     @clear="onClearSearch">
@@ -54,12 +54,26 @@
                                     </span>
                                 </div>
                                 <div slot="content" class="node-item-wrap">
-                                    <node-item
-                                        v-for="(node, index) in group.list"
-                                        :key="index"
-                                        :type="activeNodeListType"
-                                        :node="node">
-                                    </node-item>
+                                    <template v-for="(node, index) in group.list">
+                                        <node-item
+                                            v-if="activeNodeListType !== 'subflow' || node.hasPermission"
+                                            class="node-item"
+                                            :key="index"
+                                            :type="activeNodeListType"
+                                            :node="node">
+                                        </node-item>
+                                        <div
+                                            v-else
+                                            :key="index"
+                                            class="node-item">
+                                            <div
+                                                v-cursor
+                                                class="name-wrapper text-permission-disable"
+                                                @click="onApplyPermission(node)">
+                                                {{ node.name }}
+                                            </div>
+                                        </div>
+                                    </template>
                                     <div class="node-empty" v-if="group.list.length === 0">
                                         <no-data></no-data>
                                     </div>
@@ -69,12 +83,26 @@
                     </template>
                     <template v-else>
                         <div class="search-result">
-                            <node-item
-                                v-for="(node, index) in searchResult"
-                                :key="index"
-                                :type="activeNodeListType"
-                                :node="node">
-                            </node-item>
+                            <template v-for="(node, index) in searchResult">
+                                <node-item
+                                    v-if="activeNodeListType !== 'subflow' || node.hasPermission"
+                                    class="node-item"
+                                    :key="index"
+                                    :type="activeNodeListType"
+                                    :node="node">
+                                </node-item>
+                                <div
+                                    v-else
+                                    :key="index"
+                                    class="node-item">
+                                    <div
+                                        v-cursor
+                                        class="name-wrapper text-permission-disable"
+                                        @click="onApplyPermission(node)">
+                                        {{ node.name }}
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </template>
@@ -84,11 +112,12 @@
     </transition>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
     import toolsUtils from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
@@ -97,6 +126,7 @@
             NoData,
             NodeItem
         },
+        mixins: [permission],
         props: {
             showNodeMenu: {
                 type: Boolean,
@@ -109,6 +139,18 @@
             isFixedNodeMenu: {
                 type: Boolean,
                 default: false
+            },
+            tplOperations: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplResource: {
+                type: Object,
+                default () {
+                    return {}
+                }
             },
             nodes: {
                 type: Array,
@@ -125,10 +167,7 @@
                 searchStr: '',
                 searchResult: [],
                 isShowGroup: true,
-                defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
-                i18n: {
-                    placeholder: gettext('请输入名称')
-                }
+                defaultTypeIcon: require('@/assets/images/atom-type-default.svg')
             }
         },
         computed: {
@@ -139,7 +178,7 @@
                 const list = []
                 list.push({
                     type: 'all',
-                    group_name: this.activeNodeListType === 'tasknode' ? gettext('所有分组') : gettext('所有分类')
+                    group_name: this.activeNodeListType === 'tasknode' ? i18n.t('所有分组') : i18n.t('所有分类')
                 })
                 this.nodes.forEach(item => {
                     list.push({
@@ -220,6 +259,9 @@
                     this.selectedGroup = 'all'
                     this.$emit('onCloseNodeMenu')
                 }
+            },
+            onApplyPermission (node) {
+                this.applyForPermission(['view'], node, this.tplOperations, this.tplResource)
             }
         }
     }
@@ -240,7 +282,8 @@
         position: absolute;
         top: 16px;
         right: 16px;
-        padding: 5px 8px;
+        padding: 7px 8px 8px;
+        line-height: 1;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
         font-size: 14px;
@@ -265,9 +308,30 @@
         }
     }
     .node-list-wrap {
-        height: calc(100% - 71px);
+        height: calc(100% - 107px);
         overflow-y: auto;
         @include scrollbar;
+    }
+    .node-item {
+        background: #f0f1f5;
+        border-top: 1px solid #e2e4ed;
+        border-radius: 2px;
+        overflow: hidden;
+        cursor: move;
+        user-select: none;
+        &:first-child {
+            border-top: none;
+        }
+        &:hover {
+            background: #fafbfd;
+        }
+        /deep/ .name-wrapper {
+            padding: 0 14px;
+            height: 40px;
+            line-height: 40px;
+            color: #63656e;
+            font-size: 12px;
+        }
     }
     .bk-collapse-item {
         border-bottom: 1px solid #e2e4ed;

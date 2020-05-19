@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -44,7 +44,7 @@
                     <h3>{{tagInfo.title}}</h3>
                     <h3 v-if="tagInfo.desc">{{tagInfo.desc}}</h3>
                     <section v-if="tagInfo.attrs">
-                        <p>{{ i18n.attr }}</p>
+                        <p>{{ $t('属性') }}</p>
                         <template v-for="(attr, name) in tagInfo.attrs">
                             <p class="attr-item" :key="name">
                                 {{name}}
@@ -58,7 +58,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
     import FormNotFound from './FormNotFound.vue'
@@ -84,10 +83,7 @@
         data () {
             return {
                 formList: tools.deepClone(this.forms),
-                tagInfo: null,
-                i18n: {
-                    attr: gettext('属性')
-                }
+                tagInfo: null
             }
         },
         watch: {

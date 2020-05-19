@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -9,11 +9,11 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import '@/utils/i18n.js'
+import i18n from '@/config/i18n/index.js'
 import moment from 'moment'
 const draft = {
     // 添加本地缓存
-    addDraft (username, projectId, templateId, templateData, message = gettext('自动保存')) {
+    addDraft (username, projectId, templateId, templateData, message = i18n.t('自动保存')) {
         // 防止无法进行存储本地缓存 大约96KB左右的多余空间
         const minDraftLength = 100000
         // 本地缓存剩余大小

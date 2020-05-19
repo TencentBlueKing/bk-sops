@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -31,13 +31,12 @@
             <p class="text">{{ displayName }}</p>
         </div>
         <div v-if="isApplyPermission" class="apply-permission-mask">
-            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
+            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
         </div>
         <div v-if="showDelete" class="card-delete common-icon-dark-circle-close" @click.stop="onDeleteCard"></div>
     </li>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState } from 'vuex'
     export default {
         name: 'BaseCard',
@@ -65,13 +64,6 @@
             iconText: {
                 type: String,
                 default: ''
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    applyPermission: gettext('申请权限')
-                }
             }
         },
         computed: {

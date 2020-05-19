@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -65,7 +65,6 @@
                     v-if="isNodeConfigPanelShow"
                     :is-show="isNodeConfigPanelShow"
                     :atom-list="atomList"
-                    :subflow-list="subflowList"
                     :atom-type-list="atomTypeList"
                     :common="common"
                     :node-id="idOfNodeInConfigPanel"
@@ -79,6 +78,7 @@
                     :is-show="isShowConditionEdit"
                     :condition-data="conditionData"
                     :is-setting-panel-show="isSettingPanelShow"
+                    :setting-active-tab="settingActiveTab"
                     :is-show-condition-edit="isShowConditionEdit"
                     @onCloseConditionEdit="onCloseConditionEdit">
                 </condition-edit>
@@ -114,17 +114,17 @@
                 :theme="'primary'"
                 :mask-close="false"
                 :header-position="'left'"
-                :title="i18n.leave"
+                :title="$t('离开页面')"
                 :value="isLeaveDialogShow"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
-                <div class="leave-tips">{{ i18n.tips }}</div>
+                <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
             </bk-dialog>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     // moment用于时区使用
     import moment from 'moment-timezone'
@@ -141,23 +141,9 @@
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
     import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
+    import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
-
-    const i18n = {
-        templateEdit: gettext('流程编辑'),
-        leave: gettext('离开页面'),
-        tips: gettext('系统不会保存您所做的更改，确认离开？'),
-        saved: gettext('保存成功'),
-        error: gettext('任务节点参数错误，请点击错误节点查看详情'),
-        conditionError: gettext('分支节点参数错误，请点击错误节点查看详情'),
-        deleteSuccess: gettext('删除本地缓存成功'),
-        deleteFail: gettext('该本地缓存不存在，删除失败'),
-        replaceSuccess: gettext('替换流程成功'),
-        addCache: gettext('新增流程本地缓存成功'),
-        replaceSave: gettext('替换流程自动保存'),
-        layoutSave: gettext('排版完成，原内容在本地缓存中')
-    }
 
     export default {
         name: 'TemplateEdit',
@@ -169,10 +155,10 @@
             TemplateSetting,
             SubflowUpdateTips
         },
+        mixins: [permission],
         props: ['template_id', 'type', 'common'],
         data () {
             return {
-                i18n,
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
                 projectInfoLoading: false,
@@ -198,7 +184,6 @@
                 idOfNodeInConfigPanel: '',
                 idOfNodeShortcutPanel: '',
                 atomList: [],
-                subflowList: [],
                 atomTypeList: {
                     tasknode: [],
                     subflow: []
@@ -226,11 +211,11 @@
                     text: [
                         {
                             type: 'name',
-                            val: gettext('双击左键')
+                            val: i18n.t('双击左键')
                         },
                         {
                             type: 'text',
-                            val: gettext('可以快捷打开节点配置面板')
+                            val: i18n.t('可以快捷打开节点配置面板')
                         }
                     ]
                 }
@@ -349,7 +334,7 @@
             this.getProjectBaseInfo()
             this.getCustomVarCollection()
             window.onbeforeunload = function () {
-                return i18n.tips
+                return i18n.t('系统不会保存您所做的更改，确认离开？')
             }
             window.addEventListener('click', this.handleSidesPanelShow, false)
             window.addEventListener('resize', this.onWindowResize, false)
@@ -454,7 +439,6 @@
                         templateId: this.template_id
                     }
                     const resp = await this.loadSubflowList(data)
-                    this.subflowList = resp
                     this.handleSubflowGroup(resp)
                 } catch (e) {
                     errorHandler(e, this)
@@ -468,11 +452,11 @@
                     const customVarCollection = await this.loadCustomVarCollection()
                     const listData = [
                         {
-                            name: gettext('普通变量'),
+                            name: i18n.t('普通变量'),
                             children: []
                         },
                         {
-                            name: gettext('元变量'),
+                            name: i18n.t('元变量'),
                             children: []
                         }
                     ]
@@ -586,7 +570,7 @@
                         draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
                     }
                     this.$bkMessage({
-                        message: i18n.saved,
+                        message: i18n.t('保存成功'),
                         theme: 'success'
                     })
                     this.isTemplateDataChanged = false
@@ -643,24 +627,30 @@
             },
             // 子流程分组
             handleSubflowGroup (data) {
-                const grouped = []
-                data.forEach(item => {
-                    const group = grouped.find(tpl => tpl.type === item.category)
-                    if (group) {
-                        if (item.id !== Number(this.template_id)) {
+                const { meta, objects: tplList } = data
+                const groups = this.projectBaseInfo.task_categories.map(item => {
+                    return {
+                        type: item.value,
+                        group_name: item.name,
+                        group_icon: '',
+                        list: []
+                    }
+                })
+                tplList.forEach(item => {
+                    if (item.id !== Number(this.template_id)) {
+                        const group = groups.find(tpl => tpl.type === item.category)
+                        if (group) {
+                            item.hasPermission = this.hasPermission(['view'], item.auth_actions, meta.auth_operations)
                             group.list.push(item)
                         }
-                    } else {
-                        grouped.push({
-                            type: item.category,
-                            group_name: item.category_name,
-                            group_icon: '',
-                            list: [item]
-                        })
                     }
                 })
 
-                this.atomTypeList.subflow = grouped
+                this.atomTypeList.subflow = {
+                    tplOperations: meta.auth_operations,
+                    tplResource: meta.auth_resource,
+                    groups
+                }
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth
@@ -668,7 +658,7 @@
                 if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
                     this.hideConfigPanel()
                 }
-                if (this.isShowConditionEdit) {
+                if (isSettingPanelShow && this.isShowConditionEdit && clientX < 1920) {
                     this.onCloseConditionEdit()
                 }
                 if (isSettingPanelShow) {
@@ -779,7 +769,7 @@
                 })
                 if (!isAllValid) {
                     this.$bkMessage({
-                        message: i18n.error,
+                        message: i18n.t('任务节点参数错误，请点击错误节点查看详情'),
                         theme: 'error'
                     })
                 }
@@ -859,14 +849,7 @@
                 if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
-                const location = this.locations.find(item => item.id === id)
                 this.showConfigPanel(id)
-                this.$nextTick(() => {
-                    // 若节点参数错误，打开面板后执行一次表单校验
-                    if (location.status === 'FAILED') {
-                        this.$refs.nodeConfig.validate()
-                    }
-                })
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
@@ -900,7 +883,7 @@
                             this.$refs.templateCanvas.onResetPosition()
                             this.variableDataChanged()
                             this.$bkMessage({
-                                message: i18n.layoutSave,
+                                message: i18n.t('排版完成，原内容在本地缓存中'),
                                 theme: 'success'
                             })
                         })
@@ -1035,7 +1018,6 @@
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
                     this.syncAndValidateNodeConfig().then(result => {
-                        console.log(result)
                         if (result) {
                             this.asyncConditionData()
                         }
@@ -1068,7 +1050,7 @@
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
-                    errorHandler({ message: i18n.error }, this)
+                    errorHandler({ message: i18n.t('任务节点参数错误，请点击错误节点查看详情') }, this)
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
@@ -1090,12 +1072,12 @@
             onDeleteDraft (key) {
                 if (draft.deleteDraft(key)) {
                     this.$bkMessage({
-                        'message': i18n.deleteSuccess,
+                        'message': i18n.t('删除本地缓存成功'),
                         'theme': 'success'
                     })
                 } else {
                     this.$bkMessage({
-                        'message': i18n.deleteFail,
+                        'message': i18n.t('该本地缓存不存在，删除失败'),
                         'theme': 'error'
                     })
                 }
@@ -1112,10 +1094,10 @@
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
+                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.t('替换流程自动保存'))
                     }
                     this.$bkMessage({
-                        'message': i18n.replaceSuccess,
+                        'message': i18n.t('替换流程成功'),
                         'theme': 'success'
                     })
                 }
@@ -1146,7 +1128,7 @@
                 }
                 if (isMessage) {
                     this.$bkMessage({
-                        'message': i18n.addCache,
+                        'message': i18n.t('新增流程本地缓存成功'),
                         'theme': 'success'
                     })
                 }
@@ -1191,16 +1173,17 @@
                 let checkResult = true
                 const branchConditionDoms = document.querySelectorAll('.jtk-overlay .branch-condition')
                 branchConditionDoms.forEach(dom => {
-                    const name = dom.textContent
-                    const value = dom.dataset.value
-                    if (!name || !value) {
+                    const nodeId = dom.dataset.nodeid
+                    const lineId = dom.dataset.lineid
+                    const { name, evaluate } = this.canvasData.branchConditions[nodeId][lineId]
+                    if (!name || !evaluate) {
                         dom.classList.add('failed')
                         checkResult = false
                     }
                 })
                 if (!checkResult && isShowError) {
                     this.$bkMessage({
-                        'message': i18n.conditionError,
+                        'message': i18n.t('分支节点参数错误，请点击错误节点查看详情'),
                         'theme': 'error'
                     })
                 }

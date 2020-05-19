@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -15,16 +15,16 @@
             <router-link
                 :to="{ name: 'packageEdit' }"
                 class="bk-button bk-primary">
-                {{ emptyData ? i18n.create : i18n.edit }}
+                {{ emptyData ? $t('新建') : $t('编辑') }}
             </router-link>
         </div>
         <div v-if="originList.length">
             <div class="section-title">
                 <div class="title-wrapper">
-                    <h4>{{i18n.mainSource}}</h4>
+                    <h4>{{$t('主包源')}}</h4>
                     <i
                         class="title-tooltip common-icon-info"
-                        v-bk-tooltips.right="i18n.sourceTip">
+                        v-bk-tooltips.right="$t('远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突')">
                     </i>
                 </div>
             </div>
@@ -33,10 +33,10 @@
         <div v-if="originList.length">
             <div class="section-title">
                 <div class="title-wrapper">
-                    <h4>{{i18n.localCache}}</h4>
+                    <h4>{{$t('本地缓存')}}</h4>
                     <i
                         class="title-tooltip common-icon-info"
-                        v-bk-tooltips.right="i18n.cacheTip">
+                        v-bk-tooltips.right="$t('可选配置，所有远程插件源都可以同步到本地进行缓存，避免在不能访问远程插件源时无法加载标准插件')">
                     </i>
                 </div>
             </div>
@@ -46,12 +46,11 @@
             </div>
         </div>
         <div class="empty-data" v-if="emptyData">
-            <p>{{i18n.noData}}<router-link :to="{ name: 'packageEdit' }">{{i18n.create}}</router-link>{{i18n.sourceManage}}</p>
+            <p>{{$t('无数据，')}}<router-link :to="{ name: 'packageEdit' }">{{$t('新建')}}</router-link>{{$t('远程插件包源')}}</p>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import PackageTable from './PackageTable.vue'
@@ -70,17 +69,7 @@
                 emptyData: false,
                 originList: [],
                 cacheList: [],
-                loading: true,
-                i18n: {
-                    create: gettext('新建'),
-                    edit: gettext('编辑'),
-                    noData: gettext('无数据，'),
-                    sourceManage: gettext('远程插件包源'),
-                    mainSource: gettext('主包源'),
-                    localCache: gettext('本地缓存'),
-                    sourceTip: gettext('远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突'),
-                    cacheTip: gettext('可选配置，所有远程插件源都可以同步到本地进行缓存，避免在不能访问远程插件源时无法加载标准插件')
-                }
+                loading: true
             }
         },
         created () {

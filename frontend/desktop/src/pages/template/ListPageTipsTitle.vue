@@ -13,15 +13,15 @@
                 :show.sync="showDetail"
                 :content="content">
                 <template class="buttons" v-slot:buttons>
-                    <bk-button :text="true" size="small" @click="onViewClick">{{ i18n.view }}</bk-button>
-                    <bk-button :text="true" size="small" @click="showDetail = false">{{ i18n.hide }}</bk-button>
+                    <bk-button :text="true" size="small" @click="onViewClick">{{ $t('查看需要更新的流程') }}</bk-button>
+                    <bk-button :text="true" size="small" @click="showDetail = false">{{ $t('收起') }}</bk-button>
                 </template>
             </notify-info>
         </div>
     </base-title>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import NotifyInfo from '@/components/common/NotifyInfo.vue'
 
@@ -43,16 +43,12 @@
         },
         data () {
             return {
-                showDetail: false,
-                i18n: {
-                    view: gettext('查看需要更新的流程'),
-                    hide: gettext('收起')
-                }
+                showDetail: false
             }
         },
         computed: {
             content () {
-                return gettext('建议及时处理子流程更新，') + gettext('涉及') + this.num + gettext('条流程')
+                return i18n.t('建议及时处理子流程更新，') + i18n.t('涉及') + this.num + i18n.t('条流程')
             }
         },
         methods: {
@@ -68,6 +64,8 @@
 <style lang="scss" scoped>
     .title {
         margin-left: 12px;
+        height: 60px;
+        line-height: 60px;
         font-size: 14px;
         font-weight:600;
         color: #313238;
@@ -100,6 +98,6 @@
         }
     }
     .tpl-update-message {
-        margin-top: 10px;
+        margin-bottom: 10px;
     }
 </style>

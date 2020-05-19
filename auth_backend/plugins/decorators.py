@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -56,7 +56,7 @@ def verify_perms(auth_resource, resource_get, actions, scope_id_get=None):
                                                        actions_id,
                                                        instance_id)
             if not verify_result['result']:
-                message = ('verify perms of Resource[{resource}] by backend[{beckend_cls}] '
+                message = ('verify perms of Resource[{resource}] by backend[{backend_cls}] '
                            'return error: {error}').format(
                     resource=auth_resource.name,
                     backend_cls=auth_resource.backend,

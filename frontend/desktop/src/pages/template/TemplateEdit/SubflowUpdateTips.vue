@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -17,15 +17,15 @@
                 :show.sync="showDetail"
                 :content="tips">
                 <template v-slot:buttons>
-                    <bk-button :text="true" size="small" @click="onViewClick">{{ i18n.view }}</bk-button>
-                    <bk-button :text="true" size="small" @click="onFoldClick">{{ i18n.hide }}</bk-button>
+                    <bk-button :text="true" size="small" @click="onViewClick">{{ $t('查看需要更新的子流程') }}</bk-button>
+                    <bk-button :text="true" size="small" @click="onFoldClick">{{ $t('收起') }}</bk-button>
                 </template>
             </notify-info>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import NotifyInfo from '@/components/common/NotifyInfo.vue'
 
     export default {
@@ -50,11 +50,7 @@
         data () {
             return {
                 showDetail: true,
-                curId: undefined,
-                i18n: {
-                    view: gettext('查看需要更新的子流程'),
-                    hide: gettext('收起')
-                }
+                curId: undefined
             }
         },
         computed: {
@@ -75,7 +71,7 @@
                 })
             },
             tips () {
-                return gettext('建议及时处理子流程更新，涉及') + this.expiredNodes.length + gettext('个子流程节点')
+                return i18n.t('建议及时处理子流程更新，涉及') + this.expiredNodes.length + i18n.t('个子流程节点')
             }
         },
         methods: {

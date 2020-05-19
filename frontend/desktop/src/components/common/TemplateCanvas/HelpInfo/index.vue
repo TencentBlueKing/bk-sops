@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,38 +16,38 @@
             :class="['hot-key-container', { 'min-top': editable }]">
             <transition name="wrapperLeft">
                 <div :class="['hot-key-panel', { 'min-top': !editable }]">
-                    <p class="text title">{{ commonTitle + i18n.shortcuts }}</p>
+                    <p class="title">{{ commonTitle + $t('快捷键列表') }}</p>
                     <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                     <table>
                         <tbody>
                             <tr>
                                 <td>Ctrl + (+):</td>
-                                <td>{{ i18n.zoomIn }}</td>
+                                <td>{{ $t('放大') }}</td>
                             </tr>
                             <tr>
                                 <td>Ctrl + (-):</td>
-                                <td>{{ i18n.zoomOut }}</td>
+                                <td>{{ $t('缩小') }}</td>
                             </tr>
                             <tr>
                                 <td>Ctrl + 0:</td>
-                                <td>{{ i18n.reduction }}</td>
+                                <td>{{ $t('还原') }}</td>
                             </tr>
                             <tr>
-                                <td>{{ i18n.scroll }}:</td>
-                                <td>{{ i18n.zoom }}</td>
+                                <td>{{ $t('鼠标滚动') }}:</td>
+                                <td>{{ $t('缩放') }}</td>
                             </tr>
                             <template v-if="editable">
                                 <tr>
-                                    <td>{{ commonCtrl }} {{ i18n.click }}:</td>
-                                    <td>{{ i18n.multiple }}</td>
+                                    <td>{{ commonCtrl }} {{ $t('鼠标左键单击') }}:</td>
+                                    <td>{{ $t('连续选中（或取消）节点') }}</td>
                                 </tr>
                                 <tr>
-                                    <td>[{{ i18n.afterSelect }}]{{ i18n.arrowMove }}:</td>
-                                    <td>{{ i18n.moveNode }}</td>
+                                    <td>[{{ $t('选中后') }}]{{ $t('箭头（上下左右）') }}:</td>
+                                    <td>{{ $t('移动流程元素') }}</td>
                                 </tr>
                                 <tr>
-                                    <td>[{{i18n.afterSelect}}] Delete:</td>
-                                    <td>{{ i18n.delNode }}</td>
+                                    <td>[{{ $t('选中后') }}] Delete:</td>
+                                    <td>{{ $t('删除节点') }}</td>
                                 </tr>
                             </template>
                         </tbody>
@@ -58,7 +58,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     const isMac = /macintosh|mac os x/i.test(navigator.userAgent.toLowerCase())
     const hotKeyTriggeringConditions = [
         { emit: 'onZoomIn', keyCodes: [107, 187], ctrl: true },
@@ -79,24 +78,6 @@
         },
         data () {
             return {
-                i18n: {
-                    reset: gettext('撤销'),
-                    restore: gettext('恢复'),
-                    shortcuts: gettext('快捷键列表'),
-                    zoomIn: gettext('放大'),
-                    zoomOut: gettext('缩小'),
-                    scroll: gettext('鼠标滚动'),
-                    zoom: gettext('缩放'),
-                    reduction: gettext('还原'),
-                    click: gettext('鼠标左键单击'),
-                    multiple: gettext('连续选中（或取消）节点'),
-                    selectAll: gettext('选中所有节点'),
-                    afterSelect: gettext('选中后'),
-                    delNode: gettext('删除节点'),
-                    arrowMove: gettext('箭头（上下左右）'),
-                    moveNode: gettext('移动流程元素'),
-                    cancel: gettext('取消选中')
-                },
                 isMac,
                 commonTitle: isMac ? 'Mac' : 'Windows',
                 commonCtrl: isMac ? 'Command' : 'Ctrl',
@@ -159,6 +140,7 @@
         }
         .title {
             margin-bottom: 10px;
+            font-weight: bold;
         }
         .close {
             display: inline-block;

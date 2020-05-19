@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -14,11 +14,11 @@
         <!-- 轻应用打开页面，logo不支持单击和右键跳转到首页 -->
         <span v-if="view_mode === 'appmaker'" class="nav-logo">
             <img :src="logo" class="logo" />
-            <span class="header-title">{{ i18n.title }}</span>
+            <span class="header-title">{{ $t('标准运维') }}</span>
         </span>
         <router-link v-else :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
-            <span class="header-title">{{ i18n.title }}</span>
+            <span class="header-title">{{ $t('标准运维') }}</span>
         </router-link>
         <ul class="nav-left" v-if="!appmakerDataLoading">
             <li
@@ -52,15 +52,30 @@
                     @reloadHome="reloadHome">
                 </ProjectSelector>
             </li>
-            <li class="right-icon help-doc" :title="i18n.help">
+            <li class="right-icon help-doc">
                 <a
                     class="common-icon-dark-circle-question"
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
-                    target="_blank">
+                    target="_blank"
+                    v-bk-tooltips="{
+                        content: $t('帮助文档'),
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }">
                 </a>
             </li>
-            <li class="right-icon version-log" :title="i18n.logVersion">
-                <i class="common-icon-info" @click="onOpenVersion"></i>
+            <li class="right-icon version-log">
+                <i
+                    class="common-icon-info"
+                    v-bk-tooltips="{
+                        content: $t('版本日志'),
+                        placement: 'bottom-end',
+                        theme: 'light',
+                        zIndex: 1001
+                    }"
+                    @click="onOpenVersion">
+                </i>
             </li>
             <li class="right-icon user-avatar">
                 <span
@@ -85,7 +100,7 @@
     </header>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import bus from '@/utils/bus.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -95,61 +110,61 @@
     const ROUTE_LIST = [
         {
             routerName: 'process',
-            name: gettext('项目流程'),
+            name: i18n.t('项目流程'),
             path: '/template/',
             params: ['project_id']
         },
         {
             routerName: 'taskList',
-            name: gettext('任务管理'),
+            name: i18n.t('任务管理'),
             path: '/taskflow/',
             params: ['project_id']
         },
         {
             routerName: 'appMakerList',
-            name: gettext('轻应用'),
+            name: i18n.t('轻应用'),
             path: '/appmaker/',
             params: ['project_id']
         },
         {
             routerName: 'commonProcessList',
-            name: gettext('公共流程'),
+            name: i18n.t('公共流程'),
             path: '/common'
         },
         {
             routerName: 'functionHome',
             path: '/function/',
-            name: gettext('职能化')
+            name: i18n.t('职能化')
         },
         {
             routerName: 'auditHome',
             path: '/audit/',
-            name: gettext('操作审计')
+            name: i18n.t('操作审计')
         },
         {
             routerName: 'projectHome',
             path: '/project/',
-            name: gettext('项目管理')
+            name: i18n.t('项目管理')
         },
         {
             routerName: 'adminSearch',
             path: '/admin',
-            name: gettext('管理员入口'),
+            name: i18n.t('管理员入口'),
             children: [
                 {
                     routerName: 'adminSearch',
                     path: '/admin/manage/',
-                    name: gettext('后台管理')
+                    name: i18n.t('后台管理')
                 },
                 {
                     routerName: 'statisticsTemplate',
                     path: '/admin/statistics/',
-                    name: gettext('运营数据')
+                    name: i18n.t('运营数据')
                 },
                 {
                     routerName: 'atomDev',
                     path: '/admin/atomdev',
-                    name: gettext('插件开发')
+                    name: i18n.t('插件开发')
                 }
             ]
         }
@@ -159,13 +174,13 @@
             routerName: 'appmakerTaskCreate',
             path: 'appmakerTaskCreate',
             params: ['app_id', 'project_id'],
-            name: gettext('新建任务')
+            name: i18n.t('新建任务')
         },
         {
             routerName: 'appmakerTaskHome',
             path: 'appmakerTaskHome',
             params: ['project_id'],
-            name: gettext('任务记录')
+            name: i18n.t('任务记录')
         }
     ]
     export default {
@@ -179,11 +194,6 @@
         data () {
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
-                i18n: {
-                    help: gettext('帮助文档'),
-                    logVersion: gettext('版本日志'),
-                    title: gettext('标准运维')
-                },
                 logList: [],
                 logDetail: '',
                 logListLoading: false,
@@ -295,11 +305,11 @@
                         this.togglePermissionApplyPage(
                             {
                                 type: 'function_center',
-                                name: gettext('职能化中心')
+                                name: i18n.t('职能化中心')
                             },
                             {
                                 id: 'view',
-                                name: gettext('查看')
+                                name: i18n.t('查看')
                             }
                         )
                     }
@@ -310,11 +320,11 @@
                         this.togglePermissionApplyPage(
                             {
                                 type: 'audit_center',
-                                name: gettext('审计中心')
+                                name: i18n.t('审计中心')
                             },
                             {
                                 id: 'view',
-                                name: gettext('查看')
+                                name: i18n.t('查看')
                             }
                         )
                     }
@@ -325,12 +335,7 @@
              */
             togglePermissionApplyPage (resource, action) {
                 const permissions = []
-                const res = []
                 const { scope_id, scope_name, scope_type, scope_type_name, system_id, system_name } = this.authResource
-                res.push([{
-                    resource_type: resource.type,
-                    resource_type_name: resource.name
-                }])
                 permissions.push({
                     scope_id,
                     scope_name,
@@ -340,7 +345,7 @@
                     scope_type,
                     system_id,
                     system_name,
-                    resources: res,
+                    resources: [],
                     action_id: action.id,
                     action_name: action.name
                 })
@@ -490,7 +495,6 @@ header {
             }
             &.active > a{
                 color: $whiteDefault;
-                background: $blackDefault;
             }
             > a {
                 display: inline-block;
@@ -574,6 +578,9 @@ header {
         }
         .user-avatar {
             margin-left: 10px;
+            .common-icon-dark-circle-avatar {
+                cursor: text;
+            }
         }
         /deep/ .bk-select.is-disabled {
             background: none;

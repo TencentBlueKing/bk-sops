@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -71,7 +71,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations } from 'vuex'
     import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
@@ -82,22 +82,22 @@
         {
             id: 'globalVariableTab',
             icon: 'common-icon-square-code',
-            title: gettext('全局变量')
+            title: i18n.t('全局变量')
         },
         {
             id: 'templateConfigTab',
             icon: 'common-icon-square-attribute',
-            title: gettext('基础信息')
+            title: i18n.t('基础信息')
         },
         {
             id: 'localDraftTab',
             icon: 'common-icon-clock-reload',
-            title: gettext('本地缓存')
+            title: i18n.t('本地缓存')
         },
         {
             id: 'templateDataEditTab',
             icon: 'common-icon-paper',
-            title: gettext('模板数据')
+            title: i18n.t('模板数据')
         }
     ]
 

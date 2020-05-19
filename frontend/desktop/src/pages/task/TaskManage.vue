@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,14 +13,14 @@
     <div class="task-manage">
         <base-title
             type="router"
-            :title="title"
+            :title="$t('任务管理')"
             :tab-list="titleTabList">
         </base-title>
         <router-view></router-view>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import { mapState } from 'vuex'
     export default {
@@ -28,19 +28,14 @@
         components: {
             BaseTitle
         },
-        data () {
-            return {
-                title: gettext('任务管理')
-            }
-        },
         computed: {
             ...mapState('project', {
                 project_id: state => state.project_id
             }),
             titleTabList () {
                 return [
-                    { name: gettext('任务记录'), routerName: 'taskList', params: { project_id: this.project_id } },
-                    { name: gettext('周期任务'), routerName: 'periodicTemplate', params: { project_id: this.project_id } }
+                    { name: i18n.t('任务记录'), routerName: 'taskList', params: { project_id: this.project_id } },
+                    { name: i18n.t('周期任务'), routerName: 'periodicTemplate', params: { project_id: this.project_id } }
                 ]
             }
         }

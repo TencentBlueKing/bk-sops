@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,25 +13,16 @@
     <div class="file-upload">
         <slot>
             <div class="upload-wrapper">
-                <span class="drag-upload">{{i18n.dragUpload}}</span>
-                <span class="click-upload">{{i18n.clickUpload}}</span>
+                <span class="drag-upload">{{$t('拖拽到此处上传或')}}</span>
+                <span class="click-upload">{{$t('点击上传')}}</span>
             </div>
         </slot>
         <input type="file" accept=".js" @change="handleFileUpload" />
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'UploadReadFile',
-        data () {
-            return {
-                i18n: {
-                    dragUpload: gettext('拖拽到此处上传或'),
-                    clickUpload: gettext('点击上传')
-                }
-            }
-        },
         methods: {
             handleFileUpload (e) {
                 this.$emit('uploaded', e)

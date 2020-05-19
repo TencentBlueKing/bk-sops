@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import i18n from '@/config/i18n/index.js'
 import { NODE_DICT } from '@/constants/index.js'
 import validator from '@/constants/pipelineTreeSchema.js'
 
@@ -94,24 +95,24 @@ const validatePipeline = {
         let isLoop = false
 
         if (source.id === target.id) {
-            const i18n_text = gettext('节点不可连接自身')
+            const i18n_text = i18n.t('节点不可连接自身')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
             return this.getMessage(false, message)
         }
         if (sourceRule.max_out === 0) {
-            const i18n_text = gettext('只能添加输入连线')
+            const i18n_text = i18n.t('只能添加输入连线')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
             return this.getMessage(false, message)
         }
 
         if (targetRule.max_in === 0) {
-            const i18n_text = gettext('只能添加输出连线')
+            const i18n_text = i18n.t('只能添加输出连线')
             const message = `${NODE_DICT[targetNode.type]}${i18n_text}`
             return this.getMessage(false, message)
         }
 
         if (sourceRule.allowed_out.indexOf(targetNode.type) === -1) {
-            const i18n_text = gettext('不能连接')
+            const i18n_text = i18n.t('不能连接')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}${NODE_DICT[targetNode.type]}`
             return this.getMessage(false, message)
         }
@@ -131,22 +132,22 @@ const validatePipeline = {
         })
 
         if (isLoop) {
-            const message = gettext('相同节点不能回连')
+            const message = i18n.t('相同节点不能回连')
             return this.getMessage(false, message)
         }
 
         if (isSameLine) {
-            const message = gettext('重复添加连线')
+            const message = i18n.t('重复添加连线')
             return this.getMessage(false, message)
         } else {
-            const i18n_text1 = gettext('已达到')
+            const i18n_text1 = i18n.t('已达到')
             if (sourceLinesLinked >= sourceRule.max_out) {
-                const i18n_text2 = gettext('最大输出连线条数')
+                const i18n_text2 = i18n.t('最大输出连线条数')
                 const message = `${i18n_text1}${NODE_DICT[sourceNode.type]}${i18n_text2}`
                 return this.getMessage(false, message)
             }
             if (targetLinesLinked >= targetRule.max_in) {
-                const i18n_text2 = gettext('最大输入连线条数')
+                const i18n_text2 = i18n.t('最大输入连线条数')
                 const message = `${i18n_text1}${NODE_DICT[targetNode.type]}${i18n_text2}`
                 return this.getMessage(false, message)
             }
@@ -160,7 +161,7 @@ const validatePipeline = {
                 return item.type === loc.type && item.id !== loc.id
             })
             if (isLocationOverMount) {
-                const i18n_text = gettext('在模板中只能添加一个')
+                const i18n_text = i18n.t('在模板中只能添加一个')
                 const message = `${NODE_DICT[loc.type]}${i18n_text}`
                 return this.getMessage(false, message)
             }
@@ -193,14 +194,14 @@ const validatePipeline = {
                     sourceLinesLinked += 1
                 }
             })
-            const i18n_text1 = gettext('至少需要')
+            const i18n_text1 = i18n.t('至少需要')
             if (sourceLinesLinked < rule.min_in) {
-                const i18n_text2 = gettext('条输入连线')
+                const i18n_text2 = i18n.t('条输入连线')
                 message = `${name}${i18n_text1}${rule.min_in}${i18n_text2}`
                 return false
             }
             if (targetLinesLinked < rule.min_out) {
-                const i18n_text2 = gettext('条输出连线')
+                const i18n_text2 = i18n.t('条输出连线')
                 message = `${name}${i18n_text1}${rule.min_out}${i18n_text2}`
                 return false
             }
@@ -212,7 +213,7 @@ const validatePipeline = {
         }
 
         if ((tasknode + subflow) === 0) {
-            message = gettext('请添加任务节点')
+            message = i18n.t('请添加任务节点')
             return this.getMessage(false, message)
         }
 
@@ -239,7 +240,7 @@ const validatePipeline = {
                     return true
                 }
                 if (flows[line][type] !== id) {
-                    message = gettext(`flows.${line}.${type} doesn't equal to ${id}`)
+                    message = i18n.t(`flows.${line}.${type} doesn't equal to ${id}`)
                     return true
                 }
             })

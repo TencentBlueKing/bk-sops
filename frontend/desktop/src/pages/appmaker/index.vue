@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,14 +13,14 @@
     <div class="appmaker-page">
         <div class="page-content">
             <div class="appmaker-table-content">
-                <base-title :title="i18n.title"></base-title>
+                <base-title :title="$t('轻应用')"></base-title>
                 <div v-if="appList.length" class="operation-wrapper">
                     <advance-search-form
                         :search-form="searchForm"
                         @onSearchInput="onSearchInput"
                         @submit="onSearchFormSubmit">
                         <template v-slot:operation>
-                            <bk-button theme="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
+                            <bk-button theme="primary" @click="onCreateApp">{{$t('新建')}}</bk-button>
                         </template>
                     </advance-search-form>
                 </div>
@@ -29,7 +29,7 @@
                     theme="primary"
                     class="add-appmaker-btn"
                     @click="onCreateApp">
-                    {{i18n.addApp}}
+                    {{$t('新建')}}
                 </bk-button>
             </div>
             <div v-bkloading="{ isLoading: loading, opacity: 1 }">
@@ -51,8 +51,8 @@
                 </div>
                 <div v-else class="empty-app-content">
                     <div class="appmaker-info">
-                        <h2 class="appmaker-info-title">{{i18n.appmakerInfoTitle}}</h2>
-                        <p class="appmaker-info-text">{{i18n.appmakerInfoContent}}</p>
+                        <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
+                        <p class="appmaker-info-text">{{$t('业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。')}}</p>
                         <div class="appmaker-default-icons">
                             <img
                                 v-for="item in 6"
@@ -79,12 +79,12 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.delete"
+            :title="$t('删除')"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
-                {{i18n.deleteTips}}
+                {{$t('确认删除轻应用？')}}
             </div>
         </bk-dialog>
         <bk-dialog
@@ -93,21 +93,21 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.jurisdiction"
+            :title="$t('使用权限')"
             :value="isPermissionsDialog"
             @cancel="onCloseWindows">
             <div class="permission-content-dialog" v-bkloading="{ isLoading: authorityLoading, opacity: 1 }">
-                <p class="jurisdiction-hint">{{i18n.jurisdictionHint}}</p>
+                <p class="jurisdiction-hint">{{$t('轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。')}}</p>
                 <div class="permission-item">
-                    <span class="addJurisdiction">{{i18n.addJurisdiction }}:</span>
+                    <span class="addJurisdiction">{{$t('新建任务权限') }}:</span>
                     <span>{{createdTaskPerList || '--'}}</span>
                 </div>
                 <div class="permission-item">
-                    <span class="getJurisdiction">{{i18n.getJurisdiction}}:</span>
+                    <span class="getJurisdiction">{{$t('认领任务权限')}}:</span>
                     <span>{{modifyParamsPerList || '--'}}</span>
                 </div>
                 <div class="permission-item">
-                    <span class="executeJurisdiction">{{i18n.executeJurisdiction}}:</span>
+                    <span class="executeJurisdiction">{{$t('执行任务权限')}}:</span>
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
             </div>
@@ -115,14 +115,14 @@
                 <bk-button
                     theme="default"
                     @click="onCloseWindows">
-                    {{i18n.close}}
+                    {{$t('关闭')}}
                 </bk-button>
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
@@ -136,15 +136,15 @@
         {
             type: 'input',
             key: 'editor',
-            label: gettext('更新人'),
-            placeholder: gettext('请输入更新人'),
+            label: i18n.t('更新人'),
+            placeholder: i18n.t('请输入更新人'),
             value: ''
         },
         {
             type: 'dateRange',
             key: 'updateTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('更新时间'),
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('更新时间'),
             value: []
         }
     ]
@@ -215,7 +215,7 @@
                 return this.searchMode ? this.searchList : this.list
             },
             emptyTips () {
-                return this.searchMode ? gettext('未找到相关轻应用') : gettext('暂未添加轻应用')
+                return this.searchMode ? i18n.t('未找到相关轻应用') : i18n.t('暂未添加轻应用')
             }
         },
         created () {

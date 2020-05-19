@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,7 +16,7 @@
             <ul class="form-list">
                 <!-- 名称 -->
                 <li class="form-item clearfix">
-                    <label class="required">{{ i18n.name }}</label>
+                    <label class="required">{{ $t('名称') }}</label>
                     <div class="form-content">
                         <bk-input
                             name="variableName"
@@ -38,7 +38,7 @@
                 </li>
                 <!-- 说明 -->
                 <li class="form-item clearfix">
-                    <label class="required">{{ i18n.desc }}</label>
+                    <label class="required">{{ $t('说明') }}</label>
                     <div class="form-content">
                         <bk-input
                             type="textarea"
@@ -55,16 +55,7 @@
     import '@/utils/i18n.js'
     export default {
         name: 'SystemVariableEdit',
-        props: ['variableData', 'varOperatingTips'],
-        data () {
-            return {
-                i18n: {
-                    name: gettext('名称'),
-                    desc: gettext('说明'),
-                    cited: gettext('引用节点')
-                }
-            }
-        }
+        props: ['variableData', 'varOperatingTips']
     }
 </script>
 <style lang="scss" scoped>

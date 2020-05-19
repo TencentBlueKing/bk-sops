@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,7 +13,7 @@
     <bk-dialog
         width="850"
         :ext-cls="'common-dialog'"
-        :title="i18n.title"
+        :title="$t('创建任务')"
         :ok-text="okText"
         :mask-close="false"
         :value="isCreateTaskDialogShow"
@@ -23,14 +23,14 @@
         @cancel="onCancel">
         <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1 }">
             <bk-form :model="formData" :rules="rules" ref="taskCreateForm" form-type="inline">
-                <bk-form-item :label="i18n.taskName" :required="true" :property="'taskType'">
+                <bk-form-item :label="$t('任务类型')" :required="true" :property="'taskType'">
                     <bk-select
                         class="bk-select-inline"
                         v-model="formData.taskType"
                         :loading="loadingStatus.taskType"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.taskPlaceholder"
+                        :placeholder="$t('请选择任务类型')"
                         @change="checkPermission">
                         <bk-option
                             v-for="option in taskTypeList"
@@ -39,16 +39,16 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <div v-show="isShowtaskError" class="error-info">{{ i18n.taskPlaceholder }}</div>
+                    <div v-show="isShowtaskError" class="error-info">{{ $t('请选择任务类型') }}</div>
                 </bk-form-item>
-                <bk-form-item :label="i18n.projectName" :required="true" :property="'selectedProject'">
+                <bk-form-item :label="$t('项目名称')" :required="true" :property="'selectedProject'">
                     <bk-select
                         class="bk-select-inline"
                         v-model="formData.selectedProject"
                         :loading="loadingStatus.project"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.projectPlaceholder"
+                        :placeholder="$t('请选择项目')"
                         @change="checkPermission">
                         <bk-option
                             v-for="option in projectList"
@@ -57,14 +57,14 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <div v-show="isShowProjectError" class="error-info">{{ i18n.projectPlaceholder }}</div>
+                    <div v-show="isShowProjectError" class="error-info">{{ $t('请选择项目') }}</div>
                 </bk-form-item>
             </bk-form>
         </div>
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { mapGetters, mapState } from 'vuex'
     export default {
@@ -75,21 +75,14 @@
         props: ['isCreateTaskDialogShow', 'createTaskItem', 'tplOperations', 'tplResource'],
         data () {
             return {
-                i18n: {
-                    title: gettext('创建任务'),
-                    taskName: gettext('任务类型'),
-                    projectName: gettext('项目名称'),
-                    taskPlaceholder: gettext('请选择任务类型'),
-                    projectPlaceholder: gettext('请选择项目')
-                },
                 loadingStatus: {
                     taskType: false,
                     project: false,
                     taskContainer: false
                 },
                 taskTypeList: [
-                    { name: gettext('普通任务'), value: 'taskflow' },
-                    { name: gettext('周期任务'), value: 'periodic' }
+                    { name: i18n.t('普通任务'), value: 'taskflow' },
+                    { name: i18n.t('周期任务'), value: 'periodic' }
                 ],
                 rules: {
                     taskType: [{
@@ -121,7 +114,7 @@
                 'authOperations': state => state.authOperations
             }),
             okText () {
-                return this.hasCreateTaskPer && this.hasUseCommonTplPer ? gettext('确定') : gettext('去申请')
+                return this.hasCreateTaskPer && this.hasUseCommonTplPer ? i18n.t('确定') : i18n.t('去申请')
             }
         },
         watch: {
@@ -183,7 +176,7 @@
             applyUseCommonPer () {
                 const project = this.projectList.find(m => m.id === this.formData.selectedProject)
                 const resourceData = {
-                    name: gettext('项目'),
+                    name: i18n.t('项目'),
                     id: project.id,
                     auth_actions: project.auth_actions
                 }

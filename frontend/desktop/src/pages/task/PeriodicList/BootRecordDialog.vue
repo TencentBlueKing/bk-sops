@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,7 +16,7 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.title"
+        :title="$t('启动记录')"
         :value="show"
         :draggable="true"
         @value-change="dialogValueChange"
@@ -27,23 +27,23 @@
                 <bk-table-column type="expand" width="30" align="center">
                     <template slot-scope="props">
                         <div v-if="props.row.ex_data" v-html="transformFailInfo(props.row.ex_data)"></div>
-                        <div class="no-error" v-else>{{ i18n.noError }}</div>
+                        <div class="no-error" v-else>{{ $t('无异常信息') }}</div>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="i18n.index" prop="id"></bk-table-column>
-                <bk-table-column :width="200" :label="i18n.startTime" prop="start_at"></bk-table-column>
-                <bk-table-column :label="i18n.startSuccess">
+                <bk-table-column :label="$t('序号')" prop="id"></bk-table-column>
+                <bk-table-column :width="200" :label="$t('启动时间')" prop="start_at"></bk-table-column>
+                <bk-table-column :label="$t('是否启动成功')">
                     <template slot-scope="props">
-                        {{ props.row.start_success ? i18n.yes : i18n.no }}
+                        {{ props.row.start_success ? $t('是') : $t('否') }}
                     </template>
                 </bk-table-column>
-                <bk-table-column :width="80" :label="i18n.ExInfo">
+                <bk-table-column :width="80" :label="$t('异常信息')">
                     <template slot-scope="props">
                         <span
                             v-if="!props.row.start_success"
                             class="view-btn"
                             @click="$refs.recordTable.toggleRowExpansion(props.row)">
-                            {{ i18n.view }}
+                            {{ $t('查看') }}
                         </span>
                         <span v-else>--</span>
                     </template>
@@ -54,7 +54,6 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import NoData from '@/components/common/base/NoData.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -78,18 +77,7 @@
             return {
                 loading: true,
                 isShow: this.show,
-                recordData: [],
-                i18n: {
-                    title: gettext('启动记录'),
-                    index: gettext('序号'),
-                    startTime: gettext('启动时间'),
-                    startSuccess: gettext('是否启动成功'),
-                    ExInfo: gettext('异常信息'),
-                    view: gettext('查看'),
-                    yes: gettext('是'),
-                    no: gettext('否'),
-                    noError: gettext('无异常信息')
-                }
+                recordData: []
             }
         },
         watch: {

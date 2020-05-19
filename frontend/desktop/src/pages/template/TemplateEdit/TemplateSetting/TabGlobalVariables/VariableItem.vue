@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -29,7 +29,7 @@
                         v-if="constant.source_type !== 'component_outputs'"
                         class="common-icon-show-left"
                         v-bk-tooltips="{
-                            content: i18n.inputs,
+                            content: $t('输入'),
                             placements: ['bottom']
                         }">
                     </i>
@@ -37,7 +37,7 @@
                         v-else
                         class="common-icon-hide-right color-org"
                         v-bk-tooltips="{
-                            content: i18n.outputs,
+                            content: $t('输出'),
                             placements: ['bottom']
                         }">
                     </i>
@@ -45,7 +45,7 @@
                         v-if="constant.show_type === 'show'"
                         class="common-icon-eye-show"
                         v-bk-tooltips="{
-                            content: i18n.show,
+                            content: $t('显示'),
                             placements: ['bottom']
                         }">
                     </i>
@@ -53,7 +53,7 @@
                         v-else
                         class="common-icon-eye-hide color-org"
                         v-bk-tooltips="{
-                            content: i18n.hide,
+                            content: $t('隐藏'),
                             placements: ['bottom']
                         }">
                     </i>
@@ -83,17 +83,17 @@
             <span class="col-item col-operation">
                 <span class="col-operation-item"
                     v-bk-tooltips.click="{
-                        content: i18n.copied,
+                        content: $t('已复制'),
                         placements: ['bottom']
                     }"
                     @click.stop="onCopyKey(constant.key)">
-                    {{ i18n.copy }}
+                    {{ $t('复制') }}
                 </span>
                 <span
                     v-if="!isSystemVar"
                     class="col-operation-item"
                     @click.stop="onDeleteVariable(constant.key)">
-                    {{ i18n.delete }}
+                    {{ $t('删除') }}
                 </span>
             </span>
         </div>
@@ -129,7 +129,6 @@
     </li>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState } from 'vuex'
     import VariableEdit from './VariableEdit.vue'
     import VariableCitedList from './VariableCitedList.vue'
@@ -155,16 +154,7 @@
         ],
         data () {
             return {
-                copyText: '',
-                i18n: {
-                    copied: gettext('已复制'),
-                    inputs: gettext('输入'),
-                    outputs: gettext('输出'),
-                    show: gettext('显示'),
-                    hide: gettext('隐藏'),
-                    copy: gettext('复制'),
-                    delete: gettext('删除')
-                }
+                copyText: ''
             }
         },
         computed: {

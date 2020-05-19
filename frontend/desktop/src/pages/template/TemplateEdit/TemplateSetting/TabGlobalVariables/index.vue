@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -19,7 +19,7 @@
             :quick-close="true">
             <div slot="header">
                 <span class="close-panel-icon"></span>
-                <span class="global-variable-text">{{i18n.globalVar}}</span>
+                <span class="global-variable-text">{{$t('全局变量')}}</span>
                 <i
                     class="common-icon-info global-variable-tootip"
                     v-bk-tooltips="{
@@ -32,22 +32,22 @@
                 </i>
                 <div id="var-desc">
                     <div class="tips-item">
-                        <h4>{{ i18n.attrTitle }}</h4>
+                        <h4>{{ $t('属性：') }}</h4>
                         <p>
-                            {{ i18n.attrDesc1 }}
+                            {{ $t('"来源/是否显示"格式，来源是输入类型') }}
                             <i class="common-icon-show-left" style="color: #219f42"></i>
-                            {{ i18n.attrDesc2 }}
+                            {{ $t('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型') }}
                             <i class="common-icon-hide-right" style="color: #de9524"></i>
-                            {{ i18n.attrDesc3 }}
+                            {{ $t('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，') }}
                             <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
-                            {{ i18n.attrDesc4 }}
+                            {{ $t('表示显示，') }}
                             <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
-                            {{ i18n.attrDesc5 }}
+                            {{ $t('表示隐藏，输出类型的变量一定是隐藏的。') }}
                         </p>
                     </div>
                     <div class="tips-item">
-                        <h4>{{ i18n.outputsTitle }}</h4>
-                        <p>{{ i18n.outputsDesc }}</p>
+                        <h4>{{ $t('输出：') }}</h4>
+                        <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
                     </div>
                 </div>
                 <div :class="['panel-fixed-pin', { 'actived': isFixedVarMenu }]" @click.stop="onClickVarPin">
@@ -56,31 +56,31 @@
             </div>
             <template slot="content">
                 <div class="add-variable">
-                    <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
+                    <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
                     <div class="toggle-system-var">
-                        <bk-checkbox v-model="isHideSystemVar">{{ i18n.hideSystemVar }}</bk-checkbox>
+                        <bk-checkbox v-model="isHideSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
                     </div>
                 </div>
                 <div class="global-variable-content">
                     <div class="variable-header clearfix">
-                        <span class="col-name t-head">{{ i18n.name }}</span>
+                        <span class="col-name t-head">{{ $t('名称') }}</span>
                         <span class="col-key t-head">KEY</span>
-                        <span class="col-attributes t-head">{{ i18n.attributes }}</span>
-                        <span class="col-output t-head">{{ i18n.outputs }}</span>
+                        <span class="col-attributes t-head">{{ $t('属性') }}</span>
+                        <span class="col-output t-head">{{ $t('输出') }}</span>
                         <span class="col-quote t-head">
-                            {{ i18n.cited }}
+                            {{ $t('引用') }}
                             <i
                                 class="common-icon-info global-variable-tootip quote-info"
                                 v-bk-tooltips="{
                                     allowHtml: true,
-                                    content: i18n.citedTips,
+                                    content: $t('直接引用全局变量的节点数量，点击数字查看引用详情'),
                                     placement: 'bottom-end',
                                     duration: 0,
                                     width: 200
                                 }">
                             </i>
                         </span>
-                        <span class="col-operation t-head">{{ i18n.operation }}</span>
+                        <span class="col-operation t-head">{{ $t('操作') }}</span>
                         <span class="col-delete t-head"></span>
                     </div>
                     <div v-if="isVarTipsShow" class="variable-operating-tips">{{ varOperatingTips }}</div>
@@ -122,7 +122,7 @@
                         </li>
                         <li v-if="isShowNodata" class="empty-variable-tip">
                             <NoData>
-                                <p>{{i18n.emptyVariableTip}}</p>
+                                <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
                             </NoData>
                         </li>
                     </ul>
@@ -133,11 +133,11 @@
                     :theme="'primary'"
                     :mask-close="false"
                     :header-position="'left'"
-                    :title="i18n.tips"
+                    :title="$t('删除变量')"
                     :value="deleteConfirmDialogShow"
                     @confirm="onConfirm"
                     @cancel="onCancel">
-                    <div>{{ i18n.confirm }}</div>
+                    <div>{{ $t('确认删除该变量？') }}</div>
                 </bk-dialog>
             </template>
         </bk-sideslider>
@@ -145,7 +145,7 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapState } from 'vuex'
     import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
@@ -164,30 +164,6 @@
         data () {
             return {
                 isHideSystemVar: false,
-                i18n: {
-                    globalVar: gettext('全局变量'),
-                    new: gettext('新建'),
-                    edit: gettext('编辑'),
-                    hideSystemVar: gettext('隐藏系统变量'),
-                    name: gettext('名称'),
-                    attributes: gettext('属性'),
-                    outputs: gettext('输出'),
-                    cited: gettext('引用'),
-                    citedTips: gettext('直接引用全局变量的节点数量，点击数字查看引用详情'),
-                    operation: gettext('操作'),
-                    outputsTitle: gettext('输出：'),
-                    attr: gettext('属性'),
-                    attrTitle: gettext('属性：'),
-                    attrDesc1: gettext('"来源/是否显示"格式，来源是输入类型'),
-                    attrDesc2: gettext('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型'),
-                    attrDesc3: gettext('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，'),
-                    attrDesc4: gettext('表示显示，'),
-                    attrDesc5: gettext('表示隐藏，输出类型的变量一定是隐藏的。'),
-                    outputsDesc: gettext('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。'),
-                    emptyVariableTip: gettext('无数据，请手动新增变量或者勾选标准插件参数自动生成'),
-                    tips: gettext('删除变量'),
-                    confirm: gettext('确认删除该变量？')
-                },
                 theKeyOfEditing: '',
                 theKeyOfViewCited: '',
                 constantsArray: [],
@@ -246,11 +222,10 @@
             },
             // 操作变量提示 title
             varOperatingTips () {
-                const { new: newText, edit, globalVar } = this.i18n
                 if (this.theKeyOfEditing) {
-                    return edit + globalVar
+                    return i18n.t('编辑') + i18n.t('全局变量')
                 }
-                return newText + globalVar
+                return i18n.t('新建') + i18n.t('全局变量')
             },
             systemConstantsList () {
                 const list = []
@@ -512,8 +487,8 @@ $localBorderColor: #dcdee5;
         position: absolute;
         top: 14px;
         right: 30px;
-        padding: 6px 9px;
-        line-height: initial;
+        padding: 7px 8px 8px;
+        line-height: 1;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
         font-size: 14px;

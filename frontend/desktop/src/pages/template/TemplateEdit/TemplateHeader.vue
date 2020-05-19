@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -25,7 +25,7 @@
                 :name="'templateName'"
                 :has-error="errors.has('templateName')"
                 :value="name"
-                :placeholder="i18n.placeholder"
+                :placeholder="$t('请输入名称')"
                 @input="onInputName"
                 @enter="onInputBlur"
                 @blur="onInputBlur">
@@ -42,7 +42,7 @@
                 :loading="templateSaving"
                 v-cursor="{ active: !isSaveBtnEnable }"
                 @click.stop="onSaveClick(false)">
-                {{i18n.save}}
+                {{$t('保存')}}
             </bk-button>
             <bk-button
                 theme="primary"
@@ -54,7 +54,7 @@
                 @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>
+            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{$t('返回')}}</router-link>
         </div>
         <ProjectSelectorModal
             :is-new-task="false"
@@ -63,7 +63,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -138,16 +138,7 @@
                     regex: NAME_REG
                 },
                 isShowMode: true,
-                hasCreateTplPerm: false, // 是否有创建公共流程权限
-                i18n: {
-                    placeholder: gettext('请输入名称'),
-                    create: gettext('新建流程'),
-                    edit: gettext('编辑流程'),
-                    save: gettext('保存'),
-                    createTask: gettext('新建任务'),
-                    saveAndCreateTask: gettext('保存并新建任务'),
-                    back: gettext('返回')
-                }
+                hasCreateTplPerm: false // 是否有创建公共流程权限
             }
         },
         computed: {
@@ -157,13 +148,13 @@
                 'authResource': state => state.authResource
             }),
             title () {
-                return this.$route.query.template_id === undefined ? this.i18n.create : this.i18n.edit
+                return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
             },
             createTaskBtnText () {
-                return this.isSaveAndCreateTaskType ? this.i18n.saveAndCreateTask : this.i18n.createTask
+                return this.isSaveAndCreateTaskType ? i18n.t('保存并新建任务') : i18n.t('新建任务')
             },
             saveRequiredPerm () {
                 if (['new', 'clone'].includes(this.type)) {
@@ -266,7 +257,7 @@
                 if (['new', 'clone'].includes(this.type)) {
                     resourceData = {
                         id: this.project_id,
-                        name: gettext('项目'),
+                        name: i18n.t('项目'),
                         auth_actions: this.authActions
                     }
                     operations = this.authOperations

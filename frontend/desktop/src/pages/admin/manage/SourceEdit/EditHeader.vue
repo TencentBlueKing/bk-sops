@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -17,7 +17,7 @@
         }]">
             <div class="step-content">
                 <div class="num">1</div>
-                <div class="title">{{ i18n.setting + i18n.source }}</div>
+                <div class="title">{{ $t('配置') + $t('主包源') }}</div>
             </div>
         </div>
         <div :class="['step-item', {
@@ -25,25 +25,15 @@
         }]">
             <div class="step-content">
                 <div class="num">2</div>
-                <div class="title">{{ i18n.setting + i18n.cache }}</div>
+                <div class="title">{{ $t('配置') + $t('本地缓存') }}</div>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
 
     export default {
-        name: 'EditHeader',
-        data () {
-            return {
-                i18n: {
-                    setting: gettext('配置'),
-                    source: gettext('主包源'),
-                    cache: gettext('本地缓存')
-                }
-            }
-        }
+        name: 'EditHeader'
     }
 </script>
 <style lang="scss" scoped>

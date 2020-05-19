@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -46,7 +46,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -71,12 +71,7 @@
             return {
                 showList: false,
                 isLoading: false,
-                searchStr: '',
-                i18n: {
-                    biz: gettext('业务'),
-                    proj: gettext('项目'),
-                    placeholder: gettext('请选择')
-                }
+                searchStr: ''
             }
         },
         computed: {
@@ -96,13 +91,13 @@
                 const projects = []
                 const projectsGroup = [
                     {
-                        name: this.i18n.biz,
+                        name: i18n.t('业务'),
                         id: 1,
                         children: []
                     },
                     {
                         id: 2,
-                        name: this.i18n.proj,
+                        name: i18n.t('项目'),
                         children: []
                     }
                 ]
@@ -190,6 +185,8 @@
                         } else {
                             this.$router.push(redirectMap[key])
                         }
+                    } else { // 默认跳转到项目流程页面
+                        this.$router.push(redirectMap['/template'])
                     }
                     this.isLoading = false
                     this.$emit('loading', false)

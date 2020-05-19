@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,22 +12,22 @@
 <template>
     <div class="condition-edit">
         <bk-sideslider
-            :ext-cls="'common-template-setting-sideslider'"
+            :ext-cls="getSliderCls"
             :width="420"
             :is-show="isShow"
             :before-close="onBeforeClose"
             :quick-close="true">
             <div slot="header">
-                <span>{{ i18n.conditionTitle }}</span>
+                <span>{{ $t('分支条件') }}</span>
             </div>
             <div class="condition-form" slot="content">
                 <div class="form-item">
-                    <label class="lable">
-                        {{ i18n.conditionName }}
+                    <label class="label">
+                        {{ $t('分支名称') }}
                         <span class="required">*</span>
                     </label>
                     <bk-input
-                        v-model="conditionName"
+                        v-model.trim="conditionName"
                         v-validate="conditionRule"
                         name="conditionName"
                         :clearable="true">
@@ -35,12 +35,21 @@
                     <span v-show="errors.has('conditionName')" class="common-error-tip error-msg">{{ errors.first('conditionName') }}</span>
                 </div>
                 <div class="form-item">
-                    <label class="lable">
-                        {{ i18n.expression }}
+                    <label class="label">
+                        {{ $t('表达式')}}
                         <span class="required">*</span>
+                        <i
+                            class="common-icon-info expression-tips"
+                            v-bk-tooltips="{
+                                content: i18n.tips,
+                                placement: 'right-end',
+                                duration: 0,
+                                width: 240
+                            }">
+                        </i>
                     </label>
                     <textarea
-                        v-model="expression"
+                        v-model.trim="expression"
                         v-validate="expressionRule"
                         name="expression"
                         autocomplete="off"
@@ -55,17 +64,20 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     export default {
         name: 'conditionEdit',
-        props: ['isSettingPanelShow', 'isShowConditionEdit', 'isShow'],
+        props: {
+            isSettingPanelShow: Boolean,
+            isShowConditionEdit: Boolean,
+            settingActiveTab: String,
+            isShow: Boolean
+        },
         data () {
             return {
                 i18n: {
-                    conditionTitle: gettext('分支条件'),
-                    conditionName: gettext('分支名称'),
-                    expression: gettext('表达式')
+                    tips: i18n.t('支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：`${key1} >= 3 and ${key2} == "Test"`')
                 },
                 conditionName: '',
                 expression: '',
@@ -78,6 +90,27 @@
                     required: true
                 },
                 conditionData: {}
+            }
+        },
+        computed: {
+            getSliderCls () { // 动态设置面板的 class
+                let base = 'common-template-setting-sideslider'
+                if (this.isSettingPanelShow) {
+                    switch (this.settingActiveTab) {
+                        case 'globalVariableTab':
+                            base += ' position-right-var'
+                            break
+                        case 'templateConfigTab':
+                            base += ' position-right-basic-info'
+                            break
+                        case 'localDraftTab':
+                            base += ' position-right-cache'
+                            break
+                        case 'templateDataEditTab':
+                            base += ' position-right-template-data'
+                    }
+                }
+                return base
             }
         },
         methods: {
@@ -124,16 +157,41 @@
 .condition-edit {
     z-index: 5;
     transition: right 0.3s ease-in-out;
-    /deep/ {
-        .bk-sideslider-wrapper {
+    .common-template-setting-sideslider {
+        /deep/ .bk-sideslider-wrapper {
+            transition: right .3s ease-in-out;
             right: 56px;
+        }
+        &.position-right-var {
+            /deep/ .bk-sideslider-wrapper {
+                right: 856px;
+                border-right: 1px solid #dcdee5;
+            }
+        }
+        &.position-right-basic-info{
+            /deep/ .bk-sideslider-wrapper {
+                right: 476px;
+                border-right: 1px solid #dcdee5;
+            }
+        }
+        &.position-right-cache {
+            /deep/ .bk-sideslider-wrapper {
+                right: 476px;
+                border-right: 1px solid #dcdee5;
+            }
+        }
+        &.position-right-template-data {
+            /deep/ .bk-sideslider-wrapper {
+                right: 896px;
+                border-right: 1px solid #dcdee5;
+            }
         }
     }
     .condition-form {
         .form-item {
             margin: 0 20px;
             margin-bottom: 20px;
-            .lable {
+            .label {
                 display: block;
                 position: relative;
                 line-height: 36px;
@@ -158,6 +216,18 @@
                 vertical-align: middle;
                 outline: none;
                 resize: none;
+            }
+        }
+        .expression-tips {
+            margin-left: 6px;
+            color:#c4c6cc;
+            font-size: 16px;
+            cursor: pointer;
+            &:hover {
+                color:#f4aa1a;
+            }
+            &.quote-info {
+                margin-left: 0px;
             }
         }
     }

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -11,6 +11,7 @@
 */
 import bus from '@/utils/bus.js'
 import store from '@/store/index.js'
+import i18n from '@/config/i18n/index.js'
 
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
@@ -78,7 +79,7 @@ export function setJqueryAjaxConfig () {
                 // 功能开关
                 const src = xhr.responseText
                 const ajaxContent = '<iframe name="403_iframe" frameborder="0" src="' + src + '" style="width:570px;height:400px;"></iframe>'
-                bus.$emit('showErrorModal', 'default', ajaxContent, gettext('提示'))
+                bus.$emit('showErrorModal', 'default', ajaxContent, i18n.t('提示'))
             },
             403: function (xhr) {
                 bus.$emit('showErrorModal', '403')

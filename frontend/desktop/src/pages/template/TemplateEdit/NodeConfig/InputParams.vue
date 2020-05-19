@@ -29,7 +29,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -251,7 +250,7 @@
                     const config = this.getNewVarConfig(name, key)
                     this.createVariable(config)
                 } else { // 复用已有全局变量
-                    const variableKey = varKeyReg.test(this.hookingVarForm) ? this.hookingVarForm : `\${${this.hookingVarForm}}`
+                    const variableKey = data
                     this.setVariableSourceInfo({
                         type: 'add',
                         id: this.nodeId,

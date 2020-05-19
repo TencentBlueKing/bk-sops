@@ -1,0 +1,13 @@
+<h3>优化项</h3>
+<ul>
+<li>修改JOB-新建定时作业插件的定时规则参数中的提示文案，填参方式请参考JOB平台定时任务 Crontab 规则（JOB V2 和 V3 不一致）</li>
+<li>API JWT 可以通过环境变量 BKAPP_API_JWT_EXEMPT 豁免，在 headers 中传入 BK_USERNAME 和 BK_APPCODE 直接调用标准运维 API，方便进行测试联调</li>
+<li>轻应用操作项无权限时展示锁图标</li>
+<li>表格 Tag 的列宽可以自适应</li>
+<li>业务信息从 CMDB 同步到标准运维项目时，如果 time_zone 字段有变化也同步</li>
+</ul>
+<h3>bugfix</h3>
+<ul>
+<li>修复任务执行页面查看JOB-执行作业插件节点执行详情不展示输出参数的问题</li>
+<li>修复流程编辑中关闭节点配置面板时节点名称未保存修复 </li>
+</ul>

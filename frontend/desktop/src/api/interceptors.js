@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import i18n from '@/config/i18n/index.js'
 import axios from 'axios'
 import bus from '@/utils/bus.js'
 import { checkDataType } from '@/utils/checkDataType'
@@ -81,8 +82,8 @@ axios.interceptors.response.use(
                 break
         }
         if (!response.data) {
-            const msg = gettext('接口数据返回为空')
-            console.warn(gettext('接口异常，'), gettext('HTTP状态码：'), response.status)
+            const msg = i18n.t('接口数据返回为空')
+            console.warn(i18n.t('接口异常，'), i18n.t('HTTP状态码：'), response.status)
             console.error(msg)
             response.data = {
                 code: response.status,

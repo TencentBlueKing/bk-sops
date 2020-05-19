@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -114,7 +114,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
@@ -140,22 +140,22 @@
         execute: {
             action: 'execute',
             icon: 'common-icon-right-triangle',
-            text: gettext('执行')
+            text: i18n.t('执行')
         },
         pause: {
             action: 'pause',
             icon: 'common-icon-double-vertical-line',
-            text: gettext('暂停')
+            text: i18n.t('暂停')
         },
         resume: {
             action: 'resume',
             icon: 'common-icon-right-triangle',
-            text: gettext('继续')
+            text: i18n.t('继续')
         },
         revoke: {
             action: 'revoke',
             icon: 'common-icon-return-arrow',
-            text: gettext('撤销')
+            text: i18n.t('撤销')
         }
     }
     // 执行按钮的变更
@@ -437,7 +437,7 @@
                         this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: gettext('任务开始执行'),
+                            message: i18n.t('任务开始执行'),
                             theme: 'success'
                         })
                     } else {
@@ -464,7 +464,7 @@
                     if (res.result) {
                         this.state = 'SUSPENDED'
                         this.$bkMessage({
-                            message: gettext('任务暂停成功'),
+                            message: i18n.t('任务暂停成功'),
                             theme: 'success'
                         })
                     } else {
@@ -492,7 +492,7 @@
                         this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: gettext('任务继续成功'),
+                            message: i18n.t('任务继续成功'),
                             theme: 'success'
                         })
                     } else {
@@ -510,7 +510,7 @@
                     if (res.result) {
                         this.state = 'REVOKED'
                         this.$bkMessage({
-                            message: gettext('任务撤销成功'),
+                            message: i18n.t('任务撤销成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -531,7 +531,7 @@
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('跳过成功'),
+                            message: i18n.t('跳过成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -559,7 +559,7 @@
                     const res = await this.taskflowNodeForceFail(params)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('强制失败执行成功'),
+                            message: i18n.t('强制失败执行成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -580,7 +580,7 @@
                     const res = await this.skipExclusiveGateway(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('跳过成功'),
+                            message: i18n.t('跳过成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -601,7 +601,7 @@
                     const res = await this.pauseNodeResume(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('继续成功'),
+                            message: i18n.t('继续成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -1205,7 +1205,7 @@
     z-index: 5;
     .close-node-info-panel {
         position: absolute;
-        top: 0;
+        top: -1px;
         left: -18px;
         width: 18px;
         height: 50px;

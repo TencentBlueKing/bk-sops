@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -28,7 +28,7 @@
                 class="search-input"
                 v-model="searchStr"
                 right-icon="bk-icon icon-search"
-                :placeholder="i18n.placeholder"
+                :placeholder="$t('请输入名称')"
                 :clearable="true"
                 @input="onSearchInput"
                 @clear="onClearSearch">
@@ -50,16 +50,26 @@
                                 </span>
                             </div>
                             <ul slot="content" class="list-item-wrap">
-                                <li
-                                    :class="['list-item', { selected: getSelectedStatus(item) }]"
-                                    v-for="(item, index) in group.list"
-                                    :key="index"
-                                    @click="onSelect(item)">
-                                    <span class="node-name">{{ item.name }}</span>
-                                    <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
-                                        <i class="common-icon-box-top-right-corner"></i>
-                                    </span>
-                                </li>
+                                <template v-for="(item, index) in group.list">
+                                    <li
+                                        v-if="!isSubflow || item.hasPermission"
+                                        :class="['list-item', { selected: getSelectedStatus(item) }]"
+                                        :key="index"
+                                        @click="onSelect(item)">
+                                        <span class="node-name">{{ item.name }}</span>
+                                        <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                            <i class="common-icon-box-top-right-corner"></i>
+                                        </span>
+                                    </li>
+                                    <li
+                                        v-else
+                                        class="list-item text-permission-disable"
+                                        :key="item.id"
+                                        v-cursor
+                                        @click="onApplyPermission(item)">
+                                        {{ item.name }}
+                                    </li>
+                                </template>
                                 <div class="node-empty" v-if="group.list.length === 0">
                                     <no-data></no-data>
                                 </div>
@@ -70,16 +80,26 @@
                 <!-- 搜索结果插件列表 -->
                 <template v-else>
                     <ul slot="content" class="list-item-wrap">
-                        <li
-                            :class="['list-item', { selected: getSelectedStatus(item) }]"
-                            v-for="(item, index) in searchResult"
-                            :key="index"
-                            @click="onSelect(item)">
-                            <span class="node-name">{{ item.name }}</span>
-                            <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
-                                <i class="common-icon-box-top-right-corner"></i>
-                            </span>
-                        </li>
+                        <template v-for="(item, index) in searchResult">
+                            <li
+                                v-if="!isSubflow || item.hasPermission"
+                                :class="['list-item', { selected: getSelectedStatus(item) }]"
+                                :key="index"
+                                @click="onSelect(item)">
+                                <span class="node-name">{{ item.name }}</span>
+                                <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                    <i class="common-icon-box-top-right-corner"></i>
+                                </span>
+                            </li>
+                            <li
+                                v-else
+                                class="list-item text-permission-disable"
+                                :key="item.id"
+                                v-cursor
+                                @click="onApplyPermission(item)">
+                                {{ item.name }}
+                            </li>
+                        </template>
                         <div class="node-empty" v-if="searchResult.length === 0">
                             <no-data></no-data>
                         </div>
@@ -92,9 +112,10 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import toolsUtils from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
 
     export default {
@@ -102,6 +123,7 @@
         components: {
             NoData
         },
+        mixins: [permission],
         props: {
             atomTypeList: {
                 type: Object
@@ -116,12 +138,6 @@
         },
         data () {
             return {
-                i18n: {
-                    choose: gettext('选择'),
-                    selected: gettext('已选'),
-                    view: gettext('查看'),
-                    placeholder: gettext('请输入名称')
-                },
                 selectedGroup: 'all', // 标准插件/子流程搜索分组
                 searchStr: '',
                 searchResult: []
@@ -129,7 +145,7 @@
         },
         computed: {
             listData () {
-                return this.isSubflow ? this.atomTypeList.subflow : this.atomTypeList.tasknode
+                return this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
             },
             listInPanel () {
                 return (this.searchStr === '' && this.selectedGroup === 'all') ? this.listData : this.searchResult
@@ -138,7 +154,7 @@
                 const list = []
                 list.push({
                     type: 'all',
-                    group_name: this.isSubflow ? gettext('所有分类') : gettext('所有分组')
+                    group_name: this.isSubflow ? i18n.t('所有分类') : i18n.t('所有分组')
                 })
                 this.listData.forEach(item => {
                     list.push({
@@ -227,6 +243,10 @@
                     }
                 })
                 window.open(href, '_blank')
+            },
+            onApplyPermission (tpl) {
+                const { tplOperations, tplResource } = this.atomTypeList.subflow
+                this.applyForPermission(['view'], tpl, tplOperations, tplResource)
             }
         }
     }
@@ -252,7 +272,7 @@
     }
 }
 .list-wrapper {
-    height: calc(100vh - 232px);
+    height: calc(100vh - 234px);
     border-top: 1px solid #e2e4ed;
     overflow: auto;
     clear: both;
@@ -267,6 +287,11 @@
                 }
                 .bk-collapse-item-content {
                     padding: 0;
+                }
+            }
+            &.bk-collapse-item-active {
+                /deep/ .bk-collapse-item-header {
+                    border-bottom: 1px solid #e2e4ed;
                 }
             }
         }
@@ -311,6 +336,9 @@
         font-size: 12px;
         border-bottom: 1px solid #e2e4ed;
         cursor: pointer;
+        &:last-child {
+            border-bottom: none;
+        }
         &.selected .node-name {
             color: #3a84ff;
         }
@@ -322,6 +350,9 @@
             float: right;
             margin-right: 34px;
         }
+    }
+    .node-empty {
+        padding: 20px 0;
     }
 }
 </style>

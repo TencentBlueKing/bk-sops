@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -47,33 +47,33 @@
                 </template>
             </div>
         </div>
-        <div id="node-tooltip-content" slot="content">
+        <div class="node-tooltip-content" slot="content">
             <bk-button
                 v-if="isShowSkipBtn"
                 @click.stop="onRetryClick">
-                {{ i18n.retry }}
+                {{ $t('重试') }}
             </bk-button>
             <bk-button
                 v-if="isShowRetryBtn"
                 @click.stop="onSkipClick">
-                {{ i18n.skip }}
+                {{ $t('跳过') }}
             </bk-button>
-            <span v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn">{{ i18n.atomFailed }}</span>
+            <span v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn">{{ $t('流程模板中该标准插件节点未配置失败处理方式，不可操作') }}</span>
             <template v-if="node.status === 'RUNNING'">
                 <bk-button
                     v-if="node.code === 'sleep_timer'"
                     @click.stop="onModifyTimeClick">
-                    {{ i18n.modifyTime }}
+                    {{ $t('修改时间') }}
                 </bk-button>
                 <bk-button
                     v-if="node.code === 'pause_node'"
                     @click.stop="onResumeClick">
-                    {{ i18n.resume }}
+                    {{ $t('继续') }}
                 </bk-button>
                 <bk-button
                     v-if="hasAdminPerm"
                     @click.stop="$emit('onForceFail', node.id)">
-                    {{ i18n.forceFail }}
+                    {{ $t('强制失败') }}
                 </bk-button>
             </template>
         </div>
@@ -81,7 +81,6 @@
 
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
 
     export default {
@@ -95,18 +94,6 @@
                 type: Object,
                 default () {
                     return {}
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    retry: gettext('重试'),
-                    skip: gettext('跳过'),
-                    resume: gettext('继续'),
-                    modifyTime: gettext('修改时间'),
-                    forceFail: gettext('强制失败'),
-                    atomFailed: gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
                 }
             }
         },
@@ -182,32 +169,4 @@
         color: #000000;
     }
 }
-</style>
-<style lang="scss" scoped>
-    .dark-circle {
-        font-size: 12px;
-        color: #979ba5;
-        margin-left: -2px;
-    }
-    #node-tooltip-content {
-        padding: 10px;
-        background: #000000;
-        border-radius: 2px;
-        overflow: hidden;
-        .bk-button {
-            float: left;
-            padding: 0 10px;
-            border: 1px solid transparent;
-            text-align: center;
-            &:first-child {
-                padding-left: 0;
-            }
-            &:last-child {
-                padding-right: 0;
-            }
-            &:not(:last-child) {
-                border-right: 1px solid #63656e;
-            }
-        }
-    }
 </style>

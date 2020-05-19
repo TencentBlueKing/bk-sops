@@ -191,7 +191,12 @@
             }
         }
         a {
+            display: inline-block;
+            min-width: 60px;
             color: #63656e;
+            &.disable {
+                color: #dcdee5;
+            }
         }
     }
 }

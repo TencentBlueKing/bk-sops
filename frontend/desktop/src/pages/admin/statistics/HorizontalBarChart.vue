@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -66,7 +66,7 @@
                 <no-data v-else></no-data>
             </div>
         </div>
-        <div class="view-all-btn" v-if="!dataLoading && sortedData.length > 7" @click="onViewAllClick">{{ i18n.viewAll }}</div>
+        <div class="view-all-btn" v-if="!dataLoading && sortedData.length > 7" @click="onViewAllClick">{{ $t('查看全部') }}</div>
         <bk-dialog
             v-model="isDialogShow"
             :fullscreen="true"
@@ -87,23 +87,23 @@
                 </div>
             </div>
             <template v-slot:footer>
-                <bk-button theme="default" @click="isDialogShow = false">{{ i18n.close }}</bk-button>
+                <bk-button theme="default" @click="isDialogShow = false">{{ $t('关闭') }}</bk-button>
             </template>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import NoData from '@/components/common/base/NoData.vue'
 
     const SORT_LIST = [
         {
             id: 'descending',
-            name: gettext('降序排列')
+            name: i18n.t('降序排列')
         },
         {
             id: 'ascending',
-            name: gettext('升序排列')
+            name: i18n.t('升序排列')
         }
     ]
 
@@ -143,11 +143,7 @@
                 sortList: SORT_LIST,
                 selectedSortType: SORT_LIST[0].id,
                 selectedValue: '',
-                isDialogShow: false,
-                i18n: {
-                    viewAll: gettext('查看全部'),
-                    close: gettext('关闭')
-                }
+                isDialogShow: false
             }
         },
         computed: {

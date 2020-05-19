@@ -2,7 +2,7 @@
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
@@ -49,7 +49,7 @@ def get_role_user_list(role):
     }
     search_result = auth_resource.search_resources_perms_principals(resources_actions)
     if not search_result['result']:
-        message = ('search perms principals of Resource[{resource}] by backend[{beckend_cls}] '
+        message = ('search perms principals of Resource[{resource}] by backend[{backend_cls}] '
                    'return error: {error}').format(
             resource=auth_resource.name,
             backend_cls=auth_resource.backend,

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,12 +13,12 @@
     <div class="page-statistics">
         <base-title
             type="router"
-            :title="i18n.title"
+            :title="$t('运营数据')"
             :tab-list="routers">
             <template v-slot:expand>
                 <div class="date-picker">
                     <bk-form form-type="inline">
-                        <bk-form-item :label="i18n.dateRange">
+                        <bk-form-item :label="$t('时间范围')">
                             <bk-date-picker
                                 v-model="dateRange"
                                 type="daterange"
@@ -43,23 +43,23 @@
 <script>
     import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     const ROUTERS = [
         {
-            name: gettext('流程统计'),
+            name: i18n.t('流程统计'),
             routerName: 'statisticsTemplate'
         },
         {
-            name: gettext('任务统计'),
+            name: i18n.t('任务统计'),
             routerName: 'statisticsInstance'
         },
         {
-            name: gettext('标准插件统计'),
+            name: i18n.t('标准插件统计'),
             routerName: 'statisticsAtom'
         },
         {
-            name: gettext('轻应用统计'),
+            name: i18n.t('轻应用统计'),
             routerName: 'statisticsAppmaker'
         }
     ]
@@ -73,11 +73,7 @@
             const defaultDateRange = [moment().subtract(1, 'month').format(format), moment().format(format)]
             return {
                 routers: ROUTERS,
-                dateRange: defaultDateRange.slice(0),
-                i18n: {
-                    title: gettext('运营数据'),
-                    dateRange: gettext('时间范围')
-                }
+                dateRange: defaultDateRange.slice(0)
             }
         },
         computed: {

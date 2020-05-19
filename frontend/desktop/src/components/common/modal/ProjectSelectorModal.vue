@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -20,7 +20,7 @@
         :mask-close="false">
         <div class="select-wrapper">
             <div class="common-form-item">
-                <label class="required">{{ i18n.select }}</label>
+                <label class="required">{{ $t('选择项目') }}</label>
                 <div class="common-form-content">
                     <project-selector
                         :show="true"
@@ -28,7 +28,7 @@
                         @loading="onLoading">
                     </project-selector>
                 </div>
-                <span v-if="!Number(project_id)" class="common-error-tip error-msg">{{ i18n.required }}</span>
+                <span v-if="!Number(project_id)" class="common-error-tip error-msg">{{ $t('请选择项目') }}</span>
             </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
@@ -39,13 +39,13 @@
                     @click="onCreateTask">
                     {{ confirm }}
                 </bk-button>
-                <bk-button theme="default" @click="cancel"> {{ i18n.cancel }} </bk-button>
+                <bk-button theme="default" @click="cancel"> {{ $t('取消') }} </bk-button>
             </div>
         </div>
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import ProjectSelector from '@/components/layout/ProjectSelector.vue'
     import { mapState } from 'vuex'
     export default {
@@ -62,16 +62,11 @@
         },
         data () {
             return {
-                i18n: {
-                    select: gettext('选择项目'),
-                    cancel: gettext('取消'),
-                    required: gettext('请选择项目')
-                },
                 isModalShow: false,
                 isLoading: false,
                 templateId: '',
-                title: this.isNewTask ? gettext('新建任务') : gettext('选择项目'),
-                confirm: this.isNewTask ? gettext('去新建') : gettext('确定')
+                title: this.isNewTask ? i18n.t('新建任务') : i18n.t('选择项目'),
+                confirm: this.isNewTask ? i18n.t('去新建') : i18n.t('确定')
             }
         },
         computed: {

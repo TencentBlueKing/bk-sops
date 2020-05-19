@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -12,7 +12,7 @@
 <template>
     <div class="task-execute-info">
         <div class="panel-title">
-            <h3>{{ i18n.title }}</h3>
+            <h3>{{ $t('任务执行信息') }}</h3>
         </div>
         <div class="content-wrapper" v-bkloading="{ isLoading: taskflowDetailLoading, opacity: 1 }">
             <div class="context-data" v-if="taskDetail">
@@ -23,7 +23,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import VueJsonPretty from 'vue-json-pretty'
@@ -44,12 +43,7 @@
         data () {
             return {
                 taskflowDetailLoading: true,
-                taskDetail: null,
-                i18n: {
-                    title: gettext('任务执行信息'),
-                    contextInfo: gettext('上下文数据'),
-                    modelInfo: gettext('任务模型数据')
-                }
+                taskDetail: null
             }
         },
         created () {

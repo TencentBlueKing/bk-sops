@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -16,7 +16,7 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.deleteTips"
+        :title="$t('确认删除')"
         :value="isDeleteDialogShow"
         :draggable="true"
         @confirm="onDeletePeriodicConfrim"
@@ -27,20 +27,13 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'DeletePeriodicDialog',
         props: ['isDeleteDialogShow', 'templateName', 'deleting'],
-        data () {
-            return {
-                i18n: {
-                    deleteTips: gettext('确认删除')
-                }
-            }
-        },
         computed: {
             deleteInfo () {
-                return this.i18n.deleteTips + '"' + this.templateName + '"' + gettext('？')
+                return i18n.t('确认删除') + '"' + this.templateName + '"' + i18n.t('？')
             }
         },
         methods: {

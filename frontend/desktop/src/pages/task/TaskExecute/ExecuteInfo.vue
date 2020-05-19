@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -17,7 +17,7 @@
         }]"
         v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="excute-time" v-if="!adminView">
-            <span>{{i18n.theTime}}</span>
+            <span>{{$t('第')}}</span>
             <bk-select
                 :clearable="false"
                 :value="theExecuteTime"
@@ -29,7 +29,7 @@
                     :name="index">
                 </bk-option>
             </bk-select>
-            <span>{{i18n.executeTime}}</span>
+            <span>{{$t('次执行')}}</span>
         </div>
         <div class="execute-head">
             <div class="node-name">
@@ -41,13 +41,13 @@
             </div>
         </div>
         <section class="info-section">
-            <h4 class="common-section-title">{{ i18n.executeInfo }}</h4>
+            <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
             <table class="operation-table">
                 <tr v-for="col in executeCols" :key="col.id">
                     <th>{{ col.title }}</th>
                     <td>
                         <template v-if="typeof executeInfo[col.id] === 'boolean'">
-                            {{executeInfo[col.id] ? i18n.yes : i18n.no}}
+                            {{executeInfo[col.id] ? $t('是') : $t('否')}}
                         </template>
                         <template v-else-if="col.id === 'elapsed_time'">
                             {{getLastTime(executeInfo.elapsed_time)}}
@@ -65,7 +65,7 @@
             </table>
         </section>
         <section class="info-section" v-if="!adminView">
-            <h4 class="common-section-title">{{ i18n.inputsParams }}</h4>
+            <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
             <div>
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
@@ -77,18 +77,18 @@
             </div>
         </section>
         <section class="info-section" v-else>
-            <h4 class="common-section-title">{{ i18n.inputsParams }}</h4>
+            <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
             <div class="code-block-wrap">
                 <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
             </div>
         </section>
         <section class="info-section" v-if="!adminView">
-            <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
+            <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
             <table class="operation-table outputs-table">
                 <thead>
                     <tr>
-                        <th class="output-name">{{ i18n.name }}</th>
-                        <th class="output-value">{{ i18n.value }}</th>
+                        <th class="output-name">{{ $t('参数名') }}</th>
+                        <th class="output-value">{{ $t('参数值') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -104,13 +104,13 @@
             </table>
         </section>
         <section class="info-section" v-else>
-            <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
+            <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
             <div class="code-block-wrap">
                 <VueJsonPretty :data="outputsInfo"></VueJsonPretty>
             </div>
         </section>
         <section class="info-section" v-if="executeInfo.ex_data">
-            <h4 class="common-section-title">{{ i18n.exception }}</h4>
+            <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
             <div v-html="failInfo"></div>
             <IpLogContent
                 v-if="executeInfo.ex_data.show_ip_log"
@@ -119,13 +119,13 @@
             </IpLogContent>
         </section>
         <section class="info-section" v-if="adminView">
-            <h4 class="common-section-title">{{ i18n.nodeLog }}</h4>
+            <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
             <div class="code-block-wrap">
                 <VueJsonPretty :data="logInfo"></VueJsonPretty>
             </div>
         </section>
         <section class="info-section" v-if="historyInfo.length">
-            <h4 class="common-section-title">{{ i18n.retries }}</h4>
+            <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
             <bk-table
                 class="retry-table"
                 :data="historyInfo"
@@ -133,7 +133,7 @@
                 <bk-table-column type="expand" :width="60">
                     <template slot-scope="props">
                         <div class="common-form-item">
-                            <label>{{ i18n.inputsParams }}</label>
+                            <label>{{ $t('输入参数') }}</label>
                             <div class="common-form-content">
                                 <div class="code-block-wrap">
                                     <VueJsonPretty :data="props.row.inputs"></VueJsonPretty>
@@ -141,7 +141,7 @@
                             </div>
                         </div>
                         <div class="common-form-item">
-                            <label>{{ i18n.outputsParams }}</label>
+                            <label>{{ $t('输出参数') }}</label>
                             <div class="common-form-content">
                                 <div class="code-block-wrap">
                                     <VueJsonPretty :data="props.row.outputs"></VueJsonPretty>
@@ -149,13 +149,13 @@
                             </div>
                         </div>
                         <div class="common-form-item" v-if="props.row.ex_data">
-                            <label>{{ i18n.exception }}</label>
+                            <label>{{ $t('异常信息') }}</label>
                             <div class="common-form-content">
                                 <div v-html="props.row.ex_data"></div>
                             </div>
                         </div>
                         <div class="common-form-item" v-if="adminView">
-                            <label>{{ i18n.log }}</label>
+                            <label>{{ $t('日志') }}</label>
                             <div class="common-form-content">
                                 <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
                                     <div class="code-block-wrap">
@@ -166,12 +166,12 @@
                         </div>
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="i18n.index" :width="70">
+                <bk-table-column :label="$t('序号')" :width="70">
                     <template slot-scope="props">
                         {{props.$index + 1}}
                     </template>
                 </bk-table-column>
-                <bk-table-column :label="i18n.loopTime" :width="100" prop="loop"></bk-table-column>
+                <bk-table-column :label="$t('执行次数')" :width="100" prop="loop"></bk-table-column>
                 <bk-table-column
                     v-for="col in historyCols"
                     :key="col.id"
@@ -183,7 +183,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
@@ -196,140 +196,140 @@
 
     const EXECUTE_INFO_COL = [
         {
-            title: gettext('开始时间'),
+            title: i18n.t('开始时间'),
             id: 'start_time'
         },
         {
-            title: gettext('结束时间'),
+            title: i18n.t('结束时间'),
             id: 'finish_time'
         },
         {
-            title: gettext('耗时'),
+            title: i18n.t('耗时'),
             id: 'elapsed_time'
         },
         {
-            title: gettext('失败后跳过'),
+            title: i18n.t('失败后跳过'),
             id: 'skip'
         },
         {
-            title: gettext('失败后自动忽略'),
+            title: i18n.t('失败后自动忽略'),
             id: 'error_ignorable'
         },
         {
-            title: gettext('重试次数'),
+            title: i18n.t('重试次数'),
             id: 'retry'
         },
         {
-            title: gettext('插件版本'),
+            title: i18n.t('插件版本'),
             id: 'plugin_version'
         }
     ]
 
     const ADMIN_EXECUTE_INFO_COL = [
         {
-            title: gettext('开始时间'),
+            title: i18n.t('开始时间'),
             id: 'start_time'
         },
         {
-            title: gettext('结束时间'),
+            title: i18n.t('结束时间'),
             id: 'archive_time'
         },
         {
-            title: gettext('耗时'),
+            title: i18n.t('耗时'),
             id: 'elapsed_time'
         },
         {
-            title: gettext('失败后跳过'),
+            title: i18n.t('失败后跳过'),
             id: 'skip'
         },
         {
-            title: gettext('失败后自动忽略'),
+            title: i18n.t('失败后自动忽略'),
             id: 'error_ignorable'
         },
         {
-            title: gettext('重试次数'),
+            title: i18n.t('重试次数'),
             id: 'retry_times'
         },
         {
-            title: gettext('ID'),
+            title: i18n.t('ID'),
             id: 'id'
         },
         {
-            title: gettext('状态'),
+            title: i18n.t('状态'),
             id: 'state'
         },
         {
-            title: gettext('循环次数'),
+            title: i18n.t('循环次数'),
             id: 'loop'
         },
         {
-            title: gettext('创建时间'),
+            title: i18n.t('创建时间'),
             id: 'create_time'
         },
         {
-            title: gettext('调度ID'),
+            title: i18n.t('调度ID'),
             id: 'schedule_id'
         },
         {
-            title: gettext('正在被调度'),
+            title: i18n.t('正在被调度'),
             id: 'is_scheduling'
         },
         {
-            title: gettext('调度次数'),
+            title: i18n.t('调度次数'),
             id: 'schedule_times'
         },
         {
-            title: gettext('等待回调'),
+            title: i18n.t('等待回调'),
             id: 'wait_callback'
         },
         {
-            title: gettext('完成调度'),
+            title: i18n.t('完成调度'),
             id: 'is_finished'
         },
         {
-            title: gettext('调度节点版本'),
+            title: i18n.t('调度节点版本'),
             id: 'schedule_version'
         },
         {
-            title: gettext('执行版本'),
+            title: i18n.t('执行版本'),
             id: 'version'
         },
         {
-            title: gettext('回调数据'),
+            title: i18n.t('回调数据'),
             id: 'callback_data'
         },
         {
-            title: gettext('插件版本'),
+            title: i18n.t('插件版本'),
             id: 'plugin_version'
         }
     ]
 
     const HISTORY_COLS = [
         {
-            title: gettext('开始时间'),
+            title: i18n.t('开始时间'),
             id: 'start_time'
         },
         {
-            title: gettext('结束时间'),
+            title: i18n.t('结束时间'),
             id: 'finish_time'
         },
         {
-            title: gettext('耗时'),
+            title: i18n.t('耗时'),
             id: 'last_time'
         }
     ]
 
     const ADMIN_HISTORY_COLS = [
         {
-            title: gettext('开始时间'),
+            title: i18n.t('开始时间'),
             id: 'started_time'
         },
         {
-            title: gettext('结束时间'),
+            title: i18n.t('结束时间'),
             id: 'finished_time'
         },
         {
-            title: gettext('耗时'),
+            title: i18n.t('耗时'),
             id: 'elapsed_time'
         }
     ]
@@ -354,28 +354,6 @@
         },
         data () {
             return {
-                i18n: {
-                    executeInfo: gettext('执行信息'),
-                    lastTime: gettext('耗时'),
-                    inputsParams: gettext('输入参数'),
-                    outputsParams: gettext('输出参数'),
-                    name: gettext('参数名'),
-                    value: gettext('参数值'),
-                    exception: gettext('异常信息'),
-                    retries: gettext('执行记录'),
-                    index: gettext('序号'),
-                    yes: gettext('是'),
-                    no: gettext('否'),
-                    nodeLog: gettext('节点日志'),
-                    log: gettext('日志'),
-                    running: gettext('执行中'),
-                    suspended: gettext('暂停'),
-                    failed: gettext('失败'),
-                    finished: gettext('完成'),
-                    theTime: gettext('第'),
-                    executeTime: gettext('次执行'),
-                    loopTime: gettext('执行次数')
-                },
                 loading: true,
                 executeInfo: {},
                 inputsInfo: {},
@@ -487,21 +465,25 @@
                     } else {
                         this.executeInfo = respData
                         this.inputsInfo = inputs
-                        this.outputsInfo = outputs
                         this.historyInfo = respData.histories
-                        this.outputsInfo = outputs.filter(output => output.preset)
+                        
                         for (const key in this.inputsInfo) {
                             this.$set(this.renderData, key, this.inputsInfo[key])
                         }
                         
-                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.outputsInfo.hasOwnProperty('job_global_var')) {
-                            this.outputsInfo = this.outputsInfo.filter(output => {
-                                const outputIndex = this.outputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
+                        // 兼容 JOB 执行作业输出参数
+                        // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
+                        if (this.nodeDetailConfig.component_code === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
+                            this.outputsInfo = outputs.filter(output => {
+                                const outputIndex = this.inputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
                                 if (!output.preset && outputIndex === -1) {
                                     return false
                                 }
                                 return true
                             })
+                        } else {
+                            // 普通插件展示 preset 为 true 的输出参数
+                            this.outputsInfo = outputs.filter(output => output.preset)
                         }
                         
                         if (this.theExecuteTime === undefined) {

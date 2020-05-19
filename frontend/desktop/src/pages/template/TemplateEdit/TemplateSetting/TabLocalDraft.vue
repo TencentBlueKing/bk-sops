@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -18,7 +18,7 @@
             :before-close="onBeforeClose"
             :quick-close="true">
             <div slot="header">
-                <span> {{i18n.localCache}} </span>
+                <span> {{$t('本地缓存')}} </span>
                 <i class="common-icon-info draft-tooltip"
                     v-bk-tooltips="{
                         allowHtml: true,
@@ -28,8 +28,8 @@
                         width: 400 }"></i>
                 <div id="draft-desc">
                     <div class="tips-item" style="white-space: normal;">
-                        <h4>{{ i18n.sketch }}</h4>
-                        <p>{{ i18n.draftSketch }}</p>
+                        <h4>{{ $t('简述：') }}</h4>
+                        <p>{{ $t('本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。') }}</p>
                     </div>
                 </div>
             </div>
@@ -39,15 +39,15 @@
                         <bk-input
                             name="draftName"
                             class="draft-name-input"
-                            :placeholder="i18n.draftMessage"
+                            :placeholder="$t('名称')"
                             v-model="newDraftName"
                             data-vv-validate-on=" "
                             v-validate="draftNameRule" />
-                        <bk-button theme="primary" @click="onNewDraft">{{i18n.affirm}}</bk-button>
-                        <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
+                        <bk-button theme="primary" @click="onNewDraft">{{$t('保存')}}</bk-button>
+                        <bk-button @click="onCancelNewDraft">{{$t('取消')}}</bk-button>
                     </div>
                     <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
-                        {{ i18n.newDraft }}
+                        {{ $t('新建') }}
                     </bk-button>
                     <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
                 </div>
@@ -55,9 +55,9 @@
                     <table class="draft-table">
                         <thead>
                             <tr>
-                                <th class="col-number">{{ i18n.serialNumber }}</th>
-                                <th class="col-name">{{ i18n.draftMessage }}</th>
-                                <th class="col-time">{{ i18n.saveTime }}</th>
+                                <th class="col-number">{{ $t('序号') }}</th>
+                                <th class="col-name">{{ $t('名称') }}</th>
+                                <th class="col-time">{{ $t('保存时间') }}</th>
                                 <th class="col-delete"></th>
                             </tr>
                         </thead>
@@ -78,7 +78,7 @@
                                 </td>
                             </tr>
                             <tr v-if="!draftArray.length" class="empty-draft-tip">
-                                <td><NoData><p>{{i18n.emptyDraftTip}}</p></NoData></td>
+                                <td><NoData><p>{{$t('无数据，请手动添加缓存或等待自动保存')}}</p></NoData></td>
                             </tr>
                         </tbody>
                     </table>
@@ -89,7 +89,6 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -108,24 +107,6 @@
                     required: true,
                     max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
                     regex: NAME_REG
-                },
-                i18n: {
-                    localCache: gettext('本地缓存'),
-                    newDraft: gettext('新建'),
-                    draftMessage: gettext('名称'),
-                    replace: gettext('替换'),
-                    saveTime: gettext('保存时间'),
-                    delete: gettext('删除'),
-                    emptyDraftTip: gettext('无数据，请手动添加缓存或等待自动保存'),
-                    replaceTips: gettext('替换模板'),
-                    replaceConfirm: gettext('是否替换模板？'),
-                    serialNumber: gettext('序号'),
-                    draftName: gettext('名称'),
-                    sketch: gettext('简述：'),
-                    draftSketch: gettext('本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。'),
-                    affirm: gettext('保存'),
-                    cancel: gettext('取消'),
-                    resetTemplate: gettext('重置模板')
                 }
             }
         },
@@ -252,6 +233,7 @@
         tbody {
             display: block;
             height: calc(100% - 40px);
+            color: #63656e;
             overflow: auto;
             @include scrollbar;
             tr:not(.empty-draft-tip):hover {

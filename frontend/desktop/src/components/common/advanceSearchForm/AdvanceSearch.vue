@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -13,7 +13,7 @@
     <div class="advanced-search">
         <div class="search-content">
             <div :class="['toggle-open-btn', { opened: isAdvanceOpen }]" @click="onShow">
-                <span>{{i18n.advancedSearch}}</span>
+                <span>{{$t('高级搜索')}}</span>
                 <span class="advanced-shape">
                     <i class="bk-icon icon-down-shape search-shape" v-if="!isAdvanceOpen"></i>
                     <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
@@ -33,7 +33,6 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'AdvanceSearch',
         props: {
@@ -52,9 +51,6 @@
         },
         data () {
             return {
-                i18n: {
-                    advancedSearch: gettext('高级搜索')
-                },
                 isAdvancedSerachShow: false,
                 localValue: this.value
             }

@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -18,11 +18,11 @@
             :before-close="onBeforeClose"
             :quick-close="true">
             <div slot="header">
-                <span>{{i18n.basic_information}}</span>
+                <span>{{$t('基础信息')}}</span>
             </div>
             <div slot="content" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
                 <div class="common-form-item">
-                    <label>{{ i18n.type }}</label>
+                    <label>{{ $t('分类') }}</label>
                     <div class="common-form-content">
                         <bk-select
                             class="category-select"
@@ -35,11 +35,11 @@
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
-                        <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ i18n.categoryTip}}</span>
+                        <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
-                    <label> {{i18n.notify_type}} </label>
+                    <label> {{$t('通知方式')}} </label>
                     <div class="common-form-content">
                         <bk-checkbox-group v-model="notifyType">
                             <bk-checkbox
@@ -52,13 +52,13 @@
                     </div>
                 </div>
                 <div class="common-form-item hide">
-                    <label>{{ i18n.timeout }}</label>
+                    <label>{{ $t('超时时间(分钟)') }}</label>
                     <div class="common-form-content">
                         <bk-input :value="timeout" @input="onChangeTimeout" />
                     </div>
                 </div>
                 <div class="common-form-item">
-                    <label>{{ i18n.receiver_group }}</label>
+                    <label>{{ $t('通知分组') }}</label>
                     <div class="common-form-content">
                         <bk-checkbox-group v-model="receiverGroup">
                             <bk-checkbox
@@ -76,21 +76,12 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
     export default {
         name: 'TabTemplateConfig',
         props: ['projectInfoLoading', 'isTemplateConfigValid', 'isShow'],
         data () {
             return {
-                i18n: {
-                    basic_information: gettext('基础信息'),
-                    type: gettext('分类'),
-                    notify_type: gettext('通知方式'),
-                    timeout: gettext('超时时间(分钟)'),
-                    receiver_group: gettext('通知分组'),
-                    categoryTip: gettext('必填项')
-                },
                 selectedTaskCategory: ''
             }
         },

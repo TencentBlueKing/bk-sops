@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -23,17 +23,18 @@
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="reuse-variable-dialog">
-            <p v-if="createNew" class="new-var-notice">{{i18n.notice}}</p>
+            <p v-if="createNew" class="new-var-notice">{{$t('已存在相同Key且版本不同的变量，请新建变量')}}</p>
             <bk-form
                 ref="form"
                 :model="formData"
                 :form-type="createNew ? 'vertical' : 'horizontal'"
                 :rules="rules">
                 <template v-if="!createNew">
-                    <bk-form-item :label="i18n.reuse" property="reused">
+                    <bk-form-item :label="$t('复用变量')" property="reused">
                         <bk-select
                             v-model="formData.reused"
                             :disabled="!formData.isReuse"
+                            :popover-options="{ appendTo: 'parent' }"
                             :clearable="false">
                             <bk-option
                                 v-for="(option, index) in variables"
@@ -43,7 +44,7 @@
                             </bk-option>
                         </bk-select>
                     </bk-form-item>
-                    <bk-form-item :label="i18n.new" property="isReuse">
+                    <bk-form-item :label="$t('新建变量')" property="isReuse">
                         <bk-switcher
                             :value="!formData.isReuse"
                             size="min"
@@ -53,10 +54,10 @@
                     </bk-form-item>
                 </template>
                 <template v-if="!formData.isReuse || createNew">
-                    <bk-form-item :label="i18n.name" property="name" :required="true">
+                    <bk-form-item :label="$t('变量名称')" property="name" :required="true">
                         <bk-input name="variableName" v-model="formData.name"></bk-input>
                     </bk-form-item>
-                    <bk-form-item :label="i18n.key" property="key" :required="true">
+                    <bk-form-item :label="$t('变量KEY')" property="key" :required="true">
                         <bk-input name="variableKey" v-model="formData.key"></bk-input>
                     </bk-form-item>
                 </template>
@@ -65,7 +66,7 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
 
@@ -90,35 +91,35 @@
                     name: [
                         {
                             required: true,
-                            message: gettext('必填项'),
+                            message: i18n.t('必填项'),
                             trigger: 'blur'
                         },
                         {
                             max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                            message: gettext('变量名称长度不能超过') + STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH + gettext('个字符'),
+                            message: i18n.t('变量名称长度不能超过') + STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'
                         },
                         {
                             regex: NAME_REG,
-                            message: gettext('变量名称不能包含') + INVALID_NAME_CHAR + gettext('非法字符'),
+                            message: i18n.t('变量名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
                             trigger: 'blur'
                         }
                     ],
                     key: [
                         {
                             required: true,
-                            message: gettext('必填项'),
+                            message: i18n.t('必填项'),
                             trigger: 'blur'
                         },
                         {
                             max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
-                            message: gettext('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + gettext('个字符'),
+                            message: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
                             trigger: 'blur'
                         },
                         {
                             // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
                             regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
-                            message: gettext('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
                             trigger: 'blur'
                         },
                         {
@@ -129,17 +130,10 @@
                                 }
                                 return true
                             },
-                            message: gettext('变量KEY值已存在'),
+                            message: i18n.t('变量KEY值已存在'),
                             trigger: 'blur'
                         }
                     ]
-                },
-                i18n: {
-                    reuse: gettext('复用变量'),
-                    new: gettext('新建变量'),
-                    name: gettext('变量名称'),
-                    key: gettext('变量KEY'),
-                    notice: gettext('已存在相同Key且版本不同的变量，请新建变量')
                 }
             }
         },
@@ -149,9 +143,9 @@
             }),
             title () {
                 if (this.createNew) {
-                    return gettext('创建新变量')
+                    return i18n.t('创建新变量')
                 }
-                return gettext('是否复用变量')
+                return i18n.t('是否复用变量')
             }
         },
         watch: {
@@ -168,7 +162,6 @@
                     this.$emit('confirm', 'reuse', this.formData.reused)
                 } else {
                     this.$refs.form.validate().then(result => {
-                        console.log(result)
                         if (result) {
                             const { name, key } = this.formData
                             this.$emit('confirm', 'new', { name, key })
