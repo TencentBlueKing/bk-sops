@@ -13,7 +13,7 @@
     <div class="template-container">
         <div class="list-wrapper">
             <list-page-tips-title
-                :title="i18n.commonFlow"
+                :title="$t('公共流程')"
                 :num="expiredSubflowTplList.length"
                 @viewClick="handleSubflowFilter">
             </list-page-tips-title>
@@ -31,19 +31,19 @@
                                 'btn-permission-disable': !hasPermission(createTplRequired, createCommonTplAction, tplOperations)
                             }]"
                             @click="checkCreatePermission">
-                            {{i18n.new}}
+                            {{$t('新建')}}
                         </bk-button>
                         <bk-button
                             theme="default"
                             class="template-btn"
                             @click="onExportTemplate">
-                            {{i18n.export}}
+                            {{$t('导出')}}
                         </bk-button>
                         <bk-button
                             theme="default"
                             class="template-btn"
                             @click="onImportTemplate">
-                            {{ i18n.import }}
+                            {{ $t('导入') }}
                         </bk-button>
                     </template>
                 </advance-search-form>
@@ -57,7 +57,7 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.name" min-width="200">
+                    <bk-table-column :label="$t('流程名称')" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
@@ -75,17 +75,17 @@
                             </a>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.type" prop="category_name" width="180"></bk-table-column>
-                    <bk-table-column :label="i18n.updateTime" prop="edit_time" width="200"></bk-table-column>
-                    <bk-table-column width="120" :label="i18n.subflowUpdate">
+                    <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
+                    <bk-table-column :label="$t('更新时间')" prop="edit_time" width="200"></bk-table-column>
+                    <bk-table-column width="120" :label="$t('子流程更新')">
                         <template slot-scope="props">
                             <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
                                 {{getSubflowContent(props.row)}}
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="240" class="operation-cell">
+                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="120"></bk-table-column>
+                    <bk-table-column :label="$t('操作')" width="240" class="operation-cell">
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
@@ -94,28 +94,28 @@
                                         v-cursor
                                         class="text-permission-disable"
                                         @click="onTemplatePermissonCheck(['create_task'], props.row, $event)">
-                                        {{i18n.newTemplate}}
+                                        {{$t('新建任务')}}
                                     </a>
                                     <a
                                         v-else
                                         class="template-operate-btn"
                                         @click.prevent="getJumpUrl('newTask', props.row.id)">
-                                        {{i18n.newTemplate}}
+                                        {{$t('新建任务')}}
                                     </a>
                                     <a
                                         v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
                                         v-cursor
                                         class="text-permission-disable"
                                         @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
-                                        {{i18n.clone}}
+                                        {{$t('克隆')}}
                                     </a>
                                     <a
                                         v-else
                                         class="template-operate-btn"
                                         @click.prevent="getJumpUrl('clone', props.row.id)">
-                                        {{i18n.clone}}
+                                        {{$t('克隆')}}
                                     </a>
-                                    <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
+                                    <router-link class="template-operate-btn" :to="getExecuteHistoryUrl(props.row.id)">{{ $t('执行历史') }}</router-link>
                                     <bk-popover
                                         theme="light"
                                         placement="bottom-start"
@@ -135,7 +135,7 @@
                                                         'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, tplOperations)
                                                     }"
                                                     @click="onCollectTemplate(props.row, $event)">
-                                                    {{ isCollected(props.row.id) ? i18n.cancelCollection : i18n.collect }}
+                                                    {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
                                                 </a>
                                             </li>
                                             <li class="opt-btn">
@@ -144,13 +144,13 @@
                                                     v-cursor
                                                     class="text-permission-disable"
                                                     @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
-                                                    {{i18n.edit}}
+                                                    {{$t('编辑')}}
                                                 </a>
                                                 <a
                                                     v-else
                                                     class="template-operate-btn"
                                                     @click.prevent="getJumpUrl('edit', props.row.id)">
-                                                    {{i18n.edit}}
+                                                    {{$t('编辑')}}
                                                 </a>
                                             </li>
                                             <li class="opt-btn">
@@ -161,7 +161,7 @@
                                                         'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
                                                     }"
                                                     @click="onDeleteTemplate(props.row, $event)">
-                                                    {{i18n.delete}}
+                                                    {{$t('删除')}}
                                                 </a>
                                             </li>
                                         </ul>
@@ -170,7 +170,7 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
         </div>
@@ -197,19 +197,19 @@
             :mask-close="false"
             :header-position="'left'"
             :ext-cls="'common-dialog'"
-            :title="i18n.delete"
+            :title="$t('删除')"
             width="400"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
-                {{i18n.deleleTip + '"' + deleteTemplateName + '"' + '?' }}
+                {{$t('确认删除') + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
@@ -227,35 +227,35 @@
     const searchForm = [
         {
             type: 'select',
-            label: gettext('分类'),
+            label: i18n.t('分类'),
             key: 'category',
             loading: false,
-            placeholder: gettext('请选择分类'),
+            placeholder: i18n.t('请选择分类'),
             list: []
         },
         {
             type: 'dateRange',
             key: 'queryTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('更新时间'),
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('更新时间'),
             value: []
         },
         {
             type: 'select',
-            label: gettext('子流程更新'),
+            label: i18n.t('子流程更新'),
             key: 'subprocessUpdateVal',
-            placeholder: gettext('请选择'),
+            placeholder: i18n.t('请选择'),
             list: [
-                { 'value': 1, name: gettext('是') },
-                { 'value': -1, name: gettext('否') },
-                { 'value': 0, name: gettext('无子流程') }
+                { 'value': 1, name: i18n.t('是') },
+                { 'value': -1, name: i18n.t('否') },
+                { 'value': 0, name: i18n.t('无子流程') }
             ]
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         }
     ]
@@ -273,47 +273,6 @@
         mixins: [permission],
         data () {
             return {
-                i18n: {
-                    placeholder: gettext('请输入ID或流程名称'),
-                    commonFlow: gettext('公共流程'),
-                    new: gettext('新建'),
-                    name: gettext('流程名称'),
-                    type: gettext('分类'),
-                    updateTime: gettext('更新时间'),
-                    subflowUpdate: gettext('子流程更新'),
-                    creator: gettext('创建人'),
-                    operation: gettext('操作'),
-                    newTemplate: gettext('新建任务'),
-                    edit: gettext('编辑'),
-                    clone: gettext('克隆'),
-                    delete: gettext('删除'),
-                    collect: gettext('收藏'),
-                    cancelCollection: gettext('取消收藏'),
-                    addCollectSuccess: gettext('添加收藏成功！'),
-                    cancelCollectSuccess: gettext('取消收藏成功！'),
-                    executeHistory: gettext('执行历史'),
-                    deleleTip: gettext('确认删除'),
-                    import_v1_template: gettext('导入 V1 模板'),
-                    export: gettext('导出'),
-                    import: gettext('导入'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    yes: gettext('是'),
-                    no: gettext('否'),
-                    empty: gettext('无数据'),
-                    templateNamePlaceholder: gettext('请输入流程名称'),
-                    subprocessUpdatePlaceholder: gettext('请选择子流程更新'),
-                    templateType: gettext('来源'),
-                    templateTypePlaceholder: gettext('请选择来源'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    templateName: gettext('名称'),
-                    advanceSearch: gettext('高级搜索'),
-                    searchName: gettext('搜索流程名称')
-                },
                 listLoading: true,
                 projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
@@ -508,7 +467,7 @@
             checkCreatePermission () {
                 if (!this.hasPermission(this.createTplRequired, this.createCommonTplAction, this.tplOperations)) {
                     const resourceData = {
-                        name: gettext('公共流程'),
+                        name: i18n.t('公共流程'),
                         id: '',
                         auth_actions: this.createCommonTplAction
                     }
@@ -678,7 +637,7 @@
                 if (!item.has_subprocess) {
                     return '--'
                 }
-                return item.subprocess_has_update ? this.i18n.yes : this.i18n.no
+                return item.subprocess_has_update ? i18n.t('是') : i18n.t('否')
             },
             handlePageLimitChange (val) {
                 this.pagination.limit = val
@@ -714,12 +673,12 @@
                             category: 'common_flow'
                         }])
                         if (res.objects.length) {
-                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                            this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel
                         const delId = this.collectionList.find(m => m.extra_info.id === template.id && m.category === 'common_flow').id
                         await this.deleteCollect(delId)
-                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
                     }
                     this.getCollectList()
                 } catch (e) {

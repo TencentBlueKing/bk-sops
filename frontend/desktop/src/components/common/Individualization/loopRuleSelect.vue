@@ -16,20 +16,20 @@
                 :theme="currentWay === 'selectGeneration' ? 'primary' : 'default'"
                 class="rule-btn"
                 @click="onSwitchWay('selectGeneration')">
-                {{ i18n.selectGeneration }}
+                {{ $t('选择生成') }}
             </bk-button>
             <bk-button
                 :theme="currentWay === 'manualInput' ? 'primary' : 'default'"
                 class="rule-btn"
                 @click="onSwitchWay('manualInput')">
-                {{ i18n.manualInput }}
+                {{ $t('手动输入') }}
             </bk-button>
         </div>
         <div class="content-wrapper">
             <div class="selected-input" v-show="currentWay === 'selectGeneration'">
                 <bk-input :value="expressionShowText" :disabled="true"></bk-input>
                 <span class="clear-selected" @click.stop="clearRule">
-                    {{ i18n.clear }}
+                    {{ $t('清空') }}
                 </span>
             </div>
             <!-- 自动生成 -->
@@ -66,9 +66,9 @@
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
-                            {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
+                            {{ item.key !== 'week' ? item.title : $t('天') }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
-                            <i v-if="item.key === 'week'" v-bk-tooltips="i18n.monthTips" class="common-icon-info month-tips top-start"></i>
+                            <i v-if="item.key === 'week'" v-bk-tooltips="$t('0 表示星期天，6 表示星期六')" class="common-icon-info month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
                             <div v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
                                 class="local-error-tip error-msg">
@@ -112,12 +112,12 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { PERIODIC_REG } from '@/constants/index.js'
     const autoRuleList = [
         {
             key: 'min',
-            title: gettext('分钟'),
+            title: i18n.t('分钟'),
             radio: 0,
             long: 60,
             max: 59,
@@ -132,7 +132,7 @@
         },
         {
             key: 'hour',
-            title: gettext('小时'),
+            title: i18n.t('小时'),
             radio: 0,
             long: 24,
             max: 23,
@@ -147,7 +147,7 @@
         },
         {
             key: 'week',
-            title: gettext('星期'),
+            title: i18n.t('星期'),
             radio: 0,
             long: 7,
             max: 6,
@@ -162,7 +162,7 @@
         },
         {
             key: 'day',
-            title: gettext('日期'),
+            title: i18n.t('日期'),
             radio: 0,
             long: 31,
             max: 31,
@@ -177,7 +177,7 @@
         },
         {
             key: 'month',
-            title: gettext('月份'),
+            title: i18n.t('月份'),
             radio: 0,
             long: 12,
             max: 12,
@@ -195,24 +195,24 @@
     const loopStarOneList = ['day', 'month']
     const autoWay = {
         'loop': {
-            name: gettext('循环'),
-            start: gettext('从第'),
-            startWeek: gettext('从星期'),
-            center: gettext('开始，每隔'),
-            end: gettext('执行一次')
+            name: i18n.t('循环'),
+            start: i18n.t('从第'),
+            startWeek: i18n.t('从星期'),
+            center: i18n.t('开始，每隔'),
+            end: i18n.t('执行一次')
         },
         'appoint': {
-            name: gettext('指定')
+            name: i18n.t('指定')
         }
     }
     const numberMap = {
-        1: gettext('星期一'),
-        2: gettext('星期二'),
-        3: gettext('星期三'),
-        4: gettext('星期四'),
-        5: gettext('星期五'),
-        6: gettext('星期六'),
-        0: gettext('星期天')
+        1: i18n.t('星期一'),
+        2: i18n.t('星期二'),
+        3: i18n.t('星期三'),
+        4: i18n.t('星期四'),
+        5: i18n.t('星期五'),
+        6: i18n.t('星期六'),
+        0: i18n.t('星期天')
     }
     export default {
         name: 'loopRuleSelect',
@@ -229,21 +229,12 @@
         },
         data () {
             return {
-                i18n: {
-                    dayName: gettext('天'),
-                    error_code: gettext('错误码'),
-                    manualInput: gettext('手动输入'),
-                    clear: gettext('清空'),
-                    selectGeneration: gettext('选择生成'),
-                    placeholder: gettext('0 12 * 10-17 */11'),
-                    monthTips: gettext('0 表示星期天，6 表示星期六')
-                },
                 periodicRule: {
                     required: true,
                     regex: PERIODIC_REG
                 },
                 expressionList: ['*', '*', '*', '*', '*'],
-                periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
+                periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 // 规则列表
                 autoRuleList: autoRuleList,
                 // 循环选择方式

@@ -177,4 +177,7 @@ def get_footer(request):
     @param request:
     @return:
     """
-    return JsonResponse({"result": True, "data": Template(FOOTER).render(year=datetime.now().year)})
+    # 为了国际化需要在返回时调用函数来拼接字符串
+    return JsonResponse(
+        {"result": True, "data": Template(FOOTER() if callable(FOOTER) else FOOTER).render(year=datetime.now().year)}
+    )

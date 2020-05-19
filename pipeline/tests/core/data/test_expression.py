@@ -78,8 +78,11 @@ class TestConstantTemplate(TestCase):
         not_exists = '{a}'
         self.assertEqual(cons_tmpl.resolve_template(not_exists, {}), not_exists)
 
-        syntax_error = '${a.b}'
-        self.assertEqual(cons_tmpl.resolve_template(syntax_error, {}), syntax_error)
+        resolve_syntax_error = '${a.b}'
+        self.assertEqual(cons_tmpl.resolve_template(resolve_syntax_error, {}), resolve_syntax_error)
+
+        template_syntax_error = '${a:b}'
+        self.assertEqual(cons_tmpl.resolve_template(template_syntax_error, {}), template_syntax_error)
 
     def test_resolve(self):
         list_template = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])

@@ -23,13 +23,13 @@
         @cancel="onCancel">
         <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
             <div class="common-form-item">
-                <label class="required">{{i18n.template}}</label>
+                <label class="required">{{$t('流程模板')}}</label>
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appTemplate"
                         class="ui-form-item"
                         :searchable="true"
-                        :placeholder="i18n.statusPlaceholder"
+                        :placeholder="$t('请选择')"
                         :clearable="true"
                         :disabled="!isCreateNewApp"
                         @selected="onSelectTemplate">
@@ -40,11 +40,11 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <span v-show="appTemplateEmpty" class="common-error-tip error-msg">{{i18n.templateTips}}</span>
+                    <span v-show="appTemplateEmpty" class="common-error-tip error-msg">{{$t('流程模板不能为空')}}</span>
                 </div>
             </div>
             <div class="common-form-item">
-                <label class="required">{{i18n.appName}}</label>
+                <label class="required">{{$t('应用名称')}}</label>
                 <div class="common-form-content">
                     <bk-input
                         v-model="appData.appName"
@@ -57,13 +57,13 @@
                 </div>
             </div>
             <div class="common-form-item">
-                <label>{{i18n.scheme}}</label>
+                <label>{{$t('执行方案')}}</label>
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appScheme"
                         class="ui-form-item"
                         :searchable="true"
-                        :placeholder="i18n.statusPlaceholder"
+                        :placeholder="$t('请选择')"
                         :clearable="true"
                         :is-loading="schemeLoading"
                         @selected="onSelectScheme">
@@ -77,7 +77,7 @@
                     <i
                         class="common-icon-info scheme-tooltip"
                         v-bk-tooltips="{
-                            content: i18n.schemeTips,
+                            content: $t('当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。'),
                             placements: ['left'],
                             customClass: 'offset-left-tooltip',
                             width: 400,
@@ -86,7 +86,7 @@
                 </div>
             </div>
             <div class="common-form-item">
-                <label>{{i18n.appDesc}}</label>
+                <label>{{$t('应用简介')}}</label>
                 <div class="common-form-content">
                     <bk-input
                         class="app-desc"
@@ -99,13 +99,13 @@
                 </div>
             </div>
             <div class="common-form-item">
-                <label>{{i18n.appLogo}}</label>
+                <label>{{$t('应用LOGO')}}</label>
                 <div class="common-form-content">
                     <label v-if="isLogoEmpty" for="app-logo" class="upload-btn-wrapper">
                         <i class="common-icon-add"></i>
                     </label>
                     <label v-else class="logo-wrapper" for="app-logo">
-                        <span class="change-tips">{{i18n.change}}</span>
+                        <span class="change-tips">{{$t('点击更换')}}</span>
                         <div v-if="isShowDefaultLogo" class="default-logo">
                             <i class="common-icon-blueking"></i>
                         </div>
@@ -113,7 +113,7 @@
                             <img class="logo-pic" :src="logoUrl" @error="useDefaultLogo" />
                         </div>
                     </label>
-                    <div class="upload-tip">{{i18n.uploadTips}}</div>
+                    <div class="upload-tip">{{$t('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')}}</div>
                     <input ref="appLogo" type="file" id="app-logo" accept=".jpg, .jpeg, .png" @change="onLogoChange" />
                 </div>
             </div>
@@ -127,15 +127,15 @@
                     }"
                     v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
                     @click="onConfirm">
-                    {{i18n.confirm}}
+                    {{$t('确认')}}
                 </bk-button>
-                <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+                <bk-button type="default" @click="onCancel">{{$t('取消')}}</bk-button>
             </div>
         </div>
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -188,27 +188,12 @@
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
                 tplOperations: [],
-                tplResource: {},
-                i18n: {
-                    new: gettext('新建轻应用'),
-                    edit: gettext('修改轻应用'),
-                    template: gettext('流程模板'),
-                    templateTips: gettext('流程模板不能为空'),
-                    appName: gettext('应用名称'),
-                    scheme: gettext('执行方案'),
-                    schemeTips: gettext('当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。'),
-                    appDesc: gettext('应用简介'),
-                    appLogo: gettext('应用LOGO'),
-                    change: gettext('点击更换'),
-                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消')
-                }
+                tplResource: {}
             }
         },
         computed: {
             dialogTitle () {
-                return this.isCreateNewApp ? this.i18n.new : this.i18n.edit
+                return this.isCreateNewApp ? i18n.t('新建轻应用') : i18n.t('新建轻应用')
             },
             btnPermission () {
                 return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
@@ -298,7 +283,7 @@
                 if (size > 1024000) {
                     this.appData.appLogo = []
                     this.$bkMessage({
-                        message: gettext('图片大小不能超过 100K'),
+                        message: i18n.t('图片大小不能超过 100K'),
                         theme: 'warning'
                     })
                 } else {

@@ -9,9 +9,11 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import i18n from '@/config/i18n/index.js'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import isEqual from 'lodash/isEqual'
 import { checkDataType } from './checkDataType.js'
+import moment from 'moment'
 
 const tools = {
     /**
@@ -103,15 +105,12 @@ const tools = {
     timeTransform (time) {
         const val = Number(time)
         if (val > 0) {
-            if (val < 60) {
-                return val + gettext(' 秒')
-            } else if (val < 3600) {
-                return parseFloat(val / 60).toFixed(1) + gettext(' 分')
-            } else if (val < 86400) {
-                return parseFloat(val / 3600).toFixed(1) + gettext(' 小时')
-            } else {
-                return parseFloat(val / 86400).toFixed(1) + gettext(' 天')
-            }
+            const tempTime = moment.duration(val * 1000)
+            const day = tempTime.days() ? tempTime.days() + i18n.t('天 ') : ''
+            const hours = tempTime.hours() ? tempTime.hours() + i18n.t('小时 ') : ''
+            const minutes = tempTime.minutes() ? tempTime.minutes() + i18n.t('分 ') : ''
+            const seconds = tempTime.seconds() ? tempTime.seconds() + i18n.t('秒') : ''
+            return day + hours + minutes + seconds
         } else if (val === 0) {
             return 0
         } else {

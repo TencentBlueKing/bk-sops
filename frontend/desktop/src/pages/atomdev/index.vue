@@ -12,11 +12,11 @@
 <template>
     <div class="atomdev-page">
         <div class="page-header">
-            <page-title :title="i18n.title"></page-title>
+            <page-title :title="$t('插件开发')"></page-title>
             <div class="operate-area">
-                <bk-button theme="primary" :disabled="!!atomStringError" @click="onDownloadClick">{{ i18n.download }}</bk-button>
-                <bk-button theme="default" :disabled="!!atomStringError" @click="onOpenPreviewMode">{{ i18n.preview }}</bk-button>
-                <bk-button theme="default" :disabled="isPreviewMode" @click="showUploadDialog = true">{{ i18n.import }}</bk-button>
+                <bk-button theme="primary" :disabled="!!atomStringError" @click="onDownloadClick">{{ $t('下载') }}</bk-button>
+                <bk-button theme="default" :disabled="!!atomStringError" @click="onOpenPreviewMode">{{ $t('预览') }}</bk-button>
+                <bk-button theme="default" :disabled="isPreviewMode" @click="showUploadDialog = true">{{ $t('导入') }}</bk-button>
             </div>
         </div>
         <div class="atom-edit-wrapper">
@@ -53,7 +53,7 @@
             :is-show="showAtomSetting"
             :quick-close="false"
             :width="600"
-            :title="i18n.formSetting"
+            :title="$t('插件配置')"
             :before-close="closeSettingPanel">
             <atom-setting
                 slot="content"
@@ -63,22 +63,22 @@
                 :atom-forms="atomForms">
             </atom-setting>
             <div slot="footer" class="slider-footer">
-                <bk-button theme="primary" @click="onSaveAtomSetting">{{ i18n.confirm }}</bk-button>
-                <bk-button theme="default" @click="closeSettingPanel">{{ i18n.cancel }}</bk-button>
+                <bk-button theme="primary" @click="onSaveAtomSetting">{{ $t('确认') }}</bk-button>
+                <bk-button theme="default" @click="closeSettingPanel">{{ $t('取消') }}</bk-button>
             </div>
         </bk-sideslider>
         <bk-dialog
             v-model="showUploadDialog"
             :width="400"
             :mask-close="false"
-            :title="i18n.importTitle"
+            :title="$t('导入文件')"
             :loading="fileUploading">
             <div class="import-wrapper">
                 <upload-read-file class="import-code" @uploaded="handleFormFile($event, 'formCode')">
-                    <bk-button class="primary">{{ i18n.formCode }}</bk-button>
+                    <bk-button class="primary">{{ $t('前端代码') }}</bk-button>
                 </upload-read-file>
                 <upload-read-file class="import-code" @uploaded="handleFormFile($event, 'apiCode')">
-                    <bk-button class="primary">{{ i18n.apiCode }}</bk-button>
+                    <bk-button class="primary">{{ $t('后台代码') }}</bk-button>
                 </upload-read-file>
             </div>
         </bk-dialog>
@@ -86,7 +86,7 @@
             v-model="previewDialogShow"
             header-position="left"
             :fullscreen="true"
-            :title="i18n.preview"
+            :title="$t('预览')"
             :show-footer="false"
             :on-close="onPreviewClose">
             <div v-if="isPreviewMode" class="preview-panel">
@@ -104,16 +104,15 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.leave"
+            :title="$t('离开页面')"
             :value="isLeaveDialogShow"
             @confirm="onLeaveConfirm"
             @cancel="onLeaveCancel">
-            <div class="leave-tips">{{ i18n.tips }}</div>
+            <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import JSZip from 'jszip'
     import { saveAs } from 'file-saver'
     import PageTitle from './PageTitle.vue'
@@ -176,22 +175,7 @@
                     showLabel: true,
                     showVarList: false
                 },
-                renderFormData: {},
-                i18n: {
-                    title: gettext('插件开发'),
-                    formSetting: gettext('插件配置'),
-                    preview: gettext('预览'),
-                    download: gettext('下载'),
-                    import: gettext('导入'),
-                    importTitle: gettext('导入文件'),
-                    formCode: gettext('前端代码'),
-                    apiCode: gettext('后台代码'),
-                    close: gettext('关闭'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消'),
-                    leave: gettext('离开页面'),
-                    tips: gettext('系统不会保存您所做的更改，确认离开？')
-                }
+                renderFormData: {}
             }
         },
         computed: {

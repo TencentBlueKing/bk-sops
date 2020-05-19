@@ -1,5 +1,7 @@
 import { errorHandler } from '@/utils/errorHandler.js'
 import { mapActions } from 'vuex'
+import i18n from '@/config/i18n/index.js'
+
 const task = {
     methods: {
         ...mapActions('task/', [
@@ -17,16 +19,16 @@ const task = {
                 const status = {}
                 if (item.is_finished) {
                     status.cls = 'finished bk-icon icon-check-circle-shape'
-                    status.text = gettext('完成')
+                    status.text = i18n.t('完成')
                 } else if (item.is_revoked) {
                     status.cls = 'revoke common-icon-dark-circle-shape'
-                    status.text = gettext('撤销')
+                    status.text = i18n.t('撤销')
                 } else if (item.is_started) {
                     status.cls = 'loading common-icon-loading'
                     this.getExecuteDetail(acceptVarName, item, index)
                 } else {
                     status.cls = 'created common-icon-dark-circle-shape'
-                    status.text = gettext('未执行')
+                    status.text = i18n.t('未执行')
                 }
                 return status
             })
@@ -45,22 +47,22 @@ const task = {
                         case 'RUNNING':
                         case 'BLOCKED':
                             status.cls = 'running common-icon-dark-circle-ellipsis'
-                            status.text = gettext('执行中')
+                            status.text = i18n.t('执行中')
                             break
                         case 'SUSPENDED':
                             status.cls = 'execute common-icon-dark-circle-pause'
-                            status.text = gettext('暂停')
+                            status.text = i18n.t('暂停')
                             break
                         case 'NODE_SUSPENDED':
                             status.cls = 'execute'
-                            status.text = gettext('节点暂停')
+                            status.text = i18n.t('节点暂停')
                             break
                         case 'FAILED':
                             status.cls = 'failed common-icon-dark-circle-close'
-                            status.text = gettext('失败')
+                            status.text = i18n.t('失败')
                             break
                         default:
-                            status.text = gettext('未知')
+                            status.text = i18n.t('未知')
                     }
                     this[acceptVarName].splice(index, 1, status)
                 } else {

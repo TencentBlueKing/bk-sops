@@ -12,10 +12,10 @@
 <template>
     <div class="audit-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.auditList"></base-title>
+            <base-title :title="$t('审计中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
-                    :search-config="{ placeholder: i18n.taskNamePlaceholder }"
+                    :search-config="{ placeholder: $t('请输入ID或流程名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -29,12 +29,12 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.business" width="120">
+                    <bk-table-column :label="$t('所属项目')" width="120">
                         <template slot-scope="props">
                             <span :title="props.row.project.name">{{ props.row.project.name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.name" min-width="200">
+                    <bk-table-column :label="$t('任务名称')" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -57,24 +57,24 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.startedTime" width="200">
+                    <bk-table-column :label="$t('执行开始')" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finishedTime" width="200">
+                    <bk-table-column :label="$t('执行结束')" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.category" prop="category_name" width="140"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="140"></bk-table-column>
-                    <bk-table-column :label="i18n.operator" width="140">
+                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
+                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
+                    <bk-table-column :label="$t('执行人')" width="140">
                         <template slot-scope="props">
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="120">
+                    <bk-table-column :label="$t('状态')" width="120">
                         <template slot-scope="props">
                             <div class="audit-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -82,14 +82,14 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="100">
+                    <bk-table-column :label="$t('操作')" width="100">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
                                 v-cursor
                                 class="text-permission-disable"
                                 @click="onTemplatePermissonCheck(props.row)">
-                                {{i18n.view}}
+                                {{$t('查看')}}
                             </a>
                             <router-link
                                 v-else
@@ -99,7 +99,7 @@
                                     params: { project_id: props.row.project.id },
                                     query: { instance_id: props.row.id }
                                 }">
-                                {{ i18n.view }}
+                                {{ $t('查看') }}
                             </router-link>
                         </template>
                     </bk-table-column>
@@ -111,7 +111,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
@@ -125,51 +125,51 @@
     const searchForm = [
         {
             type: 'select',
-            label: gettext('所属项目'),
+            label: i18n.t('所属项目'),
             key: 'selectedProject',
             loading: false,
-            placeholder: gettext('请选择所属项目'),
+            placeholder: i18n.t('请选择所属项目'),
             list: []
         },
         {
             type: 'dateRange',
             key: 'executeTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('执行开始'),
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('执行开始'),
             value: []
         },
         {
             type: 'select',
-            label: gettext('任务分类'),
+            label: i18n.t('任务分类'),
             key: 'category',
             loading: false,
-            placeholder: gettext('请选择分类'),
+            placeholder: i18n.t('请选择分类'),
             list: []
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         },
         {
             type: 'input',
             key: 'executor',
-            label: gettext('执行人'),
-            placeholder: gettext('请输入执行人'),
+            label: i18n.t('执行人'),
+            placeholder: i18n.t('请输入执行人'),
             value: ''
         },
         {
             type: 'select',
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             key: 'statusSync',
             loading: false,
-            placeholder: gettext('请选择状态'),
+            placeholder: i18n.t('请选择状态'),
             list: [
-                { 'value': 'nonExecution', 'name': gettext('未执行') },
-                { 'value': 'runing', 'name': gettext('未完成') },
-                { 'value': 'finished', 'name': gettext('完成') }
+                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
+                { 'value': 'runing', 'name': i18n.t('未完成') },
+                { 'value': 'finished', 'name': i18n.t('完成') }
             ]
         }
     ]
@@ -184,31 +184,6 @@
         mixins: [permission, task],
         data () {
             return {
-                i18n: {
-                    auditList: gettext('审计中心'),
-                    placeholder: gettext('请输入ID或流程名称'),
-                    business: gettext('所属项目'),
-                    startedTime: gettext('执行开始'),
-                    finishedTime: gettext('执行结束'),
-                    name: gettext('任务名称'),
-                    category: gettext('任务类型'),
-                    creator: gettext('创建人'),
-                    operator: gettext('执行人'),
-                    status: gettext('状态'),
-                    operation: gettext('操作'),
-                    view: gettext('查看'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    executing: gettext('执行中'),
-                    pauseState: gettext('暂停'),
-                    taskType: gettext('任务分类'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    dateRange: gettext('选择日期时间范围')
-                },
                 taskBasicInfoLoading: true,
                 listLoading: true,
                 activeTaskCategory: undefined,
