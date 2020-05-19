@@ -27,7 +27,7 @@
                     <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{$t('显示已停用项目')}}</bk-checkbox>
                     <div class="search-input">
                         <bk-input
-                            v-model="searchStr"
+                            v-model.trim="searchStr"
                             class="search-input"
                             clearable
                             :right-icon="'bk-icon icon-search'"

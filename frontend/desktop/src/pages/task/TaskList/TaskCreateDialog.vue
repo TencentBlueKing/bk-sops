@@ -53,7 +53,7 @@
                             :placeholder="$t('请输入关键字')"
                             :right-icon="'bk-icon icon-search'"
                             :clearable="true"
-                            v-model="searchWord"
+                            v-model.trim="searchWord"
                             @input="onSearchInput">
                         </bk-input>
                     </div>

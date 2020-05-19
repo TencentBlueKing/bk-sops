@@ -12,7 +12,7 @@
 <template>
     <div class="search-result">
         <div class="search-input">
-            <bk-input v-model="searchStr" right-icon="bk-icon icon-search" @enter="onSearch"></bk-input>
+            <bk-input v-model.trim="searchStr" right-icon="bk-icon icon-search" @enter="onSearch"></bk-input>
         </div>
         <div class="result-wrapper" v-bkloading="{ isLoading: searchLoading, opacity: 1 }">
             <div class="result-title">

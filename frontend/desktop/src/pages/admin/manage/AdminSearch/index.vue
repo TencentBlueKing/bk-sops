@@ -14,7 +14,7 @@
         <div v-if="!showResultComp" class="search-wrapper">
             <p class="tips">{{ $t('输入项目名、模板ID或任务ID进行搜索') }}</p>
             <bk-input
-                v-model="searchStr"
+                v-model.trim="searchStr"
                 class="search-input"
                 right-icon="bk-icon icon-search"
                 @change="onChange"

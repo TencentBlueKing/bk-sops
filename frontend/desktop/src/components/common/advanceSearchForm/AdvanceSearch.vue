@@ -23,7 +23,7 @@
         </div>
         <bk-input
             class="search-input"
-            v-model="localValue"
+            v-model.trim="localValue"
             :clearable="true"
             :placeholder="inputPlaceholader"
             :right-icon="'bk-icon icon-search'"
@@ -66,7 +66,7 @@
             },
             onInput (value) {
                 const exportValue = typeof value === 'string' ? value : value.target.value
-                this.$emit('input', exportValue)
+                this.$emit('input', exportValue.trim())
             }
         }
     }
