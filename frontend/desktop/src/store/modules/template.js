@@ -366,7 +366,6 @@ const template = {
 
             for (const key in state.constants) {
                 const varItem = state.constants[key]
-                console.log(varItem.name, varItem.index, constant.index)
                 if (varItem.index > constant.index) {
                     varItem.index = varItem.index - 1
                 }
