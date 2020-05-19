@@ -14,19 +14,19 @@
         <table>
             <tbody>
                 <tr>
-                    <th class="cache-label">{{i18n.name}}</th>
+                    <th class="cache-label">{{$t('名称')}}</th>
                     <td class="cache-content-item">{{value.name}}</td>
                 </tr>
                 <tr>
-                    <th class="cache-label">{{i18n.type}}</th>
+                    <th class="cache-label">{{$t('类型')}}</th>
                     <td class="cache-content-item">{{value.type}}</td>
                 </tr>
                 <tr>
-                    <th class="cache-label">{{i18n.desc}}</th>
+                    <th class="cache-label">{{$t('描述')}}</th>
                     <td class="cache-content-item">{{value.desc}}</td>
                 </tr>
                 <tr>
-                    <th class="cache-label">{{i18n.detail}}</th>
+                    <th class="cache-label">{{$t('详细信息')}}</th>
                     <td class="cache-content-item">
                         <table class="detail-table">
                             <tbody>
@@ -43,7 +43,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
 
     export default {
@@ -60,14 +59,7 @@
             const detailFields = this.getSourceKeys(this.value.type)
 
             return {
-                detailFields,
-                i18n: {
-                    name: gettext('名称'),
-                    type: gettext('类型'),
-                    desc: gettext('描述'),
-                    detail: gettext('详细信息'),
-                    serviceAddress: gettext('服务地址')
-                }
+                detailFields
             }
         },
         methods: {
