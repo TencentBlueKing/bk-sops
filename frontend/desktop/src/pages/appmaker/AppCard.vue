@@ -1,7 +1,7 @@
 /**
 * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 * Edition) available.
-* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Copyright (C) 2017-2020 THL A29 Limited, a Tencent company. All rights reserved.
 * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
 * http://opensource.org/licenses/MIT
@@ -33,18 +33,18 @@
                     :class="['common-icon-box-pen', 'operate-btn', {
                         'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
                     }]"
-                    :title="i18n.modifier"
+                    :title="$t('修改轻应用')"
                     v-cursor="{ active: !hasPermission(['edit'], appData.auth_actions, appOperations) }"
                     @click.stop="onCardEdit">
                 </span>
                 <router-link
                     class="common-icon-clock-reload operate-btn"
-                    :title="i18n.executive"
+                    :title="$t('执行历史')"
                     :to="getExecuteHistoryUrl(appData.template_id)">
                 </router-link>
                 <bk-popover
                     theme="light"
-                    placement="right-bottom"
+                    placement="bottom-start"
                     ext-cls="common-dropdown-btn-popver"
                     :z-index="2000"
                     :distance="0"
@@ -57,19 +57,20 @@
                             href="javascript:void(0);"
                             :class="{
                                 'opt-btn': true,
+                                'disable': collectingId === appData.id || collectedLoading,
                                 'text-permission-disable': !hasPermission(['view'], appData.auth_actions, appOperations)
                             }"
                             @click="onCollectAppMaker(appData, $event)">
-                            {{ isCollected(appData.id) ? i18n.cancelCollection : i18n.collect }}
+                            {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
                         </li>
                         <li
                             :class="{
                                 'opt-btn': true,
-                                'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
+                                'text-permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                             }"
                             v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
                             @click="onCardDelete">
-                            {{i18n.delete}}
+                            {{$t('删除')}}
                         </li>
                     </ul>
                 </bk-popover>
@@ -77,24 +78,24 @@
         </div>
         <div class="card-particular">
             <div class="app-detail">
-                <div class="app-template">{{i18n.template}}
+                <div class="app-template">{{$t('流程模板')}}
                     <p>{{appData.template_name}}</p>
                 </div>
-                <div class="editor-name">{{i18n.editor}}
+                <div class="editor-name">{{$t('更新人')}}
                     <p>{{appData.editor_name}}</p>
                 </div>
-                <div class="edit-time">{{i18n.editTime}}
+                <div class="edit-time">{{$t('更新时间')}}
                     <p>{{appData.edit_time}}</p>
                 </div>
             </div>
-            <div class="app-synopsis">{{i18n.appDesc}}
+            <div class="app-synopsis">{{$t('应用简介')}}
                 <p class="synopsis-content">{{appData.desc || '--'}}</p>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import { mapActions } from 'vuex'
@@ -115,21 +116,7 @@
                 isLogoLoadingError: false,
                 isShowEdit: false,
                 mouseAccess: true,
-                i18n: {
-                    edit: gettext('编辑'),
-                    delete: gettext('删除'),
-                    collect: gettext('收藏'),
-                    cancelCollection: gettext('取消收藏'),
-                    addCollectSuccess: gettext('添加收藏成功！'),
-                    cancelCollectSuccess: gettext('取消收藏成功！'),
-                    template: gettext('流程模板'),
-                    appDesc: gettext('应用简介'),
-                    editor: gettext('更新人'),
-                    editTime: gettext('更新时间'),
-                    executive: gettext('执行历史'),
-                    modifier: gettext('修改轻应用'),
-                    jurisdiction: gettext('使用权限')
-                },
+                collectingId: '', // 正在被收藏/取消收藏的轻应用id
                 collectionList: []
             }
         },
@@ -204,11 +191,11 @@
                     this.onAppMakerPermissonCheck(['view'], this.appData, event)
                     return
                 }
-                // 收藏列表数据加载时，不执行操作
-                if (this.collectedLoading) {
+                if (typeof this.collectingId === 'number') {
                     return
                 }
                 try {
+                    this.collectingId = data.id
                     if (!this.isCollected(data.id)) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
@@ -219,16 +206,18 @@
                             category: 'mini_app'
                         }])
                         if (res.objects.length) {
-                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                            this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel
                         const delId = this.collectedList.find(m => m.extra_info.id === data.id && m.category === 'mini_app').id
                         await this.deleteCollect(delId)
-                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
                     }
                     this.$emit('getCollectList')
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.collectingId = ''
                 }
             },
             // 判断是否已在收藏列表
@@ -335,7 +324,7 @@
         font-size: 12px;
         li {
             padding: 0 12px;
-            width: 100%;
+            min-width: 80px;
             height: 32px;
             line-height: 32px;
             color: #63656e;
@@ -343,6 +332,9 @@
             &:hover {
                 color: #3a84ff;
                 background: #ebf4ff;
+            }
+            &.disable {
+                color: #dcdee5;
             }
         }
     }

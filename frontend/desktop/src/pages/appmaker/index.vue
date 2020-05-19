@@ -187,23 +187,6 @@
                     updateTime: [],
                     editor: '',
                     flowName: ''
-                },
-                i18n: {
-                    title: gettext('轻应用'),
-                    addApp: gettext('新建'),
-                    placeholder: gettext('请输入轻应用名称'),
-                    jurisdiction: gettext('使用权限'),
-                    jurisdictionHint: gettext('轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。'),
-                    addJurisdiction: gettext('新建任务权限'),
-                    getJurisdiction: gettext('认领任务权限'),
-                    executeJurisdiction: gettext('执行任务权限'),
-                    delete: gettext('删除'),
-                    deleteTips: gettext('确认删除轻应用？'),
-                    close: gettext('关闭'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    appmakerInfoTitle: gettext('什么是轻应用？'),
-                    appmakerInfoContent: gettext('业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。')
                 }
             }
         },
