@@ -392,8 +392,14 @@
                 this.listLoading = true
                 try {
                     const { subprocessUpdateVal, creator, category, queryTime, flowName } = this.requestData
-                    const has_subprocess = (subprocessUpdateVal === '' || subprocessUpdateVal === 0) ? undefined : (subprocessUpdateVal > 0)
-                    const subprocess_has_update = subprocessUpdateVal === '' ? undefined : (subprocessUpdateVal !== 0)
+                    /**
+                     * 无子流程 has_subprocess=false
+                     * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
+                     * 有子流程，不需要更新 has_subprocess=true&subprocess_has_update=false
+                     * 不做筛选 has_subprocess=undefined
+                     */
+                    const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
+                    const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
