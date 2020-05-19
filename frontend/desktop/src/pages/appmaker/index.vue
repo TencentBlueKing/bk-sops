@@ -14,7 +14,7 @@
         <div class="page-content">
             <div class="appmaker-table-content">
                 <base-title :title="$t('轻应用')"></base-title>
-                <div class="operation-wrapper">
+                <div v-if="appList.length" class="operation-wrapper">
                     <advance-search-form
                         :search-form="searchForm"
                         @onSearchInput="onSearchInput"
@@ -24,6 +24,13 @@
                         </template>
                     </advance-search-form>
                 </div>
+                <bk-button
+                    v-else
+                    theme="primary"
+                    class="add-appmaker-btn"
+                    @click="onCreateApp">
+                    {{$t('新建')}}
+                </bk-button>
             </div>
             <div v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <div v-if="appList.length" class="app-list clearfix">
@@ -42,10 +49,19 @@
                         @getCollectList="getCollectList">
                     </app-card>
                 </div>
-                <div v-else class="empty-app-list">
-                    <NoData>
-                        <p>{{emptyTips}}</p>
-                    </NoData>
+                <div v-else class="empty-app-content">
+                    <div class="appmaker-info">
+                        <h2 class="appmaker-info-title">{{$t('什么是轻应用？')}}</h2>
+                        <p class="appmaker-info-text">{{$t('业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。')}}</p>
+                        <div class="appmaker-default-icons">
+                            <img
+                                v-for="item in 6"
+                                :key="item"
+                                :src="require(`@/assets/images/appmaker-default-icon-${item}.png`)"
+                                class="default-icon-item"
+                                alt="appmaker-default-icons">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,7 +126,6 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
-    import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
@@ -138,7 +153,6 @@
         components: {
             BaseTitle,
             AppCard,
-            NoData,
             AppEditDialog,
             AdvanceSearchForm
         },
@@ -409,10 +423,39 @@
         float: left;
         margin: 0 14px 20px 0;
     }
-    .empty-app-list {
-        padding: 200px 0;
-        background: $whiteDefault;
-        border: 1px solid $commonBorderColor;
+    .add-appmaker-btn {
+        margin: 20px 0;
+        width: 120px;
+    }
+    .empty-app-content {
+        padding: 160px 0;
+        .appmaker-info {
+            margin: 0 auto;
+            width: 680px;
+            .appmaker-info-title {
+                margin-bottom: 30px;
+                color: #63656e;
+                font-size: 24px;
+                font-weight: normal;;
+                text-align: center;
+            }
+            .appmaker-info-text {
+                padding-bottom: 30px;
+                margin-bottom: 30px;
+                line-height: 20px;
+                color: #979ba5;
+                font-size: 12px;
+                border-bottom: 1px solid #dfe6ec;
+            }
+            .appmaker-default-icons {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                .default-icon-item {
+                    max-height: 55px;
+                }
+            }
+        }
     }
     .exit-btn {
         float:right;

@@ -86,6 +86,67 @@
                 </div>
             </div>
             <div class="common-form-item">
+                <label>{{$t('应用LOGO')}}</label>
+                <div class="common-form-content">
+                    <div class="app-logo-content">
+                        <div class="logo-body">
+                            <span class="logo-wrapper">
+                                <span
+                                    class="change-tips"
+                                    @click="onLogoClick">{{ $t('更改') }}</span>
+                                <div>
+                                    <img class="logo-pic" :src="logoUrl" @error="useDefaultLogo" />
+                                </div>
+                            </span>
+                        </div>
+                        <!-- 选择图标面板 -->
+                        <div v-if="isChooseLogoPanelShow" class="choose-icon-panel">
+                            <i
+                                class="bk-icon icon-close-circle-shape"
+                                @click="isChooseLogoPanelShow = false">
+                            </i>
+                            <div class="icon-panel-tab">
+                                <span
+                                    :class="['tab-item', { 'active': logoPanelActiveTab === 0 }]"
+                                    @click="logoPanelActiveTab = 0">{{ $t('默认图标') }}</span>
+                                <span
+                                    :class="['tab-item', { 'active': logoPanelActiveTab === 1 }]"
+                                    @click="logoPanelActiveTab = 1">{{ $t('自定义') }}</span>
+                            </div>
+                            <!-- 默认 -->
+                            <div v-if="logoPanelActiveTab === 0" class="panel-content-default">
+                                <ul class="default-icon-list">
+                                    <li class="default-icon-item"
+                                        v-for="item in 6"
+                                        :key="item"
+                                        :class="{ 'active': selectedLogoIndex === item }"
+                                        @click="onChooseDefaultLogo(item)">
+                                        <img
+                                            :src="require(`@/assets/images/appmaker-default-icon-${item}.png`)"
+                                            class="default-icon-img"
+                                            alt="appmaker-default-icons" />
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- 自定义 -->
+                            <div v-if="logoPanelActiveTab === 1" class="panel-content-customize">
+                                <label v-if="isLogoEmpty" for="app-logo" class="upload-btn-wrapper">
+                                    <i class="common-icon-add"></i>
+                                </label>
+                                <div v-else>
+                                    <div class="upload-logo">
+                                        <img class="logo-img" :src="logoUrl" @error="useDefaultLogo" />
+                                        <label class="reload-btn" for="app-logo">{{ $t('重新上传') }}</label>
+                                    </div>
+                                </div>
+                                <input ref="appLogo" type="file" id="app-logo" accept=".jpg, .jpeg, .png" @change="onLogoChange" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="upload-tip">{{$t('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')}}</div>
+                </div>
+            </div>
+            <div class="common-form-item">
                 <label>{{$t('应用简介')}}</label>
                 <div class="common-form-content">
                     <bk-input
@@ -96,25 +157,6 @@
                         v-validate="appDescRule">
                     </bk-input>
                     <span v-show="errors.has('appDesc')" class="common-error-tip error-msg">{{ errors.first('appDesc') }}</span>
-                </div>
-            </div>
-            <div class="common-form-item">
-                <label>{{$t('应用LOGO')}}</label>
-                <div class="common-form-content">
-                    <label v-if="isLogoEmpty" for="app-logo" class="upload-btn-wrapper">
-                        <i class="common-icon-add"></i>
-                    </label>
-                    <label v-else class="logo-wrapper" for="app-logo">
-                        <span class="change-tips">{{$t('点击更换')}}</span>
-                        <div v-if="isShowDefaultLogo" class="default-logo">
-                            <i class="common-icon-blueking"></i>
-                        </div>
-                        <div v-else>
-                            <img class="logo-pic" :src="logoUrl" @error="useDefaultLogo" />
-                        </div>
-                    </label>
-                    <div class="upload-tip">{{$t('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')}}</div>
-                    <input ref="appLogo" type="file" id="app-logo" accept=".jpg, .jpeg, .png" @change="onLogoChange" />
                 </div>
             </div>
         </div>
@@ -168,6 +210,9 @@
                 templateList: [],
                 schemeList: [],
                 appTemplateEmpty: false,
+                isChooseLogoPanelShow: false,
+                logoPanelActiveTab: 0,
+                selectedLogoIndex: null, // 已选默认图标下标
                 appData: {
                     appTemplate: '',
                     appName: '',
@@ -206,6 +251,21 @@
             }
         },
         watch: {
+            isEditDialogShow () {
+                this.isLogoEmpty = !!this.isCreateNewApp
+                this.logoPanelActiveTab = 0
+                this.selectedLogoIndex = null
+                this.isChooseLogoPanelShow = false
+            },
+            isShowDefaultLogo: {
+                handler (val) {
+                    if (val) {
+                        // 自动选择默认图标
+                        this.onChooseDefaultLogo(1, false)
+                    }
+                },
+                immediate: true
+            },
             currentAppData: {
                 handler (val) {
                     const { template_id, name, template_scheme_id, desc, logo_url, auth_actions } = val
@@ -330,6 +390,40 @@
                     appActions: [],
                     appLogo: undefined
                 }
+            },
+            // 将base64转换为blob
+            dataURLtoBlob (dataURI) {
+                const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+                const byteString = atob(dataURI.split(',')[1])
+                const arrayBuffer = new ArrayBuffer(byteString.length)
+                const intArray = new Uint8Array(arrayBuffer)
+
+                for (let i = 0; i < byteString.length; i++) {
+                    intArray[i] = byteString.charCodeAt(i)
+                }
+                return new Blob([intArray], { type: mimeString })
+            },
+            // 将blob转换为file
+            blobToFile (theBlob, fileName) {
+                theBlob.lastModifiedDate = new Date()
+                theBlob.name = fileName
+                return theBlob
+            },
+            // 打开选择图标面板
+            onLogoClick () {
+                this.isChooseLogoPanelShow = !this.isChooseLogoPanelShow
+                this.logoPanelActiveTab = this.isCreateNewApp ? 0 : 1
+            },
+            onChooseDefaultLogo (index, isSlected = true) {
+                if (isSlected) {
+                    this.selectedLogoIndex = index
+                }
+                const url = require(`@/assets/images/appmaker-default-icon-${index}.png`)
+                const blob = this.dataURLtoBlob(url)
+                const file = this.blobToFile(blob)
+                file.name = `appmaker-default-icon-${index}`
+                this.logoUrl = url
+                this.appData.appLogo = file
             }
         }
     }
@@ -370,64 +464,165 @@
         height: 60px;
         line-height: 60px;
         color: $commonBorderColor;
-        background: $whiteDefault;
-        border: 2px dashed $commonBorderColor;
+        background: #dcdee5;
         text-align: center;
         cursor: pointer;
         &:hover {
-            color: #3a84ff;
-            border-color: #3a84ff;
+            background: #c4c6cc;
         }
         .common-icon-add {
             font-size: 38px;
-            vertical-align: -10px;
+            vertical-align: -5px;
+            color: #ffffff;
         }
     }
-    .logo-wrapper {
-        display: block;
+    .app-logo-content {
         position: relative;
-        width: 60px;
-        height: 60px;
-        border: 1px solid $commonBorderColor;
-        border-radius: 6px;
-        &:hover {
-            .change-tips {
-                display: inline-block;
+        .logo-body {
+            .logo-wrapper {
+                display: block;
+                position: relative;
+                width: 60px;
+                height: 60px;
+                border-radius: 6px;
+                &:hover {
+                    .change-tips {
+                        display: inline-block;
+                    }
+                }
+                .change-tips {
+                    display: none;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 60px;
+                    height: 60px;
+                    line-height: 60px;
+                    font-size: 12px;
+                    color: $whiteDefault;
+                    background: rgba(10, 10, 10, .85);
+                    text-align: center;
+                    border-radius: 6px;
+                    cursor: pointer;
+                }
             }
         }
-        .change-tips {
-            display: none;
+        .choose-icon-panel {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 60px;
-            height: 60px;
-            line-height: 60px;
-            font-size: 12px;
-            color: $whiteDefault;
-            background: rgba(10, 10, 10, .85);
-            text-align: center;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .logo-pic {
-            width: 60px;
-            height: 60px;
-            border-radius: 6px;
+            left: -7px;
+            top: 80px;
+            padding: 10px 20px;
+            z-index: 1;
+            width: 310px;
+            height: 208px;
+            background: #ffffff;
+            border: 2px solid #c4c6cc;
+            border-radius: 2px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+            .icon-close-circle-shape {
+                position: absolute;
+                right: 6px;
+                top: 6px;
+                width: 12px;
+                height: 12px;
+                text-align: center;
+                line-height: 12px;
+                color: #cecece;
+                cursor: pointer;
+                &:hover {
+                    color: #979ba5;
+                }
+            }
+            .icon-panel-tab {
+                .tab-item {
+                    display: inline-block;
+                    padding: 6px 0;
+                    font-size: 14px;
+                    color: #63656e;
+                    cursor: pointer;
+                    &:not(:first-child) {
+                        margin-left: 20px;
+                    }
+                    &.active {
+                        color: #3a84ff;
+                        border-bottom: 2px solid #3a84ff;
+                    }
+                }
+            }
+            .panel-content-default {
+                .default-icon-list {
+                    .default-icon-item {
+                        float: left;
+                        margin-top: 10px;
+                        padding: 10px 7px;
+                        width: 60px;
+                        height: 60px;
+                        border-radius: 2px;
+                        cursor: pointer;
+                        &:not(:nth-child(4n + 1)) {
+                            margin-left: 8px;
+                        }
+                        &:hover {
+                            border: 1px solid #e1ecff;
+                        }
+                        &.active {
+                            border: 2px solid #3a84ff;
+                        }
+                        .default-icon-img {
+                            width: 100%;
+                            height: 100%;
+                        }
+                    }
+                }
+            }
+            .panel-content-customize {
+                .upload-logo {
+                    position: relative;
+                    margin-top: 10px;
+                    padding: 10px 7px;
+                    width: 62px;
+                    height: 62px;
+                    border-radius: 2px;
+                    border: 2px solid #3a84ff;
+                    .logo-img {
+                        width: 100%;
+                        height: 100%;
+                    }
+                    .reload-btn {
+                        display: inline-block;
+                        position: absolute;
+                        left: -2px;
+                        bottom: -26px;
+                        width: 62px;
+                        height: 16px;
+                        line-height: 16px;
+                        text-align: center;
+                        font-size: 12px;
+                        color: #ffffff;
+                        background: #000000;
+                        cursor: pointer;
+                        opacity: 0.6;
+                        &:hover {
+                            opacity: 1;
+                        }
+                    }
+                }
+            }
         }
     }
     .default-logo {
         width: 59px;
         height: 59px;
         text-align: center;
-        border: 1px dashed #1b7cef;
-        border-radius: 6px;
-        .common-icon-blueking {
-            display: inline-block;
-            margin-top: 10px;
-            color: #1b7cef;
-            font-size: 40px;
+        .default-icon {
+            width: 100%;
+            height: 100%;
         }
+    }
+    .logo-pic {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
     }
     .upload-tip {
         margin-top: 10px;
