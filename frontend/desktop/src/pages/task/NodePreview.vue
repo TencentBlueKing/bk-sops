@@ -51,7 +51,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     export default {
         name: 'NodePreview',

@@ -11,7 +11,7 @@
 */
 <template>
     <div class="operation-header clearfix">
-        <div class="operation-title">{{i18n.title}}</div>
+        <div class="operation-title">{{$t('任务执行')}}</div>
         <div class="bread-crumbs-wrapper" v-if="true">
             <span
                 :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
@@ -63,7 +63,7 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: i18n.params,
+                        content: $t('查看参数'),
                         placements: ['bottom']
                     }"
                     @click="onTaskParamsClick('viewParams')">
@@ -78,7 +78,7 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: i18n.changeParams,
+                        content: $t('修改参数'),
                         placements: ['bottom']
                     }"
                     @click="onTaskParamsClick('modifyParams')">
@@ -88,7 +88,7 @@
                     class="jump-tpl-page-btn common-icon-link"
                     target="_blank"
                     v-bk-tooltips="{
-                        content: i18n.checkFlow,
+                        content: $t('查看流程'),
                         placements: ['bottom']
                     }"
                     :to="getTplURL()">
@@ -104,20 +104,19 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: i18n.taskExecuteInfo,
+                        content: $t('流程信息'),
                         placements: ['bottom']
                     }"
                     @click="onTaskParamsClick('taskExecuteInfo')">
                 </i>
-                <bk-button :title="i18n.back" @click="onBack" class="back-button">
-                    {{i18n.back}}
+                <bk-button :title="$t('返回')" @click="onBack" class="back-button">
+                    {{$t('返回')}}
                 </bk-button>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import permission from '@/mixins/permission.js'
     import { mapState } from 'vuex'
 
@@ -140,14 +139,6 @@
         ],
         data () {
             return {
-                i18n: {
-                    title: gettext('任务执行'),
-                    back: gettext('返回'),
-                    params: gettext('查看参数'),
-                    changeParams: gettext('修改参数'),
-                    checkFlow: gettext('查看流程'),
-                    taskExecuteInfo: gettext('流程信息')
-                },
                 showNodeList: [0, 1, 2],
                 ellipsis: '...'
             }

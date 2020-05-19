@@ -46,7 +46,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -71,12 +71,7 @@
             return {
                 showList: false,
                 isLoading: false,
-                searchStr: '',
-                i18n: {
-                    biz: gettext('业务'),
-                    proj: gettext('项目'),
-                    placeholder: gettext('请选择')
-                }
+                searchStr: ''
             }
         },
         computed: {
@@ -96,13 +91,13 @@
                 const projects = []
                 const projectsGroup = [
                     {
-                        name: this.i18n.biz,
+                        name: i18n.t('业务'),
                         id: 1,
                         children: []
                     },
                     {
                         id: 2,
-                        name: this.i18n.proj,
+                        name: i18n.t('项目'),
                         children: []
                     }
                 ]

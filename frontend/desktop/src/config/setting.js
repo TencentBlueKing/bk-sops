@@ -11,6 +11,7 @@
 */
 import bus from '@/utils/bus.js'
 import store from '@/store/index.js'
+import i18n from '@/config/i18n/index.js'
 
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
@@ -78,7 +79,7 @@ export function setJqueryAjaxConfig () {
                 // 功能开关
                 const src = xhr.responseText
                 const ajaxContent = '<iframe name="403_iframe" frameborder="0" src="' + src + '" style="width:570px;height:400px;"></iframe>'
-                bus.$emit('showErrorModal', 'default', ajaxContent, gettext('提示'))
+                bus.$emit('showErrorModal', 'default', ajaxContent, i18n.t('提示'))
             },
             403: function (xhr) {
                 bus.$emit('showErrorModal', '403')

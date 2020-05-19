@@ -16,13 +16,13 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.title"
+        :title="$t('任务克隆')"
         :value="isTaskCloneDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1 }">
             <div class="common-form-item">
-                <label>{{ i18n.template }}</label>
+                <label>{{ $t('任务名称') }}</label>
                 <div class="common-form-content">
                     <bk-input
                         name="taskName"
@@ -36,7 +36,6 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
@@ -49,10 +48,6 @@
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
                     regex: NAME_REG
-                },
-                i18n: {
-                    title: gettext('任务克隆'),
-                    template: gettext('任务名称')
                 }
             }
         },

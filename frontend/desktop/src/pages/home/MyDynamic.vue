@@ -12,7 +12,7 @@
 <template>
     <div class="my-dynamic">
         <h3 class="panel-title">
-            <span class="panel-name">{{ i18n.title }}</span>
+            <span class="panel-name">{{ $t('我的动态') }}</span>
             <div class="create-method">
                 <bk-select
                     class="bk-select-inline"
@@ -20,7 +20,7 @@
                     :loading="isCreateMethodsLoading"
                     :popover-width="260"
                     :clearable="false"
-                    :placeholder="i18n.methodsPlaceholder"
+                    :placeholder="$t('请选择')"
                     @selected="onSelectMethod">
                     <bk-option
                         v-for="option in createMethods"
@@ -84,7 +84,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapState, mapActions } from 'vuex'
     import task from '@/mixins/task.js'
@@ -97,29 +97,29 @@
             width: '100'
         },
         {
-            label: gettext('任务名称'),
+            label: i18n.t('任务名称'),
             prop: 'name',
             width: '300'
         },
         {
-            label: gettext('项目'),
+            label: i18n.t('项目'),
             prop: 'project'
         },
         {
-            label: gettext('执行开始'),
+            label: i18n.t('执行开始'),
             prop: 'start_time'
         },
         {
-            label: gettext('执行结束'),
+            label: i18n.t('执行结束'),
             prop: 'finish_time'
         },
         {
-            label: gettext('创建方式'),
+            label: i18n.t('创建方式'),
             prop: 'create_method',
             width: '150'
         },
         {
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             prop: 'status',
             width: '100'
         }
@@ -132,12 +132,8 @@
         mixins: [permission, task],
         data () {
             return {
-                i18n: {
-                    title: gettext('我的动态'),
-                    methodsPlaceholder: gettext('请选择')
-                },
                 createMethods: [{
-                    name: gettext('所有创建方式'),
+                    name: i18n.t('所有创建方式'),
                     value: 'all'
                 }],
                 dynamicData: [],

@@ -49,15 +49,14 @@
         </div>
         <div class="node-tooltip-content" slot="content">
             <template v-if="node.status === 'RUNNING'">
-                <bk-button @click="onSubflowPauseResumeClick('pause')">{{ i18n.pause }}</bk-button>
-                <bk-button v-if="hasAdminPerm" @click="$emit('onForceFail', node.id)">{{ i18n.forceFail }}</bk-button>
+                <bk-button @click="onSubflowPauseResumeClick('pause')">{{ $t('暂停') }}</bk-button>
+                <bk-button v-if="hasAdminPerm" @click="$emit('onForceFail', node.id)">{{ $t('强制失败') }}</bk-button>
             </template>
-            <bk-button v-if="node.status === 'SUSPENDED'" @click="onSubflowPauseResumeClick('resume')">{{ i18n.resume }}</bk-button>
+            <bk-button v-if="node.status === 'SUSPENDED'" @click="onSubflowPauseResumeClick('resume')">{{ $t('继续') }}</bk-button>
         </div>
     </el-tooltip>
 </template>
 <script>
-    import '@/utils/i18n.js'
 
     export default {
         name: 'Subflow',
@@ -70,15 +69,6 @@
                 type: Object,
                 default () {
                     return {}
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    pause: gettext('暂停'),
-                    resume: gettext('继续'),
-                    forceFail: gettext('强制失败')
                 }
             }
         },

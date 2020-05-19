@@ -19,27 +19,19 @@
                 <span
                     :class="['cited-name', { 'name-error': !item.name }]"
                     @click.stop="onCitedNodeClick(item.id)">
-                    {{ item.name || i18n.notNamed }}
+                    {{ item.name || $t('未命名节点') }}
                 </span>
             </li>
         </ul>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState } from 'vuex'
     export default {
         name: 'VariableCitedList',
         props: {
             constant: Object,
             citedList: Array
-        },
-        data () {
-            return {
-                i18n: {
-                    notNamed: gettext('未命名节点')
-                }
-            }
         },
         computed: {
             ...mapState({

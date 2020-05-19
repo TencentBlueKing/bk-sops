@@ -18,12 +18,12 @@
             :before-close="onBeforeClose"
             :quick-close="true">
             <div slot="header">
-                <span>{{ i18n.conditionTitle }}</span>
+                <span>{{ $t('分支条件') }}</span>
             </div>
             <div class="condition-form" slot="content">
                 <div class="form-item">
                     <label class="label">
-                        {{ i18n.conditionName }}
+                        {{ $t('分支名称') }}
                         <span class="required">*</span>
                     </label>
                     <bk-input
@@ -36,7 +36,7 @@
                 </div>
                 <div class="form-item">
                     <label class="label">
-                        {{ i18n.expression }}
+                        {{ $t('表达式')}}
                         <span class="required">*</span>
                         <i
                             class="common-icon-info expression-tips"
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     export default {
         name: 'conditionEdit',
@@ -77,10 +77,7 @@
         data () {
             return {
                 i18n: {
-                    conditionTitle: gettext('分支条件'),
-                    conditionName: gettext('分支名称'),
-                    expression: gettext('表达式'),
-                    tips: gettext('支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：`${key1} >= 3 and ${key2} == "Test"`')
+                    tips: i18n.t('支持 "==、!=、>、>=、<、<=、in、notin" 等二元操作符和 "and、or、True/true、False/false" 等关键字语法，还支持通过 "${key}" 方式引用全局变量。示例：`${key1} >= 3 and ${key2} == "Test"`')
                 },
                 conditionName: '',
                 expression: '',

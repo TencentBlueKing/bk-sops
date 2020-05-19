@@ -18,7 +18,7 @@
             :before-close="onBeforeClose"
             :quick-close="true">
             <div slot="header">
-                <span>{{i18n.title}}</span>
+                <span>{{$t('流程模板数据')}}</span>
             </div>
             <div style="height: 100%" slot="content">
                 <div class="code-wrapper">
@@ -31,7 +31,7 @@
                         <i class="common-icon-info"></i>
                         <div class="message">{{ errorMessage }}</div>
                     </div>
-                    <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ i18n.confirm }}</bk-button>
+                    <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
                 </div>
             </div>
         </bk-sideslider>
@@ -39,7 +39,6 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
     import CodeEditor from '@/components/common/CodeEditor.vue'
     import { mapState, mapGetters } from 'vuex'
     import validatePipeline from '@/utils/validatePipeline.js'
@@ -52,11 +51,7 @@
         data () {
             return {
                 template: '',
-                errorMessage: '',
-                i18n: {
-                    title: gettext('流程模板数据'),
-                    confirm: gettext('保存')
-                }
+                errorMessage: ''
             }
         },
         computed: {

@@ -45,7 +45,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import StartPoint from './StartPoint.vue'
     import EndPoint from './EndPoint.vue'
     import TaskNode from './TaskNode.vue'

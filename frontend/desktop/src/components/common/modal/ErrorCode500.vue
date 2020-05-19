@@ -11,24 +11,15 @@
 */
 <template>
     <div class="content-wrapper">
-        <h3 class="error-title">{{ i18n.except }}</h3>
-        <p>{{ i18n.contact }}</p>
+        <h3 class="error-title">{{ $t('应用出现异常') }}</h3>
+        <p>{{ $t('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!') }}</p>
         <p v-if="responseText" class="error-tip">{{responseText}}</p>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'ErrorCode500',
-        props: ['responseText'],
-        data () {
-            return {
-                i18n: {
-                    except: gettext('应用出现异常'),
-                    contact: gettext('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
-                }
-            }
-        }
+        props: ['responseText']
     }
 </script>
 <style lang="scss" scoped>

@@ -11,9 +11,9 @@
 <template>
     <div class="output-params">
         <bk-table :data="list" :border="true">
-            <bk-table-column :label="i18n.name" :width="250" align="center" prop="name"></bk-table-column>
+            <bk-table-column :label="$t('名称')" :width="250" align="center" prop="name"></bk-table-column>
             <bk-table-column label="KEY" align="center" prop="key"></bk-table-column>
-            <bk-table-column :label="i18n.cite" :width="100" align="center">
+            <bk-table-column :label="$t('引用')" :width="100" align="center">
                 <template slot-scope="props">
                     <bk-checkbox
                         :value="props.row.hooked"
@@ -39,11 +39,7 @@
         data () {
             const list = this.getOutputsList(this.params)
             return {
-                list,
-                i18n: {
-                    name: gettext('名称'),
-                    cite: gettext('引用')
-                }
+                list
             }
         },
         computed: {

@@ -15,19 +15,19 @@
             theme="primary"
             :loading="pending"
             @click="onTaskSyncClick">
-            {{i18n.sync}}
+            {{$t('同步到本地缓存')}}
         </bk-button>
         <div class="table-container" v-bkloading="{ isLoading: listLoading, opacity: 1 }">
             <table class="sync-table">
                 <thead>
                     <tr>
                         <th width="10%" style="padding: 12px 30px;">ID</th>
-                        <th width="25%">{{i18n.startTime}}</th>
-                        <th width="25%">{{i18n.endTime}}</th>
-                        <th width="10%">{{i18n.operator}}</th>
-                        <th width="10%">{{i18n.status}}</th>
-                        <th width="10%">{{i18n.triggerType}}</th>
-                        <th width="10%">{{i18n.operation}}</th>
+                        <th width="25%">{{$t('开始时间')}}</th>
+                        <th width="25%">{{$t('结束时间')}}</th>
+                        <th width="10%">{{$t('操作人')}}</th>
+                        <th width="10%">{{$t('状态')}}</th>
+                        <th width="10%">{{$t('触发方式')}}</th>
+                        <th width="10%">{{$t('操作')}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,7 +49,7 @@
                                 size="small"
                                 class="view-detail"
                                 @click="onViewDetailClick(item)">
-                                {{i18n.viewDetail}}
+                                {{$t('查看详情')}}
                             </bk-button>
                         </td>
                     </tr>
@@ -62,7 +62,7 @@
             </table>
             <div class="panagation" v-if="totalPage > 1">
                 <div class="page-info">
-                    <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
+                    <span> {{$t('共')}} {{totalCount}} {{$t('条记录')}}{{$t('，')}} {{$t('当前第')}} {{currentPage}} {{$t('页')}}</span>
                 </div>
                 <bk-pagination
                     :current.sync="currentPage"
@@ -78,7 +78,7 @@
             padding="20px"
             ext-cls="common-dialog"
             header-position="left"
-            :title="i18n.detail"
+            :title="$t('详细信息')"
             :mask-close="false"
             :value="isDetailDialogShow"
             @cancel="isDetailDialogShow = false">
@@ -90,7 +90,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -112,22 +112,8 @@
                 isDetailDialogShow: false,
                 detail: '',
                 i18n: {
-                    sync: gettext('同步到本地缓存'),
-                    startTime: gettext('开始时间'),
-                    endTime: gettext('结束时间'),
-                    operator: gettext('操作人'),
-                    status: gettext('状态'),
-                    triggerType: gettext('触发方式'),
-                    operation: gettext('操作'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    detail: gettext('详细信息'),
-                    viewDetail: gettext('查看详情'),
-                    manual: gettext('手动'),
-                    auto: gettext('自动')
+                    manual: i18n.t('手动'),
+                    auto: i18n.t('自动')
                 }
             }
         },
