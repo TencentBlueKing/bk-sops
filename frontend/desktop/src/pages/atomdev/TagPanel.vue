@@ -165,9 +165,9 @@
                     config: {
                         type: 'combine',
                         attrs: {
-                            name: {}
+                            name: {},
+                            children: []
                         },
-                        children: [],
                         events: [],
                         methods: {}
                     }

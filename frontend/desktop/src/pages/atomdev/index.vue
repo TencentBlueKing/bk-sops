@@ -206,7 +206,7 @@
         },
         watch: {
             forms (val) {
-                this.transAtomConfig(val)
+                this.getTransAtomConfig(val)
                 this.atomConfigStr = serializeObj(this.atomConfig)
             }
         },
@@ -252,16 +252,25 @@
             transAtomConfig (forms) {
                 const atomConfig = forms.map(item => {
                     const config = tools.deepClone(item.config)
-                    Object.keys(config.attrs).forEach(key => {
+                    if (config.attrs.children) {
+                        config.attrs.children = this.transAtomConfig(config.attrs.children)
+                    }
+                    for (const key in config.attrs) {
+                        if (key === 'children') {
+                            continue
+                        }
                         if (typeof config.attrs[key].value === 'function') {
                             config.attrs[key] = config.attrs[key].value
                         } else {
                             config.attrs[key] = tools.deepClone(config.attrs[key].value)
                         }
-                    })
+                    }
                     return config
                 })
-                this.atomConfig = atomConfig
+                return atomConfig
+            },
+            getTransAtomConfig () {
+                this.atomConfig = this.transAtomConfig(this.forms)
             },
             updateForm (formList) {
                 this.forms = formList

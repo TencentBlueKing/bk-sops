@@ -23,6 +23,8 @@
                     :is="form.tag === 'combine' ? 'Combine' : 'FormItem'"
                     :tag-info="tagInfo"
                     :form="form"
+                    :index="index"
+                    @combineAdded="combineAdded"
                     @onShowInfoClick="onShowInfoClick"
                     @onEditClick="onEditClick"
                     @onDeleteClick="onDeleteClick">
@@ -145,6 +147,10 @@
                 if (evt.newIndex !== evt.oldIndex) {
                     this.$emit('formSorted', tools.deepClone(this.formList))
                 }
+            },
+            combineAdded (index, combineList) {
+                this.formList[index] = combineList
+                this.onAddHander()
             }
         }
     }
