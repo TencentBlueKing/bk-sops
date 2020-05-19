@@ -104,6 +104,7 @@
                 'setVariableSourceInfo'
             ]),
             onInputsValChange (val) {
+                debugger
                 this.$emit('update', tools.deepClone(val))
             },
             onInputHookChange (form, val) {

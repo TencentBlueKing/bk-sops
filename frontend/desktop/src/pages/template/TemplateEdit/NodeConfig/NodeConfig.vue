@@ -467,7 +467,7 @@
              * 3.子流程更新时，先判断数据 custom_type(自定义全局变量)或者 source_tag(标准插件表单项)是否相同，
              * 相同取旧数据里的表单值，否则取新数据
              */
-            getSubflowInputsValue (forms, oldForms = {}) {
+            getSubflowInputsValue (forms = {}, oldForms = {}) {
                 return Object.keys(forms).reduce((acc, cur) => {
                     const variable = forms[cur]
                     if (variable.show_type === 'show') {
@@ -479,6 +479,11 @@
                             } else {
                                 canReuse = variable.source_tag === oldVariable.source_tag
                             }
+                        }
+                        if (cur === '${job_args}') {
+                            console.log(canReuse)
+                            console.log(this.inputsParamValue[cur])
+                            console.log(variable.value)
                         }
                         const val = canReuse ? this.inputsParamValue[cur] : variable.value
                         acc[variable.key] = tools.deepClone(val)
@@ -551,6 +556,7 @@
                 await this.getSubflowDetail(id, version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
+                debugger
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
                 })
@@ -569,17 +575,57 @@
             },
             /**
              * 子流程版本更新
-             *
              */
             async updateSubflowVersion () {
                 const oldForms = Object.assign({}, this.subflowForms)
-                this.clearParamsSourceInfo()
                 await this.getSubflowDetail(this.basicInfo.tpl)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
+                debugger
+                this.subflowUpdateParamsChange()
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
                 })
+            },
+            /**
+             * 子流程版本更新后，输入、输出参数如果有变更，需要处理全局变量的 source_info 更新
+             * 分为两种情况：
+             * 1.输入、输出参数被勾选，并且在新流程模板中被删除，需要在更新后修改全局变量 source_info 信息
+             * 2.新增和修改输入、输出参数，不做处理
+             */
+            subflowUpdateParamsChange () {
+                const nodeId = this.nodeConfig.id
+                for (const key in this.constants) {
+                    const varItem = this.constants[key]
+                    const { source_type, source_info } = varItem
+                    const sourceInfo = source_info[this.nodeId]
+                    if (sourceInfo) {
+                        if (source_type === 'component_inputs') {
+                            sourceInfo.forEach(nodeFormItem => {
+                                if (!this.inputs.find(item => item.tag_code === nodeFormItem)) {
+                                    this.setVariableSourceInfo({
+                                        key,
+                                        id: nodeId,
+                                        type: 'delete',
+                                        tagCode: nodeFormItem
+                                    })
+                                }
+                            })
+                        }
+                        if (source_type === 'component_outputs') {
+                            sourceInfo.forEach(nodeFormItem => {
+                                if (!this.outputs.find(item => item.key === nodeFormItem)) {
+                                    this.setVariableSourceInfo({
+                                        key,
+                                        id: nodeId,
+                                        type: 'delete',
+                                        tagCode: nodeFormItem
+                                    })
+                                }
+                            })
+                        }
+                    }
+                }
             },
             // 取消已勾选为全局变量的输入、输出参数勾选状态
             clearParamsSourceInfo () {
