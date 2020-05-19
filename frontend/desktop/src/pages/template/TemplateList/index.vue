@@ -374,8 +374,9 @@
                      * 无子流程 has_subprocess=false
                      * 有子流程，需要更新 has_subprocess=true&subprocess_has_update=true
                      * 有子流程，不需要更新 has_subprocess=true&subprocess_has_update=false
+                     * 不做筛选 has_subprocess=undefined
                      */
-                    const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1)
+                    const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                     const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
                     const data = {
                         limit: this.pagination.limit,
@@ -464,6 +465,7 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.getTemplateList()
             },
             searchInputhandler (data) {
