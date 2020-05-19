@@ -528,6 +528,7 @@
              */
             async versionChange (val) {
                 this.updateBasicInfo({ version: val })
+                this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
             },
