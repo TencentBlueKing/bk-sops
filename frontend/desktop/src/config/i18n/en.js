@@ -980,7 +980,9 @@ const en = {
     '请求后台接口异常:': 'Server API error:',
     '文本框': 'Textarea',
     '什么是轻应用？': 'What is appmaker?',
-    '业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。': `The business operation and maintenance personnel will standardize their daily work and provide them to business non-technical personnel in the form of a template in the standard operation and maintenance to reduce the user's operational risk and cost of use. The template is designated as an independent SaaS application to the authorizer Use, this kind of SaaS application that does not require development and is quickly generated at zero cost is called a "light application".`
+    '业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。': `The business operation and maintenance personnel will standardize their daily work and provide them to business non-technical personnel in the form of a template in the standard operation and maintenance to reduce the user's operational risk and cost of use. The template is designated as an independent SaaS application to the authorizer Use, this kind of SaaS application that does not require development and is quickly generated at zero cost is called a "light application".`,
+    '更改': 'Change',
+    '默认图标': 'Default icon'
 }
 
 export default en

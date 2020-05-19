@@ -86,7 +86,7 @@
                 </div>
             </div>
             <div class="common-form-item">
-                <label>{{i18n.appLogo}}</label>
+                <label>{{$t('应用LOGO')}}</label>
                 <div class="common-form-content">
                     <div class="app-logo-content">
                         <div class="logo-body">
@@ -580,8 +580,8 @@
                     position: relative;
                     margin-top: 10px;
                     padding: 10px 7px;
-                    width: 60px;
-                    height: 60px;
+                    width: 62px;
+                    height: 62px;
                     border-radius: 2px;
                     border: 2px solid #3a84ff;
                     .logo-img {
@@ -591,9 +591,9 @@
                     .reload-btn {
                         display: inline-block;
                         position: absolute;
-                        left: 0;
+                        left: -2px;
                         bottom: -26px;
-                        width: 54px;
+                        width: 62px;
                         height: 16px;
                         line-height: 16px;
                         text-align: center;
