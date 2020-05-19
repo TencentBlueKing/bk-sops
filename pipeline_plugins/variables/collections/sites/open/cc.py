@@ -22,7 +22,8 @@ from pipeline.core.data.var import LazyVariable
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.base.utils.inject import supplier_account_for_project
 from pipeline_plugins.base.utils.adapter import cc_get_inner_ip_by_module_id
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_ip_by_regex
+
 from pipeline_plugins.components.utils.common import ip_re
 
 from gcloud.core.models import Project
@@ -145,3 +146,46 @@ class VarCmdbSetAllocation(LazyVariable):
         @return:
         """
         return SetDetailData(self.value['data'])
+
+
+class VarCmdbAttributeQuery(LazyVariable):
+    code = 'attribute_query'
+    name = _("主机属性查询器")
+    type = 'general'
+    tag = 'var_cmdb_attr_query.attr_query'
+    form = '%svariables/sites/%s/var_cmdb_attribute_query.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+    def get_value(self):
+        """
+        @summary: 返回 dict 对象，将每个可从CMDB查询到的输入IP作为键，将从CMDB查询到的主机属性封装成字典作为值
+        @note： 引用127.0.0.1的所有属性，如 ${value["127.0.0.1"]} -> {"bk_host_id": 999, "import_from": 3, ...}
+        @note： 引用127.0.0.1的bk_host_id属性，如 ${value["127.0.0.1"]["bk_host_id"]} -> 999
+        @return:
+        """
+        username = self.pipeline_data['executor']
+        project_id = self.pipeline_data['project_id']
+        bk_supplier_account = supplier_account_for_project(project_id)
+        ip_list = get_ip_by_regex(self.value)
+        if not ip_list:
+            return {}
+        kwargs = {"ip": {"data": ip_list, "exact": 1, "flag": "bk_host_innerip"},
+                  "condition": [{"bk_obj_id": "host", "condition": [], "fields": []}],
+                  "bk_supplier_account": bk_supplier_account
+                  }
+
+        from gcloud.conf import settings
+        get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+        client = get_client_by_user(username)
+        result = client.cc.search_host(kwargs)
+
+        hosts = {}
+        if result["result"]:
+            data = result["data"]["info"]
+            for host in data:
+                ip = host["host"]["bk_host_innerip"]
+                attrs = host["host"]
+                # bk_cloud_id as a dict is not needed
+                if "bk_cloud_id" in attrs:
+                    attrs.pop("bk_cloud_id")
+                hosts[ip] = attrs
+        return hosts
