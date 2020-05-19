@@ -41,7 +41,7 @@
                     <div class="template-search">
                         <bk-input
                             class="search-input"
-                            v-model="filterCondition.keywords"
+                            v-model.trim="filterCondition.keywords"
                             :clearable="true"
                             :placeholder="$t('请输入流程名称')"
                             :right-icon="'icon-search'"

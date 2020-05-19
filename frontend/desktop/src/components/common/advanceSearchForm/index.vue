@@ -64,7 +64,7 @@
                         <bk-input
                             style="width: 260px;"
                             class="search-input"
-                            v-model="formData[item.key]"
+                            v-model.trim="formData[item.key]"
                             :placeholder="item.placeholder">
                         </bk-input>
                     </template>

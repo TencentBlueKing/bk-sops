@@ -26,7 +26,7 @@
             </bk-select>
             <bk-input
                 class="search-input"
-                v-model="searchStr"
+                v-model.trim="searchStr"
                 right-icon="bk-icon icon-search"
                 :placeholder="$t('请输入名称')"
                 :clearable="true"
