@@ -556,7 +556,6 @@
                 await this.getSubflowDetail(id, version)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms)
-                debugger
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
                 })
@@ -581,7 +580,6 @@
                 await this.getSubflowDetail(this.basicInfo.tpl)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
-                debugger
                 this.subflowUpdateParamsChange()
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
