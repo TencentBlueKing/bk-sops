@@ -12,6 +12,7 @@
 import i18n from '@/config/i18n/index.js'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import isEqual from 'lodash/isEqual'
+import escape from 'lodash/escape'
 import { checkDataType } from './checkDataType.js'
 import moment from 'moment'
 
@@ -75,6 +76,13 @@ const tools = {
      */
     isDataEqual (a, b) {
         return isEqual(a, b)
+    },
+    /**
+     * 转义特殊字符
+     * @param {String} str 需要转义的字符
+     */
+    escapeStr (str = '') {
+        return escape(str)
     },
     /**
      * 判断传入值是否为空
