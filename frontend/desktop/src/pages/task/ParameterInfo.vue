@@ -23,10 +23,10 @@
             v-if="isUnreferencedShow">
             <div class="title-background" @click="onToggleUnreferenceShow">
                 <div :class="['unreferenced-variable', { 'unreference-show': isUnrefVarShow }]"></div>
-                <span class="title">{{i18n.title}}</span>
+                <span class="title">{{$t('查看未引用变量')}}</span>
                 <i class="common-icon-info desc-tooltip"
                     v-bk-tooltips="{
-                        content: i18n.executorTips,
+                        content: $t('在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑'),
                         width: '400',
                         placements: ['bottom-end'] }">
                 </i>
@@ -44,7 +44,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import TaskParamEdit from './TaskParamEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
@@ -56,10 +55,6 @@
         props: ['referencedVariable', 'unReferencedVariable', 'taskMessageLoading'],
         data () {
             return {
-                i18n: {
-                    title: gettext('查看未引用变量'),
-                    executorTips: gettext('在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑')
-                },
                 isUnrefVarShow: false,
                 isRefVarLoading: true,
                 isUnrefVarLoading: true

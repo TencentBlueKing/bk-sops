@@ -33,7 +33,6 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import ErrorCode403 from './ErrorCode403.vue'
     import ErrorCode405 from './ErrorCode405.vue'
     import ErrorCode406 from './ErrorCode406.vue'

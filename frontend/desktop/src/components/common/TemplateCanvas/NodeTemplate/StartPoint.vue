@@ -12,12 +12,11 @@
 <template>
     <div :class="['circle-node', 'start-point', node.status ? node.status.toLowerCase() : '']">
         <div class="circle-node-text">
-            {{ i18n.start }}
+            {{ $t('开始') }}
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
 
     export default {
         name: 'StartPoint',
@@ -26,13 +25,6 @@
                 type: Object,
                 default () {
                     return {}
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    start: gettext('开始')
                 }
             }
         }

@@ -12,7 +12,7 @@
 <template>
     <div class="setting-wrapper">
         <section class="setting-section attr-setting">
-            <h3>{{ i18n.attr }}</h3>
+            <h3>{{ $t('属性') }}</h3>
             <setting-form
                 v-if="editingForm.config"
                 ref="attrForm"
@@ -23,7 +23,7 @@
             </setting-form>
         </section>
         <section class="setting-section event-setting">
-            <h3>{{ i18n.relativeEvent }}</h3>
+            <h3>{{ $t('关联事件') }}</h3>
             <setting-form
                 v-for="(event, index) in eventList"
                 ref="eventForm"
@@ -39,7 +39,7 @@
             <add-comp @click="addSettingItem('event')"></add-comp>
         </section>
         <section class="setting-section">
-            <h3>{{ i18n.method }}</h3>
+            <h3>{{ $t('方法') }}</h3>
             <setting-form
                 v-for="(method, index) in methodList"
                 ref="methodForm"
@@ -57,7 +57,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import AddComp from './AddComp.vue'
     import SettingForm from './SettingForm.vue'
     import tools from '@/utils/tools.js'
@@ -65,19 +65,19 @@
 
     const REQUIRED_RULE = {
         required: true,
-        message: gettext('必填项'),
+        message: i18n.t('必填项'),
         trigger: 'blur'
     }
 
     const NAME_RULE = [
         {
             max: 50,
-            message: gettext('不能多于50个字符'),
+            message: i18n.t('不能多于50个字符'),
             trigger: 'blur'
         },
         {
             reg: /^[a-zA-Z_][a-zA-Z0-9_]*/,
-            message: gettext('输入字符必须由字母、数字、下划线组成，并且不能以数字开头')
+            message: i18n.t('输入字符必须由字母、数字、下划线组成，并且不能以数字开头')
         }
     ]
     const ARRAY_OBJ_FUNC_RULE = {
@@ -92,7 +92,7 @@
             }
             return true
         },
-        message: gettext('输入不合法'),
+        message: i18n.t('输入不合法'),
         trigger: 'blur'
     }
 
@@ -102,7 +102,7 @@
             comp: 'bk-select',
             required: true,
             props: {
-                placeholder: gettext('请选择所监听表单的tag_code')
+                placeholder: i18n.t('请选择所监听表单的tag_code')
             }
         },
         {
@@ -110,7 +110,7 @@
             comp: 'bk-input',
             required: true,
             props: {
-                placeholder: gettext('请输入所监听表单的事件类型')
+                placeholder: i18n.t('请输入所监听表单的事件类型')
             }
         },
         {
@@ -120,7 +120,7 @@
             props: {
                 type: 'textarea',
                 rows: 5,
-                placeholder: gettext('请输入所监听事件的回调方法，参数为所监听表单的值，eg: function (value) {}')
+                placeholder: i18n.t('请输入所监听事件的回调方法，参数为所监听表单的值，eg: function (value) {}')
             }
         }
     ]
@@ -137,7 +137,7 @@
         action: [
             REQUIRED_RULE,
             Object.assign({}, ARRAY_OBJ_FUNC_RULE, {
-                message: gettext('请输入合法的函数')
+                message: i18n.t('请输入合法的函数')
             })
         ]
     }
@@ -148,7 +148,7 @@
             comp: 'bk-input',
             required: true,
             props: {
-                placeholder: gettext('请输入方法名称')
+                placeholder: i18n.t('请输入方法名称')
             }
         },
         {
@@ -158,7 +158,7 @@
             props: {
                 type: 'textarea',
                 rows: 5,
-                placeholder: gettext('请输方法内容, eg: function () { console.log(this.value) }')
+                placeholder: i18n.t('请输方法内容, eg: function () { console.log(this.value) }')
             }
         }
     ]
@@ -171,7 +171,7 @@
         funcBody: [
             REQUIRED_RULE,
             Object.assign({}, ARRAY_OBJ_FUNC_RULE, {
-                message: gettext('请输入合法的函数')
+                message: i18n.t('请输入合法的函数')
             })
         ]
     }
@@ -208,15 +208,7 @@
                 eventList: this.transformEvents(this.editingForm.config.events),
                 methodList: this.transformMethods(this.editingForm.config.methods),
                 eventRules: EVENT_RULES,
-                methodRules: METHOD_RULES,
-                i18n: {
-                    attr: gettext('属性'),
-                    relativeEvent: gettext('关联事件'),
-                    method: gettext('方法'),
-                    arrPlaceholder: gettext('请输入数组格式数据'),
-                    objPlaceholder: gettext('请输入对象格式数据'),
-                    funcPlaceholder: gettext('请输入匿名函数')
-                }
+                methodRules: METHOD_RULES
             }
         },
         watch: {
@@ -251,7 +243,7 @@
                     comp: 'bk-input',
                     required: true,
                     props: {
-                        placeholder: gettext('表单项唯一标识，单个标准插件内不能重复')
+                        placeholder: i18n.t('表单项唯一标识，单个标准插件内不能重复')
                     }
                 })
                 rules['tag_code'] = [
@@ -261,7 +253,7 @@
                         validator (val) {
                             return !otherFormTagCode.includes(val)
                         },
-                        message: gettext('单个标准插件里表单项 tag_code 不能重复'),
+                        message: i18n.t('单个标准插件里表单项 tag_code 不能重复'),
                         trigger: 'blur'
                     }
                 ]
@@ -320,7 +312,7 @@
                                 }
                             })
                             rules[item] = [Object.assign({}, ARRAY_OBJ_FUNC_RULE, {
-                                message: gettext('请输入合法的数组')
+                                message: i18n.t('请输入合法的数组')
                             })]
                             break
                         case Function:
@@ -336,7 +328,7 @@
                                 }
                             })
                             rules[item] = [Object.assign({}, ARRAY_OBJ_FUNC_RULE, {
-                                message: gettext('请输入合法的函数')
+                                message: i18n.t('请输入合法的函数')
                             })]
                             break
                         case Object:
@@ -352,7 +344,7 @@
                                 }
                             })
                             rules[item] = [Object.assign({}, ARRAY_OBJ_FUNC_RULE, {
-                                message: gettext('请输入合法的对象')
+                                message: i18n.t('请输入合法的对象')
                             })]
                             break
                         default:
@@ -487,7 +479,7 @@
                     console.error(err)
                     this.$bkMessage({
                         theme: 'warning',
-                        message: gettext('请检查表单配置项')
+                        message: i18n.t('请检查表单配置项')
                     })
                 }
             }

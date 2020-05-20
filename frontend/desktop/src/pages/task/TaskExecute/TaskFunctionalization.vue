@@ -12,10 +12,10 @@
 <template>
     <div class="functionalization-wrapper">
         <div :class="['task-info', { 'functor-task-info': userRights.function }]">
-            <span class="task-info-title">{{ i18n.task_info }}</span>
+            <span class="task-info-title">{{ $t('任务信息') }}</span>
             <div class="task-info-division-line"></div>
             <div class="common-form-item">
-                <label class="required">{{ i18n.taskName }}</label>
+                <label class="required">{{ $t('任务名称') }}</label>
                 <div class="common-form-content">
                     <bk-input
                         class="task-name"
@@ -30,7 +30,7 @@
         <div class="param-info">
             <div class="param-info-title">
                 <span>
-                    {{ i18n.params }}
+                    {{ $t('参数信息') }}
                 </span>
             </div>
             <div class="param-info-division-line"></div>
@@ -47,7 +47,7 @@
             <bk-button
                 class="preview-button"
                 @click="onShowPreviewDialog">
-                {{ i18n.preview }}
+                {{ $t('预览') }}
             </bk-button>
             <bk-button
                 theme="primary"
@@ -57,7 +57,7 @@
                 :loading="isSubmit"
                 v-cursor="{ active: !hasPermission(['claim'], instanceActions, instanceOperations) }"
                 @click="onTaskClaim">
-                {{ i18n.claim }}
+                {{ $t('认领') }}
             </bk-button>
         </div>
         <bk-dialog
@@ -66,7 +66,7 @@
             :header-position="'left'"
             :has-footer="false"
             :ext-cls="'common-dialog'"
-            :title="i18n.taskPreview"
+            :title="$t('任务流程预览')"
             width="1000"
             @cancel="onCancel">
             <NodePreview
@@ -82,7 +82,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -107,14 +106,6 @@
         ],
         data () {
             return {
-                i18n: {
-                    task_info: gettext('任务信息'),
-                    taskName: gettext('任务名称'),
-                    params: gettext('参数信息'),
-                    preview: gettext('预览'),
-                    claim: gettext('认领'),
-                    taskPreview: gettext('任务流程预览')
-                },
                 isSubmit: false,
                 isConfigLoading: false,
                 previewDialogShow: false,

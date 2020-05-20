@@ -13,7 +13,7 @@
                         :text="true"
                         size="small"
                         @click="onHide">
-                        {{ i18n.hide }}
+                        {{ $t('收起') }}
                     </bk-button>
                 </slot>
             </div>
@@ -21,7 +21,6 @@
     </transition>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'NotifyInfo',
         props: {
@@ -35,10 +34,7 @@
         },
         data () {
             return {
-                visible: this.show,
-                i18n: {
-                    hide: gettext('收起')
-                }
+                visible: this.show
             }
         },
         watch: {
