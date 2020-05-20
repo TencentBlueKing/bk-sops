@@ -31,13 +31,13 @@ function generateInitLocation () {
     return [
         {
             id: 'node' + uuid(),
-            x: 20,
+            x: 40,
             y: 150,
             type: 'startpoint'
         },
         {
             id: 'node' + uuid(),
-            x: 240,
+            x: 260,
             y: 145,
             name: '',
             stage_name: i18n.t('步骤1'),
@@ -45,7 +45,7 @@ function generateInitLocation () {
         },
         {
             id: 'node' + uuid(),
-            x: 540,
+            x: 560,
             y: 150,
             type: 'endpoint'
         }
