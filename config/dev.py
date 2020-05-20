@@ -13,16 +13,16 @@ specific language governing permissions and limitations under the License.
 
 from config import RUN_VER
 
-if RUN_VER == 'open':
+if RUN_VER == "open":
     from blueapps.patch.settings_open_saas import *  # noqa
 else:
     from blueapps.patch.settings_paas_services import *  # noqa
 
 # 本地开发环境Å
-RUN_MODE = 'DEVELOP'
+RUN_MODE = "DEVELOP"
 
 # APP本地静态资源目录
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
 # APP静态资源目录url
 # REMOTE_STATIC_URL = '%sremote/' % STATIC_URL
@@ -30,7 +30,7 @@ STATIC_URL = '/static/'
 # Celery 消息队列设置 RabbitMQ
 # BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 # Celery 消息队列设置 Redis
-BROKER_URL = 'redis://localhost:6379/0'
+BROKER_URL = "redis://localhost:6379/0"
 
 DEBUG = False
 
@@ -38,22 +38,24 @@ DEBUG = False
 # USE FOLLOWING SQL TO CREATE THE DATABASE NAMED APP_CODE
 # SQL: CREATE DATABASE `bk_sops` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': APP_CODE,
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'TEST': {
-            'NAME': 'test_sops',
-            'CHARSET': 'utf8',
-            'COLLATION': 'utf8_general_ci',
-        }
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": APP_CODE,
+        "USER": "root",
+        "PASSWORD": "",
+        "HOST": "localhost",
+        "PORT": "3306",
+        "TEST": {"NAME": "test_sops", "CHARSET": "utf8", "COLLATION": "utf8_general_ci"},
     },
 }
 
 LOG_PERSISTENT_DAYS = 1
+
+LOGGING["loggers"]["iam"] = {
+    "handlers": ["component"],
+    "level": "INFO",
+    "propagate": True,
+}
 
 # CELERY_ALWAYS_EAGER = True
 # TEST_RUNNER = 'djcelery.contrib.test_runner.' \
