@@ -5,7 +5,7 @@ requests==2.20.0
 celery==3.1.25
 kombu==3.0.37
 django-celery==3.2.2
-httplib2==0.9.1
+httplib2==0.18.0
 Mako==1.0.6
 MarkupSafe==1.0
 pytz==2016.6.1
