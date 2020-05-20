@@ -20,12 +20,11 @@
             <div class="node-type-icon common-icon-node-branchgateway"></div>
         </div>
         <div class="node-tooltip-content" slot="content">
-            <bk-button @click.stop="onGatewaySelectionClick">{{ i18n.skip }}</bk-button>
+            <bk-button @click.stop="onGatewaySelectionClick">{{ $t('跳过') }}</bk-button>
         </div>
     </el-tooltip>
 </template>
 <script>
-    import '@/utils/i18n.js'
 
     export default {
         name: 'BranchGateway',
@@ -34,13 +33,6 @@
                 type: Object,
                 default () {
                     return {}
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    skip: gettext('跳过')
                 }
             }
         },

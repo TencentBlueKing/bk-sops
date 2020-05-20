@@ -15,12 +15,12 @@
         :mask-close="false"
         :header-position="'left'"
         :ext-cls="'common-dialog'"
-        :title="i18n.title"
+        :title="$t('任务撤销')"
         :value="isRevokeDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="dialog-content">
-            <div>{{ i18n.revoke }}</div>
+            <div>{{ $t('是否撤销该任务？') }}</div>
         </div>
     </bk-dialog>
 </template>
@@ -30,14 +30,6 @@
     export default {
         name: 'revokeDialog',
         props: ['isRevokeDialogShow'],
-        data () {
-            return {
-                i18n: {
-                    revoke: gettext('是否撤销该任务？'),
-                    title: gettext('任务撤销')
-                }
-            }
-        },
         methods: {
             onConfirm () {
                 this.$emit('onConfirmRevokeTask')

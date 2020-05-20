@@ -32,7 +32,7 @@
                 <div v-show="!isSelectorPanelShow" class="node-config-content">
                     <!-- 基础信息 -->
                     <section class="config-section">
-                        <h3>{{i18n.basicInfo}}</h3>
+                        <h3>{{$t('基础信息')}}</h3>
                         <basic-info
                             ref="basicInfo"
                             :basic-info="basicInfo"
@@ -48,7 +48,7 @@
                     </section>
                     <!-- 输入参数 -->
                     <section class="config-section">
-                        <h3>{{i18n.inputParams}}</h3>
+                        <h3>{{$t('输入参数')}}</h3>
                         <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
                             <template v-if="!inputLoading">
                                 <input-params
@@ -70,7 +70,7 @@
                     </section>
                     <!-- 输出参数 -->
                     <section class="config-section">
-                        <h3>{{i18n.outputParams}}</h3>
+                        <h3>{{$t('输出参数')}}</h3>
                         <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
                             <template v-if="!outputLoading">
                                 <output-params
@@ -98,7 +98,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
@@ -144,14 +144,7 @@
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
-                i18n: {
-                    basicInfo: gettext('基础信息'),
-                    inputParams: gettext('输入参数'),
-                    outputParams: gettext('输出参数'),
-                    choosePlugin: gettext('请选择插件'),
-                    chooseSubflow: gettext('请选择子流程')
-                }
+                isSelectorPanelShow // 是否显示选择插件(子流程)面板
             }
         },
         computed: {
@@ -389,7 +382,7 @@
                         formItemConfig.attrs.validation.push({
                             type: 'regex',
                             args: variable.validation,
-                            error_message: gettext('默认值不符合正则规则：') + variable.validation
+                            error_message: i18n.t('默认值不符合正则规则：') + variable.validation
                         })
                     }
                     inputs.push(formItemConfig)
@@ -406,7 +399,7 @@
                         component, name, error_ignorable, can_retry,
                         retryable, isSkipped, skippable, optional
                     } = config
-                    let basicInfoName = gettext('请选择插件')
+                    let basicInfoName = i18n.t('请选择插件')
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
@@ -432,7 +425,7 @@
                     }
                 } else {
                     const { template_id, name, optional } = config
-                    let templateName = gettext('请选择子流程')
+                    let templateName = i18n.t('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
                         this.atomTypeList.subflow.groups.some(group => {
@@ -535,6 +528,7 @@
              */
             async versionChange (val) {
                 this.updateBasicInfo({ version: val })
+                this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
             },

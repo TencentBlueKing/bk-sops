@@ -136,7 +136,7 @@
     }
     .expand {
         float: right;
-        margin-top: -6px;
+        margin-top: 14px;
     }
 }
 </style>

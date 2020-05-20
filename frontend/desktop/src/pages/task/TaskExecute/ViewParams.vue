@@ -20,7 +20,7 @@
         </div>
         <div class="view-params" v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="params-panel" v-if="!isEmptyParams">
-                <h4 class="panel-title">{{ i18n.atom_params }}</h4>
+                <h4 class="panel-title">{{ $t('查看标准插件参数') }}</h4>
                 <div class="params-content">
                     <RenderForm
                         v-if="!loading"
@@ -36,7 +36,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
@@ -58,9 +58,6 @@
         ],
         data () {
             return {
-                i18n: {
-                    atom_params: gettext('查看标准插件参数')
-                },
                 loading: true,
                 bkMessageInstance: null,
                 renderOption: {
@@ -85,7 +82,7 @@
                 return !this.treeNodeConfig.component_code
             },
             noDataMessage () {
-                return this.isSubflowNode ? gettext('请点击标准插件节点查看参数') : gettext('无数据')
+                return this.isSubflowNode ? i18n.t('请点击标准插件节点查看参数') : i18n.t('无数据')
             },
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
