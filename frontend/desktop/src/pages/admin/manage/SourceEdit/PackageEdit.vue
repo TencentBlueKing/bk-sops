@@ -21,21 +21,20 @@
                     @deleteSource="deleteSource(index)">
                 </package-form>
             </template>
-            <div class="add-package" @click="onCreateSource">{{i18n.addPackage}}</div>
+            <div class="add-package" @click="onCreateSource">{{ $t('添加主包源') }}</div>
         </div>
         <div class="operate-area">
             <bk-button
                 theme="primary"
                 class="next-step"
                 @click="onNextStepClick">
-                {{ i18n.nextStep }}
+                {{ $t('下一步') }}
             </bk-button>
-            <router-link :to="{ name: 'sourceManage' }" class="bk-button bk-default">{{ i18n.cancel }}</router-link>
+            <router-link :to="{ name: 'sourceManage' }" class="bk-button bk-default">{{ $t('取消') }}</router-link>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import PackageForm from './PackageForm.vue'
 
@@ -54,12 +53,7 @@
         },
         data () {
             return {
-                list: tools.deepClone(this.originList),
-                i18n: {
-                    nextStep: gettext('下一步'),
-                    cancel: gettext('取消'),
-                    addPackage: gettext('添加主包源')
-                }
+                list: tools.deepClone(this.originList)
             }
         },
         watch: {
