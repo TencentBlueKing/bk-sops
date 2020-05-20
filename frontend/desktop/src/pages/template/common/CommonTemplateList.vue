@@ -492,6 +492,7 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.getTemplateList()
             },
             onImportTemplate () {
