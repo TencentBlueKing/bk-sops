@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-19 15:57+0800\n"
+"POT-Creation-Date: 2020-05-20 10:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1427,7 +1427,7 @@ msgstr "Data source is invalid, please check the config"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_cmdb_attribute_query.js:19
 msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
-msgstr "Enter Ip, multiple are separated by `,` or Line "
+msgstr "Enter Ip, multiple are separated by `,` or Line breaks"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_cmdb_ip_selector.js:18
 msgid "选择服务器"
