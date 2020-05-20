@@ -4,7 +4,7 @@
             <div class="scheme-combine-shape" @click="toggleSchemePanel">
                 <i class="common-icon-paper"
                     v-bk-tooltips="{
-                        content: i18n.scheme,
+                        content: $t('执行方案'),
                         placements: ['top']
                     }">
                 </i>
@@ -12,7 +12,7 @@
         </div>
         <div class="schema-list-panel" v-if="showPanel">
             <div class="scheme-title">
-                <span> {{i18n.schemeList}}</span>
+                <span> {{$t('执行方案列表')}}</span>
             </div>
             <div class="scheme-header">
                 <div class="scheme-form" v-if="nameEditing">
@@ -23,10 +23,10 @@
                         name="schemaName"
                         class="bk-input-inline"
                         :clearable="true"
-                        :placeholder="i18n.schemaName">
+                        :placeholder="$t('方案名称')">
                     </bk-input>
-                    <bk-button theme="primary" @click="onAddScheme">{{i18n.confirm}}</bk-button>
-                    <bk-button @click="onCancel">{{i18n.cancel}}</bk-button>
+                    <bk-button theme="primary" @click="onAddScheme">{{$t('保存')}}</bk-button>
+                    <bk-button @click="onCancel">{{$t('取消')}}</bk-button>
                     <span v-if="errors.has('schemaName')" class="common-error-tip error-msg">{{ errors.first('schemaName') }}</span>
                 </div>
                 <bk-button
@@ -39,7 +39,7 @@
                     :loading="submiting"
                     v-cursor="{ active: !hasPermission(['create_scheme'], tplActions, tplOperations) }"
                     @click="onCreateScheme">
-                    {{ i18n.createScheme }}
+                    {{ $t('新建') }}
                 </bk-button>
             </div>
             <div class="scheme-content">
@@ -58,7 +58,7 @@
                 <div class="scheme-header-division-line scheme-header-division-line-last"></div>
                 <div class="preview-mode-switcher">
                     <span>
-                        {{i18n.previewMode}}
+                        {{$t('预览模式：')}}
                     </span>
                     <bk-switcher size="small" theme="primary" :value="isPreviewMode" @change="onChangePreviewNode"></bk-switcher>
                 </div>
@@ -67,7 +67,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -143,16 +143,7 @@
                 schemaList: [],
                 selectedScheme: undefined,
                 submiting: false,
-                deleting: false,
-                i18n: {
-                    schemeList: gettext('执行方案列表'),
-                    createScheme: gettext('新建'),
-                    confirm: gettext('保存'),
-                    cancel: gettext('取消'),
-                    schemaName: gettext('方案名称'),
-                    previewMode: gettext('预览模式：'),
-                    scheme: gettext('执行方案')
-                }
+                deleting: false
             }
         },
         created () {
@@ -197,7 +188,7 @@
                 if (this.submiting) return
                 const isschemaNameExist = this.schemaList.some(item => item.name === this.schemaName)
                 if (isschemaNameExist) {
-                    errorHandler({ message: gettext('方案名称已存在') }, this)
+                    errorHandler({ message: i18n.t('方案名称已存在') }, this)
                     return
                 }
                 this.submiting = true
@@ -222,7 +213,7 @@
                         this.nameEditing = false
                         this.loadSchemeList()
                         this.$bkMessage({
-                            message: gettext('方案添加成功'),
+                            message: i18n.t('方案添加成功'),
                             theme: 'success'
                         })
                     } catch (e) {
@@ -255,7 +246,7 @@
                     await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
                     this.loadSchemeList()
                     this.$bkMessage({
-                        message: gettext('方案删除成功'),
+                        message: i18n.t('方案删除成功'),
                         theme: 'success'
                     })
                 } catch (e) {

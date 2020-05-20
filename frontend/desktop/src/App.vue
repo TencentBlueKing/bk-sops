@@ -25,7 +25,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'

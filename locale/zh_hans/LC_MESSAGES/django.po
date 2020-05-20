@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-05-08 12:14+0800\n"
+"POT-Creation-Date: 2020-05-19 15:57+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -108,11 +108,11 @@ msgstr "user properties"
 msgid "标准运维"
 msgstr "标准运维"
 
-#: config/default.py:185
+#: config/default.py:196
 msgid "English"
 msgstr "English"
 
-#: config/default.py:186
+#: config/default.py:197
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -1849,7 +1849,7 @@ msgid "集群"
 msgstr "集群"
 
 #: pipeline_plugins/cmdb_ip_picker/utils.py:292
-#: pipeline_plugins/components/collections/sites/open/cc.py:889
+#: pipeline_plugins/components/collections/sites/open/cc.py:976
 msgid "模块"
 msgstr "模块"
 
@@ -2003,18 +2003,18 @@ msgid "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 msgstr "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 
 #: pipeline_plugins/components/collections/sites/open/bk.py:75
-#: pipeline_plugins/components/collections/sites/open/cc.py:150
-#: pipeline_plugins/components/collections/sites/open/cc.py:222
-#: pipeline_plugins/components/collections/sites/open/cc.py:335
-#: pipeline_plugins/components/collections/sites/open/cc.py:514
-#: pipeline_plugins/components/collections/sites/open/cc.py:564
-#: pipeline_plugins/components/collections/sites/open/cc.py:616
-#: pipeline_plugins/components/collections/sites/open/cc.py:674
-#: pipeline_plugins/components/collections/sites/open/cc.py:782
-#: pipeline_plugins/components/collections/sites/open/cc.py:885
-#: pipeline_plugins/components/collections/sites/open/cc.py:975
-#: pipeline_plugins/components/collections/sites/open/cc.py:1032
-#: pipeline_plugins/components/collections/sites/open/cc.py:1085
+#: pipeline_plugins/components/collections/sites/open/cc.py:237
+#: pipeline_plugins/components/collections/sites/open/cc.py:309
+#: pipeline_plugins/components/collections/sites/open/cc.py:422
+#: pipeline_plugins/components/collections/sites/open/cc.py:601
+#: pipeline_plugins/components/collections/sites/open/cc.py:651
+#: pipeline_plugins/components/collections/sites/open/cc.py:703
+#: pipeline_plugins/components/collections/sites/open/cc.py:761
+#: pipeline_plugins/components/collections/sites/open/cc.py:869
+#: pipeline_plugins/components/collections/sites/open/cc.py:972
+#: pipeline_plugins/components/collections/sites/open/cc.py:1062
+#: pipeline_plugins/components/collections/sites/open/cc.py:1119
+#: pipeline_plugins/components/collections/sites/open/cc.py:1172
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:83
 #: pipeline_plugins/components/collections/sites/open/job.py:177
 #: pipeline_plugins/components/collections/sites/open/job.py:414
@@ -2097,18 +2097,18 @@ msgstr "API 网关定义了这些消息通知组件的接口协议，但是，�
 msgid "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
 msgstr "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:153
-#: pipeline_plugins/components/collections/sites/open/cc.py:225
-#: pipeline_plugins/components/collections/sites/open/cc.py:338
-#: pipeline_plugins/components/collections/sites/open/cc.py:517
-#: pipeline_plugins/components/collections/sites/open/cc.py:567
-#: pipeline_plugins/components/collections/sites/open/cc.py:619
-#: pipeline_plugins/components/collections/sites/open/cc.py:677
-#: pipeline_plugins/components/collections/sites/open/cc.py:785
-#: pipeline_plugins/components/collections/sites/open/cc.py:888
-#: pipeline_plugins/components/collections/sites/open/cc.py:978
-#: pipeline_plugins/components/collections/sites/open/cc.py:1035
-#: pipeline_plugins/components/collections/sites/open/cc.py:1088
+#: pipeline_plugins/components/collections/sites/open/cc.py:240
+#: pipeline_plugins/components/collections/sites/open/cc.py:312
+#: pipeline_plugins/components/collections/sites/open/cc.py:425
+#: pipeline_plugins/components/collections/sites/open/cc.py:604
+#: pipeline_plugins/components/collections/sites/open/cc.py:654
+#: pipeline_plugins/components/collections/sites/open/cc.py:706
+#: pipeline_plugins/components/collections/sites/open/cc.py:764
+#: pipeline_plugins/components/collections/sites/open/cc.py:872
+#: pipeline_plugins/components/collections/sites/open/cc.py:975
+#: pipeline_plugins/components/collections/sites/open/cc.py:1065
+#: pipeline_plugins/components/collections/sites/open/cc.py:1122
+#: pipeline_plugins/components/collections/sites/open/cc.py:1175
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:86
 #: pipeline_plugins/components/collections/sites/open/job.py:180
 #: pipeline_plugins/components/collections/sites/open/job.py:417
@@ -2117,271 +2117,271 @@ msgstr "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当�
 msgid "当前操作所属的 CMDB 业务 ID"
 msgstr "当前操作所属的 CMDB 业务 ID"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:154
-#: pipeline_plugins/components/collections/sites/open/cc.py:226
+#: pipeline_plugins/components/collections/sites/open/cc.py:241
+#: pipeline_plugins/components/collections/sites/open/cc.py:313
 msgid "主机内网 IP"
 msgstr "主机内网 IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:157
-#: pipeline_plugins/components/collections/sites/open/cc.py:229
+#: pipeline_plugins/components/collections/sites/open/cc.py:244
+#: pipeline_plugins/components/collections/sites/open/cc.py:316
 msgid "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:158
-#: pipeline_plugins/components/collections/sites/open/cc.py:162
-#: pipeline_plugins/components/collections/sites/open/cc.py:893
+#: pipeline_plugins/components/collections/sites/open/cc.py:245
+#: pipeline_plugins/components/collections/sites/open/cc.py:249
+#: pipeline_plugins/components/collections/sites/open/cc.py:980
 msgid "模块 ID"
 msgstr "模块 ID"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:161
+#: pipeline_plugins/components/collections/sites/open/cc.py:248
 msgid "转移目标模块 ID 列表"
 msgstr "转移目标模块 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:163
+#: pipeline_plugins/components/collections/sites/open/cc.py:250
 msgid "转移方式"
 msgstr "转移方式"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:166
+#: pipeline_plugins/components/collections/sites/open/cc.py:253
 msgid "主机转移方式，覆盖(false)或追加(true)"
 msgstr "主机转移方式，覆盖(false)或追加(true)"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:212
+#: pipeline_plugins/components/collections/sites/open/cc.py:299
 msgid "转移主机模块"
 msgstr "转移主机模块"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:230
+#: pipeline_plugins/components/collections/sites/open/cc.py:317
 msgid "主机属性"
 msgstr "主机属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:233
+#: pipeline_plugins/components/collections/sites/open/cc.py:320
 msgid "待修改主机属性"
 msgstr "待修改主机属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:234
+#: pipeline_plugins/components/collections/sites/open/cc.py:321
 msgid "主机属性值"
 msgstr "主机属性值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:237
+#: pipeline_plugins/components/collections/sites/open/cc.py:324
 msgid "更新后的属性值"
 msgstr "更新后的属性值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:274
+#: pipeline_plugins/components/collections/sites/open/cc.py:361
 msgid "所属运营商校验失败，请重试并修改为正确的所属运营商"
 msgstr "所属运营商校验失败，请重试并修改为正确的所属运营商"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:289
+#: pipeline_plugins/components/collections/sites/open/cc.py:376
 msgid "所在国家校验失败，请重试并修改为正确的所在国家"
 msgstr "所在国家校验失败，请重试并修改为正确的所在国家"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:302
+#: pipeline_plugins/components/collections/sites/open/cc.py:389
 msgid "所在省份校验失败，请重试并修改为正确的所在省份"
 msgstr "所在省份校验失败，请重试并修改为正确的所在省份"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:325
+#: pipeline_plugins/components/collections/sites/open/cc.py:412
 msgid "更新主机属性"
 msgstr "更新主机属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:339
-#: pipeline_plugins/components/collections/sites/open/cc.py:342
+#: pipeline_plugins/components/collections/sites/open/cc.py:426
+#: pipeline_plugins/components/collections/sites/open/cc.py:429
 msgid "主机替换信息"
 msgstr "主机替换信息"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:344
+#: pipeline_plugins/components/collections/sites/open/cc.py:431
 msgid "替换机与被替换机信息"
 msgstr "替换机与被替换机信息"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:347
+#: pipeline_plugins/components/collections/sites/open/cc.py:434
 msgid "故障机 内网IP"
 msgstr "故障机 内网IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:349
+#: pipeline_plugins/components/collections/sites/open/cc.py:436
 msgid "替换机 内网IP"
 msgstr "替换机 内网IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:435
-#: pipeline_plugins/components/collections/sites/open/cc.py:439
+#: pipeline_plugins/components/collections/sites/open/cc.py:522
+#: pipeline_plugins/components/collections/sites/open/cc.py:526
 #, python-format
 msgid "无法查询到 %s 机器信息，请确认该机器是否在当前业务下"
 msgstr "无法查询到 %s 机器信息，请确认该机器是否在当前业务下"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:497
+#: pipeline_plugins/components/collections/sites/open/cc.py:584
 #, python-format
 msgid "成功替换的机器: %s"
 msgstr "成功替换的机器: %s"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:504
+#: pipeline_plugins/components/collections/sites/open/cc.py:591
 msgid "故障机替换"
 msgstr "故障机替换"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:518
-#: pipeline_plugins/components/collections/sites/open/cc.py:568
-#: pipeline_plugins/components/collections/sites/open/cc.py:620
-#: pipeline_plugins/components/collections/sites/open/cc.py:786
+#: pipeline_plugins/components/collections/sites/open/cc.py:605
+#: pipeline_plugins/components/collections/sites/open/cc.py:655
+#: pipeline_plugins/components/collections/sites/open/cc.py:707
+#: pipeline_plugins/components/collections/sites/open/cc.py:873
 msgid "集群列表"
 msgstr "集群列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:521
-#: pipeline_plugins/components/collections/sites/open/cc.py:571
-#: pipeline_plugins/components/collections/sites/open/cc.py:623
+#: pipeline_plugins/components/collections/sites/open/cc.py:608
+#: pipeline_plugins/components/collections/sites/open/cc.py:658
+#: pipeline_plugins/components/collections/sites/open/cc.py:710
 msgid "需要清空的集群 ID 列表"
 msgstr "需要清空的集群 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:522
-#: pipeline_plugins/components/collections/sites/open/cc.py:572
-#: pipeline_plugins/components/collections/sites/open/cc.py:624
-#: pipeline_plugins/components/collections/sites/open/cc.py:790
+#: pipeline_plugins/components/collections/sites/open/cc.py:609
+#: pipeline_plugins/components/collections/sites/open/cc.py:659
+#: pipeline_plugins/components/collections/sites/open/cc.py:711
+#: pipeline_plugins/components/collections/sites/open/cc.py:877
 msgid "集群 ID"
 msgstr "集群 ID"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:555
+#: pipeline_plugins/components/collections/sites/open/cc.py:642
 msgid "清空集群中主机"
 msgstr "清空集群中主机"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:607
+#: pipeline_plugins/components/collections/sites/open/cc.py:694
 msgid "删除集群"
 msgstr "删除集群"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:625
+#: pipeline_plugins/components/collections/sites/open/cc.py:712
 msgid "服务状态"
 msgstr "服务状态"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:628
+#: pipeline_plugins/components/collections/sites/open/cc.py:715
 msgid "集群服务器状态，开放(1)或关闭(2)"
 msgstr "集群服务器状态，开放(1)或关闭(2)"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:665
+#: pipeline_plugins/components/collections/sites/open/cc.py:752
 msgid "修改集群服务状态"
 msgstr "修改集群服务状态"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:678
+#: pipeline_plugins/components/collections/sites/open/cc.py:765
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:87
 msgid "父实例"
 msgstr "父实例"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:681
+#: pipeline_plugins/components/collections/sites/open/cc.py:768
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:90
 msgid "父实例 ID 列表"
 msgstr "父实例 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:682
+#: pipeline_plugins/components/collections/sites/open/cc.py:769
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:91
 msgid "实例 ID"
 msgstr "实例 ID"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:683
+#: pipeline_plugins/components/collections/sites/open/cc.py:770
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:92
 msgid "集群信息"
 msgstr "集群信息"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:686
+#: pipeline_plugins/components/collections/sites/open/cc.py:773
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:95
 msgid "新集群信息对象列表"
 msgstr "新集群信息对象列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:687
+#: pipeline_plugins/components/collections/sites/open/cc.py:774
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:96
 msgid "集群信息描述对象"
 msgstr "集群信息描述对象"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:732
-#: pipeline_plugins/components/collections/sites/open/cc.py:843
+#: pipeline_plugins/components/collections/sites/open/cc.py:819
+#: pipeline_plugins/components/collections/sites/open/cc.py:930
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:147
 msgid "环境类型校验失败，请重试并修改为正确的环境类型"
 msgstr "环境类型校验失败，请重试并修改为正确的环境类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:738
-#: pipeline_plugins/components/collections/sites/open/cc.py:828
+#: pipeline_plugins/components/collections/sites/open/cc.py:825
+#: pipeline_plugins/components/collections/sites/open/cc.py:915
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:153
 msgid "服务状态校验失败，请重试并修改为正确的服务状态"
 msgstr "服务状态校验失败，请重试并修改为正确的服务状态"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:746
-#: pipeline_plugins/components/collections/sites/open/cc.py:851
+#: pipeline_plugins/components/collections/sites/open/cc.py:833
+#: pipeline_plugins/components/collections/sites/open/cc.py:938
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:161
 msgid "集群容量必须为整数"
 msgstr "集群容量必须为整数"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:773
+#: pipeline_plugins/components/collections/sites/open/cc.py:860
 #: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:192
 msgid "创建集群"
 msgstr "创建集群"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:789
+#: pipeline_plugins/components/collections/sites/open/cc.py:876
 msgid "集群 ID 列表"
 msgstr "集群 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:791
+#: pipeline_plugins/components/collections/sites/open/cc.py:878
 msgid "集群属性"
 msgstr "集群属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:794
+#: pipeline_plugins/components/collections/sites/open/cc.py:881
 msgid "需要修改的集群属性"
 msgstr "需要修改的集群属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:795
-#: pipeline_plugins/components/collections/sites/open/cc.py:898
+#: pipeline_plugins/components/collections/sites/open/cc.py:882
+#: pipeline_plugins/components/collections/sites/open/cc.py:985
 msgid "属性值"
 msgstr "属性值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:798
+#: pipeline_plugins/components/collections/sites/open/cc.py:885
 msgid "集群属性更新后的值"
 msgstr "集群属性更新后的值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:876
+#: pipeline_plugins/components/collections/sites/open/cc.py:963
 msgid "更新集群属性"
 msgstr "更新集群属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:892
+#: pipeline_plugins/components/collections/sites/open/cc.py:979
 msgid "模块 ID 列表"
 msgstr "模块 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:894
+#: pipeline_plugins/components/collections/sites/open/cc.py:981
 msgid "模块属性"
 msgstr "模块属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:897
+#: pipeline_plugins/components/collections/sites/open/cc.py:984
 msgid "需要修改的模块属性"
 msgstr "需要修改的模块属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:901
+#: pipeline_plugins/components/collections/sites/open/cc.py:988
 msgid "模块属性更新后的值"
 msgstr "模块属性更新后的值"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:941
+#: pipeline_plugins/components/collections/sites/open/cc.py:1028
 msgid "模块类型校验失败，请重试并填写正确的模块类型"
 msgstr "模块类型校验失败，请重试并填写正确的模块类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:966
+#: pipeline_plugins/components/collections/sites/open/cc.py:1053
 msgid "更新模块属性"
 msgstr "更新模块属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:979
-#: pipeline_plugins/components/collections/sites/open/cc.py:1036
-#: pipeline_plugins/components/collections/sites/open/cc.py:1089
+#: pipeline_plugins/components/collections/sites/open/cc.py:1066
+#: pipeline_plugins/components/collections/sites/open/cc.py:1123
+#: pipeline_plugins/components/collections/sites/open/cc.py:1176
 msgid "主机 IP"
 msgstr "主机 IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:982
+#: pipeline_plugins/components/collections/sites/open/cc.py:1069
 msgid "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1023
+#: pipeline_plugins/components/collections/sites/open/cc.py:1110
 msgid "转移主机至空闲机模块"
 msgstr "转移主机至空闲机模块"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1039
+#: pipeline_plugins/components/collections/sites/open/cc.py:1126
 msgid "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1076
+#: pipeline_plugins/components/collections/sites/open/cc.py:1163
 msgid "转移主机至故障机模块"
 msgstr "转移主机至故障机模块"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1092
+#: pipeline_plugins/components/collections/sites/open/cc.py:1179
 msgid "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:1129
+#: pipeline_plugins/components/collections/sites/open/cc.py:1216
 msgid "上交主机至资源池"
 msgstr "上交主机至资源池"
 
@@ -2822,17 +2822,21 @@ msgstr "表格"
 msgid "表格变量"
 msgstr "表格变量"
 
-#: pipeline_plugins/variables/collections/sites/open/cc.py:35
+#: pipeline_plugins/variables/collections/sites/open/cc.py:36
 msgid "IP选择器(即将下线，请用新版)"
 msgstr "IP选择器(即将下线，请用新版)"
 
-#: pipeline_plugins/variables/collections/sites/open/cc.py:89
+#: pipeline_plugins/variables/collections/sites/open/cc.py:90
 msgid "IP选择器"
 msgstr "IP选择器"
 
-#: pipeline_plugins/variables/collections/sites/open/cc.py:134
+#: pipeline_plugins/variables/collections/sites/open/cc.py:135
 msgid "集群资源筛选"
 msgstr "集群资源筛选"
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py:153
+msgid "主机属性查询器"
+msgstr "主机属性查询器"
 
 #: pipeline_plugins/variables/query/select.py:37
 msgid "请求数据异常: {error}"
