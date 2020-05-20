@@ -180,6 +180,17 @@
                                             with_cloud_id: false
                                         }
                                         break
+                                    case 'set_allocation':
+                                        val = {
+                                            config: {
+                                                set_count: 0,
+                                                set_template_id: '',
+                                                host_resources: [],
+                                                module_detail: []
+                                            },
+                                            data: []
+                                        }
+                                        break
                                     default:
                                         val = ''
                                 }

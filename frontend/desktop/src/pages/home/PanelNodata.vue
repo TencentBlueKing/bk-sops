@@ -18,13 +18,13 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'PanelNodata',
         props: {
             text: {
                 type: String,
-                default: gettext('暂无数据')
+                default: i18n.t('暂无数据')
             }
         },
         data () {

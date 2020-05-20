@@ -21,14 +21,14 @@
                 <bk-form-item
                     property="name"
                     style="max-width: 536px"
-                    :label="i18n.atomName"
+                    :label="$t('插件名称')"
                     :required="true"
                     :rules="nameRule">
                     <bk-input v-model="name" :disabled="previewMode" @change="onNameChange"></bk-input>
                 </bk-form-item>
             </bk-form>
             <div class="config-section form-config-section">
-                <h3 class="title required">{{ i18n.formTitle }}</h3>
+                <h3 class="title required">{{ $t('前端代码') }}</h3>
                 <i class="config-edit-btn common-icon-gear" @click="showContextDialog = true"></i>
                 <form-config
                     :value="atomConfigStr"
@@ -37,7 +37,7 @@
                 </form-config>
             </div>
             <div class="config-section api-list-section">
-                <h3 class="title required">{{ i18n.apiList }}</h3>
+                <h3 class="title required">{{ $t('API接口') }}</h3>
                 <bk-select
                     v-model="selectedApi"
                     style="max-width: 536px"
@@ -58,7 +58,7 @@
                 </bk-select>
             </div>
             <div class="config-section api-config-section">
-                <h3 class="title required">{{ i18n.apiTitle }}</h3>
+                <h3 class="title required">{{ $t('后台代码') }}</h3>
                 <form-config
                     language="python"
                     :value="apiCodeStr"
@@ -72,7 +72,7 @@
             header-position="left"
             :width="600"
             :mask-close="false"
-            :title="`context${i18n.config}`"
+            :title="`context${$t('配置')}`"
             :auto-close="false"
             @confirm="onContextConfirm"
             @cancel="onContextCancel">
@@ -81,7 +81,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import serializeObj from '@/utils/serializeObj.js'
@@ -137,28 +137,20 @@
                 nameRule: [
                     {
                         required: true,
-                        message: gettext('必填项'),
+                        message: i18n.t('必填项'),
                         trigger: 'blur'
                     },
                     {
                         max: 100,
-                        message: gettext('不能多于100个字符'),
+                        message: i18n.t('不能多于100个字符'),
                         trigger: 'blur'
                     },
                     {
                         regex: /^[A-Za-z_][a-zA-Z0-9_]*/,
-                        message: gettext('请输入正确的插件名称，名称由字母、数字、下划线组成，且不能以数字开头'),
+                        message: i18n.t('请输入正确的插件名称，名称由字母、数字、下划线组成，且不能以数字开头'),
                         trigger: 'blur'
                     }
-                ],
-                i18n: {
-                    atomName: gettext('插件名称'),
-                    config: gettext('配置'),
-                    formTitle: gettext('前端代码'),
-                    apiList: gettext('API接口'),
-                    apiTitle: gettext('后台代码'),
-                    tagCodeError: gettext('单个标准插件里表单项 tag_code 不能重复')
-                }
+                ]
             }
         },
         watch: {
@@ -245,7 +237,7 @@
                     const validateResult = value.every(item => {
                         if (formTagCodeList.includes(item.tag_code)) {
                             tagCodeRepeat = true
-                            this.$emit('atomEditError', this.i18n.tagCodeError)
+                            this.$emit('atomEditError', i18n.t('单个标准插件里表单项 tag_code 不能重复'))
                         } else {
                             formTagCodeList.push(item.tag_code)
                         }

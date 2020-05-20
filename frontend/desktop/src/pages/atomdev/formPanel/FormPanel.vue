@@ -49,7 +49,7 @@
                     <h3>{{tagInfo.title}}</h3>
                     <h3 v-if="tagInfo.desc">{{tagInfo.desc}}</h3>
                     <section v-if="tagInfo.attrs">
-                        <p>{{ i18n.attr }}</p>
+                        <p>{{ $t('属性') }}</p>
                         <template v-for="(attr, name) in tagInfo.attrs">
                             <p class="attr-item" :key="name">
                                 {{name}}
@@ -63,7 +63,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
     import FormNotFound from './FormNotFound.vue'
@@ -89,10 +88,7 @@
         data () {
             return {
                 formList: tools.deepClone(this.forms),
-                tagInfo: null,
-                i18n: {
-                    attr: gettext('属性')
-                }
+                tagInfo: null
             }
         },
         watch: {

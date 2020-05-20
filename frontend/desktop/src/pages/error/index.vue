@@ -18,7 +18,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import ErrorCode403 from '@/components/common/modal/ErrorCode403.vue'
     import ErrorCode405 from '@/components/common/modal/ErrorCode405.vue'
     import ErrorCode406 from '@/components/common/modal/ErrorCode406.vue'

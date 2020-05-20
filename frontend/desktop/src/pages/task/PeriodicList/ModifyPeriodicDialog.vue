@@ -16,13 +16,13 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.modifyTask"
+        :title="$t('修改周期任务')"
         :value="isModifyDialogShow"
         @confirm="onModifyPeriodicConfirm"
         @cancel="onModifyPeriodicCancel">
         <div v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="periodic-info">
-                <h3 class="local-section-title">{{ i18n.periodicInfo }}</h3>
+                <h3 class="local-section-title">{{ $t('周期信息') }}</h3>
                 <div class="common-form-item">
                     <LoopRuleSelect
                         ref="loopRuleSelect"
@@ -32,7 +32,7 @@
                 <div
                     v-if="!loading"
                     class="param-info">
-                    <h3 class="local-section-title">{{ i18n.paramsInfo }}</h3>
+                    <h3 class="local-section-title">{{ $t('参数信息') }}</h3>
                     <div class="common-form-content">
                         <NoData v-if="isVariableEmpty"></NoData>
                         <TaskParamEdit
@@ -54,7 +54,7 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { PERIODIC_REG } from '@/constants/index.js'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
@@ -74,26 +74,19 @@
         props: ['isModifyDialogShow', 'taskId', 'cron', 'constants', 'loading'],
         data () {
             return {
-                i18n: {
-                    periodicInfo: gettext('周期信息'),
-                    modifyTask: gettext('修改周期任务'),
-                    periodicRule: gettext('周期规则'),
-                    paramsInfo: gettext('参数信息'),
-                    errorPicture: gettext('图片出错')
-                },
                 periodicRule: {
                     required: true,
                     regex: PERIODIC_REG
                 },
-                periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
+                periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 dialogFooterData: [
                     {
                         type: 'primary',
                         loading: false,
-                        btnText: gettext('确认'),
+                        btnText: i18n.t('确认'),
                         click: 'onConfirm'
                     }, {
-                        btnText: gettext('取消'),
+                        btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }
                 ]
@@ -128,7 +121,7 @@
                     const cronArray = loopRule.rule.split(' ')
                     if (cronArray.length !== 5) {
                         this.$bkMessage({
-                            'message': gettext('输入周期表达式非法，请校验'),
+                            'message': i18n.t('输入周期表达式非法，请校验'),
                             'theme': 'error'
                         })
                         return
@@ -172,22 +165,22 @@
                     Promise.all([this.modifyPeriodicConstants(constantsData), this.modifyPeriodicCron(cronData)]).then((values) => {
                         if (values[0].result && values[1].result) {
                             this.$bkMessage({
-                                'message': gettext('修改周期任务信息成功'),
+                                'message': i18n.t('修改周期任务信息成功'),
                                 'theme': 'success'
                             })
                         } else if (values[0].result) {
                             this.$bkMessage({
-                                'message': gettext('修改周期任务参数成功，但表达式修改未成功，请重试'),
+                                'message': i18n.t('修改周期任务参数成功，但表达式修改未成功，请重试'),
                                 'theme': 'warning'
                             })
                         } else if (values[1].result) {
                             this.$bkMessage({
-                                'message': gettext('修改周期任务表达式成功，但任务参数未修改成功，请重试'),
+                                'message': i18n.t('修改周期任务表达式成功，但任务参数未修改成功，请重试'),
                                 'theme': 'warning'
                             })
                         } else {
                             this.$bkMessage({
-                                'message': gettext('修改周期任务失败，请联系管理员'),
+                                'message': i18n.t('修改周期任务失败，请联系管理员'),
                                 'theme': 'error'
                             })
                         }
@@ -202,12 +195,12 @@
                 const result = await this.modifyPeriodicCron(cronData)
                 if (result.result) {
                     this.$bkMessage({
-                        'message': gettext('修改周期任务表达式成功'),
+                        'message': i18n.t('修改周期任务表达式成功'),
                         'theme': 'success'
                     })
                 } else {
                     this.$bkMessage({
-                        'message': gettext('修改周期任务失败，请联系管理员'),
+                        'message': i18n.t('修改周期任务失败，请联系管理员'),
                         'theme': 'error'
                     })
                 }
