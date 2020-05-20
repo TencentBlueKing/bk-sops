@@ -226,7 +226,7 @@ def cc_list_match_node_inst_id(topo_tree, path_list):
                     inst_id_list.append(match_node['bk_inst_id'])
                 topo_node_list = match_node['child']
             else:
-                return {'result': False, 'message': u'不存在该拓扑路径：{}'.format('>'.join(path))}
+                return {'result': False, 'message': _('不存在该拓扑路径：{}').format('>'.join(path))}
     return {'result': True, 'data': inst_id_list}
 
 
