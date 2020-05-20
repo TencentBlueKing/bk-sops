@@ -15,7 +15,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState } from 'vuex'
     export default {
         name: 'audit',

@@ -13,7 +13,7 @@
     <div class="advanced-search">
         <div class="search-content">
             <div :class="['toggle-open-btn', { opened: isAdvanceOpen }]" @click="onShow">
-                <span>{{i18n.advancedSearch}}</span>
+                <span>{{$t('高级搜索')}}</span>
                 <span class="advanced-shape">
                     <i class="bk-icon icon-down-shape search-shape" v-if="!isAdvanceOpen"></i>
                     <i class="bk-icon icon-up-shape search-up-shape" v-else></i>
@@ -23,7 +23,7 @@
         </div>
         <bk-input
             class="search-input"
-            v-model="localValue"
+            v-model.trim="localValue"
             :clearable="true"
             :placeholder="inputPlaceholader"
             :right-icon="'bk-icon icon-search'"
@@ -33,7 +33,6 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'AdvanceSearch',
         props: {
@@ -52,9 +51,6 @@
         },
         data () {
             return {
-                i18n: {
-                    advancedSearch: gettext('高级搜索')
-                },
                 isAdvancedSerachShow: false,
                 localValue: this.value
             }
@@ -70,7 +66,7 @@
             },
             onInput (value) {
                 const exportValue = typeof value === 'string' ? value : value.target.value
-                this.$emit('input', exportValue)
+                this.$emit('input', exportValue.trim())
             }
         }
     }

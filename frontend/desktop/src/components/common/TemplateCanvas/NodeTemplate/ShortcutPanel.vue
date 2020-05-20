@@ -34,7 +34,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
     export default {

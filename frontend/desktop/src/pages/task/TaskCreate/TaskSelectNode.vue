@@ -55,13 +55,12 @@
                 theme="primary"
                 class="next-button"
                 @click="onGotoParamFill">
-                {{ i18n.next }}
+                {{ $t('下一步') }}
             </bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import TaskScheme from './TaskScheme.vue'
@@ -70,7 +69,6 @@
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     export default {
-        name: 'TaskSelectNode',
         components: {
             TaskScheme,
             TemplateCanvas,
@@ -79,11 +77,6 @@
         props: ['project_id', 'template_id', 'common', 'excludeNode', 'entrance'],
         data () {
             return {
-                i18n: {
-                    all: gettext('全选'),
-                    cancel: gettext('取消全选'),
-                    next: gettext('下一步')
-                },
                 selectedNodes: [], // 已选中节点
                 allSelectableNodes: [], // 所有可选节点
                 isAllSelected: true,

@@ -9,6 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import i18n from '@/config/i18n/index.js'
 import axios from 'axios'
 import bus from '@/utils/bus.js'
 import { checkDataType } from '@/utils/checkDataType'
@@ -81,8 +82,8 @@ axios.interceptors.response.use(
                 break
         }
         if (!response.data) {
-            const msg = gettext('接口数据返回为空')
-            console.warn(gettext('接口异常，'), gettext('HTTP状态码：'), response.status)
+            const msg = i18n.t('接口数据返回为空')
+            console.warn(i18n.t('接口异常，'), i18n.t('HTTP状态码：'), response.status)
             console.error(msg)
             response.data = {
                 code: response.status,

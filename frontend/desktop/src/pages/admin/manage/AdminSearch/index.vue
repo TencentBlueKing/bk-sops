@@ -12,9 +12,9 @@
 <template>
     <div class="admin-search">
         <div v-if="!showResultComp" class="search-wrapper">
-            <p class="tips">{{ i18n.tips }}</p>
+            <p class="tips">{{ $t('输入项目名、模板ID或任务ID进行搜索') }}</p>
             <bk-input
-                v-model="searchStr"
+                v-model.trim="searchStr"
                 class="search-input"
                 right-icon="bk-icon icon-search"
                 @change="onChange"
@@ -29,7 +29,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import SearchResult from './SearchResult.vue'
 
     export default {
@@ -41,10 +40,7 @@
             return {
                 showResultComp: false,
                 searchStr: '',
-                timer: null,
-                i18n: {
-                    tips: gettext('输入项目名、模板ID或任务ID进行搜索')
-                }
+                timer: null
             }
         },
         methods: {

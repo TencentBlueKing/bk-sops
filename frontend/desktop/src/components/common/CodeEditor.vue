@@ -13,7 +13,6 @@
     <section class="code-editor"></section>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import * as monaco from 'monaco-editor'
 
     const DEFAULT_OPTIONS = {
