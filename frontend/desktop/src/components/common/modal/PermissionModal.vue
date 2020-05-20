@@ -26,13 +26,13 @@
                 <span class="title-icon">
                     <img :src="lock" alt="permission-lock" class="lock-img" />
                 </span>
-                <h3>{{i18n.permissionTitle}}</h3>
+                <h3>{{$t('没有权限访问或操作此资源')}}</h3>
             </div>
             <table class="permission-table table-header">
                 <thead>
                     <tr>
-                        <th width="60%">{{i18n.resource}}</th>
-                        <th width="40%">{{i18n.requiredPermissions}}</th>
+                        <th width="60%">{{$t('资源')}}</th>
+                        <th width="40%">{{$t('需要申请的权限')}}</th>
                     </tr>
                 </thead>
             </table>
@@ -44,7 +44,7 @@
                             <td width="40%">{{permission.action_name}}</td>
                         </tr>
                         <tr v-if="false">
-                            <td class="no-data" colspan="2">{{i18n.noData}}</td>
+                            <td class="no-data" colspan="2">{{$t('无数据')}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -52,14 +52,13 @@
         </div>
         <div class="permission-footer" slot="footer">
             <div class="button-group">
-                <bk-button theme="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
-                <bk-button theme="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
+                <bk-button theme="primary" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
+                <bk-button theme="default" @click="onCloseDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -71,17 +70,7 @@
                 isModalShow: false,
                 list: [],
                 loading: false,
-                lock: require('../../../assets/images/lock-radius.svg'),
-                i18n: {
-                    permissionTitle: gettext('没有权限访问或操作此资源'),
-                    system: gettext('系统'),
-                    resource: gettext('资源'),
-                    requiredPermissions: gettext('需要申请的权限'),
-                    noData: gettext('无数据'),
-                    apply: gettext('去申请'),
-                    cancel: gettext('取消'),
-                    project: gettext('项目')
-                }
+                lock: require('../../../assets/images/lock-radius.svg')
             }
         },
         watch: {

@@ -64,21 +64,21 @@
                         <bk-input
                             style="width: 260px;"
                             class="search-input"
-                            v-model="formData[item.key]"
+                            v-model.trim="formData[item.key]"
                             :placeholder="item.placeholder">
                         </bk-input>
                     </template>
                 </bk-form-item>
                 <bk-form-item class="query-button">
-                    <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{i18n.query}}</bk-button>
-                    <bk-button class="query-cancel" @click.prevent="onResetForm">{{i18n.reset}}</bk-button>
+                    <bk-button class="query-primary" theme="primary" @click.prevent="submit">{{$t('搜索')}}</bk-button>
+                    <bk-button class="query-cancel" @click.prevent="onResetForm">{{$t('清空')}}</bk-button>
                 </bk-form-item>
             </bk-form>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import AdvanceSearch from './AdvanceSearch.vue'
     export default {
         name: 'AdvanceSearchForm',
@@ -93,7 +93,7 @@
             searchConfig: {
                 type: Object,
                 default: () => ({
-                    placeholder: gettext('请输入'),
+                    placeholder: i18n.t('请输入'),
                     value: ''
                 })
             },
@@ -104,10 +104,6 @@
         },
         data () {
             return {
-                i18n: {
-                    query: gettext('搜索'),
-                    reset: gettext('清空')
-                },
                 isAdvanceOpen: false,
                 searchValue: '',
                 formData: {}

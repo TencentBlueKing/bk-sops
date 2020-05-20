@@ -9,6 +9,8 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import i18n from '@/config/i18n/index.js'
+
 /**
  * vue组件接口请求异常处理函数
  * @param {Object} error 错误对象
@@ -25,32 +27,32 @@ export function errorHandler (error, instance) {
         if (!data.code || data.code === 404) {
             instance.exception = {
                 code: '404',
-                msg: gettext('当前访问的页面不存在')
+                msg: i18n.t('当前访问的页面不存在')
             }
         } else if (data.code === 403) {
             instance.exception = {
                 code: '403',
-                msg: gettext('sorry，您没有访问权限!')
+                msg: i18n.t('sorry，您没有访问权限!')
             }
         } else if (data.code === 405) {
             instance.exception = {
                 code: '405',
-                msg: gettext('Sorry，您的权限不足!')
+                msg: i18n.t('Sorry，您的权限不足!')
             }
         } else if (data.code === 406) {
             instance.exception = {
                 code: '405',
-                msg: gettext('Sorry，您的权限不足!')
+                msg: i18n.t('Sorry，您的权限不足!')
             }
         } else if (data.code === 500) {
             instance.exception = {
                 code: '500',
-                msg: gettext('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
+                msg: i18n.t('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
             }
         } else if (data.code === 502) {
             instance.exception = {
                 code: '502',
-                msg: gettext('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
+                msg: i18n.t('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
             }
         }
     } else {
