@@ -464,16 +464,18 @@
              * 获取子流程任务节点输入参数值，有三种情况：
              * 1.节点点开编辑时取 activitity 里的 constants 数据
              * 2.切换子流程时，取接口返回的 form 数据
-             * 3.子流程更新时，先判断数据 custom_type(自定义全局变量)或者 source_tag(标准插件表单项)是否相同，
+             * 3.子流程更新时，先判断表单项是否为勾选状态，勾选取旧表单项数据，
+             * 未勾选则判断新旧表单项数据 custom_type(自定义全局变量)或者 source_tag(标准插件表单项)是否相同，
              * 相同取旧数据里的表单值，否则取新数据
              */
             getSubflowInputsValue (forms, oldForms = {}) {
-                return Object.keys(forms).reduce((acc, cur) => {
+                return Object.keys(forms).reduce((acc, cur) => { // 遍历新表单项
                     const variable = forms[cur]
                     if (variable.show_type === 'show') {
-                        const oldVariable = oldForms[cur]
                         let canReuse = false
-                        if (oldVariable) { // 旧版本中存在相同key的表单项
+                        const oldVariable = oldForms[cur]
+                        const isHooked = this.isParamsInConstants(variable)
+                        if (oldVariable && !isHooked) { // 旧版本中存在相同key的表单项，且不是勾选状态
                             if (variable.custom_type || oldVariable.custom_type) {
                                 canReuse = variable.custom_type === oldVariable.custom_type
                             } else {
@@ -486,6 +488,14 @@
 
                     return acc
                 }, {})
+            },
+            // 输入参数是否勾选
+            isParamsInConstants (form) {
+                return Object.keys(this.constants).some(key => {
+                    const varItem = this.constants[key]
+                    const sourceInfo = varItem.source_info[this.nodeId]
+                    return sourceInfo && sourceInfo.includes(form.tag_code)
+                })
             },
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
