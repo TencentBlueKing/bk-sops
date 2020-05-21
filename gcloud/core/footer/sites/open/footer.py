@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.core.models import EnvironmentVariables
 
 
-def i18n_footer():
+def i18n_footer(language):
     default = """
         <div class="copyright">
             <ul class="link-list">
@@ -31,7 +31,10 @@ def i18n_footer():
         _("QQ咨询"), _("蓝鲸论坛"), _("蓝鲸官网"), _("蓝鲸智云 版权所有")
     )
 
-    return EnvironmentVariables.objects.get_var("BKAPP_FOOTER", default)
+    footer_key = "BKAPP_FOOTER"
+    if language != "zh-cn":
+        footer_key = "BKAPP_FOOTER_{}".format(language.upper())
+    return EnvironmentVariables.objects.get_var(footer_key, default)
 
 
 FOOTER = i18n_footer

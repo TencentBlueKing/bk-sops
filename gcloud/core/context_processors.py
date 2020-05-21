@@ -46,7 +46,7 @@ def get_cur_pos_from_url(request):
 def mysetting(request):
     # 嵌入CICD，隐藏头部
     language = request.COOKIES.get("blueking_language", "zh-cn")
-    run_ver_key = "BKAPP_RUN_VER_NAME_ZH" if language == "zh-cn" else "BKAPP_RUN_VER_NAME_EN"
+    run_ver_key = "BKAPP_RUN_VER_NAME" if language == "zh-cn" else "BKAPP_RUN_VER_NAME_{}".format(language.upper())
     hide_header = int(request.GET.get("hide_header", "0") == "1")
     is_superuser = int(request.user.is_superuser)
     is_functor = int(is_user_functor(request))
