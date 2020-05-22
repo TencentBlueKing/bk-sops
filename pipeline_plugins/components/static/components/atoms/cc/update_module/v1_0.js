@@ -169,11 +169,11 @@
                             } else if (self.get_parent().get_child("cc_module_select_method")) {
                                 if (self.get_parent().get_child("cc_module_select_method").value === "text" && !value) {
                                     result.result = false;
-                                    result.error_message = gettext("请输入完整路径")
+                                    result.error_message = gettext("模块完整路径不能为空")
                                 }
                             } else if (!value) {
                                 result.result = false;
-                                result.error_message = gettext("请输入完整路径")
+                                result.error_message = gettext("模块完整路径不能为空")
                             }
                             return result
                         }
