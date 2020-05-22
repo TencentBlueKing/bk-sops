@@ -16,6 +16,7 @@ from enum import Enum
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -271,7 +272,7 @@ def cc_batch_validated_business_level(executor, supplier_account, bk_obj_type, p
     # 获取主线模型业务拓扑
     get_mainline_object_topo_return = client.cc.get_mainline_object_topo(kwargs)
     if not get_mainline_object_topo_return["result"]:
-        message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, get_mainline_object_topo_return)
+        message = cc_handle_api_error("cc.get_mainline_object_topo", kwargs, get_mainline_object_topo_return)
         return {"result": False, "message": message}
     mainline = get_mainline_object_topo_return["data"]
     obj_depth = len(mainline) - bk_obj_type.value
@@ -280,3 +281,34 @@ def cc_batch_validated_business_level(executor, supplier_account, bk_obj_type, p
             continue
         return {"result": False, "message": _("输入文本路径[{}]与业务拓扑层级不匹配").format(">".join(path))}
     return {"result": True, "message": "success"}
+
+
+def cc_list_select_node_inst_id(executor, biz_cc_id, supplier_account, bk_obj_type, path_text):
+    """
+    获取选择节点的bk_inst_id
+    :param executor:
+    :param biz_cc_id:
+    :param supplier_account:
+    :param bk_obj_type: bk_obj_type: 校验层级类型, enum
+    :param path_text: 目标主机/模块/自定义层级的文本路径
+    :return:
+        True: list -选择节点的bk_inst_id
+        False: message -错误信息
+    """
+    # 文本路径解析
+    path_list = cc_parse_path_text(path_text)
+
+    # 对输入的文本路径进行业务层级校验
+    cc_batch_validated_business_level_return = cc_batch_validated_business_level(
+        executor, supplier_account, bk_obj_type, path_list
+    )
+    if not cc_batch_validated_business_level_return["result"]:
+        return {"result": False, "message": cc_batch_validated_business_level_return["message"]}
+
+    # 获取选中节点bk_inst_id列表
+    cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
+        executor, biz_cc_id, supplier_account, path_list
+    )
+    if not cc_list_match_node_inst_id_return["result"]:
+        return {"result": False, "message": cc_list_match_node_inst_id_return["message"]}
+    return {"result": True, "data": cc_list_match_node_inst_id_return["data"]}
