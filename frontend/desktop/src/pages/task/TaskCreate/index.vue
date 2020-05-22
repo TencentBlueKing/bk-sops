@@ -38,7 +38,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import TaskStep from '../TaskStep.vue'
     import TaskSelectNode from './TaskSelectNode.vue'
@@ -47,17 +47,17 @@
     const STEP_DICT = [
         {
             step: 'selectnode',
-            name: gettext('节点选择'),
+            name: i18n.t('节点选择'),
             component: 'TaskSelectNode'
         },
         {
             step: 'paramfill',
-            name: gettext('参数填写'),
+            name: i18n.t('参数填写'),
             component: 'TaskParamFill'
         },
         {
             step: 'taskexecute',
-            name: gettext('任务执行')
+            name: i18n.t('任务执行')
         }
     ]
     export default {
@@ -110,7 +110,7 @@
             hasPeriodicTask (val) {
                 const taskExecution = {
                     step: 'taskexecute',
-                    name: gettext('任务执行')
+                    name: i18n.t('任务执行')
                 }
                 if (!val) {
                     this.stepList.push(taskExecution)
@@ -119,7 +119,7 @@
                 } else if (val.periodicType && val.functionalType) {
                     this.stepList.splice(2, 0, {
                         step: 'functionalization',
-                        name: gettext('职能化认领'),
+                        name: i18n.t('职能化认领'),
                         component: 'TaskParamFill'
                     })
                     this.stepList.push(taskExecution)
@@ -140,7 +140,7 @@
             appendFunctionalization () {
                 this.stepList.splice(2, 0, {
                     step: 'functionalization',
-                    name: gettext('职能化认领'),
+                    name: i18n.t('职能化认领'),
                     component: 'TaskParamFill'
                 })
             },

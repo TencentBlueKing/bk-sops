@@ -10,19 +10,11 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="form-not-found">{{ i18n.noComp }}</div>
+    <div class="form-not-found">{{ $t('未找到对应组件') }}</div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
-        name: 'FormNotFound',
-        data () {
-            return {
-                i18n: {
-                    noComp: gettext('未找到对应组件')
-                }
-            }
-        }
+        name: 'FormNotFound'
     }
 </script>
 <style lang="scss" scoped>

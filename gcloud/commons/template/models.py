@@ -32,104 +32,90 @@ from gcloud.core.utils import convert_readable_username
 def replace_template_id(template_model, pipeline_data, reverse=False):
     activities = pipeline_data[PE.activities]
     for act_id, act in list(activities.items()):
-        if act['type'] == PE.SubProcess:
+        if act["type"] == PE.SubProcess:
             if not reverse:
-                act['template_id'] = template_model.objects.get(pk=act['template_id']).pipeline_template.template_id
+                act["template_id"] = template_model.objects.get(pk=act["template_id"]).pipeline_template.template_id
             else:
-                template = template_model.objects.get(pipeline_template__template_id=act['template_id'])
-                act['template_id'] = str(template.pk)
+                template = template_model.objects.get(pipeline_template__template_id=act["template_id"])
+                act["template_id"] = str(template.pk)
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
-
     def create_pipeline_template(self, **kwargs):
-        pipeline_tree = kwargs['pipeline_tree']
+        pipeline_tree = kwargs["pipeline_tree"]
         replace_template_id(self.model, pipeline_tree)
         pipeline_template_data = {
-            'name': kwargs['name'],
-            'creator': kwargs['creator'],
-            'description': kwargs['description'],
+            "name": kwargs["name"],
+            "creator": kwargs["creator"],
+            "description": kwargs["description"],
         }
-        pipeline_template = PipelineTemplate.objects.create_model(
-            pipeline_tree,
-            **pipeline_template_data
-        )
+        pipeline_template = PipelineTemplate.objects.create_model(pipeline_tree, **pipeline_template_data)
         return pipeline_template
 
     def export_templates(self, template_id_list):
-        templates = list(self.filter(id__in=template_id_list).select_related('pipeline_template').values())
+        templates = list(self.filter(id__in=template_id_list).select_related("pipeline_template").values())
         pipeline_template_id_list = []
         template = {}
         for tmpl in templates:
-            pipeline_template_id_list.append(tmpl['pipeline_template_id'])
-            tmpl['pipeline_template_str_id'] = tmpl['pipeline_template_id']
-            template[tmpl['id']] = tmpl
+            pipeline_template_id_list.append(tmpl["pipeline_template_id"])
+            tmpl["pipeline_template_str_id"] = tmpl["pipeline_template_id"]
+            template[tmpl["id"]] = tmpl
 
         try:
             pipeline_temp_data = PipelineTemplateWebWrapper.export_templates(pipeline_template_id_list)
         except SubprocessExpiredError as e:
             raise FlowExportError(str(e))
 
-        all_template_ids = set(pipeline_temp_data['template'].keys())
+        all_template_ids = set(pipeline_temp_data["template"].keys())
         additional_template_id = all_template_ids - set(pipeline_template_id_list)
-        subprocess_temp_list = list(self.filter(pipeline_template_id__in=additional_template_id
-                                                ).select_related('pipeline_template').values())
+        subprocess_temp_list = list(
+            self.filter(pipeline_template_id__in=additional_template_id).select_related("pipeline_template").values()
+        )
         for sub_temp in subprocess_temp_list:
-            sub_temp['pipeline_template_str_id'] = sub_temp['pipeline_template_id']
-            template[sub_temp['id']] = sub_temp
+            sub_temp["pipeline_template_str_id"] = sub_temp["pipeline_template_id"]
+            template[sub_temp["id"]] = sub_temp
 
-        result = {
-            'template': template,
-            'pipeline_template_data': pipeline_temp_data
-        }
+        result = {"template": template, "pipeline_template_data": pipeline_temp_data}
         return result
 
     def import_operation_check(self, template_data):
 
-        template = template_data['template']
-        pipeline_template = template_data['pipeline_template_data']['template']
+        template = template_data["template"]
+        pipeline_template = template_data["pipeline_template_data"]["template"]
 
         new_template = []
         for tmpl in list(template.values()):
-            str_id = tmpl['pipeline_template_str_id']
+            str_id = tmpl["pipeline_template_str_id"]
             pipeline = pipeline_template[str_id]
-            new_template.append({
-                'id': tmpl['id'],
-                'name': pipeline['name']
-            })
+            new_template.append({"id": tmpl["id"], "name": pipeline["name"]})
 
         override_template = []
-        existed_templates = self.filter(pk__in=list(template.keys()), is_deleted=False) \
-            .select_related('pipeline_template')
+        existed_templates = self.filter(pk__in=list(template.keys()), is_deleted=False).select_related(
+            "pipeline_template"
+        )
         for tmpl in existed_templates:
-            override_template.append({
-                'id': tmpl.id,
-                'name': tmpl.pipeline_template.name,
-                'template_id': tmpl.pipeline_template.template_id
-            })
+            override_template.append(
+                {"id": tmpl.id, "name": tmpl.pipeline_template.name, "template_id": tmpl.pipeline_template.template_id}
+            )
 
-        result = {
-            'can_override': True,
-            'new_template': new_template,
-            'override_template': override_template
-        }
+        result = {"can_override": True, "new_template": new_template, "override_template": override_template}
         return result
 
     def _perform_import(self, template_data, check_info, override, defaults_getter, resource, operator):
-        template = template_data['template']
+        template = template_data["template"]
         tid_to_reuse = {}
 
         # find old template_id for override using
         # import_id -> reuse_id
-        for template_to_be_replaced in check_info['override_template']:
-            task_template_id = template_to_be_replaced['id']
-            template_id = template_data['template'][str(task_template_id)]['pipeline_template_str_id']
-            tid_to_reuse[template_id] = template_to_be_replaced['template_id']
+        for template_to_be_replaced in check_info["override_template"]:
+            task_template_id = template_to_be_replaced["id"]
+            template_id = template_data["template"][str(task_template_id)]["pipeline_template_str_id"]
+            tid_to_reuse[template_id] = template_to_be_replaced["template_id"]
 
         # import pipeline template first
-        id_map = PipelineTemplateWebWrapper.import_templates(template_data['pipeline_template_data'],
-                                                             override=override,
-                                                             tid_to_reuse=tid_to_reuse)
+        id_map = PipelineTemplateWebWrapper.import_templates(
+            template_data["pipeline_template_data"], override=override, tid_to_reuse=tid_to_reuse
+        )
         old_id_to_new_id = id_map[PipelineTemplateWebWrapper.ID_MAP_KEY]
 
         new_objects = []
@@ -137,20 +123,23 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         # find templates which had been deleted
         if override:
-            new_objects_template_ids = set(self.model.objects.filter(id__in=list(template.keys()), is_deleted=True)
-                                           .values_list('pipeline_template_id', flat=True))
+            new_objects_template_ids = set(
+                self.model.objects.filter(id__in=list(template.keys()), is_deleted=True).values_list(
+                    "pipeline_template_id", flat=True
+                )
+            )
 
         for tid, template_dict in list(template.items()):
-            template_dict['pipeline_template_id'] = old_id_to_new_id[template_dict['pipeline_template_str_id']]
+            template_dict["pipeline_template_id"] = old_id_to_new_id[template_dict["pipeline_template_str_id"]]
             defaults = defaults_getter(template_dict)
             # use update or create to avoid id conflict
             if override:
                 obj, created = self.update_or_create(id=tid, defaults=defaults)
                 if created:
-                    new_objects_template_ids.add(template_dict['pipeline_template_id'])
+                    new_objects_template_ids.add(template_dict["pipeline_template_id"])
             else:
                 new_objects.append(self.model(**defaults))
-                new_objects_template_ids.add(template_dict['pipeline_template_id'])
+                new_objects_template_ids.add(template_dict["pipeline_template_id"])
 
         # update creator when templates are created
         PipelineTemplate.objects.filter(template_id__in=new_objects_template_ids).update(creator=operator)
@@ -163,15 +152,15 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             resource.batch_register_instance(create_templates)
 
         return {
-            'result': True,
-            'data': len(template),
-            'message': 'Successfully imported %s flows' % len(template),
-            'code': err_code.SUCCESS.code
+            "result": True,
+            "data": len(template),
+            "message": "Successfully imported %s flows" % len(template),
+            "code": err_code.SUCCESS.code,
         }
 
     def check_templates_subprocess_expired(self, tmpl_and_pipeline_id):
         # fetch all template relationship in template_ids
-        pipeline_tmpl_ids = [item['pipeline_template_id'] for item in tmpl_and_pipeline_id]
+        pipeline_tmpl_ids = [item["pipeline_template_id"] for item in tmpl_and_pipeline_id]
         subproc_infos = TemplateRelationship.objects.filter(ancestor_template_id__in=pipeline_tmpl_ids)
 
         # get all subprocess reference template's version
@@ -180,7 +169,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         # comparison data prepare
         tmpl_version_map = {ver.template_id: ver.current_version for ver in tmpl_versions}
-        tmpl_id_map = {item['pipeline_template_id']: item['id'] for item in tmpl_and_pipeline_id}
+        tmpl_id_map = {item["pipeline_template_id"]: item["id"] for item in tmpl_and_pipeline_id}
 
         # compare
         subproc_expired_templ = set()
@@ -195,35 +184,22 @@ class BaseTemplate(models.Model):
     """
     @summary: base abstract template，without containing business info
     """
-    category = models.CharField(_("模板类型"),
-                                choices=TASK_CATEGORY,
-                                max_length=255,
-                                default='Other')
-    pipeline_template = models.ForeignKey(PipelineTemplate,
-                                          blank=True,
-                                          null=True,
-                                          on_delete=models.SET_NULL,
-                                          to_field='template_id')
-    collector = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                       verbose_name=_("收藏模板的人"),
-                                       blank=True)
-    notify_type = models.CharField(_("流程事件通知方式"),
-                                   max_length=128,
-                                   default='[]'
-                                   )
+
+    category = models.CharField(_("模板类型"), choices=TASK_CATEGORY, max_length=255, default="Other")
+    pipeline_template = models.ForeignKey(
+        PipelineTemplate, blank=True, null=True, on_delete=models.SET_NULL, to_field="template_id"
+    )
+    collector = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_("收藏模板的人"), blank=True)
+    notify_type = models.CharField(_("流程事件通知方式"), max_length=128, default="[]")
     # 形如 json.dumps({'receiver_group': ['Maintainers'], 'more_receiver': 'username1,username2'})
-    notify_receivers = models.TextField(_("流程事件通知人"),
-                                        default='{}'
-                                        )
-    time_out = models.IntegerField(_("流程超时时间(分钟)"),
-                                   default=20
-                                   )
+    notify_receivers = models.TextField(_("流程事件通知人"), default="{}")
+    time_out = models.IntegerField(_("流程超时时间(分钟)"), default=20)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
 
     class Meta:
         # abstract would not be inherited automatically
         abstract = True
-        ordering = ['-id']
+        ordering = ["-id"]
 
     @property
     def category_name(self):
@@ -238,11 +214,11 @@ class BaseTemplate(models.Model):
         if self.pipeline_template and self.pipeline_template.editor:
             return convert_readable_username(self.pipeline_template.editor)
         else:
-            return ''
+            return ""
 
     @property
     def name(self):
-        return self.pipeline_template.name if self.pipeline_template else ''
+        return self.pipeline_template.name if self.pipeline_template else ""
 
     @property
     def create_time(self):
@@ -265,12 +241,13 @@ class BaseTemplate(models.Model):
     @property
     def subprocess_info(self):
         info = self.pipeline_template.subprocess_version_info
-        pipeline_temp_ids = [item['descendant_template_id'] for item in info['details']]
-        qs = self.__class__.objects.filter(pipeline_template_id__in=pipeline_temp_ids
-                                           ).values('pipeline_template_id', 'id')
-        pid_to_tid = {item['pipeline_template_id']: item['id'] for item in qs}
-        for subprocess_info in info['details']:
-            subprocess_info['template_id'] = pid_to_tid[subprocess_info.pop('descendant_template_id')]
+        pipeline_temp_ids = [item["descendant_template_id"] for item in info["details"]]
+        qs = self.__class__.objects.filter(pipeline_template_id__in=pipeline_temp_ids).values(
+            "pipeline_template_id", "id"
+        )
+        pid_to_tid = {item["pipeline_template_id"]: item["id"] for item in qs}
+        for subprocess_info in info["details"]:
+            subprocess_info["template_id"] = pid_to_tid[subprocess_info.pop("descendant_template_id")]
 
         return info
 
@@ -300,14 +277,15 @@ class BaseTemplate(models.Model):
         if not pipeline_template_referencer:
             return []
 
-        result = self.__class__.objects.filter(pipeline_template_id__in=pipeline_template_referencer,
-                                               is_deleted=False).values('id', 'pipeline_template__name')
+        result = self.__class__.objects.filter(
+            pipeline_template_id__in=pipeline_template_referencer, is_deleted=False
+        ).values("id", "pipeline_template__name")
         for item in result:
-            item['name'] = item.pop('pipeline_template__name')
+            item["name"] = item.pop("pipeline_template__name")
         return result
 
     def referencer_appmaker(self):
-        appmaker_referencer = self.appmaker_set.all().values('id', 'name')
+        appmaker_referencer = self.appmaker_set.all().values("id", "name")
         if not appmaker_referencer.exists():
             return []
 
@@ -317,7 +295,7 @@ class BaseTemplate(models.Model):
         pipeline_template = self.pipeline_template
         if pipeline_template is None:
             return
-        pipeline_tree = kwargs.pop('pipeline_tree')
+        pipeline_tree = kwargs.pop("pipeline_tree")
         replace_template_id(self.__class__, pipeline_tree)
         pipeline_template.update_template(pipeline_tree, **kwargs)
 
@@ -335,12 +313,12 @@ class BaseTemplate(models.Model):
     def user_collect(self, username, method):
         user_model = get_user_model()
         user = user_model.objects.get(username=username)
-        if method == 'add':
+        if method == "add":
             self.collector.add(user)
         else:
             self.collector.remove(user)
         self.save()
-        return {'result': True, 'data': ''}
+        return {"result": True, "data": ""}
 
     def get_pipeline_tree_by_version(self, version=None):
         tree = self.pipeline_template.data_for_version(version)
@@ -349,15 +327,14 @@ class BaseTemplate(models.Model):
 
 
 class CommonTemplateManager(BaseTemplateManager):
-
     def create(self, **kwargs):
         pipeline_template = self.create_pipeline_template(**kwargs)
         task_template = self.model(
-            category=kwargs['category'],
+            category=kwargs["category"],
             pipeline_template=pipeline_template,
-            notify_type=kwargs['notify_type'],
-            notify_receivers=kwargs['notify_receivers'],
-            time_out=kwargs['time_out'],
+            notify_type=kwargs["notify_type"],
+            notify_receivers=kwargs["notify_receivers"],
+            time_out=kwargs["time_out"],
         )
         task_template.save()
         return task_template
@@ -366,46 +343,51 @@ class CommonTemplateManager(BaseTemplateManager):
         data = super(CommonTemplateManager, self).import_operation_check(template_data)
 
         # business template cannot override common template
-        has_business_template = any([tmpl.get('business_id') for _, tmpl in list(template_data['template'].items())])
+        has_business_template = any(
+            [tmpl.get("business_id") or tmpl.get("project_id") for _, tmpl in list(template_data["template"].items())]
+        )
         if has_business_template:
-            data['can_override'] = False
-            data['override_template'] = []
+            data["can_override"] = False
+            data["override_template"] = []
         return data
 
     def import_templates(self, template_data, override, operator=None):
         check_info = self.import_operation_check(template_data)
 
         # operation validation check
-        if override and (not check_info['can_override']):
+        if override and (not check_info["can_override"]):
             return {
-                'result': False,
-                'message': 'Unable to override common flows or keep ID when importing business flows data',
-                'data': 0,
-                'code': err_code.INVALID_OPERATION.code
+                "result": False,
+                "message": "Unable to override common flows or keep ID when importing business flows data",
+                "data": 0,
+                "code": err_code.INVALID_OPERATION.code,
             }
 
         def defaults_getter(template_dict):
             return {
-                'category': template_dict['category'],
-                'notify_type': template_dict['notify_type'],
-                'notify_receivers': template_dict['notify_receivers'],
-                'time_out': template_dict['time_out'],
-                'pipeline_template_id': template_dict['pipeline_template_id'],
-                'is_deleted': False
+                "category": template_dict["category"],
+                "notify_type": template_dict["notify_type"],
+                "notify_receivers": template_dict["notify_receivers"],
+                "time_out": template_dict["time_out"],
+                "pipeline_template_id": template_dict["pipeline_template_id"],
+                "is_deleted": False,
             }
 
-        return super(CommonTemplateManager, self)._perform_import(template_data=template_data,
-                                                                  check_info=check_info,
-                                                                  override=override,
-                                                                  defaults_getter=defaults_getter,
-                                                                  resource=resource_type_lib['common_flow'],
-                                                                  operator=operator)
+        return super(CommonTemplateManager, self)._perform_import(
+            template_data=template_data,
+            check_info=check_info,
+            override=override,
+            defaults_getter=defaults_getter,
+            resource=resource_type_lib["common_flow"],
+            operator=operator,
+        )
 
 
 class CommonTemplate(BaseTemplate):
     """
     @summary: common templates maintained by admin, which all businesses could use to creating tasks
     """
+
     objects = CommonTemplateManager()
 
     class Meta(BaseTemplate.Meta):

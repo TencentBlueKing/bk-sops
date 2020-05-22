@@ -12,7 +12,7 @@
 <template>
     <div class="appmaker-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.taskRecord"></base-title>
+            <base-title :title="$t('任务记录')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
                     :search-form="searchForm"
@@ -28,7 +28,7 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.name" min-width="200">
+                    <bk-table-column :label="$t('任务名称')" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -51,24 +51,24 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.startedTime" width="200">
+                    <bk-table-column :label="$t('执行开始')" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finishedTime" width="200">
+                    <bk-table-column :label="$t('执行结束')" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.category" prop="category_name" width="140"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="140"></bk-table-column>
-                    <bk-table-column :label="i18n.operator" width="140">
+                    <bk-table-column :label="$t('任务类型')" prop="category_name" width="140"></bk-table-column>
+                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="140"></bk-table-column>
+                    <bk-table-column :label="$t('执行人')" width="140">
                         <template slot-scope="props">
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="$t('状态')" width="100">
                         <template slot-scope="props">
                             <div class="ui-task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -84,7 +84,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
@@ -99,42 +99,42 @@
         {
             type: 'dateRange',
             key: 'queryTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('执行开始'),
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('执行开始'),
             value: []
         },
         {
             type: 'select',
-            label: gettext('任务分类'),
+            label: i18n.t('任务分类'),
             key: 'category',
             loading: false,
-            placeholder: gettext('请选择分类'),
+            placeholder: i18n.t('请选择分类'),
             list: []
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         },
         {
             type: 'input',
             key: 'executor',
-            label: gettext('执行人'),
-            placeholder: gettext('请输入执行人'),
+            label: i18n.t('执行人'),
+            placeholder: i18n.t('请输入执行人'),
             value: ''
         },
         {
             type: 'select',
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             key: 'statusSync',
             loading: false,
-            placeholder: gettext('请选择状态'),
+            placeholder: i18n.t('请选择状态'),
             list: [
-                { 'value': 'nonExecution', 'name': gettext('未执行') },
-                { 'value': 'runing', 'name': gettext('未完成') },
-                { 'value': 'finished', 'name': gettext('完成') }
+                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
+                { 'value': 'runing', 'name': i18n.t('未完成') },
+                { 'value': 'finished', 'name': i18n.t('完成') }
             ]
         }
     ]
@@ -150,25 +150,6 @@
         props: ['project_id', 'app_id'],
         data () {
             return {
-                i18n: {
-                    placeholder: gettext('请输入ID或流程名称'),
-                    startedTime: gettext('执行开始'),
-                    finishedTime: gettext('执行结束'),
-                    name: gettext('任务名称'),
-                    category: gettext('任务类型'),
-                    creator: gettext('创建人'),
-                    operator: gettext('执行人'),
-                    status: gettext('状态'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    taskRecord: gettext('任务记录'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    statusPlaceholder: gettext('请选择状态')
-                },
                 listLoading: true,
                 isDeleteDialogShow: false,
                 taskBasicInfoLoading: true,
@@ -187,9 +168,9 @@
                     'limit-list': [15, 20, 30]
                 },
                 statusList: [
-                    { 'value': 'nonExecution', 'name': gettext('未执行') },
-                    { 'value': 'runing', 'name': gettext('未完成') },
-                    { 'value': 'finished', 'name': gettext('完成') }
+                    { 'value': 'nonExecution', 'name': i18n.t('未执行') },
+                    { 'value': 'runing', 'name': i18n.t('未完成') },
+                    { 'value': 'finished', 'name': i18n.t('完成') }
                 ],
                 taskOperations: [],
                 taskResource: {},
@@ -300,6 +281,7 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.getAppmakerList()
             },
             handlePageLimitChange (val) {

@@ -34,7 +34,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
     import importTag from '../importTag.js'

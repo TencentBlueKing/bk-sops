@@ -82,7 +82,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
 
@@ -167,7 +167,7 @@
         methods: {
             handleTagClone (origin) {
                 const tag = tools.deepClone(origin)
-                tag.config.attrs.name.value = gettext('表单项') + this.draggedCount
+                tag.config.attrs.name.value = i18n.t('表单项') + this.draggedCount
                 tag.config.tag_code = `form_${this.draggedCount}`
 
                 return tag

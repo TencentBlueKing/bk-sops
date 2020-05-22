@@ -36,7 +36,7 @@
             <h3>{{tagInfo.title}}</h3>
             <h3 v-if="tagInfo.desc">{{tagInfo.desc}}</h3>
             <section v-if="tagInfo.attrs">
-                <p>{{ i18n.attr }}</p>
+                <p>{{ $t('属性') }}</p>
                 <template v-for="(attr, name) in tagInfo.attrs">
                     <p class="attr-item" :key="name">
                         {{name}}
@@ -65,13 +65,6 @@
             },
             form: {
                 type: Object
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    attr: gettext('属性')
-                }
             }
         },
         methods: {

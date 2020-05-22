@@ -12,7 +12,7 @@
 <template>
     <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="panel-title">
-            <h3>{{ i18n.retry }}</h3>
+            <h3>{{ $t('重试') }}</h3>
         </div>
         <div class="edit-wrapper">
             <RenderForm
@@ -25,13 +25,13 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="primary" :loading="retrying" @click="onRetryTask">{{ i18n.confirm }}</bk-button>
-            <bk-button theme="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
+            <bk-button theme="primary" :loading="retrying" @click="onRetryTask">{{ $t('确定') }}</bk-button>
+            <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -46,11 +46,6 @@
         props: ['nodeDetailConfig'],
         data () {
             return {
-                i18n: {
-                    retry: gettext('重试'),
-                    confirm: gettext('确定'),
-                    cancel: gettext('取消')
-                },
                 loading: true,
                 retrying: false,
                 bkMessageInstance: null,
@@ -135,7 +130,7 @@
                     const res = await this.instanceRetry(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('重试成功'),
+                            message: i18n.t('重试成功'),
                             theme: 'success'
                         })
                         this.$emit('retrySuccess', node_id)

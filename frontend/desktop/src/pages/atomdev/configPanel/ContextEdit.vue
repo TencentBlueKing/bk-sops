@@ -30,7 +30,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
 
     export default {
@@ -59,13 +59,10 @@
                                 return false
                             }
                         },
-                        message: gettext('请输入合法对象'),
+                        message: i18n.t('请输入合法对象'),
                         trigger: 'blur'
                     }
-                ],
-                i18n: {
-                    project: gettext('项目')
-                }
+                ]
             }
         },
         watch: {

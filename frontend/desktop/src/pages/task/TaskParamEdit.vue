@@ -22,7 +22,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import atomFilter from '@/utils/atomFilter.js'
     import tools from '@/utils/tools.js'
@@ -139,7 +139,7 @@
                             currentFormConfig.attrs.validation.push({
                                 type: 'regex',
                                 args: variable.validation,
-                                error_message: gettext('参数值不符合正则规则：') + variable.validation
+                                error_message: i18n.t('参数值不符合正则规则：') + variable.validation
                             })
                         }
                         this.renderConfig.push(currentFormConfig)
