@@ -156,6 +156,7 @@
                 forms: [],
                 atomName: '',
                 atomConfig: [],
+                atomForms: [],
                 atomConfigStr: '',
                 atomStringError: '',
                 allowLeave: false,
@@ -194,20 +195,14 @@
                 }
             }
         },
-        computed: {
-            atomForms () {
-                return this.forms.map(item => {
-                    return {
-                        tagCode: item.config.tag_code,
-                        name: item.config.attrs.name.value
-                    }
-                })
-            }
-        },
         watch: {
-            forms (val) {
-                this.getTransAtomConfig(val)
-                this.atomConfigStr = serializeObj(this.atomConfig)
+            forms: {
+                handler: function (val) {
+                    this.getTransAtomConfig(val)
+                    this.atomConfigStr = serializeObj(this.atomConfig)
+                    this.atomForms = this.getAtomForms(val)
+                },
+                deep: true
             }
         },
         methods: {
@@ -246,6 +241,23 @@
                             methods: {}
                         }
                     }
+                    tagConfigMap['combine'] = {
+                        tag: 'combine',
+                        config: {
+                            type: 'combine',
+                            attrs: {
+                                name: {},
+                                hookable: {
+                                    value: false
+                                },
+                                children: {
+                                    value: []
+                                }
+                            },
+                            events: [],
+                            methods: {}
+                        }
+                    }
                 })
                 return tagConfigMap
             },
@@ -253,7 +265,7 @@
                 const atomConfig = forms.map(item => {
                     const config = tools.deepClone(item.config)
                     if (config.attrs.children) {
-                        config.attrs.children = this.transAtomConfig(config.attrs.children)
+                        config.attrs.children = this.transAtomConfig(config.attrs.children.value)
                     }
                     for (const key in config.attrs) {
                         if (key === 'children') {
@@ -269,8 +281,8 @@
                 })
                 return atomConfig
             },
-            getTransAtomConfig () {
-                this.atomConfig = this.transAtomConfig(this.forms)
+            getTransAtomConfig (forms) {
+                this.atomConfig = this.transAtomConfig(forms || this.forms)
             },
             updateForm (formList) {
                 this.forms = formList
@@ -291,12 +303,16 @@
             atomEditError (error) {
                 this.atomStringError = error
             },
-            atomConfigUpdate (val) {
-                this.contentChange = true
-                const formConfig = tools.deepClone(val)
-                const forms = formConfig.map((item, index) => {
-                    const tagName = item.type.split('_').map(tp => tp.replace(/^\S/, s => s.toUpperCase())).join('')
-                    const tag = `Tag${tagName}`
+            // 代码片段转forms
+            atomConfigToForms (formConfig) {
+                return formConfig.map((item, index) => {
+                    let tag = ''
+                    if (item.type === 'combine') {
+                        tag = 'combine'
+                    } else {
+                        const tagName = item.type.split('_').map(tp => tp.replace(/^\S/, s => s.toUpperCase())).join('')
+                        tag = `Tag${tagName}`
+                    }
                     const config = tools.deepClone(this.tags[tag].config)
                     config.tag_code = item.tag_code
 
@@ -312,11 +328,19 @@
                             attr.value = item.attrs[key]
                         }
                     })
+                    if (item.type === 'combine') {
+                        config.attrs.children.value = tools.deepClone(this.atomConfigToForms(config.attrs.children.value))
+                    }
                     return {
                         config,
                         tag
                     }
                 })
+            },
+            atomConfigUpdate (val) {
+                this.contentChange = true
+                const formConfig = tools.deepClone(val)
+                const forms = this.atomConfigToForms(formConfig)
                 const isFormChanged = !tools.isDataEqual(this.forms, forms)
                 this.forms = forms
                 if (isFormChanged) {
@@ -372,12 +396,26 @@
                     self.$refs.configPanel.scroll(type)
                 }
             },
+            saveForm (forms, setItem) {
+                for (let i = 0; i < forms.length; i++) {
+                    const item = forms[i]
+                    if (item.config.attrs.children) {
+                        this.saveForm(item.config.attrs.children.value, setItem)
+                    }
+                    if (item.config.tag_code === this.editingForm.config.tag_code) {
+                        forms[i] = setItem
+                        return
+                    }
+                }
+            },
             async onSaveAtomSetting () {
                 const form = await this.$refs.atomSetting.validate()
                 if (form) {
                     this.closeSettingPanel()
-                    const index = this.forms.findIndex(item => item.config.tag_code === this.editingForm.config.tag_code)
-                    this.forms.splice(index, 1, form)
+                    this.saveForm(this.forms, form)
+                    // 手动触发更新代码展示面板数据
+                    this.getTransAtomConfig(this.forms)
+                    this.atomConfigStr = serializeObj(this.atomConfig)
                     this.refreshFormPanel()
                 }
             },
@@ -392,6 +430,22 @@
                 this.allowLeave = false
                 this.leaveToPath = ''
                 this.isLeaveDialogShow = false
+            },
+            // 获取扁平化数据 forms
+            getAtomForms (forms) {
+                let atomFroms = []
+                for (let i = 0; i < forms.length; i++) {
+                    const item = forms[i]
+                    if (item.config.attrs.children) {
+                        const localAtomForm = this.getAtomForms(item.config.attrs.children.value)
+                        atomFroms = [...atomFroms, ...localAtomForm]
+                    }
+                    atomFroms.push({
+                        tagCode: item.config.tag_code,
+                        name: item.config.attrs.name.value
+                    })
+                }
+                return atomFroms
             }
         },
         beforeRouteLeave (to, from, next) {

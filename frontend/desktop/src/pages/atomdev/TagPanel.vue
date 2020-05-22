@@ -102,7 +102,8 @@
         'TagTree',
         'TagText',
         'TagIpSelector',
-        'TagDatatable'
+        'TagDatatable',
+        'combine'
     ]
 
     export default {
@@ -158,18 +159,6 @@
                     })
                     if (!existTag) {
                         menu.push(item)
-                    }
-                })
-                menu.push({
-                    tag: 'combine',
-                    config: {
-                        type: 'combine',
-                        attrs: {
-                            name: {},
-                            children: []
-                        },
-                        events: [],
-                        methods: {}
                     }
                 })
                 return menu

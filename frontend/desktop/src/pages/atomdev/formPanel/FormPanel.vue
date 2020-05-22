@@ -29,40 +29,6 @@
                     @onEditClick="onEditClick"
                     @onDeleteClick="onDeleteClick">
                 </component>
-                <!-- <div :class="['content-wrapper', { active: tagInfo && tagInfo.tagCode === form.config.tag_code }]">
-                    <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label>
-                    <div class="form-item-content">
-                        <template v-if="form.tag">
-                            <component :is="form.tag" v-bind="getFormProps(form.config)"></component>
-                        </template>
-                    </div>
-                    <div class="content-mask">
-                        <i class="operation-btn common-icon-horizon-line-group"></i>
-                        <i
-                            :class="[
-                                'operation-btn',
-                                'common-icon-tooltips',
-                                { 'active': tagInfo && tagInfo.tagCode === form.config.tag_code }
-                            ]"
-                            @click="onShowInfoClick(form)">
-                        </i>
-                        <i class="operation-btn common-icon-box-pen" @click="onEditClick(form)"></i>
-                        <i class="operation-btn bk-icon common-icon-close-linear-circle" @click="onDeleteClick(index)"></i>
-                    </div>
-                </div>
-                <div v-if="tagInfo && tagInfo.tagCode === form.config.tag_code" class="tag-info">
-                    <h3>{{tagInfo.title}}</h3>
-                    <h3 v-if="tagInfo.desc">{{tagInfo.desc}}</h3>
-                    <section v-if="tagInfo.attrs">
-                        <p>{{ i18n.attr }}</p>
-                        <template v-for="(attr, name) in tagInfo.attrs">
-                            <p class="attr-item" :key="name">
-                                {{name}}
-                                <template v-if="attr.desc">：{{attr.desc}}</template>
-                            </p>
-                        </template>
-                    </section>
-                </div> -->
             </div>
         </draggable>
     </div>
@@ -138,9 +104,26 @@
             onEditClick (form) {
                 this.$emit('editForm', form)
             },
-            onDeleteClick (index) {
+            /**
+             * 遍历删除某一个表单项
+             * @param {Array} formList 需要处理的表单列表
+             * @param {String} tagCode 需要删除表单的 tag_code 值
+             */
+            deleteFormInFormList (formList, tagCode) {
+                for (let i = 0; i < formList.length; i++) {
+                    const item = formList[i]
+                    if (item.tag === 'combine') {
+                        this.deleteFormInFormList(item.config.attrs.children.value, tagCode)
+                    }
+                    if (item.config.tag_code === tagCode) {
+                        formList.splice(i, 1)
+                        return
+                    }
+                }
+            },
+            onDeleteClick (tagCode) {
                 const formListCopy = tools.deepClone(this.formList)
-                formListCopy.splice(index, 1)
+                this.deleteFormInFormList(formListCopy, tagCode)
                 this.$emit('updateForm', formListCopy)
             },
             onSortHandler (evt) {

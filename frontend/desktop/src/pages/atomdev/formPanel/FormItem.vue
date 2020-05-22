@@ -29,7 +29,7 @@
                     @click="$emit('onShowInfoClick',form)">
                 </i>
                 <i class="operation-btn common-icon-box-pen" @click="$emit('onEditClick', form)"></i>
-                <i class="operation-btn bk-icon common-icon-close-linear-circle" @click="$emit('onDeleteClick',index)"></i>
+                <i class="operation-btn bk-icon common-icon-close-linear-circle" @click="$emit('onDeleteClick',form.config.tag_code)"></i>
             </div>
         </div>
         <div v-if="tagInfo && tagInfo.tagCode === form.config.tag_code" class="tag-info">

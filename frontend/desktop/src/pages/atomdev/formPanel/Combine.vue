@@ -29,9 +29,9 @@
                         :tag-info="tagInfo"
                         :form="item"
                         @combineAdded="combineAdded"
-                        @onShowInfoClick="onShowInfoClick(item)"
-                        @onEditClick="onEditClick(item)"
-                        @onDeleteClick="onDeleteClick(i)">
+                        @onShowInfoClick="onShowInfoClick"
+                        @onEditClick="onEditClick"
+                        @onDeleteClick="onDeleteClick">
                     </component>
                 </draggable>
             </div>
@@ -48,7 +48,7 @@
                     @click="$emit('onShowInfoClick',form)">
                 </i>
                 <i class="operation-btn common-icon-box-pen" @click="$emit('onEditClick', form)"></i>
-                <i class="operation-btn bk-icon common-icon-close-linear-circle" @click="$emit('onDeleteClick', index)"></i>
+                <i class="operation-btn bk-icon common-icon-close-linear-circle" @click="$emit('onDeleteClick', form.config.tag_code)"></i>
             </div>
         </div>
         <div v-if="tagInfo && tagInfo.tagCode === form.config.tag_code" class="tag-info">
@@ -94,24 +94,24 @@
                 i18n: {
                     attr: gettext('属性')
                 },
-                formList: tools.deepClone(this.form.config.attrs.children)
+                formList: tools.deepClone(this.form.config.attrs.children.value)
             }
         },
         watch: {
             form (val) {
-                this.formList = tools.deepClone(val.config.attrs.children)
+                this.formList = tools.deepClone(val.config.attrs.children.value)
             }
         },
         methods: {
             onAddHander () {
                 const formCopy = tools.deepClone(this.form)
-                formCopy.config.attrs.children = tools.deepClone(this.formList)
+                formCopy.config.attrs.children.value = tools.deepClone(this.formList)
                 this.$emit('combineAdded', this.index, formCopy)
             },
             onSortHandler (evt) {
                 if (evt.newIndex !== evt.oldIndex) {
                     const formCopy = tools.deepClone(this.form)
-                    formCopy.config.attrs.children = tools.deepClone(this.formList)
+                    formCopy.config.attrs.children.value = tools.deepClone(this.formList)
                     this.$emit('combineAdded', this.index, formCopy)
                 }
             },
@@ -125,8 +125,8 @@
             onShowInfoClick (form) {
                 this.$emit('onShowInfoClick', form)
             },
-            onDeleteClick (index) {
-                this.$emit('onDeleteClick', index)
+            onDeleteClick (tag_code) {
+                this.$emit('onDeleteClick', tag_code)
             }
         }
     }
