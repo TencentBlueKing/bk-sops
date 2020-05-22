@@ -132,6 +132,10 @@ class CCEmptySetHostsService(Service):
 
 
 class CCEmptySetHostsComponent(Component):
+    """
+    @version log（v1.0）:支持手动输入拓扑路径选择集群，并提供相应输入容错： 冗余回车/换行
+    """
+
     name = _("清空集群中主机")
     code = "cc_empty_set_hosts"
     bound_service = CCEmptySetHostsService

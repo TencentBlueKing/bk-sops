@@ -139,6 +139,10 @@ class CCUpdateSetServiceStatusService(Service):
 
 
 class CCUpdateSetServiceStatusComponent(Component):
+    """
+    @version log（v1.0）:支持手动输入拓扑路径选择集群，并提供相应输入容错： 冗余回车/换行
+    """
+
     name = _("修改集群服务状态")
     code = "cc_update_set_service_status"
     bound_service = CCUpdateSetServiceStatusService

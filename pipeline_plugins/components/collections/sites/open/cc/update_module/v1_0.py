@@ -168,6 +168,10 @@ class CCUpdateModuleService(Service):
 
 
 class CCUpdateModuleComponent(Component):
+    """
+    @version log（v1.0）:支持手动输入拓扑路径选择模块，并提供相应输入容错： 冗余回车/换行
+    """
+
     name = _("更新模块属性")
     code = "cc_update_module"
     bound_service = CCUpdateModuleService

@@ -231,7 +231,7 @@ class CCCreateSetService(Service):
 
 class CCCreateSetComponent(Component):
     """
-    @version log（v2.0）:在v1.0基础上，支持以文本路径形式选择所增加集群的父节点，并提供相应输入容错： 冗余回车/换行
+    @version log（v2.0）:支持手动输入拓扑路径选择父实例，并提供相应输入容错： 冗余回车/换行
     """
 
     name = _("创建集群")

@@ -157,7 +157,7 @@ class CCTransferHostModuleService(Service):
 
 class CCTransferHostModuleComponent(Component):
     """
-    @version log（v1.0）: 支持以文本路径形式选择模块，并提供相应输入容错： 冗余回车/换行
+    @version log（v1.0）:支持手动输入拓扑路径选择模块，并提供相应输入容错： 冗余回车/换行
     """
 
     name = _("转移主机模块")

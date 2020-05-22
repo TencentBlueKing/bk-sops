@@ -129,6 +129,10 @@ class CCBatchDeleteSetService(Service):
 
 
 class CCBatchDeleteSetComponent(Component):
+    """
+    @version log（v1.0）:支持手动输入拓扑路径选择集群，并提供相应输入容错： 冗余回车/换行
+    """
+
     name = _("删除集群")
     code = "cc_batch_delete_set"
     bound_service = CCBatchDeleteSetService
