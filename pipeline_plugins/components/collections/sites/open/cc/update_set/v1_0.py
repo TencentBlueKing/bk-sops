@@ -20,15 +20,13 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
+
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_format_tree_mode_id,
-    cc_parse_path_text,
-    cc_list_match_node_inst_id,
     cc_format_prop_data,
-    cc_batch_validated_business_level
+    cc_list_select_node_inst_id
 )
-
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 from gcloud.conf import settings
@@ -70,7 +68,7 @@ class CCUpdateSetService(Service):
                 name=_("文本路径 -集群"),
                 key="cc_set_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("集群文本路径")),
+                schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔")),
             ),
             self.InputItem(
                 name=_("集群属性"),
@@ -100,34 +98,20 @@ class CCUpdateSetService(Service):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
-        # 选中集群bk_inst_id列表
-        cc_set_select = []
-
         if cc_set_select_method == "topo":
             cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
         elif cc_set_select_method == "text":
-            # 文本路径解析
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
-            path_list = cc_parse_path_text(cc_set_select_text)
-
-            # 对输入的文本路径进行业务层级校验
-            cc_batch_validated_business_level_return = cc_batch_validated_business_level(
-                executor, supplier_account, BkObjType.SET, path_list
+            cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
+                executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
             )
-            if not cc_batch_validated_business_level_return["result"]:
-                data.set_outputs("ex_data", cc_batch_validated_business_level_return["message"])
+            if not cc_list_select_node_inst_id_return["result"]:
+                data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
                 return False
-
-            # 获取选中集群bk_inst_id列表
-            cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
-                executor, biz_cc_id, supplier_account, path_list
-            )
-            if not cc_list_match_node_inst_id_return["result"]:
-                data.set_outputs("ex_data", cc_list_match_node_inst_id_return["message"])
-                return False
-            cc_set_select = cc_list_match_node_inst_id_return["data"]
+            cc_set_select = cc_list_select_node_inst_id_return["data"]
         else:
             data.set_outputs("ex_data", _("请选择填参方式"))
+            return False
 
         cc_set_property = data.get_one_of_inputs("cc_set_property")
         if cc_set_property == "bk_service_status":

@@ -19,15 +19,13 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
+
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
     cc_format_tree_mode_id,
-    cc_parse_path_text,
-    cc_list_match_node_inst_id,
-    cc_batch_validated_business_level
+    cc_list_select_node_inst_id
 )
-
 from pipeline_plugins.components.utils import get_ip_by_regex
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -110,33 +108,20 @@ class CCTransferHostModuleService(Service):
 
         cc_is_increment = data.get_one_of_inputs("cc_is_increment")
         cc_module_select_method = data.get_one_of_inputs("cc_module_select_method")
-        # 选择的模块id列表
-        cc_module_select = []
         if cc_module_select_method == "topo":
             cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_module_select_topo"))
         elif cc_module_select_method == "text":
-            # 文本路径解析
             cc_module_select_text = data.get_one_of_inputs("cc_module_select_text")
-            path_list = cc_parse_path_text(cc_module_select_text)
-
-            # 对输入的文本路径进行业务层级校验
-            cc_batch_validated_business_level_return = cc_batch_validated_business_level(
-                executor, supplier_account, BkObjType.MODULE, path_list
+            cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
+                executor, biz_cc_id, supplier_account, BkObjType.MODULE, cc_module_select_text
             )
-            if not cc_batch_validated_business_level_return["result"]:
-                data.set_outputs("ex_data", cc_batch_validated_business_level_return["message"])
+            if not cc_list_select_node_inst_id_return["result"]:
+                data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
                 return False
-
-            # 获取选中模块bk_inst_id列表
-            cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
-                executor, biz_cc_id, supplier_account, path_list
-            )
-            if not cc_list_match_node_inst_id_return["result"]:
-                data.set_outputs("ex_data", cc_list_match_node_inst_id_return["message"])
-                return False
-            cc_module_select = cc_list_match_node_inst_id_return["data"]
+            cc_module_select = cc_list_select_node_inst_id_return["data"]
         else:
             data.set_outputs("ex_data", _("请选择填参方式"))
+            return False
 
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,

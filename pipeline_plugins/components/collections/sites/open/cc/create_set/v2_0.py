@@ -27,9 +27,7 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_format_tree_mode_id,
     cc_format_prop_data,
-    cc_parse_path_text,
-    cc_list_match_node_inst_id,
-    cc_batch_validated_business_level,
+    cc_list_select_node_inst_id
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -104,7 +102,7 @@ class CCCreateSetService(Service):
                 name=_("文本路径-父实例"),
                 key="cc_set_parent_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("父实例文本路径")),
+                schema=StringItemSchema(description=_("父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>网络C`，多个目标网络用换行分隔")),
             ),
             self.InputItem(
                 name=_("集群信息"),
@@ -129,37 +127,23 @@ class CCCreateSetService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        cc_select_set_parent_method = data.get_one_of_inputs("cc_select_set_parent_method")
-
         supplier_account = supplier_account_for_business(biz_cc_id)
-        cc_set_parent_select = []
+        cc_select_set_parent_method = data.get_one_of_inputs("cc_select_set_parent_method")
         if cc_select_set_parent_method == "topo":
             # topo类型直接通过cc_format_tree_mode_id解析父节点bz_inst_id
             cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_parent_select_topo"))
         elif cc_select_set_parent_method == "text":
-            # 文本路径解析，example：'a>b>c/n a>b' -> [[a, b, c], [a, b]]
             cc_set_parent_select_text = data.get_one_of_inputs("cc_set_parent_select_text")
-            path_list = cc_parse_path_text(path_text=cc_set_parent_select_text)
-
-            # 对输入的文本路径进行业务层级校验
-            cc_batch_validated_business_level_return = cc_batch_validated_business_level(
-                executor, supplier_account, BkObjType.LAST_CUSTOM, path_list
+            cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
+                executor, biz_cc_id, supplier_account, BkObjType.LAST_CUSTOM, cc_set_parent_select_text
             )
-            if not cc_batch_validated_business_level_return["result"]:
-                data.set_outputs("ex_data", cc_batch_validated_business_level_return["message"])
+            if not cc_list_select_node_inst_id_return["result"]:
+                data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
                 return False
-
-            # 获取选中父实例bk_inst_id列表
-            cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
-                executor, biz_cc_id, supplier_account, path_list
-            )
-            if not cc_list_match_node_inst_id_return["result"]:
-                data.set_outputs("ex_data", cc_list_match_node_inst_id_return["message"])
-                return False
-            cc_set_parent_select = cc_list_match_node_inst_id_return["data"]
-
+            cc_set_parent_select = cc_list_select_node_inst_id_return["data"]
         else:
             data.set_outputs("ex_data", _("请选择填参方式"))
+            return False
 
         cc_set_info = deepcopy(data.get_one_of_inputs("cc_set_info"))
 
