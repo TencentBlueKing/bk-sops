@@ -12,10 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from enum import Enum
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
@@ -25,6 +25,21 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 __group_name__ = _("配置平台(CMDB)")
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
+
+
+class BkObjType(Enum):
+    """
+    模型层级类型对应的逆序深度，以host为起点，索引从0开始
+    LAST_CUSTOM 从业务往下的最后一个自定义层级
+    SET         集群
+    MODULE      模块
+    HOST        主机
+    HOST(0) -> MODULE(1) -> SET(2) -> LAST_CUSTOM(3)
+    """
+    LAST_CUSTOM = 3
+    SET = 2
+    MODULE = 1
+    HOST = 0
 
 
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
@@ -150,24 +165,34 @@ def cc_parse_path_text(path_text):
         [a]
     ]
     """
-    text_path_list = path_text.split('\n')
+    text_path_list = path_text.split("\n")
     path_list = []
     for text_path in text_path_list:
         text_path = text_path.strip()
         path = []
-        if len(text_path) != 0:
-            for text_node in text_path.split('>'):
-                text_node = text_node.strip()
-                if len(text_node) != 0:
-                    path.append(text_node)
-            path_list.append(path)
+        if len(text_path) == 0:
+            continue
+        for text_node in text_path.split(">"):
+            text_node = text_node.strip()
+            if len(text_path) == 0:
+                continue
+            path.append(text_node)
+        path_list.append(path)
     return path_list
 
 
-def cc_list_match_node_inst_id(topo_tree, path_list):
+def cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list):
     """
-    路径匹配，对path_list中的所有路径与拓扑树进行路径匹配
-    :param topo_tree: 业务拓扑 list
+    路径匹配，对path_list中的所有路径与指定biz_cc_id的拓扑树匹配，返回匹配节点bk_inst_id
+    :param executor:
+    :param biz_cc_id:
+    :param supplier_account:
+    :param path_list: 路径列表，example: [[a, b], [a, c]]
+    :return:
+        True: list -匹配父节点的bk_inst_id
+        False: message -错误信息
+
+    业务拓扑树示例
     [
         {
             "bk_inst_id": 2,
@@ -196,11 +221,15 @@ def cc_list_match_node_inst_id(topo_tree, path_list):
             ]
         }
     ]
-    :param path_list: 路径列表，example: [[a, b], [a, c]]
-    :return:
-        True: list -匹配父节点的bk_inst_id
-        False: message -错误信息
     """
+    client = get_client_by_user(executor)
+    kwargs = {"bk_biz_id": biz_cc_id, "bk_supplier_account": supplier_account}
+    search_biz_inst_topo_return = client.cc.search_biz_inst_topo(kwargs)
+    if not search_biz_inst_topo_return["result"]:
+        message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, search_biz_inst_topo_return)
+        return {"result": False, "message": message}
+    topo_tree = search_biz_inst_topo_return["data"]
+
     inst_id_list = []
     for path in path_list:
         index = 0
@@ -208,14 +237,46 @@ def cc_list_match_node_inst_id(topo_tree, path_list):
         while len(path) > index:
             match_node = None
             for topo_node in topo_node_list:
-                if path[index] == topo_node['bk_inst_name']:
+                if path[index] == topo_node["bk_inst_name"]:
                     match_node = topo_node
                     break
             if match_node:
                 index = index + 1
                 if index == len(path):
-                    inst_id_list.append(match_node['bk_inst_id'])
-                topo_node_list = match_node['child']
+                    inst_id_list.append(match_node["bk_inst_id"])
+                topo_node_list = match_node["child"]
             else:
-                return {'result': False, 'message': _('不存在该拓扑路径：{}').format('>'.join(path))}
-    return {'result': True, 'data': inst_id_list}
+                return {"result": False, "message": _("不存在该拓扑路径：{}").format(">".join(path))}
+    return {"result": True, "data": inst_id_list}
+
+
+def cc_batch_validated_business_level(executor, supplier_account, bk_obj_type, path_list):
+    """
+    业务层级校验
+    :param executor:
+    :param supplier_account:
+    :param bk_obj_type: 校验层级类型, enum
+    :param path_list: 路径列表
+        - example: [[a, b], [a, c]]
+    :return:
+        - 执行成功：{'result': True, 'message': 'success'}
+        - 执行失败：{'result': False, 'message': '错误信息'}
+    """
+
+    if bk_obj_type.name not in BkObjType.__members__:
+        return {"result": False, "message": _("该层级类型不存在：{}").format(bk_obj_type)}
+
+    client = get_client_by_user(executor)
+    kwargs = {"bk_supplier_account": supplier_account}
+    # 获取主线模型业务拓扑
+    get_mainline_object_topo_return = client.cc.get_mainline_object_topo(kwargs)
+    if not get_mainline_object_topo_return["result"]:
+        message = cc_handle_api_error("cc.search_biz_inst_topo", kwargs, get_mainline_object_topo_return)
+        return {"result": False, "message": message}
+    mainline = get_mainline_object_topo_return["data"]
+    obj_depth = len(mainline) - bk_obj_type.value
+    for path in path_list:
+        if len(path) == obj_depth:
+            continue
+        return {"result": False, "message": _("输入文本路径[{}]与业务拓扑层级不匹配").format(">".join(path))}
+    return {"result": True, "message": "success"}
