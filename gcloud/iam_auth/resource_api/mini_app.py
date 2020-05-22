@@ -112,7 +112,7 @@ class MiniAppResourceProvider(ResourceProvider):
             return ListResult(results=[])
 
         key_mapping = {"mini_app.id": "id", "mini_app.owner": "creator", "mini_app.path": "project__id"}  # TODO 优化
-        converter = PathEqDjangoQuerySetConverter(key_mapping, {"mini_app.path": mini_app_path_value_hook})
+        converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": mini_app_path_value_hook})
         filters = converter.convert(expression)
 
         results = [
