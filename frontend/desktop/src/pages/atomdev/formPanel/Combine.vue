@@ -10,7 +10,10 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="combine-form">
+    <div
+        :class="['combine-form', { 'active': active }]"
+        @mouseover.stop="onMouseEnter"
+        @mouseout.stop="onMouseLeave">
         <div :class="['content-wrapper', { active: tagInfo && tagInfo.tagCode === form.config.tag_code }]">
             <!-- <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label> -->
             <div class="form-item-content">
@@ -25,7 +28,7 @@
                         v-for="(item, i) in formList"
                         :key="i"
                         :index="i"
-                        :is="item.tag === 'combine' ? 'Combine' : 'FormItem'"
+                        :is="item.tag === 'combine' ? 'Combine' : 'AtomFormItem'"
                         :tag-info="tagInfo"
                         :form="item"
                         @combineAdded="combineAdded"
@@ -69,14 +72,14 @@
 
 <script>
     import draggable from 'vuedraggable'
-    import FormItem from './FormItem.vue'
+    import AtomFormItem from './AtomFormItem.vue'
     import tools from '@/utils/tools.js'
 
     export default {
         name: 'Combine',
         components: {
             draggable,
-            FormItem
+            AtomFormItem
         },
         props: {
             tagInfo: {
@@ -91,6 +94,7 @@
         },
         data () {
             return {
+                active: false,
                 formList: tools.deepClone(this.form.config.attrs.children.value)
             }
         },
@@ -124,6 +128,12 @@
             },
             onDeleteClick (tag_code) {
                 this.$emit('onDeleteClick', tag_code)
+            },
+            onMouseEnter () {
+                this.active = true
+            },
+            onMouseLeave () {
+                this.active = false
             }
         }
     }
@@ -137,8 +147,17 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .combine-form {
+    margin-top: 1px;
+    margin-bottom: 3px;
     width: 100%;
-    border: 1px dotted red;
+    outline: 1px dotted #62667d;
+    &.active {
+        border: none;
+        outline: 2px dotted #ff6600;
+        > .content-wrapper > .operation-btn-group {
+            display: block;
+        }
+    }
     .content-wrapper {
         position: relative;
         padding: 20px;
@@ -146,9 +165,8 @@
         border: 1px dotted transparent;
         overflow: hidden;
         cursor: move;
-        &.active,
-        &:hover {
-            .operation-btn-group {
+        &.active {
+            > .operation-btn-group {
                 display: block;
             }
         }
@@ -165,7 +183,7 @@
         width: 100%;
         .form-drag-area-inner {
             width: 100%;
-            min-height: 200px;
+            min-height: 64px;
         }
     }
     .operation-btn-group {

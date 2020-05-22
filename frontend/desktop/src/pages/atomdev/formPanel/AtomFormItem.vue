@@ -54,7 +54,7 @@
     import importTag from '../importTag.js'
     const { components: TAGS } = importTag()
     export default {
-        name: 'FormItem',
+        name: 'AtomFormItem',
         components: {
             FormNotFound,
             ...TAGS

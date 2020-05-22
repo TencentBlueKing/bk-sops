@@ -20,7 +20,7 @@
             @end="onSortHandler">
             <div class="form-item" v-for="(form, index) in formList" :key="index">
                 <component
-                    :is="form.tag === 'combine' ? 'Combine' : 'FormItem'"
+                    :is="form.tag === 'combine' ? 'Combine' : 'AtomFormItem'"
                     :tag-info="tagInfo"
                     :form="form"
                     :index="index"
@@ -37,7 +37,7 @@
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
     import importTag from '../importTag.js'
-    import FormItem from './FormItem.vue'
+    import AtomFormItem from './AtomFormItem.vue'
     import Combine from './Combine.vue'
     const { components: TAGS, attrs: ATTRS } = importTag()
 
@@ -45,7 +45,7 @@
         name: 'FormPanel',
         components: {
             draggable,
-            FormItem,
+            AtomFormItem,
             Combine
         },
         props: {
