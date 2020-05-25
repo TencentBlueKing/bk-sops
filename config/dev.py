@@ -53,7 +53,7 @@ LOG_PERSISTENT_DAYS = 1
 
 LOGGING["loggers"]["iam"] = {
     "handlers": ["component"],
-    "level": "INFO",
+    "level": "DEBUG",
     "propagate": True,
 }
 

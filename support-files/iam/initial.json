@@ -1,0 +1,1263 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "upsert_system",
+            "data": {
+                "id": "bk_sops",
+                "name": "标准运维",
+                "name_en": "Standard OPS",
+                "description": "",
+                "description_en": "",
+                "clients": "bk_sops",
+                "provider_config": {
+                    "host": "http://sops.service.consul",
+                    "auth": "basic"
+                }
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "project",
+                "name": "项目",
+                "name_en": "project",
+                "description": "",
+                "description_en": "",
+                "parents": [],
+                "provider_config": {
+                    "path": "/api/iam/v1/resource"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "flow",
+                "name": "流程模板",
+                "name_en": "flow",
+                "description": "",
+                "description_en": "",
+                "parents": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/api/iam/v1/resource"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "task",
+                "name": "任务实例",
+                "name_en": "task",
+                "description": "",
+                "description_en": "",
+                "parents": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/api/iam/v1/resource"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "mini_app",
+                "name": "轻应用",
+                "name_en": "mini application",
+                "description": "",
+                "description_en": "",
+                "parents": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/api/iam/v1/resource"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "periodic_task",
+                "name": "周期任务",
+                "name_en": "periodic task",
+                "description": "",
+                "description_en": "",
+                "parents": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    }
+                ],
+                "provider_config": {
+                    "path": "/api/iam/v1/resource"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_resource_type",
+            "data": {
+                "id": "common_flow",
+                "name": "公共流程",
+                "name_en": "common flow",
+                "description": "",
+                "description_en": "",
+                "parents": [],
+                "provider_config": {
+                    "path": "/api/iam/v1/resource"
+                },
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "project_create",
+                "name": "创建项目",
+                "name_en": "create project",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "project_view",
+                "name": "查看项目",
+                "name_en": "view project",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "instance_selections": [
+                            {
+                                "name": "项目",
+                                "name_en": "project",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "project_edit",
+                "name": "编辑项目",
+                "name_en": "edit project",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "instance_selections": [
+                            {
+                                "name": "项目",
+                                "name_en": "project",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_create",
+                "name": "创建流程",
+                "name_en": "create flow",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "instance_selections": [
+                            {
+                                "name": "项目",
+                                "name_en": "project",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "project_fast_create_task",
+                "name": "快速创建一次性任务",
+                "name_en": "fast create task",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "instance_selections": [
+                            {
+                                "name": "项目",
+                                "name_en": "project",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_view",
+                "name": "查看流程",
+                "name_en": "view flow",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow",
+                        "instance_selections": [
+                            {
+                                "name": "流程模板",
+                                "name_en": "flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_edit",
+                "name": "编辑流程",
+                "name_en": "edit flow",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow",
+                        "instance_selections": [
+                            {
+                                "name": "流程模板",
+                                "name_en": "flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_delete",
+                "name": "删除流程",
+                "name_en": "delete flow",
+                "description": "",
+                "description_en": "",
+                "type": "delete",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow",
+                        "instance_selections": [
+                            {
+                                "name": "流程模板",
+                                "name_en": "flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_create_task",
+                "name": "使用流程新建任务",
+                "name_en": "create task with flow",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow",
+                        "instance_selections": [
+                            {
+                                "name": "流程模板",
+                                "name_en": "flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_create_mini_app",
+                "name": "使用流程新建轻应用",
+                "name_en": "create mini app with flow",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow",
+                        "instance_selections": [
+                            {
+                                "name": "流程模板",
+                                "name_en": "flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "flow_create_periodic_task",
+                "name": "使用流程新建周期任务",
+                "name_en": "create periodic task with flow",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow",
+                        "instance_selections": [
+                            {
+                                "name": "流程模板",
+                                "name_en": "flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "task_view",
+                "name": "查看任务",
+                "name_en": "view task",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "task",
+                        "instance_selections": [
+                            {
+                                "name": "任务实例",
+                                "name_en": "task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "task_edit",
+                "name": "编辑任务",
+                "name_en": "edit task",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "task",
+                        "instance_selections": [
+                            {
+                                "name": "任务实例",
+                                "name_en": "task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "task_operate",
+                "name": "操作任务",
+                "name_en": "operate task",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "task",
+                        "instance_selections": [
+                            {
+                                "name": "任务实例",
+                                "name_en": "task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "task_claim",
+                "name": "认领任务",
+                "name_en": "claim task",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "task",
+                        "instance_selections": [
+                            {
+                                "name": "任务实例",
+                                "name_en": "task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "task_delete",
+                "name": "删除任务",
+                "name_en": "delete task",
+                "description": "",
+                "description_en": "",
+                "type": "delete",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "task",
+                        "instance_selections": [
+                            {
+                                "name": "任务实例",
+                                "name_en": "task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "task_clone",
+                "name": "克隆任务",
+                "name_en": "clone task",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "task",
+                        "instance_selections": [
+                            {
+                                "name": "任务实例",
+                                "name_en": "task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_flow_create",
+                "name": "新建公共流程",
+                "name_en": "create common flow",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_flow_view",
+                "name": "查看公共流程",
+                "name_en": "view common flow",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_flow",
+                        "instance_selections": [
+                            {
+                                "name": "公共流程",
+                                "name_en": "common flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "common_flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_flow_edit",
+                "name": "编辑公共流程",
+                "name_en": "edit common flow",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_flow",
+                        "instance_selections": [
+                            {
+                                "name": "公共流程",
+                                "name_en": "common flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "common_flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_flow_delete",
+                "name": "删除公共流程",
+                "name_en": "delete common flow",
+                "description": "",
+                "description_en": "",
+                "type": "delete",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_flow",
+                        "instance_selections": [
+                            {
+                                "name": "公共流程",
+                                "name_en": "common flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "common_flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_flow_create_task",
+                "name": "使用公共流程新建任务",
+                "name_en": "create task with common flow",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_flow",
+                        "instance_selections": [
+                            {
+                                "name": "项目",
+                                "name_en": "project",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "公共流程",
+                                "name_en": "common flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "common_flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "common_flow_create_periodic_task",
+                "name": "使用公共流程新建周期任务",
+                "name_en": "create periodic task with common flow",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_flow",
+                        "instance_selections": [
+                            {
+                                "name": "项目",
+                                "name_en": "project",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "公共流程",
+                                "name_en": "common flow",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "common_flow"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "mini_app_view",
+                "name": "查看轻应用",
+                "name_en": "view mini application",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "mini_app",
+                        "instance_selections": [
+                            {
+                                "name": "轻应用",
+                                "name_en": "mini_app",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "mini_app"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "mini_app_edit",
+                "name": "编辑轻应用",
+                "name_en": "edit mini application",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "mini_app",
+                        "instance_selections": [
+                            {
+                                "name": "轻应用",
+                                "name_en": "mini_app",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "mini_app"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "mini_app_delete",
+                "name": "删除轻应用",
+                "name_en": "delete mini application",
+                "description": "",
+                "description_en": "",
+                "type": "delete",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "mini_app",
+                        "instance_selections": [
+                            {
+                                "name": "轻应用",
+                                "name_en": "mini_app",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "mini_app"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "mini_app_create_task",
+                "name": "使用轻应用创建任务",
+                "name_en": "create task with mini application",
+                "description": "",
+                "description_en": "",
+                "type": "create",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "mini_app",
+                        "instance_selections": [
+                            {
+                                "name": "轻应用",
+                                "name_en": "mini_app",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "mini_app"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "periodic_task_view",
+                "name": "查看周期任务",
+                "name_en": "view periodic task",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "periodic_task",
+                        "instance_selections": [
+                            {
+                                "name": "周期任务",
+                                "name_en": "periodic_task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "periodic_task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "periodic_task_edit",
+                "name": "编辑周期任务",
+                "name_en": "edit periodic task",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "periodic_task",
+                        "instance_selections": [
+                            {
+                                "name": "周期任务",
+                                "name_en": "periodic_task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "periodic_task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "periodic_task_delete",
+                "name": "删除周期任务",
+                "name_en": "delete periodic task",
+                "description": "",
+                "description_en": "",
+                "type": "delete",
+                "related_resource_types": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "periodic_task",
+                        "instance_selections": [
+                            {
+                                "name": "周期任务",
+                                "name_en": "periodic_task",
+                                "resource_type_chain": [
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "project"
+                                    },
+                                    {
+                                        "system_id": "bk_sops",
+                                        "id": "periodic_task"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "admin_view",
+                "name": "查看后台管理",
+                "name_en": "view admin center",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "admin_edit",
+                "name": "编辑后台管理",
+                "name_en": "edit admin center",
+                "description": "",
+                "description_en": "",
+                "type": "edit",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "audit_view",
+                "name": "查看审计中心",
+                "name_en": "view audit center",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "function_view",
+                "name": "查看职能化中心",
+                "name_en": "view function center",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_action",
+            "data": {
+                "id": "statistics_view",
+                "name": "查看数据统计",
+                "name_en": "view statistics center",
+                "description": "",
+                "description_en": "",
+                "type": "view",
+                "related_resource_types": [],
+                "version": 1
+            }
+        },
+        {
+            "operation": "upsert_create_action_topology",
+            "data": [
+                {
+                    "id": "flow_create",
+                    "related_actions": [
+                        "flow_view",
+                        "flow_edit",
+                        "flow_delete",
+                        "flow_create_task",
+                        "flow_create_mini_app",
+                        "flow_create_periodic_task"
+                    ]
+                },
+                {
+                    "id": "project_fast_create_task",
+                    "related_actions": [
+                        "task_view",
+                        "task_edit",
+                        "task_operate",
+                        "task_claim",
+                        "task_delete",
+                        "task_clone"
+                    ]
+                },
+                {
+                    "id": "flow_create_task",
+                    "related_actions": [
+                        "task_view",
+                        "task_edit",
+                        "task_operate",
+                        "task_claim",
+                        "task_delete",
+                        "task_clone"
+                    ]
+                },
+                {
+                    "id": "flow_create_mini_app",
+                    "related_actions": [
+                        "mini_app_view",
+                        "mini_app_edit",
+                        "mini_app_delete",
+                        "mini_app_create_task"
+                    ]
+                },
+                {
+                    "id": "flow_create_periodic_task",
+                    "related_actions": [
+                        "periodic_task_view",
+                        "periodic_task_edit",
+                        "periodic_task_delete"
+                    ]
+                },
+                {
+                    "id": "task_clone",
+                    "related_actions": [
+                        "task_view",
+                        "task_edit",
+                        "task_operate",
+                        "task_claim",
+                        "task_delete",
+                        "task_clone"
+                    ]
+                },
+                {
+                    "id": "common_flow_create",
+                    "related_actions": [
+                        "common_flow_view",
+                        "common_flow_edit",
+                        "common_flow_delete",
+                        "common_flow_create_task",
+                        "common_flow_create_periodic_task"
+                    ]
+                },
+                {
+                    "id": "common_flow_create_task",
+                    "related_actions": [
+                        "task_view",
+                        "task_edit",
+                        "task_operate",
+                        "task_claim",
+                        "task_delete",
+                        "task_clone"
+                    ]
+                },
+                {
+                    "id": "common_flow_create_periodic_task",
+                    "related_actions": [
+                        "periodic_task_view",
+                        "periodic_task_edit",
+                        "periodic_task_delete"
+                    ]
+                },
+                {
+                    "id": "mini_app_create_task",
+                    "related_actions": [
+                        "task_view",
+                        "task_edit",
+                        "task_operate",
+                        "task_claim",
+                        "task_delete",
+                        "task_clone"
+                    ]
+                }
+            ]
+        }
+    ]
+}

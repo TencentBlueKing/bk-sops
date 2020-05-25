@@ -26,6 +26,7 @@ GitPython==2.1.11
 PyJWT==1.6.1
 future==0.18.1
 django-cors-headers==3.2.1
+curlify==2.2.1
 
 # pipeline
 ujson==1.35

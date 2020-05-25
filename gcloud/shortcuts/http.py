@@ -11,12 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
+from django.http.response import JsonResponse
 
-from gcloud.iam_auth import api
 
-urlpatterns = [
-    url(r"^meta/$", api.meta_info),
-    url(r"^apply_perms_url/$", api.apply_perms_url),
-    url(r"^is_allow/$", api.is_allow),
-]
+def standard_response(result, message="", data=None, code=0):
+    return JsonResponse({"result": result, "message": message, "data": data, "code": code})
