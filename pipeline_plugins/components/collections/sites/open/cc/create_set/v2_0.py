@@ -102,7 +102,7 @@ class CCCreateSetService(Service):
                 name=_("文本路径-父实例"),
                 key="cc_set_parent_select_text",
                 type="string",
-                schema=StringItemSchema(description=_("父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>网络C`，多个目标网络用换行分隔")),
+                schema=StringItemSchema(description=_("父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B`，多个父实例用换行分隔")),
             ),
             self.InputItem(
                 name=_("集群信息"),

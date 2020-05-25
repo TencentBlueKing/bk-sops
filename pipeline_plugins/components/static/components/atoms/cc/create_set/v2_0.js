@@ -153,7 +153,7 @@
             attrs: {
                 name: gettext("父实例"),
                 hookable: true,
-                placeholder: gettext("请输入完整路径，从业务拓扑开始，如`业务A>网络B>网络C`，多个目标网络用换行分隔"),
+                placeholder: gettext("父实例文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B`，多个父实例用换行分隔"),
                 validation: [
                     {
                         type: "custom",
