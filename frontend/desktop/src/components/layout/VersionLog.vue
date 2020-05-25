@@ -27,7 +27,7 @@
                             <slot>
                                 <span class="item-title">{{item[0]}}</span>
                                 <span class="item-date">{{item[1]}}</span>
-                                <span v-if="index === 0" class="item-current">{{i18n.currentVersion}}</span>
+                                <span v-if="index === 0" class="item-current">{{$t('当前版本')}}</span>
                             </slot>
                         </li>
                     </ul>
@@ -42,7 +42,6 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { bkDialog, bkLoading } from 'bk-magic-vue'
 
     export default {
@@ -71,10 +70,7 @@
         data () {
             return {
                 visible: false,
-                active: 0,
-                i18n: {
-                    currentVersion: gettext('当前版本')
-                }
+                active: 0
             }
         },
         watch: {

@@ -16,14 +16,14 @@
             size="small"
             class="delete-btn"
             @click="onDeleteCache">
-            {{i18n.delete}}
+            {{$t('删除')}}
         </bk-button>
         <table class="form-table">
             <tbody>
                 <tr>
                     <th>
                         <div class="form-label required">
-                            <label>{{i18n.name}}</label>
+                            <label>{{$t('名称')}}</label>
                         </div>
                     </th>
                     <td class="value">
@@ -44,7 +44,7 @@
                 <tr>
                     <th>
                         <div class="form-label required">
-                            <label>{{i18n.type}}</label>
+                            <label>{{$t('类型')}}</label>
                         </div>
                     </th>
                     <td class="value">
@@ -69,7 +69,7 @@
                 <tr>
                     <th>
                         <div class="form-label">
-                            <label>{{i18n.desc}}</label>
+                            <label>{{$t('描述')}}</label>
                         </div>
                     </th>
                     <td class="value">
@@ -86,7 +86,7 @@
                 <tr>
                     <th>
                         <div class="form-label">
-                            <label>{{i18n.detail}}</label>
+                            <label>{{$t('详细信息')}}</label>
                         </div>
                     </th>
                     <td class="value">
@@ -104,10 +104,10 @@
                                             v-model="details[field.id]"
                                             v-validate="valueRule "
                                             @blur="updateValue">
-                                        <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                        <i class="common-icon-info common-error-tip" v-bk-tooltips.top="$t('必填项')"></i>
                                         <span
                                             class="common-error-tip error-msg">
-                                            {{ i18n.required }}
+                                            {{ $t('必填项') }}
                                         </span>
                                     </td>
                                     
@@ -121,7 +121,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
     import { PACKAGE_NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
@@ -168,15 +167,6 @@
                 },
                 valueRule: {
                     required: true
-                },
-                i18n: {
-                    delete: gettext('删除'),
-                    name: gettext('名称'),
-                    type: gettext('类型'),
-                    desc: gettext('描述'),
-                    detail: gettext('详细信息'),
-                    placeholder: gettext('请输入'),
-                    required: gettext('必填项')
                 }
             }
         },

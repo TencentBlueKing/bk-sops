@@ -48,9 +48,11 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.cc.get_client_by_user'
+GET_CLIENT_BY_USER = ('pipeline_plugins.components.collections.sites.open.cc.transfer_fault_host.'
+                      'legacy.get_client_by_user')
 GET_IP_BY_REGEX = 'pipeline_plugins.components.utils.common.get_ip_by_regex'
-CC_GET_HOST_ID_BY_INNERIP = 'pipeline_plugins.components.collections.sites.open.cc.cc_get_host_id_by_innerip'
+CC_GET_HOST_ID_BY_INNERIP = ('pipeline_plugins.components.collections.sites.open.cc.transfer_fault_host.'
+                             'legacy.cc_get_host_id_by_innerip')
 
 # mock client
 TRANSFER_SUCCESS_CLIENT = MockClient(

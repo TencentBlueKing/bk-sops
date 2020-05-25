@@ -13,7 +13,6 @@
     <footer id="page-footer-wrapper" v-html="footer"></footer>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState } from 'vuex'
 
     export default {

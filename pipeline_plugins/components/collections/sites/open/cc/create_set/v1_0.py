@@ -23,7 +23,7 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
-from pipeline_plugins.components.collections.sites.open.cc import (
+from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     cc_format_prop_data
 )
@@ -192,6 +192,6 @@ class CCCreateSetComponent(Component):
     name = _("创建集群")
     code = 'cc_create_set'
     bound_service = CCCreateSetService
-    form = '{static_url}components/atoms/cc/{ver}/cc_create_set.js'.format(static_url=settings.STATIC_URL,
-                                                                           ver=VERSION)
+    form = '{static_url}components/atoms/cc/create_set/{ver}.js'.format(static_url=settings.STATIC_URL,
+                                                                        ver=VERSION.replace('.', '_'))
     version = VERSION

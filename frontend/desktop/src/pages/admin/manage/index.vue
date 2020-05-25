@@ -21,23 +21,23 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     const ROUTERS = [
         {
-            name: gettext('搜索'),
+            name: i18n.t('搜索'),
             routerName: 'adminSearch'
         },
         {
-            name: gettext('周期任务'),
+            name: i18n.t('周期任务'),
             routerName: 'adminPeriodic'
         },
         {
-            name: gettext('远程插件包源管理'),
+            name: i18n.t('远程插件包源管理'),
             routerName: 'sourceManage'
         },
         {
-            name: gettext('远程插件同步'),
+            name: i18n.t('远程插件同步'),
             routerName: 'sourceSync'
         }
     ]
@@ -47,20 +47,12 @@
         components: {
             BaseTitle
         },
-        data () {
-            return {
-                i18n: {
-                    manage: gettext('后台管理'),
-                    editSource: gettext('编辑包源')
-                }
-            }
-        },
         computed: {
             routers () {
                 return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? [] : ROUTERS
             },
             title () {
-                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? this.i18n.editSource : this.i18n.manage
+                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? i18n.t('编辑包源') : i18n.t('后台管理')
             }
         }
     }

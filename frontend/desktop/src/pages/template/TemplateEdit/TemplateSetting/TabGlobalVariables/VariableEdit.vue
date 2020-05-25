@@ -16,7 +16,7 @@
             <ul class="form-list">
                 <!-- 名称 -->
                 <li class="form-item clearfix">
-                    <label class="required">{{ i18n.name }}</label>
+                    <label class="required">{{ $t('名称') }}</label>
                     <div class="form-content">
                         <bk-input
                             name="variableName"
@@ -42,14 +42,14 @@
                 </li>
                 <!-- 描述 -->
                 <li class="form-item clearfix">
-                    <label class="form-label">{{ i18n.desc }}</label>
+                    <label class="form-label">{{ $t('说明') }}</label>
                     <div class="form-content">
                         <bk-input type="textarea" v-model="theEditingData.desc"></bk-input>
                     </div>
                 </li>
                 <!-- 类型 -->
                 <li class="form-item clearfix">
-                    <label class="required">{{ i18n.type }}</label>
+                    <label class="required">{{ $t('类型') }}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="currentValType"
@@ -81,7 +81,7 @@
                 </li>
                 <!-- 默认值 -->
                 <li v-if="!isOutputVar" class="form-item clearfix">
-                    <label class="form-label">{{ theEditingData.is_meta ? i18n.meta : i18n.default }}</label>
+                    <label class="form-label">{{ theEditingData.is_meta ? $t('配置') : $t('默认值') }}</label>
                     <div class="form-content" v-bkloading="{ isLoading: atomConfigLoading, opacity: 1 }">
                         <template v-if="!atomConfigLoading && renderConfig.length">
                             <RenderForm
@@ -95,7 +95,7 @@
                 </li>
                 <!-- 验证规则 -->
                 <li v-show="theEditingData.custom_type === 'input'" class="form-item clearfix">
-                    <label class="form-label">{{ i18n.validation }}</label>
+                    <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
                             name="valueValidation"
@@ -108,7 +108,7 @@
                 </li>
                 <!-- 显示/隐藏 -->
                 <li class="form-item clearfix">
-                    <label class="required">{{ i18n.show }}</label>
+                    <label class="required">{{ $t('显示')}}</label>
                     <div class="form-content">
                         <bk-select
                             v-model="theEditingData.show_type"
@@ -130,19 +130,19 @@
                     theme="primary"
                     :disabled="atomConfigLoading"
                     @click.stop="saveVariable">
-                    {{ i18n.save }}
+                    {{ $t('保存') }}
                 </bk-button>
                 <bk-button
                     theme="default"
                     @click.stop="cancelVariable">
-                    {{ i18n.cancel }}
+                    {{ $t('取消') }}
                 </bk-button>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { Validator } from 'vee-validate'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -153,8 +153,8 @@
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
 
     const SHOW_TYPE_LIST = [
-        { id: 'show', name: gettext('显示') },
-        { id: 'hide', name: gettext('隐藏') }
+        { id: 'show', name: i18n.t('显示') },
+        { id: 'hide', name: i18n.t('隐藏') }
     ]
 
     const VALIDATE_SET = ['required', 'custom', 'regex']
@@ -177,17 +177,6 @@
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
             return {
-                i18n: {
-                    name: gettext('名称'),
-                    desc: gettext('说明'),
-                    default: gettext('默认值'),
-                    meta: gettext('配置'),
-                    validation: gettext('正则校验'),
-                    type: gettext('类型'),
-                    show: gettext('显示'),
-                    save: gettext('保存'),
-                    cancel: gettext('取消')
-                },
                 atomConfigLoading: false,
                 bkMessageInstance: null,
                 showTypeList: [...SHOW_TYPE_LIST],
@@ -237,7 +226,7 @@
                 }
             },
             valTypeList () {
-                return this.isDisabledValType ? [{ code: 'component', name: gettext('组件') }] : [...this.variableTypeList]
+                return this.isDisabledValType ? [{ code: 'component', name: i18n.t('组件') }] : [...this.variableTypeList]
             },
             /**
              * 变量配置项code
@@ -397,7 +386,7 @@
                     config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
-                        error_message: gettext('默认值不符合正则规则')
+                        error_message: i18n.t('默认值不符合正则规则')
                     })
                 }
 

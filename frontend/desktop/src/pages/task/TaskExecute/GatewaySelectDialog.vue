@@ -15,13 +15,13 @@
         :mask-close="false"
         :header-position="'left'"
         :ext-cls="'common-dialog'"
-        :title="i18n.selectBranch"
+        :title="$t('请选择执行分支')"
         :value="isGatewaySelectDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="dialog-content">
             <div class="common-form-item">
-                <label>{{ i18n.branches }}</label>
+                <label>{{ $t('可选执行分支') }}</label>
                 <div class="common-form-content">
                     <bk-select
                         v-model="selectedBranch"
@@ -39,7 +39,6 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'GatewaySelectDialog',
         props: [
@@ -48,10 +47,6 @@
         ],
         data () {
             return {
-                i18n: {
-                    selectBranch: gettext('请选择执行分支'),
-                    branches: gettext('可选执行分支')
-                },
                 selectedBranch: this.gatewayBranches.length ? this.gatewayBranches[0].id : ''
             }
         },
