@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-20 10:13+0800\n"
+"POT-Creation-Date: 2020-05-21 16:58+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -803,7 +803,6 @@ msgstr "请输入正确的 URL"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_batch_delete_set.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_empty_set_hosts.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:18
@@ -814,7 +813,8 @@ msgstr "请输入正确的 URL"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/v1.0/cc_create_set.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:18
@@ -913,16 +913,6 @@ msgstr "根据返回的 JSON 的数据来控制节点的成功或失败，使用
 msgid "集群"
 msgstr "集群"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/v1.0/cc_create_set.js:45
-msgid "父实例"
-msgstr "父实例"
-
-#: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:94
-#: pipeline_plugins/components/static/components/atoms/cc/v1.0/cc_create_set.js:94
-msgid "集群信息"
-msgstr "集群信息"
-
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:45
 msgid "主机详情"
 msgstr "主机详情"
@@ -1015,6 +1005,16 @@ msgstr "开放"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:98
 msgid "关闭"
 msgstr "关闭"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:45
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:45
+msgid "父实例"
+msgstr "父实例"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:94
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:94
+msgid "集群信息"
+msgstr "集群信息"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:45
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:45

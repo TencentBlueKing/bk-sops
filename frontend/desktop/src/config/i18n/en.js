@@ -213,7 +213,6 @@ const en = {
     '轻应用': 'Mini-APP',
     '公共流程': 'Common Flow',
     '职能化': 'Functional',
-    '操作审计': 'Audit',
     '项目管理': 'Projects',
     '管理员入口': 'Admin',
     '后台管理': 'Backend',

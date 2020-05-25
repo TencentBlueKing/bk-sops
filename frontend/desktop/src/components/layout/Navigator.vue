@@ -139,7 +139,7 @@
         {
             routerName: 'auditHome',
             path: '/audit/',
-            name: i18n.t('操作审计')
+            name: i18n.t('审计中心')
         },
         {
             routerName: 'projectHome',
