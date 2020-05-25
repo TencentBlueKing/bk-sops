@@ -57,7 +57,7 @@ class CCUpdateSetService(Service):
                 schema=StringItemSchema(description=_("模块填入方式，拓扑(topo)，层级文本(text)"), enum=["topo", "text"]),
             ),
             self.InputItem(
-                name=_("拓扑 -集群列表"),
+                name=_("拓扑-集群列表"),
                 key="cc_set_select_topo",
                 type="array",
                 schema=ArrayItemSchema(
@@ -65,7 +65,7 @@ class CCUpdateSetService(Service):
                 ),
             ),
             self.InputItem(
-                name=_("文本路径 -集群"),
+                name=_("文本路径-集群"),
                 key="cc_set_select_text",
                 type="string",
                 schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔")),
