@@ -184,7 +184,7 @@
                     {
                         id: 'type',
                         name: i18n.t('选择类型'),
-                        values: [{ id: 'common', name: '公共流程' }]
+                        values: [{ id: 'common', name: i18n.t('公共流程') }]
                     }
                 ]
             }
