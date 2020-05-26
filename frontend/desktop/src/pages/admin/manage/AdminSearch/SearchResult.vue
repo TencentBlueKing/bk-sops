@@ -268,7 +268,8 @@
                 taskDataLoading: false,
                 matchedList: [],
                 methodList: {},
-                searchResultTotal: 0,
+                templateResultTotal: 0,
+                taskResultTotal: 0,
                 tplFilter: {},
                 tplOperations: [],
                 tplResource: {},
@@ -298,7 +299,10 @@
         computed: {
             ...mapState({
                 site_url: state => state.site_url
-            })
+            }),
+            searchResultTotal () {
+                return this.templateResultTotal + this.taskResultTotal
+            }
         },
         created () {
             this.getSearchResult()
@@ -341,6 +345,7 @@
             async getAdminTemplate () {
                 try {
                     this.tplDataLoading = true
+                    this.templateResultTotal = 0
                     const params = {
                         limit: this.tplPagination.limit,
                         offset: (this.tplPagination.current - 1) * this.tplPagination.limit,
@@ -348,7 +353,7 @@
                     }
                     const res = await this.template(params)
                     this.tplData = res.objects
-                    this.searchResultTotal += res.meta.total_count
+                    this.templateResultTotal = res.meta.total_count
                     this.tplOperations = res.meta.auth_operations
                     this.tplResource = res.meta.auth_resource
                     this.tplPagination.count = res.meta.total_count
@@ -361,6 +366,7 @@
             async getAdminTask () {
                 try {
                     this.taskDataLoading = true
+                    this.taskResultTotal = 0
                     const params = {
                         limit: this.taskPagination.limit,
                         offset: (this.taskPagination.current - 1) * this.taskPagination.limit,
@@ -368,7 +374,7 @@
                     }
                     const res = await this.taskflow(params)
                     this.taskData = res.objects
-                    this.searchResultTotal += res.meta.total_count
+                    this.taskResultTotal = res.meta.total_count
                     this.taskOperations = res.meta.auth_operations
                     this.taskResource = res.meta.auth_resource
                     this.taskPagination.count = res.meta.total_count
