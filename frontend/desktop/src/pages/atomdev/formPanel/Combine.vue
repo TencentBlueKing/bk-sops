@@ -79,15 +79,9 @@
             AtomFormItem
         },
         props: {
-            tagInfo: {
-                type: Object
-            },
-            form: {
-                type: Object
-            },
-            index: {
-                type: Number
-            }
+            tagInfo: Object,
+            form: Object,
+            index: Number
         },
         data () {
             return {
