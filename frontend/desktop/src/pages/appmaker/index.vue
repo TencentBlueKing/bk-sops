@@ -14,7 +14,7 @@
         <div class="page-content">
             <div class="appmaker-table-content">
                 <base-title :title="$t('轻应用')"></base-title>
-                <div v-if="appList.length" class="operation-wrapper">
+                <div class="operation-wrapper">
                     <advance-search-form
                         :search-form="searchForm"
                         @onSearchInput="onSearchInput"
@@ -24,13 +24,6 @@
                         </template>
                     </advance-search-form>
                 </div>
-                <bk-button
-                    v-else
-                    theme="primary"
-                    class="add-appmaker-btn"
-                    @click="onCreateApp">
-                    {{$t('新建')}}
-                </bk-button>
             </div>
             <div v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <div v-if="appList.length" class="app-list clearfix">
@@ -48,6 +41,11 @@
                         @onOpenPermissions="onOpenPermissions"
                         @getCollectList="getCollectList">
                     </app-card>
+                </div>
+                <div v-else-if="searchMode" class="empty-app-list">
+                    <NoData>
+                        <p>{{$t('未找到相关轻应用')}}</p>
+                    </NoData>
                 </div>
                 <div v-else class="empty-app-content">
                     <div class="appmaker-info">
@@ -130,6 +128,7 @@
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
+    import NoData from '@/components/common/base/NoData.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     const searchForm = [
@@ -151,6 +150,7 @@
     export default {
         name: 'AppMaker',
         components: {
+            NoData,
             BaseTitle,
             AppCard,
             AppEditDialog,
@@ -196,9 +196,6 @@
             }),
             appList () {
                 return this.searchMode ? this.searchList : this.list
-            },
-            emptyTips () {
-                return this.searchMode ? i18n.t('未找到相关轻应用') : i18n.t('暂未添加轻应用')
             }
         },
         created () {
@@ -426,6 +423,11 @@
     .add-appmaker-btn {
         margin: 20px 0;
         width: 120px;
+    }
+    .empty-app-list {
+        padding: 200px 0;
+        background: $whiteDefault;
+        border: 1px solid $commonBorderColor;
     }
     .empty-app-content {
         padding: 160px 0;

@@ -75,7 +75,7 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
-                loading: true,
+                loading: false,
                 isvalidate: false,
                 staticIpList: [],
                 dynamicIpList: [],
@@ -118,9 +118,12 @@
                 'getTopoModelInCC'
             ]),
             getData () {
-                this.loading = true
                 const staticIpExtraFields = ['agent']
                 const urls = typeof this.remote_url === 'function' ? this.remote_url() : Object.assign({}, this.remote_url)
+                if (!urls['cc_search_host'] || !urls['cc_search_topo_tree'] || urls['cc_get_mainline_object_topo']) {
+                    return
+                }
+                this.loading = true
                 Promise.all([
                     this.getHostInCC({
                         url: urls['cc_search_host'],

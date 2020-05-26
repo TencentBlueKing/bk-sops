@@ -15,18 +15,30 @@ import requests
 import ujson as json
 import traceback
 
-
-def post(url, params, logger):
-    return http_do('post', url, params, logger)
-
-
-def get(url, params, logger):
-    return http_do('get', url, params, logger)
+HTTP_GET = 'get'
+HTTP_POST = 'post'
 
 
-def http_do(method, url, params, logger):
+def post(url, params, logger, headers=None):
+    return http_do('post', url, params, logger, headers)
+
+
+def get(url, params, logger, headers=None):
+    return http_do('get', url, params, logger, headers)
+
+
+def http_do(method, url, params, logger, headers=None):
+    session_request = requests.Session()
+    if headers:
+        headers.update({'Content-Type': 'application/json'})
+        session_request.headers = headers
+    else:
+        session_request.headers = {'Content-Type': 'application/json'}
     try:
-        resp = getattr(requests, method)(url, data=json.dumps(params))
+        if method == 'get':
+            resp = getattr(session_request, 'get')(url, params=params)
+        else:
+            resp = getattr(session_request, 'post')(url, data=json.dumps(params))
     except Exception as e:
         logger.error(traceback.format_exc())
         return False, {'result': False, 'message': str(e)}

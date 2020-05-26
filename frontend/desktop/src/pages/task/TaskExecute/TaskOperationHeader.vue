@@ -184,6 +184,16 @@
                         params: { type: 'edit', app_id: this.$route.params.app_id, project_id: this.project_id }
                     })
                 }
+                if (this.$route.path.indexOf('/function') === 0) {
+                    return this.$router.push({
+                        name: 'functionHome'
+                    })
+                }
+                if (this.$route.path.indexOf('/audit') === 0) {
+                    return this.$router.push({
+                        name: 'auditHome'
+                    })
+                }
                 this.$router.push({
                     name: 'taskList',
                     params: { project_id: this.project_id }

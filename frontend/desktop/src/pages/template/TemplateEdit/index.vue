@@ -849,7 +849,10 @@
                 if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
-                this.showConfigPanel(id)
+                const location = this.locations.find(item => item.id === id)
+                if (['tasknode', 'subflow'].includes(location.type)) {
+                    this.showConfigPanel(id)
+                }
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)

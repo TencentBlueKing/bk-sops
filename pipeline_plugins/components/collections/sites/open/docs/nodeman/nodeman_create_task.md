@@ -72,7 +72,7 @@
 
 ### 样例
 
-![](./image/nodeman_create_task.png)
+![](image/nodeman_create_task.png)
 
 ### 注意事项
 

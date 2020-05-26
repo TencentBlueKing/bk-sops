@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-05-20 10:13+0800\n"
+"POT-Creation-Date: 2020-05-21 16:58+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1835,8 +1835,21 @@ msgstr "Request parameters format error: %s"
 #: pipeline_plugins/cmdb_ip_picker/utils.py:52
 #: pipeline_plugins/cmdb_ip_picker/utils.py:270
 #: pipeline_plugins/cmdb_ip_picker/utils.py:276
-#: pipeline_plugins/components/collections/sites/open/cc.py:34
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:38
+#: pipeline_plugins/components/collections/sites/open/cc/__init__.py:16
+#: pipeline_plugins/components/collections/sites/open/cc/base.py:25
+#: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:33
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:34
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:38
+#: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:33
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:33
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:33
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:34
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:33
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:34
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:34
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:37
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:34
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:33
 msgid "配置平台(CMDB)"
 msgstr "Conf System(CMDB)"
 
@@ -1849,7 +1862,7 @@ msgid "集群"
 msgstr "Set"
 
 #: pipeline_plugins/cmdb_ip_picker/utils.py:292
-#: pipeline_plugins/components/collections/sites/open/cc.py:976
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:49
 msgid "模块"
 msgstr "Module"
 
@@ -2003,19 +2016,19 @@ msgid "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 msgstr "Business got from CMDB to is not unique, business ID:{}, count:{}"
 
 #: pipeline_plugins/components/collections/sites/open/bk.py:75
-#: pipeline_plugins/components/collections/sites/open/cc.py:237
-#: pipeline_plugins/components/collections/sites/open/cc.py:309
-#: pipeline_plugins/components/collections/sites/open/cc.py:422
-#: pipeline_plugins/components/collections/sites/open/cc.py:601
-#: pipeline_plugins/components/collections/sites/open/cc.py:651
-#: pipeline_plugins/components/collections/sites/open/cc.py:703
-#: pipeline_plugins/components/collections/sites/open/cc.py:761
-#: pipeline_plugins/components/collections/sites/open/cc.py:869
-#: pipeline_plugins/components/collections/sites/open/cc.py:972
-#: pipeline_plugins/components/collections/sites/open/cc.py:1062
-#: pipeline_plugins/components/collections/sites/open/cc.py:1119
-#: pipeline_plugins/components/collections/sites/open/cc.py:1172
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:83
+#: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:41
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:83
+#: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:41
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:43
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:41
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:43
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:41
 #: pipeline_plugins/components/collections/sites/open/job.py:177
 #: pipeline_plugins/components/collections/sites/open/job.py:414
 #: pipeline_plugins/components/collections/sites/open/job.py:576
@@ -2093,298 +2106,6 @@ msgstr "Send Message"
 msgid "API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
 msgstr "API Gateway defines the Interface Protocols for these message notification components and gives component examples (see components/generic/templates/cmsi/ in the project). However, the component content is not fully implemented and the user can override the component of this part based on the interface protocol. To reduce the difficulty of implementing a message notification component, the API Gateway provides solutions to update the component configuration online without writing a component code.Please check PaaS->API Gateway->Guide for details."
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:83
-msgid "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
-msgstr "querying Conf System(CMDB) API cc.search_host showing there is IP which is not belong to current business"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:240
-#: pipeline_plugins/components/collections/sites/open/cc.py:312
-#: pipeline_plugins/components/collections/sites/open/cc.py:425
-#: pipeline_plugins/components/collections/sites/open/cc.py:604
-#: pipeline_plugins/components/collections/sites/open/cc.py:654
-#: pipeline_plugins/components/collections/sites/open/cc.py:706
-#: pipeline_plugins/components/collections/sites/open/cc.py:764
-#: pipeline_plugins/components/collections/sites/open/cc.py:872
-#: pipeline_plugins/components/collections/sites/open/cc.py:975
-#: pipeline_plugins/components/collections/sites/open/cc.py:1065
-#: pipeline_plugins/components/collections/sites/open/cc.py:1122
-#: pipeline_plugins/components/collections/sites/open/cc.py:1175
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:86
-#: pipeline_plugins/components/collections/sites/open/job.py:180
-#: pipeline_plugins/components/collections/sites/open/job.py:417
-#: pipeline_plugins/components/collections/sites/open/job.py:579
-#: pipeline_plugins/components/collections/sites/open/nodeman.py:232
-msgid "当前操作所属的 CMDB 业务 ID"
-msgstr "CMDB business ID"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:241
-#: pipeline_plugins/components/collections/sites/open/cc.py:313
-msgid "主机内网 IP"
-msgstr "Host Inner IP"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:244
-#: pipeline_plugins/components/collections/sites/open/cc.py:316
-msgid "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
-msgstr "Inner IP of hosts to be transferred, multiple is separated by `,`"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:245
-#: pipeline_plugins/components/collections/sites/open/cc.py:249
-#: pipeline_plugins/components/collections/sites/open/cc.py:980
-msgid "模块 ID"
-msgstr "Module ID"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:248
-msgid "转移目标模块 ID 列表"
-msgstr "Transfer Target Module ID List"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:250
-msgid "转移方式"
-msgstr "Transfer Type"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:253
-msgid "主机转移方式，覆盖(false)或追加(true)"
-msgstr "Host transfer type, false means overwrite or true means increment"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:299
-msgid "转移主机模块"
-msgstr "Transfer Host Module"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:317
-msgid "主机属性"
-msgstr "Host Attribute"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:320
-msgid "待修改主机属性"
-msgstr "Host attribute to be modified"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:321
-msgid "主机属性值"
-msgstr "Attribute Value"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:324
-msgid "更新后的属性值"
-msgstr "Attribute Value Updated"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:361
-msgid "所属运营商校验失败，请重试并修改为正确的所属运营商"
-msgstr "Isp name in invalid, please enter the correct"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:376
-msgid "所在国家校验失败，请重试并修改为正确的所在国家"
-msgstr "State name is invalid,  please enter the correct"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:389
-msgid "所在省份校验失败，请重试并修改为正确的所在省份"
-msgstr "Province name is invalid,  please enter the correct"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:412
-msgid "更新主机属性"
-msgstr "Update Host Property"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:426
-#: pipeline_plugins/components/collections/sites/open/cc.py:429
-msgid "主机替换信息"
-msgstr "Host Replacement Information"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:431
-msgid "替换机与被替换机信息"
-msgstr "Information of replacement host and fault host"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:434
-msgid "故障机 内网IP"
-msgstr "Fault Host IP"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:436
-msgid "替换机 内网IP"
-msgstr "Replacement Host IP"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:522
-#: pipeline_plugins/components/collections/sites/open/cc.py:526
-#, python-format
-msgid "无法查询到 %s 机器信息，请确认该机器是否在当前业务下"
-msgstr "No information about %s found, please check whether they exist in current business"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:584
-#, python-format
-msgid "成功替换的机器: %s"
-msgstr "Machine replaced successfully: %s"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:591
-msgid "故障机替换"
-msgstr "Fault Host Replacement"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:605
-#: pipeline_plugins/components/collections/sites/open/cc.py:655
-#: pipeline_plugins/components/collections/sites/open/cc.py:707
-#: pipeline_plugins/components/collections/sites/open/cc.py:873
-msgid "集群列表"
-msgstr "Set list"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:608
-#: pipeline_plugins/components/collections/sites/open/cc.py:658
-#: pipeline_plugins/components/collections/sites/open/cc.py:710
-msgid "需要清空的集群 ID 列表"
-msgstr "Set ID list to be empty"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:609
-#: pipeline_plugins/components/collections/sites/open/cc.py:659
-#: pipeline_plugins/components/collections/sites/open/cc.py:711
-#: pipeline_plugins/components/collections/sites/open/cc.py:877
-msgid "集群 ID"
-msgstr "Set ID"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:642
-msgid "清空集群中主机"
-msgstr "Empty Set"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:694
-msgid "删除集群"
-msgstr "Delete Set"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:712
-msgid "服务状态"
-msgstr "Service Status"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:715
-msgid "集群服务器状态，开放(1)或关闭(2)"
-msgstr "Set service status, open(1) or close(2)"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:752
-msgid "修改集群服务状态"
-msgstr "Update Set Service Status"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:765
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:87
-msgid "父实例"
-msgstr "Parent Instance"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:768
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:90
-msgid "父实例 ID 列表"
-msgstr "ID list of parent instance"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:769
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:91
-msgid "实例 ID"
-msgstr "Instance ID"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:770
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:92
-msgid "集群信息"
-msgstr "Information of set"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:773
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:95
-msgid "新集群信息对象列表"
-msgstr "New set information object list"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:774
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:96
-msgid "集群信息描述对象"
-msgstr "Set information description object"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:819
-#: pipeline_plugins/components/collections/sites/open/cc.py:930
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:147
-msgid "环境类型校验失败，请重试并修改为正确的环境类型"
-msgstr "Environment is invalid,  please enter the correct"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:825
-#: pipeline_plugins/components/collections/sites/open/cc.py:915
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:153
-msgid "服务状态校验失败，请重试并修改为正确的服务状态"
-msgstr "Service status is invalid,  please enter the correct"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:833
-#: pipeline_plugins/components/collections/sites/open/cc.py:938
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:161
-msgid "集群容量必须为整数"
-msgstr "Set capacity must be integer"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:860
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:192
-msgid "创建集群"
-msgstr "Create Set"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:876
-msgid "集群 ID 列表"
-msgstr "ID list of set"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:878
-msgid "集群属性"
-msgstr "Set Attribute"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:881
-msgid "需要修改的集群属性"
-msgstr "Set attribute to be modified"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:882
-#: pipeline_plugins/components/collections/sites/open/cc.py:985
-msgid "属性值"
-msgstr "Attribute Value"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:885
-msgid "集群属性更新后的值"
-msgstr "Set attribute value modified"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:963
-msgid "更新集群属性"
-msgstr "Modify Set Attribute"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:979
-msgid "模块 ID 列表"
-msgstr "ID list of modules"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:981
-msgid "模块属性"
-msgstr "Module Attribute"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:984
-msgid "需要修改的模块属性"
-msgstr "Module attribute to be modified"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:988
-msgid "模块属性更新后的值"
-msgstr "Module attribute value modified"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1028
-msgid "模块类型校验失败，请重试并填写正确的模块类型"
-msgstr "Module type is invalid,  please enter the correct"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1053
-msgid "更新模块属性"
-msgstr "Update Module Attribute"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1066
-#: pipeline_plugins/components/collections/sites/open/cc.py:1123
-#: pipeline_plugins/components/collections/sites/open/cc.py:1176
-msgid "主机 IP"
-msgstr "Host IP"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1069
-msgid "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
-msgstr "IP of hosts transferred to idle module, multiple are separated by `,`"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1110
-msgid "转移主机至空闲机模块"
-msgstr "Transfer Hosts To Idle Module"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1126
-msgid "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
-msgstr "IP of hosts transferred to fault module, multiple are separated by `,`"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1163
-msgid "转移主机至故障机模块"
-msgstr "Transfer Hosts To Fault Module"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1179
-msgid "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
-msgstr "IP of hosts transferred to resource module, multiple are separated by `,`"
-
-#: pipeline_plugins/components/collections/sites/open/cc.py:1216
-msgid "上交主机至资源池"
-msgstr "Transfer Hosts To Resource Module"
-
 #: pipeline_plugins/components/collections/sites/open/job.py:68
 msgid "作业平台(JOB)"
 msgstr "JOB System(JOB)"
@@ -2409,6 +2130,26 @@ msgstr "JOB Instance URL"
 #: pipeline_plugins/components/collections/sites/open/job.py:168
 msgid "提交的任务在 JOB 平台的 URL"
 msgstr "JOB Instance URL"
+
+#: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:44
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:86
+#: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:44
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:44
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:48
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:44
+#: pipeline_plugins/components/collections/sites/open/job.py:180
+#: pipeline_plugins/components/collections/sites/open/job.py:417
+#: pipeline_plugins/components/collections/sites/open/job.py:579
+#: pipeline_plugins/components/collections/sites/open/nodeman.py:232
+msgid "当前操作所属的 CMDB 业务 ID"
+msgstr "CMDB business ID"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:183
 msgid "作业模板 ID"
@@ -2735,15 +2476,291 @@ msgstr "Auth key"
 msgid "安装"
 msgstr "install"
 
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:57
+#: pipeline_plugins/components/collections/sites/open/cc/base.py:74
+msgid "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
+msgstr "querying Conf System(CMDB) API cc.search_host showing there is IP which is not belong to current business"
+
+#: pipeline_plugins/components/collections/sites/open/cc/base.py:220
+msgid "不存在该拓扑路径：{}"
+msgstr ""
+
+#: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:45
+msgid "集群列表"
+msgstr "Set list"
+
+#: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:48
+#: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:48
+msgid "需要清空的集群 ID 列表"
+msgstr "Set ID list to be empty"
+
+#: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:49
+msgid "集群 ID"
+msgstr "Set ID"
+
+#: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:85
+msgid "删除集群"
+msgstr "Delete Set"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:87
+msgid "父实例"
+msgstr "Parent Instance"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:90
+msgid "父实例 ID 列表"
+msgstr "ID list of parent instance"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:91
+msgid "实例 ID"
+msgstr "Instance ID"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:51
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:92
+msgid "集群信息"
+msgstr "Information of set"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:54
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:95
+msgid "新集群信息对象列表"
+msgstr "New set information object list"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:55
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:96
+msgid "集群信息描述对象"
+msgstr "Set information description object"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:100
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:147
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:103
+msgid "环境类型校验失败，请重试并修改为正确的环境类型"
+msgstr "Environment is invalid,  please enter the correct"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:106
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:153
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:88
+msgid "服务状态校验失败，请重试并修改为正确的服务状态"
+msgstr "Service status is invalid,  please enter the correct"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:114
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:161
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:111
+msgid "集群容量必须为整数"
+msgstr "Set capacity must be integer"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:141
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:192
+msgid "创建集群"
+msgstr "Create Set"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:57
 #, python-format
 msgid "数据[%s]格式错误，请改为字符串"
 msgstr "Data[%s] format error, please change to string"
 
-#: pipeline_plugins/components/collections/sites/open/cc_plugins/v1_0.py:64
+#: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:64
 #, python-format
 msgid "单行数据[%s]的各列换行符个数不一致，请改为一致或者去掉换行符"
 msgstr "The number of line breaks in each column of one row of data[%s] is inconsistent, please change to be consistent or remove line breaks"
+
+#: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:84
+msgid "清空集群中主机"
+msgstr "Empty Set"
+
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:49
+msgid "主机替换信息"
+msgstr "Host Replacement Information"
+
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:51
+msgid "替换机与被替换机信息"
+msgstr "Information of replacement host and fault host"
+
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:54
+msgid "故障机 内网IP"
+msgstr "Fault Host IP"
+
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:56
+msgid "替换机 内网IP"
+msgstr "Replacement Host IP"
+
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:142
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:146
+#, python-format
+msgid "无法查询到 %s 机器信息，请确认该机器是否在当前业务下"
+msgstr "No information about %s found, please check whether they exist in current business"
+
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:204
+#, python-format
+msgid "成功替换的机器: %s"
+msgstr "Machine replaced successfully: %s"
+
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:211
+msgid "故障机替换"
+msgstr "Fault Host Replacement"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:46
+msgid "主机 IP"
+msgstr "Host IP"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:48
+msgid "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "IP of hosts transferred to fault module, multiple are separated by `,`"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:85
+msgid "转移主机至故障机模块"
+msgstr "Transfer Hosts To Fault Module"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:47
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:47
+msgid "主机内网 IP"
+msgstr "Host Inner IP"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:50
+msgid "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "Inner IP of hosts to be transferred, multiple is separated by `,`"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:51
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:55
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:53
+msgid "模块 ID"
+msgstr "Module ID"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:54
+msgid "转移目标模块 ID 列表"
+msgstr "Transfer Target Module ID List"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:56
+msgid "转移方式"
+msgstr "Transfer Type"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:59
+msgid "主机转移方式，覆盖(false)或追加(true)"
+msgstr "Host transfer type, false means overwrite or true means increment"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:105
+msgid "转移主机模块"
+msgstr "Transfer Host Module"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:48
+msgid "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "IP of hosts transferred to resource module, multiple are separated by `,`"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:85
+msgid "上交主机至资源池"
+msgstr "Transfer Hosts To Resource Module"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:49
+msgid "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
+msgstr "IP of hosts transferred to idle module, multiple are separated by `,`"
+
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:90
+msgid "转移主机至空闲机模块"
+msgstr "Transfer Hosts To Idle Module"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:51
+msgid "主机属性"
+msgstr "Host Attribute"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:54
+msgid "待修改主机属性"
+msgstr "Host attribute to be modified"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:55
+msgid "主机属性值"
+msgstr "Attribute Value"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:58
+msgid "更新后的属性值"
+msgstr "Attribute Value Updated"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:95
+msgid "所属运营商校验失败，请重试并修改为正确的所属运营商"
+msgstr "Isp name in invalid, please enter the correct"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:110
+msgid "所在国家校验失败，请重试并修改为正确的所在国家"
+msgstr "State name is invalid,  please enter the correct"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:123
+msgid "所在省份校验失败，请重试并修改为正确的所在省份"
+msgstr "Province name is invalid,  please enter the correct"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:146
+msgid "更新主机属性"
+msgstr "Update Host Property"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:52
+msgid "模块 ID 列表"
+msgstr "ID list of modules"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:54
+msgid "模块属性"
+msgstr "Module Attribute"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:57
+msgid "需要修改的模块属性"
+msgstr "Module attribute to be modified"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:58
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:55
+msgid "属性值"
+msgstr "Attribute Value"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:61
+msgid "模块属性更新后的值"
+msgstr "Module attribute value modified"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:101
+msgid "模块类型校验失败，请重试并填写正确的模块类型"
+msgstr "Module type is invalid,  please enter the correct"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:126
+msgid "更新模块属性"
+msgstr "Update Module Attribute"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:49
+msgid "集群 ID 列表"
+msgstr "ID list of set"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:51
+msgid "集群属性"
+msgstr "Set Attribute"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:54
+msgid "需要修改的集群属性"
+msgstr "Set attribute to be modified"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:58
+msgid "集群属性更新后的值"
+msgstr "Set attribute value modified"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:136
+msgid "更新集群属性"
+msgstr "Modify Set Attribute"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:50
+msgid "服务状态"
+msgstr "Service Status"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:53
+msgid "集群服务器状态，开放(1)或关闭(2)"
+msgstr "Set service status, open(1) or close(2)"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:90
+msgid "修改集群服务状态"
+msgstr "Update Set Service Status"
 
 #: pipeline_plugins/components/query/sites/open/query.py:261
 #, python-format

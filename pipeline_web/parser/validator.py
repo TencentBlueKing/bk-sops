@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from jsonschema import Draft4Validator
 
+from pipeline.validators import validate_pipeline_tree
+
 from pipeline_web import exceptions
 from pipeline_web.parser.schemas import WEB_PIPELINE_SCHEMA
 
@@ -24,3 +26,5 @@ def validate_web_pipeline_tree(web_pipeline_tree):
         errors.append('%s: %s' % ('→'.join(map(str, error.absolute_path)), error.message))
     if errors:
         raise exceptions.ParserWebTreeException(','.join(errors))
+
+    validate_pipeline_tree(web_pipeline_tree, cycle_tolerate=True)
