@@ -122,37 +122,39 @@ const store = new Vuex.Store({
                 params: {
                     fields: JSON.stringify(fields),
                     topo: JSON.stringify(topo)
-                }
+                },
+                baseURL: '/'
             }).then(response => response.data)
         },
         // 查询业务在 CMDB 的拓扑树
         getTopoTreeInCC ({ commmit }, data) {
-            return axios.get(data.url).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         // 查询业务在 CMDB 的拓扑模型
         getTopoModelInCC ({ commit }, data) {
-            return axios.get(data.url).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         // <--- ip 选择器接口 end
         // 开区资源选择器接口 start --->
         getCCSearchTopoSet ({ commit }, data) {
-            return axios.get(data.url).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCSearchTopoResource ({ commit }, data) {
-            return axios.get(data.url).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCSearchModule ({ commit }, data) {
             return axios.get(data.url, {
                 params: {
                     bk_set_id: data.bk_set_id
-                }
+                },
+                baseURL: '/'
             }).then(response => response.data)
         },
         getCCSearchObjAttrHost ({ commit }, data) {
-            return axios.get(data.url).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCSearchColAttrSet ({ commit }, data) {
-            return axios.get(data.url).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         // <--- 开区资源选择器接口 end
         /**
