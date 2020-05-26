@@ -17,7 +17,7 @@
         <div class="result-wrapper" v-bkloading="{ isLoading: searchLoading, opacity: 1 }">
             <div class="result-title">
                 <h3>{{ $t('搜索结果') }}</h3>
-                <span>{{ $t('找到') }}</span>{{ matchedList.length }}<span>{{ $t('条结果') }}</span>
+                <span>{{ $t('找到') }}</span>{{ searchResultTotal }}<span>{{ $t('条结果') }}</span>
             </div>
             <template v-if="matchedList.length">
                 <div class="list-table template-list-table" v-if="tplDataLoading || tplData.length">
@@ -268,6 +268,7 @@
                 taskDataLoading: false,
                 matchedList: [],
                 methodList: {},
+                searchResultTotal: 0,
                 tplFilter: {},
                 tplOperations: [],
                 tplResource: {},
@@ -347,6 +348,7 @@
                     }
                     const res = await this.template(params)
                     this.tplData = res.objects
+                    this.searchResultTotal += res.meta.total_count
                     this.tplOperations = res.meta.auth_operations
                     this.tplResource = res.meta.auth_resource
                     this.tplPagination.count = res.meta.total_count
@@ -366,6 +368,7 @@
                     }
                     const res = await this.taskflow(params)
                     this.taskData = res.objects
+                    this.searchResultTotal += res.meta.total_count
                     this.taskOperations = res.meta.auth_operations
                     this.taskResource = res.meta.auth_resource
                     this.taskPagination.count = res.meta.total_count
