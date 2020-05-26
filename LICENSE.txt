@@ -1,5 +1,5 @@
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
-Copyright (C) 2017-2019 THL A29 Limited, a Tencent company.  All rights reserved.
+Copyright (C) 2017-2020 THL A29 Limited, a Tencent company.  All rights reserved.
 If you have downloaded a copy of the 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) binary from Tencent, please note that the 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) binary is licensed under the MIT License.
 If you have downloaded a copy of the 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) source code from Tencent, please note that 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) source code is licensed under the MIT License, except for the third-party components listed below which are subject to different license terms.  Your integration of 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) into your own projects may require compliance with the MIT License, as well as the other licenses applicable to the third-party components included within 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition).
 A copy of the MIT License is included in this file.
@@ -8,7 +8,7 @@ A copy of the MIT License is included in this file.
 Other dependencies and licenses:
 
 Open Source Software Licensed Under the BSD 3-Clause License:
-The below software in this distribution may have been modified by THL A29 Limited (“Tencent Modifications”). All Tencent Modifications are Copyright (C) 2017-2019 THL A29 Limited.
+The below software in this distribution may have been modified by THL A29 Limited (“Tencent Modifications”). All Tencent Modifications are Copyright (C) 2017-2020 THL A29 Limited.
 ----------------------------------------------------------------------------------------
 1. Django  1.8.11
 Copyright (c) Django Software Foundation and individual contributors.

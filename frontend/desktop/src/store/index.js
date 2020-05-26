@@ -17,7 +17,7 @@ import api from '@/api'
 Vue.use(Vuex)
 
 function getAppLang () {
-    return getCookie('blueking_language')
+    return getCookie('blueking_language') === 'en' ? 'en' : 'zh-cn'
 }
 
 const store = new Vuex.Store({

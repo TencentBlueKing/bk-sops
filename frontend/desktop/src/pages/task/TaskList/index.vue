@@ -14,7 +14,7 @@
         <div class="list-wrapper">
             <div class="operation-area">
                 <advance-search-form
-                    :search-config="{ placeholder: i18n.taskNamePlaceholder }"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -23,7 +23,7 @@
                             theme="primary"
                             class="task-btn"
                             @click="onCreateTask">
-                            {{i18n.create}}
+                            {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
@@ -36,7 +36,7 @@
                     @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="110"></bk-table-column>
-                    <bk-table-column :label="i18n.task_name" prop="name" min-width="200">
+                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -59,33 +59,33 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.start_time" prop="start_time" width="200">
+                    <bk-table-column :label="$t('执行开始')" prop="start_time" width="200">
                         <template slot-scope="props">
                             {{ props.row.start_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.finish_time" width="200">
+                    <bk-table-column :label="$t('执行结束')" width="200">
                         <template slot-scope="props">
                             {{ props.row.finish_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.task_type" prop="category_name" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120">
+                    <bk-table-column :label="$t('执行结束')" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="$t('创建人')" prop="creator_name" width="120">
                         <template slot-scope="props">
                             <span :title="props.row.creator_name">{{ props.row.creator_name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.executor" width="120">
+                    <bk-table-column :label="$t('执行人')" width="120">
                         <template slot-scope="props">
                             <span :title="props.row.executor_name || '--'">{{ props.row.executor_name || '--' }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.createMethod" width="100">
+                    <bk-table-column :label="$t('创建方式')" width="100">
                         <template slot-scope="props">
                             {{ transformCreateMethod(props.row.create_method) }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="120">
+                    <bk-table-column :label="$t('状态')" width="120">
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -93,7 +93,7 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="190">
+                    <bk-table-column :label="$t('操作')" width="190">
                         <template slot-scope="props">
                             <div class="task-operation">
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
@@ -104,7 +104,7 @@
                                         query: { template_id: props.row.template_id },
                                         params: { project_id: project_id, step: 'selectnode' }
                                     }">
-                                    {{i18n.recreate}}
+                                    {{$t('再创建')}}
                                 </router-link>
                                 <a
                                     v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
@@ -113,7 +113,7 @@
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onCloneTaskClick(props.row, $event)">
-                                    {{ i18n.clone }}
+                                    {{ $t('克隆') }}
                                 </a>
                                 <a
                                     v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, taskOperations) }"
@@ -122,12 +122,12 @@
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onDeleteTask(props.row, $event)">
-                                    {{ i18n.delete }}
+                                    {{ $t('删除') }}
                                 </a>
                             </div>
                         </template>
                     </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
         </div>
@@ -154,18 +154,18 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.delete"
+            :title="$t('删除')"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
-                {{i18n.deleleTip + '"' + theDeleteTaskName + '"?'}}
+                {{$t('确认删除') + '"' + theDeleteTaskName + '"?'}}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
@@ -181,50 +181,50 @@
         {
             type: 'dateRange',
             key: 'executeTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('执行开始'),
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('执行开始'),
             value: []
         },
         {
             type: 'select',
-            label: gettext('任务分类'),
+            label: i18n.t('任务分类'),
             key: 'category',
             loading: false,
-            placeholder: gettext('请选择分类'),
+            placeholder: i18n.t('请选择分类'),
             list: []
         },
         {
             type: 'select',
-            label: gettext('创建方式'),
+            label: i18n.t('创建方式'),
             key: 'createMethod',
             loading: false,
-            placeholder: gettext('请选择创建方式'),
+            placeholder: i18n.t('请选择创建方式'),
             list: []
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         },
         {
             type: 'input',
             key: 'executor',
-            label: gettext('执行人'),
-            placeholder: gettext('请输入执行人'),
+            label: i18n.t('执行人'),
+            placeholder: i18n.t('请输入执行人'),
             value: ''
         },
         {
             type: 'select',
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             key: 'statusSync',
             loading: false,
-            placeholder: gettext('请选择状态'),
+            placeholder: i18n.t('请选择状态'),
             list: [
-                { 'value': 'nonExecution', 'name': gettext('未执行') },
-                { 'value': 'runing', 'name': gettext('未完成') },
-                { 'value': 'finished', 'name': gettext('完成') }
+                { 'value': 'nonExecution', 'name': i18n.t('未执行') },
+                { 'value': 'runing', 'name': i18n.t('未完成') },
+                { 'value': 'finished', 'name': i18n.t('完成') }
             ]
         }
     ]
@@ -275,35 +275,6 @@
                 },
                 taskOperations: [],
                 taskResource: {},
-                i18n: {
-                    allCategory: gettext('全部'),
-                    placeholder: gettext('请输入ID或任务名称'),
-                    task_name: gettext('任务名称'),
-                    start_time: gettext('执行开始'),
-                    finish_time: gettext('执行结束'),
-                    task_type: gettext('任务分类'),
-                    creator: gettext('创建人'),
-                    executor: gettext('执行人'),
-                    status: gettext('状态'),
-                    operation: gettext('操作'),
-                    recreate: gettext('再创建'),
-                    clone: gettext('克隆'),
-                    delete: gettext('删除'),
-                    deleleTip: gettext('确认删除'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    taskNamePlaceholder: gettext('请输入任务名称'),
-                    createMethod: gettext('创建方式'),
-                    createMethodApp: gettext('应用内'),
-                    createMethodAppmaker: gettext('轻应用'),
-                    advanceSearch: gettext('高级搜索'),
-                    executing: gettext('执行中'),
-                    pauseState: gettext('暂停'),
-                    create: gettext('新建')
-                },
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
@@ -559,6 +530,7 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.getTaskList()
             },
             handlePageLimitChange (val) {

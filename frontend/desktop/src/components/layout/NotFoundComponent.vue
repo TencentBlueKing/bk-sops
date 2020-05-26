@@ -12,20 +12,12 @@
 <template>
     <div class="exception-box">
         <img :src="require('@/assets/images/building.png')" alt="404">
-        <p>{{ i18n.no_page }}</p>
+        <p>{{ $t('没找到页面！') }}</p>
     </div>
 </template>
 
 <script>
-    import '@/utils/i18n.js'
     export default {
-        data () {
-            return {
-                i18n: {
-                    no_page: gettext('没找到页面！')
-                }
-            }
-        }
     }
 </script>
 <style lang="scss">

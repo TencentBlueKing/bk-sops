@@ -83,7 +83,7 @@ urlpatterns = [
     url(
         r"^modify_constants_for_periodic_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
         modify_constants_for_periodic_task,
-    ),  # noqa
+    ),
     url(r"^get_task_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_detail),
     url(
         r"^get_task_node_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$",
