@@ -465,7 +465,6 @@ const en = {
     '执行任务权限': 'Execution Task',
     '确认删除轻应用？': 'Are you sure to delete this APP?',
     '未找到相关轻应用': 'No Mini-APP found',
-    '暂未添加轻应用': 'No Mini-APP found in business',
     '表单项': 'Form item',
     '拖拽到此处上传或': 'drag to upload',
     '点击添加': 'add',
