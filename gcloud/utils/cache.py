@@ -11,19 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
+# Global in-memory store of cache data. Keyed by name, to provide
+# multiple named local memory caches.
 import time
 from contextlib import contextmanager
-
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache
 from django.utils.synch import RWLock
 
-
-# Global in-memory store of cache data. Keyed by name, to provide
-# multiple named local memory caches.
 _caches = {}
 _expire_info = {}
 _locks = {}
+
+"""
+来源于 django.core.cache.backends.locmem
+
+将每次写/读缓存的 pickle.dumps/pickle.loads 操作省略，提高吞吐量
+"""
 
 
 @contextmanager
