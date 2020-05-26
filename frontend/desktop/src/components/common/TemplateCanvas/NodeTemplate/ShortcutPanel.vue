@@ -13,7 +13,7 @@
     <div
         ref="shortcutWrap"
         v-if="idOfNodeShortcutPanel === node.id"
-        :style="{ top: isGatewayNode(node.type) ? '46px' : '64px' }"
+        :style="{ top: shortcutPanelTop }"
         class="shortcut-panel"
         @mouseover.stop>
         <ul class="shortcut-wrap">
@@ -72,6 +72,15 @@
             // 是否显示节点配置 icon
             isShowConfigIcon () {
                 return ['tasknode', 'subflow'].indexOf(this.currentLocation.type) !== -1
+            },
+            shortcutPanelTop () {
+                if (this.isGatewayNode(this.node.type)) {
+                    return '46px'
+                }
+                if (this.node.type === 'startpoint') {
+                    return '52px'
+                }
+                return '64px'
             }
         },
         methods: {
@@ -121,12 +130,17 @@
                 })
                 const isGatewayCurrNode = this.isGatewayNode(currType)
                 const isGatewayAppendNode = this.isGatewayNode(type)
-                if (isGatewayCurrNode && !isGatewayAppendNode) {
-                    location.y -= 10
+                if (currType === 'startpoint') {
+                    location.y += isGatewayAppendNode ? 5 : -5
+                } else {
+                    if (isGatewayCurrNode && !isGatewayAppendNode) {
+                        location.y -= 10
+                    }
+                    if (!isGatewayCurrNode && isGatewayAppendNode) {
+                        location.y += 10
+                    }
                 }
-                if (!isGatewayCurrNode && isGatewayAppendNode) {
-                    location.y += 10
-                }
+                
                 /**
                  * 添加规则
                  * 当前节点类型为并行/分支网管：都是 onAppendNode
