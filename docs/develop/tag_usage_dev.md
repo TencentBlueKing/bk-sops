@@ -367,6 +367,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `url`： 服务器 url
   - `multiple`：是否支持多个上传
   - `headers`：http 请求头
+  - `data_params`：文件上传附加参数，eg: { filename: 'test.zip', filetype: 'zip' }
   - `auto_upload`：是否开启自动上传，默认值为 true，自动上传(选择文件后自动触发上传)，手动上传(选择文件后需要点击上传按钮，调用自定义的 submit 方法回调)
   - `submit`：自定义上传方法
   - `limit`：上传文件个数
@@ -407,6 +408,18 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remote_url`：组件内部调用接口 url 配置，支持对象格式以及返回对象的方法，eg: { cc_search_module: '/pipeline/cc_search_module/2/' }
   - `disabled`：设置是否禁用组件
   - `value`：选择的资源值以及筛选配置
+
+**方法**
+
+*none*
+
+### 17. TagSection
+
+标准插件表单分隔 Tag，一般在表单项数量较多时用来做分组区分，配置项的 name 属性值会被渲染为分组名称。
+
+**属性**
+
+*none*
 
 **方法**
 

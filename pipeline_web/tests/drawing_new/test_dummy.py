@@ -17,8 +17,7 @@ from copy import deepcopy
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
-
+from pipeline_web.constants import PWE
 from pipeline_web.drawing_new import dummy
 
 
@@ -30,26 +29,26 @@ class TestDummy(TestCase):
         self.pipeline = {
             'all_nodes': {
                 self.node_id1: {
-                    PE.id: self.node_id1,
-                    PE.incoming: '',
-                    PE.outgoing: self.flow_id
+                    PWE.id: self.node_id1,
+                    PWE.incoming: '',
+                    PWE.outgoing: self.flow_id
                 },
                 self.node_id2: {
-                    PE.id: self.node_id2,
-                    PE.incoming: self.flow_id,
-                    PE.outgoing: ''
+                    PWE.id: self.node_id2,
+                    PWE.incoming: self.flow_id,
+                    PWE.outgoing: ''
                 }
             },
-            PE.flows: {
+            PWE.flows: {
                 self.flow_id: {
-                    PE.id: self.flow_id,
-                    PE.source: self.node_id1,
-                    PE.target: self.node_id2
+                    PWE.id: self.flow_id,
+                    PWE.source: self.node_id1,
+                    PWE.target: self.node_id2
                 }
             }
         }
         self.pipeline_bak = deepcopy(self.pipeline)
-        self.flows = deepcopy(self.pipeline[PE.flows])
+        self.flows = deepcopy(self.pipeline[PWE.flows])
         self.ranks = {
             self.node_id1: -2,
             self.node_id2: 0
@@ -60,10 +59,10 @@ class TestDummy(TestCase):
         self.real_flows_chain = dummy.replace_long_path_with_dummy(self.pipeline, self.ranks)
         self.assertEqual(self.real_flows_chain, self.flows)
         self.assertEqual(set(self.ranks.values()), {-2, -1, 0})
-        self.assertNotEqual(self.pipeline['all_nodes'][self.node_id1][PE.outgoing], self.flow_id)
-        self.assertNotEqual(self.pipeline['all_nodes'][self.node_id2][PE.incoming], self.flow_id)
+        self.assertNotEqual(self.pipeline['all_nodes'][self.node_id1][PWE.outgoing], self.flow_id)
+        self.assertNotEqual(self.pipeline['all_nodes'][self.node_id2][PWE.incoming], self.flow_id)
 
-        self.assertEqual(len(list(self.pipeline[PE.flows].keys())), 2)
+        self.assertEqual(len(list(self.pipeline[PWE.flows].keys())), 2)
 
     def test_remove_dummy_nodes(self):
         self.real_flows_chain = dummy.replace_long_path_with_dummy(self.pipeline, self.ranks)
