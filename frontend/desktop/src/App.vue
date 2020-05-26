@@ -126,6 +126,7 @@
         },
         methods: {
             ...mapActions([
+                'getPermissionMeta',
                 'queryUserPermission',
                 'getFooterContent'
             ]),
@@ -147,10 +148,11 @@
                 'setPageFooter',
                 'setAdminPerm'
             ]),
-            initData () {
+            async initData () {
                 if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
                     this.getProjectDetail()
                 }
+                await this.getPermissionMeta()
                 if (this.viewMode === 'appmaker') {
                     this.getAppmakerDetail()
                 } else {

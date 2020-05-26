@@ -9,20 +9,25 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
+<template>
+    <div class="tag-section">{{ name }}</div>
+</template>
+<script>
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const config = {
-    namespaced: true,
-    actions: {
-        configBizExecutor ({ commit }, data) {
-            return api.configBizExecutor(data).then(response => response.data)
-        },
-        loadBizConfig () {
-            return api.loadBizConfig().then(
-                response => response.data
-            )
-        }
+    export default {
+        name: 'TagSection',
+        mixins: [getFormMixins()]
     }
-}
-
-export default config
+</script>
+<style lang="scss" scoped>
+    .tag-section {
+        padding: 0 8px;
+        line-height: 24px;
+        background: #f0f1f5;
+        border-radius: 2px;
+        font-size: 12px;
+        color: #63656e;
+    }
+</style>

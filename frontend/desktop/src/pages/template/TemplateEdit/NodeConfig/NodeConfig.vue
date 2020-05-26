@@ -396,7 +396,7 @@
             getNodeBasic (config) {
                 if (config.type === 'ServiceActivity') {
                     const {
-                        component, name, error_ignorable, can_retry,
+                        component, name, labels, error_ignorable, can_retry,
                         retryable, isSkipped, skippable, optional
                     } = config
                     let basicInfoName = i18n.t('请选择插件')
@@ -414,6 +414,7 @@
                         plugin: component.code || '',
                         name: basicInfoName,
                         nodeName: name,
+                        nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         version, // 标准插件版本
                         desc, // 空节点不存在插件描述信息
                         ignorable: error_ignorable,
@@ -424,7 +425,7 @@
                         selectable: optional
                     }
                 } else {
-                    const { template_id, name, optional } = config
+                    const { template_id, name, labels, optional } = config
                     let templateName = i18n.t('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
@@ -441,6 +442,7 @@
                         tpl: template_id || '',
                         name: templateName,
                         nodeName: name,
+                        nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         selectable: optional,
                         version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
                     }
@@ -522,6 +524,7 @@
                     version: list[list.length - 1].version,
                     name: `${group_name}-${name}`,
                     nodeName: name,
+                    nodeLabel: [],
                     desc: desc,
                     ignorable: false,
                     skippable: true,
@@ -556,6 +559,7 @@
                     version,
                     tpl: id,
                     nodeName: name,
+                    nodeLabel: [],
                     selectable: false
                 }
                 this.updateBasicInfo(config)
@@ -682,7 +686,7 @@
             syncActivity () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, selectable, version, tpl } = this.basicInfo
+                    const { nodeName, nodeLabel, selectable, version, tpl } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -695,11 +699,12 @@
                         constants,
                         version,
                         name: nodeName,
+                        labels: nodeLabel,
                         template_id: tpl,
                         optional: selectable
                     })
                 } else {
-                    const { ignorable, nodeName, plugin, retryable, skippable, selectable, version } = this.basicInfo
+                    const { ignorable, nodeName, nodeLabel, plugin, retryable, skippable, selectable, version } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -723,6 +728,7 @@
                         retryable,
                         skippable,
                         name: nodeName,
+                        labels: nodeLabel,
                         error_ignorable: ignorable,
                         optional: selectable
                     })

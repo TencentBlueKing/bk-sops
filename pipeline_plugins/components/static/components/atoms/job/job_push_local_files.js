@@ -47,7 +47,7 @@
                 beforeUpload(file, fileList) {
                     this.$set(this.headers, "X-CSRFToken", getCookie(window.APP_CODE + "_csrftoken"))
                     this.$set(this.headers, "APP-ProjectId", $.context.getProjectId())
-                    
+
                     var $this = this
                     $.ajax({
                         url: $.context.get('site_url') + 'pipeline/apply_upload_ticket/',
@@ -88,7 +88,12 @@
             attrs: {
                 name: gettext("目标IP"),
                 placeholder: gettext("IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"),
-                hookable: true
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
             }
         },
         {
@@ -96,7 +101,12 @@
             type: "input",
             attrs: {
                 name: gettext("目标账户"),
-                hookable: true
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
             }
         },
         {
@@ -105,7 +115,12 @@
             attrs: {
                 name: gettext("目标路径"),
                 placeholder: gettext("请输入绝对路径"),
-                hookable: true
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
             }
         }
     ]

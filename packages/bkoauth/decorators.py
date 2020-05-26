@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import os
 from functools import wraps
 
 from django.utils.decorators import available_attrs
@@ -23,8 +24,20 @@ def apigw_required(view_func):
     """
     @wraps(view_func, assigned=available_attrs(view_func))
     def _wrapped_view(request, *args, **kwargs):
+
         request.jwt = JWTClient(request)
-        if not request.jwt.is_valid:
-            return jwt_invalid_view(request)
+        if 'BKAPP_API_JWT_EXEMPT' in os.environ:
+            from packages.bkoauth.utils import FancyDict
+            request.jwt.user = FancyDict({
+                'bk_username': request.META.get('HTTP_BK_USERNAME')
+            })
+            request.jwt.app = FancyDict({
+                'bk_app_code': request.META.get('HTTP_BK_APPCODE')
+            })
+
+        else:
+            if not request.jwt.is_valid:
+                return jwt_invalid_view(request)
+
         return view_func(request, *args, **kwargs)
     return _wrapped_view

@@ -103,6 +103,9 @@
                 display: inline-block;
             }
         }
+        /deep/ .bk-form-item .bk-label {
+            word-break: break-all;
+        }
     }
     .delete-icon {
         display: none;

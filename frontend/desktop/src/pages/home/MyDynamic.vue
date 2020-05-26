@@ -52,11 +52,11 @@
                     </template>
                     <template v-else-if="item.prop === 'name'">
                         <a
-                            v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                            v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                             v-cursor
                             class="text-permission-disable"
                             :title="props.row.name"
-                            @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                            @click="onTaskPermissonCheck(['task_view'], props.row)">
                             {{ props.row[item.prop] }}
                         </a>
                         <router-link
@@ -138,8 +138,6 @@
                 }],
                 dynamicData: [],
                 executeStatus: [],
-                taskOperations: [],
-                taskResource: {},
                 pagination: {
                     current: 1,
                     count: 0,
@@ -190,8 +188,6 @@
                             m.create_method = item.name
                         }
                     })
-                    this.taskOperations = res.meta.auth_operations
-                    this.taskResource = res.meta.auth_resource
                     this.isTableLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -211,13 +207,16 @@
                 this.currentMethod = val
                 this.getTaskList()
             },
-            onTaskPermissonCheck (required, task, event) {
-                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
-                event.preventDefault()
+            onTaskPermissonCheck (required, task) {
+                const { id, name } = task
+                const resourceData = {
+                    task: { id, name }
+                }
+                this.applyForPermission(required, resourceData)
             }
         }
     }
-</script>
+</script>3
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/task.scss';

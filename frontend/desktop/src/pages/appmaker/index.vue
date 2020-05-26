@@ -14,7 +14,7 @@
         <div class="page-content">
             <div class="appmaker-table-content">
                 <base-title :title="$t('轻应用')"></base-title>
-                <div v-if="appList.length" class="operation-wrapper">
+                <div class="operation-wrapper">
                     <advance-search-form
                         :search-form="searchForm"
                         @onSearchInput="onSearchInput"
@@ -24,13 +24,6 @@
                         </template>
                     </advance-search-form>
                 </div>
-                <bk-button
-                    v-else
-                    theme="primary"
-                    class="add-appmaker-btn"
-                    @click="onCreateApp">
-                    {{$t('新建')}}
-                </bk-button>
             </div>
             <div v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <div v-if="appList.length" class="app-list clearfix">
@@ -45,9 +38,13 @@
                         :collected-list="collectedList"
                         @onCardEdit="onCardEdit"
                         @onCardDelete="onCardDelete"
-                        @onOpenPermissions="onOpenPermissions"
                         @getCollectList="getCollectList">
                     </app-card>
+                </div>
+                <div v-else-if="searchMode" class="empty-app-list">
+                    <NoData>
+                        <p>{{$t('未找到相关轻应用')}}</p>
+                    </NoData>
                 </div>
                 <div v-else class="empty-app-content">
                     <div class="appmaker-info">
@@ -87,38 +84,6 @@
                 {{$t('确认删除轻应用？')}}
             </div>
         </bk-dialog>
-        <bk-dialog
-            width="800"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="$t('使用权限')"
-            :value="isPermissionsDialog"
-            @cancel="onCloseWindows">
-            <div class="permission-content-dialog" v-bkloading="{ isLoading: authorityLoading, opacity: 1 }">
-                <p class="jurisdiction-hint">{{$t('轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。')}}</p>
-                <div class="permission-item">
-                    <span class="addJurisdiction">{{$t('新建任务权限') }}:</span>
-                    <span>{{createdTaskPerList || '--'}}</span>
-                </div>
-                <div class="permission-item">
-                    <span class="getJurisdiction">{{$t('认领任务权限')}}:</span>
-                    <span>{{modifyParamsPerList || '--'}}</span>
-                </div>
-                <div class="permission-item">
-                    <span class="executeJurisdiction">{{$t('执行任务权限')}}:</span>
-                    <span>{{executeTaskPerList || '--'}}</span>
-                </div>
-            </div>
-            <div slot="footer" class="exit-btn">
-                <bk-button
-                    theme="default"
-                    @click="onCloseWindows">
-                    {{$t('关闭')}}
-                </bk-button>
-            </div>
-        </bk-dialog>
     </div>
 </template>
 <script>
@@ -130,6 +95,7 @@
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
+    import NoData from '@/components/common/base/NoData.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     const searchForm = [
@@ -151,6 +117,7 @@
     export default {
         name: 'AppMaker',
         components: {
+            NoData,
             BaseTitle,
             AppCard,
             AppEditDialog,
@@ -160,7 +127,6 @@
         data () {
             return {
                 loading: true,
-                authorityLoading: false,
                 collectedLoading: false,
                 list: [],
                 collectedList: [],
@@ -170,12 +136,6 @@
                 isCreateNewApp: false,
                 isEditDialogShow: false,
                 isDeleteDialogShow: false,
-                editStartTime: undefined,
-                editEndTime: undefined,
-                isPermissionsDialog: false,
-                createdTaskPerList: undefined,
-                modifyParamsPerList: undefined,
-                executeTaskPerList: undefined,
                 pending: {
                     edit: false,
                     delete: false
@@ -196,9 +156,6 @@
             }),
             appList () {
                 return this.searchMode ? this.searchList : this.list
-            },
-            emptyTips () {
-                return this.searchMode ? i18n.t('未找到相关轻应用') : i18n.t('暂未添加轻应用')
             }
         },
         created () {
@@ -207,22 +164,16 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions([
+                'loadCollectList'
+            ]),
             ...mapActions('appmaker', [
                 'loadAppmaker',
                 'appmakerEdit',
                 'appmakerDelete'
             ]),
-            ...mapActions('templateList/', [
-                'getTemplatePersons'
-            ]),
-            ...mapActions('template/', [
-                'loadCollectList'
-            ]),
             async loadData () {
                 this.loading = true
-                if (this.editStartTime === '') {
-                    this.editStartTime = undefined
-                }
                 try {
                     const { updateTime, editor } = this.requestData
                     const data = {
@@ -277,30 +228,6 @@
                 this.isCreateNewApp = false
                 this.currentAppData = app
             },
-            onOpenPermissions (app) {
-                this.isPermissionsDialog = true
-                this.loadTemplatePersons(app.template_id)
-            },
-            async loadTemplatePersons (id) {
-                this.authorityLoading = true
-                try {
-                    const data = {
-                        templateId: id
-                    }
-                    const res = await this.getTemplatePersons(data)
-                    if (res.result) {
-                        this.createdTaskPerList = res.data.create_task.map(item => item.show_name).join('、')
-                        this.modifyParamsPerList = res.data.fill_params.map(item => item.show_name).join('、')
-                        this.executeTaskPerList = res.data.execute_task.map(item => item.show_name).join('、')
-                        this.authorityLoading = false
-                    } else {
-                        errorHandler(res, this)
-                        return []
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
             onCardDelete (app) {
                 this.isDeleteDialogShow = true
                 this.currentAppData = app
@@ -320,9 +247,6 @@
             },
             onDeleteCancel () {
                 this.isDeleteDialogShow = false
-            },
-            onCloseWindows () {
-                this.isPermissionsDialog = false
             },
             async onEditConfirm (app, callback) {
                 if (this.pending.edit) return
@@ -426,6 +350,11 @@
     .add-appmaker-btn {
         margin: 20px 0;
         width: 120px;
+    }
+    .empty-app-list {
+        padding: 200px 0;
+        background: $whiteDefault;
+        border: 1px solid $commonBorderColor;
     }
     .empty-app-content {
         padding: 160px 0;

@@ -37,13 +37,15 @@
             <div class="table-content">
                 <table class="permission-table">
                     <tbody>
-                        <tr v-for="(permission, index) in list" :key="index">
-                            <td width="20%"></td>
-                            <td width="30%">{{permission.action_name}}</td>
-                            <td width="50%">{{getResource(permission)}}</td>
-                        </tr>
-                        <tr v-if="false">
-                            <td class="no-data" colspan="2">{{$t('无数据')}}</td>
+                        <template v-if="permissionData.actions && permissionData.actions.length > 0">
+                            <tr v-for="(action, index) in permissionData.actions" :key="index">
+                                <td width="20%">{{permissionData.system_name}}</td>
+                                <td width="30%">{{action.name}}</td>
+                                <td width="50%">{{getResource(action.related_resource_types)}}</td>
+                            </tr>
+                        </template>
+                        <tr v-else>
+                            <td class="no-data" colspan="3">{{$t('无数据')}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -67,7 +69,7 @@
         data () {
             return {
                 isModalShow: false,
-                list: [],
+                permissionData: {},
                 loading: false,
                 lock: require('../../../assets/images/lock-radius.svg')
             }
@@ -86,7 +88,7 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const permission = this.list
+                    const permission = this.permissionData
                     const res = await this.getPermissionUrl(JSON.stringify(permission))
                     this.url = res.data.url
                 } catch (err) {
@@ -97,18 +99,20 @@
             },
             show (data) {
                 this.isModalShow = true
-                this.list = data
+                this.permissionData = data
             },
-            getResource (permission) {
-                const type = permission.resource_type_name
-                if (permission.resources.length === 0) {
-                    return type
-                }
-
-                const names = permission.resources.map(res => {
-                    return res.map(item => item.resource_name).join(',')
-                }).join(',')
-                return type + '：' + names
+            getResource (resoures) {
+                const data = []
+                resoures.forEach(resource => {
+                    if (resource.instances.length > 0) {
+                        const instances = resource.instance.map(item => {
+                            return item.name
+                        }).join('，')
+                        const resourceItemData = resource.type_name + `：` + instances
+                        data.push(resourceItemData)
+                    }
+                })
+                return data.join('\n')
             },
             goToApply () {
                 if (this.loading) {
@@ -179,6 +183,7 @@
                 }
             }
             .no-data {
+                padding: 30px;
                 text-align: center;
                 color: #999999;
             }

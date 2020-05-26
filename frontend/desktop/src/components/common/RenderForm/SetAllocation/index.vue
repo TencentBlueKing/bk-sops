@@ -170,6 +170,9 @@
             // 获取表格原始列配置项
             async getColsConfig () {
                 try {
+                    if (!this.urls['cc_search_create_object_attribute_set']) {
+                        return
+                    }
                     this.colsLoading = true
                     const resp = await this.getCCSearchColAttrSet({
                         url: this.urls['cc_search_create_object_attribute_set']
