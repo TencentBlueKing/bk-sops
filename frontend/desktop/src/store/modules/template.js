@@ -855,6 +855,10 @@ const template = {
         // 获取内置变量
         loadInternalVariable () {
             return axios.get('taskflow/api/context/').then(response => response.data)
+        },
+        // 获取节点标签列表
+        getLabels ({ commit }, data) {
+            return axios.get('api/v3/label/', { params: data }).then(response => response.data)
         }
     },
     getters: {

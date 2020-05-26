@@ -51,6 +51,17 @@
             <bk-form-item :label="$t('节点名称')" :required="true" property="nodeName">
                 <bk-input v-model="formData.nodeName" @change="updateData"></bk-input>
             </bk-form-item>
+            <bk-form-item :label="$t('节点标签')" property="label">
+                <bk-search-select
+                    primary-key="code"
+                    :clearable="true"
+                    :data="labelList"
+                    :show-condition="false"
+                    :show-popover-tag-change="false"
+                    :values="filterLabelTree(formData.nodeLabel)"
+                    @change="onLabelChange">
+                </bk-search-select>
+            </bk-form-item>
             <bk-form-item :label="$t('失败处理')" class="error-handle">
                 <bk-checkbox
                     :value="formData.ignorable"
@@ -134,8 +145,9 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
+    import { errorHandler } from '@/utils/errorHandler'
 
     export default {
         name: 'BasicInfo',
@@ -148,6 +160,8 @@
         },
         data () {
             return {
+                labelData: [],
+                labelLoading: false,
                 formData: { ...this.basicInfo },
                 pluginRules: {
                     plugin: [
@@ -230,6 +244,14 @@
                         return true
                     }
                 })
+            },
+            labelList () {
+                if (this.labelLoading || this.labelData.length === 0) {
+                    return []
+                }
+                return this.labelData.filter(groupItem => {
+                    return !this.formData.nodeLabel.find(item => groupItem.code === item.group)
+                })
             }
         },
         watch: {
@@ -237,10 +259,89 @@
                 this.formData = { ...val }
             }
         },
+        created () {
+            if (!this.isSubflow) { // 子流程节点不展示节点标签表单
+                this.getNodeLabelList()
+            }
+        },
         methods: {
             ...mapMutations('template/', [
                 'setNodeBasicInfo'
             ]),
+            ...mapActions('template/', [
+                'getLabels'
+            ]),
+            // 加载节点标签列表
+            async getNodeLabelList () {
+                try {
+                    this.labelLoading = true
+                    const resp = await this.getLabels({ limit: 0 })
+                    this.labelData = this.transLabelListToGroup(resp.objects)
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.labelLoading = false
+                }
+            },
+            // 标签分组
+            transLabelListToGroup (list) {
+                const data = []
+                const groups = []
+                list.forEach(item => {
+                    const index = groups.findIndex(code => code === item.group.code)
+                    if (index > -1) {
+                        data[index].children.push(item)
+                    } else {
+                        const { code, name } = item.group
+                        data.push({
+                            code,
+                            name,
+                            children: [{ ...item }]
+                        })
+                        groups.push(item.group.code)
+                    }
+                })
+                return data
+            },
+            /**
+             * 由节点保存的标签数据格式，转换成 searchSelect 组件要求的 values 格式
+             */
+            filterLabelTree (val) {
+                // 等待节点标签列表加载完成，再做筛选
+                if (this.labelLoading) {
+                    return []
+                }
+
+                const data = []
+                val.forEach(item => {
+                    const group = this.labelData.find(g => g.code === item.group)
+                    const label = group.children.find(l => l.code === item.label)
+                    data.push({
+                        code: group.code,
+                        name: group.name,
+                        values: [
+                            {
+                                code: label.code,
+                                name: label.name
+                            }
+                        ]
+                    })
+                })
+                return data
+            },
+            onLabelChange (list) {
+                const val = []
+                list.forEach(item => {
+                    if (item.values && item.values.length > 0) {
+                        val.push({
+                            label: item.values[0].code,
+                            group: item.code
+                        })
+                    }
+                })
+                this.formData.nodeLabel = val
+                this.updateData()
+            },
             onErrorHandlerChange (val, type) {
                 this.formData[type] = val
                 if (type === 'ignorable' && val) {
@@ -254,12 +355,12 @@
                 this.updateData()
             },
             updateData () {
-                const { version, nodeName, ignorable, skippable, retryable, selectable } = this.formData
+                const { version, nodeName, nodeLabel, ignorable, skippable, retryable, selectable } = this.formData
                 let data
                 if (this.isSubflow) {
-                    data = { nodeName, selectable }
+                    data = { nodeName, nodeLabel, selectable }
                 } else {
-                    data = { version, nodeName, ignorable, skippable, retryable, selectable }
+                    data = { version, nodeName, nodeLabel, ignorable, skippable, retryable, selectable }
                 }
                 this.$emit('update', data)
             },
