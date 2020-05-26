@@ -67,7 +67,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import NodeMenu from './NodeMenu.vue'
     import Guide from '@/utils/guide.js'
     import { mapState } from 'vuex'
@@ -106,10 +106,6 @@
                 moveFlag: {
                     x: 0,
                     y: 0
-                },
-                i18n: {
-                    start: gettext('开始'),
-                    end: gettext('结束')
                 }
             }
         },
@@ -118,7 +114,7 @@
                 lang: state => state.lang
             }),
             langSuffix () {
-                return this.lang === 'zh-cn' ? 'zh' : 'en'
+                return this.lang === 'en' ? 'en' : 'zh'
             },
             tplResource () {
                 return this.activeNodeListType === 'subflow' ? this.atomTypeList.subflow.tplResource : {}
@@ -194,11 +190,11 @@
                         text: [
                             {
                                 type: 'name',
-                                val: gettext('标准插件节点：')
+                                val: i18n.t('标准插件节点：')
                             },
                             {
                                 type: 'text',
-                                val: gettext('已封装好的可用插件，可直接选中拖拽至画布中。')
+                                val: i18n.t('已封装好的可用插件，可直接选中拖拽至画布中。')
                             }
                         ]
                     },
@@ -208,11 +204,11 @@
                         text: [
                             {
                                 type: 'name',
-                                val: gettext('子流程：')
+                                val: i18n.t('子流程：')
                             },
                             {
                                 type: 'text',
-                                val: gettext('同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。')
+                                val: i18n.t('同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。')
                             }
                         ]
                     },
@@ -222,11 +218,11 @@
                         text: [
                             {
                                 type: 'name',
-                                val: gettext('并行网关：')
+                                val: i18n.t('并行网关：')
                             },
                             {
                                 type: 'text',
-                                val: gettext('有多个流出分支，并且多个流出分支都默认执行。')
+                                val: i18n.t('有多个流出分支，并且多个流出分支都默认执行。')
                             }
                         ]
                     },
@@ -236,11 +232,11 @@
                         text: [
                             {
                                 type: 'name',
-                                val: gettext('分支网关：')
+                                val: i18n.t('分支网关：')
                             },
                             {
                                 type: 'text',
-                                val: gettext('执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。')
+                                val: i18n.t('执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。')
                             }
                         ]
                     },
@@ -250,11 +246,11 @@
                         text: [
                             {
                                 type: 'name',
-                                val: gettext('汇聚网关：')
+                                val: i18n.t('汇聚网关：')
                             },
                             {
                                 type: 'text',
-                                val: gettext('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
+                                val: i18n.t('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
                             }
                         ]
                     }

@@ -114,17 +114,17 @@
                 :theme="'primary'"
                 :mask-close="false"
                 :header-position="'left'"
-                :title="i18n.leave"
+                :title="$t('离开页面')"
                 :value="isLeaveDialogShow"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
-                <div class="leave-tips">{{ i18n.tips }}</div>
+                <div class="leave-tips">{{ $t('系统不会保存您所做的更改，确认离开？') }}</div>
             </bk-dialog>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     // moment用于时区使用
     import moment from 'moment-timezone'
@@ -145,21 +145,6 @@
     import { STRING_LENGTH } from '@/constants/index.js'
     import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
-    const i18n = {
-        templateEdit: gettext('流程编辑'),
-        leave: gettext('离开页面'),
-        tips: gettext('系统不会保存您所做的更改，确认离开？'),
-        saved: gettext('保存成功'),
-        error: gettext('任务节点参数错误，请点击错误节点查看详情'),
-        conditionError: gettext('分支节点参数错误，请点击错误节点查看详情'),
-        deleteSuccess: gettext('删除本地缓存成功'),
-        deleteFail: gettext('该本地缓存不存在，删除失败'),
-        replaceSuccess: gettext('替换流程成功'),
-        addCache: gettext('新增流程本地缓存成功'),
-        replaceSave: gettext('替换流程自动保存'),
-        layoutSave: gettext('排版完成，原内容在本地缓存中')
-    }
-
     export default {
         name: 'TemplateEdit',
         components: {
@@ -174,7 +159,6 @@
         props: ['template_id', 'type', 'common'],
         data () {
             return {
-                i18n,
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
                 projectInfoLoading: false,
@@ -227,11 +211,11 @@
                     text: [
                         {
                             type: 'name',
-                            val: gettext('双击左键')
+                            val: i18n.t('双击左键')
                         },
                         {
                             type: 'text',
-                            val: gettext('可以快捷打开节点配置面板')
+                            val: i18n.t('可以快捷打开节点配置面板')
                         }
                     ]
                 }
@@ -350,7 +334,7 @@
             this.getProjectBaseInfo()
             this.getCustomVarCollection()
             window.onbeforeunload = function () {
-                return i18n.tips
+                return i18n.t('系统不会保存您所做的更改，确认离开？')
             }
             window.addEventListener('click', this.handleSidesPanelShow, false)
             window.addEventListener('resize', this.onWindowResize, false)
@@ -468,11 +452,11 @@
                     const customVarCollection = await this.loadCustomVarCollection()
                     const listData = [
                         {
-                            name: gettext('普通变量'),
+                            name: i18n.t('普通变量'),
                             children: []
                         },
                         {
-                            name: gettext('元变量'),
+                            name: i18n.t('元变量'),
                             children: []
                         }
                     ]
@@ -586,7 +570,7 @@
                         draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
                     }
                     this.$bkMessage({
-                        message: i18n.saved,
+                        message: i18n.t('保存成功'),
                         theme: 'success'
                     })
                     this.isTemplateDataChanged = false
@@ -785,7 +769,7 @@
                 })
                 if (!isAllValid) {
                     this.$bkMessage({
-                        message: i18n.error,
+                        message: i18n.t('任务节点参数错误，请点击错误节点查看详情'),
                         theme: 'error'
                     })
                 }
@@ -865,7 +849,10 @@
                 if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
                     this.toggleSettingPanel(false)
                 }
-                this.showConfigPanel(id)
+                const location = this.locations.find(item => item.id === id)
+                if (['tasknode', 'subflow'].includes(location.type)) {
+                    this.showConfigPanel(id)
+                }
             },
             async onFormatPosition () {
                 const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
@@ -899,7 +886,7 @@
                             this.$refs.templateCanvas.onResetPosition()
                             this.variableDataChanged()
                             this.$bkMessage({
-                                message: i18n.layoutSave,
+                                message: i18n.t('排版完成，原内容在本地缓存中'),
                                 theme: 'success'
                             })
                         })
@@ -1066,7 +1053,7 @@
                 if (nodeWithErrors && nodeWithErrors.length) {
                     this.templateSaving = false
                     this.createTaskSaving = false
-                    errorHandler({ message: i18n.error }, this)
+                    errorHandler({ message: i18n.t('任务节点参数错误，请点击错误节点查看详情') }, this)
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
@@ -1088,12 +1075,12 @@
             onDeleteDraft (key) {
                 if (draft.deleteDraft(key)) {
                     this.$bkMessage({
-                        'message': i18n.deleteSuccess,
+                        'message': i18n.t('删除本地缓存成功'),
                         'theme': 'success'
                     })
                 } else {
                     this.$bkMessage({
-                        'message': i18n.deleteFail,
+                        'message': i18n.t('该本地缓存不存在，删除失败'),
                         'theme': 'error'
                     })
                 }
@@ -1110,10 +1097,10 @@
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
+                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.t('替换流程自动保存'))
                     }
                     this.$bkMessage({
-                        'message': i18n.replaceSuccess,
+                        'message': i18n.t('替换流程成功'),
                         'theme': 'success'
                     })
                 }
@@ -1144,7 +1131,7 @@
                 }
                 if (isMessage) {
                     this.$bkMessage({
-                        'message': i18n.addCache,
+                        'message': i18n.t('新增流程本地缓存成功'),
                         'theme': 'success'
                     })
                 }
@@ -1199,7 +1186,7 @@
                 })
                 if (!checkResult && isShowError) {
                     this.$bkMessage({
-                        'message': i18n.conditionError,
+                        'message': i18n.t('分支节点参数错误，请点击错误节点查看详情'),
                         'theme': 'error'
                     })
                 }

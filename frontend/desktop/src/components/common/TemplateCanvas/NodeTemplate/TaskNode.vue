@@ -51,29 +51,29 @@
             <bk-button
                 v-if="isShowSkipBtn"
                 @click.stop="onRetryClick">
-                {{ i18n.retry }}
+                {{ $t('重试') }}
             </bk-button>
             <bk-button
                 v-if="isShowRetryBtn"
                 @click.stop="onSkipClick">
-                {{ i18n.skip }}
+                {{ $t('跳过') }}
             </bk-button>
-            <span v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn">{{ i18n.atomFailed }}</span>
+            <span v-if="node.status === 'FAILED' && !isShowSkipBtn && !isShowRetryBtn">{{ $t('流程模板中该标准插件节点未配置失败处理方式，不可操作') }}</span>
             <template v-if="node.status === 'RUNNING'">
                 <bk-button
                     v-if="node.code === 'sleep_timer'"
                     @click.stop="onModifyTimeClick">
-                    {{ i18n.modifyTime }}
+                    {{ $t('修改时间') }}
                 </bk-button>
                 <bk-button
                     v-if="node.code === 'pause_node'"
                     @click.stop="onResumeClick">
-                    {{ i18n.resume }}
+                    {{ $t('继续') }}
                 </bk-button>
                 <bk-button
                     v-if="hasAdminPerm"
                     @click.stop="$emit('onForceFail', node.id)">
-                    {{ i18n.forceFail }}
+                    {{ $t('强制失败') }}
                 </bk-button>
             </template>
         </div>
@@ -81,7 +81,6 @@
 
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
 
     export default {
@@ -95,18 +94,6 @@
                 type: Object,
                 default () {
                     return {}
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    retry: gettext('重试'),
-                    skip: gettext('跳过'),
-                    resume: gettext('继续'),
-                    modifyTime: gettext('修改时间'),
-                    forceFail: gettext('强制失败'),
-                    atomFailed: gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
                 }
             }
         },

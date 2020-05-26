@@ -14,13 +14,12 @@
         <div class="no-data">
             <i class="common-icon-no-data"></i>
             <p class="no-data-wording">
-                <slot>{{ message || i18n.no_data }}</slot>
+                <slot>{{ message || $t('无数据') }}</slot>
             </p>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'NoData',
         props: {
@@ -28,13 +27,6 @@
                 type: String,
                 default () {
                     return ''
-                }
-            }
-        },
-        data () {
-            return {
-                i18n: {
-                    no_data: gettext('无数据')
                 }
             }
         }

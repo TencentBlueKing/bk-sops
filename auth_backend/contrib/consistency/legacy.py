@@ -86,5 +86,5 @@ def register_legacy_instances(legacy_resources):
 
             cursor += step
 
-        sys.stdout.write('[{type}] instances register finished\n\n'.format(len=num_of_instances,
-                                                                           type=resource_type))
+        sys.stdout.write('[{type}] {len} instances register finished\n\n'.format(len=num_of_instances,
+                                                                                 type=resource_type))

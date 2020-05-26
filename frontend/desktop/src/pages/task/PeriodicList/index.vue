@@ -14,7 +14,7 @@
         <div class="list-wrapper">
             <div class="operation-area">
                 <advance-search-form
-                    :search-config="{ placeholder: i18n.periodicNamePlaceholder, value: requestData.flowName }"
+                    :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.flowName }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -25,7 +25,7 @@
                             class="task-create-btn"
                             size="normal"
                             @click="onCreatePeriodTask">
-                            {{i18n.createPeriodTask}}
+                            {{$t('新建')}}
                         </bk-button>
                     </template>
                 </advance-search-form>
@@ -38,12 +38,12 @@
                     @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.periodicName" prop="name" min-width="200">
+                    <bk-table-column :label="$t('名称')" prop="name" min-width="200">
                         <template slot-scope="props">
                             <span :title="props.row.name">{{props.row.name}}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.periodicTemplate" min-width="200">
+                    <bk-table-column :label="$t('流程模板')" min-width="200">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, periodicOperations)"
@@ -61,30 +61,30 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column v-if="adminView" :label="i18n.project" width="140">
+                    <bk-table-column v-if="adminView" :label="$t('项目')" width="140">
                         <template slot-scope="props">
                             <span :title="props.row.project.name">{{ props.row.project.name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.periodicRule" width="150">
+                    <bk-table-column :label="$t('周期规则')" width="150">
                         <template slot-scope="props">
                             <div :title="splitPeriodicCron(props.row.cron)">{{ splitPeriodicCron(props.row.cron) }}</div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.lastRunAt" width="200">
+                    <bk-table-column :label="$t('上次运行时间')" width="200">
                         <template slot-scope="props">
                             <div>{{ props.row.last_run_at || '--' }}</div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="100"></bk-table-column>
-                    <bk-table-column :label="i18n.enabled" width="100">
+                    <bk-table-column :label="$t('创建人')" prop="creator" width="120"></bk-table-column>
+                    <bk-table-column :label="$t('运行次数')" prop="total_run_count" width="100"></bk-table-column>
+                    <bk-table-column :label="$t('状态')" width="100">
                         <template slot-scope="props" class="periodic-status">
                             <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
-                            {{props.row.enabled ? i18n.start : i18n.pause}}
+                            {{props.row.enabled ? $t('启动') : $t('暂停')}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="240">
+                    <bk-table-column :label="$t('操作')" width="240">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <template v-if="!adminView">
@@ -96,7 +96,7 @@
                                             'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
                                         }]"
                                         @click="onSetEnable(props.row, $event)">
-                                        {{!props.row.enabled ? i18n.start : i18n.pause}}
+                                        {{!props.row.enabled ? $t('启动') : $t('暂停')}}
                                     </a>
                                     <a
                                         v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, periodicOperations) }"
@@ -105,16 +105,16 @@
                                             'periodic-bk-disable': props.row.enabled,
                                             'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
                                         }]"
-                                        :title="props.row.enabled ? i18n.editTitle : ''"
+                                        :title="props.row.enabled ? $t('请暂停任务后再执行编辑操作') : ''"
                                         @click="onModifyCronPeriodic(props.row, $event)">
-                                        {{ i18n.edit }}
+                                        {{ $t('编辑') }}
                                     </a>
                                 </template>
                                 <a
                                     v-else
                                     href="javascript:void(0);"
                                     @click="onRecordView(props.row, $event)">
-                                    {{ i18n.bootRecord }}
+                                    {{ $t('启动记录') }}
                                 </a>
                                 <router-link
                                     :to="{
@@ -122,7 +122,7 @@
                                         params: { project_id: project_id },
                                         query: { template_id: props.row.template_id, create_method: 'periodic' }
                                     }">
-                                    {{ i18n.executeHistory }}
+                                    {{ $t('执行历史') }}
                                 </router-link>
                                 <bk-popover
                                     theme="light"
@@ -143,7 +143,7 @@
                                                     'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, periodicOperations)
                                                 }"
                                                 @click="onCollectTask(props.row, $event)">
-                                                {{ isCollected(props.row.id) ? i18n.cancelCollection : i18n.collect }}
+                                                {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
                                             </a>
                                         </li>
                                         <li class="opt-btn">
@@ -154,7 +154,7 @@
                                                     'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, periodicOperations)
                                                 }"
                                                 @click="onDeletePeriodic(props.row, $event)">
-                                                {{ i18n.delete }}
+                                                {{ $t('删除') }}
                                             </a>
                                         </li>
                                     </ul>
@@ -162,7 +162,7 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
         </div>
@@ -173,7 +173,7 @@
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
             :task-category="taskCategory"
-            :dialog-title="i18n.dialogTitle"
+            :dialog-title="$t('新建周期任务')"
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <ModifyPeriodicDialog
@@ -200,7 +200,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
@@ -216,19 +216,19 @@
         {
             type: 'input',
             key: 'creator',
-            label: gettext('创建人'),
-            placeholder: gettext('请输入创建人'),
+            label: i18n.t('创建人'),
+            placeholder: i18n.t('请输入创建人'),
             value: ''
         },
         {
             type: 'select',
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             key: 'enabled',
             loading: false,
-            placeholder: gettext('请选择状态'),
+            placeholder: i18n.t('请选择状态'),
             list: [
-                { 'value': 'true', 'name': gettext('启动') },
-                { 'value': 'false', 'name': gettext('暂停') }
+                { 'value': 'true', 'name': i18n.t('启动') },
+                { 'value': 'false', 'name': i18n.t('暂停') }
             ]
         }
     ]
@@ -255,41 +255,6 @@
         },
         data () {
             return {
-                i18n: {
-                    createPeriodTask: gettext('新建'),
-                    dialogTitle: gettext('新建周期任务'),
-                    lastRunAt: gettext('上次运行时间'),
-                    project: gettext('项目'),
-                    periodicRule: gettext('周期规则'),
-                    periodicTask: gettext('周期任务'),
-                    advanceSearch: gettext('高级搜索'),
-                    creator: gettext('创建人'),
-                    operation: gettext('操作'),
-                    start: gettext('启动'),
-                    delete: gettext('删除'),
-                    edit: gettext('编辑'),
-                    pause: gettext('暂停'),
-                    collect: gettext('收藏'),
-                    cancelCollection: gettext('取消收藏'),
-                    addCollectSuccess: gettext('添加收藏成功！'),
-                    cancelCollectSuccess: gettext('取消收藏成功！'),
-                    totalRunCount: gettext('运行次数'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    periodicNamePlaceholder: gettext('请输入任务名称'),
-                    creatorPlaceholder: gettext('请输入创建人'),
-                    enabled: gettext('状态'),
-                    periodicName: gettext('名称'),
-                    editTitle: gettext('请暂停任务后再执行编辑操作'),
-                    periodicTemplate: gettext('流程模板'),
-                    executeHistory: gettext('执行历史'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    bootRecord: gettext('启动记录')
-                },
                 businessInfoLoading: true,
                 isNewTaskDialogShow: false,
                 listLoading: true,
@@ -496,7 +461,7 @@
                     this.deleting = true
                     await this.deletePeriodic(this.selectedDeleteTaskId)
                     this.$bkMessage({
-                        'message': gettext('删除周期任务成功'),
+                        'message': i18n.t('删除周期任务成功'),
                         'theme': 'success'
                     })
                     this.isDeleteDialogShow = false
@@ -541,6 +506,7 @@
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.getPeriodicList()
             },
             handlePageLimitChange (val) {
@@ -571,12 +537,12 @@
                             category: 'periodic_task'
                         }])
                         if (res.objects.length) {
-                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                            this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel
                         const delId = this.collectionList.find(m => m.extra_info.id === task.id && m.category === 'periodic_task').id
                         await this.deleteCollect(delId)
-                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
                     }
                     this.getCollectList()
                 } catch (e) {

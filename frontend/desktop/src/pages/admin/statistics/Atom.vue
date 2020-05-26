@@ -12,7 +12,7 @@
 <template>
     <div class="statistics-atom">
         <horizontal-bar-chart
-            :title="i18n.rankTitle"
+            :title="$t('插件统计')"
             :selector-list="rankSelector"
             :label-width="400"
             :data-list="rankData"
@@ -22,11 +22,11 @@
         <div class="tab-content-area">
             <bk-tab :active.sync="activeTab" @tab-change="onTabChange">
                 <bk-form form-type="inline">
-                    <bk-form-item :label="i18n.atom">
+                    <bk-form-item :label="$t('标准插件')">
                         <bk-select
                             v-model="tableAtom"
                             class="statistics-select"
-                            :placeholder="i18n.selectAtom"
+                            :placeholder="$t('请选择标准插件')"
                             :searchable="true"
                             :clearable="true"
                             :disabled="atomListData.length === 0"
@@ -39,11 +39,11 @@
                             </bk-option>
                         </bk-select>
                     </bk-form-item>
-                    <bk-form-item :label="i18n.projectBeLongTo">
+                    <bk-form-item :label="$t('所属项目')">
                         <bk-select
                             v-model="tableProject"
                             class="statistics-select"
-                            :placeholder="i18n.selectProject"
+                            :placeholder="$t('请选择项目')"
                             :searchable="true"
                             :clearable="true"
                             :disabled="projectList.length === 0"
@@ -56,11 +56,11 @@
                             </bk-option>
                         </bk-select>
                     </bk-form-item>
-                    <bk-form-item :label="i18n.rankBeLongTo">
+                    <bk-form-item :label="$t('所属分类')">
                         <bk-select
                             v-model="tableCategory"
                             class="statistics-select"
-                            :placeholder="i18n.selectCategory"
+                            :placeholder="$t('请选择分类')"
                             :disabled="categoryList.length === 0"
                             :searchable="true"
                             :clearable="true"
@@ -121,7 +121,7 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import HorizontalBarChart from './HorizontalBarChart.vue'
@@ -130,43 +130,43 @@
     const TABS = [
         {
             id: 'atom_template',
-            name: gettext('流程引用详情')
+            name: i18n.t('流程引用详情')
         },
         {
             id: 'atom_instance',
-            name: gettext('任务执行详情')
+            name: i18n.t('任务执行详情')
         }
     ]
 
     const TABLE_COLUMN = {
         atom_template: [
             {
-                label: gettext('流程ID'),
+                label: i18n.t('流程ID'),
                 prop: 'templateId',
                 sortable: true,
                 width: 100
             },
             {
-                label: gettext('流程名称'),
+                label: i18n.t('流程名称'),
                 prop: 'templateName'
             },
             {
-                label: gettext('项目'),
+                label: i18n.t('项目'),
                 prop: 'projectName',
                 width: 150
             },
             {
-                label: gettext('分类'),
+                label: i18n.t('分类'),
                 prop: 'category',
                 width: 180
             },
             {
-                label: gettext('创建人'),
+                label: i18n.t('创建人'),
                 prop: 'creator',
                 width: 120
             },
             {
-                label: gettext('创建时间'),
+                label: i18n.t('创建时间'),
                 prop: 'createTime',
                 width: 200,
                 sortable: true
@@ -174,31 +174,31 @@
         ],
         atom_instance: [
             {
-                label: gettext('任务ID'),
+                label: i18n.t('任务ID'),
                 prop: 'instanceId',
                 sortable: true,
                 width: 100
             },
             {
-                label: gettext('任务名称'),
+                label: i18n.t('任务名称'),
                 prop: 'instanceName'
             },
             {
-                label: gettext('项目'),
+                label: i18n.t('项目'),
                 prop: 'projectName'
             },
             {
-                label: gettext('分类'),
+                label: i18n.t('分类'),
                 prop: 'category',
                 width: 180
             },
             {
-                label: gettext('创建人'),
+                label: i18n.t('创建人'),
                 prop: 'creator',
                 width: 120
             },
             {
-                label: gettext('创建时间'),
+                label: i18n.t('创建时间'),
                 prop: 'createTime',
                 sortable: true
             }
@@ -208,23 +208,23 @@
     const CITE_OPTIONS = [
         {
             id: 'atom_cite',
-            name: gettext('流程引用次数(次)')
+            name: i18n.t('流程引用次数(次)')
         },
         {
             id: 'atom_execute_times',
-            name: gettext('任务执行次数(次)')
+            name: i18n.t('任务执行次数(次)')
         },
         {
             id: 'atom_execute_fail_times',
-            name: gettext('执行失败次数(次)')
+            name: i18n.t('执行失败次数(次)')
         },
         {
             id: 'atom_avg_execute_time',
-            name: gettext('执行平均耗时(秒)')
+            name: i18n.t('执行平均耗时(秒)')
         },
         {
             id: 'atom_fail_percent',
-            name: gettext('执行失败率(%)')
+            name: i18n.t('执行失败率(%)')
         }
     ]
 
@@ -269,7 +269,7 @@
                     {
                         id: 'project',
                         options: this.projectList,
-                        placeholder: gettext('请选择项目')
+                        placeholder: i18n.t('请选择项目')
                     }
                 ],
                 rankDataCite: CITE_OPTIONS[0].id,
@@ -289,15 +289,6 @@
                     count: 0,
                     'limit-list': [15, 20, 30],
                     limit: 15
-                },
-                i18n: {
-                    rankTitle: gettext('插件统计'),
-                    atom: gettext('标准插件'),
-                    projectBeLongTo: gettext('所属项目'),
-                    rankBeLongTo: gettext('所属分类'),
-                    selectAtom: gettext('请选择标准插件'),
-                    selectProject: gettext('请选择项目'),
-                    selectCategory: gettext('请选择分类')
                 }
             }
         },

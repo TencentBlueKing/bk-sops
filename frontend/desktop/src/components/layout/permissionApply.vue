@@ -5,13 +5,13 @@
                 <img :src="lock" alt="permission-lock" />
             </div>
             <h3>{{permissionTitle}}</h3>
-            <p>{{i18n.resourceContent}}</p>
+            <p>{{$t('你没有相应资源的访问权限，请申请权限或联系管理员授权')}}</p>
             <div class="operation-btns">
                 <bk-button
                     theme="primary"
                     :loading="loading"
                     @click="applyBtnClick">
-                    {{i18n.apply}}
+                    {{$t('去申请')}}
                 </bk-button>
                 <!-- <bk-button
                     theme="default"
@@ -21,14 +21,14 @@
                         'btn-permission-disable': !hasProjectPermission
                     }"
                     @click="goToCreateProject">
-                    {{i18n.create}}
+                    {{$t('新建项目')}}
                 </bk-button> -->
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapActions, mapState, mapGetters } from 'vuex'
     import permission from '@/mixins/permission.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -52,15 +52,7 @@
                 url: '',
                 loading: false,
                 authActions: [],
-                lock: require('../../assets/images/lock-radius.svg'),
-                i18n: {
-                    resourceTitle: gettext('无权限访问'),
-                    projectTitle: gettext('无权限访问项目'),
-                    resourceContent: gettext('你没有相应资源的访问权限，请申请权限或联系管理员授权'),
-                    // projectContent: gettext('你可以申请已有项目的权限'),
-                    apply: gettext('去申请'),
-                    create: gettext('新建项目')
-                }
+                lock: require('../../assets/images/lock-radius.svg')
             }
         },
         computed: {
@@ -76,10 +68,10 @@
                 'userCanViewProjects'
             ]),
             permissionTitle () {
-                return this.permissionData.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
+                return this.permissionData.type === 'project' ? i18n.t('无权限访问项目') : i18n.t('无权限访问')
             },
             // permissionContent () {
-            //     return this.permissionData.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
+            //     return this.permissionData.type === 'project' ? in18.t('你可以申请已有项目的权限') : in18.t('你没有相应资源的访问权限，请申请权限或联系管理员授权')
             // },
             hasProjectPermission () {
                 return this.hasPermission(['create'], this.authActions, this.authOperations)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-08 12:14+0800\n"
+"POT-Creation-Date: 2020-05-21 16:58+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,145 +17,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#: frontend/desktop/src/api/interceptors.js:84
-msgid "接口数据返回为空"
-msgstr "接口数据返回为空"
-
-#: frontend/desktop/src/api/interceptors.js:85
-msgid "接口异常，"
-msgstr "接口异常，"
-
-#: frontend/desktop/src/api/interceptors.js:85
-msgid "HTTP状态码："
-msgstr "HTTP状态码："
-
-#: frontend/desktop/src/components/common/Individualization/IpLogContent.vue:69
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:234
-msgid "错误码"
-msgstr "错误码"
-
-#: frontend/desktop/src/components/common/Individualization/IpLogContent.vue:70
-msgid "请输入 IP"
-msgstr "请输入 IP"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:120
-msgid "分钟"
-msgstr "分钟"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:135
-msgid "小时"
-msgstr "小时"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:150
-msgid "星期"
-msgstr "星期"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:165
-#: frontend/desktop/src/pages/admin/statistics/VerticalBarChart.vue:78
-msgid "日期"
-msgstr "日期"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:180
-msgid "月份"
-msgstr "月份"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:198
-msgid "循环"
-msgstr "循环"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:199
-msgid "从第"
-msgstr "从第"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:200
-msgid "从星期"
-msgstr "从星期"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:201
-msgid "开始，每隔"
-msgstr "开始，每隔"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:202
-msgid "执行一次"
-msgstr "执行一次"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:205
-msgid "指定"
-msgstr "指定"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:209
-msgid "星期一"
-msgstr "星期一"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:210
-msgid "星期二"
-msgstr "星期二"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:211
-msgid "星期三"
-msgstr "星期三"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:212
-msgid "星期四"
-msgstr "星期四"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:213
-msgid "星期五"
-msgstr "星期五"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:214
-msgid "星期六"
-msgstr "星期六"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:215
-msgid "星期天"
-msgstr "星期天"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:233
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:144
-msgid "天"
-msgstr "天"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:235
-msgid "手动输入"
-msgstr "手动输入"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:236
-#: frontend/desktop/src/components/common/advanceSearchForm/index.vue:109
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:169
-#: frontend/desktop/src/pages/appmaker/index.vue:190
-#: frontend/desktop/src/pages/audit/AuditList.vue:209
-#: frontend/desktop/src/pages/functor/FunctionList.vue:321
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:290
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:316
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:312
-msgid "清空"
-msgstr "清空"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:237
-msgid "选择生成"
-msgstr "选择生成"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:238
-msgid "0 12 * 10-17 */11"
-msgstr "0 12 * 10-17 */11"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:239
-msgid "0 表示星期天，6 表示星期六"
-msgstr "0 表示星期天，6 表示星期六"
-
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:246
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:88
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:171
-msgid "task-zh"
-msgstr "task-zh"
-
-#: frontend/desktop/src/components/common/NotifyInfo.vue:40
-#: frontend/desktop/src/pages/template/ListPageTipsTitle.vue:49
-#: frontend/desktop/src/pages/template/TemplateEdit/SubflowUpdateTips.vue:56
-msgid "收起"
-msgstr "收起"
 
 #: frontend/desktop/src/components/common/RenderForm/FormGroup.vue:121
 #: frontend/desktop/src/components/common/RenderForm/FormItem.vue:173
@@ -167,41 +28,26 @@ msgstr "取消勾选"
 msgid "勾选参数作为全局变量"
 msgstr "勾选参数作为全局变量"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:50
-#: frontend/desktop/src/components/layout/ProjectSelector.vue:78
-#: frontend/desktop/src/pages/home/MyDynamic.vue:137
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:249
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:314
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:247
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:49
 msgid "请选择"
 msgstr "请选择"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:51
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:50
 msgid "请输入，多个用换行分隔"
 msgstr "请输入，多个用换行分隔"
 
-#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:52
+#: frontend/desktop/src/components/common/RenderForm/IpSelector/ConditionItem.vue:51
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:53
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:134
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:220
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:232
 #: frontend/desktop/src/components/common/RenderForm/formMixins.js:219
-#: frontend/desktop/src/main.js:87
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:179
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:285
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:68
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:140
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:94
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:111
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:92
 #: frontend/mobile/src/main.js:107
 msgid "必填项"
 msgstr "必填项"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:49
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:122
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:168
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:137
 msgid "已选择"
 msgstr "已选择"
 
@@ -218,12 +64,6 @@ msgstr "搜索节点"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:89
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:171
 #: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:140
-#: frontend/desktop/src/components/common/base/NoData.vue:37
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:80
-#: frontend/desktop/src/pages/task/TaskExecute/ViewParams.vue:88
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:154
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:309
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:306
 msgid "无数据"
 msgstr "无数据"
 
@@ -258,8 +98,6 @@ msgstr "清空Agent异常IP"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:120
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:85
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:225
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:283
-#: frontend/desktop/src/pages/home/MyCollection.vue:103
 #: pipeline_plugins/variables/static/variables/datatable.js:93
 msgid "添加"
 msgstr "添加"
@@ -283,19 +121,6 @@ msgstr "云区域"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:126
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIpAddingPanel.vue:87
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:243
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:119
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:130
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:161
-#: frontend/desktop/src/pages/audit/AuditList.vue:165
-#: frontend/desktop/src/pages/audit/AuditList.vue:197
-#: frontend/desktop/src/pages/functor/FunctionList.vue:268
-#: frontend/desktop/src/pages/home/MyDynamic.vue:122
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:225
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:284
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:258
-#: frontend/desktop/src/pages/task/TaskList/index.vue:220
-#: frontend/desktop/src/pages/task/TaskList/index.vue:287
 msgid "状态"
 msgstr "状态"
 
@@ -307,17 +132,6 @@ msgstr "异常"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:128
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/index.vue:238
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:223
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:197
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:282
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:121
-#: frontend/desktop/src/pages/audit/AuditList.vue:198
-#: frontend/desktop/src/pages/functor/FunctionList.vue:306
-#: frontend/desktop/src/pages/project/index.vue:247
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:267
-#: frontend/desktop/src/pages/task/TaskList/index.vue:288
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:177
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:288
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:285
 msgid "操作"
 msgstr "操作"
 
@@ -343,24 +157,6 @@ msgstr "服务器"
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:252
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:138
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:221
-#: frontend/desktop/src/components/common/base/DialogLoadingBtn.vue:40
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:82
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:67
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheEdit.vue:65
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageEdit.vue:60
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:205
-#: frontend/desktop/src/pages/atomdev/index.vue:191
-#: frontend/desktop/src/pages/functor/FunctionList.vue:323
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:186
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:96
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:151
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyTime.vue:52
-#: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:52
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:129
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:189
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:127
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:159
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:171
 #: frontend/mobile/src/views/task/reset.vue:79
 #: frontend/mobile/src/views/task/timing.vue:40
 msgid "取消"
@@ -398,15 +194,6 @@ msgid "资源筛选"
 msgstr "资源筛选"
 
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceFilter.vue:251
-#: frontend/desktop/src/components/common/base/DialogLoadingBtn.vue:37
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:204
-#: frontend/desktop/src/pages/atomdev/index.vue:190
-#: frontend/desktop/src/pages/functor/FunctionList.vue:322
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:183
-#: frontend/desktop/src/pages/project/index.vue:261
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:93
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:128
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:156
 msgid "确认"
 msgstr "确认"
 
@@ -457,60 +244,27 @@ msgid "参数错误，请检查模块表单项"
 msgstr "参数错误，请检查模块表单项"
 
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:133
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:300
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:297
 #: pipeline_plugins/variables/static/variables/datatable.js:100
 msgid "导出"
 msgstr "导出"
 
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:134
-#: frontend/desktop/src/pages/atomdev/index.vue:185
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:301
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:298
 #: pipeline_plugins/variables/static/variables/datatable.js:107
 msgid "导入"
 msgstr "导入"
 
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:135
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:222
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:303
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:76
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:120
-#: frontend/desktop/src/pages/project/index.vue:179
-#: frontend/desktop/src/pages/project/index.vue:254
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:270
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:170
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:290
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:287
 msgid "编辑"
 msgstr "编辑"
 
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:136
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:224
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:173
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:271
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:121
-#: frontend/desktop/src/pages/appmaker/index.vue:186
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:167
-#: frontend/desktop/src/pages/home/MyCollection.vue:104
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:269
-#: frontend/desktop/src/pages/task/TaskList/index.vue:291
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableItem.vue:166
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:118
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:140
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:296
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:289
 msgid "删除"
 msgstr "删除"
 
 #: frontend/desktop/src/components/common/RenderForm/SetAllocation/ResourceList.vue:137
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:220
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:150
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyParams.vue:75
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:146
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:188
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:126
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabPipelineTreeEdit.vue:58
 msgid "保存"
 msgstr "保存"
 
@@ -617,14 +371,6 @@ msgid "设置是否可搜索"
 msgstr "设置是否可搜索"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagCascader.vue:150
-#: frontend/desktop/src/components/common/advanceSearchForm/index.vue:96
-#: frontend/desktop/src/constants/manage.js:39
-#: frontend/desktop/src/constants/manage.js:43
-#: frontend/desktop/src/constants/manage.js:47
-#: frontend/desktop/src/constants/manage.js:51
-#: frontend/desktop/src/constants/manage.js:61
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:178
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:277
 msgid "请输入"
 msgstr "请输入"
 
@@ -665,7 +411,6 @@ msgid "参数类型"
 msgstr "参数类型"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:135
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:363
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:133
 msgid "参数值"
 msgstr "参数值"
@@ -738,8 +483,6 @@ msgid "提交"
 msgstr "提交"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagUpload.vue:141
-#: frontend/desktop/src/pages/atomdev/UploadReadFile.vue:31
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:149
 msgid "点击上传"
 msgstr "点击上传"
 
@@ -747,3369 +490,19 @@ msgstr "点击上传"
 msgid "选择文件"
 msgstr "选择文件"
 
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:83
-#: frontend/desktop/src/constants/index.js:20
-#: frontend/desktop/src/mixins/task.js:23
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:391
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:158
-#: frontend/mobile/src/views/task/canvas.vue:93
-msgid "撤销"
-msgstr "撤销"
+#: frontend/desktop/test/unit/components/RenderForm/combinePlugin.js:85
+#: pipeline_plugins/components/static/components/atoms/bk/notify.js:140
+msgid "通知主题"
+msgstr "通知主题"
 
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:84
-msgid "恢复"
-msgstr "恢复"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:85
-msgid "快捷键列表"
-msgstr "快捷键列表"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:86
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:127
-msgid "放大"
-msgstr "放大"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:87
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:128
-msgid "缩小"
-msgstr "缩小"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:88
-msgid "鼠标滚动"
-msgstr "鼠标滚动"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:89
-msgid "缩放"
-msgstr "缩放"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:90
-msgid "还原"
-msgstr "还原"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:91
-msgid "鼠标左键单击"
-msgstr "鼠标左键单击"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:92
-msgid "连续选中（或取消）节点"
-msgstr "连续选中（或取消）节点"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:93
-msgid "选中所有节点"
-msgstr "选中所有节点"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:94
-msgid "选中后"
-msgstr "选中后"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:95
-msgid "删除节点"
-msgstr "删除节点"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:96
-msgid "箭头（上下左右）"
-msgstr "箭头（上下左右）"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:97
-msgid "移动流程元素"
-msgstr "移动流程元素"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/HelpInfo/index.vue:98
-msgid "取消选中"
-msgstr "取消选中"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/BranchGateway.vue:43
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/TaskNode.vue:105
-#: frontend/mobile/src/views/task/canvas.vue:120
-msgid "跳过"
-msgstr "跳过"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/EndPoint.vue:35
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:112
-msgid "结束"
-msgstr "结束"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/StartPoint.vue:35
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:111
-msgid "开始"
-msgstr "开始"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/Subflow.vue:79
-#: frontend/desktop/src/constants/index.js:16
-#: frontend/desktop/src/mixins/task.js:52
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:425
-#: frontend/desktop/src/pages/audit/AuditList.vue:206
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:231
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:271
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:372
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:148
-#: frontend/desktop/src/pages/task/TaskList/index.vue:304
-#: frontend/mobile/src/views/task/canvas.vue:89
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:154
-msgid "暂停"
-msgstr "暂停"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/Subflow.vue:80
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/TaskNode.vue:106
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:153
-#: frontend/mobile/src/views/task/canvas.vue:126
-msgid "继续"
-msgstr "继续"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/Subflow.vue:81
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/TaskNode.vue:108
-msgid "强制失败"
-msgstr "强制失败"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/TaskNode.vue:104
-#: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:50
-#: frontend/mobile/src/views/task/canvas.vue:119
-msgid "重试"
-msgstr "重试"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/TaskNode.vue:107
-#: frontend/mobile/src/views/task/canvas.vue:122
-msgid "修改时间"
-msgstr "修改时间"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/NodeTemplate/TaskNode.vue:109
-msgid "流程模板中该标准插件节点未配置失败处理方式，不可操作"
-msgstr "流程模板中该标准插件节点未配置失败处理方式，不可操作"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/NodeMenu.vue:172
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/SelectorPanel.vue:145
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:143
-msgid "请输入名称"
-msgstr "请输入名称"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/NodeMenu.vue:184
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/SelectorPanel.vue:163
-msgid "所有分组"
-msgstr "所有分组"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/NodeMenu.vue:184
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/SelectorPanel.vue:163
-msgid "所有分类"
-msgstr "所有分类"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:197
-msgid "标准插件节点："
-msgstr "标准插件节点："
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:201
-msgid "已封装好的可用插件，可直接选中拖拽至画布中。"
-msgstr "已封装好的可用插件，可直接选中拖拽至画布中。"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:211
-msgid "子流程："
-msgstr "子流程："
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:215
-msgid "同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。"
-msgstr "同一个项目下已新建的流程，作为子流程可以嵌套进至当前流程，并在执行任务时可以操作子流程的单个节点。"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:225
-msgid "并行网关："
-msgstr "并行网关："
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:229
-msgid "有多个流出分支，并且多个流出分支都默认执行。"
-msgstr "有多个流出分支，并且多个流出分支都默认执行。"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:239
-msgid "分支网关："
-msgstr "分支网关："
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:243
-msgid "执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。"
-msgstr "执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:253
-msgid "汇聚网关："
-msgstr "汇聚网关："
-
-#: frontend/desktop/src/components/common/TemplateCanvas/PalettePanel/index.vue:257
-msgid "所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。"
-msgstr "所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:126
-msgid "复位"
-msgstr "复位"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:129
-msgid "节点框选"
-msgstr "节点框选"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:130
-msgid "排版"
-msgstr "排版"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:131
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:83
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:139
-msgid "全选"
-msgstr "全选"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:132
-msgid "反选"
-msgstr "反选"
-
-#: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:133
-msgid "快捷键"
-msgstr "快捷键"
-
-#: frontend/desktop/src/components/common/advanceSearchForm/AdvanceSearch.vue:56
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:265
-#: frontend/desktop/src/pages/task/TaskList/index.vue:302
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:318
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:314
-msgid "高级搜索"
-msgstr "高级搜索"
-
-#: frontend/desktop/src/components/common/advanceSearchForm/index.vue:108
-#: frontend/desktop/src/pages/admin/manage/index.vue:28
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:168
-#: frontend/desktop/src/pages/appmaker/index.vue:189
-#: frontend/desktop/src/pages/audit/AuditList.vue:208
-#: frontend/desktop/src/pages/functor/FunctionList.vue:320
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:289
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:315
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:311
-msgid "搜索"
-msgstr "搜索"
-
-#: frontend/desktop/src/components/common/base/BaseCard.vue:73
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:170
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:132
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:143
-msgid "申请权限"
-msgstr "申请权限"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode403.vue:28
-msgid "对不起，您没有当前应用的访问权限"
-msgstr "对不起，您没有当前应用的访问权限"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode403.vue:29
-#: frontend/desktop/src/components/common/modal/ErrorCode407.vue:29
-msgid "请尝试如下操作："
-msgstr "请尝试如下操作："
-
-#: frontend/desktop/src/components/common/modal/ErrorCode403.vue:30
-msgid "联系应用“管理员”为您添加应用访问白名单或者 IP 白名单"
-msgstr "联系应用“管理员”为您添加应用访问白名单或者 IP 白名单"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode405.vue:37
-msgid "对不起，您没有当前操作需要的的权限"
-msgstr "对不起，您没有当前操作需要的的权限"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode405.vue:38
-#: frontend/desktop/src/components/common/modal/ErrorCode406.vue:35
-msgid "1.联系项目运维为您添加"
-msgstr "1.联系项目运维为您添加"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode405.vue:39
-#: frontend/desktop/src/components/common/modal/ErrorCode406.vue:36
-#: frontend/desktop/src/pages/home/CommonlyUsed.vue:79
-msgid "配置平台"
-msgstr "配置平台"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode405.vue:40
-#: frontend/desktop/src/components/common/modal/ErrorCode406.vue:37
-msgid "对应项目的角色，如运维人员、开发人员、产品人员、测试人员"
-msgstr "对应项目的角色，如运维人员、开发人员、产品人员、测试人员"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode405.vue:41
-msgid "2.联系项目运维为您添加需要操作的流程模板的权限"
-msgstr "2.联系项目运维为您添加需要操作的流程模板的权限"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode405.vue:42
-msgid "3.或者前往"
-msgstr "3.或者前往"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode405.vue:43
-#: frontend/desktop/src/components/common/modal/ErrorCode406.vue:39
-msgid "创建属于自己的项目"
-msgstr "创建属于自己的项目"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode406.vue:34
-msgid "对不起，您没有项目权限"
-msgstr "对不起，您没有项目权限"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode406.vue:38
-msgid "2.或者前往"
-msgstr "2.或者前往"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode407.vue:28
-msgid "对不起，您没有当前应用的管理员权限"
-msgstr "对不起，您没有当前应用的管理员权限"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode407.vue:30
-msgid "联系“管理员”为您添加管理员权限"
-msgstr "联系“管理员”为您添加管理员权限"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode500.vue:27
-msgid "应用出现异常"
-msgstr "应用出现异常"
-
-#: frontend/desktop/src/components/common/modal/ErrorCode500.vue:28
-#: frontend/desktop/src/utils/errorHandler.js:48
-#: frontend/desktop/src/utils/errorHandler.js:53
-#: frontend/mobile/src/utils/errorHandler.js:45
-#: frontend/mobile/src/utils/errorHandler.js:50
-msgid "系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!"
-msgstr "系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!"
-
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:76
-msgid "没有权限访问或操作此资源"
-msgstr "没有权限访问或操作此资源"
-
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:77
-msgid "系统"
-msgstr "系统"
-
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:78
-msgid "资源"
-msgstr "资源"
-
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:79
-msgid "需要申请的权限"
-msgstr "需要申请的权限"
-
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:81
-#: frontend/desktop/src/components/layout/permissionApply.vue:61
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:124
-msgid "去申请"
-msgstr "去申请"
-
-#: frontend/desktop/src/components/common/modal/PermissionModal.vue:83
-#: frontend/desktop/src/components/layout/ProjectSelector.vue:77
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:182
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:214
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:119
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:154
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:187
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:169
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:125
-#: frontend/desktop/src/pages/atomdev/configPanel/ContextEdit.vue:67
-#: frontend/desktop/src/pages/home/MyDynamic.vue:105
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:186
-#: frontend/desktop/src/pages/project/index.vue:262
-#: frontend/desktop/src/pages/project/index.vue:431
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:262
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:269
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:505
-msgid "项目"
-msgstr "项目"
-
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:66
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:73
-#: frontend/desktop/src/pages/functor/FunctionList.vue:310
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:141
-msgid "选择项目"
-msgstr "选择项目"
-
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:68
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:186
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:207
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:272
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:299
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:129
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:256
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:296
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:218
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:239
-#: frontend/desktop/src/pages/functor/FunctionList.vue:249
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:83
-msgid "请选择项目"
-msgstr "请选择项目"
-
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:73
-#: frontend/desktop/src/components/layout/Navigator.vue:177
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:125
-#: frontend/desktop/src/pages/task/TaskStep.vue:62
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:147
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:289
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:286
-#: frontend/mobile/src/views/task/create.vue:153
-msgid "新建任务"
-msgstr "新建任务"
-
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:74
-msgid "去新建"
-msgstr "去新建"
-
-#: frontend/desktop/src/components/common/modal/ProjectSelectorModal.vue:74
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:124
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyTime.vue:51
-#: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:51
-#: frontend/mobile/src/views/task/reset.vue:80
-#: frontend/mobile/src/views/task/timing.vue:41
-msgid "确定"
-msgstr "确定"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:113
-#: frontend/desktop/src/pages/functor/FunctionList.vue:343
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:127
-#: frontend/desktop/src/pages/home/MyCollection.vue:177
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:144
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:281
-msgid "项目流程"
-msgstr "项目流程"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:119
-#: frontend/desktop/src/pages/task/TaskManage.vue:33
-msgid "任务管理"
-msgstr "任务管理"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:125
-#: frontend/desktop/src/pages/appmaker/index.vue:178
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:135
-#: frontend/desktop/src/pages/home/MyCollection.vue:179
-#: frontend/desktop/src/pages/task/TaskList/index.vue:301
-msgid "轻应用"
-msgstr "轻应用"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:131
-#: frontend/desktop/src/pages/functor/FunctionList.vue:347
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:123
-#: frontend/desktop/src/pages/home/MyCollection.vue:178
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:148
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:278
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:511
-msgid "公共流程"
-msgstr "公共流程"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:137
-msgid "职能化"
-msgstr "职能化"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:142
-msgid "操作审计"
-msgstr "操作审计"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:147
-#: frontend/desktop/src/pages/project/index.vue:239
-msgid "项目管理"
-msgstr "项目管理"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:152
-msgid "管理员入口"
-msgstr "管理员入口"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:157
-#: frontend/desktop/src/pages/admin/manage/index.vue:53
-msgid "后台管理"
-msgstr "后台管理"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:162
-#: frontend/desktop/src/pages/admin/statistics/index.vue:78
-msgid "运营数据"
-msgstr "运营数据"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:167
-#: frontend/desktop/src/pages/atomdev/index.vue:181
-msgid "插件开发"
-msgstr "插件开发"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:183
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:167
-#: frontend/desktop/src/pages/task/TaskManage.vue:42
-msgid "任务记录"
-msgstr "任务记录"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:198
-msgid "帮助文档"
-msgstr "帮助文档"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:199
-#: version_log/static/version_log/js/modal_frame.js:26
-msgid "版本日志"
-msgstr "版本日志"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:200
-msgid "标准运维"
-msgstr "标准运维"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:313
-#: frontend/desktop/src/pages/functor/FunctionList.vue:293
-msgid "职能化中心"
-msgstr "职能化中心"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:317
-#: frontend/desktop/src/components/layout/Navigator.vue:332
-#: frontend/desktop/src/pages/audit/AuditList.vue:199
-#: frontend/desktop/src/pages/functor/FunctionList.vue:308
-#: frontend/desktop/src/pages/project/index.vue:173
-#: frontend/desktop/src/pages/project/index.vue:253
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:88
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/SelectorPanel.vue:144
-msgid "查看"
-msgstr "查看"
-
-#: frontend/desktop/src/components/layout/Navigator.vue:328
-#: frontend/desktop/src/pages/audit/AuditList.vue:188
-msgid "审计中心"
-msgstr "审计中心"
-
-#: frontend/desktop/src/components/layout/NotFoundComponent.vue:25
-msgid "没找到页面！"
-msgstr "没找到页面！"
-
-#: frontend/desktop/src/components/layout/ProjectSelector.vue:76
-#: pipeline_plugins/components/static/components/atoms/bk/notify.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_batch_delete_set.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_empty_set_hosts.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_to_idle.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:18
-#: pipeline_plugins/components/static/components/atoms/cc/v1.0/cc_create_set.js:18
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:18
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:18
-#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:18
-#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:7
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:18
-#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:19
-msgid "业务"
-msgstr "业务"
-
-#: frontend/desktop/src/components/layout/VersionLog.vue:76
-msgid "当前版本"
-msgstr "当前版本"
-
-#: frontend/desktop/src/components/layout/permissionApply.vue:57
-msgid "无权限访问"
-msgstr "无权限访问"
-
-#: frontend/desktop/src/components/layout/permissionApply.vue:58
-msgid "无权限访问项目"
-msgstr "无权限访问项目"
-
-#: frontend/desktop/src/components/layout/permissionApply.vue:59
-msgid "你没有相应资源的访问权限，请申请权限或联系管理员授权"
-msgstr "你没有相应资源的访问权限，请申请权限或联系管理员授权"
-
-#: frontend/desktop/src/components/layout/permissionApply.vue:62
-#: frontend/desktop/src/pages/project/index.vue:240
-msgid "新建项目"
-msgstr "新建项目"
-
-#: frontend/desktop/src/config/setting.js:81
-msgid "提示"
-msgstr "提示"
-
-#: frontend/desktop/src/constants/index.js:14
-#: frontend/desktop/src/mixins/task.js:29
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:397
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:135
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:190
-#: frontend/desktop/src/pages/audit/AuditList.vue:170
-#: frontend/desktop/src/pages/task/TaskList/index.vue:225
-#: frontend/mobile/src/views/task/canvas.vue:87
-msgid "未执行"
-msgstr "未执行"
-
-#: frontend/desktop/src/constants/index.js:15
-#: frontend/desktop/src/mixins/task.js:48
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:421
-#: frontend/desktop/src/pages/audit/AuditList.vue:205
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:371
-#: frontend/desktop/src/pages/task/TaskList/index.vue:303
-#: frontend/mobile/src/views/task/canvas.vue:88
-msgid "执行中"
-msgstr "执行中"
-
-#: frontend/desktop/src/constants/index.js:17
-#: frontend/desktop/src/mixins/task.js:56
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:429
-#: frontend/mobile/src/views/task/canvas.vue:90
-msgid "节点暂停"
-msgstr "节点暂停"
-
-#: frontend/desktop/src/constants/index.js:18
-#: frontend/desktop/src/mixins/task.js:60
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:433
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:373
-#: frontend/mobile/src/views/task/canvas.vue:91
-msgid "失败"
-msgstr "失败"
-
-#: frontend/desktop/src/constants/index.js:19
-#: frontend/desktop/src/mixins/task.js:20
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:388
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheEdit.vue:64
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:137
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:192
-#: frontend/desktop/src/pages/audit/AuditList.vue:172
-#: frontend/desktop/src/pages/functor/FunctionList.vue:276
-#: frontend/desktop/src/pages/functor/FunctionList.vue:470
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:374
-#: frontend/desktop/src/pages/task/TaskList/index.vue:227
-#: frontend/mobile/src/views/task/canvas.vue:92
-msgid "完成"
-msgstr "完成"
-
-#: frontend/desktop/src/constants/index.js:24
-msgid "开始节点"
-msgstr "开始节点"
-
-#: frontend/desktop/src/constants/index.js:25
-msgid "结束节点"
-msgstr "结束节点"
-
-#: frontend/desktop/src/constants/index.js:28
-msgid "并行网关"
-msgstr "并行网关"
-
-#: frontend/desktop/src/constants/index.js:29
-msgid "分支网关"
-msgstr "分支网关"
-
-#: frontend/desktop/src/constants/index.js:30
-msgid "汇聚网关"
-msgstr "汇聚网关"
-
-#: frontend/desktop/src/constants/index.js:31
-msgid "标准插件节点"
-msgstr "标准插件节点"
-
-#: frontend/desktop/src/constants/index.js:32
-msgid "子流程节点"
-msgstr "子流程节点"
-
-#: frontend/desktop/src/constants/manage.js:17
-msgid "GIT"
-msgstr "GIT"
-
-#: frontend/desktop/src/constants/manage.js:20
-msgid "仓库链接"
-msgstr "仓库链接"
-
-#: frontend/desktop/src/constants/manage.js:21
-msgid "请输入 GIT 仓库地址，如 https://github.com/bk-sops/plugins_example.git"
-msgstr "请输入 GIT 仓库地址，如 https://github.com/bk-sops/plugins_example.git"
-
-#: frontend/desktop/src/constants/manage.js:24
-msgid "文件托管仓库链接"
-msgstr "文件托管仓库链接"
-
-#: frontend/desktop/src/constants/manage.js:25
-msgid "请输入仓库中文件的 Raw 链接的前缀，如 https://raw.githubusercontent.com/bk-sops/plugins_example/"
-msgstr "请输入仓库中文件的 Raw 链接的前缀，如 https://raw.githubusercontent.com/bk-sops/plugins_example/"
-
-#: frontend/desktop/src/constants/manage.js:28
-msgid "分支名"
-msgstr "分支名"
-
-#: frontend/desktop/src/constants/manage.js:29
-msgid "请输入分支名"
-msgstr "请输入分支名"
-
-#: frontend/desktop/src/constants/manage.js:35
-msgid "S3"
-msgstr "S3"
-
-#: frontend/desktop/src/constants/manage.js:38
-msgid "对象存储服务地址"
-msgstr "对象存储服务地址"
-
-#: frontend/desktop/src/constants/manage.js:42
-msgid "Bucket"
-msgstr "Bucket"
-
-#: frontend/desktop/src/constants/manage.js:46
-msgid "Access Key"
-msgstr "Access Key"
-
-#: frontend/desktop/src/constants/manage.js:50
-msgid "Secret Key"
-msgstr "Secret Key"
-
-#: frontend/desktop/src/constants/manage.js:57
-msgid "文件系统"
-msgstr "文件系统"
-
-#: frontend/desktop/src/constants/manage.js:60
-msgid "服务器文件系统路径"
-msgstr "服务器文件系统路径"
-
-#: frontend/desktop/src/main.js:74 frontend/desktop/src/main.js:158
-msgid "输入定时表达式非法，请校验"
-msgstr "输入定时表达式非法，请校验"
-
-#: frontend/desktop/src/main.js:80 frontend/desktop/src/main.js:162
-msgid "间隔时间必须是正整数"
-msgstr "间隔时间必须是正整数"
-
-#: frontend/desktop/src/main.js:91
-msgid "流程名称不能为空"
-msgstr "流程名称不能为空"
-
-#: frontend/desktop/src/main.js:92
-msgid "流程名称不能包含"
-msgstr "流程名称不能包含"
-
-#: frontend/desktop/src/main.js:92 frontend/desktop/src/main.js:97
-#: frontend/desktop/src/main.js:101 frontend/desktop/src/main.js:106
-#: frontend/desktop/src/main.js:124 frontend/desktop/src/main.js:129
-#: frontend/desktop/src/main.js:137 frontend/desktop/src/main.js:145
-#: frontend/desktop/src/main.js:150 frontend/desktop/src/main.js:166
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:175
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:201
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:104
-msgid "非法字符"
-msgstr "非法字符"
-
-#: frontend/desktop/src/main.js:93
-msgid "流程名称长度不能超过"
-msgstr "流程名称长度不能超过"
-
-#: frontend/desktop/src/main.js:93 frontend/desktop/src/main.js:98
-#: frontend/desktop/src/main.js:102 frontend/desktop/src/main.js:107
-#: frontend/desktop/src/main.js:112 frontend/desktop/src/main.js:125
-#: frontend/desktop/src/main.js:130 frontend/desktop/src/main.js:138
-#: frontend/desktop/src/main.js:141 frontend/desktop/src/main.js:146
-#: frontend/desktop/src/main.js:151 frontend/desktop/src/main.js:154
-#: frontend/desktop/src/main.js:167 frontend/desktop/src/main.js:171
-#: frontend/desktop/src/main.js:175 frontend/desktop/src/main.js:179
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:305
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:180
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:206
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:99
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:116
-msgid "个字符"
-msgstr "个字符"
-
-#: frontend/desktop/src/main.js:96
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:170
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:196
-msgid "节点名称不能为空"
-msgstr "节点名称不能为空"
-
-#: frontend/desktop/src/main.js:97
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:175
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:201
-msgid "节点名称不能包含"
-msgstr "节点名称不能包含"
-
-#: frontend/desktop/src/main.js:98
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:180
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:206
-msgid "节点名称长度不能超过"
-msgstr "节点名称长度不能超过"
-
-#: frontend/desktop/src/main.js:101
-msgid "步骤名称不能包含"
-msgstr "步骤名称不能包含"
-
-#: frontend/desktop/src/main.js:102
-msgid "步骤名称不能超过"
-msgstr "步骤名称不能超过"
-
-#: frontend/desktop/src/main.js:105
-msgid "变量名称不能为空"
-msgstr "变量名称不能为空"
-
-#: frontend/desktop/src/main.js:106
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:104
-msgid "变量名称不能包含"
-msgstr "变量名称不能包含"
-
-#: frontend/desktop/src/main.js:107
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:99
-msgid "变量名称长度不能超过"
-msgstr "变量名称长度不能超过"
-
-#: frontend/desktop/src/main.js:110
-msgid "变量KEY值不能为空"
-msgstr "变量KEY值不能为空"
-
-#: frontend/desktop/src/main.js:111
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:122
-msgid "变量KEY由英文字母、数字、下划线组成，且不能以数字开头"
-msgstr "变量KEY由英文字母、数字、下划线组成，且不能以数字开头"
-
-#: frontend/desktop/src/main.js:112
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:116
-msgid "变量KEY值长度不能超过"
-msgstr "变量KEY值长度不能超过"
-
-#: frontend/desktop/src/main.js:113
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:133
-msgid "变量KEY值已存在"
-msgstr "变量KEY值已存在"
-
-#: frontend/desktop/src/main.js:116
-msgid "变量隐藏时默认值不能为空"
-msgstr "变量隐藏时默认值不能为空"
-
-#: frontend/desktop/src/main.js:117
-msgid "默认值不满足正则校验"
-msgstr "默认值不满足正则校验"
-
-#: frontend/desktop/src/main.js:120
-msgid "正则校验不是合法的正则表达式"
-msgstr "正则校验不是合法的正则表达式"
-
-#: frontend/desktop/src/main.js:123 frontend/mobile/src/main.js:111
-msgid "任务名称不能为空"
-msgstr "任务名称不能为空"
-
-#: frontend/desktop/src/main.js:124
-msgid "任务名称不能包含"
-msgstr "任务名称不能包含"
-
-#: frontend/desktop/src/main.js:125
-msgid "任务名称不能超过"
-msgstr "任务名称不能超过"
-
-#: frontend/desktop/src/main.js:128
-msgid "方案名称不能为空"
-msgstr "方案名称不能为空"
-
-#: frontend/desktop/src/main.js:129
-msgid "方案名称不能包含"
-msgstr "方案名称不能包含"
-
-#: frontend/desktop/src/main.js:130
-msgid "方案名称不能超过"
-msgstr "方案名称不能超过"
-
-#: frontend/desktop/src/main.js:133
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:196
-msgid "流程模板不能为空"
-msgstr "流程模板不能为空"
-
-#: frontend/desktop/src/main.js:136
-msgid "应用名称不能为空"
-msgstr "应用名称不能为空"
-
-#: frontend/desktop/src/main.js:137
-msgid "应用名称不能包含"
-msgstr "应用名称不能包含"
-
-#: frontend/desktop/src/main.js:138
-msgid "应用名称不能超过"
-msgstr "应用名称不能超过"
-
-#: frontend/desktop/src/main.js:141
-msgid "应用简介不能超过"
-msgstr "应用简介不能超过"
-
-#: frontend/desktop/src/main.js:144
-msgid "定时流程名称不能为空"
-msgstr "定时流程名称不能为空"
-
-#: frontend/desktop/src/main.js:145
-msgid "定时流程名称包含"
-msgstr "定时流程名称包含"
-
-#: frontend/desktop/src/main.js:146
-msgid "定时流程名称不能超过"
-msgstr "定时流程名称不能超过"
-
-#: frontend/desktop/src/main.js:149
-msgid "项目名称不能为空"
-msgstr "项目名称不能为空"
-
-#: frontend/desktop/src/main.js:150
-msgid "项目名称包含"
-msgstr "项目名称包含"
-
-#: frontend/desktop/src/main.js:151
-msgid "项目名称不能超过"
-msgstr "项目名称不能超过"
-
-#: frontend/desktop/src/main.js:154
-msgid "项目描述不能超过"
-msgstr "项目描述不能超过"
-
-#: frontend/desktop/src/main.js:157
-msgid "定时表达式不能为空"
-msgstr "定时表达式不能为空"
-
-#: frontend/desktop/src/main.js:161
-msgid "间隔时间不能为空"
-msgstr "间隔时间不能为空"
-
-#: frontend/desktop/src/main.js:165
-msgid "本地缓存名称不能为空"
-msgstr "本地缓存名称不能为空"
-
-#: frontend/desktop/src/main.js:166
-msgid "本地缓存名称包含"
-msgstr "本地缓存名称包含"
-
-#: frontend/desktop/src/main.js:167
-msgid "本地缓存名称不能超过"
-msgstr "本地缓存名称不能超过"
-
-#: frontend/desktop/src/main.js:170 frontend/desktop/src/main.js:174
-#: frontend/desktop/src/main.js:178
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:314
-msgid "名称由英文字母、数字、下划线组成，且不能以数字开头"
-msgstr "名称由英文字母、数字、下划线组成，且不能以数字开头"
-
-#: frontend/desktop/src/main.js:171 frontend/desktop/src/main.js:175
-#: frontend/desktop/src/main.js:179
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:305
-msgid "名称长度不能超过"
-msgstr "名称长度不能超过"
-
-#: frontend/desktop/src/main.js:182
-msgid "开始分钟数不能为空"
-msgstr "开始分钟数不能为空"
-
-#: frontend/desktop/src/main.js:183
-msgid "请输入 0 - 59 之间的数"
-msgstr "请输入 0 - 59 之间的数"
-
-#: frontend/desktop/src/main.js:186
-msgid "开始小时数不能为空"
-msgstr "开始小时数不能为空"
-
-#: frontend/desktop/src/main.js:187
-msgid "请输入 0 - 23 之间的数"
-msgstr "请输入 0 - 23 之间的数"
-
-#: frontend/desktop/src/main.js:190
-msgid "开始周数不能为空"
-msgstr "开始周数不能为空"
-
-#: frontend/desktop/src/main.js:191
-msgid "请输入 0 - 6 之间的数"
-msgstr "请输入 0 - 6 之间的数"
-
-#: frontend/desktop/src/main.js:194
-msgid "开始天数不能为空"
-msgstr "开始天数不能为空"
-
-#: frontend/desktop/src/main.js:195
-msgid "请输入 1 - 31 之间的数"
-msgstr "请输入 1 - 31 之间的数"
-
-#: frontend/desktop/src/main.js:198
-msgid "开始月数不能为空"
-msgstr "开始月数不能为空"
-
-#: frontend/desktop/src/main.js:199
-msgid "请输入 1 - 12 之间的数"
-msgstr "请输入 1 - 12 之间的数"
-
-#: frontend/desktop/src/main.js:202
-msgid "test不能为空"
-msgstr "test不能为空"
-
-#: frontend/desktop/src/main.js:203
-msgid "请输入 test 之间的数"
-msgstr "请输入 test 之间的数"
-
-#: frontend/desktop/src/mixins/task.js:63
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:436
-msgid "未知"
-msgstr "未知"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:173
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:205
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:254
-msgid "ID"
-msgstr "ID"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:178
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:150
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:121
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:153
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:283
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:280
-msgid "流程名称"
-msgstr "流程名称"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:187
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:129
-#: frontend/desktop/src/pages/appmaker/index.vue:132
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:242
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:285
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:240
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:282
-msgid "更新时间"
-msgstr "更新时间"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:192
-msgid "是否已删除"
-msgstr "是否已删除"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:210
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:183
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:164
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:157
-#: frontend/desktop/src/pages/audit/AuditList.vue:193
-#: frontend/desktop/src/pages/functor/FunctionList.vue:300
-#: frontend/desktop/src/pages/home/MyDynamic.vue:100
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:142
-#: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:112
-#: frontend/desktop/src/pages/task/TaskList/TaskCloneDialog.vue:55
-#: frontend/desktop/src/pages/task/TaskList/index.vue:281
-#: frontend/mobile/src/views/task/create.vue:154
-#: frontend/mobile/src/views/task/detail.vue:49
-msgid "任务名称"
-msgstr "任务名称"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:218
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:103
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:155
-#: frontend/desktop/src/pages/audit/AuditList.vue:138
-#: frontend/desktop/src/pages/audit/AuditList.vue:191
-#: frontend/desktop/src/pages/home/MyDynamic.vue:109
-#: frontend/desktop/src/pages/task/TaskList/index.vue:185
-#: frontend/desktop/src/pages/task/TaskList/index.vue:282
-msgid "执行开始"
-msgstr "执行开始"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:223
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:156
-#: frontend/desktop/src/pages/audit/AuditList.vue:192
-#: frontend/desktop/src/pages/functor/FunctionList.vue:299
-#: frontend/desktop/src/pages/home/MyDynamic.vue:113
-#: frontend/desktop/src/pages/task/TaskList/index.vue:283
-msgid "执行结束"
-msgstr "执行结束"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:228
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:128
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:164
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:196
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:179
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:135
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:117
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:159
-#: frontend/desktop/src/pages/audit/AuditList.vue:152
-#: frontend/desktop/src/pages/audit/AuditList.vue:195
-#: frontend/desktop/src/pages/project/index.vue:246
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:219
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:266
-#: frontend/desktop/src/pages/task/TaskList/index.vue:207
-#: frontend/desktop/src/pages/task/TaskList/index.vue:285
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:260
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:287
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:257
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:284
-msgid "创建人"
-msgstr "创建人"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:233
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:124
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:160
-#: frontend/desktop/src/pages/audit/AuditList.vue:159
-#: frontend/desktop/src/pages/audit/AuditList.vue:196
-#: frontend/desktop/src/pages/task/TaskList/index.vue:214
-#: frontend/desktop/src/pages/task/TaskList/index.vue:286
-msgid "执行人"
-msgstr "执行人"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:238
-#: frontend/desktop/src/pages/home/MyDynamic.vue:117
-#: frontend/desktop/src/pages/task/TaskList/index.vue:198
-#: frontend/desktop/src/pages/task/TaskList/index.vue:299
-msgid "创建方式"
-msgstr "创建方式"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:296
-msgid "搜索结果"
-msgstr "搜索结果"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:297
-msgid "找到"
-msgstr "找到"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:298
-msgid "条结果"
-msgstr "条结果"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:299
-msgid "没有找到相关内容"
-msgstr "没有找到相关内容"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:300
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:89
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:367
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:156
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:251
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:307
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:249
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:304
-#: frontend/mobile/src/views/task/nodes.vue:110
-#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:173
-msgid "是"
-msgstr "是"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:301
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:90
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:368
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:157
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:252
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:308
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:250
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:305
-#: frontend/mobile/src/views/task/nodes.vue:111
-#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:174
-msgid "否"
-msgstr "否"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:302
-msgid "恢复模板"
-msgstr "恢复模板"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/SearchResult.vue:304
-msgid "确认恢复"
-msgstr "确认恢复"
-
-#: frontend/desktop/src/pages/admin/manage/AdminSearch/index.vue:46
-msgid "输入项目名、模板ID或任务ID进行搜索"
-msgstr "输入项目名、模板ID或任务ID进行搜索"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheEdit.vue:63
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:147
-msgid "上一步"
-msgstr "上一步"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheEdit.vue:66
-msgid "添加本地缓存"
-msgstr "添加本地缓存"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:174
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:272
-#: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:65
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
-#: frontend/desktop/src/pages/project/index.vue:258
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:285
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/OutputParams.vue:44
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/SystemVariableEdit.vue:62
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:181
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:172
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:115
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:123
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:317
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:313
-msgid "名称"
-msgstr "名称"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:175
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:273
-#: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:66
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:113
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:186
-#: pipeline_plugins/variables/static/variables/select.js:54
-msgid "类型"
-msgstr "类型"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:176
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:274
-#: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:67
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:114
-#: frontend/desktop/src/pages/project/index.vue:260
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:141
-msgid "描述"
-msgstr "描述"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:177
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:275
-#: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:68
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:115
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:127
-msgid "详细信息"
-msgstr "详细信息"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/EditHeader.vue:41
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:156
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:184
-msgid "配置"
-msgstr "配置"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/EditHeader.vue:42
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:79
-msgid "主包源"
-msgstr "主包源"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/EditHeader.vue:43
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:80
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:113
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/index.vue:95
-msgid "本地缓存"
-msgstr "本地缓存"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageEdit.vue:59
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:148
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:85
-msgid "下一步"
-msgstr "下一步"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageEdit.vue:61
-msgid "添加主包源"
-msgstr "添加主包源"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:269
-msgid "包源名"
-msgstr "包源名"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:270
-msgid "未命名"
-msgstr "未命名"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:276
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:116
-msgid "模块配置"
-msgstr "模块配置"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:278
-msgid "请输入模块绝对路径，如a.b.c，多个用英文逗号 `,` 或换行分隔"
-msgstr "请输入模块绝对路径，如a.b.c，多个用英文逗号 `,` 或换行分隔"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:279
-msgid "子模块名称"
-msgstr "子模块名称"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:280
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:119
-msgid "版本"
-msgstr "版本"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:281
-msgid "导入模块"
-msgstr "导入模块"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:284
-msgid "输入有误，请展开检查"
-msgstr "输入有误，请展开检查"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:323
-msgid "子模块名称不能重复"
-msgstr "子模块名称不能重复"
-
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/index.vue:104
-#: frontend/desktop/src/pages/admin/manage/SourceEdit/index.vue:115
-msgid "请添加主包源"
-msgstr "请添加主包源"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:69
-msgid "服务地址"
-msgstr "服务地址"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:117
-msgid "已导入插件"
-msgstr "已导入插件"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:118
-msgid "根模块"
-msgstr "根模块"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:120
-msgid "已导入模块"
-msgstr "已导入模块"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:121
-msgid "插件名"
-msgstr "插件名"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:122
-msgid "类名"
-msgstr "类名"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:123
-msgid "所属模块"
-msgstr "所属模块"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:75
-#: frontend/desktop/src/pages/appmaker/index.vue:179
-#: frontend/desktop/src/pages/functor/FunctionList.vue:309
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:259
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:149
-#: frontend/desktop/src/pages/task/TaskList/index.vue:305
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:169
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:114
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:282
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:279
-msgid "新建"
-msgstr "新建"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:77
-msgid "无数据，"
-msgstr "无数据，"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:78
-msgid "远程插件包源"
-msgstr "远程插件包源"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:81
-msgid "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
-msgstr "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:82
-msgid "可选配置，所有远程插件源都可以同步到本地进行缓存，避免在不能访问远程插件源时无法加载标准插件"
-msgstr "可选配置，所有远程插件源都可以同步到本地进行缓存，避免在不能访问远程插件源时无法加载标准插件"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:115
-msgid "同步到本地缓存"
-msgstr "同步到本地缓存"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:116
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:199
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:230
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:309
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:324
-#: frontend/mobile/src/views/task/nodes.vue:106
-msgid "开始时间"
-msgstr "开始时间"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:117
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:203
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:234
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:313
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:328
-#: frontend/mobile/src/views/task/nodes.vue:107
-msgid "结束时间"
-msgstr "结束时间"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:118
-msgid "操作人"
-msgstr "操作人"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:120
-msgid "触发方式"
-msgstr "触发方式"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:122
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:162
-#: frontend/desktop/src/pages/audit/AuditList.vue:200
-#: frontend/desktop/src/pages/functor/FunctionList.vue:313
-#: frontend/desktop/src/pages/project/index.vue:248
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:277
-#: frontend/desktop/src/pages/task/TaskList/index.vue:293
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:302
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:299
-msgid "共"
-msgstr "共"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:123
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:163
-#: frontend/desktop/src/pages/audit/AuditList.vue:201
-#: frontend/desktop/src/pages/functor/FunctionList.vue:314
-#: frontend/desktop/src/pages/project/index.vue:249
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:278
-#: frontend/desktop/src/pages/task/TaskList/index.vue:294
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:303
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:300
-msgid "条记录"
-msgstr "条记录"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:124
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:164
-#: frontend/desktop/src/pages/audit/AuditList.vue:202
-#: frontend/desktop/src/pages/functor/FunctionList.vue:315
-#: frontend/desktop/src/pages/project/index.vue:250
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:279
-#: frontend/desktop/src/pages/task/TaskList/index.vue:295
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:304
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:301
-msgid "，"
-msgstr "，"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:125
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:165
-#: frontend/desktop/src/pages/audit/AuditList.vue:203
-#: frontend/desktop/src/pages/functor/FunctionList.vue:316
-#: frontend/desktop/src/pages/project/index.vue:251
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:280
-#: frontend/desktop/src/pages/task/TaskList/index.vue:296
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:305
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:302
-msgid "当前第"
-msgstr "当前第"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:126
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:166
-#: frontend/desktop/src/pages/audit/AuditList.vue:204
-#: frontend/desktop/src/pages/functor/FunctionList.vue:317
-#: frontend/desktop/src/pages/project/index.vue:252
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:281
-#: frontend/desktop/src/pages/task/TaskList/index.vue:297
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:306
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:303
-msgid "页"
-msgstr "页"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:128
-msgid "查看详情"
-msgstr "查看详情"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:129
-msgid "手动"
-msgstr "手动"
-
-#: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:130
-msgid "自动"
-msgstr "自动"
-
-#: frontend/desktop/src/pages/admin/manage/index.vue:32
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:170
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:131
-#: frontend/desktop/src/pages/home/MyCollection.vue:180
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:92
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:264
-#: frontend/desktop/src/pages/task/TaskManage.vue:43
-msgid "周期任务"
-msgstr "周期任务"
-
-#: frontend/desktop/src/pages/admin/manage/index.vue:36
-msgid "远程插件包源管理"
-msgstr "远程插件包源管理"
-
-#: frontend/desktop/src/pages/admin/manage/index.vue:40
-msgid "远程插件同步"
-msgstr "远程插件同步"
-
-#: frontend/desktop/src/pages/admin/manage/index.vue:54
-msgid "编辑包源"
-msgstr "编辑包源"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:115
-msgid "轻应用名称"
-msgstr "轻应用名称"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:123
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:159
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:191
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:174
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:130
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:88
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:232
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:284
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:230
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:281
-msgid "分类"
-msgstr "分类"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:133
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:169
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:201
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:184
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:266
-msgid "创建时间"
-msgstr "创建时间"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:138
-msgid "创建任务数"
-msgstr "创建任务数"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:178
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:208
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:300
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:136
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:248
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:297
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:210
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:240
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:111
-#: frontend/desktop/src/pages/audit/AuditList.vue:146
-#: frontend/desktop/src/pages/functor/FunctionList.vue:319
-#: frontend/desktop/src/pages/task/TaskList/index.vue:193
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:235
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:233
-msgid "请选择分类"
-msgstr "请选择分类"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:202
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:290
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:234
-msgid "分类统计"
-msgstr "分类统计"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:203
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:291
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:235
-msgid "分项目统计"
-msgstr "分项目统计"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:204
-msgid "轻应用详情"
-msgstr "轻应用详情"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:205
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:296
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:294
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:237
-#: frontend/desktop/src/pages/audit/AuditList.vue:128
-#: frontend/desktop/src/pages/audit/AuditList.vue:190
-#: frontend/desktop/src/pages/functor/FunctionList.vue:246
-#: frontend/desktop/src/pages/functor/FunctionList.vue:295
-msgid "所属项目"
-msgstr "所属项目"
-
-#: frontend/desktop/src/pages/admin/statistics/Appmaker.vue:206
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:297
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:295
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:238
-msgid "所属分类"
-msgstr "所属分类"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:133
-msgid "流程引用详情"
-msgstr "流程引用详情"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:137
-msgid "任务执行详情"
-msgstr "任务执行详情"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:144
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:115
-msgid "流程ID"
-msgstr "流程ID"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:177
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:158
-#: frontend/desktop/src/pages/functor/FunctionList.vue:296
-msgid "任务ID"
-msgstr "任务ID"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:211
-msgid "流程引用次数(次)"
-msgstr "流程引用次数(次)"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:215
-msgid "任务执行次数(次)"
-msgstr "任务执行次数(次)"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:219
-msgid "执行失败次数(次)"
-msgstr "执行失败次数(次)"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:223
-msgid "执行平均耗时(秒)"
-msgstr "执行平均耗时(秒)"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:227
-msgid "执行失败率(%)"
-msgstr "执行失败率(%)"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:294
-msgid "插件统计"
-msgstr "插件统计"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:295
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:220
-msgid "标准插件"
-msgstr "标准插件"
-
-#: frontend/desktop/src/pages/admin/statistics/Atom.vue:298
-msgid "请选择标准插件"
-msgstr "请选择标准插件"
-
-#: frontend/desktop/src/pages/admin/statistics/HorizontalBarChart.vue:102
-msgid "降序排列"
-msgstr "降序排列"
-
-#: frontend/desktop/src/pages/admin/statistics/HorizontalBarChart.vue:106
-msgid "升序排列"
-msgstr "升序排列"
-
-#: frontend/desktop/src/pages/admin/statistics/HorizontalBarChart.vue:148
-msgid "查看全部"
-msgstr "查看全部"
-
-#: frontend/desktop/src/pages/admin/statistics/HorizontalBarChart.vue:149
-#: frontend/desktop/src/pages/appmaker/index.vue:188
-#: frontend/desktop/src/pages/atomdev/index.vue:189
-#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:98
-msgid "关闭"
-msgstr "关闭"
-
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:148
-msgid "月"
-msgstr "月"
-
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:189
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:140
-msgid "插件数"
-msgstr "插件数"
-
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:195
-msgid "子流程数"
-msgstr "子流程数"
-
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:201
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:152
-msgid "网关数"
-msgstr "网关数"
-
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:207
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:207
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:238
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:317
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:332
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:359
-msgid "耗时"
-msgstr "耗时"
-
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:292
-msgid "分时间统计"
-msgstr "分时间统计"
-
-#: frontend/desktop/src/pages/admin/statistics/Instance.vue:293
-msgid "任务详情"
-msgstr "任务详情"
-
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:146
-msgid "子流程"
-msgstr "子流程"
-
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:158
-#: frontend/desktop/src/pages/functor/FunctionList.vue:275
-msgid "已执行"
-msgstr "已执行"
-
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:164
-msgid "被引用"
-msgstr "被引用"
-
-#: frontend/desktop/src/pages/admin/statistics/Template.vue:236
-msgid "流程详情"
-msgstr "流程详情"
-
-#: frontend/desktop/src/pages/admin/statistics/VerticalBarChart.vue:79
-msgid "任务"
-msgstr "任务"
-
-#: frontend/desktop/src/pages/admin/statistics/index.vue:50
-msgid "流程统计"
-msgstr "流程统计"
-
-#: frontend/desktop/src/pages/admin/statistics/index.vue:54
-msgid "任务统计"
-msgstr "任务统计"
-
-#: frontend/desktop/src/pages/admin/statistics/index.vue:58
-msgid "标准插件统计"
-msgstr "标准插件统计"
-
-#: frontend/desktop/src/pages/admin/statistics/index.vue:62
-msgid "轻应用统计"
-msgstr "轻应用统计"
-
-#: frontend/desktop/src/pages/admin/statistics/index.vue:79
-msgid "时间范围"
-msgstr "时间范围"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:122
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:272
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:292
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:290
-#: frontend/mobile/src/views/template/index.vue:78
-msgid "收藏"
-msgstr "收藏"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:123
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:273
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:293
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:291
-msgid "取消收藏"
-msgstr "取消收藏"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:124
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:274
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:294
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:292
-msgid "添加收藏成功！"
-msgstr "添加收藏成功！"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:125
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:275
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:295
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:293
-msgid "取消收藏成功！"
-msgstr "取消收藏成功！"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:126
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:195
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:287
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:230
-msgid "流程模板"
-msgstr "流程模板"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:127
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:200
-msgid "应用简介"
-msgstr "应用简介"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:128
-#: frontend/desktop/src/pages/appmaker/index.vue:124
-msgid "更新人"
-msgstr "更新人"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:130
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:288
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:297
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:294
-msgid "执行历史"
-msgstr "执行历史"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:131
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:194
-msgid "修改轻应用"
-msgstr "修改轻应用"
-
-#: frontend/desktop/src/pages/appmaker/AppCard.vue:132
-#: frontend/desktop/src/pages/appmaker/index.vue:181
-msgid "使用权限"
-msgstr "使用权限"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:193
-msgid "新建轻应用"
-msgstr "新建轻应用"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:197
-msgid "应用名称"
-msgstr "应用名称"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:198
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:154
-msgid "执行方案"
-msgstr "执行方案"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:199
-msgid "当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。"
-msgstr "当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:201
-msgid "应用LOGO"
-msgstr "应用LOGO"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:202
-msgid "点击更换"
-msgstr "点击更换"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:203
-msgid "只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K"
-msgstr "只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K"
-
-#: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:301
-msgid "图片大小不能超过 100K"
-msgstr "图片大小不能超过 100K"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:102
-#: frontend/desktop/src/pages/appmaker/index.vue:131
-#: frontend/desktop/src/pages/audit/AuditList.vue:137
-#: frontend/desktop/src/pages/audit/AuditList.vue:210
-#: frontend/desktop/src/pages/functor/FunctionList.vue:255
-#: frontend/desktop/src/pages/task/TaskList/index.vue:184
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:241
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:239
-msgid "选择日期时间范围"
-msgstr "选择日期时间范围"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:108
-#: frontend/desktop/src/pages/audit/AuditList.vue:143
-#: frontend/desktop/src/pages/audit/AuditList.vue:207
-#: frontend/desktop/src/pages/functor/FunctionList.vue:318
-#: frontend/desktop/src/pages/task/TaskList/index.vue:190
-#: frontend/desktop/src/pages/task/TaskList/index.vue:284
-msgid "任务分类"
-msgstr "任务分类"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:118
-#: frontend/desktop/src/pages/audit/AuditList.vue:153
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:220
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:283
-#: frontend/desktop/src/pages/task/TaskList/index.vue:208
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:261
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:258
-msgid "请输入创建人"
-msgstr "请输入创建人"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:125
-#: frontend/desktop/src/pages/audit/AuditList.vue:160
-#: frontend/desktop/src/pages/task/TaskList/index.vue:215
-msgid "请输入执行人"
-msgstr "请输入执行人"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:133
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:170
-#: frontend/desktop/src/pages/audit/AuditList.vue:168
-#: frontend/desktop/src/pages/functor/FunctionList.vue:271
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:228
-#: frontend/desktop/src/pages/task/TaskList/index.vue:223
-msgid "请选择状态"
-msgstr "请选择状态"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:136
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:191
-#: frontend/desktop/src/pages/audit/AuditList.vue:171
-#: frontend/desktop/src/pages/task/TaskList/index.vue:226
-msgid "未完成"
-msgstr "未完成"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:154
-#: frontend/desktop/src/pages/audit/AuditList.vue:189
-#: frontend/desktop/src/pages/functor/FunctionList.vue:294
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:280
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:277
-msgid "请输入ID或流程名称"
-msgstr "请输入ID或流程名称"
-
-#: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:158
-#: frontend/desktop/src/pages/audit/AuditList.vue:194
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:80
-msgid "任务类型"
-msgstr "任务类型"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:125
-msgid "请输入更新人"
-msgstr "请输入更新人"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:180
-msgid "请输入轻应用名称"
-msgstr "请输入轻应用名称"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:182
-msgid "轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。"
-msgstr "轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:183
-msgid "新建任务权限"
-msgstr "新建任务权限"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:184
-msgid "认领任务权限"
-msgstr "认领任务权限"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:185
-msgid "执行任务权限"
-msgstr "执行任务权限"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:187
-msgid "确认删除轻应用？"
-msgstr "确认删除轻应用？"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:202
-msgid "未找到相关轻应用"
-msgstr "未找到相关轻应用"
-
-#: frontend/desktop/src/pages/appmaker/index.vue:202
-msgid "暂未添加轻应用"
-msgstr "暂未添加轻应用"
-
-#: frontend/desktop/src/pages/atomdev/TagPanel.vue:170
-msgid "表单项"
-msgstr "表单项"
-
-#: frontend/desktop/src/pages/atomdev/UploadReadFile.vue:30
-msgid "拖拽到此处上传或"
-msgstr "拖拽到此处上传或"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AddComp.vue:24
-msgid "点击添加"
-msgstr "点击添加"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:75
-msgid "不能多于50个字符"
-msgstr "不能多于50个字符"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:80
-msgid "输入字符必须由字母、数字、下划线组成，并且不能以数字开头"
-msgstr "输入字符必须由字母、数字、下划线组成，并且不能以数字开头"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:95
-msgid "输入不合法"
-msgstr "输入不合法"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:105
-msgid "请选择所监听表单的tag_code"
-msgstr "请选择所监听表单的tag_code"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:113
-msgid "请输入所监听表单的事件类型"
-msgstr "请输入所监听表单的事件类型"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:123
-msgid "请输入所监听事件的回调方法，参数为所监听表单的值，eg: function (value) {}"
-msgstr "请输入所监听事件的回调方法，参数为所监听表单的值，eg: function (value) {}"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:140
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:174
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:339
-msgid "请输入合法的函数"
-msgstr "请输入合法的函数"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:151
-msgid "请输入方法名称"
-msgstr "请输入方法名称"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:161
-msgid "请输方法内容, eg: function () { console.log(this.value) }"
-msgstr "请输方法内容, eg: function () { console.log(this.value) }"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:213
-#: frontend/desktop/src/pages/atomdev/formPanel/FormPanel.vue:89
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:173
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:179
-msgid "属性"
-msgstr "属性"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:214
-msgid "关联事件"
-msgstr "关联事件"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:215
-msgid "方法"
-msgstr "方法"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:216
-msgid "请输入数组格式数据"
-msgstr "请输入数组格式数据"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:217
-msgid "请输入对象格式数据"
-msgstr "请输入对象格式数据"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:218
-msgid "请输入匿名函数"
-msgstr "请输入匿名函数"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:254
-msgid "表单项唯一标识，单个标准插件内不能重复"
-msgstr "表单项唯一标识，单个标准插件内不能重复"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:264
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:160
-msgid "单个标准插件里表单项 tag_code 不能重复"
-msgstr "单个标准插件里表单项 tag_code 不能重复"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:323
-msgid "请输入合法的数组"
-msgstr "请输入合法的数组"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:355
-msgid "请输入合法的对象"
-msgstr "请输入合法的对象"
-
-#: frontend/desktop/src/pages/atomdev/atomSetting/AtomSetting.vue:490
-msgid "请检查表单配置项"
-msgstr "请检查表单配置项"
-
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:145
-msgid "不能多于100个字符"
-msgstr "不能多于100个字符"
-
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:150
-msgid "请输入正确的插件名称，名称由字母、数字、下划线组成，且不能以数字开头"
-msgstr "请输入正确的插件名称，名称由字母、数字、下划线组成，且不能以数字开头"
-
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:155
-msgid "插件名称"
-msgstr "插件名称"
-
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:157
-#: frontend/desktop/src/pages/atomdev/index.vue:187
-msgid "前端代码"
-msgstr "前端代码"
-
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:158
-msgid "API接口"
-msgstr "API接口"
-
-#: frontend/desktop/src/pages/atomdev/configPanel/ConfigPanel.vue:159
-#: frontend/desktop/src/pages/atomdev/index.vue:188
-msgid "后台代码"
-msgstr "后台代码"
-
-#: frontend/desktop/src/pages/atomdev/configPanel/ContextEdit.vue:62
-msgid "请输入合法对象"
-msgstr "请输入合法对象"
-
-#: frontend/desktop/src/pages/atomdev/formPanel/FormNotFound.vue:22
-msgid "未找到对应组件"
-msgstr "未找到对应组件"
-
-#: frontend/desktop/src/pages/atomdev/index.vue:182
-msgid "插件配置"
-msgstr "插件配置"
-
-#: frontend/desktop/src/pages/atomdev/index.vue:183
-#: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:114
-msgid "预览"
-msgstr "预览"
-
-#: frontend/desktop/src/pages/atomdev/index.vue:184
-msgid "下载"
-msgstr "下载"
-
-#: frontend/desktop/src/pages/atomdev/index.vue:186
-msgid "导入文件"
-msgstr "导入文件"
-
-#: frontend/desktop/src/pages/atomdev/index.vue:192
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:150
-msgid "离开页面"
-msgstr "离开页面"
-
-#: frontend/desktop/src/pages/atomdev/index.vue:193
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:151
-msgid "系统不会保存您所做的更改，确认离开？"
-msgstr "系统不会保存您所做的更改，确认离开？"
-
-#: frontend/desktop/src/pages/audit/AuditList.vue:131
-msgid "请选择所属项目"
-msgstr "请选择所属项目"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:256
-#: frontend/desktop/src/pages/functor/FunctionList.vue:297
-msgid "提单时间"
-msgstr "提单时间"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:262
-#: frontend/desktop/src/pages/functor/FunctionList.vue:302
-msgid "提单人"
-msgstr "提单人"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:263
-msgid "请输入提单人"
-msgstr "请输入提单人"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:273
-#: frontend/desktop/src/pages/functor/FunctionList.vue:472
-msgid "未认领"
-msgstr "未认领"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:274
-msgid "已认领"
-msgstr "已认领"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:298
-msgid "认领时间"
-msgstr "认领时间"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:301
-msgid "请选择时间"
-msgstr "请选择时间"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:303
-msgid "认领人"
-msgstr "认领人"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:304
-msgid "认领状态"
-msgstr "认领状态"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:305
-msgid "执行状态"
-msgstr "执行状态"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:307
-#: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:115
-msgid "认领"
-msgstr "认领"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:311
-msgid "选择模板"
-msgstr "选择模板"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:312
-msgid "如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
-msgstr "如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:324
-msgid "实时刷新"
-msgstr "实时刷新"
-
-#: frontend/desktop/src/pages/functor/FunctionList.vue:474
-msgid "已驳回"
-msgstr "已驳回"
-
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:119
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:194
-msgid "选择类型"
-msgstr "选择类型"
-
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:166
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:138
-msgid "项"
-msgstr "项"
-
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:169
-msgid "请选择收藏项"
-msgstr "请选择收藏项"
-
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:171
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:127
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:134
-msgid "搜索结果为空"
-msgstr "搜索结果为空"
-
-#: frontend/desktop/src/pages/home/AddCollectionDialog.vue:433
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:152
-msgid "保存成功"
-msgstr "保存成功"
-
-#: frontend/desktop/src/pages/home/CommonlyUsed.vue:75
-msgid "常用项目"
-msgstr "常用项目"
-
-#: frontend/desktop/src/pages/home/CommonlyUsed.vue:76
-msgid "项目，项目集的权限请前往"
-msgstr "项目，项目集的权限请前往"
-
-#: frontend/desktop/src/pages/home/CommonlyUsed.vue:77
-msgid "权限中心"
-msgstr "权限中心"
-
-#: frontend/desktop/src/pages/home/CommonlyUsed.vue:78
-msgid "进行申请；如需新建项目，项目集请前往"
-msgstr "进行申请；如需新建项目，项目集请前往"
-
-#: frontend/desktop/src/pages/home/CommonlyUsed.vue:80
-msgid "项目id："
-msgstr "项目id："
-
-#: frontend/desktop/src/pages/home/CommonlyUsed.vue:81
-msgid "时区："
-msgstr "时区："
-
-#: frontend/desktop/src/pages/home/MyCollection.vue:102
-msgid "我的收藏"
-msgstr "我的收藏"
-
-#: frontend/desktop/src/pages/home/MyCollection.vue:105
-msgid "确认删除收藏？"
-msgstr "确认删除收藏？"
-
-#: frontend/desktop/src/pages/home/MyCollection.vue:106
-msgid "常用流程到收藏夹，可作为你的流程管理快捷入口"
-msgstr "常用流程到收藏夹，可作为你的流程管理快捷入口"
-
-#: frontend/desktop/src/pages/home/MyDynamic.vue:136
-msgid "我的动态"
-msgstr "我的动态"
-
-#: frontend/desktop/src/pages/home/MyDynamic.vue:140
-msgid "所有创建方式"
-msgstr "所有创建方式"
-
-#: frontend/desktop/src/pages/home/PanelNodata.vue:27
 #: frontend/mobile/src/components/NoData/index.vue:18
 #: frontend/mobile/src/views/task/detail.vue:47
 msgid "暂无数据"
 msgstr "暂无数据"
 
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:79
-msgid "创建任务"
-msgstr "创建任务"
-
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:81
-#: frontend/desktop/src/pages/project/index.vue:244
-msgid "项目名称"
-msgstr "项目名称"
-
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:82
-msgid "请选择任务类型"
-msgstr "请选择任务类型"
-
-#: frontend/desktop/src/pages/home/SelectCreateTaskDialog.vue:91
-msgid "普通任务"
-msgstr "普通任务"
-
-#: frontend/desktop/src/pages/project/index.vue:174
-msgid "进入"
-msgstr "进入"
-
-#: frontend/desktop/src/pages/project/index.vue:184
-#: frontend/desktop/src/pages/project/index.vue:256
-msgid "启用"
-msgstr "启用"
-
-#: frontend/desktop/src/pages/project/index.vue:189
-#: frontend/desktop/src/pages/project/index.vue:255
-msgid "停用"
-msgstr "停用"
-
-#: frontend/desktop/src/pages/project/index.vue:241
-msgid "编辑项目"
-msgstr "编辑项目"
-
-#: frontend/desktop/src/pages/project/index.vue:242
-msgid "显示已停用项目"
-msgstr "显示已停用项目"
-
-#: frontend/desktop/src/pages/project/index.vue:243
-msgid "请输入ID、名称、描述、创建人"
-msgstr "请输入ID、名称、描述、创建人"
-
-#: frontend/desktop/src/pages/project/index.vue:245
-msgid "项目描述"
-msgstr "项目描述"
-
-#: frontend/desktop/src/pages/project/index.vue:257
-msgid "权限控制"
-msgstr "权限控制"
-
-#: frontend/desktop/src/pages/project/index.vue:259
-msgid "时区"
-msgstr "时区"
-
-#: frontend/desktop/src/pages/task/ParameterInfo.vue:60
-msgid "查看未引用变量"
-msgstr "查看未引用变量"
-
-#: frontend/desktop/src/pages/task/ParameterInfo.vue:61
-msgid "在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑"
-msgstr "在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑"
-
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:83
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:291
-msgid "启动记录"
-msgstr "启动记录"
-
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:84
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:366
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:122
-msgid "序号"
-msgstr "序号"
-
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:85
-msgid "启动时间"
-msgstr "启动时间"
-
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:86
-msgid "是否启动成功"
-msgstr "是否启动成功"
-
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:87
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:364
-#: frontend/mobile/src/views/task/nodes.vue:116
-msgid "异常信息"
-msgstr "异常信息"
-
-#: frontend/desktop/src/pages/task/PeriodicList/BootRecordDialog.vue:91
-msgid "无异常信息"
-msgstr "无异常信息"
-
-#: frontend/desktop/src/pages/task/PeriodicList/DeletePeriodicDialog.vue:37
-#: frontend/desktop/src/pages/task/TaskList/index.vue:292
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:298
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:295
-msgid "确认删除"
-msgstr "确认删除"
-
-#: frontend/desktop/src/pages/task/PeriodicList/DeletePeriodicDialog.vue:43
-msgid "？"
-msgstr "？"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:78
-msgid "周期信息"
-msgstr "周期信息"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:79
-msgid "修改周期任务"
-msgstr "修改周期任务"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:80
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:263
-msgid "周期规则"
-msgstr "周期规则"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:81
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:146
-#: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:113
-#: frontend/mobile/src/views/task/create.vue:157
-#: frontend/mobile/src/views/task/detail.vue:50
-msgid "参数信息"
-msgstr "参数信息"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:82
-msgid "图片出错"
-msgstr "图片出错"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:131
-msgid "输入周期表达式非法，请校验"
-msgstr "输入周期表达式非法，请校验"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:175
-msgid "修改周期任务信息成功"
-msgstr "修改周期任务信息成功"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:180
-msgid "修改周期任务参数成功，但表达式修改未成功，请重试"
-msgstr "修改周期任务参数成功，但表达式修改未成功，请重试"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:185
-msgid "修改周期任务表达式成功，但任务参数未修改成功，请重试"
-msgstr "修改周期任务表达式成功，但任务参数未修改成功，请重试"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:190
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:210
-msgid "修改周期任务失败，请联系管理员"
-msgstr "修改周期任务失败，请联系管理员"
-
-#: frontend/desktop/src/pages/task/PeriodicList/ModifyPeriodicDialog.vue:205
-msgid "修改周期任务表达式成功"
-msgstr "修改周期任务表达式成功"
-
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:230
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:268
-#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:155
-msgid "启动"
-msgstr "启动"
-
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:260
-msgid "新建周期任务"
-msgstr "新建周期任务"
-
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:261
-msgid "上次运行时间"
-msgstr "上次运行时间"
-
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:276
-msgid "运行次数"
-msgstr "运行次数"
-
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:282
-#: frontend/desktop/src/pages/task/TaskList/index.vue:298
-msgid "请输入任务名称"
-msgstr "请输入任务名称"
-
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:286
-msgid "请暂停任务后再执行编辑操作"
-msgstr "请暂停任务后再执行编辑操作"
-
-#: frontend/desktop/src/pages/task/PeriodicList/index.vue:497
-msgid "删除周期任务成功"
-msgstr "删除周期任务成功"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:141
-#: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:111
-#: frontend/mobile/src/views/task/create.vue:160
-#: frontend/mobile/src/views/task/detail.vue:48
-msgid "任务信息"
-msgstr "任务信息"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:143
-msgid "流程类型"
-msgstr "流程类型"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:144
-msgid "默认任务流程"
-msgstr "默认任务流程"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:145
-msgid "职能化任务流程"
-msgstr "职能化任务流程"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:149
-msgid "立即执行"
-msgstr "立即执行"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:150
-msgid "周期执行"
-msgstr "周期执行"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:151
-msgid "周期表达式"
-msgstr "周期表达式"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:152
-msgid "执行计划"
-msgstr "执行计划"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:467
-msgid "创建周期任务成功"
-msgstr "创建周期任务成功"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:148
-msgid "执行方案列表"
-msgstr "执行方案列表"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:152
-msgid "方案名称"
-msgstr "方案名称"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:153
-msgid "预览模式："
-msgstr "预览模式："
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:200
-msgid "方案名称已存在"
-msgstr "方案名称已存在"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:225
-msgid "方案添加成功"
-msgstr "方案添加成功"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:258
-msgid "方案删除成功"
-msgstr "方案删除成功"
-
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:84
-msgid "取消全选"
-msgstr "取消全选"
-
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:50
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:66
-msgid "节点选择"
-msgstr "节点选择"
-
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:55
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:70
-msgid "参数填写"
-msgstr "参数填写"
-
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:60
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:113
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperationHeader.vue:144
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:74
-#: frontend/desktop/src/pages/task/TaskStep.vue:63
-msgid "任务执行"
-msgstr "任务执行"
-
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:122
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:143
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:121
-msgid "职能化认领"
-msgstr "职能化认领"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:211
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:242
-#: frontend/mobile/src/views/task/nodes.vue:109
-msgid "失败后跳过"
-msgstr "失败后跳过"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:215
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:246
-#: frontend/mobile/src/views/task/nodes.vue:112
-msgid "失败后自动忽略"
-msgstr "失败后自动忽略"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:219
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:250
-#: frontend/mobile/src/views/task/nodes.vue:113
-msgid "重试次数"
-msgstr "重试次数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:223
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:302
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:221
-msgid "插件版本"
-msgstr "插件版本"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:262
-msgid "循环次数"
-msgstr "循环次数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:270
-msgid "调度ID"
-msgstr "调度ID"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:274
-msgid "正在被调度"
-msgstr "正在被调度"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:278
-msgid "调度次数"
-msgstr "调度次数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:282
-msgid "等待回调"
-msgstr "等待回调"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:286
-msgid "完成调度"
-msgstr "完成调度"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:290
-msgid "调度节点版本"
-msgstr "调度节点版本"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:294
-msgid "执行版本"
-msgstr "执行版本"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:298
-msgid "回调数据"
-msgstr "回调数据"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:358
-#: frontend/mobile/src/views/task/nodes.vue:105
-msgid "执行信息"
-msgstr "执行信息"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:360
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:150
-#: frontend/mobile/src/views/task/nodes.vue:114
-msgid "输入参数"
-msgstr "输入参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:361
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:151
-#: frontend/mobile/src/views/task/nodes.vue:115
-msgid "输出参数"
-msgstr "输出参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:362
-msgid "参数名"
-msgstr "参数名"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:365
-#: frontend/mobile/src/views/task/nodes.vue:117
-msgid "执行记录"
-msgstr "执行记录"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:369
-msgid "节点日志"
-msgstr "节点日志"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:370
-msgid "日志"
-msgstr "日志"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:375
-msgid "第"
-msgstr "第"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:376
-msgid "次执行"
-msgstr "次执行"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:377
-msgid "执行次数"
-msgstr "执行次数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/GatewaySelectDialog.vue:52
-msgid "请选择执行分支"
-msgstr "请选择执行分支"
-
-#: frontend/desktop/src/pages/task/TaskExecute/GatewaySelectDialog.vue:53
-msgid "可选执行分支"
-msgstr "可选执行分支"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyParams.vue:73
-msgid "已开始执行的任务不能修改参数"
-msgstr "已开始执行的任务不能修改参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyParams.vue:74
-msgid "修改全局参数"
-msgstr "修改全局参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyParams.vue:151
-msgid "参数修改成功"
-msgstr "参数修改成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyTime.vue:50
-msgid "修改定时时间"
-msgstr "修改定时时间"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ModifyTime.vue:137
-msgid "修改成功"
-msgstr "修改成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:138
-#: frontend/mobile/src/views/task/canvas.vue:125
-#: frontend/mobile/src/views/task/reset.vue:78
-msgid "重试成功"
-msgstr "重试成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:116
-msgid "任务流程预览"
-msgstr "任务流程预览"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskInfo.vue:49
-msgid "任务执行信息"
-msgstr "任务执行信息"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskInfo.vue:50
-msgid "上下文数据"
-msgstr "上下文数据"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskInfo.vue:51
-msgid "任务模型数据"
-msgstr "任务模型数据"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:143
-msgid "执行"
-msgstr "执行"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:440
-msgid "任务开始执行"
-msgstr "任务开始执行"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:467
-msgid "任务暂停成功"
-msgstr "任务暂停成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:495
-#: frontend/mobile/src/views/task/canvas.vue:293
-msgid "任务继续成功"
-msgstr "任务继续成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:513
-msgid "任务撤销成功"
-msgstr "任务撤销成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:534
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:583
-#: frontend/mobile/src/views/task/canvas.vue:123
-msgid "跳过成功"
-msgstr "跳过成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:562
-msgid "强制失败执行成功"
-msgstr "强制失败执行成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:604
-msgid "继续成功"
-msgstr "继续成功"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperationHeader.vue:145
-#: frontend/desktop/src/pages/task/TaskStep.vue:64
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:149
-msgid "返回"
-msgstr "返回"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperationHeader.vue:146
-msgid "查看参数"
-msgstr "查看参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperationHeader.vue:147
-msgid "修改参数"
-msgstr "修改参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperationHeader.vue:148
-msgid "查看流程"
-msgstr "查看流程"
-
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperationHeader.vue:149
-msgid "流程信息"
-msgstr "流程信息"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ViewParams.vue:62
-msgid "查看标准插件参数"
-msgstr "查看标准插件参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/ViewParams.vue:88
-msgid "请点击标准插件节点查看参数"
-msgstr "请点击标准插件节点查看参数"
-
-#: frontend/desktop/src/pages/task/TaskExecute/revokeDialog.vue:36
-msgid "是否撤销该任务？"
-msgstr "是否撤销该任务？"
-
-#: frontend/desktop/src/pages/task/TaskExecute/revokeDialog.vue:37
-msgid "任务撤销"
-msgstr "任务撤销"
-
-#: frontend/desktop/src/pages/task/TaskList/TaskCloneDialog.vue:54
-msgid "任务克隆"
-msgstr "任务克隆"
-
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:126
-msgid "请输入关键字"
-msgstr "请输入关键字"
-
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:130
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:142
-msgid "请选择流程模版"
-msgstr "请选择流程模版"
-
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:131
-#: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:164
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:141
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:171
-msgid "全部分类"
-msgstr "全部分类"
-
-#: frontend/desktop/src/pages/task/TaskList/index.vue:201
-msgid "请选择创建方式"
-msgstr "请选择创建方式"
-
-#: frontend/desktop/src/pages/task/TaskList/index.vue:279
-msgid "全部"
-msgstr "全部"
-
-#: frontend/desktop/src/pages/task/TaskList/index.vue:280
-msgid "请输入ID或任务名称"
-msgstr "请输入ID或任务名称"
-
-#: frontend/desktop/src/pages/task/TaskList/index.vue:289
-msgid "再创建"
-msgstr "再创建"
-
-#: frontend/desktop/src/pages/task/TaskList/index.vue:290
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:291
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:288
-msgid "克隆"
-msgstr "克隆"
-
-#: frontend/desktop/src/pages/task/TaskList/index.vue:300
-msgid "应用内"
-msgstr "应用内"
-
-#: frontend/desktop/src/pages/task/TaskParamEdit.vue:142
-msgid "参数值不符合正则规则："
-msgstr "参数值不符合正则规则："
-
-#: frontend/desktop/src/pages/template/ListPageTipsTitle.vue:48
-msgid "查看需要更新的流程"
-msgstr "查看需要更新的流程"
-
-#: frontend/desktop/src/pages/template/ListPageTipsTitle.vue:55
-msgid "建议及时处理子流程更新，"
-msgstr "建议及时处理子流程更新，"
-
-#: frontend/desktop/src/pages/template/ListPageTipsTitle.vue:55
-msgid "涉及"
-msgstr "涉及"
-
-#: frontend/desktop/src/pages/template/ListPageTipsTitle.vue:55
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:159
-msgid "条流程"
-msgstr "条流程"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/ConditionEdit.vue:80
-msgid "分支条件"
-msgstr "分支条件"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/ConditionEdit.vue:81
-msgid "分支名称"
-msgstr "分支名称"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/ConditionEdit.vue:82
-msgid "表达式"
-msgstr "表达式"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/ConditionEdit.vue:83
-msgid "支持 \"==、!=、>、>=、<、<=、in、notin\" 等二元操作符和 \"and、or、True/true、False/false\" 等关键字语法，还支持通过 \"${key}\" 方式引用全局变量。示例：`${key1} >= 3 and ${key2} == \"Test\"`"
-msgstr "支持 \"==、!=、>、>=、<、<=、in、notin\" 等二元操作符和 \"and、or、True/true、False/false\" 等关键字语法，还支持通过 \"${key}\" 方式引用全局变量。示例：`${key1} >= 3 and ${key2} == \"Test\"`"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:156
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:152
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:409
-msgid "请选择插件"
-msgstr "请选择插件"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:163
-msgid "请选择插件版本"
-msgstr "请选择插件版本"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:189
-msgid "请选择流程模板"
-msgstr "请选择流程模板"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:218
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/SelectorPanel.vue:142
-msgid "选择"
-msgstr "选择"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:219
-msgid "重选"
-msgstr "重选"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:222
-msgid "版本更新"
-msgstr "版本更新"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:223
-msgid "节点名称"
-msgstr "节点名称"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:224
-msgid "步骤名称"
-msgstr "步骤名称"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:225
-msgid "失败处理"
-msgstr "失败处理"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:226
-msgid "是否可选"
-msgstr "是否可选"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:227
-msgid "自动忽略"
-msgstr "自动忽略"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:228
-msgid "手动跳过"
-msgstr "手动跳过"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:229
-msgid "手动重试"
-msgstr "手动重试"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:231
-msgid "未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续"
-msgstr "未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:232
-msgid "说明："
-msgstr "说明："
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:233
-msgid "自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。"
-msgstr "自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:234
-msgid "手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。"
-msgstr "手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/BasicInfo.vue:235
-msgid "手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。"
-msgstr "手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:149
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:87
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/index.vue:90
-msgid "基础信息"
-msgstr "基础信息"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:153
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:435
-msgid "请选择子流程"
-msgstr "请选择子流程"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/NodeConfig.vue:392
-msgid "默认值不符合正则规则："
-msgstr "默认值不符合正则规则："
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/OutputParams.vue:45
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:175
-msgid "引用"
-msgstr "引用"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:139
-msgid "复用变量"
-msgstr "复用变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:140
-msgid "新建变量"
-msgstr "新建变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:141
-msgid "变量名称"
-msgstr "变量名称"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:142
-msgid "变量KEY"
-msgstr "变量KEY"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:143
-msgid "已存在相同Key且版本不同的变量，请新建变量"
-msgstr "已存在相同Key且版本不同的变量，请新建变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:153
-msgid "创建新变量"
-msgstr "创建新变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/ReuseVarDialog.vue:155
-msgid "是否复用变量"
-msgstr "是否复用变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig/SelectorPanel.vue:143
-msgid "已选"
-msgstr "已选"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/SubflowUpdateTips.vue:55
-msgid "查看需要更新的子流程"
-msgstr "查看需要更新的子流程"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/SubflowUpdateTips.vue:78
-msgid "建议及时处理子流程更新，涉及"
-msgstr "建议及时处理子流程更新，涉及"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/SubflowUpdateTips.vue:78
-msgid "个子流程节点"
-msgstr "个子流程节点"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:144
-msgid "新建流程"
-msgstr "新建流程"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:145
-msgid "编辑流程"
-msgstr "编辑流程"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:148
-msgid "保存并新建任务"
-msgstr "保存并新建任务"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/SystemVariableEdit.vue:63
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:182
-msgid "说明"
-msgstr "说明"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/SystemVariableEdit.vue:64
-msgid "引用节点"
-msgstr "引用节点"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableCitedList.vue:40
-msgid "未命名节点"
-msgstr "未命名节点"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:156
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:187
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableItem.vue:163
-msgid "显示"
-msgstr "显示"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:157
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableItem.vue:164
-msgid "隐藏"
-msgstr "隐藏"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:183
-#: pipeline_plugins/variables/static/variables/datatable.js:39
-#: pipeline_plugins/variables/static/variables/select.js:69
-msgid "默认值"
-msgstr "默认值"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:185
-msgid "正则校验"
-msgstr "正则校验"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:240
-msgid "组件"
-msgstr "组件"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableEdit.vue:400
-msgid "默认值不符合正则规则"
-msgstr "默认值不符合正则规则"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableItem.vue:160
-msgid "已复制"
-msgstr "已复制"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableItem.vue:161
-msgid "输入"
-msgstr "输入"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableItem.vue:162
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:174
-msgid "输出"
-msgstr "输出"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/VariableItem.vue:165
-msgid "复制"
-msgstr "复制"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:168
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/index.vue:85
-#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:109
-msgid "全局变量"
-msgstr "全局变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:171
-msgid "隐藏系统变量"
-msgstr "隐藏系统变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:176
-msgid "直接引用全局变量的节点数量，点击数字查看引用详情"
-msgstr "直接引用全局变量的节点数量，点击数字查看引用详情"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:178
-msgid "输出："
-msgstr "输出："
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:180
-msgid "属性："
-msgstr "属性："
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:181
-msgid "\"来源/是否显示\"格式，来源是输入类型"
-msgstr "\"来源/是否显示\"格式，来源是输入类型"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:182
-msgid "表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型"
-msgstr "表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:183
-msgid "表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，"
-msgstr "表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:184
-msgid "表示显示，"
-msgstr "表示显示，"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:185
-msgid "表示隐藏，输出类型的变量一定是隐藏的。"
-msgstr "表示隐藏，输出类型的变量一定是隐藏的。"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:186
-msgid "表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。"
-msgstr "表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:187
-msgid "无数据，请手动新增变量或者勾选标准插件参数自动生成"
-msgstr "无数据，请手动新增变量或者勾选标准插件参数自动生成"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:188
-msgid "删除变量"
-msgstr "删除变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables/index.vue:189
-msgid "确认删除该变量？"
-msgstr "确认删除该变量？"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:116
-msgid "替换"
-msgstr "替换"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:117
-msgid "保存时间"
-msgstr "保存时间"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:119
-msgid "无数据，请手动添加缓存或等待自动保存"
-msgstr "无数据，请手动添加缓存或等待自动保存"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:120
-msgid "替换模板"
-msgstr "替换模板"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:121
-msgid "是否替换模板？"
-msgstr "是否替换模板？"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:124
-msgid "简述："
-msgstr "简述："
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:125
-msgid "本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。"
-msgstr "本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:128
-msgid "重置模板"
-msgstr "重置模板"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabPipelineTreeEdit.vue:57
-msgid "流程模板数据"
-msgstr "流程模板数据"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:89
-#: pipeline_plugins/components/static/components/atoms/bk/notify.js:45
-msgid "通知方式"
-msgstr "通知方式"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:90
-msgid "超时时间(分钟)"
-msgstr "超时时间(分钟)"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:91
-#: pipeline_plugins/components/static/components/atoms/bk/notify.js:75
-#: pipeline_plugins/components/static/components/atoms/bk/notify.js:82
-msgid "通知分组"
-msgstr "通知分组"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/index.vue:100
-msgid "模板数据"
-msgstr "模板数据"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:149
-msgid "流程编辑"
-msgstr "流程编辑"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:153
-msgid "任务节点参数错误，请点击错误节点查看详情"
-msgstr "任务节点参数错误，请点击错误节点查看详情"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:154
-msgid "分支节点参数错误，请点击错误节点查看详情"
-msgstr "任务节点参数错误，请点击错误节点查看详情"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:155
-msgid "删除本地缓存成功"
-msgstr "删除本地缓存成功"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:156
-msgid "该本地缓存不存在，删除失败"
-msgstr "该本地缓存不存在，删除失败"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:157
-msgid "替换流程成功"
-msgstr "替换流程成功"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:158
-msgid "新增流程本地缓存成功"
-msgstr "新增流程本地缓存成功"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:159
-msgid "替换流程自动保存"
-msgstr "替换流程自动保存"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:160
-msgid "排版完成，原内容在本地缓存中"
-msgstr "排版完成，原内容在本地缓存中"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:230
-msgid "双击左键"
-msgstr "双击左键"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:234
-msgid "可以快捷打开节点配置面板"
-msgstr "可以快捷打开节点配置面板"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:471
-msgid "普通变量"
-msgstr "普通变量"
-
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:475
-msgid "元变量"
-msgstr "元变量"
-
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:132
-msgid "导出流程"
-msgstr "导出流程"
-
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:133
-msgid "选择流程"
-msgstr "选择流程"
-
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:135
-msgid "请选择需要导出的流程"
-msgstr "请选择需要导出的流程"
-
-#: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:136
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:310
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:307
-msgid "请输入流程名称"
-msgstr "请输入流程名称"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:148
-msgid "上传文件"
-msgstr "上传文件"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:150
-msgid "重新上传"
-msgstr "重新上传"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:151
-msgid "导入流程"
-msgstr "导入流程"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:152
-msgid "导入列表"
-msgstr "导入列表"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:155
-msgid "是否覆盖"
-msgstr "是否覆盖"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:158
-msgid "上传了"
-msgstr "上传了"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:160
-msgid "只显示冲突项"
-msgstr "只显示冲突项"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:161
-msgid "导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）"
-msgstr "导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:162
-msgid "导入的流程会使用新的流程ID，不会对现有的流程造成影响"
-msgstr "导入的流程会使用新的流程ID，不会对现有的流程造成影响"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:163
-msgid "模板文件上传为空"
-msgstr "模板文件上传为空"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:164
-msgid "模板上传内容不合法，请重新选择文件"
-msgstr "模板上传内容不合法，请重新选择文件"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:165
-msgid "该文件后缀不为.dat"
-msgstr "该文件后缀不为.dat"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:166
-msgid "其中"
-msgstr "其中"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:167
-msgid "流程ID不变提交"
-msgstr "流程ID不变提交"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:168
-msgid "流程ID自增提交"
-msgstr "流程ID自增提交"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:169
-msgid "覆盖冲突项, 并提交"
-msgstr "覆盖冲突项, 并提交"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:170
-msgid "保留两者, 并提交"
-msgstr "保留两者, 并提交"
-
-#: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:172
-msgid "条流程与项目已有流程ID存在冲突"
-msgstr "条流程与项目已有流程ID存在冲突"
-
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:247
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:286
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:245
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:283
-msgid "子流程更新"
-msgstr "子流程更新"
-
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:253
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:251
-msgid "无子流程"
-msgstr "无子流程"
-
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:299
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:296
-msgid "导入 V1 模板"
-msgstr "导入 V1 模板"
-
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:311
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:308
-msgid "请选择子流程更新"
-msgstr "请选择子流程更新"
-
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:312
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:309
-msgid "来源"
-msgstr "来源"
-
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:313
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:310
-msgid "请选择来源"
-msgstr "请选择来源"
-
-#: frontend/desktop/src/pages/template/TemplateList/index.vue:319
-#: frontend/desktop/src/pages/template/common/CommonTemplateList.vue:315
-#: frontend/mobile/src/views/template/index.vue:81
-msgid "搜索流程名称"
-msgstr "搜索流程名称"
-
-#: frontend/desktop/src/store/modules/template.js:42
-#: frontend/desktop/src/store/modules/template.js:69
-#: frontend/desktop/src/store/modules/template.js:589
-#: frontend/desktop/src/store/modules/template.js:604
-msgid "步骤1"
-msgstr "步骤1"
-
-#: frontend/desktop/src/store/modules/template.js:813
-msgid "流程数据格式错误，请检查节点、连线或者全局变量"
-msgstr "流程数据格式错误，请检查节点、连线或者全局变量"
-
-#: frontend/desktop/src/utils/draft.js:16
-msgid "自动保存"
-msgstr "自动保存"
-
-#: frontend/desktop/src/utils/errorHandler.js:28
-#: frontend/mobile/src/utils/errorHandler.js:25
-msgid "当前访问的页面不存在"
-msgstr "当前访问的页面不存在"
-
-#: frontend/desktop/src/utils/errorHandler.js:33
-#: frontend/mobile/src/utils/errorHandler.js:30
-msgid "sorry，您没有访问权限!"
-msgstr "sorry，您没有访问权限!"
-
-#: frontend/desktop/src/utils/errorHandler.js:38
-#: frontend/desktop/src/utils/errorHandler.js:43
-#: frontend/mobile/src/utils/errorHandler.js:35
-#: frontend/mobile/src/utils/errorHandler.js:40
-msgid "Sorry，您的权限不足!"
-msgstr "Sorry，您的权限不足!"
-
-#: frontend/desktop/src/utils/tools.js:107
-#: frontend/mobile/src/utils/tools.js:14
-msgid " 秒"
-msgstr " 秒"
-
-#: frontend/desktop/src/utils/tools.js:109
-#: frontend/mobile/src/utils/tools.js:16
-msgid " 分"
-msgstr " 分"
-
-#: frontend/desktop/src/utils/tools.js:111
-#: frontend/mobile/src/utils/tools.js:18
-msgid " 小时"
-msgstr " 小时"
-
-#: frontend/desktop/src/utils/tools.js:113
-#: frontend/mobile/src/utils/tools.js:20
-msgid " 天"
-msgstr " 天"
-
-#: frontend/desktop/src/utils/validatePipeline.js:97
-msgid "节点不可连接自身"
-msgstr "节点不可连接自身"
-
-#: frontend/desktop/src/utils/validatePipeline.js:102
-msgid "只能添加输入连线"
-msgstr "只能添加输入连线"
-
-#: frontend/desktop/src/utils/validatePipeline.js:108
-msgid "只能添加输出连线"
-msgstr "只能添加输出连线"
-
-#: frontend/desktop/src/utils/validatePipeline.js:114
-msgid "不能连接"
-msgstr "不能连接"
-
-#: frontend/desktop/src/utils/validatePipeline.js:134
-msgid "相同节点不能回连"
-msgstr "相同节点不能回连"
-
-#: frontend/desktop/src/utils/validatePipeline.js:139
-msgid "重复添加连线"
-msgstr "重复添加连线"
-
-#: frontend/desktop/src/utils/validatePipeline.js:142
-msgid "已达到"
-msgstr "已达到"
-
-#: frontend/desktop/src/utils/validatePipeline.js:144
-msgid "最大输出连线条数"
-msgstr "最大输出连线条数"
-
-#: frontend/desktop/src/utils/validatePipeline.js:149
-msgid "最大输入连线条数"
-msgstr "最大输入连线条数"
-
-#: frontend/desktop/src/utils/validatePipeline.js:163
-msgid "在模板中只能添加一个"
-msgstr "在模板中只能添加一个"
-
-#: frontend/desktop/src/utils/validatePipeline.js:196
-msgid "至少需要"
-msgstr "至少需要"
-
-#: frontend/desktop/src/utils/validatePipeline.js:198
-msgid "条输入连线"
-msgstr "条输入连线"
-
-#: frontend/desktop/src/utils/validatePipeline.js:203
-msgid "条输出连线"
-msgstr "条输出连线"
-
-#: frontend/desktop/src/utils/validatePipeline.js:215
-msgid "请添加任务节点"
-msgstr "请添加任务节点"
-
-#: frontend/desktop/src/utils/validatePipeline.js:242
-msgid "t equal to ${id}`)"
-msgstr "t equal to ${id}`)"
-
-#: frontend/desktop/test/unit/components/RenderForm/combinePlugin.js:85
-#: pipeline_plugins/components/static/components/atoms/bk/notify.js:140
-msgid "通知主题"
-msgstr "通知主题"
+#: frontend/mobile/src/main.js:111
+msgid "任务名称不能为空"
+msgstr "任务名称不能为空"
 
 #: frontend/mobile/src/main.js:112
 msgid "任务名称包含非法字符"
@@ -4123,6 +516,40 @@ msgstr "任务名称长度不能超过50个字符"
 msgid "输入值不满足校验规则"
 msgstr "输入值不满足校验规则"
 
+#: frontend/mobile/src/utils/errorHandler.js:25
+msgid "当前访问的页面不存在"
+msgstr "当前访问的页面不存在"
+
+#: frontend/mobile/src/utils/errorHandler.js:30
+msgid "sorry，您没有访问权限!"
+msgstr "sorry，您没有访问权限!"
+
+#: frontend/mobile/src/utils/errorHandler.js:35
+#: frontend/mobile/src/utils/errorHandler.js:40
+msgid "Sorry，您的权限不足!"
+msgstr "Sorry，您的权限不足!"
+
+#: frontend/mobile/src/utils/errorHandler.js:45
+#: frontend/mobile/src/utils/errorHandler.js:50
+msgid "系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!"
+msgstr "系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!"
+
+#: frontend/mobile/src/utils/tools.js:14
+msgid " 秒"
+msgstr " 秒"
+
+#: frontend/mobile/src/utils/tools.js:16
+msgid " 分"
+msgstr " 分"
+
+#: frontend/mobile/src/utils/tools.js:18
+msgid " 小时"
+msgstr " 小时"
+
+#: frontend/mobile/src/utils/tools.js:20
+msgid " 天"
+msgstr " 天"
+
 #: frontend/mobile/src/views/home/index.vue:46
 #: frontend/mobile/src/views/task/list.vue:79
 #: frontend/mobile/src/views/template/index.vue:80
@@ -4135,17 +562,71 @@ msgstr "请求失败，点击重新加载"
 msgid "没有更多了"
 msgstr "没有更多了"
 
+#: frontend/mobile/src/views/task/canvas.vue:87
+msgid "未执行"
+msgstr "未执行"
+
+#: frontend/mobile/src/views/task/canvas.vue:88
+msgid "执行中"
+msgstr "执行中"
+
+#: frontend/mobile/src/views/task/canvas.vue:89
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:154
+msgid "暂停"
+msgstr "暂停"
+
+#: frontend/mobile/src/views/task/canvas.vue:90
+msgid "节点暂停"
+msgstr "节点暂停"
+
+#: frontend/mobile/src/views/task/canvas.vue:91
+msgid "失败"
+msgstr "失败"
+
+#: frontend/mobile/src/views/task/canvas.vue:92
+msgid "完成"
+msgstr "完成"
+
+#: frontend/mobile/src/views/task/canvas.vue:93
+msgid "撤销"
+msgstr "撤销"
+
 #: frontend/mobile/src/views/task/canvas.vue:118
 msgid "执行详情"
 msgstr "执行详情"
+
+#: frontend/mobile/src/views/task/canvas.vue:119
+msgid "重试"
+msgstr "重试"
+
+#: frontend/mobile/src/views/task/canvas.vue:120
+msgid "跳过"
+msgstr "跳过"
 
 #: frontend/mobile/src/views/task/canvas.vue:121
 msgid "查看子流程"
 msgstr "查看子流程"
 
+#: frontend/mobile/src/views/task/canvas.vue:122
+msgid "修改时间"
+msgstr "修改时间"
+
+#: frontend/mobile/src/views/task/canvas.vue:123
+msgid "跳过成功"
+msgstr "跳过成功"
+
 #: frontend/mobile/src/views/task/canvas.vue:124
 msgid "跳过失败"
 msgstr "跳过失败"
+
+#: frontend/mobile/src/views/task/canvas.vue:125
+#: frontend/mobile/src/views/task/reset.vue:78
+msgid "重试成功"
+msgstr "重试成功"
+
+#: frontend/mobile/src/views/task/canvas.vue:126
+msgid "继续"
+msgstr "继续"
 
 #: frontend/mobile/src/views/task/canvas.vue:127
 msgid "开始执行任务失败"
@@ -4166,6 +647,10 @@ msgstr "撤销成功"
 msgid "暂停成功"
 msgstr "暂停成功"
 
+#: frontend/mobile/src/views/task/canvas.vue:293
+msgid "任务继续成功"
+msgstr "任务继续成功"
+
 #: frontend/mobile/src/views/task/canvas.vue:305
 msgid "撤销任务?"
 msgstr "撤销任务?"
@@ -4173,6 +658,15 @@ msgstr "撤销任务?"
 #: frontend/mobile/src/views/task/create.vue:123
 msgid "执行所有节点"
 msgstr "执行所有节点"
+
+#: frontend/mobile/src/views/task/create.vue:153
+msgid "新建任务"
+msgstr "新建任务"
+
+#: frontend/mobile/src/views/task/create.vue:154
+#: frontend/mobile/src/views/task/detail.vue:49
+msgid "任务名称"
+msgstr "任务名称"
 
 #: frontend/mobile/src/views/task/create.vue:155
 msgid "方案"
@@ -4182,9 +676,19 @@ msgstr "方案"
 msgid "预览流程图"
 msgstr "预览流程图"
 
+#: frontend/mobile/src/views/task/create.vue:157
+#: frontend/mobile/src/views/task/detail.vue:50
+msgid "参数信息"
+msgstr "参数信息"
+
 #: frontend/mobile/src/views/task/create.vue:158
 msgid "输入参数值"
 msgstr "输入参数值"
+
+#: frontend/mobile/src/views/task/create.vue:160
+#: frontend/mobile/src/views/task/detail.vue:48
+msgid "任务信息"
+msgstr "任务信息"
 
 #: frontend/mobile/src/views/task/create.vue:161
 msgid "添加收藏成功"
@@ -4202,13 +706,68 @@ msgstr "搜索任务名称"
 msgid "至"
 msgstr "至"
 
+#: frontend/mobile/src/views/task/nodes.vue:105
+msgid "执行信息"
+msgstr "执行信息"
+
+#: frontend/mobile/src/views/task/nodes.vue:106
+msgid "开始时间"
+msgstr "开始时间"
+
+#: frontend/mobile/src/views/task/nodes.vue:107
+msgid "结束时间"
+msgstr "结束时间"
+
 #: frontend/mobile/src/views/task/nodes.vue:108
 msgid "耗时(S)"
 msgstr "耗时(S)"
 
+#: frontend/mobile/src/views/task/nodes.vue:109
+msgid "失败后跳过"
+msgstr "失败后跳过"
+
+#: frontend/mobile/src/views/task/nodes.vue:110
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:173
+msgid "是"
+msgstr "是"
+
+#: frontend/mobile/src/views/task/nodes.vue:111
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:174
+msgid "否"
+msgstr "否"
+
+#: frontend/mobile/src/views/task/nodes.vue:112
+msgid "失败后自动忽略"
+msgstr "失败后自动忽略"
+
+#: frontend/mobile/src/views/task/nodes.vue:113
+msgid "重试次数"
+msgstr "重试次数"
+
+#: frontend/mobile/src/views/task/nodes.vue:114
+msgid "输入参数"
+msgstr "输入参数"
+
+#: frontend/mobile/src/views/task/nodes.vue:115
+msgid "输出参数"
+msgstr "输出参数"
+
+#: frontend/mobile/src/views/task/nodes.vue:116
+msgid "异常信息"
+msgstr "异常信息"
+
+#: frontend/mobile/src/views/task/nodes.vue:117
+msgid "执行记录"
+msgstr "执行记录"
+
 #: frontend/mobile/src/views/task/reset.vue:77
 msgid "执行任务"
 msgstr "执行任务"
+
+#: frontend/mobile/src/views/task/reset.vue:80
+#: frontend/mobile/src/views/task/timing.vue:41
+msgid "确定"
+msgstr "确定"
 
 #: frontend/mobile/src/views/task/timing.vue:39
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:19
@@ -4224,6 +783,14 @@ msgstr "定时时间"
 msgid "修改定时时间成功"
 msgstr "修改定时时间成功"
 
+#: frontend/mobile/src/views/template/index.vue:78
+msgid "收藏"
+msgstr "收藏"
+
+#: frontend/mobile/src/views/template/index.vue:81
+msgid "搜索流程名称"
+msgstr "搜索流程名称"
+
 #: pipeline_plugins/components/static/components/atoms/bk/http.js:18
 #: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:18
 msgid "请求方式"
@@ -4233,6 +800,33 @@ msgstr "请求方式"
 #: pipeline_plugins/components/static/components/atoms/bk/v1.0/http.js:55
 msgid "请输入正确的 URL"
 msgstr "请输入正确的 URL"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_batch_delete_set.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_empty_set_hosts.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_to_idle.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:18
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:18
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:18
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:18
+#: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:18
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:7
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:18
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:19
+msgid "业务"
+msgstr "业务"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify.js:45
+msgid "通知方式"
+msgstr "通知方式"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:48
 msgid "微信"
@@ -4249,6 +843,11 @@ msgstr "短信"
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:63
 msgid "请至少选择一种通知方式"
 msgstr "请至少选择一种通知方式"
+
+#: pipeline_plugins/components/static/components/atoms/bk/notify.js:75
+#: pipeline_plugins/components/static/components/atoms/bk/notify.js:82
+msgid "通知分组"
+msgstr "通知分组"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:84
 msgid "运维人员"
@@ -4314,16 +913,6 @@ msgstr "根据返回的 JSON 的数据来控制节点的成功或失败，使用
 msgid "集群"
 msgstr "集群"
 
-#: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:45
-#: pipeline_plugins/components/static/components/atoms/cc/v1.0/cc_create_set.js:45
-msgid "父实例"
-msgstr "父实例"
-
-#: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:94
-#: pipeline_plugins/components/static/components/atoms/cc/v1.0/cc_create_set.js:94
-msgid "集群信息"
-msgstr "集群信息"
-
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:45
 msgid "主机详情"
 msgstr "主机详情"
@@ -4345,6 +934,7 @@ msgstr "替换机IP"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:45
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:45
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:45
+#: pipeline_plugins/variables/static/variables/sites/open/var_cmdb_attribute_query.js:18
 msgid "主机内网IP"
 msgstr "主机内网IP"
 
@@ -4412,6 +1002,20 @@ msgstr "服务状态"
 msgid "开放"
 msgstr "开放"
 
+#: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:98
+msgid "关闭"
+msgstr "关闭"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:45
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:45
+msgid "父实例"
+msgstr "父实例"
+
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/legacy.js:94
+#: pipeline_plugins/components/static/components/atoms/cc/create_set/v1_0.js:94
+msgid "集群信息"
+msgstr "集群信息"
+
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:45
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:45
 msgid "作业模板"
@@ -4437,9 +1041,21 @@ msgstr "Crontab定时规则，请参考JOB平台定时任务Crontab规则"
 msgid "定时作业状态"
 msgstr "定时作业状态"
 
+#: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:155
+msgid "启动"
+msgstr "启动"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:109
+msgid "全局变量"
+msgstr "全局变量"
+
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:112
 msgid "没选中作业模板或当前作业模板全局变量为空"
 msgstr "没选中作业模板或当前作业模板全局变量为空"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:141
+msgid "描述"
+msgstr "描述"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:45
 msgid "脚本来源"
@@ -4723,6 +1339,11 @@ msgstr "列配置"
 msgid "请输入列配置，格式为 [{\"tag_code\": \"name1\", \"type\": \"input\", \"attrs\": {\"name\": \"列1\"}}...], 更多配置请参考《Tag 使用和开发说明》文档中 datatable 说明"
 msgstr "请输入列配置，格式为 [{\"tag_code\": \"name1\", \"type\": \"input\", \"attrs\": {\"name\": \"列1\"}}...], 更多配置请参考《Tag 使用和开发说明》文档中 datatable 说明"
 
+#: pipeline_plugins/variables/static/variables/datatable.js:39
+#: pipeline_plugins/variables/static/variables/select.js:69
+msgid "默认值"
+msgstr "默认值"
+
 #: pipeline_plugins/variables/static/variables/datatable.js:41
 msgid "请输入默认值，可为空，格式为 [{\"name1\": \"value1\", \"name2\": \"value2\"}...]，每一项字典的 key 请和列配置 tag_code 对应"
 msgstr "请输入默认值，可为空，格式为 [{\"name1\": \"value1\", \"name2\": \"value2\"}...]，每一项字典的 key 请和列配置 tag_code 对应"
@@ -4784,6 +1405,10 @@ msgstr "选项"
 msgid "请输入数据源信息，自定义数据源格式为 [{\"text\": \"\", \"value\": \"\"}...]，若是远程数据源则填写返回该格式数据的 URL"
 msgstr "请输入数据源信息，自定义数据源格式为 [{\"text\": \"\", \"value\": \"\"}...]，若是远程数据源则填写返回该格式数据的 URL"
 
+#: pipeline_plugins/variables/static/variables/select.js:54
+msgid "类型"
+msgstr "类型"
+
 #: pipeline_plugins/variables/static/variables/select.js:56
 msgid "单选"
 msgstr "单选"
@@ -4800,6 +1425,10 @@ msgstr "请输入下拉框的默认值，单选为 value 的格式，多选为 v
 #: pipeline_plugins/variables/static/variables/select.js:98
 msgid "非法下拉框数据源，请检查您的配置"
 msgstr "非法下拉框数据源，请检查您的配置"
+
+#: pipeline_plugins/variables/static/variables/sites/open/var_cmdb_attribute_query.js:19
+msgid "输入IP, 多个用英文逗号 `,` 或换行分隔"
+msgstr "输入IP, 多个用英文逗号 `,` 或换行分隔"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_cmdb_ip_selector.js:18
 msgid "选择服务器"
@@ -4839,3 +1468,7 @@ msgstr "请求后台接口异常:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "文本框"
+
+#: version_log/static/version_log/js/modal_frame.js:26
+msgid "版本日志"
+msgstr "版本日志"
