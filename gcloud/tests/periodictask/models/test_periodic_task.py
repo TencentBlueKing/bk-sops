@@ -50,16 +50,41 @@ class PeriodicTaskTestCase(TestCase):
         self.task_template_name = 'task_template_name'
         self.creator = 'tester'
         self.extra_info = {'extra_info': 'val'}
-        self.pipeline_tree = {'constants': {
-            'key_1': {
-                'value': 'val_1',
-                'show_type': 'show',
+        self.pipeline_tree = {
+            'constants': {
+                'key_1': {
+                    'value': 'val_1',
+                    'show_type': 'show',
+                },
+                'key_2': {
+                    'value': 'val_2',
+                    'show_type': 'hide',
+                }
             },
-            'key_2': {
-                'value': 'val_2',
-                'show_type': 'hide',
+            'activities': {},
+            'start_event': {
+                'id': 'id1',
+                'name': '',
+                'type': 'EmptyStartEvent',
+                'incoming': None,
+                'outgoing': 'flow_id1'
+            },
+            'end_event': {
+                'id': 'id2',
+                'name': '',
+                'type': 'EmptyEndEvent',
+                'incoming': 'flow_id1',
+                'outgoing': None
+            },
+            'gateways': {},
+            'flows': {
+                'flow_id1': {
+                    'id': 'flow_id1',
+                    'source': 'id1',
+                    'target': 'id2'
+                }
             }
-        }}
+        }
         self.project = Project.objects.create(
             name='test_project',
             time_zone='Asia/Shanghai',
@@ -105,7 +130,7 @@ class PeriodicTaskTestCase(TestCase):
     @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
     @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
     def test_create_pipeline_task(self):
-        pipeline_tree = 'pipeline_tree_token'
+        pipeline_tree = self.pipeline_tree
         PeriodicTask.objects.create_pipeline_task(project=self.project,
                                                   template=self.template,
                                                   name=self.name,
