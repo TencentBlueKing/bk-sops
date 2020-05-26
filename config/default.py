@@ -330,6 +330,12 @@ COMPONENT_PATH = [
     'components.collections.http',
     'components.collections.sites.%s' % RUN_VER,
     'components.collections.sites.%s.cc.create_set' % RUN_VER,
+    'components.collections.sites.%s.cc.batch_delete_set' % RUN_VER,
+    'components.collections.sites.%s.cc.empty_set_hosts' % RUN_VER,
+    'components.collections.sites.%s.cc.transfer_host_module' % RUN_VER,
+    'components.collections.sites.%s.cc.update_module' % RUN_VER,
+    'components.collections.sites.%s.cc.update_set' % RUN_VER,
+    'components.collections.sites.%s.cc.update_set_service_status' % RUN_VER,
 ]
 VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
 
