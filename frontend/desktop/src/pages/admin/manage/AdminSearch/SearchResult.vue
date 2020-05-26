@@ -321,6 +321,8 @@
             async getSearchResult () {
                 try {
                     this.searchLoading = true
+                    this.templateResultTotal = 0
+                    this.taskResultTotal = 0
                     const res = await this.search({ keyword: this.searchStr })
                     if (res.result) {
                         this.matchedList = res.data.matched
@@ -345,7 +347,6 @@
             async getAdminTemplate () {
                 try {
                     this.tplDataLoading = true
-                    this.templateResultTotal = 0
                     const params = {
                         limit: this.tplPagination.limit,
                         offset: (this.tplPagination.current - 1) * this.tplPagination.limit,
@@ -366,7 +367,6 @@
             async getAdminTask () {
                 try {
                     this.taskDataLoading = true
-                    this.taskResultTotal = 0
                     const params = {
                         limit: this.taskPagination.limit,
                         offset: (this.taskPagination.current - 1) * this.taskPagination.limit,
