@@ -56,7 +56,7 @@ def verify_perms(auth_resource, resource_get, actions, scope_id_get=None):
                                                        actions_id,
                                                        instance_id)
             if not verify_result['result']:
-                message = ('verify perms of Resource[{resource}] by backend[{beckend_cls}] '
+                message = ('verify perms of Resource[{resource}] by backend[{backend_cls}] '
                            'return error: {error}').format(
                     resource=auth_resource.name,
                     backend_cls=auth_resource.backend,

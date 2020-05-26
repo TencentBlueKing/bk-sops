@@ -12,8 +12,8 @@
 <template>
     <div class="my-collection" v-bkloading="{ isLoading: collectionBodyLoading, opacity: 1 }">
         <h3 class="panel-title">
-            {{ i18n.title }}
-            <span class="add-btn" @click="onAddCollection">{{ i18n.add }}</span>
+            {{ $t('我的收藏') }}
+            <span class="add-btn" @click="onAddCollection">{{ $t('添加') }}</span>
         </h3>
         <div
             v-for="(grounp, index) in collectionGrounpList"
@@ -46,8 +46,8 @@
             </ul>
         </div>
         <panel-nodata v-if="!collectionGrounpList.length">
-            <span class="link-text" @click="onAddCollection">{{ i18n.add }}</span>
-            <span>{{ i18n.noDataDesc }}</span>
+            <span class="link-text" @click="onAddCollection">{{ $t('添加') }}</span>
+            <span>{{ $t('常用流程到收藏夹，可作为你的流程管理快捷入口') }}</span>
         </panel-nodata>
         <add-collection-dialog
             :collection-list="collectionList"
@@ -67,18 +67,18 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.delete"
+            :title="$t('删除')"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
             <div style="padding:30px" v-bkloading="{ isLoading: deleteCollectLoading, opacity: 1 }">
-                {{i18n.deleteTips}}
+                {{$t('确认删除收藏？')}}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import PanelNodata from './PanelNodata.vue'
     import BaseCard from '@/components/common/base/BaseCard.vue'
     import AddCollectionDialog from './AddCollectionDialog.vue'
@@ -98,13 +98,6 @@
         mixins: [permission],
         data () {
             return {
-                i18n: {
-                    title: gettext('我的收藏'),
-                    add: gettext('添加'),
-                    delete: gettext('删除'),
-                    deleteTips: gettext('确认删除收藏？'),
-                    noDataDesc: gettext('常用流程到收藏夹，可作为你的流程管理快捷入口')
-                },
                 createTaskItem: '',
                 tplOperations: [],
                 collectionResource: {},
@@ -174,10 +167,10 @@
             },
             getCategoryChineseName (enType) {
                 const categoryMap = {
-                    'flow': gettext('项目流程'),
-                    'common_flow': gettext('公共流程'),
-                    'mini_app': gettext('轻应用'),
-                    'periodic_task': gettext('周期任务')
+                    'flow': i18n.t('项目流程'),
+                    'common_flow': i18n.t('公共流程'),
+                    'mini_app': i18n.t('轻应用'),
+                    'periodic_task': i18n.t('周期任务')
                 }
                 return categoryMap[enType]
             },

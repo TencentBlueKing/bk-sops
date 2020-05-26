@@ -18,7 +18,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import CommonUsed from './CommonlyUsed.vue'
     import MyCollection from './MyCollection.vue'
     import MyDynamic from './MyDynamic.vue'

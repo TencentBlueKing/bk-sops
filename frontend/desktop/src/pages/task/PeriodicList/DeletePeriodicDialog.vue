@@ -16,7 +16,7 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.deleteTips"
+        :title="$t('确认删除')"
         :value="isDeleteDialogShow"
         :draggable="true"
         @confirm="onDeletePeriodicConfrim"
@@ -27,20 +27,13 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'DeletePeriodicDialog',
         props: ['isDeleteDialogShow', 'templateName', 'deleting'],
-        data () {
-            return {
-                i18n: {
-                    deleteTips: gettext('确认删除')
-                }
-            }
-        },
         computed: {
             deleteInfo () {
-                return this.i18n.deleteTips + '"' + this.templateName + '"' + gettext('？')
+                return i18n.t('确认删除') + '"' + this.templateName + '"' + i18n.t('？')
             }
         },
         methods: {

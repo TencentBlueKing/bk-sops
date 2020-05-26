@@ -11,20 +11,12 @@
 */
 <template>
     <div class="add-comp" @click="$emit('click')">
-        <slot>{{i18n.add}}</slot>
+        <slot>{{$t('点击添加')}}</slot>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
-        name: 'AddComp',
-        data () {
-            return {
-                i18n: {
-                    add: gettext('点击添加')
-                }
-            }
-        }
+        name: 'AddComp'
     }
 </script>
 <style lang="scss" scoped>

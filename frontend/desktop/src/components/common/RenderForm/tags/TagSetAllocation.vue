@@ -49,8 +49,13 @@
             required: false,
             default () {
                 return {
-                    config: {},
-                    data: {}
+                    config: {
+                        set_count: 0,
+                        set_template_id: '',
+                        host_resources: [],
+                        module_detail: []
+                    },
+                    data: []
                 }
             }
         }

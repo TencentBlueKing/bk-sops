@@ -15,6 +15,7 @@ import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
+import i18n from '@/config/i18n/index.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
@@ -39,7 +40,7 @@ function generateInitLocation () {
             x: 240,
             y: 145,
             name: '',
-            stage_name: gettext('步骤1'),
+            stage_name: i18n.t('步骤1'),
             type: 'tasknode'
         },
         {
@@ -66,7 +67,7 @@ function generateInitActivities (location, line) {
             name: '',
             optional: false,
             outgoing: line[1].id,
-            stage_name: gettext('步骤1'),
+            stage_name: i18n.t('步骤1'),
             type: 'ServiceActivity',
             retryable: true,
             skippable: true
@@ -365,7 +366,6 @@ const template = {
 
             for (const key in state.constants) {
                 const varItem = state.constants[key]
-                console.log(varItem.name, varItem.index, constant.index)
                 if (varItem.index > constant.index) {
                     varItem.index = varItem.index - 1
                 }
@@ -586,7 +586,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: gettext('步骤1'),
+                            stage_name: i18n.t('步骤1'),
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true
@@ -601,7 +601,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: gettext('步骤1'),
+                            stage_name: i18n.t('步骤1'),
                             template_id: location.atomId,
                             version: location.atomVersion,
                             type: 'SubProcess'
@@ -810,7 +810,7 @@ const template = {
             if (!validateResult.result) {
                 return new Promise((resolve, reject) => {
                     const info = {
-                        message: `${gettext('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
+                        message: `${i18n.t('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
                     }
                     reject(info)
                 })

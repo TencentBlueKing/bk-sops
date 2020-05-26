@@ -130,7 +130,7 @@ class TaskTemplateManager(BaseTemplateManager, TaskTmplStatisticsMixin):
         return True, collected_templates_list
 
     def get_templates_with_expired_subprocess(self, project_id):
-        tmpl_and_pipeline_id = self.filter(project_id=project_id).values('id', 'pipeline_template_id')
+        tmpl_and_pipeline_id = self.filter(project_id=project_id, is_deleted=False).values('id', 'pipeline_template_id')
         return self.check_templates_subprocess_expired(tmpl_and_pipeline_id)
 
 

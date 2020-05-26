@@ -22,7 +22,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
@@ -101,7 +101,7 @@
                 if (this.cacheList.length > 0 && this.originList.length === 0) {
                     this.$bkMessage({
                         theme: 'error',
-                        message: gettext('请添加主包源'),
+                        message: i18n.t('请添加主包源'),
                         delay: 10000
                     })
                     return
@@ -112,7 +112,7 @@
                         // 本地缓存、主包源在创建时为空
                         this.$bkMessage({
                             theme: 'error',
-                            message: gettext('请添加主包源'),
+                            message: i18n.t('请添加主包源'),
                             delay: 10000
                         })
                     } else {
