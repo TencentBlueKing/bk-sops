@@ -63,12 +63,11 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import FormItem from './FormItem.vue'
 
     export default {
         name: 'FormGroup',
         components: {
-            FormItem
+            FormItem: () => import('./FormItem.vue')
         },
         props: {
             scheme: {

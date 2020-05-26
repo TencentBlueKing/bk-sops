@@ -60,12 +60,8 @@
             ...TAGS
         },
         props: {
-            tagInfo: {
-                type: Object
-            },
-            form: {
-                type: Object
-            }
+            tagInfo: Object,
+            form: Object
         },
         methods: {
             getFormProps (config) {

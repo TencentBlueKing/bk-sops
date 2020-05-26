@@ -38,9 +38,6 @@
                     </component>
                 </draggable>
             </div>
-            <div class="combine-move-icon">
-                <i class="operation-btn common-icon-horizon-line-group"></i>
-            </div>
             <div class="operation-btn-group">
                 <i
                     :class="[
@@ -198,7 +195,7 @@
             cursor: pointer;
             font-size: 14px;
             color: #979ba5;
-            &:not(.common-icon-horizon-line-group):hover {
+            &:hover {
                 color: #63656e;
             }
             &.active {
@@ -208,19 +205,6 @@
                 font-size: 12px;
             }
         }
-    }
-    .combine-move-icon {
-        display: flex;
-        align-items: center;
-        position: absolute;
-        left: 0;
-        top: 0;
-        z-index: 1;
-        width: 20px;
-        height: 100%;
-    }
-    .common-icon-horizon-line-group {
-        cursor: move;
     }
     .tag-info {
         position: relative;

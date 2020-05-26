@@ -230,8 +230,13 @@
                         config: {
                             type: 'combine',
                             attrs: {
-                                name: {},
+                                name: {
+                                    type: String,
+                                    required: true,
+                                    value: ''
+                                },
                                 hookable: {
+                                    type: Boolean,
                                     value: false
                                 },
                                 children: {
@@ -248,7 +253,7 @@
             transAtomConfig (forms) {
                 const atomConfig = forms.map(item => {
                     const config = tools.deepClone(item.config)
-                    if (config.attrs.children) {
+                    if (config.type === 'combine' && Array.prototype.isArray(config.attrs.children)) {
                         config.attrs.children = this.transAtomConfig(config.attrs.children.value)
                     }
                     for (const key in config.attrs) {
@@ -420,7 +425,7 @@
                 let atomFroms = []
                 for (let i = 0; i < forms.length; i++) {
                     const item = forms[i]
-                    if (item.config.attrs.children) {
+                    if (item.type === 'combine' && Array.prototype.isArray(item.attrs.children)) {
                         const localAtomForm = this.getAtomForms(item.config.attrs.children.value)
                         atomFroms = [...atomFroms, ...localAtomForm]
                     }
