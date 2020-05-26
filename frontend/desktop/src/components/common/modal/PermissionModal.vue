@@ -11,11 +11,8 @@
 */
 <template>
     <bk-dialog
-        width="600"
-        padding="0 24px 40px 24px"
+        width="768"
         ext-cls="permission-dialog"
-        :z-index="2000"
-        :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
         :title="''"
@@ -26,13 +23,14 @@
                 <span class="title-icon">
                     <img :src="lock" alt="permission-lock" class="lock-img" />
                 </span>
-                <h3>{{$t('没有权限访问或操作此资源')}}</h3>
+                <h3>{{$t('该操作需要以下权限')}}</h3>
             </div>
             <table class="permission-table table-header">
                 <thead>
                     <tr>
-                        <th width="60%">{{$t('资源')}}</th>
-                        <th width="40%">{{$t('需要申请的权限')}}</th>
+                        <th width="20%">{{$t('系统')}}</th>
+                        <th width="30%">{{$t('需要申请的资源')}}</th>
+                        <th width="50%">{{$t('关联的资源实例')}}</th>
                     </tr>
                 </thead>
             </table>
@@ -40,8 +38,9 @@
                 <table class="permission-table">
                     <tbody>
                         <tr v-for="(permission, index) in list" :key="index">
-                            <td width="60%">{{getResource(permission)}}</td>
-                            <td width="40%">{{permission.action_name}}</td>
+                            <td width="20%"></td>
+                            <td width="30%">{{permission.action_name}}</td>
+                            <td width="50%">{{getResource(permission)}}</td>
                         </tr>
                         <tr v-if="false">
                             <td class="no-data" colspan="2">{{$t('无数据')}}</td>
@@ -129,26 +128,27 @@
     }
 </script>
 <style lang="scss" scoped>
-    .permission-dialog {
-        z-index: 1501;
-    }
     /deep/ .permission-content {
         .permission-header {
             text-align: center;
+            .title-icon {
+                display: inline-block;
+            }
             .lock-img {
-                width: 56px;
-                box-shadow: 0 6px 5px -5px rgba(180, 180, 180, 0.9);
+                width: 120px;
             }
             h3 {
-                margin: 10px 0 30px;
-                color: #313238;
+                margin: 6px 0 24px;
+                color: #63656e;
                 font-size: 20px;
+                font-weight: normal;
+                line-height: 1;
             }
         }
         .permission-table {
             width: 100%;
             color: #63656e;
-            border: 1px solid #dcdee5;
+            border-bottom: 1px solid #e7e8ed;
             border-collapse: collapse;
             table-layout: fixed;
             th,
@@ -156,17 +156,16 @@
                 padding: 12px 18px;
                 font-size: 12px;
                 text-align: left;
-                border-bottom: 1px solid #dcdee5;
-                border-right: 1px solid #dcdee5;
+                border-bottom: 1px solid #e7e8ed;
             }
             th {
                 color: #313238;
-                background: rgb(250, 251, 253);
+                background: #f5f6fa;
             }
         }
         .table-content {
             max-height: 180px;
-            border-bottom: 1px solid #dcdee5;
+            border-bottom: 1px solid #e7e8ed;
             border-top: none;
             overflow: auto;
             .permission-table {
