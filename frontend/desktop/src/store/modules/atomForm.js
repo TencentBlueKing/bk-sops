@@ -97,8 +97,8 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { name, atom, classify, isMeta, version } = payload
-            const atomClassify = classify || 'component'
+            const { name, atom, classify = 'component', isMeta, version = 'legacy' } = payload
+            const atomClassify = classify
             const atomFile = name || atom
             const atomVersion = atomClassify === 'variable' ? 'legacy' : version
 
