@@ -17,6 +17,7 @@
             attrs: {
                 name: gettext("策略"),
                 remote: true,
+                multiple: true,
                 remote_url: $.context.site_url + "pipeline/monitor_get_strategy/" + $.context.getBkBizId() + "/",
                 remote_data_init: function (resp) {
                     return resp.data;
@@ -27,6 +28,15 @@
                     }
                 ]
             },
+        },
+        {
+            tag_code: "bk_alarm_shield_IP",
+            type: "input",
+            attrs: {
+                name: gettext("IP"),
+                hookable: true,
+                placeholder: gettext("请输入主机IP，多个用逗号分隔"),
+            }
         },
         {
             tag_code: "bk_alarm_shield_strategy_begin_time",
@@ -42,7 +52,7 @@
             }
         },
         {
-            tag_code: "bbk_alarm_shield_strategy_end_time",
+            tag_code: "bk_alarm_shield_strategy_end_time",
             type: "input",
             attrs: {
                 name: gettext("结束时间"),

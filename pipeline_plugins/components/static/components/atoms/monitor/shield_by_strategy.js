@@ -16,6 +16,7 @@
             type: "select",
             attrs: {
                 name: gettext("策略"),
+                multiple: true,
                 remote: true,
                 remote_url: $.context.site_url + "pipeline/monitor_get_strategy/" + $.context.getBkBizId() + "/",
                 remote_data_init: function (resp) {
