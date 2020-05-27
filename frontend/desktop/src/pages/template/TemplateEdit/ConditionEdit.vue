@@ -48,14 +48,15 @@
                             }">
                         </i>
                     </label>
-                    <textarea
-                        v-model.trim="expression"
-                        v-validate="expressionRule"
-                        name="expression"
-                        autocomplete="off"
-                        placeholder=""
-                        class="ui-textarea">
-                    </textarea>
+                    <div class="code-wrapper">
+                        <code-editor
+                            v-validate="expressionRule"
+                            name="expression"
+                            :value="expression"
+                            :options="{ language: 'python' }"
+                            @input="onDataChange">
+                        </code-editor>
+                    </div>
                     <span v-show="errors.has('expression')" class="common-error-tip error-msg">{{ errors.first('expression') }}</span>
                 </div>
             </div>
@@ -66,8 +67,12 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import CodeEditor from '@/components/common/CodeEditor.vue'
     export default {
         name: 'conditionEdit',
+        components: {
+            CodeEditor
+        },
         props: {
             isSettingPanelShow: Boolean,
             isShowConditionEdit: Boolean,
@@ -146,6 +151,11 @@
             // 关闭配置面板
             onBeforeClose () {
                 this.closeConditionEdit()
+            },
+            onDataChange (val) {
+                if (val !== this.expression) {
+                    this.expression = val
+                }
             }
         }
     }
@@ -201,21 +211,8 @@
                     color: #ff2602;
                 }
             }
-            .ui-textarea {
-                height: 80px;
-                line-height: 1;
-                color: #63656e;
-                background-color: #fff;
-                border-radius: 2px;
-                width: 100%;
-                font-size: 12px;
-                box-sizing: border-box;
-                border: 1px solid #c4c6cc;
-                padding: 6px 10px;
-                text-align: left;
-                vertical-align: middle;
-                outline: none;
-                resize: none;
+            .code-wrapper {
+                height: 160px;
             }
         }
         .expression-tips {
