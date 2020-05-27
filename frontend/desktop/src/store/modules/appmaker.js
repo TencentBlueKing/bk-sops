@@ -35,7 +35,6 @@ const appmaker = {
     actions: {
         // 加载轻应用列表
         loadAppmaker ({ commit }, data) {
-            data.test = 6
             const querystring = Object.assign({}, data)
             return axios.get('api/v3/appmaker/', {
                 params: querystring
