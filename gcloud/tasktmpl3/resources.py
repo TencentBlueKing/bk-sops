@@ -21,22 +21,27 @@ from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 
-from auth_backend.plugins.delegation import RelateAuthDelegation
-from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
-from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
-from gcloud.commons.template.resources import PipelineTemplateResource
-from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
-from gcloud.core.utils import name_handler, pipeline_node_name_handle
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.permissions import project_resource, task_template_resource
-from gcloud.webservice3.paginator import TemplateFilterPaginator
-from gcloud.webservice3.resources import GCloudModelResource, ProjectResource
 from pipeline.exceptions import PipelineException
 from pipeline.models import TemplateScheme
 from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
+from iam import Resource, Subject, Action
+from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
+
+from gcloud.commons.template.resources import PipelineTemplateResource
+from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
+from gcloud.core.utils import name_handler, pipeline_node_name_handle
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
+from gcloud.core.resources import ProjectResource
+from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
+
 logger = logging.getLogger("root")
+iam = get_iam_client()
 
 
 class TaskTemplateResource(GCloudModelResource):
@@ -58,16 +63,7 @@ class TaskTemplateResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = "template"
-        create_delegation = RelateAuthDelegation(
-            delegate_resource=project_resource, action_ids=["create_template"], delegate_instance_f="project"
-        )
-        auth_resource = task_template_resource
-        authorization = BkSaaSLooseAuthorization(
-            auth_resource=auth_resource,
-            read_action_id="view",
-            update_action_id="edit",
-            create_delegation=create_delegation,
-        )
+
         filtering = {
             "id": ALL,
             "project": ALL_WITH_RELATIONS,
@@ -79,6 +75,32 @@ class TaskTemplateResource(GCloudModelResource):
         }
         q_fields = ["id", "pipeline_template__name"]
         paginator_class = TemplateFilterPaginator
+        # iam config
+        authorization = CompleteListIAMAuthorization(
+            iam=iam,
+            helper=FlowIAMAuthorizationHelper(
+                system=IAMMeta.SYSTEM_ID,
+                create_action=IAMMeta.FLOW_CREATE_ACTION,
+                read_action=IAMMeta.FLOW_VIEW_ACTION,
+                update_action=IAMMeta.FLOW_EDIT_ACTION,
+                delete_action=IAMMeta.FLOW_DELETE_ACTION,
+            ),
+        )
+        iam_resource_helper = SimpleResourceHelper(
+            type=IAMMeta.FLOW_RESOURCE,
+            id_field="id",
+            creator_field="creator_name",
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            actions=[
+                IAMMeta.FLOW_VIEW_ACTION,
+                IAMMeta.FLOW_EDIT_ACTION,
+                IAMMeta.FLOW_DELETE_ACTION,
+                IAMMeta.FLOW_CREATE_TASK_ACTION,
+                IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
+                IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
+            ],
+        )
 
     @staticmethod
     def handle_template_name_attr(data):
@@ -245,12 +267,19 @@ class TemplateSchemeResource(GCloudModelResource):
             logger.error(message)
             raise BadRequest(message)
 
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=task_template_resource,
-            action_ids=[task_template_resource.actions.edit.id],
-            instance=template,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.username),
+            action=Action(IAMMeta.FLOW_EDIT_ACTION),
+            resources=[
+                Resource(
+                    system=IAMMeta.SYSTEM_ID,
+                    type=IAMMeta.FLOW_RESOURCE,
+                    id=str(template.id),
+                    attribute={"iam_resource_owner": template.creator},
+                )
+            ],
         )
 
         bundle.data["name"] = name_handler(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
@@ -271,11 +300,18 @@ class TemplateSchemeResource(GCloudModelResource):
         except TaskTemplate.DoesNotExist:
             raise BadRequest("flow template the deleted scheme belongs to does not exist")
 
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=task_template_resource,
-            action_ids=[task_template_resource.actions.edit.id],
-            instance=template,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.username),
+            action=Action(IAMMeta.FLOW_EDIT_ACTION),
+            resources=[
+                Resource(
+                    system=IAMMeta.SYSTEM_ID,
+                    type=IAMMeta.FLOW_RESOURCE,
+                    id=str(template.id),
+                    attribute={"iam_resource_owner": template.creator},
+                )
+            ],
         )
         return super(TemplateSchemeResource, self).obj_delete(bundle, **kwargs)

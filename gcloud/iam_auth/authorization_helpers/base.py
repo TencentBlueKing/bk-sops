@@ -11,5 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .conf import IAMMeta  # noqa
-from .shortcuts import get_iam_client, get_user_projects  # noqa
+from iam import Subject
+from iam.contrib.tastypie.authorization import IAMAuthorizationHelper
+
+
+class EmptyEnvIAMAuthorizationHelper(IAMAuthorizationHelper):
+    def get_subject(self, bundle):
+        return Subject("user", bundle.request.user.username)
+
+    def get_create_detail_environment(self, bundle):
+        return {}
+
+    def get_read_detail_environment(self, bundle):
+        return {}
+
+    def get_update_detail_environment(self, bundle):
+        return {}
+
+    def get_delete_detail_environment(self, bundle):
+        return {}
+
+    def get_read_list_environment(self, bundle):
+        return {}

@@ -11,5 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .conf import IAMMeta  # noqa
-from .shortcuts import get_iam_client, get_user_projects  # noqa
+import datetime
+
+from django.utils import timezone
+from tastypie.serializers import Serializer
+
+
+class AppSerializer(Serializer):
+    def format_datetime(self, data):
+        # translate to time in local timezone
+        if timezone.is_aware(data):
+            data = timezone.localtime(data)
+        return data.strftime("%Y-%m-%d %H:%M:%S %z")
+
+    def format_date(self, data):
+        return data.strftime("%Y-%m-%d")
+
+    def format_time(self, data):
+        return datetime.time.strftime(data, "%H:%M:%S")

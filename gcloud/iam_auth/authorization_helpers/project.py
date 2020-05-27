@@ -11,22 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import datetime
+from tastypie.exceptions import Unauthorized
 
-from django.utils import timezone
-from tastypie.serializers import Serializer
+from iam import Resource
+
+from gcloud.iam_auth.conf import IAMMeta
+from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
 
-class AppSerializer(Serializer):
+class ProjectIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
+    def get_create_detail_resources(self, bundle):
+        raise Unauthorized()
 
-    def format_datetime(self, data):
-        # translate to time in local timezone
-        if timezone.is_aware(data):
-            data = timezone.localtime(data)
-        return data.strftime("%Y-%m-%d %H:%M:%S %z")
+    def get_read_detail_resources(self, bundle):
+        return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(bundle.obj.id), {})]
 
-    def format_date(self, data):
-        return data.strftime("%Y-%m-%d")
+    def get_update_detail_resources(self, bundle):
+        raise Unauthorized()
 
-    def format_time(self, data):
-        return datetime.time.strftime(data, "%H:%M:%S")
+    def get_delete_detail_resources(self, bundle):
+        raise Unauthorized()

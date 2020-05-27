@@ -18,13 +18,12 @@ from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAutho
 from auth_backend.plugins.tastypie.inspect import ResourceInspect
 
 from gcloud.taskflow3.permissions import taskflow_resource
-from gcloud.webservice3.resources import GCloudModelResource
+from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
 
 
 class FunctionTaskResourceInspect(ResourceInspect):
-
     def scope_id(self, bundle):
         return None
 
@@ -33,43 +32,26 @@ class FunctionTaskResourceInspect(ResourceInspect):
 
 
 class FunctionTaskResource(GCloudModelResource):
-    task = fields.ForeignKey(
-        TaskFlowInstanceResource,
-        'task',
-        full=True
-    )
-    creator_name = fields.CharField(
-        attribute='creator_name',
-        readonly=True,
-        null=True
-    )
-    editor_name = fields.CharField(
-        attribute='editor_name',
-        readonly=True,
-        null=True
-    )
-    status_name = fields.CharField(
-        attribute='status_name',
-        readonly=True,
-        null=True
-    )
+    task = fields.ForeignKey(TaskFlowInstanceResource, "task", full=True)
+    creator_name = fields.CharField(attribute="creator_name", readonly=True, null=True)
+    editor_name = fields.CharField(attribute="editor_name", readonly=True, null=True)
+    status_name = fields.CharField(attribute="status_name", readonly=True, null=True)
 
     class Meta(GCloudModelResource.Meta):
         queryset = FunctionTask.objects.filter(task__is_deleted=False)
-        resource_name = 'function_task'
+        resource_name = "function_task"
         auth_resource = taskflow_resource
-        authorization = BkSaaSLooseReadOnlyAuthorization(auth_resource=auth_resource,
-                                                         read_action_id='view',
-                                                         update_action_id='edit',
-                                                         resource_f='task')
+        authorization = BkSaaSLooseReadOnlyAuthorization(
+            auth_resource=auth_resource, read_action_id="view", update_action_id="edit", resource_f="task"
+        )
         inspect = FunctionTaskResourceInspect()
 
         filtering = {
-            'task': ALL_WITH_RELATIONS,
-            'creator': ALL,
-            'editor': ALL,
-            'status': ALL,
-            'create_time': ['gte', 'lte'],
-            'claim_time': ['gte', 'lte']
+            "task": ALL_WITH_RELATIONS,
+            "creator": ALL,
+            "editor": ALL,
+            "status": ALL,
+            "create_time": ["gte", "lte"],
+            "claim_time": ["gte", "lte"],
         }
-        q_fields = ['task__pipeline_instance__name']
+        q_fields = ["task__pipeline_instance__name"]

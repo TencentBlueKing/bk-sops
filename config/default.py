@@ -49,7 +49,7 @@ INSTALLED_APPS += (
     "gcloud.core",
     "gcloud.tasktmpl3",
     "gcloud.taskflow3",
-    "gcloud.webservice3",
+    "gcloud.resources",
     "gcloud.contrib.analysis",
     "gcloud.contrib.appmaker",
     "gcloud.contrib.function",
@@ -116,7 +116,7 @@ MIDDLEWARE += (
     "django.middleware.locale.LocaleMiddleware",
     "gcloud.core.middlewares.TimezoneMiddleware",
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
-    "auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware",
+    "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -189,7 +189,12 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 # 程序会自动分析访客使用的语言，来显示相应的翻译结果
 LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
-_ = lambda s: s  # noqa
+
+
+def _(s):
+    return s  # noqa
+
+
 LANGUAGES = (
     ("en", _("English")),
     ("zh-hans", _("简体中文")),

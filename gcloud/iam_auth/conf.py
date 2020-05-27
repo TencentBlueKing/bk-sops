@@ -244,3 +244,50 @@ ACTIONS = [
     {"id": "function_view", "name": _("查看职能化中心"), "relate_resources": [], "relate_actions": []},
     {"id": "statistics_view", "name": _("查看数据统计"), "relate_resources": [], "relate_actions": []},
 ]
+
+
+class IAMMeta(object):
+
+    SYSTEM_ID = SYSTEM_ID
+
+    PROJECT_RESOURCE = "project"
+    FLOW_RESOURCE = "flow"
+    TASK_RESOURCE = "task"
+    COMMON_FLOW_RESOURCE = "common_flow"
+    MINI_APP_RESOURCE = "mini_app"
+    PERIODIC_TASK_RESOURCE = "periodic_task"
+
+    PROJECT_VIEW_ACTION = "project_view"
+    PROJECT_EDIT_ACTION = "project_edit"
+    PROJECT_FAST_CREATE_TASK_ACTION = "project_fast_create_task"
+
+    FLOW_CREATE_ACTION = "flow_create"
+    FLOW_VIEW_ACTION = "flow_view"
+    FLOW_EDIT_ACTION = "flow_edit"
+    FLOW_DELETE_ACTION = "flow_delete"
+    FLOW_CREATE_TASK_ACTION = "flow_create_task"
+    FLOW_CREATE_MINI_APP_ACTION = "flow_create_mini_app"
+    FLOW_CREATE_PERIODIC_TASK_ACTION = "flow_create_periodic_task"
+
+    TASK_VIEW_ACTION = "task_view"
+    TASK_EDIT_ACTION = "task_edit"
+    TASK_OPERATE_ACTION = "task_operate"
+    TASK_CLAIM_ACTION = "task_claim"
+    TASK_DELETE_ACTION = "task_delete"
+    TASK_CLONE_ACTION = "task_clone"
+
+    COMMON_FLOW_CREATE_TASK_ACTION = "common_flow_create_task"
+    COMMON_FLOW_CREATE_ACTION = "common_flow_create"
+    COMMON_FLOW_VIEW_ACTION = "common_flow_view"
+    COMMON_FLOW_EDIT_ACTION = "common_flow_edit"
+    COMMON_FLOW_DELETE_ACTION = "common_flow_delete"
+    COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION = "common_flow_create_periodic_task"
+
+    MINI_APP_VIEW_ACTION = "mini_app_view"
+    MINI_APP_EDIT_ACTION = "mini_app_edit"
+    MINI_APP_DELETE_ACTION = "mini_app_delete"
+    MINI_APP_CREATE_TASK_ACTION = "mini_app_create_task"
+
+    PERIODIC_TASK_VIEW_ACTION = "periodic_task_view"
+    PERIODIC_TASK_EDIT_ACTION = "periodic_task_edit"
+    PERIODIC_TASK_DELETE_ACTION = "periodic_task_delete"

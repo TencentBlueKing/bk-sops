@@ -16,7 +16,6 @@ from tastypie.paginator import Paginator
 
 
 class PropertyFilterPaginator(Paginator):
-
     def properties(self):
         raise NotImplementedError()
 
@@ -29,12 +28,12 @@ class PropertyFilterPaginator(Paginator):
         for obj in self.objects:
 
             for item in filter_items:
-                if getattr(obj, item['p']) != item['v']:
+                if getattr(obj, item["p"]) != item["v"]:
                     break
             else:
                 filtered.append(obj)
 
-        setattr(self, '_objects', self.objects)
+        setattr(self, "_objects", self.objects)
         self.objects = filtered
 
     def page(self):
@@ -51,8 +50,7 @@ class PropertyFilterPaginator(Paginator):
         filter_items = []
         for prop, field in list(self.properties().items()):
             if prop in self.request_data:
-                filter_items.append({'p': prop,
-                                     'v': field.to_python(self.request_data[prop])})
+                filter_items.append({"p": prop, "v": field.to_python(self.request_data[prop])})
 
         self.filter_objects(filter_items)
 
@@ -61,22 +59,21 @@ class PropertyFilterPaginator(Paginator):
 
         objects = self.get_slice(limit, offset)
         meta = {
-            'offset': offset,
-            'limit': limit,
-            'total_count': count,
+            "offset": offset,
+            "limit": limit,
+            "total_count": count,
         }
 
         if limit:
-            meta['previous'] = self.get_previous(limit, offset)
-            meta['next'] = self.get_next(limit, offset, count)
+            meta["previous"] = self.get_previous(limit, offset)
+            meta["next"] = self.get_next(limit, offset, count)
 
         return {
             self.collection_name: objects,
-            'meta': meta,
+            "meta": meta,
         }
 
 
 class TemplateFilterPaginator(PropertyFilterPaginator):
     def properties(self):
-        return {'subprocess_has_update': BooleanField(),
-                'has_subprocess': BooleanField()}
+        return {"subprocess_has_update": BooleanField(), "has_subprocess": BooleanField()}
