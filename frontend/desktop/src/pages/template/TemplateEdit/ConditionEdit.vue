@@ -154,7 +154,7 @@
             },
             onDataChange (val) {
                 if (val !== this.expression) {
-                    this.expression = val
+                    this.expression = val.trim()
                 }
             }
         }
