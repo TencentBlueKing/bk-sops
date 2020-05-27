@@ -426,7 +426,7 @@
             },
             // 由集群ID递归查找集群名称
             filterSetName (id, list) {
-                let name
+                let name = ''
                 list.some(item => {
                     if (item.id === id) {
                         name = item.label

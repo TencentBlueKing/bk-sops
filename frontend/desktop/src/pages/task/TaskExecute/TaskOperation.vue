@@ -667,7 +667,7 @@
                 }
                 this.nodeDetailConfig = {
                     component_code: nodeActivities.component.code,
-                    version: nodeActivities.component.version,
+                    version: nodeActivities.component.version || 'legacy',
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
@@ -869,7 +869,7 @@
                 const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
                 const nodeActivities = this.pipelineData.activities[id]
                 const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
-                const version = type === 'singleAtom' ? nodeActivities.component.version : undefined
+                const version = type === 'singleAtom' ? (nodeActivities.component.version || 'legacy') : undefined
                 let isPanelShow = false
                 if (nodeState) {
                     if (type === 'singleAtom') {

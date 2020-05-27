@@ -343,18 +343,17 @@
         },
         methods: {
             ...mapActions([
+                'loadCollectList',
+                'addToCollectList',
+                'deleteCollect',
                 'queryUserPermission'
             ]),
             ...mapActions('template/', [
-                'addToCollectList',
-                'deleteCollect',
-                'loadCollectList',
                 'loadProjectBaseInfo'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
                 'deleteTemplate',
-                'saveTemplatePersons',
                 'templateImport',
                 'templateExport',
                 'getExpiredSubProcess'
@@ -490,10 +489,7 @@
                 if (this.pending.export) return
                 this.pending.export = true
                 try {
-                    const data = {
-                        list: list
-                    }
-                    const resp = await this.templateExport(data)
+                    const resp = await this.templateExport({ list })
                     if (resp.result) {
                         this.isExportDialogShow = false
                     } else {
@@ -559,23 +555,6 @@
             onDeleteCancel () {
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
-            },
-            async onAuthorityConfirm (data) {
-                if (this.pending.authority) return
-                this.pending.authority = true
-                try {
-                    await this.saveTemplatePersons(data)
-                    this.isAuthorityDialogShow = false
-                    this.theAuthorityManageId = undefined
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.pending.authority = false
-                }
-            },
-            onAuthorityCancel () {
-                this.isAuthorityDialogShow = false
-                this.theAuthorityManageId = undefined
             },
             /**
              * 获取模版操作的跳转链接

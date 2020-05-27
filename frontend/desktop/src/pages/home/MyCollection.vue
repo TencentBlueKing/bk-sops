@@ -124,7 +124,7 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
-            ...mapActions('template/', [
+            ...mapActions([
                 'deleteCollect',
                 'loadCollectList'
             ]),

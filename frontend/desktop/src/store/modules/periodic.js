@@ -9,35 +9,92 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
+import axios from 'axios'
+import qs from 'qs'
+import store from '@/store/index.js'
 
 const periodic = {
     namespaced: true,
     mutations: {},
     actions: {
+        // 获取周期任务列表
         loadPeriodicList ({ commit }, data) {
-            return api.getPeriodicList(data).then(response => response.data)
+            return axios.get('api/v3/periodic_task/', {
+                params: { ...data }
+            }).then(response => response.data)
         },
+        /**
+         * 创建定时任务
+         * @param {Object} data 包含 template_id模板名称, name定时名称, cron定时表达式
+         */
         createPeriodic ({ state }, data) {
-            return api.createPeriodic(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const { name, cron, templateId, execData, templateSource } = data
+
+            return axios.post('api/v3/periodic_task/', {
+                project: `api/v3/project/${project_id}/`,
+                cron,
+                name,
+                template_id: templateId,
+                pipeline_tree: execData,
+                template_source: templateSource
+            }).then(response => response.data)
         },
+        /**
+         * 设置定时任务执行状态
+         * @param {Object} data task_id 定时任务id, enabled 需要切换的状态
+         */
         setPeriodicEnable ({ commit }, data) {
-            return api.setPeriodicEnable(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const { enabled, taskId } = data
+            const dataString = qs.stringify({
+                enabled
+            })
+
+            return axios.post(`periodictask/api/enabled/${project_id}/${taskId}/`, dataString, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        /**
+         * 修改定时任务表达式
+         * @param {Object} data task_id 定时任务id, cron 表达式
+         */
         modifyPeriodicCron ({ commit }, data) {
-            return api.modifyPeriodicCron(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const { cron, taskId } = data
+            const dataString = qs.stringify({
+                'cron': cron
+            })
+
+            return axios.post(`periodictask/api/cron/${project_id}/${taskId}/`, dataString, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        // 获取周期任务详情
         getPeriodic ({ commit }, data) {
-            return api.getPeriodic(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const { taskId } = data
+            const querystring = Object.assign({}, { 'project_id': project_id })
+            return axios.get(`api/v3/periodic_task/${taskId}/`, {
+                params: querystring
+            }).then(response => response.data)
         },
+        // 修改周期任务参数信息
         modifyPeriodicConstants ({ commit }, data) {
-            return api.modifyPeriodicConstants(data).then(response => response.data)
+            const { project_id } = store.state.project
+            const { constants, taskId } = data
+            const dataString = qs.stringify({
+                'constants': constants
+            })
+            return axios.post(`periodictask/api/constants/${project_id}/${taskId}/`, dataString, {
+                headers: { 'content-type': 'application/x-www-form-urlencoded' }
+            }).then(response => response.data)
         },
+        // 删除单个周期任务
         deletePeriodic ({ commit }, taskId) {
-            return api.deletePeriodic(taskId).then(response => response.data)
+            return axios.delete(`api/v3/periodic_task/${taskId}/`).then(response => response.data)
         }
-    },
-    getters: {}
+    }
 }
 
 export default periodic

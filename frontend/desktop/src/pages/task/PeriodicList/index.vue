@@ -305,6 +305,11 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions([
+                'addToCollectList',
+                'deleteCollect',
+                'loadCollectList'
+            ]),
             ...mapActions('periodic/', [
                 'loadPeriodicList',
                 'setPeriodicEnable',
@@ -312,10 +317,7 @@
                 'deletePeriodic'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo',
-                'addToCollectList',
-                'deleteCollect',
-                'loadCollectList'
+                'loadProjectBaseInfo'
             ]),
             async getPeriodicList () {
                 this.listLoading = true

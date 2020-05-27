@@ -253,7 +253,7 @@
             this.getData()
         },
         methods: {
-            ...mapActions('template', [
+            ...mapActions('admin', [
                 'queryTemplateData'
             ]),
             getData () {

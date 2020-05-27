@@ -10,7 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 import Vue from 'vue'
-import api from '@/api/index.js'
+import axios from 'axios'
+import store from '@/store/index.js'
 
 const META_FORM_TYPE = {
     'select': 'select_meta'
@@ -73,19 +74,22 @@ const atomForm = {
          * 加载全量标准插件
          */
         loadSingleAtomList ({ commit }) {
-            return api.getSingleAtomList().then(response => response.data.objects)
+            return axios.get('api/v3/component/').then(response => response.data.objects)
         },
         /**
          * 加载全量子流程
          */
         loadSubflowList ({ commit }, data) {
-            return api.getSubAtomList(data).then(response => response.data)
-        },
-        /**
-         * 加载标准插件统计数据
-         */
-        queryAtomData ({ commit }, data) {
-            return api.queryAtom(data).then(response => response.data)
+            let url = ''
+            const params = {}
+            const { project_id, common } = data
+            if (common) {
+                url = 'api/v3/common_template/'
+            } else {
+                url = 'api/v3/template/'
+                params['project__id'] = project_id
+            }
+            return axios.get(url, { params }).then(response => response.data)
         },
         /**
          * 加载标准插件配置项
@@ -93,12 +97,28 @@ const atomForm = {
          * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
-            const { name, atom, classify, isMeta, version } = payload
-            const atomClassify = classify || 'component'
+            const { name, atom, classify = 'component', isMeta, version = 'legacy' } = payload
+            const atomClassify = classify
             const atomFile = name || atom
             const atomVersion = atomClassify === 'variable' ? 'legacy' : version
 
-            await api.getAtomFormURL(atomFile, atomClassify, atomVersion, isMeta).then(async response => {
+            let url = ''
+            if (atomClassify === 'component') {
+                url = 'api/v3/component/'
+            } else {
+                url = 'api/v3/variable/'
+            }
+
+            // 变量暂时没有版本系统
+            if (classify === 'variable') {
+                url = isMeta ? `${url}${atomFile}/?meta=1` : `${url}${atomFile}/`
+            } else {
+                url = isMeta
+                    ? `${url}${atomFile}/?meta=1&version=${atomVersion}`
+                    : `${url}${atomFile}/?version=${atomVersion}`
+            }
+
+            await axios.get(url).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
 
                 commit('setAtomForm', { atomType: atom, data: response.data, isMeta, version: atomVersion })
@@ -128,10 +148,21 @@ const atomForm = {
          * @param {String} payload.common 是否为公共流程
          */
         loadSubflowConfig ({ commit }, payload) {
+            const { project_id } = store.state.project
             const { templateId, version, common } = payload
-            return api.getFormByTemplateId(templateId, version, common).then(
-                response => response.data
-            )
+            let url = ''
+            if (common) {
+                url = 'common_template/api/form/'
+            } else {
+                url = `template/api/form/${project_id}/`
+            }
+
+            return axios.get(url, {
+                params: {
+                    template_id: templateId,
+                    version
+                }
+            }).then(response => response.data)
         }
     }
 }
