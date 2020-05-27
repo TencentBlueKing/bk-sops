@@ -127,6 +127,124 @@
             }
         },
         {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "project",
+                "name": "项目",
+                "name_en": "Project",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "flow",
+                "name": "流程模板",
+                "name_en": "Flow",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "flow"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "task",
+                "name": "任务实例",
+                "name_en": "Task",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "task"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "common_flow",
+                "name": "公共流程",
+                "name_en": "Common Flow",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_flow"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "project_common_flow",
+                "name": "项目和公共流程",
+                "name_en": "Project and Common Flow",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "common_flow"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "mini_app",
+                "name": "轻应用",
+                "name_en": "Mini App",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "mini_app"
+                    }
+                ]
+            }
+        },
+        {
+            "operation": "upsert_instance_selection",
+            "data": {
+                "id": "periodic_task",
+                "name": "周期任务",
+                "name_en": "Periodic Task",
+                "resource_type_chain": [
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project"
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "periodic_task"
+                    }
+                ]
+            }
+        },
+        {
             "operation": "upsert_action",
             "data": {
                 "id": "project_create",
@@ -152,16 +270,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "project",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "项目",
-                                "name_en": "project",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
@@ -182,16 +294,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "project",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "项目",
-                                "name_en": "project",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
@@ -212,16 +318,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "project",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "项目",
-                                "name_en": "project",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
@@ -242,16 +342,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "project",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "项目",
-                                "name_en": "project",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
@@ -272,20 +366,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "流程模板",
-                                "name_en": "flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "flow"
                             }
                         ]
                     }
@@ -306,20 +390,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "流程模板",
-                                "name_en": "flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "flow"
                             }
                         ]
                     }
@@ -340,20 +414,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "流程模板",
-                                "name_en": "flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "flow"
                             }
                         ]
                     }
@@ -374,20 +438,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "流程模板",
-                                "name_en": "flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "flow"
                             }
                         ]
                     }
@@ -408,20 +462,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "流程模板",
-                                "name_en": "flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "flow"
                             }
                         ]
                     }
@@ -442,20 +486,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "流程模板",
-                                "name_en": "flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "flow"
                             }
                         ]
                     }
@@ -476,20 +510,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "任务实例",
-                                "name_en": "task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "task"
                             }
                         ]
                     }
@@ -510,20 +534,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "任务实例",
-                                "name_en": "task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "task"
                             }
                         ]
                     }
@@ -544,20 +558,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "任务实例",
-                                "name_en": "task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "task"
                             }
                         ]
                     }
@@ -578,20 +582,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "任务实例",
-                                "name_en": "task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "task"
                             }
                         ]
                     }
@@ -612,20 +606,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "任务实例",
-                                "name_en": "task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "task"
                             }
                         ]
                     }
@@ -646,20 +630,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "任务实例",
-                                "name_en": "task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "task"
                             }
                         ]
                     }
@@ -693,16 +667,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "common_flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "公共流程",
-                                "name_en": "common flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "common_flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "common_flow"
                             }
                         ]
                     }
@@ -723,16 +691,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "common_flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "公共流程",
-                                "name_en": "common flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "common_flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "common_flow"
                             }
                         ]
                     }
@@ -753,16 +715,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "common_flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "公共流程",
-                                "name_en": "common flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "common_flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "common_flow"
                             }
                         ]
                     }
@@ -783,26 +739,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "common_flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "项目",
-                                "name_en": "project",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "公共流程",
-                                "name_en": "common flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "common_flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "project_common_flow"
                             }
                         ]
                     }
@@ -823,26 +763,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "common_flow",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "项目",
-                                "name_en": "project",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "公共流程",
-                                "name_en": "common flow",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "common_flow"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "project_common_flow"
                             }
                         ]
                     }
@@ -863,20 +787,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "mini_app",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "轻应用",
-                                "name_en": "mini_app",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "mini_app"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "mini_app"
                             }
                         ]
                     }
@@ -897,20 +811,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "mini_app",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "轻应用",
-                                "name_en": "mini_app",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "mini_app"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "mini_app"
                             }
                         ]
                     }
@@ -931,20 +835,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "mini_app",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "轻应用",
-                                "name_en": "mini_app",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "mini_app"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "mini_app"
                             }
                         ]
                     }
@@ -965,20 +859,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "mini_app",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "轻应用",
-                                "name_en": "mini_app",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "mini_app"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "mini_app"
                             }
                         ]
                     }
@@ -999,20 +883,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "periodic_task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "周期任务",
-                                "name_en": "periodic_task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "periodic_task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "periodic_task"
                             }
                         ]
                     }
@@ -1033,20 +907,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "periodic_task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "周期任务",
-                                "name_en": "periodic_task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "periodic_task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "periodic_task"
                             }
                         ]
                     }
@@ -1067,20 +931,10 @@
                     {
                         "system_id": "bk_sops",
                         "id": "periodic_task",
-                        "instance_selections": [
+                        "related_instance_selections": [
                             {
-                                "name": "周期任务",
-                                "name_en": "periodic_task",
-                                "resource_type_chain": [
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "project"
-                                    },
-                                    {
-                                        "system_id": "bk_sops",
-                                        "id": "periodic_task"
-                                    }
-                                ]
+                                "system_id": "bk_sops",
+                                "id": "periodic_task"
                             }
                         ]
                     }
