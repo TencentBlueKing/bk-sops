@@ -37,7 +37,7 @@
                     <bk-table-column :label="$t('任务名称')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
@@ -85,7 +85,7 @@
                     <bk-table-column :label="$t('操作')" width="100">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 @click="onTemplatePermissonCheck(props.row)">
@@ -211,9 +211,7 @@
                     count: 0,
                     limit: 15,
                     'limit-list': [15, 20, 30]
-                },
-                taskOperations: [],
-                taskResource: {}
+                }
             }
         },
         computed: {
@@ -280,8 +278,6 @@
                     const list = auditListData.objects
                     this.auditList = list
                     this.pagination.count = auditListData.meta.total_count
-                    this.taskOperations = auditListData.meta.auth_operations
-                    this.taskResource = auditListData.meta.auth_resource
                     this.totalCount = auditListData.meta.total_count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
@@ -329,8 +325,14 @@
                 this.activeTaskCategory = id
             },
             onTemplatePermissonCheck (task) {
-                if (!this.hasPermission(['view'], task.auth_actions, this.taskOperations)) {
-                    this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
+                if (!this.hasPermission(['task_view'], task.auth_actions)) {
+                    const resourceData = {
+                        task: [{
+                            id: task.id,
+                            name: task.name
+                        }]
+                    }
+                    this.applyForPermission(['task_view'], task.auth_actions, resourceData)
                 }
             },
             onSearchFormSubmit (data) {

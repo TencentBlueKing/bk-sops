@@ -143,9 +143,7 @@
         },
         computed: {
             ...mapState('project', {
-                'authActions': state => state.authActions,
-                'authOperations': state => state.authOperations,
-                'authResource': state => state.authResource
+                'authActions': state => state.authActions
             }),
             title () {
                 return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
@@ -158,22 +156,26 @@
             },
             saveRequiredPerm () {
                 if (['new', 'clone'].includes(this.type)) {
-                    return this.common ? ['create'] : ['create_template'] // 新建、克隆流程保存按钮对公共流程和普通流程的权限要求
+                    return this.common ? ['common_flow_create'] : ['flow_create'] // 新建、克隆流程保存按钮对公共流程和普通流程的权限要求
                 } else {
-                    return ['edit']
+                    return this.common ? ['common_flow_edit'] : ['flow_edit']
                 }
             },
             saveAndCreateRequiredPerm () {
                 if (['new', 'clone'].includes(this.type)) {
-                    return this.common ? ['create'] : ['create_template']
+                    return this.common ? ['common_flow_create'] : ['flow_create']
                 } else {
-                    return this.isTemplateDataChanged ? ['create_task', 'edit'] : ['create_task']
+                    if (this.isTemplateDataChanged) {
+                        return this.common ? ['common_flow_edit', 'common_flow_create_task'] : ['flow_edit', 'flow_create_task']
+                    } else {
+                        return this.common ? ['common_flow_create_task'] : ['flow_create_task']
+                    }
                 }
             },
             isSaveBtnEnable () {
                 if (!this.common) { // 普通流程保存/新建按钮是否可用
                     if (['new', 'clone'].includes(this.type)) {
-                        return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
+                        return this.hasPermission(this.saveRequiredPerm, this.authActions)
                     } else {
                         return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
                     }
@@ -188,7 +190,7 @@
             isSaveAndCreateBtnEnable () {
                 if (!this.common) { // 普通流程新建任务/保存并新建按钮是否可用
                     if (['new', 'clone'].includes(this.type)) {
-                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
+                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions)
                     } else {
                         return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
                     }
@@ -312,12 +314,9 @@
             async queryCreateCommonTplPerm () {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: 'common_flow',
-                        action_ids: JSON.stringify(['create'])
+                        action: 'common_flow_create'
                     })
-                    this.hasCreateTplPerm = !!res.data.details.find(item => {
-                        return item.action_id === 'create' && item.is_pass
-                    })
+                    this.hasCreateTplPerm = res.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 }

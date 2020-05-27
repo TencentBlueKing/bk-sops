@@ -31,11 +31,11 @@
                     <bk-table-column :label="$t('任务名称')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(props.row, $event)">
+                                @click="onTaskPermissonCheck(props.row)">
                                 {{props.row.name}}
                             </a>
                             <router-link
@@ -172,8 +172,6 @@
                     { 'value': 'runing', 'name': i18n.t('未完成') },
                     { 'value': 'finished', 'name': i18n.t('完成') }
                 ],
-                taskOperations: [],
-                taskResource: {},
                 requestData: {
                     queryTime: [],
                     category: '',
@@ -245,8 +243,6 @@
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.objects
                     this.appmakerList = list
-                    this.taskOperations = appmakerListData.meta.auth_operations
-                    this.taskResource = appmakerListData.meta.auth_resource
                     this.pagination.count = appmakerListData.meta.total_count
                     // mixins getExecuteStatus
                     this.getExecuteStatus('executeStatus', list)
@@ -275,9 +271,14 @@
                 this.pagination.current = 1
                 this.getAppmakerList()
             },
-            onTaskPermissonCheck (task, event) {
-                this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
-                event.preventDefault()
+            onTaskPermissonCheck (task) {
+                const resourceData = {
+                    task: [{
+                        id: task.id,
+                        name: task.name
+                    }]
+                }
+                this.applyForPermission(['task_view'], task.auth_actions, resourceData)
             },
             onSearchFormSubmit (data) {
                 this.requestData = data

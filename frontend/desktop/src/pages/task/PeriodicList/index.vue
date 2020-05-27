@@ -46,10 +46,10 @@
                     <bk-table-column :label="$t('流程模板')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, periodicOperations)"
+                                v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
-                                @click="onPeriodicPermissonCheck(['view'], props.row, $event)">
+                                @click="onPeriodicPermissonCheck(['flow_view'], props.row, $event)">
                                 {{props.row.task_template_name}}
                             </a>
                             <router-link
@@ -89,21 +89,21 @@
                             <div class="periodic-operation">
                                 <template v-if="!adminView">
                                     <a
-                                        v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, periodicOperations) }"
+                                        v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
                                         href="javascript:void(0);"
                                         :class="['periodic-pause-btn', {
                                             'periodic-start-btn': !props.row.enabled,
-                                            'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
+                                            'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
                                         }]"
                                         @click="onSetEnable(props.row, $event)">
                                         {{!props.row.enabled ? $t('启动') : $t('暂停')}}
                                     </a>
                                     <a
-                                        v-cursor="{ active: !hasPermission(['edit'], props.row.auth_actions, periodicOperations) }"
+                                        v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
                                         href="javascript:void(0);"
                                         :class="['periodic-bk-btn', {
                                             'periodic-bk-disable': props.row.enabled,
-                                            'text-permission-disable': !hasPermission(['edit'], props.row.auth_actions, periodicOperations)
+                                            'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
                                         }]"
                                         :title="props.row.enabled ? $t('请暂停任务后再执行编辑操作') : ''"
                                         @click="onModifyCronPeriodic(props.row, $event)">
@@ -136,11 +136,11 @@
                                     <ul slot="content">
                                         <li class="opt-btn">
                                             <a
-                                                v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, periodicOperations) }"
+                                                v-cursor="{ active: !hasPermission(['periodic_task_edit'], props.row.auth_actions) }"
                                                 href="javascript:void(0);"
                                                 :class="{
                                                     'disable': props.row.id === collectingId || collectListLoading,
-                                                    'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, periodicOperations)
+                                                    'text-permission-disable': !hasPermission(['periodic_task_edit'], props.row.auth_actions)
                                                 }"
                                                 @click="onCollectTask(props.row, $event)">
                                                 {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
@@ -148,10 +148,10 @@
                                         </li>
                                         <li class="opt-btn">
                                             <a
-                                                v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, periodicOperations) }"
+                                                v-cursor="{ active: !hasPermission(['periodic_task_delete'], props.row.auth_actions) }"
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, periodicOperations)
+                                                    'text-permission-disable': !hasPermission(['periodic_task_delete'], props.row.auth_actions)
                                                 }"
                                                 @click="onDeletePeriodic(props.row, $event)">
                                                 {{ $t('删除') }}
@@ -285,9 +285,7 @@
                     count: 0,
                     limit: 15,
                     'limit-list': [15, 20, 30]
-                },
-                periodicOperations: [],
-                periodicResource: {}
+                }
             }
         },
         computed: {
@@ -339,8 +337,6 @@
                     const list = periodicListData.objects
                     this.periodicList = list
                     this.pagination.count = periodicListData.meta.total_count
-                    this.periodicOperations = periodicListData.meta.auth_operations
-                    this.periodicResource = periodicListData.meta.auth_resource
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -381,15 +377,21 @@
              * 单个周期任务操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} periodic 模板数据对象
-             * @params {Object} event 事件对象
              */
-            onPeriodicPermissonCheck (required, periodic, event) {
-                this.applyForPermission(required, periodic, this.periodicOperations, this.periodicResource)
-                event.preventDefault()
+            onPeriodicPermissonCheck (required, periodic) {
+                const { id, name, task_template_name, template_id } = periodic
+                const resourceData = {
+                    periodic_task: [{ id, name }],
+                    flow: [{
+                        id: template_id,
+                        name: task_template_name
+                    }]
+                }
+                this.applyForPermission(required, periodic.auth_actions, resourceData)
             },
-            onDeletePeriodic (periodic, event) {
-                if (!this.hasPermission(['delete'], periodic.auth_actions, this.periodicOperations)) {
-                    this.onPeriodicPermissonCheck(['delete'], periodic, event)
+            onDeletePeriodic (periodic) {
+                if (!this.hasPermission(['periodic_task_delete'], periodic.auth_actions)) {
+                    this.onPeriodicPermissonCheck(['periodic_task_delete'], periodic)
                     return
                 }
                 this.isDeleteDialogShow = true
@@ -400,9 +402,9 @@
                 this.pagination.current = page
                 this.getPeriodicList()
             },
-            async onSetEnable (item, event) {
-                if (!this.hasPermission(['edit'], item.auth_actions, this.periodicOperations)) {
-                    this.onPeriodicPermissonCheck(['edit'], item, event)
+            async onSetEnable (item) {
+                if (!this.hasPermission(['periodic_task_edit'], item.auth_actions)) {
+                    this.onPeriodicPermissonCheck(['periodic_task_edit'], item)
                     return
                 }
                 try {
@@ -421,8 +423,8 @@
             },
             onModifyCronPeriodic (item) {
                 const { enabled, id: taskId, cron } = item
-                if (!this.hasPermission(['edit'], item.auth_actions, this.periodicOperations)) {
-                    this.onPeriodicPermissonCheck(['edit'], item, event)
+                if (!this.hasPermission(['periodic_task_edit'], item.auth_actions)) {
+                    this.onPeriodicPermissonCheck(['periodic_task_edit'], item)
                     return
                 }
                 if (enabled) {
@@ -516,8 +518,8 @@
             },
             // 添加/取消收藏模板
             async onCollectTask (task, event) {
-                if (!this.hasPermission(['view'], task.auth_actions, this.periodicOperations)) {
-                    this.onTemplatePermissonCheck(['view'], task, event)
+                if (!this.hasPermission(['periodic_task_view'], task.auth_actions)) {
+                    this.onPeriodicPermissonCheck(['periodic_task_view'], task, event)
                     return
                 }
                 if (typeof this.collectingId === 'number') {

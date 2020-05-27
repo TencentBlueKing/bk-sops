@@ -50,11 +50,11 @@
                     <bk-table-column :label="$t('任务名称')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.task.name"
-                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                @click="onTaskPermissonCheck(['task_view'], props.row)">
                                 {{props.row.task.name}}
                             </a>
                             <router-link
@@ -100,10 +100,10 @@
                         <template slot-scope="props">
                             <template v-if="props.row.status === 'submitted'">
                                 <a
-                                    v-if="!hasPermission(['claim'], props.row.auth_actions, tplAuthOperations)"
+                                    v-if="!hasPermission(['task_claim'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable"
-                                    @click="onTaskPermissonCheck(['claim'], props.row, $event)">
+                                    @click="onTaskPermissonCheck(['task_claim'], props.row)">
                                     {{ $t('认领') }}
                                 </a>
                                 <router-link
@@ -119,10 +119,10 @@
                             </template>
                             <template v-else>
                                 <a
-                                    v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable"
-                                    @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
                                     {{ $t('查看') }}
                                 </a>
                                 <router-link
@@ -212,18 +212,15 @@
                 </div>
             </div>
             <div slot="footer" class="dialog-footer">
-                <div class="bk-button-group">
-                    <bk-button
-                        theme="primary"
-                        :class="{
-                            'btn-permission-disable': !hasConfirmPerm
-                        }"
-                        v-cursor="{ active: !hasConfirmPerm }"
-                        @click="onConfirmlNewTask">
-                        {{$t('确认')}}
-                    </bk-button>
-                    <bk-button theme="default" @click="onCancelNewTask">{{$t('取消')}}</bk-button>
-                </div>
+                <bk-button
+                    theme="primary"
+                    :loading="permissionLoading"
+                    :class="{ 'btn-permission-disable': !hasCreateTaskPerm }"
+                    v-cursor="{ active: !hasCreateTaskPerm }"
+                    @click="onConfirmlNewTask">
+                    {{$t('确认')}}
+                </bk-button>
+                <bk-button theme="default" @click="onCancelNewTask">{{$t('取消')}}</bk-button>
             </div>
         </bk-dialog>
     </div>
@@ -339,24 +336,19 @@
                     limit: 15,
                     'limit-list': [15, 20, 30]
                 },
-                tplAuthResource: {},
-                commonTplAuthResource: {},
-                tplAuthOperations: [],
-                commonTplAuthOperations: [],
-                tplAction: []
+                permissionLoading: false, // 查询公共流程在项目下的创建任务权限 loading
+                tplAction: [],
+                hasCreateTaskPerm: true
             }
         },
         computed: {
             ...mapState({
-                categorys: state => state.categorys
+                'categorys': state => state.categorys,
+                'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
             }),
-            hasConfirmPerm () {
-                const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
-                return this.hasPermission(['create_task'], this.tplAction, authOperations)
-            },
             searchForm () {
                 const value = searchForm
                 value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
@@ -372,17 +364,20 @@
             this.clearAutoRedraw()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('functionTask/', [
                 'loadFunctionTaskList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
-            ...mapMutations('atomForm/', [
-                'clearAtomForm'
-            ]),
             ...mapActions('project/', [
                 'loadProjectList'
+            ]),
+            ...mapMutations('atomForm/', [
+                'clearAtomForm'
             ]),
             async loadFunctionTask () {
                 this.listLoading = true
@@ -408,8 +403,6 @@
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
                     const taskList = functorListData.objects.map(m => m.task)
-                    this.tplAuthOperations = functorListData.meta.auth_operations
-                    this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.pagination.count = functorListData.meta.total_count
                     // mixins getExecuteStatus
@@ -489,10 +482,6 @@
                     ]).then(value => {
                         this.template.list[0].children = value[0].objects
                         this.template.list[1].children = value[1].objects
-                        this.tplAuthResource = value[0].meta.auth_resource
-                        this.tplAuthOperations = value[0].meta.auth_operations
-                        this.commonTplAuthResource = value[1].meta.auth_resource
-                        this.commonTplAuthOperations = value[1].meta.auth_operations
                         this.clearAtomForm()
                     })
                 } catch (e) {
@@ -502,13 +491,16 @@
                 }
             },
             onSelectedBusiness (id) {
+                const business = this.business.list.find(item => item.id === id)
                 this.business.id = id
+                this.business.name = business.name
+                this.business.auth_actions = business.auth_actions
                 this.getTemplateList()
                 this.business.empty = false
                 this.template.id = ''
                 this.template.name = ''
                 this.template.disabled = false
-                this.template.id = ''
+                this.hasCreateTaskPerm = true
             },
             onSelectedTemplate (id) {
                 const templateList = this.template.list
@@ -539,6 +531,69 @@
                 this.template.name = name
                 this.template.empty = false
                 this.tplAction = tplAction
+                this.checkCreateTaskPerm()
+            },
+            async checkCreateTaskPerm () {
+                if (this.isCommonTemplate) {
+                    try {
+                        this.permissionLoading = true
+                        const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                        const data = {
+                            action: ['common_flow_create_task'],
+                            resources: [
+                                {
+                                    system: bkSops.id,
+                                    type: 'project',
+                                    id: this.business.id,
+                                    attributes: {}
+                                },
+                                {
+                                    system: bkSops.id,
+                                    type: 'common_flow',
+                                    id: this.template.id,
+                                    attributes: {}
+                                }
+                            ]
+                        }
+                        const resp = this.queryUserPermission(data)
+                        this.hasCreateTaskPerm = resp.is_allow
+                    } catch (error) {
+                        errorHandler(error, this)
+                    } finally {
+                        this.permissionLoading = false
+                    }
+                } else {
+                    this.hasCreateTaskPerm = this.hasPermission(['flow_create_task'], this.tplAction)
+                }
+            },
+            applyCreateTaskPerm () {
+                let reqPermission = []
+                let curPermission = []
+                let resourceData = {}
+                if (this.isCommonTemplate) {
+                    reqPermission = ['common_flow_create_task']
+                    curPermission = [...this.tplAction, ...this.business.auth_actions]
+                    resourceData = {
+                        common_flow: [{
+                            id: this.template.id,
+                            name: this.template.name
+                        }],
+                        project: [{
+                            id: this.business.id,
+                            name: this.business.name
+                        }]
+                    }
+                } else {
+                    reqPermission = ['flow_create_task']
+                    curPermission = [...this.tplAction]
+                    resourceData = {
+                        flow: [{
+                            id: this.template.id,
+                            name: this.template.name
+                        }]
+                    }
+                }
+                this.applyForPermission(reqPermission, curPermission, resourceData)
             },
             onConfirmlNewTask () {
                 if (this.business.id === '') {
@@ -549,15 +604,12 @@
                     this.template.empty = true
                     return
                 }
-                if (!this.hasConfirmPerm) {
-                    const authResource = this.isCommonTemplate ? this.commonTplAuthResource : this.tplAuthResource
-                    const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
-                    const resourceData = {
-                        name: this.template.name,
-                        id: this.template.id,
-                        auth_actions: this.tplAction
-                    }
-                    this.applyForPermission(['create_task'], resourceData, authOperations, authResource)
+                if (this.permissionLoading) {
+                    return
+                }
+
+                if (!this.hasCreateTaskPerm) {
+                    this.applyCreateTaskPerm()
                     return
                 }
 
@@ -581,6 +633,7 @@
                 this.isShowNewTaskDialog = false
                 this.business.empty = false
                 this.template.empty = false
+                this.hasCreateTaskPerm = true
             },
             onClearTemplate () {
                 this.template.id = ''
@@ -588,13 +641,19 @@
             },
             onClearBusiness () {
                 this.business.id = ''
+                this.business.auth_actions = []
                 this.template.id = ''
                 this.template.name = ''
                 this.template.disabled = true
             },
-            onTaskPermissonCheck (required, template, event) {
-                this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
-                event.preventDefault()
+            onTaskPermissonCheck (required, data) {
+                const permissionData = {
+                    task: [{
+                        id: data.task.id,
+                        name: data.task.name
+                    }]
+                }
+                this.applyForPermission(required, data.auth_actions, permissionData)
             },
             onSearchFormSubmit (data) {
                 this.requestData = data

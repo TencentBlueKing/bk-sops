@@ -34,10 +34,10 @@
                     theme="primary"
                     :class="['save-scheme-btn', {
                         'disabled-btn': isPreviewMode,
-                        'btn-permission-disable': !hasPermission(['create_scheme'], tplActions, tplOperations)
+                        'btn-permission-disable': !hasPermission(['flow_edit'], tplActions)
                     }]"
                     :loading="submiting"
-                    v-cursor="{ active: !hasPermission(['create_scheme'], tplActions, tplOperations) }"
+                    v-cursor="{ active: !hasPermission(['flow_edit'], tplActions) }"
                     @click="onCreateScheme">
                     {{ $t('新建') }}
                 </bk-button>
@@ -116,18 +116,6 @@
                 default () {
                     return []
                 }
-            },
-            tplOperations: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            tplResource: {
-                type: Object,
-                default () {
-                    return {}
-                }
             }
         },
         data () {
@@ -176,7 +164,7 @@
              * 创建任务方案弹窗
              */
             onCreateScheme () {
-                const hasCreatePermission = this.checkSchemeRelativePermission(['create_scheme'])
+                const hasCreatePermission = this.checkSchemeRelativePermission(['flow_edit'])
                 if (hasCreatePermission && !this.isPreviewMode) {
                     this.nameEditing = true
                 }
@@ -238,7 +226,7 @@
              * 删除方案
              */
             async onDeleteScheme (id) {
-                const hasPermission = this.checkSchemeRelativePermission(['delete_scheme'])
+                const hasPermission = this.checkSchemeRelativePermission(['flow_delete'])
 
                 if (this.deleting || !hasPermission) return
                 this.deleting = true
@@ -260,13 +248,14 @@
              * @params {Array} required 被校验的权限
              */
             checkSchemeRelativePermission (required) {
-                if (!this.hasPermission(required, this.tplActions, this.tplOperations)) {
+                if (!this.hasPermission(required, this.tplActions)) {
                     const resourceData = {
-                        name: this.templateName,
-                        id: this.template_id,
-                        auth_actions: this.tplActions
+                        flow: [{
+                            id: this.template_id,
+                            name: this.templateName
+                        }]
                     }
-                    this.applyForPermission(required, resourceData, this.tplOperations, this.tplResource)
+                    this.applyForPermission(required, this.tplActions, resourceData)
                     return false
                 }
                 return true

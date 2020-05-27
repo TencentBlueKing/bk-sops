@@ -39,11 +39,11 @@
                     <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                @click="onTaskPermissonCheck(['task_view'], props.row)">
                                 {{props.row.name}}
                             </a>
                             <router-link
@@ -107,18 +107,18 @@
                                     {{$t('再创建')}}
                                 </router-link>
                                 <a
-                                    v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
+                                    v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
                                     :class="['task-operation-clone', {
-                                        'text-permission-disable': !hasPermission(['clone'], props.row.auth_actions, taskOperations)
+                                        'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onCloneTaskClick(props.row, $event)">
                                     {{ $t('克隆') }}
                                 </a>
                                 <a
-                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, taskOperations) }"
+                                    v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
                                     :class="['task-operation-delete', {
-                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, taskOperations)
+                                        'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onDeleteTask(props.row, $event)">
@@ -273,8 +273,6 @@
                     delete: false,
                     clone: false
                 },
-                taskOperations: [],
-                taskResource: {},
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
@@ -375,8 +373,6 @@
                     const list = taskListData.objects
                     this.pagination.count = taskListData.meta.total_count
                     this.totalCount = taskListData.meta.total_count
-                    this.taskOperations = taskListData.meta.auth_operations
-                    this.taskResource = taskListData.meta.auth_resource
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -411,15 +407,19 @@
              * 单个任务操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} task 任务数据对象
-             * @params {Object} event 事件对象
              */
-            onTaskPermissonCheck (required, task, event) {
-                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
-                event.preventDefault()
+            onTaskPermissonCheck (required, task) {
+                const resourceData = {
+                    task: [{
+                        id: task.id,
+                        name: task.name
+                    }]
+                }
+                this.applyForPermission(required, task.auth_actions, resourceData)
             },
-            onDeleteTask (task, event) {
-                if (!this.hasPermission(['delete'], task.auth_actions, this.taskOperations)) {
-                    this.onTaskPermissonCheck(['delete'], task, event)
+            onDeleteTask (task) {
+                if (!this.hasPermission(['task_delete'], task.auth_actions)) {
+                    this.onTaskPermissonCheck(['task_delete'], task)
                     return
                 }
                 this.theDeleteTaskId = task.id
@@ -454,9 +454,9 @@
                 this.theDeleteTaskName = ''
                 this.isDeleteDialogShow = false
             },
-            onCloneTaskClick (task, event) {
-                if (!this.hasPermission(['clone'], task.auth_actions, this.taskOperations)) {
-                    this.onTaskPermissonCheck(['clone'], task, event)
+            onCloneTaskClick (task) {
+                if (!this.hasPermission(['task_clone'], task.auth_actions)) {
+                    this.onTaskPermissonCheck(['task_clone'], task)
                     return
                 }
                 this.isTaskCloneDialogShow = true

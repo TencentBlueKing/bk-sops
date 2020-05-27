@@ -13,12 +13,13 @@
     <bk-dialog
         width="768"
         ext-cls="permission-dialog"
+        :z-index="2010"
         :mask-close="false"
         :header-position="'left'"
         :title="''"
         :value="isModalShow"
         @cancel="onCloseDialog">
-        <div class="permission-content">
+        <div class="permission-modal">
             <div class="permission-header">
                 <span class="title-icon">
                     <img :src="lock" alt="permission-lock" class="lock-img" />
@@ -41,7 +42,14 @@
                             <tr v-for="(action, index) in permissionData.actions" :key="index">
                                 <td width="20%">{{permissionData.system_name}}</td>
                                 <td width="30%">{{action.name}}</td>
-                                <td width="50%">{{getResource(action.related_resource_types)}}</td>
+                                <td width="50%">
+                                    <p
+                                        class="resource-type-item"
+                                        v-for="(reItem, reIndex) in getResource(action.related_resource_types)"
+                                        :key="reIndex">
+                                        {{reItem}}
+                                    </p>
+                                </td>
                             </tr>
                         </template>
                         <tr v-else>
@@ -83,13 +91,12 @@
         },
         methods: {
             ...mapActions([
-                'getPermissionUrl'
+                'getIamUrl'
             ]),
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const permission = this.permissionData
-                    const res = await this.getPermissionUrl(JSON.stringify(permission))
+                    const res = await this.getIamUrl(this.permissionData)
                     this.url = res.data.url
                 } catch (err) {
                     errorHandler(err, this)
@@ -102,17 +109,21 @@
                 this.permissionData = data
             },
             getResource (resoures) {
+                if (resoures.length === 0) {
+                    return ['--']
+                }
+
                 const data = []
                 resoures.forEach(resource => {
                     if (resource.instances.length > 0) {
-                        const instances = resource.instance.map(item => {
-                            return item.name
+                        const instances = resource.instances.map(instanceItem => {
+                            return instanceItem.map(item => item.name).join('，')
                         }).join('，')
                         const resourceItemData = resource.type_name + `：` + instances
                         data.push(resourceItemData)
                     }
                 })
-                return data.join('\n')
+                return data
             },
             goToApply () {
                 if (this.loading) {
@@ -132,7 +143,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    /deep/ .permission-content {
+.permission-modal {
         .permission-header {
             text-align: center;
             .title-icon {
@@ -161,6 +172,7 @@
                 font-size: 12px;
                 text-align: left;
                 border-bottom: 1px solid #e7e8ed;
+                word-break: break-all;
             }
             th {
                 color: #313238;
@@ -168,7 +180,7 @@
             }
         }
         .table-content {
-            max-height: 180px;
+            max-height: 260px;
             border-bottom: 1px solid #e7e8ed;
             border-top: none;
             overflow: auto;
@@ -180,6 +192,10 @@
                 }
                 tr:last-child td {
                     border-bottom: none;
+                }
+                .resource-type-item {
+                    padding: 0;
+                    margin: 0;
                 }
             }
             .no-data {

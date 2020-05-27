@@ -58,8 +58,6 @@
             :show-node-menu="showNodeMenu"
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
-            :tpl-operations="tplOperations"
-            :tpl-resource="tplResource"
             :nodes="nodes"
             @onCloseNodeMenu="onCloseNodeMenu"
             @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
@@ -115,12 +113,6 @@
             }),
             langSuffix () {
                 return this.lang === 'en' ? 'en' : 'zh'
-            },
-            tplResource () {
-                return this.activeNodeListType === 'subflow' ? this.atomTypeList.subflow.tplResource : {}
-            },
-            tplOperations () {
-                return this.activeNodeListType === 'subflow' ? this.atomTypeList.subflow.tplOperations : []
             },
             nodes () {
                 if (!this.activeNodeListType) {

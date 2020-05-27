@@ -210,9 +210,9 @@
             onTaskPermissonCheck (required, task) {
                 const { id, name } = task
                 const resourceData = {
-                    task: { id, name }
+                    task: [{ id, name }]
                 }
-                this.applyForPermission(required, resourceData)
+                this.applyForPermission(required, task.auth_actions, resourceData)
             }
         }
     }

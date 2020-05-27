@@ -9,9 +9,7 @@
         :title="$t('新建任务')"
         :value="isNewTaskDialogShow"
         :auto-close="false"
-        @value-change="toggleShow"
-        @confirm="onCreateTask"
-        @cancel="onCancel">
+        @value-change="toggleShow">
         <div class="task-container">
             <div class="task-wrapper">
                 <div class="filtrate-wrapper">
@@ -77,8 +75,8 @@
                                         :class="[
                                             'task-item',
                                             {
-                                                'task-item-selected': selectedId === template.id,
-                                                'permission-disable': !hasPermission(action, template.auth_actions, operations)
+                                                'task-item-selected': selectedTpl.id === template.id,
+                                                'permission-disable': selectedTplType === 'businessProcess' && !hasPermission(action, template.auth_actions)
                                             }
                                         ]"
                                         @click="onSelectTask(template)">
@@ -101,13 +99,26 @@
                 <span class="error-info">{{$t('请选择流程模版')}}</span>
             </div>
         </div>
+        <div class="dialog-footer" slot="footer">
+            <bk-button
+                theme="primary"
+                :class="{ 'btn-permission-disable': !hasCommonTplCreateTaskPerm }"
+                :loading="permissionLoading"
+                v-cursor="{
+                    actived: !hasCommonTplCreateTaskPerm
+                }"
+                @click="onCreateTask">
+                {{ $t('确定') }}
+            </bk-button>
+            <bk-button @click="onCancel">{{ $t('取消') }}</bk-button>
+        </div>
     </bk-dialog>
 </template>
 
 <script>
     import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -118,10 +129,18 @@
             NoData
         },
         mixins: [permission],
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'dialogTitle', 'entrance'],
+        props: {
+            isNewTaskDialogShow: Boolean,
+            businessInfoLoading: Boolean,
+            common: String,
+            project_id: [Number, String],
+            taskCategory: Array,
+            dialogTitle: String,
+            entrance: String
+        },
         data () {
             return {
-                selectedId: '',
+                selectedTpl: {},
                 taskListPending: true,
                 searchMode: false,
                 selectError: false,
@@ -142,6 +161,8 @@
                 selectedTplCategory: 'all',
                 searchWord: '',
                 nowTypeList: [],
+                permissionLoading: false,
+                hasCommonTplCreateTaskPerm: true, // 有公共流程创建任务/周期任务权限
                 tplOperations: [],
                 tplResource: {},
                 commonTplOperations: [],
@@ -149,6 +170,13 @@
             }
         },
         computed: {
+            ...mapState({
+                'permissionMeta': state => state.permissionMeta
+            }),
+            ...mapState('project/', {
+                'projectName': state => state.projectName,
+                'projectAuthActions': state => state.authActions
+            }),
             templateCategories () {
                 const list = toolsUtils.deepClone(this.taskCategory)
                 list.unshift({ value: 'all', name: i18n.t('全部分类') })
@@ -163,20 +191,24 @@
             title () {
                 return this.dialogTitle || i18n.t('新建任务')
             },
-            operations () {
-                return this.selectedTplType === 'businessProcess' ? this.tplOperations : this.commonTplOperations
-            },
             resource () {
                 return this.selectedTplType === 'businessProcess' ? this.tplResource : this.commonTplResource
             },
             action () {
-                return this.entrance === 'taskflow' ? ['create_task'] : ['create_periodic_task']
+                if (this.entrance === 'taskflow') {
+                    return this.selectedTplType === 'businessProcess' ? ['flow_create_task'] : ['common_flow_create_task']
+                } else {
+                    return this.selectedTplType === 'businessProcess' ? ['flow_create_periodic_task'] : ['common_flow_create_periodic_task']
+                }
             }
         },
         created () {
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
@@ -244,10 +276,19 @@
                 }
             },
             onCreateTask () {
-                if (this.selectedId === '') {
+                if (typeof this.selectedTpl.id !== 'number') {
                     this.selectError = true
                     return
                 }
+                if (this.permissionLoading) {
+                    return
+                }
+
+                if (!this.hasCommonTplCreateTaskPerm) {
+                    this.applyCommonTplCreateTaskPerm()
+                    return
+                }
+
                 const url = {
                     name: 'taskStep',
                     params: {
@@ -255,7 +296,7 @@
                         step: 'selectnode'
                     },
                     query: {
-                        template_id: this.selectedId,
+                        template_id: this.selectedTpl.id,
                         common: this.selectedTplType === 'publicProcess' ? '1' : undefined,
                         entrance: this.entrance || undefined
                     }
@@ -265,17 +306,74 @@
             onCancel () {
                 this.selectedTplType = 'businessProcess'
                 this.selectedTplCategory = 'all'
-                this.selectedId = ''
+                this.selectedTpl = {}
                 this.selectError = false
                 this.$emit('onCreateTaskCancel')
             },
             onSelectTask (template) {
-                if (this.hasPermission(this.action, template.auth_actions, this.operations)) {
-                    this.selectError = false
-                    this.selectedId = template.id
+                if (this.selectedTplType === 'businessProcess') {
+                    if (this.hasPermission(['flow_create_task'], template.auth_actions)) {
+                        this.selectError = false
+                        this.selectedTpl = template
+                    } else {
+                        const resourceData = {
+                            flow: [{
+                                id: template.id,
+                                name: template.name
+                            }]
+                        }
+                        this.applyForPermission(['flow_create_task'], template.auth_actions, resourceData)
+                    }
                 } else {
-                    this.applyForPermission(this.action, template, this.operations, this.resource)
+                    this.selectError = false
+                    this.selectedTpl = template
+                    this.checkCommonTplPermission(template)
                 }
+            },
+            async checkCommonTplPermission (template) {
+                try {
+                    this.permissionLoading = true
+                    const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                    const data = {
+                        action: this.entrance === 'taskflow' ? 'common_flow_create_task' : 'common_flow_create_periodic_task',
+                        resources: [
+                            {
+                                system: bkSops.id,
+                                type: 'project',
+                                id: this.project_id,
+                                attributes: {}
+                            },
+                            {
+                                system: bkSops.id,
+                                type: 'common_flow',
+                                id: template.id,
+                                attributes: {}
+                            }
+                        ]
+                    }
+                    const resp = await this.queryUserPermission(data)
+                    this.hasCommonTplCreateTaskPerm = resp.is_allow
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.permissionLoading = false
+                }
+            },
+            applyCommonTplCreateTaskPerm () {
+                const reqPermission = this.entrance === 'taskflow' ? ['common_flow_create_task'] : ['common_flow_create_periodic_task']
+                const curPermission = [...this.selectedTpl.auth_actions, ...this.projectAuthActions]
+                const resourceData = {
+                    common_flow: [{
+                        id: this.selectedTpl.id,
+                        name: this.selectedTpl.name
+                    }],
+                    project: [{
+                        id: this.project_id,
+                        name: this.projectName
+                    }]
+                }
+
+                this.applyForPermission(reqPermission, curPermission, resourceData)
             },
             searchInputhandler () {
                 const list = toolsUtils.deepClone(this.nowTypeList)
@@ -286,6 +384,7 @@
             },
             async onChooseTplType (value) {
                 this.selectedTplType = value
+                this.selectedTpl = {}
                 if (value === 'businessProcess') {
                     await this.getBusinessData()
                 } else {
@@ -295,6 +394,7 @@
             },
             onChooseTplCategory (value) {
                 this.selectedTplCategory = value
+                this.selectedTpl = {}
                 this.onFiltrationTemplate()
             },
             onFiltrationTemplate () {

@@ -627,7 +627,7 @@
             },
             // 子流程分组
             handleSubflowGroup (data) {
-                const { meta, objects: tplList } = data
+                const tplList = data.objects
                 const groups = this.projectBaseInfo.task_categories.map(item => {
                     return {
                         type: item.value,
@@ -640,17 +640,13 @@
                     if (item.id !== Number(this.template_id)) {
                         const group = groups.find(tpl => tpl.type === item.category)
                         if (group) {
-                            item.hasPermission = this.hasPermission(['view'], item.auth_actions, meta.auth_operations)
+                            item.hasPermission = this.hasPermission(['flow_view'], item.auth_actions)
                             group.list.push(item)
                         }
                     }
                 })
 
-                this.atomTypeList.subflow = {
-                    tplOperations: meta.auth_operations,
-                    tplResource: meta.auth_resource,
-                    groups
-                }
+                this.atomTypeList.subflow = { groups }
             },
             toggleSettingPanel (isSettingPanelShow, activeTab) {
                 const clientX = document.body.clientWidth

@@ -246,8 +246,13 @@
                 window.open(href, '_blank')
             },
             onApplyPermission (tpl) {
-                const { tplOperations, tplResource } = this.atomTypeList.subflow
-                this.applyForPermission(['view'], tpl, tplOperations, tplResource)
+                const resourceData = {
+                    flow: [{
+                        id: tpl.id,
+                        name: tpl.name
+                    }]
+                }
+                this.applyForPermission(['flow_view'], [], resourceData)
             }
         }
     }

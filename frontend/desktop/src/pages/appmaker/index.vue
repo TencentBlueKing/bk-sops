@@ -31,8 +31,6 @@
                         v-for="item in appList"
                         :key="item.id"
                         :app-data="item"
-                        :app-resource="appResource"
-                        :app-operations="appOperations"
                         :project_id="project_id"
                         :collected-loading="collectedLoading"
                         :collected-list="collectedList"
@@ -140,8 +138,6 @@
                     edit: false,
                     delete: false
                 },
-                appOperations: [],
-                appResource: {},
                 searchForm: searchForm,
                 requestData: {
                     updateTime: [],
@@ -186,8 +182,6 @@
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
-                    this.appOperations = resp.meta.auth_operations
-                    this.appResource = resp.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

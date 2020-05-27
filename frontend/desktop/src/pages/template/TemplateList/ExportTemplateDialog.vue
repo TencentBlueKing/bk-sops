@@ -66,7 +66,7 @@
                                         :key="i"
                                         :data="template"
                                         :selected="getTplIndexInSelected(template) > -1"
-                                        :is-apply-permission="!hasPermission(['export'], template.auth_actions, tplOperations)"
+                                        :is-apply-permission="!hasPermission(['flow_view'], template.auth_actions)"
                                         @onCardClick="onSelectTemplate(template)">
                                     </base-card>
                                 </ul>
@@ -126,8 +126,6 @@
                 searchList: [],
                 selectedTemplates: [],
                 selectError: false,
-                tplOperations: [],
-                tplResource: {},
                 templateEmpty: false,
                 selectedTaskCategory: '',
                 category: '',
@@ -191,8 +189,6 @@
                     }
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects
-                    this.tplOperations = respData.meta.auth_operations
-                    this.tplResource = respData.meta.auth_resource
                     this.templateList = this.getGroupedList(list)
                     this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
@@ -273,7 +269,7 @@
                 })
             },
             onSelectTemplate (template) {
-                if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
+                if (this.hasPermission(['flow_view'], template.auth_actions)) {
                     this.selectError = false
                     const tplIndex = this.getTplIndexInSelected(template)
                     if (tplIndex > -1) {
@@ -284,7 +280,13 @@
                         this.isTplInPanelAllSelected = this.getTplIsAllSelected()
                     }
                 } else {
-                    this.applyForPermission(['export'], template, this.tplOperations, this.tplResource)
+                    const permissionData = {
+                        flow: [{
+                            id: template.id,
+                            name: template.name
+                        }]
+                    }
+                    this.applyForPermission(['flow_view'], template.auth_actions, permissionData)
                 }
             },
             deleteTemplate (template) {
@@ -299,7 +301,7 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
+                        if (this.hasPermission(['flow_export'], template.auth_actions)) {
                             const tplIndex = this.getTplIndexInSelected(template)
                             if (this.isTplInPanelAllSelected) {
                                 if (tplIndex > -1) {

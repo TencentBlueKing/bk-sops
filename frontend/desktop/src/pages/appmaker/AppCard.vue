@@ -31,10 +31,10 @@
             <div class="card-operation">
                 <span
                     :class="['common-icon-box-pen', 'operate-btn', {
-                        'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
+                        'permission-disable': !hasPermission(['mini_app_edit'], appData.auth_actions)
                     }]"
                     :title="$t('修改轻应用')"
-                    v-cursor="{ active: !hasPermission(['edit'], appData.auth_actions, appOperations) }"
+                    v-cursor="{ active: !hasPermission(['mini_app_edit'], appData.auth_actions) }"
                     @click.stop="onCardEdit">
                 </span>
                 <router-link
@@ -53,12 +53,12 @@
                     <span class="common-icon-circle-ellipsis operate-btn"></span>
                     <ul class="operate-list" slot="content">
                         <li
-                            v-cursor="{ active: !hasPermission(['view'], appData.auth_actions, appOperations) }"
+                            v-cursor="{ active: !hasPermission(['mini_app_view'], appData.auth_actions) }"
                             href="javascript:void(0);"
                             :class="{
                                 'opt-btn': true,
                                 'disable': collectingId === appData.id || collectedLoading,
-                                'text-permission-disable': !hasPermission(['view'], appData.auth_actions, appOperations)
+                                'text-permission-disable': !hasPermission(['mini_app_view'], appData.auth_actions)
                             }"
                             @click="onCollectAppMaker(appData, $event)">
                             {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
@@ -66,9 +66,9 @@
                         <li
                             :class="{
                                 'opt-btn': true,
-                                'text-permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
+                                'text-permission-disable': !hasPermission(['mini_app_delete'], appData.auth_actions)
                             }"
-                            v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
+                            v-cursor="{ active: !hasPermission(['mini_app_delete'], appData.auth_actions) }"
                             @click="onCardDelete">
                             {{$t('删除')}}
                         </li>
@@ -106,8 +106,6 @@
         props: {
             appData: Object,
             project_id: [Number, String],
-            appResource: Object,
-            appOperations: Array,
             collectedLoading: Boolean,
             collectedList: Array
         },
@@ -137,11 +135,15 @@
              * 单个轻应用操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} app 模板数据对象
-             * @params {Object} event 事件对象
              */
-            onAppMakerPermissonCheck (required, app, event) {
-                this.applyForPermission(required, app, this.appOperations, this.appResource)
-                event.preventDefault()
+            onAppMakerPermissonCheck (required) {
+                const resourceData = {
+                    mini_app: [{
+                        id: this.appData.id,
+                        name: this.appData.name
+                    }]
+                }
+                this.applyForPermission(required, this.appData.auth_actions, resourceData)
             },
             onShowOperation () {
                 this.isShowEdit = true
@@ -150,22 +152,22 @@
                 this.isShowEdit = false
             },
             onCardEdit () {
-                if (!this.hasPermission(['edit'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['edit'], this.appData, event)
+                if (!this.hasPermission(['mini_app_edit'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_edit'])
                     return
                 }
                 this.$emit('onCardEdit', this.appData)
             },
             onCardDelete () {
-                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['delete'], this.appData, event)
+                if (!this.hasPermission(['mini_app_delete'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_delete'])
                     return
                 }
                 this.$emit('onCardDelete', this.appData)
             },
             onGotoAppMaker () {
-                if (!this.hasPermission(['view'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+                if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_view'])
                     return
                 }
                 if (self === top) {
@@ -183,9 +185,9 @@
                 }
             },
             // 添加/取消收藏模板
-            async onCollectAppMaker (data, event) {
-                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+            async onCollectAppMaker (data) {
+                if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_view'])
                     return
                 }
                 if (typeof this.collectingId === 'number') {

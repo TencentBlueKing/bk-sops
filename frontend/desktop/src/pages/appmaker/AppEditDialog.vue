@@ -231,20 +231,18 @@
                 },
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
-                },
-                tplOperations: [],
-                tplResource: {}
+                }
             }
         },
         computed: {
             dialogTitle () {
-                return this.isCreateNewApp ? i18n.t('新建轻应用') : i18n.t('新建轻应用')
+                return this.isCreateNewApp ? i18n.t('新建轻应用') : i18n.t('编辑轻应用')
             },
             btnPermission () {
-                return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
+                return this.isCreateNewApp ? ['flow_create_mini_app'] : ['mini_app_edit']
             },
             hasConfirmPerm () {
-                return this.hasPermission(this.btnPermission, this.appData.appActions, this.tplOperations)
+                return this.hasPermission(this.btnPermission, this.appData.appActions)
             },
             isShowDefaultLogo () {
                 return this.isLogoLoadingError || !this.logoUrl
@@ -303,8 +301,6 @@
                 try {
                     const templateListData = await this.loadTemplateList()
                     this.templateList = templateListData.objects
-                    this.tplOperations = templateListData.meta.auth_operations
-                    this.tplResource = templateListData.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -360,13 +356,24 @@
                     return
                 }
                 if (!this.hasConfirmPerm) {
-                    const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
-                    const resourceData = {
-                        name: templateName,
-                        id: this.appData.appTemplate,
-                        auth_actions: this.appData.appActions
+                    let resourceData = {}
+                    if (this.isCreateNewApp) {
+                        const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
+                        resourceData = [{
+                            flow: [{
+                                id: this.appData.appTemplate,
+                                name: templateName
+                            }]
+                        }]
+                    } else {
+                        resourceData = {
+                            mini_app: [{
+                                id: this.currentAppData.id,
+                                name: this.currentAppData.name
+                            }]
+                        }
                     }
-                    this.applyForPermission(['create_mini_app'], resourceData, this.tplOperations, this.tplResource)
+                    this.applyForPermission(this.btnPermission, this.appData.appActions, resourceData)
                     return
                 }
                 

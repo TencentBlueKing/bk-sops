@@ -34,7 +34,7 @@
                         :class="[
                             'operation-btn',
                             operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn',
-                            { 'btn-permission-disable': !hasPermission(['operate'], instanceActions, instanceOperations) }
+                            { 'btn-permission-disable': !hasPermission(['task_operate'], instanceActions) }
                         ]"
                         theme="default"
                         hide-text="true"
@@ -46,7 +46,7 @@
                             content: operation.text,
                             placements: ['bottom']
                         }"
-                        v-cursor="{ active: !hasPermission(['operate'], instanceActions, instanceOperations) }"
+                        v-cursor="{ active: !hasPermission(['task_operate'], instanceActions) }"
                         @click="onOperationClick(operation.action)">
                     </bk-button>
                 </template>
@@ -131,7 +131,6 @@
             'nodeNav',
             'instanceActions',
             'taskOperationBtns',
-            'instanceOperations',
             'adminView',
             'isBreadcrumbShow',
             'isTaskOperationBtnsShow',

@@ -13,16 +13,6 @@
                     @click="applyBtnClick">
                     {{$t('去申请')}}
                 </bk-button>
-                <!-- <bk-button
-                    theme="default"
-                    v-if="permissionData.type === 'project' && viewMode !== 'appmaker'"
-                    v-cursor="{ active: !hasProjectPermission }"
-                    :class="{
-                        'btn-permission-disable': !hasProjectPermission
-                    }"
-                    @click="goToCreateProject">
-                    {{$t('新建项目')}}
-                </bk-button> -->
             </div>
         </div>
     </div>
@@ -60,21 +50,13 @@
                 'viewMode': state => state.view_mode
             }),
             ...mapState('project', {
-                'projectList': state => state.projectList,
-                'authResource': state => state.authResource,
-                'authOperations': state => state.authOperations
+                'projectList': state => state.projectList
             }),
             ...mapGetters('project', [
                 'userCanViewProjects'
             ]),
             permissionTitle () {
                 return this.permissionData.type === 'project' ? i18n.t('无权限访问项目') : i18n.t('无权限访问')
-            },
-            // permissionContent () {
-            //     return this.permissionData.type === 'project' ? in18.t('你可以申请已有项目的权限') : in18.t('你没有相应资源的访问权限，请申请权限或联系管理员授权')
-            // },
-            hasProjectPermission () {
-                return this.hasPermission(['create'], this.authActions, this.authOperations)
             }
         },
         watch: {
@@ -98,7 +80,7 @@
         methods: {
             ...mapActions([
                 'queryUserPermission',
-                'getPermissionUrl'
+                'getIamUrl'
             ]),
             ...mapMutations('project', [
                 'setProjectActions'
@@ -135,31 +117,23 @@
                 }
             },
             goToCreateProject () {
-                if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
-                    this.goToApply('create')
+                if (!this.hasPermission(['project_create'], this.authActions)) {
+                    this.goToApply()
                 } else {
                     this.$router.push({ name: 'projectHome' })
                 }
             },
-            goToApply (perm) {
-                const resourceData = {
-                    name,
-                    auth_actions: this.authActions
-                }
-                this.applyForPermission([perm], resourceData, this.authOperations, this.authResource)
+            goToApply () {
+                this.applyForPermission(['project_create'])
             },
             async queryProjectCreatePerm () {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: 'project',
-                        action_ids: JSON.stringify(['create'])
+                        action: 'project_create'
                     })
     
-                    const hasCreatePerm = !!res.data.details.find(item => {
-                        return item.action_id === 'create' && item.is_pass
-                    })
-                    if (hasCreatePerm) {
-                        this.authActions.push('create')
+                    if (res.is_allow) {
+                        this.authActions.push('project_create')
                     }
                 } catch (err) {
                     errorHandler(err, this)
@@ -168,7 +142,7 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const res = await this.getPermissionUrl(JSON.stringify(this.permissionData.permission))
+                    const res = await this.getIamUrl(this.permissionData)
                     this.url = res.data.url
                 } catch (err) {
                     errorHandler(err, this)

@@ -25,10 +25,10 @@
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
                         <bk-button
-                            v-cursor="{ active: !hasPermission(createTplRequired, authActions, authOperations) }"
+                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
                             theme="primary"
                             :class="['create-template', {
-                                'btn-permission-disable': !hasPermission(createTplRequired, authActions, authOperations)
+                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
                             }]"
                             @click="checkCreatePermission">
                             {{$t('新建')}}
@@ -61,10 +61,10 @@
                         <template slot-scope="props">
                             <template>
                                 <a
-                                    v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
+                                    v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable"
-                                    @click="onTemplatePermissonCheck(['view'], props.row, $event)">
+                                    @click="onTemplatePermissonCheck(['flow_view'], props.row)">
                                     {{props.row.name}}
                                 </a>
                                 <router-link
@@ -94,10 +94,10 @@
                             <div class="template-operation">
                                 <template>
                                     <a
-                                        v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['create_task'], props.row, $event)">
+                                        @click="onTemplatePermissonCheck(['flow_create_task'], props.row)">
                                         {{$t('新建任务')}}
                                     </a>
                                     <router-link
@@ -107,10 +107,10 @@
                                         {{$t('新建任务')}}
                                     </router-link>
                                     <a
-                                        v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
+                                        @click="onTemplatePermissonCheck(['flow_view'], props.row)">
                                         {{$t('克隆')}}
                                     </a>
                                     <router-link
@@ -136,11 +136,11 @@
                                         <ul slot="content">
                                             <li class="opt-btn">
                                                 <a
-                                                    v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, tplOperations) }"
+                                                    v-cursor="{ active: !hasPermission(['flow_view'], props.row.auth_actions) }"
                                                     href="javascript:void(0);"
                                                     :class="{
                                                         'disable': collectingId === props.row.id || collectListLoading,
-                                                        'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, tplOperations)
+                                                        'text-permission-disable': !hasPermission(['flow_view'], props.row.auth_actions)
                                                     }"
                                                     @click="onCollectTemplate(props.row, $event)">
                                                     {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
@@ -148,10 +148,10 @@
                                             </li>
                                             <li class="opt-btn">
                                                 <a
-                                                    v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                                    v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
                                                     v-cursor
                                                     class="text-permission-disable"
-                                                    @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
+                                                    @click="onTemplatePermissonCheck(['flow_edit'], props.row)">
                                                     {{$t('编辑')}}
                                                 </a>
                                                 <router-link
@@ -163,10 +163,10 @@
                                             </li>
                                             <li class="opt-btn">
                                                 <a
-                                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                                    v-cursor="{ active: !hasPermission(['flow_delete'], props.row.auth_actions) }"
                                                     href="javascript:void(0);"
                                                     :class="{
-                                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                                        'text-permission-disable': !hasPermission(['flow_delete'], props.row.auth_actions)
                                                     }"
                                                     @click="onDeleteTemplate(props.row, $event)">
                                                     {{ $t('删除') }}
@@ -312,11 +312,7 @@
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
                 collectListLoading: false,
-                collectionList: [],
-                createTplRequired: ['create_template'],
-                tplOperations: [], // 模板权限字典
-                tplResource: {}, // 模板资源信息
-                createCommonTplAction: [] // 创建公共流程权限
+                collectionList: []
             }
         },
         computed: {
@@ -329,8 +325,6 @@
             ...mapState('project', {
                 'timeZone': state => state.timezone,
                 'authActions': state => state.authActions,
-                'authOperations': state => state.authOperations,
-                'authResource': state => state.authResource,
                 'projectName': state => state.projectName
             })
         },
@@ -345,8 +339,7 @@
             ...mapActions([
                 'loadCollectList',
                 'addToCollectList',
-                'deleteCollect',
-                'queryUserPermission'
+                'deleteCollect'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
@@ -397,8 +390,6 @@
                     this.setTemplateListData({ list, isCommon: false })
                     this.pagination.count = templateListData.meta.total_count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
-                    this.tplOperations = templateListData.meta.auth_operations
-                    this.tplResource = templateListData.meta.auth_resource
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -448,13 +439,14 @@
                 }
             },
             checkCreatePermission () {
-                if (!this.hasPermission(this.createTplRequired, this.authActions, this.authOperations)) {
+                if (!this.hasPermission(['flow_create'], this.authActions)) {
                     const resourceData = {
-                        name: i18n.t('项目'),
-                        id: this.project_id,
-                        auth_actions: this.authActions
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
                     }
-                    this.applyForPermission(this.createTplRequired, resourceData, this.authOperations, this.authResource)
+                    this.applyForPermission(['flow_create'], this.authActions, resourceData)
                 } else {
                     this.$router.push({
                         name: 'templatePanel',
@@ -504,9 +496,9 @@
             onExportCancel () {
                 this.isExportDialogShow = false
             },
-            onDeleteTemplate (template, event) {
-                if (!this.hasPermission(['delete'], template.auth_actions, this.tplOperations)) {
-                    this.onTemplatePermissonCheck(['delete'], template, event)
+            onDeleteTemplate (template) {
+                if (!this.hasPermission(['flow_delete'], template.auth_actions)) {
+                    this.onTemplatePermissonCheck(['flow_delete'], template)
                     return
                 }
                 this.theDeleteTemplateId = template.id
@@ -521,11 +513,9 @@
              * 单个模板操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} template 模板数据对象
-             * @params {Object} event 事件对象
              */
-            onTemplatePermissonCheck (required, template, event) {
-                this.applyForPermission(required, template, this.tplOperations, this.tplResource)
-                event.preventDefault()
+            onTemplatePermissonCheck (required, template) {
+                this.applyForPermission(required, this.authActions, { flow: [template] })
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return
@@ -601,9 +591,9 @@
                 searchComp.submit()
             },
             // 添加/取消收藏模板
-            async onCollectTemplate (template, event) {
-                if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
-                    this.onTemplatePermissonCheck(['view'], template, event)
+            async onCollectTemplate (template) {
+                if (!this.hasPermission(['flow_view'], template.auth_actions)) {
+                    this.onTemplatePermissonCheck(['flow_view'], template)
                     return
                 }
 
