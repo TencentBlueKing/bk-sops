@@ -15,7 +15,6 @@
         @mouseover.stop="onMouseEnter"
         @mouseout.stop="onMouseLeave">
         <div :class="['content-wrapper', { active: tagInfo && tagInfo.tagCode === form.config.tag_code }]">
-            <!-- <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label> -->
             <div class="form-item-content">
                 <draggable
                     class="form-drag-area form-drag-area-inner"
@@ -37,6 +36,9 @@
                         @onDeleteClick="onDeleteClick">
                     </component>
                 </draggable>
+            </div>
+            <div class="combine-move-icon">
+                <i class="operation-btn common-icon-horizon-line-group"></i>
             </div>
             <div class="operation-btn-group">
                 <i
@@ -148,6 +150,9 @@
         > .content-wrapper > .operation-btn-group {
             display: block;
         }
+        > .content-wrapper > .combine-move-icon {
+            visibility: unset;
+        }
     }
     .content-wrapper {
         position: relative;
@@ -189,7 +194,7 @@
             cursor: pointer;
             font-size: 14px;
             color: #979ba5;
-            &:hover {
+            &:not(.common-icon-horizon-line-group):hover {
                 color: #63656e;
             }
             &.active {
@@ -199,6 +204,20 @@
                 font-size: 12px;
             }
         }
+    }
+    .combine-move-icon {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 1;
+        width: 20px;
+        height: 100%;
+        visibility: hidden;
+    }
+    .common-icon-horizon-line-group {
+        cursor: move;
     }
     .tag-info {
         position: relative;

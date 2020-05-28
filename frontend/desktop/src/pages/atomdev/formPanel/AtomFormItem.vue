@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="form-item-wrap">
+    <div class="form-item-wrap" @mouseover.stop>
         <div :class="['content-wrapper', { active: tagInfo && tagInfo.tagCode === form.config.tag_code }]">
             <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label>
             <div class="form-item-content">
