@@ -21,8 +21,6 @@ else:
 # 正式环境
 RUN_MODE = "PRODUCT"
 
-AUTH_BACKEND_RESOURCE_MIGRATION_CLASS = "auth_backend.resources.migrations.migration.BKIAMResourceMigration"
-
 BK_IAM_SYNC_TEMPLATES = True
 
 LOGGING["loggers"]["iam"] = {

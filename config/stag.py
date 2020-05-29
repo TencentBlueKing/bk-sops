@@ -21,8 +21,6 @@ else:
 # 预发布环境
 RUN_MODE = "STAGING"
 
-AUTH_BACKEND_RESOURCE_MIGRATION_CLASS = "auth_backend.resources.migrations.migration.BKIAMResourceMigration"
-
 BK_IAM_SYNC_TEMPLATES = True
 
 LOGGING["loggers"]["iam"] = {
