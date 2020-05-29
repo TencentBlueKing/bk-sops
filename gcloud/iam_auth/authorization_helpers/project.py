@@ -15,7 +15,7 @@ from tastypie.exceptions import Unauthorized
 
 from iam import Resource
 
-from gcloud.iam_auth.conf import IAMMeta
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
 

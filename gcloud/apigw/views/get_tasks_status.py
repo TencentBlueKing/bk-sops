@@ -19,12 +19,12 @@ from django.views.decorators.csrf import csrf_exempt
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.core.utils import format_datetime
-from gcloud.core.permissions import project_resource
-from gcloud.apigw.decorators import api_verify_proj_perms
+from gcloud.utils.dates import format_datetime
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -38,7 +38,7 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_proj_perms([project_resource.actions.view])
+@iam_intercept(ProjectViewInterceptor())
 def get_tasks_status(request, project_id):
 
     try:

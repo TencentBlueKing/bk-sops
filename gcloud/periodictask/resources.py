@@ -32,7 +32,7 @@ from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthor
 from gcloud.constants import PROJECT, COMMON
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.core.utils import name_handler
+from gcloud.utils.strings import name_handler
 from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.core.resources import ProjectResource
 from gcloud.commons.template.models import replace_template_id, CommonTemplate

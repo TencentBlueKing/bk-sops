@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 from iam.contrib.django.dispatcher import DjangoBasicResourceApiDispatcher
 
-from gcloud.iam_auth.shortcuts import get_iam_client
+from gcloud.iam_auth import get_iam_client
 
 from .common_flow import CommonFlowResourceProvider
 from .flow import FlowResourceProvider

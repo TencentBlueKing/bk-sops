@@ -11,91 +11,70 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import ujson as json
+
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from auth_backend.plugins.decorators import verify_perms
-
-from blueapps.utils.view_decorators import post_form_validator, model_instance_inject
+from gcloud import err_code
 from gcloud.core.models import Project
+
+from gcloud.utils.decorators import request_validate
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.periodictask.permissions import periodic_task_resource
-from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
-                                    PeriodicTaskEnabledSetForm,
-                                    PeriodicTaskConstantsModifyForm)
+from gcloud.periodictask.validators import (
+    SetEnabledForPeriodicTaskValidator,
+    ModifyCronValidator,
+    ModifyConstantsValidator,
+)
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.periodic_task import (
+    SetEnabledForPeriodicTaskInterceptor,
+    ModifyCronInterceptor,
+    ModifyConstantsInterceptor,
+)
 
 
 @require_POST
-@post_form_validator(PeriodicTaskEnabledSetForm)
-@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
-    'id': 'task_id',
-    'project_id': 'project_id'
-})
-@verify_perms(auth_resource=periodic_task_resource,
-              resource_get={'from': 'kwargs', 'key': 'task_id'},
-              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
+@request_validate(SetEnabledForPeriodicTaskValidator)
+@iam_intercept(SetEnabledForPeriodicTaskInterceptor())
 def set_enabled_for_periodic_task(request, project_id, task_id):
-    enabled = request.form.clean()['enabled']
+    data = json.loads(request.body)
 
-    request.task.set_enabled(enabled)
+    task = PeriodicTask.object.get(id=task_id)
+    task.set_enabled(data["enabled"])
 
-    return JsonResponse({
-        'result': True,
-        'message': 'success'
-    })
+    return JsonResponse({"result": True, "message": "success"})
 
 
 @require_POST
-@post_form_validator(PeriodicTaskCronModifyForm)
-@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
-    'id': 'task_id',
-    'project_id': 'project_id'
-})
-@model_instance_inject(model_cls=Project, inject_attr='project', field_maps={
-    'id': 'project_id'
-})
-@verify_perms(auth_resource=periodic_task_resource,
-              resource_get={'from': 'kwargs', 'key': 'task_id'},
-              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
+@request_validate(ModifyCronValidator)
+@iam_intercept(ModifyCronInterceptor())
 def modify_cron(request, project_id, task_id):
-    cron = request.form.clean()['cron']
+
+    data = json.loads(request.body)
+
+    task = PeriodicTask.object.get(id=task_id)
+    project = Project.object.get(id=project_id)
 
     try:
-        request.task.modify_cron(cron, request.project.time_zone)
+        task.modify_cron(data["cron"], project.time_zone)
     except Exception as e:
-        return JsonResponse({
-            'result': False,
-            'message': str(e)
-        })
+        return JsonResponse({"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID})
 
-    return JsonResponse({
-        'result': True,
-        'message': 'success'
-    })
+    return JsonResponse({"result": True, "message": "success", "data": None, "code": err_code.SUCCESS})
 
 
 @require_POST
-@post_form_validator(PeriodicTaskConstantsModifyForm)
-@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
-    'id': 'task_id',
-    'project_id': 'project_id'
-})
-@verify_perms(auth_resource=periodic_task_resource,
-              resource_get={'from': 'kwargs', 'key': 'task_id'},
-              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
+@request_validate(ModifyConstantsValidator)
+@iam_intercept(ModifyConstantsInterceptor())
 def modify_constants(request, project_id, task_id):
-    constants = request.form.clean()['constants']
+    data = json.loads(request.body)
+
+    task = PeriodicTask.object.get(id=task_id)
 
     try:
-        new_constants = request.task.modify_constants(constants)
+        new_constants = task.modify_constants(data["constants"])
     except Exception as e:
-        return JsonResponse({
-            'result': False,
-            'message': str(e)
-        })
+        return JsonResponse({"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID})
 
-    return JsonResponse({
-        'result': True,
-        'message': 'success',
-        'data': new_constants
-    })
+    return JsonResponse({"result": True, "message": "success", "data": new_constants, "code": err_code.SUCCESS})

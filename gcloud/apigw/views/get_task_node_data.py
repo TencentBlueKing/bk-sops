@@ -19,11 +19,11 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -37,12 +37,8 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    taskflow_resource,
-    [taskflow_resource.actions.operate],
-    get_kwargs={"task_id": "id", "project_id": "project_id"},
-)
-def get_task_node_data(request, project_id, task_id):
+@iam_intercept(TaskViewInterceptor())
+def get_task_node_data(request, task_id, project_id):
     project = request.project
     task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
 
@@ -61,17 +57,13 @@ def get_task_node_data(request, project_id, task_id):
             }
         )
 
-    data = task.get_node_data(
-        node_id, request.user.username, component_code, subprocess_stack, loop
-    )
+    data = task.get_node_data(node_id, request.user.username, component_code, subprocess_stack, loop)
 
     return JsonResponse(
         {
             "result": data["result"],
             "data": data["data"],
             "message": data["message"],
-            "code": err_code.SUCCESS.code
-            if data["result"]
-            else err_code.UNKNOW_ERROR.code,
+            "code": err_code.SUCCESS.code if data["result"] else err_code.UNKNOW_ERROR.code,
         }
     )

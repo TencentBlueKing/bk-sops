@@ -291,3 +291,9 @@ class IAMMeta(object):
     PERIODIC_TASK_VIEW_ACTION = "periodic_task_view"
     PERIODIC_TASK_EDIT_ACTION = "periodic_task_edit"
     PERIODIC_TASK_DELETE_ACTION = "periodic_task_delete"
+
+    ADMIN_VIEW_ACTION = "admin_view"
+    ADMIN_EDIT_ACTION = "admin_edit"
+    AUDIT_VIEW_ACTION = "audit_view"
+    FUNCTION_VIEW_ACTION = "function_view"
+    STATISTICS_VIEW_ACTION = "statistics_view"

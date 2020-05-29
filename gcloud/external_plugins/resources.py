@@ -23,17 +23,19 @@ from tastypie.constants import ALL
 from tastypie.exceptions import BadRequest, NotFound
 from tastypie.resources import Resource, convert_post_to_patch
 
-from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
-
+from iam import Subject, Action
+from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.commons.tastypie import GCloudModelResource, AppSerializer
 from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models import source_cls_factory, CachePackageSource, SyncTask, RUNNING
-from gcloud.core.permissions import admin_operate_resource
-
 from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
 
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import get_iam_client
+
 logger = logging.getLogger("root")
+iam = get_iam_client()
 
 
 class PackageSourceResource(Resource):
@@ -78,12 +80,12 @@ class PackageSourceResource(Resource):
 
     def obj_get_list(self, bundle, **kwargs):
 
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=admin_operate_resource,
-            action_ids=[admin_operate_resource.actions.view.id],
-            instance=None,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.usernmae),
+            action=Action(IAMMeta.ADMIN_VIEW_ACTION),
+            resources=[],
         )
 
         filters = {}
@@ -104,12 +106,12 @@ class PackageSourceResource(Resource):
 
     def obj_create(self, bundle, **kwargs):
 
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=admin_operate_resource,
-            action_ids=[admin_operate_resource.actions.edit.id],
-            instance=None,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.usernmae),
+            action=Action(IAMMeta.ADMIN_EDIT_ACTION),
+            resources=[],
         )
 
         try:
@@ -172,12 +174,12 @@ class PackageSourceResource(Resource):
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
 
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=admin_operate_resource,
-            action_ids=[admin_operate_resource.actions.edit.id],
-            instance=None,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.usernmae),
+            action=Action(IAMMeta.ADMIN_EDIT_ACTION),
+            resources=[],
         )
 
         try:
@@ -269,12 +271,12 @@ class PackageSourceResource(Resource):
 
     def obj_delete_list(self, bundle, **kwargs):
 
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=admin_operate_resource,
-            action_ids=[admin_operate_resource.actions.edit.id],
-            instance=None,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.usernmae),
+            action=Action(IAMMeta.ADMIN_EDIT_ACTION),
+            resources=[],
         )
 
         with transaction.atomic():
@@ -322,27 +324,28 @@ class SyncTaskResource(GCloudModelResource):
         limit = 0
 
     def obj_get_list(self, bundle, **kwargs):
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=admin_operate_resource,
-            action_ids=[admin_operate_resource.actions.view.id],
-            instance=None,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.usernmae),
+            action=Action(IAMMeta.ADMIN_VIEW_ACTION),
+            resources=[],
         )
 
         return super(SyncTaskResource, self).obj_get_list(bundle, **kwargs)
 
     def obj_create(self, bundle, **kwargs):
 
-        verify_or_raise_immediate_response(
-            principal_type="user",
-            principal_id=bundle.request.user.username,
-            resource=admin_operate_resource,
-            action_ids=[admin_operate_resource.actions.edit.id],
-            instance=None,
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", bundle.request.user.usernmae),
+            action=Action(IAMMeta.ADMIN_EDIT_ACTION),
+            resources=[],
         )
 
         model = bundle.obj.__class__
+
         if model.objects.filter(status=RUNNING).exists():
             raise BadRequest("There is already a running sync task, please wait for it to complete and try again")
         if not CachePackageSource.objects.all().exists():

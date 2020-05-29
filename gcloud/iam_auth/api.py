@@ -20,7 +20,7 @@ from iam import Subject, Action, Resource, Request
 from iam.exceptions import AuthInvalidRequest, AuthAPIError
 
 from gcloud.iam_auth import conf
-from gcloud.iam_auth.shortcuts import get_iam_client
+from gcloud.iam_auth import get_iam_client
 from gcloud.shortcuts.http import standard_response
 
 
@@ -39,7 +39,7 @@ def apply_perms_url(request):
     iam = get_iam_client()
 
     try:
-        result, message, url = iam.get_apply_url("", username, application)
+        result, message, url = iam.get_apply_url(application, bk_username=username)
     except AuthInvalidRequest as e:
         result = False
         message = str(e)

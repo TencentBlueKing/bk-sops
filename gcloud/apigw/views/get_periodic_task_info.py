@@ -17,12 +17,12 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_proj_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
-from gcloud.core.permissions import project_resource
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.apigw.views.utils import info_data_from_period_task
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import GetPeriodicTaskInfoInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -35,18 +35,14 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_proj_perms([project_resource.actions.view])
+@iam_intercept(GetPeriodicTaskInfoInterceptor())
 def get_periodic_task_info(request, task_id, project_id):
     project = request.project
     try:
         task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "task(%s) does not exist" % task_id,
-                "code": err_code.CONTENT_NOT_EXIST.code,
-            }
+            {"result": False, "message": "task(%s) does not exist" % task_id, "code": err_code.CONTENT_NOT_EXIST.code}
         )
 
     data = info_data_from_period_task(task)

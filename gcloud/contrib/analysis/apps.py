@@ -15,8 +15,5 @@ from django.apps import AppConfig
 
 
 class AnalysisConfig(AppConfig):
-    name = 'gcloud.contrib.analysis'
-    verbose_name = 'GcloudContribAnalysis'
-
-    def ready(self):
-        from gcloud.contrib.analysis.permissions import statistics_resource  # noqa
+    name = "gcloud.contrib.analysis"
+    verbose_name = "GcloudContribAnalysis"

@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from iam import Resource
 
-from gcloud.iam_auth.conf import IAMMeta
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
 

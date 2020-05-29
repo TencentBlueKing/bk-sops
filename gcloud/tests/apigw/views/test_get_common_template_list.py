@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 
-from gcloud.core.utils import format_datetime
+from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -41,8 +41,7 @@ class GetCommontemplateListAPITest(APITest):
         task_templates = [task_tmpl1, task_tmpl2]
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
-            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ):
             assert_data = [
                 {

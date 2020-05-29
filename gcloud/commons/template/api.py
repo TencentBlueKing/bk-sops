@@ -17,160 +17,108 @@ import logging
 import traceback
 
 import ujson as json
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
-from auth_backend.plugins.shortcuts import (
-    batch_verify_or_raise_auth_failed,
-    verify_or_return_insufficient_perms
-)
 
-from gcloud.commons.template.forms import TemplateImportForm
+from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import read_template_data_file
-from gcloud.commons.template.permissions import common_template_resource
-from gcloud.core.utils import time_now_str
+from gcloud.utils.dates import time_now_str
+from gcloud.utils.decorators import request_validate
+from gcloud.commons.template.validators import (
+    FormValidator,
+    ExportTemplateValidator,
+    ImportValidator,
+    CheckBeforeImportValidator,
+)
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.common_template import FormInterceptor, ExportInterceptor, ImportInterceptor
 
-logger = logging.getLogger('root')
+
+logger = logging.getLogger("root")
 
 
 @require_GET
+@request_validate(FormValidator)
+@iam_intercept(FormInterceptor())
 def form(request):
-    template_id = request.GET.get('template_id')
-    version = request.GET.get('version')
-    try:
-        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
-    except CommonTemplate.DoesNotExist:
-        return HttpResponseForbidden()
+    template_id = request.GET["template_id"]
+    version = request.GET.get("version")
+
+    template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+
     ctx = {
-        'form': template.get_form(version),
-        'outputs': template.get_outputs(version),
-        'version': version or template.version
+        "form": template.get_form(version),
+        "outputs": template.get_outputs(version),
+        "version": version or template.version,
     }
-    return JsonResponse(ctx)
+
+    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS})
 
 
 @require_POST
+@request_validate(ExportTemplateValidator)
+@iam_intercept(ExportInterceptor())
 def export_templates(request):
     data = json.loads(request.body)
-    template_id_list = data['template_id_list']
-
-    if not isinstance(template_id_list, list):
-        return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
-
-    if not template_id_list:
-        return JsonResponse({'result': False, 'message': 'template_id_list can not be empty'})
-
-    templates = CommonTemplate.objects.filter(id__in=template_id_list, is_deleted=False)
-    perms_tuples = [(common_template_resource, [common_template_resource.actions.view.id], t) for t in templates]
-    batch_verify_or_raise_auth_failed(
-        principal_type='user',
-        principal_id=request.user.username,
-        perms_tuples=perms_tuples
-    )
+    template_id_list = data["template_id_list"]
 
     # wash
     try:
-        templates_data = json.loads(json.dumps(
-            CommonTemplate.objects.export_templates(template_id_list), sort_keys=True
-        ))
-    except CommonTemplate.DoesNotExist:
-        return JsonResponse({
-            'result': False,
-            'message': 'Invalid template id list'
-        })
+        templates_data = json.loads(
+            json.dumps(CommonTemplate.objects.export_templates(template_id_list), sort_keys=True)
+        )
     except FlowExportError as e:
-        return JsonResponse({
-            'result': False,
-            'message': str(e)
-        })
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR, "data": None})
 
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode('utf-8')
+    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
 
-    file_data = base64.b64encode(json.dumps({
-        'template_data': templates_data,
-        'digest': digest
-    }, sort_keys=True).encode('utf-8'))
-    filename = 'bk_sops_%s_%s.dat' % ('common', time_now_str())
+    file_data = base64.b64encode(
+        json.dumps({"template_data": templates_data, "digest": digest}, sort_keys=True).encode("utf-8")
+    )
+    filename = "bk_sops_%s_%s.dat" % ("common", time_now_str())
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename=%s' % filename
-    response['mimetype'] = 'application/octet-stream'
-    response['Content-Type'] = 'application/octet-stream'
+    response["Content-Disposition"] = "attachment; filename=%s" % filename
+    response["mimetype"] = "application/octet-stream"
+    response["Content-Type"] = "application/octet-stream"
     response.write(file_data)
     return response
 
 
 @require_POST
+@request_validate(ImportValidator)
+@iam_intercept(ImportInterceptor())
 def import_templates(request):
-    f = request.FILES.get('data_file', None)
-    form_data = TemplateImportForm(request.POST)
-    if not form_data.is_valid():
-        return JsonResponse({
-            'result': False,
-            'message': form_data.errors
-        })
-    override = form_data.clean()['override']
+    f = request.FILES["data_file"]
+    override = request.POST["override"]
 
     r = read_template_data_file(f)
-    if not r['result']:
-        return JsonResponse(r)
-
-    templates_data = r['data']['template_data']
-
-    # check again and authenticate
-    check_info = CommonTemplate.objects.import_operation_check(templates_data)
-    perms_tuples = []
-    if override:
-        if check_info['new_template']:
-            perms_tuples.append((common_template_resource, [common_template_resource.actions.create.id], None))
-
-        if check_info['override_template']:
-            templates_id = [template_info['id'] for template_info in check_info['override_template']]
-            templates = CommonTemplate.objects.filter(id__in=templates_id, is_deleted=False)
-            for template in templates:
-                perms_tuples.append((common_template_resource, [common_template_resource.actions.edit.id], template))
-    else:
-        perms_tuples.append((common_template_resource, [common_template_resource.actions.create.id], None))
-
-    batch_verify_or_raise_auth_failed(principal_type='user',
-                                      principal_id=request.user.username,
-                                      perms_tuples=perms_tuples)
+    templates_data = r["data"]["template_data"]
 
     try:
         result = CommonTemplate.objects.import_templates(templates_data, override, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid flow data or error occur, please contact administrator'
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid flow data or error occur, please contact administrator",
+                "code": err_code.UNKNOW_ERROR,
+                "data": None,
+            }
+        )
 
     return JsonResponse(result)
 
 
 @require_POST
+@request_validate(CheckBeforeImportValidator)
 def check_before_import(request):
-    f = request.FILES.get('data_file', None)
-    r = read_template_data_file(f)
-    if not r['result']:
-        return JsonResponse(r)
+    r = read_template_data_file(request.FILES["data_file"])
 
-    check_info = CommonTemplate.objects.import_operation_check(r['data']['template_data'])
+    check_info = CommonTemplate.objects.import_operation_check(r["data"]["template_data"])
 
-    perms_tuples = [(common_template_resource, [common_template_resource.actions.create.id], None)]
-    if check_info['override_template']:
-        templates_id = [template_info['id'] for template_info in check_info['override_template']]
-        templates = CommonTemplate.objects.filter(id__in=templates_id, is_deleted=False)
-        for template in templates:
-            perms_tuples.append((common_template_resource, [common_template_resource.actions.edit.id], template))
-    permissions = verify_or_return_insufficient_perms(principal_type='user',
-                                                      principal_id=request.user.username,
-                                                      perms_tuples=perms_tuples)
-
-    return JsonResponse({
-        'result': True,
-        'data': check_info,
-        'permission': permissions
-    })
+    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS, "message": ""})

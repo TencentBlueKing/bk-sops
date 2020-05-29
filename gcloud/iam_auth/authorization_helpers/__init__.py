@@ -17,3 +17,4 @@ from .task import TaskIAMAuthorizationHelper  # noqa
 from .common_flow import CommonFlowIAMAuthorizationHelper  # noqa
 from .mini_app import MiniAppIAMAuthorizationHelper  # noqa
 from .periodic_task import PeriodicTaskIAMAuthorizationHelper  # noqa
+from .function_task import FunctionTaskIAMAuthorizationHelper  # noqa

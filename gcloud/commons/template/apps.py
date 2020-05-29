@@ -15,8 +15,5 @@ from django.apps import AppConfig
 
 
 class CommonTemplateConfig(AppConfig):
-    name = 'gcloud.commons.template'
-    verbose_name = 'GcloudCommonTemplate'
-
-    def ready(self):
-        from gcloud.commons.template.permissions import common_template_resource  # noqa
+    name = "gcloud.commons.template"
+    verbose_name = "GcloudCommonTemplate"

@@ -31,7 +31,7 @@ from pipeline.models import PipelineInstance
 from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.core.utils import name_handler, pipeline_node_name_handle
+from gcloud.utils.strings import name_handler, pipeline_node_name_handle
 from gcloud.core.constant import TASK_NAME_MAX_LENGTH
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource

@@ -20,7 +20,6 @@ from pipeline.core.constants import PE
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateCurrentVersion
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
-from auth_backend.resources import resource_type_lib
 
 from gcloud import err_code
 from gcloud.exceptions import FlowExportError
@@ -41,6 +40,14 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
+    def creator_for(self, id):
+        qs = self.filter(id=id).values("pipeline_template__creator")
+
+        if not qs:
+            raise self.model.DoesNotExist()
+
+        return qs.first()["pipeline_template__creator"]
+
     def create_pipeline_template(self, **kwargs):
         pipeline_tree = kwargs["pipeline_tree"]
         replace_template_id(self.model, pipeline_tree)
@@ -101,7 +108,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         result = {"can_override": True, "new_template": new_template, "override_template": override_template}
         return result
 
-    def _perform_import(self, template_data, check_info, override, defaults_getter, resource, operator):
+    def _perform_import(self, template_data, check_info, override, defaults_getter, operator):
         template = template_data["template"]
         tid_to_reuse = {}
 
@@ -146,10 +153,6 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         if not override:
             self.model.objects.bulk_create(new_objects)
-
-        create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
-        if create_templates:
-            resource.batch_register_instance(create_templates)
 
         return {
             "result": True,
@@ -380,7 +383,6 @@ class CommonTemplateManager(BaseTemplateManager):
             check_info=check_info,
             override=override,
             defaults_getter=defaults_getter,
-            resource=resource_type_lib["common_flow"],
             operator=operator,
         )
 

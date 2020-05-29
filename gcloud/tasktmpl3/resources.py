@@ -32,7 +32,7 @@ from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
 from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
-from gcloud.core.utils import name_handler, pipeline_node_name_handle
+from gcloud.utils.strings import name_handler, pipeline_node_name_handle
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.resources import ProjectResource

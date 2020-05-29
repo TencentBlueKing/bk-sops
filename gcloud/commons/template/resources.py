@@ -31,8 +31,8 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
-from gcloud.core.utils import name_handler
-from gcloud.core.utils import pipeline_node_name_handle
+from gcloud.utils.strings import name_handler
+from gcloud.utils.strings import pipeline_node_name_handle
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
 from gcloud.iam_auth.authorization_helpers import CommonFlowIAMAuthorizationHelper

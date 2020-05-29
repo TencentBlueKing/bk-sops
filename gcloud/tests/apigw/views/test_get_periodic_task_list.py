@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 
-from gcloud.core.utils import format_datetime
+from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -35,10 +35,7 @@ class GetPeriodicTaskListAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -65,9 +62,7 @@ class GetPeriodicTaskListAPITest(APITest):
         ]
 
         with mock.patch(PERIODIC_TASK_FILTER, MagicMock(return_value=periodic_tasks)):
-            response = self.client.get(
-                path=self.url().format(project_id=TEST_PROJECT_ID)
-            )
+            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
 

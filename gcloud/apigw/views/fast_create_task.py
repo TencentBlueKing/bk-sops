@@ -21,7 +21,6 @@ from pipeline.exceptions import PipelineException
 from pipeline_web.drawing_new.drawing import draw_pipeline
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from auth_backend.plugins.shortcuts import batch_verify_or_raise_auth_failed
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
@@ -29,11 +28,14 @@ from gcloud.apigw.decorators import project_inject
 from gcloud.constants import ONETIME
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.constant import TASK_NAME_MAX_LENGTH
-from gcloud.core.permissions import project_resource
-from gcloud.core.utils import name_handler
-from gcloud.core.utils import pipeline_node_name_handle
+from gcloud.utils.strings import pipeline_node_name_handle
+from gcloud.utils.strings import name_handler
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.apigw.views.utils import logger
+from gcloud.apigw.validators import FastCreateTaskValidator
+from gcloud.utils.decorators import request_validate
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import FastCreateTaskInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -47,16 +49,14 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
+@request_validate(FastCreateTaskValidator)
+@iam_intercept(FastCreateTaskInterceptor())
 def fast_create_task(request, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid json format",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
     project = request.project
@@ -65,17 +65,6 @@ def fast_create_task(request, project_id):
             project_id=project.id, params=params
         )
     )
-
-    if not request.is_trust:
-        perms_tuples = [
-            (project_resource, [project_resource.actions.fast_create_task.id], project)
-        ]
-        batch_verify_or_raise_auth_failed(
-            principal_type="user",
-            principal_id=request.user.username,
-            perms_tuples=perms_tuples,
-            status=200,
-        )
 
     try:
         pipeline_tree = params["pipeline_tree"]
@@ -88,9 +77,7 @@ def fast_create_task(request, project_id):
     except Exception as e:
         message = "[API] fast_create_task get invalid pipeline_tree: %s" % str(e)
         logger.exception(message)
-        return JsonResponse(
-            {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
-        )
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code})
 
     try:
         pipeline_instance_kwargs = {
@@ -101,23 +88,15 @@ def fast_create_task(request, project_id):
         }
     except (KeyError, ValueError) as e:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid params: %s" % str(e),
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid params: %s" % str(e), "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
     try:
-        pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(
-            template=None, **pipeline_instance_kwargs
-        )
+        pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(template=None, **pipeline_instance_kwargs)
     except PipelineException as e:
         message = "[API] fast_create_task create pipeline error: %s" % str(e)
         logger.exception(message)
-        return JsonResponse(
-            {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
-        )
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code})
 
     taskflow_kwargs = {
         "project": project,
@@ -139,11 +118,7 @@ def fast_create_task(request, project_id):
     return JsonResponse(
         {
             "result": True,
-            "data": {
-                "task_id": task.id,
-                "task_url": task.url,
-                "pipeline_tree": task.pipeline_tree,
-            },
+            "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
             "code": err_code.SUCCESS.code,
         }
     )
