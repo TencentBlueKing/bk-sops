@@ -11,7 +11,7 @@
 */
 <template>
     <div class="tag-code-editor">
-        <div class="control-header" v-if="showControl">
+        <div class="control-header" v-if="showLanguageSwitch">
             <div class="language-select">
                 <bk-select
                     v-model="language"
@@ -32,13 +32,12 @@
             :style="{ height: height }"
             class="code-editor-wrap">
             <code-editor
-                v-if="!editorReLoad"
+                v-if="!editorReload"
                 ref="tagCodeEditor"
                 :value="value"
                 :options="{
                     language,
                     readOnly: disabled,
-                    theme: editorTheme,
                     minimap: {
                         enabled: showMiniMap
                     }
@@ -57,27 +56,27 @@
         language: {
             type: String,
             default: 'python',
-            desc: 'code editor language'
+            desc: 'Code editor language'
         },
         height: {
             type: String,
             default: '100px',
-            desc: 'the editor height'
+            desc: 'The editor height'
         },
         showMiniMap: {
             type: Boolean,
             default: false,
-            desc: 'show editor mini code map'
+            desc: 'Show editor mini code map'
         },
-        showControl: {
+        showLanguageSwitch: {
             type: Boolean,
             default: true,
-            desc: 'show editor controller'
+            desc: 'Show editor language switch'
         },
         readOnly: {
             type: Boolean,
             default: false,
-            desc: 'the editor code is read-only'
+            desc: 'The editor code is read-only'
         },
         value: {
             type: String,
@@ -92,42 +91,22 @@
         mixins: [getFormMixins(attrs)],
         data () {
             return {
-                editorReLoad: false,
-                editorTheme: 'vs-dark',
-                languages: [
-                    'python',
-                    'shell',
-                    'javascript',
-                    'typescript',
-                    'java',
-                    'json',
-                    'mysql',
-                    'bat',
-                    'html',
-                    'markdown',
-                    'php',
-                    'sql'
-                ]
+                editorReload: false,
+                languages: ['javascript', 'typescript', 'json', 'python', 'shell']
             }
         },
         computed: {
             disabled () {
-                return this.readOnly || !this.formMode || !this.formEdit
+                return !this.editable || this.readOnly
             }
         },
         watch: {
-            formMode () {
-                this.updateEditMode()
-            },
-            formEdit () {
-                this.updateEditMode()
+            editable () {
+                this.onLanguageChange()
             },
             readOnly () {
-                this.updateEditMode()
+                this.onLanguageChange()
             }
-        },
-        created () {
-            this.updateEditMode()
         },
         methods: {
             contentUpdate (val) {
@@ -137,18 +116,10 @@
                 this.refreshEditor()
             },
             refreshEditor () {
-                this.editorReLoad = true
+                this.editorReload = true
                 this.$nextTick(() => {
-                    this.editorReLoad = false
+                    this.editorReload = false
                 })
-            },
-            /**
-             * 三种模式：编辑模式、禁用模式、查看模式
-             * 主题：    vs-dark   vs-dark    vs
-             */
-            updateEditMode () {
-                this.editorTheme = (this.readOnly || !this.formMode) ? 'vs' : 'vs-dark'
-                this.onLanguageChange()
             }
         }
     }
