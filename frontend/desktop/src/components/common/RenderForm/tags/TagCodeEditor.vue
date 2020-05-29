@@ -13,17 +13,19 @@
     <div class="tag-code-editor">
         <div class="control-header" v-if="showControl">
             <div class="language-select">
-                <el-select
+                <bk-select
                     v-model="language"
+                    :clearable="false"
                     size="mini"
+                    style="width: 120px;"
                     @change="onLanguageChange">
-                    <el-option
+                    <bk-option
                         v-for="item in languages"
                         :key="item"
-                        :label="item"
-                        :value="item">
-                    </el-option>
-                </el-select>
+                        :name="item"
+                        :id="item">
+                    </bk-option>
+                </bk-select>
             </div>
         </div>
         <div
@@ -35,7 +37,7 @@
                 :value="value"
                 :options="{
                     language,
-                    readOnly: readOnly || !formMode,
+                    readOnly: disabled,
                     theme: editorTheme,
                     minimap: {
                         enabled: showMiniMap
@@ -108,11 +110,24 @@
                 ]
             }
         },
-        watch: {
-            formMode (val) {
-                this.editorTheme = val ? 'vs-dark' : 'vs'
-                this.refreshEditor()
+        computed: {
+            disabled () {
+                return this.readOnly || !this.formMode || !this.formEdit
             }
+        },
+        watch: {
+            formMode () {
+                this.updateEditMode()
+            },
+            formEdit () {
+                this.updateEditMode()
+            },
+            readOnly () {
+                this.updateEditMode()
+            }
+        },
+        created () {
+            this.updateEditMode()
         },
         methods: {
             contentUpdate (val) {
@@ -126,6 +141,14 @@
                 this.$nextTick(() => {
                     this.editorReLoad = false
                 })
+            },
+            /**
+             * 三种模式：编辑模式、禁用模式、查看模式
+             * 主题：    vs-dark   vs-dark    vs
+             */
+            updateEditMode () {
+                this.editorTheme = (this.readOnly || !this.formMode) ? 'vs' : 'vs-dark'
+                this.onLanguageChange()
             }
         }
     }
@@ -136,6 +159,9 @@
             width: 100%;
             height: 34px;
             margin-bottom: 2px;
+            .language-select {
+                float: right;
+            }
         }
         .code-editor-wrap {
             position: relative;

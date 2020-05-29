@@ -414,7 +414,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 17. TagSection
+### 18. TagSection
 
 标准插件表单分隔 Tag，一般在表单项数量较多时用来做分组区分，配置项的 name 属性值会被渲染为分组名称。
 
@@ -426,7 +426,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 18. TagCodeEditor
+### 19. TagCodeEditor
 
 代码编辑器
 
