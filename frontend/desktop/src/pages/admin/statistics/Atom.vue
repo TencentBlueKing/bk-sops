@@ -312,8 +312,10 @@
         },
         methods: {
             ...mapActions('atomForm', [
-                'queryAtomData',
                 'loadSingleAtomList'
+            ]),
+            ...mapActions('admin', [
+                'queryAtomData'
             ]),
             getData () {
                 this.getRankData()

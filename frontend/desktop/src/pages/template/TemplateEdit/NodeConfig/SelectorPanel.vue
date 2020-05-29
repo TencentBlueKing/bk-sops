@@ -16,6 +16,7 @@
                 class="select-group"
                 v-model="selectedGroup"
                 :clearable="false"
+                searchable
                 @selected="onSelectGroup">
                 <bk-option
                     v-for="item in groupList"

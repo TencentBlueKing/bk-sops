@@ -112,9 +112,9 @@ class HostNFSManagerTestCase(TestCase):
                 "file_source": [
                     {
                         "files": [
-                            "/server_location_token/shims_1/uid_1/file_1",
-                            "/server_location_token/shims_2/uid_2/file_2",
-                            "/server_location_token/shims_3/uid_3/file_3",
+                            os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
+                            os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
+                            os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
                         ],
                         "account": "root",
                         "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
@@ -164,9 +164,9 @@ class HostNFSManagerTestCase(TestCase):
                 "file_source": [
                     {
                         "files": [
-                            "/server_location_token/shims_1/uid_1/file_1",
-                            "/server_location_token/shims_2/uid_2/file_2",
-                            "/server_location_token/shims_3/uid_3/file_3",
+                            os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
+                            os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
+                            os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
                         ],
                         "account": "root",
                         "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],
@@ -238,9 +238,9 @@ class HostNFSManagerTestCase(TestCase):
                 "file_source": [
                     {
                         "files": [
-                            "/server_location_token/shims_1/uid_1/file_1",
-                            "/server_location_token/shims_2/uid_2/file_2",
-                            "/server_location_token/shims_3/uid_3/file_3",
+                            os.path.join("/server_location_token", "shims_1", "uid_1", "file_1"),
+                            os.path.join("/server_location_token", "shims_2", "uid_2", "file_2"),
+                            os.path.join("/server_location_token", "shims_3", "uid_3", "file_3"),
                         ],
                         "account": "root",
                         "ip_list": [{"bk_cloud_id": 0, "ip": host_ip}],

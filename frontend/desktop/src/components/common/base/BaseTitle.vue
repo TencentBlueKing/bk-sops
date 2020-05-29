@@ -89,7 +89,7 @@
 .base-title {
     position: relative;
     border-bottom: 1px solid #dde4eb;
-    overflow: hidden;
+    height: 63px;
     .title-name {
         float: left;
         margin-left: 12px;

@@ -203,7 +203,6 @@ class TaskTemplateResource(GCloudModelResource):
             # validate pipeline tree
             try:
                 validate_web_pipeline_tree(pipeline_template_kwargs['pipeline_tree'])
-                validate_pipeline_tree(pipeline_template_kwargs['pipeline_tree'], cycle_tolerate=True)
             except PipelineException as e:
                 raise BadRequest(str(e))
 

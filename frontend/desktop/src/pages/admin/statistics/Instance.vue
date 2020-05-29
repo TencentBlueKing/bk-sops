@@ -311,7 +311,7 @@
             this.getData()
         },
         methods: {
-            ...mapActions('task', [
+            ...mapActions('admin', [
                 'queryInstanceData'
             ]),
             getData () {

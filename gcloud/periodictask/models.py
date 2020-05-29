@@ -21,6 +21,7 @@ from gcloud.commons.template.models import CommonTemplate
 from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
+from pipeline.models import PipelineTemplate
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud.core.models import Project
@@ -68,6 +69,7 @@ class PeriodicTaskManager(models.Manager):
         }
 
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
+        PipelineTemplate.objects.replace_id(pipeline_tree)
 
         return PipelinePeriodicTask.objects.create_task(
             name=name,

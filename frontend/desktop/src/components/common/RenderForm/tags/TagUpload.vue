@@ -19,6 +19,7 @@
                 :limit="limit"
                 :auto-upload="auto_upload"
                 :headers="headers"
+                :data="data_params"
                 :disabled="!editable || disabled"
                 :on-success="handleSuccess.bind(this)"
                 :on-remove="handleRemove.bind(this)"
@@ -70,6 +71,14 @@
                 return {}
             },
             desc: 'upload headers, you should add X-CSRFToken when project has CsrfViewMiddleware'
+        },
+        data_params: {
+            type: Object,
+            required: false,
+            default () {
+                return {}
+            },
+            desc: 'upload data config, object value would be assigned to FormData'
         },
         auto_upload: {
             type: Boolean,

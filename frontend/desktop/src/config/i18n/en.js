@@ -465,7 +465,6 @@ const en = {
     '执行任务权限': 'Execution Task',
     '确认删除轻应用？': 'Are you sure to delete this APP?',
     '未找到相关轻应用': 'No Mini-APP found',
-    '暂未添加轻应用': 'No Mini-APP found in business',
     '表单项': 'Form item',
     '拖拽到此处上传或': 'drag to upload',
     '点击添加': 'add',
@@ -674,7 +673,7 @@ const en = {
     '选择': 'Select',
     '重选': 'Reselect',
     '版本更新': 'Update Version',
-    '节点名称': 'Name',
+    '节点名称': 'Node Name',
     '步骤名称': 'Stage Name',
     '失败处理': 'Failure Processing',
     '是否可选': 'Optional',
@@ -981,7 +980,8 @@ const en = {
     '什么是轻应用？': 'What is appmaker?',
     '业务运维人员将日常工作标准化后，以标准运维中一个模板的形式提供给业务非技术人员使用，为了降低使用者的操作风险和使用成本，将该模板以独立SaaS应用的方式指定给授权者使用，这种不需要开发、零成本快速生成的SaaS应用称为“轻应用”。': `The business operation and maintenance personnel will standardize their daily work and provide them to business non-technical personnel in the form of a template in the standard operation and maintenance to reduce the user's operational risk and cost of use. The template is designated as an independent SaaS application to the authorizer Use, this kind of SaaS application that does not require development and is quickly generated at zero cost is called a "light application".`,
     '更改': 'Change',
-    '默认图标': 'Default icon'
+    '默认图标': 'Default icon',
+    '节点标签': 'Node labels'
 }
 
 export default en
