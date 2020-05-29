@@ -433,10 +433,10 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 **属性**
 
  - `value`：代码字符串
- - `language`: 编辑器语言，默认为 python,支持 python javascript typescript java json bat mysql 等。
+ - `language`: 编辑器语言，默认为 python，支持 javascript typescript json python shell
  - `height`: 编辑器高度，默认 100px
  - `showMiniMap`: 显示小地图，默认 false
- - `showControl`: 显示控制栏，默认 true
+ - `showLanguageSwitch`: 显示语言切换，默认 true
  - `readOnly`: 只读模式，默认 false
 
 **方法**
