@@ -34,14 +34,14 @@ from blueapps.conf.default_settings import *  # noqa
 # )
 
 APP_NAME = _("标准运维")
-DEFAULT_OPEN_VER = 'community'
-OPEN_VER = os.environ.get('RUN_VER', 'open')
+DEFAULT_OPEN_VER = "community"
+OPEN_VER = os.environ.get("RUN_VER", "open")
 
 # 区分社区版和企业版
-if OPEN_VER == 'open':
-    OPEN_VER = os.environ.get('OPEN_VER', DEFAULT_OPEN_VER)
+if OPEN_VER == "open":
+    OPEN_VER = os.environ.get("OPEN_VER", DEFAULT_OPEN_VER)
     if not OPEN_VER:
-        raise Exception('OPEN_VER is not set when RUN_VER is open')
+        raise Exception("OPEN_VER is not set when RUN_VER is open")
 
 # 请在这里加入你的自定义 APP
 INSTALLED_APPS += (
@@ -110,28 +110,30 @@ INSTALLED_APPS += (
 
 # 自定义中间件
 MIDDLEWARE += (
-    'weixin.core.middlewares.WeixinAuthenticationMiddleware',
-    'weixin.core.middlewares.WeixinLoginMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'gcloud.core.middlewares.TimezoneMiddleware',
-    'gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware',
-    'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
+    "weixin.core.middlewares.WeixinAuthenticationMiddleware",
+    "weixin.core.middlewares.WeixinLoginMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "gcloud.core.middlewares.TimezoneMiddleware",
+    "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
+    "auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware",
 )
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
 if os.getenv("BKAPP_CORS_ALLOW", None):
-    MIDDLEWARE = ('corsheaders.middleware.CorsMiddleware',) + MIDDLEWARE
+    MIDDLEWARE = ("corsheaders.middleware.CorsMiddleware",) + MIDDLEWARE
     CORS_ALLOW_CREDENTIALS = True
     CORS_ORIGIN_WHITELIST = os.getenv("BKAPP_CORS_WHITELIST", "").split(",")
 else:
     CORS_ALLOW_CREDENTIALS = False
 
+if os.getenv("BKAPP_PYINSTRUMENT_ENABLE", None):
+    MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
-MIDDLEWARE = ('weixin.core.middlewares.WeixinProxyPatchMiddleware',) + MIDDLEWARE
+MIDDLEWARE = ("weixin.core.middlewares.WeixinProxyPatchMiddleware",) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
-LOG_LEVEL = 'INFO'
+LOG_LEVEL = "INFO"
 
 # load logging settings
 LOGGING = get_logging_config_dict(locals())
@@ -141,11 +143,9 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.5.10'
+STATIC_VERSION = '3.5.11'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 # CELERY 开关，使用时请改为 True，修改项目目录下的 Procfile 文件，添加以下两行命令：
 # python manage.py celery worker -l info
@@ -154,28 +154,25 @@ STATICFILES_DIRS = [
 IS_USE_CELERY = True
 
 # CELERY 并发数，默认为 2，可以通过环境变量或者 Procfile 设置
-CELERYD_CONCURRENCY = os.getenv('BK_CELERYD_CONCURRENCY', 2)
+CELERYD_CONCURRENCY = os.getenv("BK_CELERYD_CONCURRENCY", 2)
 
 # CELERY 配置，申明任务的文件路径，即包含有 @task 装饰器的函数文件
-CELERY_IMPORTS = (
-)
+CELERY_IMPORTS = ()
 
 # celery settings
 if IS_USE_CELERY:
-    INSTALLED_APPS = locals().get('INSTALLED_APPS', [])
+    INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
     import djcelery
 
-    INSTALLED_APPS += (
-        'djcelery',
-    )
+    INSTALLED_APPS += ("djcelery",)
     djcelery.setup_loader()
     CELERY_ENABLE_UTC = True
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 
-LOGGING['loggers']['pipeline'] = {
-    'handlers': ['root'],
-    'level': LOG_LEVEL,
-    'propagate': True,
+LOGGING["loggers"]["pipeline"] = {
+    "handlers": ["root"],
+    "level": LOG_LEVEL,
+    "propagate": True,
 }
 
 # 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
@@ -184,75 +181,65 @@ INIT_SUPERUSER = []
 
 # 国际化配置
 USE_TZ = True
-TIME_ZONE = 'Asia/Shanghai'
-LANGUAGE_CODE = 'zh-hans'
+TIME_ZONE = "Asia/Shanghai"
+LANGUAGE_CODE = "zh-hans"
 SITE_ID = 1
 # 设定使用根目录的locale
-LOCALE_PATHS = (os.path.join(BASE_DIR, 'locale'),)
+LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 # 设定是否使用header的Accept-Language，如果设置为True，
 # 程序会自动分析访客使用的语言，来显示相应的翻译结果
 LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
 _ = lambda s: s  # noqa
 LANGUAGES = (
-    ('en', _('English')),
-    ('zh-hans', _('简体中文')),
+    ("en", _("English")),
+    ("zh-hans", _("简体中文")),
 )
 USE_I18N = True
 USE_L10N = True
 
-LANGUAGE_SESSION_KEY = 'blueking_language'
-LANGUAGE_COOKIE_NAME = 'blueking_language'
+LANGUAGE_SESSION_KEY = "blueking_language"
+LANGUAGE_COOKIE_NAME = "blueking_language"
 
 HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
-    },
+    "default": {"ENGINE": "haystack.backends.simple_backend.SimpleEngine"},
 }
 
 # 通知公告域名
-PUSH_URL = os.environ.get('BK_PUSH_URL', '')
+PUSH_URL = os.environ.get("BK_PUSH_URL", "")
 
 # remove disabled apps
-if locals().get('DISABLED_APPS'):
-    INSTALLED_APPS = locals().get('INSTALLED_APPS', [])
-    DISABLED_APPS = locals().get('DISABLED_APPS', [])
+if locals().get("DISABLED_APPS"):
+    INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
+    DISABLED_APPS = locals().get("DISABLED_APPS", [])
 
-    INSTALLED_APPS = [_app for _app in INSTALLED_APPS
-                      if _app not in DISABLED_APPS]
+    INSTALLED_APPS = [_app for _app in INSTALLED_APPS if _app not in DISABLED_APPS]
 
-    _keys = ('AUTHENTICATION_BACKENDS',
-             'DATABASE_ROUTERS',
-             'FILE_UPLOAD_HANDLERS',
-             'MIDDLEWARE',
-             'PASSWORD_HASHERS',
-             'TEMPLATE_LOADERS',
-             'STATICFILES_FINDERS',
-             'TEMPLATE_CONTEXT_PROCESSORS')
+    _keys = (
+        "AUTHENTICATION_BACKENDS",
+        "DATABASE_ROUTERS",
+        "FILE_UPLOAD_HANDLERS",
+        "MIDDLEWARE",
+        "PASSWORD_HASHERS",
+        "TEMPLATE_LOADERS",
+        "STATICFILES_FINDERS",
+        "TEMPLATE_CONTEXT_PROCESSORS",
+    )
 
     import itertools
 
     for _app, _key in itertools.product(DISABLED_APPS, _keys):
         if locals().get(_key) is None:
             continue
-        locals()[_key] = tuple([_item for _item in locals()[_key]
-                                if not _item.startswith(_app + '.')])
+        locals()[_key] = tuple([_item for _item in locals()[_key] if not _item.startswith(_app + ".")])
 
 # db cache
 # create cache table by execute:
 # python manage.py createcachetable django_cache
 CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "django_cache"
-    },
-    "dbcache": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "django_cache"
-    },
-    "dummy": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-    },
+    "default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache"},
+    "locmem": {"BACKEND": "gcloud.utils.cache.LocMemCache", "LOCATION": "django_cache"},
+    "dummy": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
 }
 
 # 针对CC接口数据相关的缓存时间(单位s)
@@ -265,10 +252,10 @@ DEFAULT_CACHE_TIME_FOR_USER_UPDATE = 5
 DEFAULT_CACHE_TIME_FOR_AUTH = 5
 
 # 蓝鲸PASS平台URL
-BK_PAAS_HOST = os.getenv('BK_PAAS_HOST', BK_URL)
+BK_PAAS_HOST = os.getenv("BK_PAAS_HOST", BK_URL)
 
 # 用于 用户认证、用户信息获取 的蓝鲸主机
-BK_PAAS_INNER_HOST = os.getenv('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
+BK_PAAS_INNER_HOST = os.getenv("BK_PAAS_INNER_HOST", BK_PAAS_HOST)
 
 # AJAX 请求弹窗续期登陆设置
 IS_AJAX_PLAIN_MODE = True
@@ -277,56 +264,43 @@ IS_AJAX_PLAIN_MODE = True
 INIT_SUPERUSER = ["admin"]
 
 # cc、job域名
-BK_CC_HOST = os.environ.get('BK_CC_HOST')
-BK_JOB_HOST = os.environ.get('BK_JOB_HOST')
+BK_CC_HOST = os.environ.get("BK_CC_HOST")
+BK_JOB_HOST = os.environ.get("BK_JOB_HOST")
 
 # ESB 默认版本配置 '' or 'v2'
-DEFAULT_BK_API_VER = 'v2'
+DEFAULT_BK_API_VER = "v2"
 
 # IAM权限中心配置
-BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
-BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', "标准运维")
-BK_IAM_SYSTEM_DESC = ''
-BK_IAM_QUERY_INTERFACE = ''
-BK_IAM_RELATED_SCOPE_TYPES = 'system'
-BK_IAM_SYSTEM_MANAGERS = 'admin'
-BK_IAM_SYSTEM_CREATOR = 'admin'
-AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
-BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_APP_CODE', 'bk_iam_app')
-BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
+BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
+BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
+BK_IAM_SYSTEM_DESC = ""
+BK_IAM_QUERY_INTERFACE = ""
+BK_IAM_RELATED_SCOPE_TYPES = "system"
+BK_IAM_SYSTEM_MANAGERS = "admin"
+BK_IAM_SYSTEM_CREATOR = "admin"
+AUTH_BACKEND_CLS = os.getenv("BKAPP_AUTH_BACKEND_CLS", "auth_backend.backends.bkiam.BKIAMBackend")
+BK_IAM_APP_CODE = os.getenv("BKAPP_BK_IAM_APP_CODE", "bk_iam_app")
+BK_IAM_PERM_TEMPLATES = "config.perms.bk_iam_perm_templates"
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
-BK_IAM_INNER_HOST = os.getenv('BK_IAM_INNER_HOST', os.getenv('BK_IAM_HOST', ''))
+BK_IAM_INNER_HOST = os.getenv("BK_IAM_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 # 权限中心 SaaS host
-BK_IAM_SAAS_HOST = os.environ.get('BKAPP_IAM_SAAS_HOST', '{}/o/{}'.format(BK_PAAS_HOST, BK_IAM_APP_CODE))
+BK_IAM_SAAS_HOST = os.environ.get("BKAPP_IAM_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_APP_CODE))
 
-AUTH_LEGACY_RESOURCES = [
-    'project',
-    'common_flow',
-    'flow',
-    'mini_app',
-    'periodic_task',
-    'task'
-]
+AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
 # 用户管理配置
-BK_USER_MANAGE_HOST = '{}/o/{}'.format(BK_PAAS_HOST, 'bk_user_manage')
+BK_USER_MANAGE_HOST = "{}/o/{}".format(BK_PAAS_HOST, "bk_user_manage")
 
 # tastypie 配置
-TASTYPIE_DEFAULT_FORMATS = ['json']
+TASTYPIE_DEFAULT_FORMATS = ["json"]
 
-TEMPLATES[0]['OPTIONS']['context_processors'] += (
-    'gcloud.core.context_processors.mysetting',
-)
+TEMPLATES[0]["OPTIONS"]["context_processors"] += ("gcloud.core.context_processors.mysetting",)
 
-STATIC_VER = {
-    'DEVELOP': 'dev',
-    'PRODUCT': 'prod',
-    'STAGING': 'stag'
-}
+STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 
 # pipeline settings
-PIPELINE_TEMPLATE_CONTEXT = 'gcloud.tasktmpl3.utils.get_template_context'
-PIPELINE_INSTANCE_CONTEXT = 'gcloud.taskflow3.utils.get_instance_context'
+PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
+PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 
 COMPONENT_PATH = [
     'components.collections.http',
@@ -340,19 +314,19 @@ COMPONENT_PATH = [
     'components.collections.sites.%s.cc.update_set_service_status' % RUN_VER,
     'components.collections.sites.%s.cc.create_module' % RUN_VER,
 ]
-VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
+VARIABLE_PATH = ["variables.collections.sites.%s" % RUN_VER]
 
-PIPELINE_PARSER_CLASS = 'pipeline_web.parser.WebPipelineAdapter'
+PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
 PIPELINE_RERUN_MAX_TIMES = 50
 
 PIPELINE_RERUN_INDEX_OFFSET = 0
 
-EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY', None)
+EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY", None)
 # 是否只允许加载远程 https 仓库的插件
-EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE', '1') == '0'
+EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE", "1") == "0"
 
-PIPELINE_DATA_BACKEND = 'pipeline.engine.core.data.redis_backend.RedisDataBackend'
+PIPELINE_DATA_BACKEND = "pipeline.engine.core.data.redis_backend.RedisDataBackend"
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
@@ -360,16 +334,13 @@ UUID_DIGIT_STARTS_SENSITIVE = True
 
 from pipeline.celery.settings import *  # noqa
 
-SYSTEM_USE_API_ACCOUNT = 'admin'
+SYSTEM_USE_API_ACCOUNT = "admin"
 
 # VER settings
-ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER)
+ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER)
 for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # version log config
-VERSION_LOG = {
-    'PAGE_STYLE': 'gitbook',
-    'MD_FILES_DIR': 'version_log/version_logs_md'
-}
+VERSION_LOG = {"PAGE_STYLE": "gitbook", "MD_FILES_DIR": "version_log/version_logs_md"}

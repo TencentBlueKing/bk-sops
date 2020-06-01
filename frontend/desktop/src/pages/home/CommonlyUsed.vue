@@ -93,11 +93,9 @@
             window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
-            ...mapActions('template/', [
-                'loadCommonProject'
-            ]),
             ...mapActions('project/', [
-                'changeDefaultProject'
+                'changeDefaultProject',
+                'loadCommonProject'
             ]),
             ...mapMutations('project', [
                 'setProjectId'

@@ -16,15 +16,15 @@ from django.utils.translation import ugettext_lazy as _
 __group_name__ = _("配置平台(CMDB)")
 
 
-from .batch_delete_set import CCBatchDeleteSetComponent  # noqa
-from .create_set import CCCreateSetComponent  # noqa
-from .empty_set_hosts import CCEmptySetHostsComponent  # noqa
-from .replace_fault_machine import CCReplaceFaultMachineComponent  # noqa
-from .transfer_fault_host import CmdbTransferFaultHostComponent  # noqa
-from .transfer_host_module import CCTransferHostModuleComponent  # noqa
-from .transfer_host_resource import CmdbTransferHostResourceModuleComponent  # noqa
-from .transfer_to_idle import CCTransferHostToIdleComponent  # noqa
-from .update_host import CCUpdateHostComponent  # noqa
-from .update_module import CCUpdateModuleComponent  # noqa
-from .update_set import CCUpdateSetComponent  # noqa
-from .update_set_service_status import CCUpdateSetServiceStatusComponent  # noqa
+from .batch_delete_set import *  # noqa
+from .create_set import *  # noqa
+from .empty_set_hosts import *  # noqa
+from .replace_fault_machine import *  # noqa
+from .transfer_fault_host import *  # noqa
+from .transfer_host_module import *  # noqa
+from .transfer_host_resource import *  # noqa
+from .transfer_to_idle import *  # noqa
+from .update_host import *  # noqa
+from .update_module import *  # noqa
+from .update_set import *  # noqa
+from .update_set_service_status import *  # noqa

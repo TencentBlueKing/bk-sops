@@ -36,7 +36,7 @@ class VarIpPickerVariable(LazyVariable):
     name = _('IP选择器(即将下线，请用新版)')
     type = 'general'
     tag = 'var_ip_picker.ip_picker'
-    form = '%svariables/sites/%s/var_ip_picker.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%svariables/cmdb/var_ip_picker.js' % settings.STATIC_URL
 
     def get_value(self):
         var_ip_picker = self.value
@@ -90,7 +90,7 @@ class VarCmdbIpSelector(LazyVariable):
     name = _("IP选择器")
     type = 'general'
     tag = 'var_cmdb_ip_selector.ip_selector'
-    form = '%svariables/sites/%s/var_cmdb_ip_selector.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%svariables/cmdb/var_cmdb_ip_selector.js' % settings.STATIC_URL
 
     def get_value(self):
         username = self.pipeline_data['executor']
@@ -135,7 +135,7 @@ class VarCmdbSetAllocation(LazyVariable):
     name = _("集群资源筛选")
     type = 'general'
     tag = 'var_cmdb_resource_allocation.set_allocation'
-    form = '%svariables/sites/%s/var_cmdb_resource_allocation.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%svariables/cmdb/var_cmdb_resource_allocation.js' % settings.STATIC_URL
 
     def get_value(self):
         """
@@ -153,7 +153,7 @@ class VarCmdbAttributeQuery(LazyVariable):
     name = _("主机属性查询器")
     type = 'general'
     tag = 'var_cmdb_attr_query.attr_query'
-    form = '%svariables/sites/%s/var_cmdb_attribute_query.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%svariables/cmdb/var_cmdb_attribute_query.js' % settings.STATIC_URL
 
     def get_value(self):
         """
