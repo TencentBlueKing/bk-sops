@@ -58,7 +58,7 @@ class CCCreateModuleService(Service):
                 key="cc_set_select_topo",
                 type="array",
                 schema=ArrayItemSchema(
-                    description=_("需要清空的集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
+                    description=_("所属集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
                 ),
             ),
             self.InputItem(

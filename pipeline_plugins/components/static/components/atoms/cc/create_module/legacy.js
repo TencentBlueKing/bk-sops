@@ -69,7 +69,7 @@
             tag_code: "cc_set_select_topo",
             type: "tree",
             attrs: {
-                name: gettext("集群"),
+                name: gettext("所属集群"),
                 hookable: true,
                 remote: true,
                 remote_url: function () {
@@ -153,7 +153,7 @@
             tag_code: "cc_set_select_text",
             type: "textarea",
             attrs: {
-                name: gettext("集群"),
+                name: gettext("所属集群"),
                 hookable: true,
                 placeholder: gettext("请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"),
                 validation: [

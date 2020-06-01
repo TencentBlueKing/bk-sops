@@ -103,4 +103,8 @@ webpack_cache
 # local dev file
 static/dev
 static/images
+static/components
 frontend/desktop/static
+config/default.py
+
+celerybeat.pid
