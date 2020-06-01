@@ -36,7 +36,7 @@ urlpatterns = [
     # version log
     url(r"^{}".format(version_log_config.ENTRANCE_URL), include("version_log.urls")),
     # iam resource api
-    url(r"^resource/api/v1/$", dispatcher.as_view([login_exempt])),
+    url(r"^iam/resource/api/v1/$", dispatcher.as_view([login_exempt])),
     # iam api
     url(r"^iam/api/", include("gcloud.iam_auth.urls")),
 ]
