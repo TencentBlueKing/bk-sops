@@ -17,6 +17,7 @@
                 <div class="operation-wrapper">
                     <advance-search-form
                         :search-form="searchForm"
+                        :search-config="{ placeholder: $t('请输入轻应用名称') }"
                         @onSearchInput="onSearchInput"
                         @submit="onSearchFormSubmit">
                         <template v-slot:operation>
