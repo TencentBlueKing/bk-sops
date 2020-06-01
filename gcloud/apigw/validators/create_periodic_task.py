@@ -21,3 +21,5 @@ class CreatePriodicTaskValidator(ObjectJsonBodyValidator):
 
         if not valid:
             return valid, err
+
+        return True, ""

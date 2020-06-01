@@ -21,3 +21,5 @@ class FastCreateTaskValidator(ObjectJsonBodyValidator):
 
         if not valid:
             return valid, err
+
+        return True, ""

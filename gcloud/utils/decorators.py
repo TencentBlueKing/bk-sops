@@ -20,7 +20,7 @@ from gcloud import err_code
 from .validate import RequestValidator
 
 
-def request_validate(validator_cls, data_field):
+def request_validate(validator_cls):
 
     if not issubclass(validator_cls, RequestValidator):
         raise TypeError("validator_cls must be subclass of {}".format("gcloud.utils.validate.RequestValidator"))

@@ -21,8 +21,8 @@ from gcloud.core.constant import AE
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
 
-from iam_auth.intercept import iam_intercept
-from iam_auth.view_interceptors.statistics import StatisticsViewInpterceptor
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.statistics import StatisticsViewInpterceptor
 
 
 @require_GET

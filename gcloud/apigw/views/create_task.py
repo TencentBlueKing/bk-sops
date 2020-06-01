@@ -52,7 +52,7 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 @request_validate(CreateTaskValidator)
-@iam_intercept(CreateTaskInterceptor)
+@iam_intercept(CreateTaskInterceptor())
 def create_task(request, template_id, project_id):
     params = json.loads(request.body)
     project = request.project

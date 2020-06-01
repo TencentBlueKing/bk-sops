@@ -26,7 +26,6 @@ class ProjectTestCase(TestCase):
         Project.objects.all().delete()
 
     @factory.django.mute_signals(signals.post_save, signals.post_delete)
-    @patch(PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE, MagicMock())
     def test_sync_project_from_cmdb_business__full_sync(self):
         businesses = {
             i: {"cc_name": "biz_%s" % i, "time_zone": "time_zone_%s" % i, "creator": "creator_%s" % i}
@@ -46,10 +45,7 @@ class ProjectTestCase(TestCase):
             self.assertEqual(proj.desc, "")
             self.assertTrue(proj.from_cmdb)
 
-        project_resource.batch_register_instance(projects)
-
     @factory.django.mute_signals(signals.post_save, signals.post_delete)
-    @patch(PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE, MagicMock())
     def test_sync_project_from_cmdb_business__partial_sync(self):
         for i in range(1, 3):
             Project.objects.create(
@@ -75,9 +71,6 @@ class ProjectTestCase(TestCase):
             self.assertEqual(proj.creator, businesses[i]["creator"])
             self.assertEqual(proj.desc, "")
             self.assertTrue(proj.from_cmdb)
-
-        projects = Project.objects.filter(id__in=list(range(3, 10)))
-        project_resource.batch_register_instance(projects)
 
     @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_sync_project_from_cmdb_business__no_business(self):

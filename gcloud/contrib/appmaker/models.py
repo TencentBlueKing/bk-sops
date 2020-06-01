@@ -35,10 +35,8 @@ from gcloud.core.constant import AE
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.dates import time_now_str
-from gcloud.utils.strings import (
-    convert_readable_username,
-    name_handler,
-)
+from gcloud.core.utils import convert_readable_username
+from gcloud.utils.strings import name_handler
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
