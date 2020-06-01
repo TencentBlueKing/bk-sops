@@ -26,7 +26,6 @@ GitPython==2.1.11
 PyJWT==1.6.1
 future==0.18.1
 django-cors-headers==3.2.1
-curlify==2.2.1
 
 # pipeline
 ujson==1.35
@@ -41,3 +40,12 @@ gevent==1.2.2
 
 # version log
 mistune==0.8.4
+
+# iam sdk
+cachetools==3.1.1
+certifi==2020.4.5.1
+chardet==3.0.4
+curlify==2.2.1
+idna==2.9
+six==1.14.0
+urllib3==1.25.9
