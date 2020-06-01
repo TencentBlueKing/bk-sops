@@ -19,12 +19,12 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -38,21 +38,13 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    taskflow_resource,
-    [taskflow_resource.actions.operate],
-    get_kwargs={"task_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(TaskOperateInterceptor())
 def node_callback(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid json format",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
     project = request.project
@@ -60,18 +52,14 @@ def node_callback(request, task_id, project_id):
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = "[API] node_callback task[id={task_id}] " \
-                  "of project[project_id={project_id}, biz_id{biz_id}] does not exist".format(
-                      task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
-                  )
-        logger.exception(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "code": err_code.CONTENT_NOT_EXIST.code,
-            }
+        message = (
+            "[API] node_callback task[id={task_id}] "
+            "of project[project_id={project_id}, biz_id{biz_id}] does not exist".format(
+                task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
+            )
         )
+        logger.exception(message)
+        return JsonResponse({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
 
     node_id = params.get("node_id")
     callback_data = params.get("callback_data")

@@ -15,7 +15,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 
-from gcloud.core.utils import format_datetime
+from gcloud.utils.dates import format_datetime
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
@@ -37,10 +37,7 @@ class GetPeriodicTaskInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -62,9 +59,7 @@ class GetPeriodicTaskInfoAPITest(APITest):
 
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
             response = self.client.get(
-                path=self.url().format(
-                    task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
-                )
+                path=self.url().format(task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID)
             )
 
             data = json.loads(response.content)
@@ -76,10 +71,7 @@ class GetPeriodicTaskInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -101,9 +93,7 @@ class GetPeriodicTaskInfoAPITest(APITest):
 
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
             response = self.client.get(
-                path=self.url().format(
-                    task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
-                )
+                path=self.url().format(task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID)
             )
 
             data = json.loads(response.content)
@@ -113,11 +103,7 @@ class GetPeriodicTaskInfoAPITest(APITest):
 
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_periodic_task_info__task_does_not_exist(self):
-        response = self.client.get(
-            path=self.url().format(
-                task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID
-            )
-        )
+        response = self.client.get(path=self.url().format(task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID))
 
         data = json.loads(response.content)
 

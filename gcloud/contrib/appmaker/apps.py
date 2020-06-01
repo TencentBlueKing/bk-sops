@@ -15,8 +15,5 @@ from django.apps import AppConfig
 
 
 class AppmakerConfig(AppConfig):
-    name = 'gcloud.contrib.appmaker'
-    verbose_name = 'GcloudContribAppmaker'
-
-    def ready(self):
-        from gcloud.contrib.appmaker.permissions import mini_app_resource  # noqa
+    name = "gcloud.contrib.appmaker"
+    verbose_name = "GcloudContribAppmaker"

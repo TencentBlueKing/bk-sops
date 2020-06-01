@@ -35,36 +35,40 @@ logger = logging.getLogger("root")
 
 # Create your models here.
 
+
 class PeriodicTaskManager(models.Manager):
+    def creator_for(self, tid):
+        qs = self.filter(id=tid).values("task__creator")
+
+        if not qs:
+            raise self.model.DoesNotExist()
+
+        return qs.first()["task__creator"]
+
     def create(self, **kwargs):
-        template_source = kwargs.get('template_source', PROJECT)
+        template_source = kwargs.get("template_source", PROJECT)
         task = self.create_pipeline_task(
-            project=kwargs['project'],
-            template=kwargs['template'],
-            name=kwargs['name'],
-            cron=kwargs['cron'],
-            pipeline_tree=kwargs['pipeline_tree'],
-            creator=kwargs['creator'],
-            template_source=template_source
+            project=kwargs["project"],
+            template=kwargs["template"],
+            name=kwargs["name"],
+            cron=kwargs["cron"],
+            pipeline_tree=kwargs["pipeline_tree"],
+            creator=kwargs["creator"],
+            template_source=template_source,
         )
         return super(PeriodicTaskManager, self).create(
-            project=kwargs['project'],
-            task=task,
-            template_id=kwargs['template'].id,
-            template_source=template_source
+            project=kwargs["project"], task=task, template_id=kwargs["template"].id, template_source=template_source
         )
 
     def create_pipeline_task(self, project, template, name, cron, pipeline_tree, creator, template_source=PROJECT):
         if template_source == PROJECT and template.project.id != project.id:
-            raise InvalidOperationException('template %s do not belong to project[%s]' %
-                                            (template.id,
-                                             project.name))
+            raise InvalidOperationException("template %s do not belong to project[%s]" % (template.id, project.name))
         extra_info = {
-            'project_id': project.id,
-            'category': template.category,
-            'template_id': template.pipeline_template.template_id,
-            'template_source': template_source,
-            'template_num_id': template.id
+            "project_id": project.id,
+            "category": template.category,
+            "template_id": template.pipeline_template.template_id,
+            "template_source": template_source,
+            "template_num_id": template.id,
         }
 
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
@@ -77,28 +81,22 @@ class PeriodicTaskManager(models.Manager):
             creator=creator,
             timezone=project.time_zone,
             extra_info=extra_info,
-            spread=True
+            spread=True,
         )
 
 
 class PeriodicTask(models.Model):
-    project = models.ForeignKey(Project,
-                                verbose_name=_("所属项目"),
-                                null=True,
-                                blank=True,
-                                on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
     task = models.ForeignKey(PipelinePeriodicTask, verbose_name=_("pipeline 层周期任务"))
     template_id = models.CharField(_("创建任务所用的模板ID"), max_length=255)
-    template_source = models.CharField(_("流程模板来源"), max_length=32,
-                                       choices=TEMPLATE_SOURCE,
-                                       default=PROJECT)
+    template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
 
     objects = PeriodicTaskManager()
 
     class Meta:
         verbose_name = _("周期任务 PeriodicTask")
         verbose_name_plural = _("周期任务 PeriodicTask")
-        ordering = ['-id']
+        ordering = ["-id"]
 
     def __unicode__(self):
         return "{name}({id})".format(name=self.name, id=self.id)
@@ -137,13 +135,16 @@ class PeriodicTask(models.Model):
 
     @property
     def task_template_name(self):
-        name = ''
+        name = ""
         if self.template_source in NON_COMMON_TEMPLATE_TYPES:
             try:
                 template = TaskTemplate.objects.get(project=self.project, id=self.template_id)
             except TaskTemplate.DoesNotExist:
-                logger.warning(_("流程模板[project={project}, id={template_id}]不存在").format(
-                    project=self.project, template_id=self.template_id))
+                logger.warning(
+                    _("流程模板[project={project}, id={template_id}]不存在").format(
+                        project=self.project, template_id=self.template_id
+                    )
+                )
             else:
                 name = template.name
         elif self.template_source == COMMON:
@@ -178,14 +179,11 @@ class PeriodicTask(models.Model):
 
     def get_stakeholders(self):
         notify_receivers = json.loads(self.template.notify_receivers)
-        receiver_group = notify_receivers.get('receiver_group', [])
+        receiver_group = notify_receivers.get("receiver_group", [])
         receivers = [self.creator]
 
         if self.project.from_cmdb:
-            group_members = get_business_group_members(
-                self.project.bk_biz_id,
-                receiver_group
-            )
+            group_members = get_business_group_members(self.project.bk_biz_id, receiver_group)
 
             receivers.extend(group_members)
 
@@ -196,7 +194,6 @@ class PeriodicTask(models.Model):
 
 
 class PeriodicTaskHistoryManager(models.Manager):
-
     def record_history(self, periodic_history):
         task = PeriodicTask.objects.get(task=periodic_history.periodic_task)
         flow_instance = None
@@ -212,7 +209,7 @@ class PeriodicTaskHistoryManager(models.Manager):
             flow_instance=flow_instance,
             ex_data=periodic_history.ex_data,
             start_at=periodic_history.start_at,
-            start_success=periodic_history.start_success
+            start_success=periodic_history.start_success,
         )
 
 

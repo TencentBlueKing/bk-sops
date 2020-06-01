@@ -19,12 +19,12 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_proj_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
-from gcloud.core.permissions import project_resource
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -38,7 +38,7 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_proj_perms([project_resource.actions.view])
+@iam_intercept(ProjectViewInterceptor())
 def query_task_count(request, project_id):
     """
     @summary: 按照不同维度统计业务任务总数
@@ -50,46 +50,23 @@ def query_task_count(request, project_id):
         params = json.loads(request.body)
     except Exception:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid json format",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
     project = request.project
     conditions = params.get("conditions", {})
     group_by = params.get("group_by")
     if not isinstance(conditions, dict):
-        message = (
-            "[API] query_task_list params conditions[%s] are invalid dict data"
-            % conditions
-        )
+        message = "[API] query_task_list params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return JsonResponse({"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code})
     if group_by not in ["category", "create_method", "flow_type", "status"]:
         message = "[API] query_task_list params group_by[%s] is invalid" % group_by
         logger.error(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
-        )
+        return JsonResponse({"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code})
 
     filters = {"project_id": project.id, "is_deleted": False}
     filters.update(conditions)
     success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
-        return JsonResponse(
-            {"result": False, "message": content, "code": err_code.UNKNOW_ERROR.code}
-        )
-    return JsonResponse(
-        {"result": True, "data": content, "code": err_code.SUCCESS.code}
-    )
+        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOW_ERROR.code})
+    return JsonResponse({"result": True, "data": content, "code": err_code.SUCCESS.code})

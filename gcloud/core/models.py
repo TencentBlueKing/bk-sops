@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from os import environ
 
-from auth_backend.resources.base import resource_type_lib
-
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models, transaction
@@ -43,17 +41,14 @@ class Business(models.Model):
     status = models.CharField(_("业务状态"), max_length=32, null=True)
     always_use_executor = models.BooleanField(_("是否始终使用任务执行者"), default=False)
 
-    groups = models.ManyToManyField(
-        Group,
-        through='BusinessGroupMembership'
-    )
+    groups = models.ManyToManyField(Group, through="BusinessGroupMembership")
 
     objects = BusinessManager()
 
     # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是历史遗留非法值，暂时认为是已上线状态
-    LIFE_CYCLE_TESTING = '1'  # 测试中
-    LIFE_CYCLE_ONLINE = '2'  # 已上线
-    LIFE_CYCLE_CLOSE_DOWN = '3'  # 停运
+    LIFE_CYCLE_TESTING = "1"  # 测试中
+    LIFE_CYCLE_ONLINE = "2"  # 已上线
+    LIFE_CYCLE_CLOSE_DOWN = "3"  # 停运
 
     class Meta:
         verbose_name = _("业务 Business")
@@ -70,18 +65,19 @@ class Business(models.Model):
         return "%s_%s" % (self.cc_id, self.cc_name)
 
     def available(self):
-        return self.status != 'disabled'
+        return self.status != "disabled"
 
 
 class UserBusiness(models.Model):
     """
     用户默认业务表
     """
+
     user = models.CharField(_("用户QQ"), max_length=255, unique=True)
     default_buss = models.IntegerField(_("默认业务"))
 
     def __unicode__(self):
-        return '%s_%s' % (self.user, self.default_buss)
+        return "%s_%s" % (self.user, self.default_buss)
 
     class Meta:
         verbose_name = _("用户默认业务 UserBusiness")
@@ -97,7 +93,7 @@ class BusinessGroupMembership(models.Model):
     class Meta:
         verbose_name = _("业务用户组 BusinessGroupMembership")
         verbose_name_plural = _("业务用户组 BusinessGroupMembership")
-        unique_together = ('business', 'group')
+        unique_together = ("business", "group")
 
     def __unicode__(self):
         return "B%s:G%s" % (self.business_id, self.group_id)
@@ -107,7 +103,6 @@ class BusinessGroupMembership(models.Model):
 
 
 class EnvVarManager(models.Manager):
-
     def get_var(self, key, default=None):
         objs = self.filter(key=key)
         if objs.exists():
@@ -134,13 +129,12 @@ class EnvironmentVariables(models.Model):
 
 
 class ProjectManager(models.Manager):
-
     def sync_project_from_cmdb_business(self, businesses):
         with transaction.atomic():
             if not businesses:
                 return
 
-            exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('bk_biz_id', flat=True))
+            exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list("bk_biz_id", flat=True))
             to_be_sync_cc_id = set(businesses.keys()) - exist_sync_cc_id
             projects = []
 
@@ -151,27 +145,25 @@ class ProjectManager(models.Manager):
                 if not business:
                     continue
 
-                if exist_project.name != business['cc_name'] or exist_project.time_zone != business['time_zone']:
-                    exist_project.name = business['cc_name']
-                    exist_project.time_zone = business['time_zone']
+                if exist_project.name != business["cc_name"] or exist_project.time_zone != business["time_zone"]:
+                    exist_project.name = business["cc_name"]
+                    exist_project.time_zone = business["time_zone"]
                     exist_project.save()
 
             for cc_id in to_be_sync_cc_id:
                 biz = businesses[cc_id]
-                projects.append(Project(name=biz['cc_name'],
-                                        time_zone=biz['time_zone'],
-                                        creator=biz['creator'],
-                                        desc='',
-                                        from_cmdb=True,
-                                        bk_biz_id=cc_id))
+                projects.append(
+                    Project(
+                        name=biz["cc_name"],
+                        time_zone=biz["time_zone"],
+                        creator=biz["creator"],
+                        desc="",
+                        from_cmdb=True,
+                        bk_biz_id=cc_id,
+                    )
+                )
 
             self.bulk_create(projects, batch_size=5000)
-
-            projects = Project.objects.filter(from_cmdb=True, bk_biz_id__in=to_be_sync_cc_id)
-
-            if projects:
-                project_resource = resource_type_lib['project']
-                project_resource.batch_register_instance(list(projects))
 
     def update_business_project_status(self, archived_cc_ids, active_cc_ids):
         self.filter(bk_biz_id__in=archived_cc_ids, from_cmdb=True).update(is_disable=True)
@@ -196,14 +188,13 @@ class Project(models.Model):
         verbose_name_plural = _("项目 Project")
 
     def __unicode__(self):
-        return '%s_%s' % (self.id, self.name)
+        return "%s_%s" % (self.id, self.name)
 
     def __str__(self):
-        return '%s_%s' % (self.id, self.name)
+        return "%s_%s" % (self.id, self.name)
 
 
 class UserDefaultProjectManager(models.Manager):
-
     def init_user_default_project(self, username, project):
         try:
             return self.get(username=username)
@@ -222,18 +213,17 @@ class UserDefaultProject(models.Model):
         verbose_name_plural = _("用户默认项目 UserDefaultProject")
 
     def __unicode__(self):
-        return '%s_%s' % (self.username, self.default_project)
+        return "%s_%s" % (self.username, self.default_project)
 
     def __str__(self):
-        return '%s_%s' % (self.username, self.default_project)
+        return "%s_%s" % (self.username, self.default_project)
 
 
 class ProjectCounterManager(models.Manager):
-
     def increase_or_create(self, username, project_id):
         obj = self.filter(username=username, project_id=project_id)
         if obj.exists():
-            obj.update(count=models.F('count') + 1)
+            obj.update(count=models.F("count") + 1)
         else:
             self.create(username=username, project_id=project_id)
 
@@ -250,7 +240,7 @@ class ProjectCounter(models.Model):
         verbose_name_plural = _(u"用户访问项目计数 ProjectCounter")
 
     def __unicode__(self):
-        return '%s_%s_%s' % (self.username, self.project, self.count)
+        return "%s_%s_%s" % (self.username, self.project, self.count)
 
     def __str__(self):
-        return '%s_%s_%s' % (self.username, self.project, self.count)
+        return "%s_%s_%s" % (self.username, self.project, self.count)

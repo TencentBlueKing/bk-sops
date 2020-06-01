@@ -27,37 +27,19 @@ def read_encoded_template_data(content):
     try:
         data = json.loads(base64.b64decode(content))
     except Exception:
-        return {
-            'result': False,
-            'message': 'Template data is corrupt',
-            'code': err_code.REQUEST_PARAM_INVALID.code
-        }
+        return {"result": False, "message": "Template data is corrupt", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     # check the validation of file
-    templates_data = data['template_data']
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode('utf-8')
+    templates_data = data["template_data"]
+    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
 
-    is_data_valid = (digest == data['digest'])
+    is_data_valid = digest == data["digest"]
     if not is_data_valid:
-        return {
-            'result': False,
-            'message': 'Invalid template data',
-            'code': err_code.VALIDATION_ERROR.code
-        }
+        return {"result": False, "message": "Invalid template data", "code": err_code.VALIDATION_ERROR.code}
 
-    return {
-        'result': True,
-        'data': data,
-        'code': err_code.SUCCESS.code
-    }
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
 
 
 def read_template_data_file(f):
-    if not f:
-        return {
-            'result': False,
-            'message': 'Upload template dat file please.'
-        }
-
     return read_encoded_template_data(content=f.read())

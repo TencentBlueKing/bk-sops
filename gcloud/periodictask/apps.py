@@ -15,11 +15,12 @@ from django.apps import AppConfig
 
 
 class PeriodicTaskConfig(AppConfig):
-    name = 'gcloud.periodictask'
-    verbose_name = 'GcloudPeriodicTask'
+    name = "gcloud.periodictask"
+    verbose_name = "GcloudPeriodicTask"
 
     def ready(self):
-        from .signals.handlers import (pre_periodic_task_start_handler,  # noqa
-                                       periodic_task_history_post_save_handler,
-                                       periodic_task_start_failed_handler)
-        from .permissions import periodic_task_resource  # noqa
+        from .signals.handlers import (  # noqa
+            pre_periodic_task_start_handler,
+            periodic_task_history_post_save_handler,
+            periodic_task_start_failed_handler,
+        )

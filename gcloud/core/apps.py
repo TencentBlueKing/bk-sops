@@ -18,39 +18,37 @@ import traceback
 from django.apps import AppConfig
 from django.conf import settings
 
-from auth_backend.plugins.bkiam.shortcuts import upsert_perm_templates
-
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 class CoreConfig(AppConfig):
-    name = 'gcloud.core'
-    verbose_name = 'GcloudCore'
+    name = "gcloud.core"
+    verbose_name = "GcloudCore"
 
     def ready(self):
         from gcloud.core.signals.handlers import business_post_save_handler  # noqa
-        from gcloud.core.permissions import project_resource, admin_operate_resource  # noqa
-        if not hasattr(settings, 'REDIS'):
+
+        if not hasattr(settings, "REDIS"):
             try:
                 from gcloud.core.models import EnvironmentVariables
+
                 settings.REDIS = {
-                    'host': EnvironmentVariables.objects.get_var('BKAPP_REDIS_HOST'),
-                    'port': EnvironmentVariables.objects.get_var('BKAPP_REDIS_PORT'),
-                    'password': EnvironmentVariables.objects.get_var('BKAPP_REDIS_PASSWORD'),
-                    'service_name': EnvironmentVariables.objects.get_var('BKAPP_REDIS_SERVICE_NAME'),
-                    'mode': EnvironmentVariables.objects.get_var('BKAPP_REDIS_MODE'),
-                    'db': EnvironmentVariables.objects.get_var('BKAPP_REDIS_DB'),
+                    "host": EnvironmentVariables.objects.get_var("BKAPP_REDIS_HOST"),
+                    "port": EnvironmentVariables.objects.get_var("BKAPP_REDIS_PORT"),
+                    "password": EnvironmentVariables.objects.get_var("BKAPP_REDIS_PASSWORD"),
+                    "service_name": EnvironmentVariables.objects.get_var("BKAPP_REDIS_SERVICE_NAME"),
+                    "mode": EnvironmentVariables.objects.get_var("BKAPP_REDIS_MODE"),
+                    "db": EnvironmentVariables.objects.get_var("BKAPP_REDIS_DB"),
                 }
             except Exception:
                 logger.warning(traceback.format_exc())
                 # first migrate, database may not have been migrated, so try get BKAPP_REDIS from env
-                if 'BKAPP_REDIS_HOST' in os.environ:
+                if "BKAPP_REDIS_HOST" in os.environ:
                     settings.REDIS = {
-                        'host': os.getenv('BKAPP_REDIS_HOST'),
-                        'port': os.getenv('BKAPP_REDIS_PORT'),
-                        'password': os.getenv('BKAPP_REDIS_PASSWORD'),
-                        'service_name': os.getenv('BKAPP_REDIS_SERVICE_NAME'),
-                        'mode': os.getenv('BKAPP_REDIS_MODE'),
-                        'db': os.getenv('BKAPP_REDIS_DB'),
+                        "host": os.getenv("BKAPP_REDIS_HOST"),
+                        "port": os.getenv("BKAPP_REDIS_PORT"),
+                        "password": os.getenv("BKAPP_REDIS_PASSWORD"),
+                        "service_name": os.getenv("BKAPP_REDIS_SERVICE_NAME"),
+                        "mode": os.getenv("BKAPP_REDIS_MODE"),
+                        "db": os.getenv("BKAPP_REDIS_DB"),
                     }
-        upsert_perm_templates()

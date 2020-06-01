@@ -1,5 +1,5 @@
 [flake8]
-ignore = C901, W503, F405
+ignore = C901, W503, F405, E203
 # C901: is too complex
 # W503: line break before binary operator
 # F405: may be undefined, or defined from star imports

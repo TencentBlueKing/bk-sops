@@ -16,31 +16,32 @@ import functools
 from django.http import JsonResponse
 import ujson as json
 
-from gcloud.core.utils.common import check_and_rename_params
+from gcloud.utils.strings import check_and_rename_params
 
 
 def standardize_params(func):
     @functools.wraps(func)
     def wrapper(request):
         params = json.loads(request.body)
-        conditions = params.get('conditions', {})
-        page_index = int(params.get('pageIndex', 1))
-        limit = int(params.get('limit', 10))
-        group_by = params.get('group_by', None)
+        conditions = params.get("conditions", {})
+        page_index = int(params.get("pageIndex", 1))
+        limit = int(params.get("limit", 10))
+        group_by = params.get("group_by", None)
         # 参数校验
         result_dict = check_and_rename_params(conditions, group_by)
-        if not result_dict['success']:
-            return JsonResponse({'result': False, 'message': result_dict['content']})
-        conditions = result_dict['conditions']
-        group_by = result_dict['group_by']
+        if not result_dict["success"]:
+            return JsonResponse({"result": False, "message": result_dict["content"]})
+        conditions = result_dict["conditions"]
+        group_by = result_dict["group_by"]
         # 过滤参数填写
-        filters = {'is_deleted': False}
+        filters = {"is_deleted": False}
         filters.update(conditions)
         # 根据不同的view_funciton进行不同的处理
         inner_args = (group_by, filters, page_index, limit)
         success, content = func(*inner_args)
         # 统一处理返回逻辑
         if not success:
-            return JsonResponse({'result': False, 'message': content})
-        return JsonResponse({'result': True, 'data': content})
+            return JsonResponse({"result": False, "message": content})
+        return JsonResponse({"result": True, "data": content})
+
     return wrapper

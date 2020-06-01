@@ -19,13 +19,13 @@ from django.views.decorators.csrf import csrf_exempt
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.constants import PROJECT
 from gcloud.taskflow3.utils import preview_template_tree
-from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -39,11 +39,7 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    task_template_resource,
-    [task_template_resource.actions.view],
-    get_kwargs={"template_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(FlowViewInterceptor())
 def preview_task_tree(request, project_id, template_id):
     try:
         req_data = json.loads(request.body)
@@ -61,17 +57,11 @@ def preview_task_tree(request, project_id, template_id):
 
     if not isinstance(exclude_task_nodes_id, list):
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid exclude_task_nodes_id",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid exclude_task_nodes_id", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
     try:
-        data = preview_template_tree(
-            request.project.id, PROJECT, template_id, version, exclude_task_nodes_id
-        )
+        data = preview_template_tree(request.project.id, PROJECT, template_id, version, exclude_task_nodes_id)
     except Exception as e:
         logger.exception("[API] preview_template_tree fail: {}".format(e))
         return JsonResponse(

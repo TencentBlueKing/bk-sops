@@ -23,28 +23,26 @@ from pipeline.contrib.statistics.models import ComponentInTemplate, TemplateInPi
 from pipeline.contrib.periodic_task.models import PeriodicTask
 from pipeline.models import PipelineInstance, TemplateRelationship
 from pipeline.parser.utils import replace_all_id
-from auth_backend.resources import resource_type_lib
 
 from gcloud import err_code
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.constant import TASK_CATEGORY, AE
 from gcloud.core.models import Project
-from gcloud.core.utils import format_datetime
+from gcloud.utils.dates import format_datetime
 
 logger = logging.getLogger("root")
 
 
 class TaskTemplateManager(BaseTemplateManager):
-
     def create(self, **kwargs):
         pipeline_template = self.create_pipeline_template(**kwargs)
         task_template = self.model(
-            project=kwargs['project'],
-            category=kwargs['category'],
+            project=kwargs["project"],
+            category=kwargs["category"],
             pipeline_template=pipeline_template,
-            notify_type=kwargs['notify_type'],
-            notify_receivers=kwargs['notify_receivers'],
-            time_out=kwargs['time_out'],
+            notify_type=kwargs["notify_type"],
+            notify_receivers=kwargs["notify_receivers"],
+            time_out=kwargs["time_out"],
         )
         task_template.save()
         return task_template
@@ -58,24 +56,24 @@ class TaskTemplateManager(BaseTemplateManager):
     def import_operation_check(self, template_data, project_id):
         data = super(TaskTemplateManager, self).import_operation_check(template_data)
 
-        template = template_data['template']
+        template = template_data["template"]
 
-        relate_project_ids = self.filter(id__in=list(template.keys()),
-                                         is_deleted=False
-                                         ).values_list('project_id', flat=True)
+        relate_project_ids = self.filter(id__in=list(template.keys()), is_deleted=False).values_list(
+            "project_id", flat=True
+        )
         is_multiple_relate = len(set(relate_project_ids)) > 1
         is_across_override = relate_project_ids and relate_project_ids[0] != int(project_id)
-        has_common_template = not all([tmpl.get('project_id') for _, tmpl in list(template_data['template'].items())])
+        has_common_template = not all([tmpl.get("project_id") for _, tmpl in list(template_data["template"].items())])
 
         can_override = not (is_multiple_relate or is_across_override or has_common_template)
 
         if not can_override:
-            data['override_template'] = []
+            data["override_template"] = []
 
         result = {
-            'can_override': can_override,
-            'new_template': data['new_template'],
-            'override_template': data['override_template']
+            "can_override": can_override,
+            "new_template": data["new_template"],
+            "override_template": data["override_template"],
         }
         return result
 
@@ -84,67 +82,68 @@ class TaskTemplateManager(BaseTemplateManager):
         check_info = self.import_operation_check(template_data, project_id)
 
         # operation validation check
-        if override and (not check_info['can_override']):
+        if override and (not check_info["can_override"]):
             return {
-                'result': False,
-                'message': 'Unable to override flows across project',
-                'data': 0,
-                'code': err_code.INVALID_OPERATION.code
+                "result": False,
+                "message": "Unable to override flows across project",
+                "data": 0,
+                "code": err_code.INVALID_OPERATION.code,
             }
 
         def defaults_getter(template_dict):
             return {
-                'project': project,
-                'category': template_dict['category'],
-                'notify_type': template_dict['notify_type'],
-                'notify_receivers': template_dict['notify_receivers'],
-                'time_out': template_dict['time_out'],
-                'pipeline_template_id': template_dict['pipeline_template_id'],
-                'is_deleted': False
+                "project": project,
+                "category": template_dict["category"],
+                "notify_type": template_dict["notify_type"],
+                "notify_receivers": template_dict["notify_receivers"],
+                "time_out": template_dict["time_out"],
+                "pipeline_template_id": template_dict["pipeline_template_id"],
+                "is_deleted": False,
             }
 
-        return super(TaskTemplateManager, self)._perform_import(template_data=template_data,
-                                                                check_info=check_info,
-                                                                override=override,
-                                                                defaults_getter=defaults_getter,
-                                                                resource=resource_type_lib['flow'],
-                                                                operator=operator)
+        return super(TaskTemplateManager, self)._perform_import(
+            template_data=template_data,
+            check_info=check_info,
+            override=override,
+            defaults_getter=defaults_getter,
+            operator=operator,
+        )
 
     def group_by_state(self, tasktmpl, *args):
         # 按流程模板执行状态查询流程个数
         total = tasktmpl.count()
         groups = [
             {
-                'code': 'CREATED',
-                'name': _("未执行"),
-                'value': tasktmpl.filter(pipeline_template__is_started=False).count()
+                "code": "CREATED",
+                "name": _("未执行"),
+                "value": tasktmpl.filter(pipeline_template__is_started=False).count(),
             },
             {
-                'code': 'EXECUTING',
-                'name': _("执行中"),
-                'value': tasktmpl.filter(pipeline_template__is_started=True,
-                                         pipeline_template__is_finished=False).count()
+                "code": "EXECUTING",
+                "name": _("执行中"),
+                "value": tasktmpl.filter(
+                    pipeline_template__is_started=True, pipeline_template__is_finished=False
+                ).count(),
             },
             {
-                'code': 'FINISHED',
-                'name': _("已完成"),
-                'value': tasktmpl.filter(pipeline_template__is_finished=True).count()
-            }
+                "code": "FINISHED",
+                "name": _("已完成"),
+                "value": tasktmpl.filter(pipeline_template__is_finished=True).count(),
+            },
         ]
         return total, groups
 
     def group_by_project_id(self, tasktmpl, *args):
         # 查询不同业务的模板个数
         total = tasktmpl.count()
-        template_list = tasktmpl.values(AE.project_id, AE.project__name).annotate(
-            value=Count('project_id')).order_by("value")
+        template_list = (
+            tasktmpl.values(AE.project_id, AE.project__name).annotate(value=Count("project_id")).order_by("value")
+        )
         groups = []
         for data in template_list:
-            groups.append({
-                'code': data.get(AE.project_id),
-                'name': data.get(AE.project__name),
-                'value': data.get('value', 0)
-            })
+            groups.append(
+                {"code": data.get(AE.project_id), "name": data.get(AE.project__name), "value": data.get("value", 0)}
+            )
         return total, groups
 
     def group_by_atom_cite(self, tasktmpl, *args):
@@ -154,8 +153,12 @@ class TaskTemplateManager(BaseTemplateManager):
         template_list = tasktmpl.values_list("pipeline_template__template_id")
         component_list = ComponentModel.objects.filter(status=True).values("code")
         # 用 template_id 列表获取所有符合条件的总数
-        other_component_list = ComponentInTemplate.objects.filter(template_id__in=template_list).values(
-            "component_code").annotate(value=Count("component_code")).order_by()
+        other_component_list = (
+            ComponentInTemplate.objects.filter(template_id__in=template_list)
+            .values("component_code")
+            .annotate(value=Count("component_code"))
+            .order_by()
+        )
         components_dict = {}
         total = component_list.count()
         for component in other_component_list:
@@ -173,11 +176,7 @@ class TaskTemplateManager(BaseTemplateManager):
                 continue
             processed_components.add(code)
 
-            groups.append({
-                'code': code,
-                'name': component_dict.get(code, None),
-                'value': components_dict.get(code, 0)
-            })
+            groups.append({"code": code, "name": component_dict.get(code, None), "value": components_dict.get(code, 0)})
         return total, groups
 
     def group_by_atom_template(self, tasktmpl, filters, page, limit):
@@ -187,41 +186,44 @@ class TaskTemplateManager(BaseTemplateManager):
         category_dict = dict(TASK_CATEGORY)
 
         # 获取标准插件code
-        component_code = filters.get('component_code')
+        component_code = filters.get("component_code")
         # 获取到组件code对应的template_id_list
         if component_code:
-            template_id_list = ComponentInTemplate.objects.filter(
-                component_code=component_code).distinct().values_list('template_id')
+            template_id_list = (
+                ComponentInTemplate.objects.filter(component_code=component_code).distinct().values_list("template_id")
+            )
         else:
-            template_id_list = ComponentInTemplate.objects.all().values_list('template_id')
+            template_id_list = ComponentInTemplate.objects.all().values_list("template_id")
         template_list = tasktmpl.filter(pipeline_template__template_id__in=template_id_list)
         total = template_list.count()
-        order_by = filters.get('order_by', '-templateId')
-        if order_by == '-templateId':
-            template_list = template_list.order_by('-id')
-        if order_by == 'templateId':
-            template_list = template_list.order_by('id')
+        order_by = filters.get("order_by", "-templateId")
+        if order_by == "-templateId":
+            template_list = template_list.order_by("-id")
+        if order_by == "templateId":
+            template_list = template_list.order_by("id")
         template_list = template_list.values(
-            'id',
-            'project_id',
-            'project__name',
-            'pipeline_template__name',
-            'category',
-            'pipeline_template__create_time',
-            'pipeline_template__creator'
-        )[(page - 1) * limit:page * limit]
+            "id",
+            "project_id",
+            "project__name",
+            "pipeline_template__name",
+            "category",
+            "pipeline_template__create_time",
+            "pipeline_template__creator",
+        )[(page - 1) * limit : page * limit]
         groups = []
         # 循环聚合信息
         for data in template_list:
-            groups.append({
-                'templateId': data.get('id'),
-                'projectId': data.get('project_id'),
-                'projectName': data.get('project__name'),
-                'templateName': data.get('pipeline_template__name'),
-                'category': category_dict[data.get('category')],  # 需要将code转为名称
-                'createTime': format_datetime(data.get('pipeline_template__create_time')),
-                'creator': data.get('pipeline_template__creator')
-            })
+            groups.append(
+                {
+                    "templateId": data.get("id"),
+                    "projectId": data.get("project_id"),
+                    "projectName": data.get("project__name"),
+                    "templateName": data.get("pipeline_template__name"),
+                    "category": category_dict[data.get("category")],  # 需要将code转为名称
+                    "createTime": format_datetime(data.get("pipeline_template__create_time")),
+                    "creator": data.get("pipeline_template__creator"),
+                }
+            )
         return total, groups
 
     def group_by_atom_execute(self, tasktmpl, filters, page, limit):
@@ -231,31 +233,35 @@ class TaskTemplateManager(BaseTemplateManager):
         category_dict = dict(TASK_CATEGORY)
 
         # 获取标准插件code
-        component_code = filters.get('component_code')
+        component_code = filters.get("component_code")
         # 获取到组件code对应的template_id
-        template_id_list = list(ComponentInTemplate.objects.filter(component_code=component_code).values_list(
-            'template_id', flat=True))
+        template_id_list = list(
+            ComponentInTemplate.objects.filter(component_code=component_code).values_list("template_id", flat=True)
+        )
         total = len(template_id_list)
         template_list = tasktmpl.filter(pipeline_template__template_id__in=template_id_list).values(
-            'id',
-            'project__name',
-            'project_id',
-            'pipeline_template__name',
-            'category',
-            'pipeline_template__edit_time',
-            'pipeline_template__editor')[(page - 1) * limit:page * limit]
+            "id",
+            "project__name",
+            "project_id",
+            "pipeline_template__name",
+            "category",
+            "pipeline_template__edit_time",
+            "pipeline_template__editor",
+        )[(page - 1) * limit : page * limit]
         groups = []
         # 循环聚合信息
         for data in template_list:
-            groups.append({
-                'templateId': data.get('id'),
-                'projectId': data.get('project_id'),
-                'projectName': data.get('project__name'),
-                'templateName': data.get('pipeline_template__name'),
-                'category': category_dict[data.get('category')],
-                'editTime': data.get('pipeline_template__edit_time').strftime('%Y-%m-%d %H:%M:%S'),
-                'editor': data.get('pipeline_template__editor')
-            })
+            groups.append(
+                {
+                    "templateId": data.get("id"),
+                    "projectId": data.get("project_id"),
+                    "projectName": data.get("project__name"),
+                    "templateName": data.get("pipeline_template__name"),
+                    "category": category_dict[data.get("category")],
+                    "editTime": data.get("pipeline_template__edit_time").strftime("%Y-%m-%d %H:%M:%S"),
+                    "editor": data.get("pipeline_template__editor"),
+                }
+            )
         return total, groups
 
     def group_by_template_node(self, tasktmpl, filters, page, limit):
@@ -267,39 +273,52 @@ class TaskTemplateManager(BaseTemplateManager):
         category_dict = dict(TASK_CATEGORY)
 
         # 过滤得到所有符合查询条件的流程
-        template_id_list = list(tasktmpl.values_list('pipeline_template__template_id', flat=True))
-        id_list = tasktmpl.values('pipeline_template__id', 'pipeline_template__template_id')
+        template_id_list = list(tasktmpl.values_list("pipeline_template__template_id", flat=True))
+        id_list = tasktmpl.values("pipeline_template__id", "pipeline_template__template_id")
         template_pipeline_data = TemplateInPipeline.objects.filter(template_id__in=template_id_list)
         # 查询所有的流程引用，并统计引用数量
-        relationship_list = TemplateRelationship.objects.filter(descendant_template_id__in=template_id_list).values(
-            'descendant_template_id').annotate(relationship_total=Count('descendant_template_id'))
+        relationship_list = (
+            TemplateRelationship.objects.filter(descendant_template_id__in=template_id_list)
+            .values("descendant_template_id")
+            .annotate(relationship_total=Count("descendant_template_id"))
+        )
         # 构造id： template_id字典，方便后面对不同model进行查询
-        template_id_map = {template['pipeline_template__id']: template['pipeline_template__template_id']
-                           for template in id_list}
+        template_id_map = {
+            template["pipeline_template__id"]: template["pipeline_template__template_id"] for template in id_list
+        }
         # 查询所有的任务，并统计每个template创建了多少个任务
-        taskflow_list = PipelineInstance.objects.filter(template_id__in=list(template_id_map.keys())).values(
-            'template_id').annotate(instance_total=Count('template_id')).order_by()
+        taskflow_list = (
+            PipelineInstance.objects.filter(template_id__in=list(template_id_map.keys()))
+            .values("template_id")
+            .annotate(instance_total=Count("template_id"))
+            .order_by()
+        )
         # 查询所有归档的周期任务，并统计每个template创建了多少个周期任务
-        periodic_list = PeriodicTask.objects.filter(template__template_id__in=template_id_list).values(
-            'template__template_id').annotate(periodic_total=Count('template__id'))
+        periodic_list = (
+            PeriodicTask.objects.filter(template__template_id__in=template_id_list)
+            .values("template__template_id")
+            .annotate(periodic_total=Count("template__id"))
+        )
 
         pipeline_dict = {}
         pipeline_data = template_pipeline_data.filter(template_id__in=template_id_list)
         for pipeline in pipeline_data:
-            pipeline_dict[pipeline.template_id] = {'atom_total': pipeline.atom_total,
-                                                   'subprocess_total': pipeline.subprocess_total,
-                                                   'gateways_total': pipeline.gateways_total}
+            pipeline_dict[pipeline.template_id] = {
+                "atom_total": pipeline.atom_total,
+                "subprocess_total": pipeline.subprocess_total,
+                "gateways_total": pipeline.gateways_total,
+            }
         relationship_dict = {}
         for relationship in relationship_list:
-            relationship_dict[relationship['descendant_template_id']] = relationship['relationship_total']
+            relationship_dict[relationship["descendant_template_id"]] = relationship["relationship_total"]
 
         taskflow_dict = {}
         for taskflow in taskflow_list:
-            taskflow_dict[template_id_map[taskflow['template_id']]] = taskflow['instance_total']
+            taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
 
         periodic_dict = {}
         for periodic_task in periodic_list:
-            periodic_dict[periodic_task['template__template_id']] = periodic_task['periodic_total']
+            periodic_dict[periodic_task["template__template_id"]] = periodic_task["periodic_total"]
 
         # 需要循环执行计算相关节点
         for template in tasktmpl:
@@ -307,30 +326,32 @@ class TaskTemplateManager(BaseTemplateManager):
             template_id = template.id
             pipeline_template_id = pipeline_template.template_id
             # 插入信息
-            groups.append({
-                'templateId': template_id,
-                'projectId': template.project.id,
-                'projectName': template.project.name,
-                'templateName': pipeline_template.name,
-                'category': category_dict[template.category],
-                'createTime': format_datetime(pipeline_template.create_time),
-                'creator': pipeline_template.creator,
-                'atomTotal': pipeline_dict[pipeline_template_id]['atom_total'],
-                'subprocessTotal': pipeline_dict[pipeline_template_id]['subprocess_total'],
-                'gatewaysTotal': pipeline_dict[pipeline_template_id]['gateways_total'],
-                'relationshipTotal': relationship_dict.get(pipeline_template_id, 0),
-                'instanceTotal': taskflow_dict.get(pipeline_template_id, 0),
-                'periodicTotal': periodic_dict.get(pipeline_template_id, 0)
-            })
+            groups.append(
+                {
+                    "templateId": template_id,
+                    "projectId": template.project.id,
+                    "projectName": template.project.name,
+                    "templateName": pipeline_template.name,
+                    "category": category_dict[template.category],
+                    "createTime": format_datetime(pipeline_template.create_time),
+                    "creator": pipeline_template.creator,
+                    "atomTotal": pipeline_dict[pipeline_template_id]["atom_total"],
+                    "subprocessTotal": pipeline_dict[pipeline_template_id]["subprocess_total"],
+                    "gatewaysTotal": pipeline_dict[pipeline_template_id]["gateways_total"],
+                    "relationshipTotal": relationship_dict.get(pipeline_template_id, 0),
+                    "instanceTotal": taskflow_dict.get(pipeline_template_id, 0),
+                    "periodicTotal": periodic_dict.get(pipeline_template_id, 0),
+                }
+            )
 
-        order_by = filters.get('order_by', '-templateId')
-        if order_by.startswith('-'):
+        order_by = filters.get("order_by", "-templateId")
+        if order_by.startswith("-"):
             # 需要去除负号
             order_by = order_by[1:]
             groups = sorted(groups, key=lambda group: -group.get(order_by))
         else:
             groups = sorted(groups, key=lambda group: group.get(order_by))
-        return total, groups[(page - 1) * limit: page * limit]
+        return total, groups[(page - 1) * limit : page * limit]
 
     def general_group_by(self, prefix_filters, group_by):
         try:
@@ -355,32 +376,25 @@ class TaskTemplateManager(BaseTemplateManager):
 
     def get_collect_template(self, project_id, username):
         user_model = get_user_model()
-        collected_templates = user_model.objects.get(username=username).tasktemplate_set.values_list('id', flat=True)
+        collected_templates = user_model.objects.get(username=username).tasktemplate_set.values_list("id", flat=True)
         collected_templates_list = []
         template_list = self.filter(is_deleted=False, project_id=project_id, id__in=list(collected_templates))
         for template in template_list:
-            collected_templates_list.append({
-                'id': template.id,
-                'name': template.name
-            })
+            collected_templates_list.append({"id": template.id, "name": template.name})
         return True, collected_templates_list
 
     def get_templates_with_expired_subprocess(self, project_id):
-        tmpl_and_pipeline_id = self.filter(project_id=project_id, is_deleted=False).values('id', 'pipeline_template_id')
+        tmpl_and_pipeline_id = self.filter(project_id=project_id, is_deleted=False).values("id", "pipeline_template_id")
         return self.check_templates_subprocess_expired(tmpl_and_pipeline_id)
 
 
 class TaskTemplate(BaseTemplate):
-    project = models.ForeignKey(Project,
-                                verbose_name=_("所属项目"),
-                                null=True,
-                                blank=True,
-                                on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
 
     objects = TaskTemplateManager()
 
     def __unicode__(self):
-        return '%s_%s' % (self.project, self.pipeline_template)
+        return "%s_%s" % (self.project, self.pipeline_template)
 
     class Meta(BaseTemplate.Meta):
         verbose_name = _("流程模板 TaskTemplate")

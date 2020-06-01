@@ -16,13 +16,15 @@ import logging
 import datetime
 
 from gcloud.core.constant import AE
-from gcloud.core.utils.common import timestamp_to_datetime
+from gcloud.utils.dates import timestamp_to_datetime
 from gcloud.contrib.appmaker.models import AppMaker
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
-APPMAKER_REGEX = re.compile(r'^category|create_time|creator_name|editor_name|'
-                            r'template_schema_id|finish_time|task_template_id|task_template_name')
+APPMAKER_REGEX = re.compile(
+    r"^category|create_time|creator_name|editor_name|"
+    r"template_schema_id|finish_time|task_template_id|task_template_name"
+)
 
 
 def produce_filter(filters):
@@ -33,18 +35,18 @@ def produce_filter(filters):
     """
     orm_filters = {}
     for cond, value in list(filters.items()):
-        if value in ['None', ''] or cond == 'type':
+        if value in ["None", ""] or cond == "type":
             continue
-        if cond == 'create_time':
-            filter_cond = '%s__gte' % cond
+        if cond == "create_time":
+            filter_cond = "%s__gte" % cond
             orm_filters.update({filter_cond: timestamp_to_datetime(value)})
             continue
-        elif cond == 'finish_time':
-            filter_cond = 'create_time__lt'
+        elif cond == "finish_time":
+            filter_cond = "create_time__lt"
             orm_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
             continue
         if APPMAKER_REGEX.match(cond):
-            filter_cond = 'task_template__%s' % cond
+            filter_cond = "task_template__%s" % cond
         else:
             filter_cond = cond
         orm_filters.update({filter_cond: value})
@@ -65,8 +67,8 @@ def dispatch(group_by, filters=None):
         appmaker = AppMaker.objects.filter(**orm_filters)
     except Exception as e:
         message = "query appmaker params conditions[{filters}] have invalid key or value: {error}".format(
-            filters=filters,
-            error=e)
+            filters=filters, error=e
+        )
         logger.error(message)
         return False, message
 
@@ -78,5 +80,5 @@ def dispatch(group_by, filters=None):
     # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
     elif group_by == AE.category:
         total, groups = AppMaker.objects.group_by_category(appmaker, group_by)
-    data = {'total': total, 'groups': groups}
+    data = {"total": total, "groups": groups}
     return True, data
