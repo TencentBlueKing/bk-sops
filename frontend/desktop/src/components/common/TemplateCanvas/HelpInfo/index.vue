@@ -33,12 +33,12 @@
                                 <td>{{ $t('还原') }}</td>
                             </tr>
                             <tr>
-                                <td>{{ $t('鼠标滚动') }}:</td>
+                                <td>Ctrl + {{ $t('鼠标滚动') }}:</td>
                                 <td>{{ $t('缩放') }}</td>
                             </tr>
                             <template v-if="editable">
                                 <tr>
-                                    <td>{{ commonCtrl }} {{ $t('鼠标左键单击') }}:</td>
+                                    <td>{{ commonCtrl }} + {{ $t('鼠标左键单击') }}:</td>
                                     <td>{{ $t('连续选中（或取消）节点') }}</td>
                                 </tr>
                                 <tr>
