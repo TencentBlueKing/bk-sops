@@ -49,6 +49,9 @@ class MockClient(object):
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.create_module.legacy.get_client_by_user"
 CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+CC_FORMAT_PROP_DATA = "pipeline_plugins.components.collections.sites.open.cc.create_module.legacy.cc_format_prop_data"
+
+CC_FORMAT_PROP_DATA_RETURN = {"result": True, "data": {"普通": "1", "数据库": "2"}}
 
 COMMON_MAINLINE = {
     "result": True,
@@ -163,7 +166,7 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
     "cc_set_select_method": "text",
     "cc_set_select_topo": [],
     "cc_set_select_text": "    蓝鲸>Tun>set\n\n",
-    "cc_module_infos": [{"cc_module_name": "name"}],
+    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
     "_loop": 1,
 }
 
@@ -176,12 +179,27 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.create_module,
-            calls=[Call({"bk_biz_id": 2, "bk_set_id": 5, "data": {"bk_parent_id": 5, "bk_module_name": "name"}})],
+            calls=[
+                Call(
+                    {
+                        "bk_biz_id": 2,
+                        "bk_set_id": 5,
+                        "data": {
+                            "bk_parent_id": 5,
+                            "bk_module_name": "1",
+                            "bk_module_type": "1",
+                            "operator": "1",
+                            "bk_bak_operator": "1",
+                        },
+                    }
+                )
+            ],
         )
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
     ],
 )
 
@@ -197,7 +215,7 @@ SELECT_BY_TOPO_SUCCESS_INPUTS = {
     "cc_set_select_method": "topo",
     "cc_set_select_topo": ["set_5"],
     "cc_set_select_text": None,
-    "cc_module_infos": [{"cc_module_name": "name"}],
+    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
     "_loop": 1,
 }
 
@@ -210,12 +228,27 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=SELECT_BY_TOPO_SUCCESS_CLIENT.cc.create_module,
-            calls=[Call({"bk_biz_id": 2, "bk_set_id": 5, "data": {"bk_parent_id": 5, "bk_module_name": "name"}})],
+            calls=[
+                Call(
+                    {
+                        "bk_biz_id": 2,
+                        "bk_set_id": 5,
+                        "data": {
+                            "bk_parent_id": 5,
+                            "bk_module_name": "1",
+                            "bk_module_type": "1",
+                            "operator": "1",
+                            "bk_bak_operator": "1",
+                        },
+                    }
+                )
+            ],
         )
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TOPO_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
     ],
 )
 
@@ -230,7 +263,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
     "cc_set_select_method": "text",
     "cc_set_select_topo": [],
     "cc_set_select_text": "    蓝鲸>Yun >set\n\n",
-    "cc_module_infos": [{"cc_module_name": "name"}],
+    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
     "_loop": 1,
 }
 
@@ -244,6 +277,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_PATH_FAIL_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
     ],
 )
 
@@ -258,7 +292,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
     "cc_set_select_method": "text",
     "cc_set_select_topo": [],
     "cc_set_select_text": "    蓝鲸>Yun\n\n",
-    "cc_module_infos": [{"cc_module_name": "name"}],
+    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
     "_loop": 1,
 }
 
@@ -272,5 +306,6 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
     ],
 )
