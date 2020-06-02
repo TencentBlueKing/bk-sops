@@ -207,7 +207,11 @@ class CommonProjectResource(GCloudModelResource):
     def get_default_projects(empty_query, username):
         """初始化并返回用户有权限的项目"""
 
-        project_ids = get_user_projects(username).values_list("id", flat=True)
+        projects = get_user_projects(username)
+        if not projects:
+            return ProjectCounter.objects.none()
+
+        project_ids = projects.values_list("id", flat=True)
 
         # 初始化用户有权限的项目
         ProjectCounter.objects.bulk_create(

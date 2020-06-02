@@ -80,6 +80,8 @@ def get_default_project_for_user(username):
     try:
         project = UserDefaultProject.objects.get(username=username).default_project
     except UserDefaultProject.DoesNotExist:
-        project = get_user_projects().first()
+        projects = get_user_projects(username)
+        if projects:
+            project = projects.first()
 
     return project
