@@ -275,11 +275,11 @@ DEFAULT_BK_API_VER = "v2"
 # IAM权限中心配置
 BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
 BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
-BK_IAM_APP_CODE = os.getenv("BKAPP_BK_IAM_V3_APP_CODE", "bk_iam_app")
+BK_IAM_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam_app")
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
-BK_IAM_INNER_HOST = os.getenv("BKAPP_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
+BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 # 权限中心 SaaS host
-BK_IAM_SAAS_HOST = os.environ.get("BKAPP_IAM_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_APP_CODE))
+BK_IAM_SAAS_HOST = os.environ.get("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_APP_CODE))
 
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
