@@ -42,6 +42,7 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
+from gcloud.iam_auth.shortcuts import filter_flows_can_create_task
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -125,6 +126,17 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 IAMMeta.TASK_CLONE_ACTION,
             ],
         )
+
+    def alter_list_data_to_serialize(self, request, data):
+        data = super().alter_list_data_to_serialize(request, data)
+        templates_id = {bundle.obj.template_id for bundle in data["objects"]}
+
+        allowed_templates_id = filter_flows_can_create_task(request.user.username, templates_id)
+        for bundle in data["objects"]:
+            if bundle.obj.template_id in allowed_templates_id:
+                bundle.data["auth_actions"].append(IAMMeta.FLOW_CREATE_TASK_ACTION)
+
+        return data
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
         if filters is None:

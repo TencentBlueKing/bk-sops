@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.conf import settings
 
-from iam import Request, Subject, Action, IAM
+from iam import Request, MultiActionRequest, Subject, Action, Resource, IAM
 
 from gcloud.core.models import Project
 
@@ -39,3 +39,32 @@ def get_user_projects(username):
         return []
 
     return Project.objects.filter(filters)
+
+
+def filter_flows_can_create_task(username, flows_id):
+    iam_result = get_resources_allowed_actions_for_user(
+        username,
+        IAMMeta.SYSTEM_ID,
+        [IAMMeta.FLOW_CREATE_TASK_ACTION],
+        [[Resource(IAMMeta.SYSTEM_ID, IAMMeta.FLOW_RESOURCE, rid, {}) for rid in flows_id]],
+    )
+
+    allowed_flows_id = set()
+
+    if not iam_result:
+        return allowed_flows_id
+
+    for rid, action_allow in iam_result.items():
+        if action_allow.get(IAMMeta.FLOW_CREATE_TASK_ACTION):
+            allowed_flows_id.add(rid)
+
+    return allowed_flows_id
+
+
+def get_resources_allowed_actions_for_user(username, system_id, actions, resources_list):
+    subject = Subject("user", username)
+    actions = [Action(act) for act in actions]
+    request = MultiActionRequest(system_id, subject, actions, [], {})
+
+    iam = get_iam_client()
+    return iam.batch_resource_multi_actions_allowed(request, resources_list)
