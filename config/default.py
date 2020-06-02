@@ -126,6 +126,8 @@ if os.getenv("BKAPP_CORS_ALLOW", None):
 else:
     CORS_ALLOW_CREDENTIALS = False
 
+if os.getenv("BKAPP_PYINSTRUMENT_ENABLE", None):
+    MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = ("weixin.core.middlewares.WeixinProxyPatchMiddleware",) + MIDDLEWARE
 
@@ -240,7 +242,7 @@ if locals().get("DISABLED_APPS"):
 # python manage.py createcachetable django_cache
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache"},
-    "dbcache": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache"},
+    "locmem": {"BACKEND": "gcloud.utils.cache.LocMemCache", "LOCATION": "django_cache"},
     "dummy": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
 }
 
@@ -300,7 +302,13 @@ PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 COMPONENT_PATH = [
     "components.collections.http",
     "components.collections.sites.%s" % RUN_VER,
-    "components.collections.sites.%s.cc_plugins" % RUN_VER,
+    "components.collections.sites.%s.cc.create_set" % RUN_VER,
+    "components.collections.sites.%s.cc.batch_delete_set" % RUN_VER,
+    "components.collections.sites.%s.cc.empty_set_hosts" % RUN_VER,
+    "components.collections.sites.%s.cc.transfer_host_module" % RUN_VER,
+    "components.collections.sites.%s.cc.update_module" % RUN_VER,
+    "components.collections.sites.%s.cc.update_set" % RUN_VER,
+    "components.collections.sites.%s.cc.update_set_service_status" % RUN_VER,
 ]
 VARIABLE_PATH = ["variables.collections.sites.%s" % RUN_VER]
 

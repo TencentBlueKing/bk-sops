@@ -118,6 +118,10 @@ def get_footer(request):
     @return:
     """
     # 为了国际化需要在返回时调用函数来拼接字符串
+    language = request.COOKIES.get("blueking_language", "zh-cn")
     return JsonResponse(
-        {"result": True, "data": Template(FOOTER() if callable(FOOTER) else FOOTER).render(year=datetime.now().year)}
+        {
+            "result": True,
+            "data": Template(FOOTER(language) if callable(FOOTER) else FOOTER).render(year=datetime.now().year),
+        }
     )

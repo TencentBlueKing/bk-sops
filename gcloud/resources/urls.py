@@ -20,6 +20,8 @@ from gcloud.core.resources import (
     ComponentModelResource,
     VariableModelResource,
     CommonProjectResource,
+    LabelGroupModelResource,
+    LabelModelResource,
 )
 from gcloud.commons.template.resources import CommonTemplateResource, CommonTemplateSchemeResource
 from gcloud.tasktmpl3.resources import (
@@ -50,6 +52,8 @@ v3_api.register(CommonTemplateResource())
 v3_api.register(CommonTemplateSchemeResource())
 v3_api.register(PackageSourceResource())
 v3_api.register(SyncTaskResource())
+v3_api.register(LabelGroupModelResource())
+v3_api.register(LabelModelResource())
 
 # Standard bits...
 urlpatterns = [

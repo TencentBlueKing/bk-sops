@@ -15,16 +15,16 @@
             <div
                 :class="['title', { 'fold': !isSettingPanelShow }]"
                 @click="onTogglePanelShow">
-                {{i18n.sourceName}}: {{ name || i18n.noName }}
+                {{$t('包源名')}}: {{ name || $t('未命名') }}
             </div>
             <bk-button
                 theme="default"
                 size="small"
                 class="delete-btn"
                 @click="onDeleteSource">
-                {{i18n.delete}}
+                {{$t('删除')}}
             </bk-button>
-            <div class="error-msg" v-if="showError">{{i18n.errorMsg}}</div>
+            <div class="error-msg" v-if="showError">{{$t('输入有误，请展开检查')}}</div>
         </div>
         <div class="package-setting" v-show="isSettingPanelShow">
             <table class="form-table">
@@ -32,7 +32,7 @@
                     <tr>
                         <th>
                             <div class="form-label required">
-                                <label>{{i18n.name}}</label>
+                                <label>{{$t('名称')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -53,7 +53,7 @@
                     <tr>
                         <th>
                             <div class="form-label required">
-                                <label>{{i18n.type}}</label>
+                                <label>{{$t('类型')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -78,7 +78,7 @@
                     <tr>
                         <th>
                             <div class="form-label">
-                                <label>{{i18n.desc}}</label>
+                                <label>{{$t('描述')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -95,7 +95,7 @@
                     <tr>
                         <th>
                             <div class="form-label">
-                                <label>{{i18n.detail}}</label>
+                                <label>{{$t('详细信息')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -113,7 +113,7 @@
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
-                                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="$t('必填项')"></i>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -123,7 +123,7 @@
                     <tr>
                         <th>
                             <div class="form-label">
-                                <label>{{i18n.module}}</label>
+                                <label>{{$t('模块配置')}}</label>
                             </div>
                         </th>
                         <td class="value">
@@ -131,10 +131,10 @@
                                 <table class="module-table">
                                     <thead>
                                         <tr>
-                                            <th>{{i18n.subModule}}</th>
-                                            <th>{{i18n.version}}</th>
-                                            <th>{{i18n.importModule}}</th>
-                                            <th>{{i18n.operation}}</th>
+                                            <th>{{$t('子模块名称')}}</th>
+                                            <th>{{$t('版本')}}</th>
+                                            <th>{{$t('导入模块')}}</th>
+                                            <th>{{$t('操作')}}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -146,7 +146,7 @@
                                                     type="text"
                                                     class="table-input"
                                                     :name="'moduleName' + index"
-                                                    :placeholder="i18n.placeholder"
+                                                    :placeholder="$t('请输入')"
                                                     v-model="item.key"
                                                     v-validate="moduleNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
@@ -159,7 +159,7 @@
                                                     type="text"
                                                     class="table-input"
                                                     :name="'moduleVersion' + index"
-                                                    :placeholder="i18n.placeholder"
+                                                    :placeholder="$t('请输入')"
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
@@ -172,7 +172,7 @@
                                                     class="table-textarea"
                                                     row="3"
                                                     :name="'modules' + index"
-                                                    :placeholder="i18n.importPlaceholder"
+                                                    :placeholder="$t('请输入模块绝对路径，如a.b.c，多个用英文逗号 `,` 或换行分隔')"
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
@@ -192,9 +192,9 @@
                                     </tbody>
                                 </table>
                                 <div class="add-module">
-                                    <bk-button theme="default" size="small" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                                    <bk-button theme="default" size="small" class="add-btn" @click="onAddPackage">{{$t('添加')}}</bk-button>
                                 </div>
-                                <div v-if="showModuleError" class="common-error-tip error-msg">{{i18n.required}}</div>
+                                <div v-if="showModuleError" class="common-error-tip error-msg">{{$t('必填项')}}</div>
                             </div>
                         </td>
                     </tr>
@@ -204,7 +204,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { Validator } from 'vee-validate'
     import { SOURCE_TYPE } from '@/constants/manage.js'
     import { PACKAGE_NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -264,25 +264,6 @@
                 },
                 valueRule: {
                     required: true
-                },
-                i18n: {
-                    sourceName: gettext('包源名'),
-                    noName: gettext('未命名'),
-                    delete: gettext('删除'),
-                    name: gettext('名称'),
-                    type: gettext('类型'),
-                    desc: gettext('描述'),
-                    detail: gettext('详细信息'),
-                    module: gettext('模块配置'),
-                    placeholder: gettext('请输入'),
-                    importPlaceholder: gettext('请输入模块绝对路径，如a.b.c，多个用英文逗号 `,` 或换行分隔'),
-                    subModule: gettext('子模块名称'),
-                    version: gettext('版本'),
-                    importModule: gettext('导入模块'),
-                    operation: gettext('操作'),
-                    add: gettext('添加'),
-                    errorMsg: gettext('输入有误，请展开检查'),
-                    required: gettext('必填项')
                 }
             }
         },
@@ -294,7 +275,7 @@
                 return this.packageValues && this.packageValues.length > 1
             },
             modulesOptName () {
-                return this.isShowDelete ? this.i18n.delete : '--'
+                return this.isShowDelete ? i18n.t('删除') : '--'
             }
         },
         created () {
@@ -302,7 +283,7 @@
             // 模块名称长度显示
             this.validator.extend('nameMax', {
                 getMessage: (field) => {
-                    return gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+                    return i18n.t('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + i18n.t('个字符')
                 },
                 validate: (value) => {
                     return value.length <= STRING_LENGTH.SOURCE_NAME_MAX_LENGTH
@@ -311,7 +292,7 @@
             // 模块名称字符规则
             this.validator.extend('nameReg', {
                 getMessage: (field) => {
-                    return gettext('名称由英文字母、数字、下划线组成，且不能以数字开头')
+                    return i18n.t('名称由英文字母、数字、下划线组成，且不能以数字开头')
                 },
                 validate: (value) => {
                     return PACKAGE_NAME_REG.test(value)
@@ -320,7 +301,7 @@
             // 不同模块名称不能重复
             this.validator.extend('nameRepeat', {
                 getMessage: (field) => {
-                    return gettext('子模块名称不能重复')
+                    return i18n.t('子模块名称不能重复')
                 },
                 validate: (value) => {
                     if (this.packageValues.filter(item => item.key === value.trim()).length > 1) {

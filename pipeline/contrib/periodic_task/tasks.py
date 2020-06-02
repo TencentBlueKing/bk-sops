@@ -47,7 +47,7 @@ def periodic_task_start(*args, **kwargs):
     try:
         tz = periodic_task.celery_task.crontab.timezone
         now = datetime.datetime.now(tz=pytz.utc).astimezone(tz)
-        instance = PipelineInstance.objects.create_instance(
+        instance, _ = PipelineInstance.objects.create_instance(
             template=periodic_task.template,
             exec_data=periodic_task.execution_data,
             spread=kwargs.get('spread', True),

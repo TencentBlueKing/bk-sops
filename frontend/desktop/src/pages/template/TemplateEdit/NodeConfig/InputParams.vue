@@ -29,7 +29,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'

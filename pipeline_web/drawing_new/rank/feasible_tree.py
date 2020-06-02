@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.core.constants import PE
 from pipeline.validators.utils import format_to_list
 
+from pipeline_web.constants import PWE
 from pipeline_web.drawing_new.rank.utils import slack
 
 
@@ -39,16 +39,16 @@ def feasible_tree_ranker(pipeline, ranks):
     """  # noqa
     part_tree = {
         'all_nodes': {
-            pipeline[PE.start_event][PE.id]: pipeline[PE.start_event]
+            pipeline[PWE.start_event][PWE.id]: pipeline[PWE.start_event]
         },
-        PE.flows: {}
+        PWE.flows: {}
     }
 
     node_count = len(list(pipeline['all_nodes'].keys()))
     while tight_tree(part_tree, pipeline, ranks) < node_count:
         flow = find_min_slack_flow(part_tree, pipeline, ranks)
         delta = slack(ranks, flow)
-        if flow[PE.target] in part_tree['all_nodes']:
+        if flow[PWE.target] in part_tree['all_nodes']:
             delta = -delta
         shift_ranks(ranks, list(part_tree['all_nodes'].keys()), delta)
 
@@ -58,15 +58,15 @@ def feasible_tree_ranker(pipeline, ranks):
 def tight_tree(part_tree, pipeline, ranks):
 
     def dfs(node):
-        for direction in [PE.outgoing, PE.incoming]:
+        for direction in [PWE.outgoing, PWE.incoming]:
             for flow_id in format_to_list(node[direction]):
-                flow = pipeline[PE.flows][flow_id]
-                direct_key = PE.target if direction == PE.outgoing else PE.source
+                flow = pipeline[PWE.flows][flow_id]
+                direct_key = PWE.target if direction == PWE.outgoing else PWE.source
                 direct_node_id = flow[direct_key]
                 direct_node = pipeline['all_nodes'][direct_node_id]
                 if direct_node_id not in part_tree['all_nodes'] and slack(ranks, flow) == 0:
                     part_tree['all_nodes'][direct_node_id] = direct_node
-                    part_tree[PE.flows][flow_id] = flow
+                    part_tree[PWE.flows][flow_id] = flow
                     dfs(direct_node)
 
     for node in list(part_tree['all_nodes'].values()):
@@ -78,8 +78,8 @@ def tight_tree(part_tree, pipeline, ranks):
 def find_min_slack_flow(part_tree, pipeline, ranks):
     min_slack = max(list(ranks.values())) - min(list(ranks.values()))
     min_slack_flow = None
-    for flow_id, flow in pipeline[PE.flows].items():
-        if (flow[PE.source] in part_tree['all_nodes']) is not (flow[PE.target] in part_tree['all_nodes']):
+    for flow_id, flow in pipeline[PWE.flows].items():
+        if (flow[PWE.source] in part_tree['all_nodes']) is not (flow[PWE.target] in part_tree['all_nodes']):
             if slack(ranks, flow) < min_slack:
                 min_slack = slack(ranks, flow)
                 min_slack_flow = flow

@@ -28,7 +28,6 @@ from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthor
 from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
-from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.utils.strings import name_handler, pipeline_node_name_handle
@@ -253,7 +252,6 @@ class TaskFlowInstanceResource(GCloudModelResource):
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_instance_kwargs["pipeline_tree"])
-            validate_pipeline_tree(pipeline_instance_kwargs["pipeline_tree"], cycle_tolerate=True)
         except PipelineException as e:
             raise BadRequest(str(e))
 

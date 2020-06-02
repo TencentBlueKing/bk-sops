@@ -6,7 +6,7 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.title"
+        :title="$t('新建任务')"
         :value="isNewTaskDialogShow"
         :auto-close="false"
         @value-change="toggleShow"
@@ -50,10 +50,10 @@
                     <div class="task-search">
                         <bk-input
                             class="search-input"
-                            :placeholder="i18n.placeholder"
+                            :placeholder="$t('请输入关键字')"
                             :right-icon="'bk-icon icon-search'"
                             :clearable="true"
-                            v-model="searchWord"
+                            v-model.trim="searchWord"
                             @input="onSearchInput">
                         </bk-input>
                     </div>
@@ -87,25 +87,25 @@
                                             <div class="task-item-name">{{template.name}}</div>
                                         </div>
                                         <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
+                                            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>
                             </li>
                         </template>
                     </ul>
-                    <NoData v-else class="empty-task">{{i18n.noSearchResult}}</NoData>
+                    <NoData v-else class="empty-task">{{$t('搜索结果为空')}}</NoData>
                 </div>
             </div>
             <div class="task-footer" v-if="selectError">
-                <span class="error-info">{{i18n.errorInfo}}</span>
+                <span class="error-info">{{$t('请选择流程模版')}}</span>
             </div>
         </div>
     </bk-dialog>
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -121,16 +121,6 @@
         props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'dialogTitle', 'entrance'],
         data () {
             return {
-                i18n: {
-                    title: gettext('新建任务'),
-                    placeholder: gettext('请输入关键字'),
-                    noSearchResult: gettext('搜索结果为空'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消'),
-                    errorInfo: gettext('请选择流程模版'),
-                    allType: gettext('全部分类'),
-                    applyPermission: gettext('申请权限')
-                },
                 selectedId: '',
                 taskListPending: true,
                 searchMode: false,
@@ -141,11 +131,11 @@
                 templateType: [
                     {
                         id: 'businessProcess',
-                        name: gettext('项目流程')
+                        name: i18n.t('项目流程')
                     },
                     {
                         id: 'publicProcess',
-                        name: gettext('公共流程')
+                        name: i18n.t('公共流程')
                     }
                 ],
                 selectedTplType: 'businessProcess',
@@ -161,7 +151,7 @@
         computed: {
             templateCategories () {
                 const list = toolsUtils.deepClone(this.taskCategory)
-                list.unshift({ value: 'all', name: gettext('全部分类') })
+                list.unshift({ value: 'all', name: i18n.t('全部分类') })
                 return list.map(m => ({ value: m.value, name: m.name }))
             },
             categoryListPending () {
@@ -171,7 +161,7 @@
                 return this.templateList.length === 0
             },
             title () {
-                return this.dialogTitle || this.i18n.title
+                return this.dialogTitle || i18n.t('新建任务')
             },
             operations () {
                 return this.selectedTplType === 'businessProcess' ? this.tplOperations : this.commonTplOperations
@@ -189,9 +179,6 @@
         methods: {
             ...mapActions('templateList/', [
                 'loadTemplateList'
-            ]),
-            ...mapActions([
-                'getCategorys'
             ]),
             async getBusinessData () {
                 this.taskListPending = true

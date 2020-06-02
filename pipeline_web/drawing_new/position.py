@@ -13,11 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import copy
 
-from pipeline.core.constants import PE
+from pipeline_web.constants import PWE
 
 from pipeline_web.drawing_new.constants import (
     MIN_LEN,
-    FLOW_ARROW,
     PIPELINE_ELEMENT_TO_WEB,
     PIPELINE_WEB_TO_ELEMENT,
     DUMMY_NODE_TYPE
@@ -45,7 +44,8 @@ def position(pipeline,
     @return:
     """
     # 节点之间的平均距离
-    shift_x = int(max(activity_size[0], event_size[0], gateway_size[0]) * 1.2)
+    size_x = max(activity_size[0], event_size[0], gateway_size[0])
+    shift_x = int(size_x * 1.2)
     shift_y = int(max(activity_size[1], event_size[1], gateway_size[1]) * 2)
     # 开始/结束节点纵坐标偏差
     event_shift_y = int((activity_size[1] - event_size[1]) * 0.5)
@@ -53,13 +53,13 @@ def position(pipeline,
     gateway_shift_y = int((activity_size[1] - gateway_size[1]) * 0.5)
     pipeline_element_shift_y = {
         DUMMY_NODE_TYPE: 0,
-        PE.ServiceActivity: 0,
-        PE.SubProcess: 0,
-        PE.EmptyStartEvent: event_shift_y,
-        PE.EmptyEndEvent: event_shift_y,
-        PE.ExclusiveGateway: gateway_shift_y,
-        PE.ParallelGateway: gateway_shift_y,
-        PE.ConvergeGateway: gateway_shift_y
+        PWE.ServiceActivity: 0,
+        PWE.SubProcess: 0,
+        PWE.EmptyStartEvent: event_shift_y,
+        PWE.EmptyEndEvent: event_shift_y,
+        PWE.ExclusiveGateway: gateway_shift_y,
+        PWE.ParallelGateway: gateway_shift_y,
+        PWE.ConvergeGateway: gateway_shift_y
     }
 
     min_rk = min(list(orders.keys()))
@@ -69,16 +69,16 @@ def position(pipeline,
     # 先分配节点位置
     locations = {}
     rank_x, rank_y = start
-    new_line_y = rank_y
-    # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
     for rk in range(min_rk, max_rk + MIN_LEN, MIN_LEN):
         layer_nodes = orders[rk]
         # 当前 rank 首个节点位置
         order_x, order_y = rank_x, rank_y
+        # 记录当前行的最大纵坐标，当需要换行时赋值给下一行起始点
+        new_line_y = rank_y + shift_y
         for node_id in layer_nodes:
             if node_id in pipeline['all_nodes']:
                 node = pipeline['all_nodes'][node_id]
-                node_y = int(order_y + pipeline_element_shift_y[node[PE.type]])
+                node_y = int(order_y + pipeline_element_shift_y[node[PWE.type]])
                 if node_id in old_locations:
                     locations[node_id] = copy.deepcopy(old_locations[node_id])
                     locations[node_id].update({
@@ -88,23 +88,23 @@ def position(pipeline,
                 else:
                     locations[node_id] = {
                         'id': node_id,
-                        'type': PIPELINE_ELEMENT_TO_WEB.get(node[PE.type], node[PE.type]),
-                        'name': node.get(PE.name, ''),
+                        'type': PIPELINE_ELEMENT_TO_WEB.get(node[PWE.type], node[PWE.type]),
+                        'name': node.get(PWE.name, ''),
                         'status': '',
                         'x': int(order_x),
                         'y': node_y
                     }
-                if node_y > new_line_y:
+                if node_y >= new_line_y:
                     new_line_y = node_y + shift_y
             order_y += shift_y
         rank_x += shift_x
-        # 1)宽度超出画布宽度 canvas_width 2)无分支 3)下一个节点非结束节点 ——> 换行
-        if rank_x > canvas_width and len(layer_nodes) == 1 and rk < max_rk - MIN_LEN:
+        # 1)下一个节点最右端 x 坐标超出画布宽度 canvas_width 2)无分支 3)下一个节点非结束节点 ——> 换行
+        if rank_x + size_x > canvas_width and len(layer_nodes) == 1 and rk < max_rk - MIN_LEN:
             rank_x = start[0]
             rank_y = new_line_y
 
     flows = {}
-    flows.update(pipeline[PE.flows])
+    flows.update(pipeline[PWE.flows])
     if isinstance(more_flows, dict):
         flows.update(more_flows)
     lines = position_flows(flows, locations, pipeline_element_shift_y, start[0], shift_y)
@@ -128,15 +128,15 @@ def position_flows(flows, locations, pipeline_element_shift_y, start_x, shift_y)
             'id': flow_id,
             'source': {
                 'arrow': source_arrow,
-                'id': flow[PE.source]
+                'id': flow[PWE.source]
             },
             'target': {
                 'arrow': target_arrow,
-                'id': flow[PE.target]
+                'id': flow[PWE.target]
             }
         }
-        source_location = locations[flow[PE.source]]
-        target_location = locations[flow[PE.target]]
+        source_location = locations[flow[PWE.source]]
+        target_location = locations[flow[PWE.target]]
         # 终点是每行起始位置，说明有换行，每次换行线段需要设置线段比例保证下折线与下一行距离为单行间距
         if target_location['x'] == start_x:
             lines[flow_id]['midpoint'] = 1 - shift_y * 0.5 / (target_location['y'] - source_location['y'])
@@ -151,8 +151,8 @@ def arrow_flow(flow, locations, pipeline_element_shift_y):
     @param pipeline_element_shift_y:
     @return:
     """
-    source_location = locations[flow[PE.source]]
-    target_location = locations[flow[PE.target]]
+    source_location = locations[flow[PWE.source]]
+    target_location = locations[flow[PWE.target]]
 
     source_location_x = source_location['x']
     source_shift_y = pipeline_element_shift_y[PIPELINE_WEB_TO_ELEMENT[source_location['type']]]
@@ -166,36 +166,36 @@ def arrow_flow(flow, locations, pipeline_element_shift_y):
     if source_location_x < target_location_x:
         # 并且起点在终点上侧，一般是发起分支
         if source_location_y < target_location_y:
-            source_arrow = FLOW_ARROW['bottom']
-            target_arrow = FLOW_ARROW['left']
+            source_arrow = PWE.bottom
+            target_arrow = PWE.left
         # 并且起点在终点下侧，一般是汇聚分支
         elif source_location_y > target_location_y:
-            source_arrow = FLOW_ARROW['right']
-            target_arrow = FLOW_ARROW['bottom']
+            source_arrow = PWE.right
+            target_arrow = PWE.bottom
         # 正常顺序流
         else:
-            source_arrow = FLOW_ARROW['right']
-            target_arrow = FLOW_ARROW['left']
+            source_arrow = PWE.right
+            target_arrow = PWE.left
     # 起点在终点右侧
     elif source_location_x > target_location_x:
         # 并且起点在终点上侧，一般是换行
         if source_location_y < target_location_y:
-            source_arrow = FLOW_ARROW['right']
-            target_arrow = FLOW_ARROW['left']
+            source_arrow = PWE.right
+            target_arrow = PWE.left
         # 并且起点在终点左侧或下侧，一般是打回流程
         else:
-            source_arrow = FLOW_ARROW['bottom']
-            target_arrow = FLOW_ARROW['bottom']
+            source_arrow = PWE.bottom
+            target_arrow = PWE.bottom
     # 起点和终点在同一横坐标上
     else:
         if source_location_y < target_location_y:
-            source_arrow = FLOW_ARROW['bottom']
-            target_arrow = FLOW_ARROW['top']
+            source_arrow = PWE.bottom
+            target_arrow = PWE.top
         elif source_location_y > target_location_y:
-            source_arrow = FLOW_ARROW['top']
-            target_arrow = FLOW_ARROW['bottom']
+            source_arrow = PWE.top
+            target_arrow = PWE.bottom
         # 自环边，目前还不会出现这种流程
         else:
-            source_arrow = FLOW_ARROW['right']
-            target_arrow = FLOW_ARROW['bottom']
+            source_arrow = PWE.right
+            target_arrow = PWE.bottom
     return source_arrow, target_arrow

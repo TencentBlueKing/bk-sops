@@ -9,19 +9,16 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
+import axios from 'axios'
 
 const auditTask = {
     namespaced: true,
-    state: {
-    },
-    mutations: {
-    },
     actions: {
         loadAuditTaskList ({ commit }, data) {
-            return api.loadAuditTaskList(data).then(
-                response => response.data
-            )
+            const querystring = Object.assign({}, data)
+            return axios.get('api/v3/taskflow/', {
+                params: querystring
+            }).then(response => response.data)
         }
     }
 }

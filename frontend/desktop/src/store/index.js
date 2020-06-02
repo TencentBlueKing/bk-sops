@@ -12,12 +12,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import modules from './modules/index.js'
-import api from '@/api'
+import qs from 'qs'
+import axios from 'axios'
 
 Vue.use(Vuex)
 
 function getAppLang () {
-    return getCookie('blueking_language')
+    return getCookie('blueking_language') === 'en' ? 'en' : 'zh-cn'
 }
 
 const store = new Vuex.Store({
@@ -70,61 +71,122 @@ const store = new Vuex.Store({
         }
     },
     actions: {
+        // 获取页面动态 footer 内容
         getFooterContent () {
-            return api.getFooterContent().then(response => response.data)
+            return axios.get('core/footer/').then(response => response.data)
         },
+        // 获取项目版本更新日志列表
         getVersionList () {
-            return api.getVersionList().then(response => response.data)
+            return axios.get('version_log/version_logs_list/').then(response => response.data)
         },
+        // 版本日志详情
         getVersionDetail ({ commit }, data) {
-            return api.getVersionDetail(data).then(response => response.data)
+            return axios.get('version_log/version_log_detail/', {
+                params: {
+                    log_version: data.version
+                }
+            }).then(response => response.data)
         },
         getCategorys ({ commit }) {
-            api.getCategorys().then(response => {
+            axios.get('analysis/get_task_category/').then(response => {
                 commit('setCategorys', response.data.data)
             })
         },
-        getSingleAtomList ({ commit }) {
-            api.getSingleAtomList().then(response => {
-                commit('setSingleAtomList', response.data.objects)
-            })
+        // 获取收藏列表
+        loadCollectList ({ commit }, data) {
+            return axios.get('api/v3/collection/', {
+                params: {
+                    limit: 0
+                }
+            }).then(response => response.data)
+        },
+        // 收藏模板，批量操作
+        addToCollectList ({ commit }, list) {
+            return axios.put('api/v3/collection/', {
+                objects: list
+            }).then(response => response.data)
+        },
+        // 删除收藏模板，单个删除
+        deleteCollect ({ commit }, id) {
+            return axios.delete(`api/v3/collection/${id}/`, {
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
+            }).then(response => response.data)
         },
         // ip 选择器接口 start --->
+        // 查询业务在 CMDB 的主机
         getHostInCC ({ commmit }, data) {
-            return api.loadHostInCC(data).then(response => response.data)
+            const { url, fields, topo } = data
+            return axios.get(url, {
+                params: {
+                    fields: JSON.stringify(fields),
+                    topo: JSON.stringify(topo)
+                },
+                baseURL: '/'
+            }).then(response => response.data)
         },
+        // 查询业务在 CMDB 的拓扑树
         getTopoTreeInCC ({ commmit }, data) {
-            return api.loadTopoTreeInCC(data).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
+        // 查询业务在 CMDB 的拓扑模型
         getTopoModelInCC ({ commit }, data) {
-            return api.loadTopoModelInCC(data).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         // <--- ip 选择器接口 end
         // 开区资源选择器接口 start --->
         getCCSearchTopoSet ({ commit }, data) {
-            return api.getCCSearchTopoSet(data).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCSearchTopoResource ({ commit }, data) {
-            return api.getCCSearchTopoResource(data).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCSearchModule ({ commit }, data) {
-            return api.getCCSearchModule(data).then(response => response.data)
+            return axios.get(data.url, {
+                params: {
+                    bk_set_id: data.bk_set_id
+                },
+                baseURL: '/'
+            }).then(response => response.data)
         },
         getCCSearchObjAttrHost ({ commit }, data) {
-            return api.getCCSearchObjAttrHost(data).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         getCCSearchColAttrSet ({ commit }, data) {
-            return api.getCCSearchColAttrSet(data).then(response => response.data)
+            return axios.get(data.url, { baseURL: '/' }).then(response => response.data)
         },
         // <--- 开区资源选择器接口 end
+        /**
+         * 获取申请权限 url
+         * @param {String} data 权限数据
+         */
         getPermissionUrl ({ commit }, data) {
-            return api.getPermissionUrl(data).then(response => response.data)
+            const dataBody = qs.stringify({ permission: data })
+            return axios.post('core/api/query_apply_permission_url/', dataBody, {
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
+            }).then(response => response.data)
         },
+        /**
+         * 查询用户是否具有某权限
+         * @param {Object} data 查询参数 {resource_type: 'xxx', instance_id: 0, action_ids: "['aaa', 'bbb']"}
+         */
         queryUserPermission ({ commit }, data) {
-            return api.queryUserPermission(data).then(response => response.data)
+            const { resource_type, instance_id, action_ids } = data
+            const dataBody = qs.stringify({
+                resource_type,
+                instance_id,
+                action_ids
+            })
+            return axios.post('core/api/query_resource_verify_perms/', dataBody, {
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
+            }).then(response => response.data)
         }
     },
-    getters: {},
     modules
 })
 

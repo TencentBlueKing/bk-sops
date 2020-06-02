@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.core.constants import PE
 from pipeline.validators.utils import format_to_list
 
+from pipeline_web.constants import PWE
 from pipeline_web.drawing_new.constants import MIN_LEN
 
 
@@ -39,13 +39,13 @@ def longest_path_ranker(pipeline):
     ranks = {}
 
     def dfs(node):
-        if node[PE.id] in ranks:
-            return ranks[node[PE.id]]
+        if node[PWE.id] in ranks:
+            return ranks[node[PWE.id]]
 
         incoming_node_ranks = []
-        for flow_id in format_to_list(node[PE.incoming]):
-            flow = pipeline[PE.flows][flow_id]
-            incoming_node = pipeline['all_nodes'][flow[PE.source]]
+        for flow_id in format_to_list(node[PWE.incoming]):
+            flow = pipeline[PWE.flows][flow_id]
+            incoming_node = pipeline['all_nodes'][flow[PWE.source]]
             incoming_node_ranks.append(dfs(incoming_node) - MIN_LEN)
 
         if not incoming_node_ranks:

@@ -32,7 +32,7 @@
                 <div v-show="!isSelectorPanelShow" class="node-config-content">
                     <!-- 基础信息 -->
                     <section class="config-section">
-                        <h3>{{i18n.basicInfo}}</h3>
+                        <h3>{{$t('基础信息')}}</h3>
                         <basic-info
                             ref="basicInfo"
                             :basic-info="basicInfo"
@@ -48,7 +48,7 @@
                     </section>
                     <!-- 输入参数 -->
                     <section class="config-section">
-                        <h3>{{i18n.inputParams}}</h3>
+                        <h3>{{$t('输入参数')}}</h3>
                         <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
                             <template v-if="!inputLoading">
                                 <input-params
@@ -70,7 +70,7 @@
                     </section>
                     <!-- 输出参数 -->
                     <section class="config-section">
-                        <h3>{{i18n.outputParams}}</h3>
+                        <h3>{{$t('输出参数')}}</h3>
                         <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
                             <template v-if="!outputLoading">
                                 <output-params
@@ -98,7 +98,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import atomFilter from '@/utils/atomFilter.js'
@@ -144,14 +144,7 @@
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
-                i18n: {
-                    basicInfo: gettext('基础信息'),
-                    inputParams: gettext('输入参数'),
-                    outputParams: gettext('输出参数'),
-                    choosePlugin: gettext('请选择插件'),
-                    chooseSubflow: gettext('请选择子流程')
-                }
+                isSelectorPanelShow // 是否显示选择插件(子流程)面板
             }
         },
         computed: {
@@ -389,7 +382,7 @@
                         formItemConfig.attrs.validation.push({
                             type: 'regex',
                             args: variable.validation,
-                            error_message: gettext('默认值不符合正则规则：') + variable.validation
+                            error_message: i18n.t('默认值不符合正则规则：') + variable.validation
                         })
                     }
                     inputs.push(formItemConfig)
@@ -403,10 +396,10 @@
             getNodeBasic (config) {
                 if (config.type === 'ServiceActivity') {
                     const {
-                        component, name, error_ignorable, can_retry,
+                        component, name, labels, error_ignorable, can_retry,
                         retryable, isSkipped, skippable, optional
                     } = config
-                    let basicInfoName = gettext('请选择插件')
+                    let basicInfoName = i18n.t('请选择插件')
                     let desc = ''
                     let version = ''
                     // 节点已选择标准插件
@@ -421,6 +414,7 @@
                         plugin: component.code || '',
                         name: basicInfoName,
                         nodeName: name,
+                        nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         version, // 标准插件版本
                         desc, // 空节点不存在插件描述信息
                         ignorable: error_ignorable,
@@ -431,8 +425,8 @@
                         selectable: optional
                     }
                 } else {
-                    const { template_id, name, optional } = config
-                    let templateName = gettext('请选择子流程')
+                    const { template_id, name, labels, optional } = config
+                    let templateName = i18n.t('请选择子流程')
 
                     if (config.template_id || config.template_id === 0) {
                         this.atomTypeList.subflow.groups.some(group => {
@@ -448,6 +442,7 @@
                         tpl: template_id || '',
                         name: templateName,
                         nodeName: name,
+                        nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         selectable: optional,
                         version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
                     }
@@ -471,16 +466,18 @@
              * 获取子流程任务节点输入参数值，有三种情况：
              * 1.节点点开编辑时取 activitity 里的 constants 数据
              * 2.切换子流程时，取接口返回的 form 数据
-             * 3.子流程更新时，先判断数据 custom_type(自定义全局变量)或者 source_tag(标准插件表单项)是否相同，
+             * 3.子流程更新时，先判断表单项是否为勾选状态，勾选取旧表单项数据，
+             * 未勾选则判断新旧表单项数据 custom_type(自定义全局变量)或者 source_tag(标准插件表单项)是否相同，
              * 相同取旧数据里的表单值，否则取新数据
              */
             getSubflowInputsValue (forms, oldForms = {}) {
-                return Object.keys(forms).reduce((acc, cur) => {
+                return Object.keys(forms).reduce((acc, cur) => { // 遍历新表单项
                     const variable = forms[cur]
                     if (variable.show_type === 'show') {
-                        const oldVariable = oldForms[cur]
                         let canReuse = false
-                        if (oldVariable) { // 旧版本中存在相同key的表单项
+                        const oldVariable = oldForms[cur]
+                        const isHooked = this.isParamsInConstants(variable)
+                        if (oldVariable && !isHooked) { // 旧版本中存在相同key的表单项，且不是勾选状态
                             if (variable.custom_type || oldVariable.custom_type) {
                                 canReuse = variable.custom_type === oldVariable.custom_type
                             } else {
@@ -493,6 +490,14 @@
 
                     return acc
                 }, {})
+            },
+            // 输入参数是否勾选
+            isParamsInConstants (form) {
+                return Object.keys(this.constants).some(key => {
+                    const varItem = this.constants[key]
+                    const sourceInfo = varItem.source_info[this.nodeId]
+                    return sourceInfo && sourceInfo.includes(form.tag_code)
+                })
             },
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
@@ -519,6 +524,7 @@
                     version: list[list.length - 1].version,
                     name: `${group_name}-${name}`,
                     nodeName: name,
+                    nodeLabel: [],
                     desc: desc,
                     ignorable: false,
                     skippable: true,
@@ -535,6 +541,7 @@
              */
             async versionChange (val) {
                 this.updateBasicInfo({ version: val })
+                this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
             },
@@ -552,6 +559,7 @@
                     version,
                     tpl: id,
                     nodeName: name,
+                    nodeLabel: [],
                     selectable: false
                 }
                 this.updateBasicInfo(config)
@@ -576,17 +584,56 @@
             },
             /**
              * 子流程版本更新
-             *
              */
             async updateSubflowVersion () {
                 const oldForms = Object.assign({}, this.subflowForms)
-                this.clearParamsSourceInfo()
                 await this.getSubflowDetail(this.basicInfo.tpl)
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
+                this.subflowUpdateParamsChange()
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
                 })
+            },
+            /**
+             * 子流程版本更新后，输入、输出参数如果有变更，需要处理全局变量的 source_info 更新
+             * 分为两种情况：
+             * 1.输入、输出参数被勾选，并且在新流程模板中被删除，需要在更新后修改全局变量 source_info 信息
+             * 2.新增和修改输入、输出参数，不做处理
+             */
+            subflowUpdateParamsChange () {
+                const nodeId = this.nodeConfig.id
+                for (const key in this.constants) {
+                    const varItem = this.constants[key]
+                    const { source_type, source_info } = varItem
+                    const sourceInfo = source_info[this.nodeId]
+                    if (sourceInfo) {
+                        if (source_type === 'component_inputs') {
+                            sourceInfo.forEach(nodeFormItem => {
+                                if (!this.inputs.find(item => item.tag_code === nodeFormItem)) {
+                                    this.setVariableSourceInfo({
+                                        key,
+                                        id: nodeId,
+                                        type: 'delete',
+                                        tagCode: nodeFormItem
+                                    })
+                                }
+                            })
+                        }
+                        if (source_type === 'component_outputs') {
+                            sourceInfo.forEach(nodeFormItem => {
+                                if (!this.outputs.find(item => item.key === nodeFormItem)) {
+                                    this.setVariableSourceInfo({
+                                        key,
+                                        id: nodeId,
+                                        type: 'delete',
+                                        tagCode: nodeFormItem
+                                    })
+                                }
+                            })
+                        }
+                    }
+                }
             },
             // 取消已勾选为全局变量的输入、输出参数勾选状态
             clearParamsSourceInfo () {
@@ -639,7 +686,7 @@
             syncActivity () {
                 let config
                 if (this.isSubflow) {
-                    const { nodeName, selectable, version, tpl } = this.basicInfo
+                    const { nodeName, nodeLabel, selectable, version, tpl } = this.basicInfo
                     const constants = {}
                     Object.keys(this.subflowForms).forEach(key => {
                         const constant = this.subflowForms[key]
@@ -652,11 +699,12 @@
                         constants,
                         version,
                         name: nodeName,
+                        labels: nodeLabel,
                         template_id: tpl,
                         optional: selectable
                     })
                 } else {
-                    const { ignorable, nodeName, plugin, retryable, skippable, selectable, version } = this.basicInfo
+                    const { ignorable, nodeName, nodeLabel, plugin, retryable, skippable, selectable, version } = this.basicInfo
                     const data = {} // 标准插件节点在 activity 的 component.data 值
                     Object.keys(this.inputsParamValue).forEach(key => {
                         const formVal = this.inputsParamValue[key]
@@ -680,6 +728,7 @@
                         retryable,
                         skippable,
                         name: nodeName,
+                        labels: nodeLabel,
                         error_ignorable: ignorable,
                         optional: selectable
                     })

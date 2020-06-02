@@ -12,7 +12,7 @@
 <template>
     <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="panel-title">
-            <h3>{{ i18n.reset_timer }}</h3>
+            <h3>{{ $t('修改定时时间') }}</h3>
         </div>
         <div class="edit-wrapper">
             <RenderForm
@@ -25,13 +25,13 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="primary" @click="onModifyTime">{{ i18n.confirm }}</bk-button>
-            <bk-button theme="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
+            <bk-button theme="primary" @click="onModifyTime">{{ $t('确定') }}</bk-button>
+            <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -46,11 +46,6 @@
         props: ['nodeDetailConfig'],
         data () {
             return {
-                i18n: {
-                    reset_timer: gettext('修改定时时间'),
-                    confirm: gettext('确定'),
-                    cancel: gettext('取消')
-                },
                 loading: true,
                 bkMessageInstance: null,
                 nodeInfo: {},
@@ -134,7 +129,7 @@
                     if (res.result) {
                         this.$emit('modifyTimeSuccess', node_id)
                         this.$bkMessage({
-                            message: gettext('修改成功'),
+                            message: i18n.t('修改成功'),
                             theme: 'success'
                         })
                     } else {

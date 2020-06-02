@@ -99,7 +99,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
@@ -604,7 +603,7 @@
                         const labelData = {
                             type: 'Label',
                             name: `<div class="branch-condition"
-                                    title="${labelName}(${labelValue})"
+                                    title="${tools.escapeStr(labelName)}(${tools.escapeStr(labelValue)})"
                                     data-lineid="${lineId}"
                                     data-nodeid="${line.sourceId}">${labelName}</div>`,
                             location: -70,
@@ -891,7 +890,7 @@
                     const labelData = {
                         type: 'Label',
                         name: `<div class="branch-condition"
-                                title="${name}(${value})"
+                                title="${tools.escapeStr(name)}(${tools.escapeStr(value)})"
                                 data-lineid="${lineId}"
                                 data-nodeid="${line.source.id}">${name}</div>`,
                         location: -70,
