@@ -20,12 +20,17 @@
             @end="onSortHandler">
             <div class="form-item" v-for="(form, index) in formList" :key="index">
                 <div :class="['content-wrapper', { active: tagInfo && tagInfo.tagCode === form.config.tag_code }]">
-                    <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label>
-                    <div class="form-item-content">
-                        <template v-if="form.tag">
-                            <component :is="form.tag" v-bind="getFormProps(form.config)"></component>
-                        </template>
+                    <div v-if="form.config.type === 'section'" class="form-item-section">
+                        <tag-section v-bind="getFormProps(form.config)"></tag-section>
                     </div>
+                    <template v-else>
+                        <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label>
+                        <div class="form-item-content">
+                            <template v-if="form.tag">
+                                <component :is="form.tag" v-bind="getFormProps(form.config)"></component>
+                            </template>
+                        </div>
+                    </template>
                     <div class="content-mask">
                         <i class="operation-btn common-icon-horizon-line-group"></i>
                         <i
@@ -44,7 +49,7 @@
                     <h3>{{tagInfo.title}}</h3>
                     <h3 v-if="tagInfo.desc">{{tagInfo.desc}}</h3>
                     <section v-if="tagInfo.attrs">
-                        <p>{{ i18n.attr }}</p>
+                        <p>{{ $t('属性') }}</p>
                         <template v-for="(attr, name) in tagInfo.attrs">
                             <p class="attr-item" :key="name">
                                 {{name}}
@@ -58,7 +63,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
     import FormNotFound from './FormNotFound.vue'
@@ -84,10 +88,7 @@
         data () {
             return {
                 formList: tools.deepClone(this.forms),
-                tagInfo: null,
-                i18n: {
-                    attr: gettext('属性')
-                }
+                tagInfo: null
             }
         },
         watch: {

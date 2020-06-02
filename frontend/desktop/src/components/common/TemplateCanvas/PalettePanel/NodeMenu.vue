@@ -20,6 +20,7 @@
                     class="select-group"
                     v-model="selectedGroup"
                     :clearable="false"
+                    searchable
                     @selected="onSelectGroup">
                     <bk-option
                         v-for="item in groupList"
@@ -31,9 +32,9 @@
                 </bk-select>
                 <bk-input
                     class="search-input"
-                    v-model="searchStr"
+                    v-model.trim="searchStr"
                     right-icon="bk-icon icon-search"
-                    :placeholder="i18n.placeholder"
+                    :placeholder="$t('请输入名称')"
                     :clearable="true"
                     @input="onSearchInput"
                     @clear="onClearSearch">
@@ -112,7 +113,7 @@
     </transition>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
@@ -167,10 +168,7 @@
                 searchStr: '',
                 searchResult: [],
                 isShowGroup: true,
-                defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
-                i18n: {
-                    placeholder: gettext('请输入名称')
-                }
+                defaultTypeIcon: require('@/assets/images/atom-type-default.svg')
             }
         },
         computed: {
@@ -181,7 +179,7 @@
                 const list = []
                 list.push({
                     type: 'all',
-                    group_name: this.activeNodeListType === 'tasknode' ? gettext('所有分组') : gettext('所有分类')
+                    group_name: this.activeNodeListType === 'tasknode' ? i18n.t('所有分组') : i18n.t('所有分类')
                 })
                 this.nodes.forEach(item => {
                     list.push({

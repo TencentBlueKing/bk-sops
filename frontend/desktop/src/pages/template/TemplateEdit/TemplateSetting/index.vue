@@ -71,7 +71,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations } from 'vuex'
     import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
@@ -82,22 +82,22 @@
         {
             id: 'globalVariableTab',
             icon: 'common-icon-square-code',
-            title: gettext('全局变量')
+            title: i18n.t('全局变量')
         },
         {
             id: 'templateConfigTab',
             icon: 'common-icon-square-attribute',
-            title: gettext('基础信息')
+            title: i18n.t('基础信息')
         },
         {
             id: 'localDraftTab',
             icon: 'common-icon-clock-reload',
-            title: gettext('本地缓存')
+            title: i18n.t('本地缓存')
         },
         {
             id: 'templateDataEditTab',
             icon: 'common-icon-paper',
-            title: gettext('模板数据')
+            title: i18n.t('模板数据')
         }
     ]
 

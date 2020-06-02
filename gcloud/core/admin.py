@@ -11,44 +11,55 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.core import models
+from django import forms
 from django.contrib import admin
+
+from gcloud.core import models
 
 
 @admin.register(models.Business)
 class BusinessAdmin(admin.ModelAdmin):
-    list_display = ['cc_id', 'cc_name', 'cc_company', 'executor']
-    list_filter = ('cc_company',)
-    search_fields = ['cc_name', 'cc_id', 'cc_company']
-    editable_fields = ['cc_name', 'cc_id', 'cc_company', 'executor']
+    list_display = ["cc_id", "cc_name", "cc_company", "executor"]
+    list_filter = ("cc_company",)
+    search_fields = ["cc_name", "cc_id", "cc_company"]
+    editable_fields = ["cc_name", "cc_id", "cc_company", "executor"]
 
 
 @admin.register(models.UserBusiness)
 class UserBusinessAdmin(admin.ModelAdmin):
-    list_display = ['user', 'default_buss']
-    search_fields = ['user', 'default_buss']
+    list_display = ["user", "default_buss"]
+    search_fields = ["user", "default_buss"]
+
+
+class EnvironmentVariablesModelForm(forms.ModelForm):
+    value = forms.CharField(widget=forms.Textarea)
+
+    class Meta:
+        model = models.EnvironmentVariables
+        fields = "__all__"
 
 
 @admin.register(models.EnvironmentVariables)
 class EnvironmentVariablesAdmin(admin.ModelAdmin):
-    list_display = ['key', 'name', 'value']
-    search_fields = ['key', 'name']
+    list_display = ["key", "name", "value"]
+    search_fields = ["key", "name"]
+    form = EnvironmentVariablesModelForm
 
 
 @admin.register(models.Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ['name', 'time_zone', 'creator', 'desc', 'from_cmdb', 'bk_biz_id', 'is_disable']
-    search_fields = ['id', 'name']
+    list_display = ["name", "time_zone", "creator", "desc", "from_cmdb", "bk_biz_id", "is_disable"]
+    search_fields = ["id", "name"]
 
 
 @admin.register(models.UserDefaultProject)
 class UserDefaultProjectAdmin(admin.ModelAdmin):
-    list_display = ['username', 'default_project']
-    search_fields = ['username']
+    list_display = ["username", "default_project"]
+    search_fields = ["username"]
 
 
 @admin.register(models.ProjectCounter)
 class ProjectCounterAdmin(admin.ModelAdmin):
-    list_display = ['username', 'project', 'count']
-    search_fields = ['username']
-    list_filter = ['username']
+    list_display = ["username", "project", "count"]
+    search_fields = ["username"]
+    list_filter = ["username"]

@@ -17,11 +17,13 @@ from gcloud.conf import settings
 from gcloud.core.utils import get_user_business_list
 from gcloud.core.models import Business, Project, UserDefaultProject
 from gcloud.iam_auth import get_user_projects
+from gcloud.core.api_adapter import fetch_business_location
 
 logger = logging.getLogger("root")
 
 CACHE_PREFIX = __name__.replace(".", "_")
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
+BUSINESS_LOCATION_V1 = "v1.0"
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
@@ -70,6 +72,14 @@ def sync_projects_from_cmdb(username, use_cache=True):
     # sync projects from business
     Project.objects.sync_project_from_cmdb_business(business_dict)
 
+    # exclude business whose location in v1.0
+    active_biz_locations = fetch_business_location(username, list(active_biz_cc_ids))
+    biz_location_in_v1 = set(
+        [biz["bk_biz_id"] for biz in active_biz_locations if biz["bk_location"] == BUSINESS_LOCATION_V1]
+    )
+    active_biz_cc_ids -= biz_location_in_v1
+    archived_biz_cc_ids |= biz_location_in_v1
+
     # update project's status which sync from cmdb
     Project.objects.update_business_project_status(archived_cc_ids=archived_biz_cc_ids, active_cc_ids=active_biz_cc_ids)
 
@@ -80,6 +90,8 @@ def get_default_project_for_user(username):
     try:
         project = UserDefaultProject.objects.get(username=username).default_project
     except UserDefaultProject.DoesNotExist:
-        project = get_user_projects().first()
+        projects = get_user_projects(username)
+        if projects:
+            project = projects.first()
 
     return project

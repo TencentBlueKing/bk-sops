@@ -46,7 +46,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
 
     export default {
@@ -103,6 +102,9 @@
             .delete-icon {
                 display: inline-block;
             }
+        }
+        /deep/ .bk-form-item .bk-label {
+            word-break: break-all;
         }
     }
     .delete-icon {

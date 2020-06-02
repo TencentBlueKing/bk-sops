@@ -33,14 +33,14 @@
                             </span>
                         </th>
                         <th>{{i18n.cloudArea}}</th>
-                        <th>
+                        <th width="120">
                             IP
                             <span class="sort-group">
                                 <i :class="['sort-icon', 'up', { 'active': ipSortActive === 'up' }]" @click="onIpSort('up')"></i>
                                 <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
                             </span>
                         </th>
-                        <th>{{i18n.status + i18n.error}}</th>
+                        <th width="160">{{i18n.status + i18n.error}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,9 +52,18 @@
                                     @click="onHostItemClick(item)">
                                 </span>
                             </td>
-                            <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}</td>
+                            <td
+                                class="ui-ellipsis"
+                                :title="item.cloud[0] && item.cloud[0].bk_inst_name">
+                                {{ item.cloud[0] && item.cloud[0].bk_inst_name }}
+                            </td>
                             <td>{{item.bk_host_innerip}}</td>
-                            <td :class="item.agent ? 'agent-normal' : 'agent-failed'">{{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}</td>
+                            <td
+                                class="ui-ellipsis"
+                                :class="item.agent ? 'agent-normal' : 'agent-failed'"
+                                :title="item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error">
+                                {{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}
+                            </td>
                         </tr>
                     </template>
                     <tr v-else>
@@ -260,6 +269,7 @@
     width: 100%;
     border: 1px solid #dde4eb;
     border-collapse: collapse;
+    table-layout:fixed;
     tr {
         border-bottom: 1px solid #dde4eb;
     }
@@ -350,6 +360,11 @@
                 border-color: #3a84ff transparent transparent transparent;
             }
         }
+    }
+    .ui-ellipsis {
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
     }
 }
 .table-pagination {

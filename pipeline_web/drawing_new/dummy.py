@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.core.constants import PE
 from pipeline.utils.uniqid import line_uniqid, node_uniqid
 
+from pipeline_web.constants import PWE
 from pipeline_web.drawing_new.rank.utils import slack
 from pipeline_web.drawing_new.constants import MIN_LEN, DUMMY_NODE_TYPE, DUMMY_FLOW_TYPE
 from pipeline_web.drawing_new.utils import delete_flow_id_from_node_io, add_flow_id_to_node_io
@@ -27,39 +27,39 @@ def replace_long_path_with_dummy(pipeline, ranks):
     @return: real_flows_chain: 被替换掉的长边
     """
     real_flows_chain = {}
-    for flow_id, flow in list(pipeline[PE.flows].items()):
+    for flow_id, flow in list(pipeline[PWE.flows].items()):
         flow_slack = slack(ranks, flow)
         if flow_slack > 0:
             real_flows_chain[flow_id] = flow
-            dummy_nodes_ranks = range(ranks[flow[PE.source]] + MIN_LEN, ranks[flow[PE.target]], MIN_LEN)
+            dummy_nodes_ranks = range(ranks[flow[PWE.source]] + MIN_LEN, ranks[flow[PWE.target]], MIN_LEN)
 
             incoming_flow_id = line_uniqid()
             dummy_node_id = node_uniqid()
             dummy_flow = {
-                PE.id: incoming_flow_id,
-                PE.type: DUMMY_FLOW_TYPE,
-                PE.source: flow[PE.source],
-                PE.target: dummy_node_id
+                PWE.id: incoming_flow_id,
+                PWE.type: DUMMY_FLOW_TYPE,
+                PWE.source: flow[PWE.source],
+                PWE.target: dummy_node_id
             }
             # change outgoing of flow.source node
-            delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PE.source]], flow_id, PE.outgoing)
-            add_flow_id_to_node_io(pipeline['all_nodes'][flow[PE.source]], incoming_flow_id, PE.outgoing)
+            delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.source]], flow_id, PWE.outgoing)
+            add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.source]], incoming_flow_id, PWE.outgoing)
             # delete long path flow from pipeline
-            pipeline[PE.flows].pop(flow_id)
+            pipeline[PWE.flows].pop(flow_id)
             for node_rank in dummy_nodes_ranks:
                 # 生成当前 dummy node 的 outgoing flow
                 outgoing_flow_id = line_uniqid()
                 dummy_node = {
-                    PE.id: dummy_node_id,
-                    PE.type: DUMMY_NODE_TYPE,
-                    PE.name: DUMMY_NODE_TYPE,
-                    PE.incoming: incoming_flow_id,
-                    PE.outgoing: outgoing_flow_id
+                    PWE.id: dummy_node_id,
+                    PWE.type: DUMMY_NODE_TYPE,
+                    PWE.name: DUMMY_NODE_TYPE,
+                    PWE.incoming: incoming_flow_id,
+                    PWE.outgoing: outgoing_flow_id
                 }
 
                 # add dummy to pipeline
                 pipeline['all_nodes'].update({dummy_node_id: dummy_node})
-                pipeline[PE.flows].update({incoming_flow_id: dummy_flow})
+                pipeline[PWE.flows].update({incoming_flow_id: dummy_flow})
 
                 # add dummy to ranks
                 ranks.update({dummy_node_id: node_rank})
@@ -68,18 +68,18 @@ def replace_long_path_with_dummy(pipeline, ranks):
                 incoming_flow_id = outgoing_flow_id
                 dummy_node_id = node_uniqid()
                 dummy_flow = {
-                    PE.id: incoming_flow_id,
-                    PE.type: DUMMY_FLOW_TYPE,
-                    PE.source: dummy_node[PE.id],
-                    PE.target: dummy_node_id
+                    PWE.id: incoming_flow_id,
+                    PWE.type: DUMMY_FLOW_TYPE,
+                    PWE.source: dummy_node[PWE.id],
+                    PWE.target: dummy_node_id
                 }
 
             # add last dummy flow to pipeline
-            dummy_flow[PE.target] = flow[PE.target]
-            pipeline[PE.flows].update({incoming_flow_id: dummy_flow})
+            dummy_flow[PWE.target] = flow[PWE.target]
+            pipeline[PWE.flows].update({incoming_flow_id: dummy_flow})
             # change incoming of flow.target node
-            delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PE.target]], flow_id, PE.incoming)
-            add_flow_id_to_node_io(pipeline['all_nodes'][flow[PE.target]], incoming_flow_id, PE.incoming)
+            delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.target]], flow_id, PWE.incoming)
+            add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.target]], incoming_flow_id, PWE.incoming)
     return real_flows_chain
 
 
@@ -96,7 +96,7 @@ def remove_dummy(pipeline, real_flows_chain, dummy_nodes_included=None, dummy_fl
     if dummy_nodes_included is None:
         dummy_nodes_included = []
     for node_id, node in list(pipeline['all_nodes'].items()):
-        if node.get(PE.type) == DUMMY_NODE_TYPE:
+        if node.get(PWE.type) == DUMMY_NODE_TYPE:
             pipeline['all_nodes'].pop(node_id)
             for dummy_included in dummy_nodes_included:
                 if isinstance(dummy_included, dict) and node_id in dummy_included:
@@ -105,21 +105,21 @@ def remove_dummy(pipeline, real_flows_chain, dummy_nodes_included=None, dummy_fl
     # 删除虚拟边
     if dummy_flows_included is None:
         dummy_flows_included = []
-    for flow_id, flow in list(pipeline[PE.flows].items()):
-        if flow.get(PE.type) == DUMMY_FLOW_TYPE:
-            pipeline[PE.flows].pop(flow_id)
+    for flow_id, flow in list(pipeline[PWE.flows].items()):
+        if flow.get(PWE.type) == DUMMY_FLOW_TYPE:
+            pipeline[PWE.flows].pop(flow_id)
             for dummy_included in dummy_flows_included:
                 if isinstance(dummy_included, dict) and flow_id in dummy_included:
                     dummy_included.pop(flow_id)
 
             # 虚拟边起始点如果是真实节点，需要把节点引用的虚拟边删除
-            if flow[PE.source] in pipeline['all_nodes']:
-                delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PE.source]], flow_id, PE.outgoing)
-            if flow[PE.target] in pipeline['all_nodes']:
-                delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PE.target]], flow_id, PE.incoming)
+            if flow[PWE.source] in pipeline['all_nodes']:
+                delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.source]], flow_id, PWE.outgoing)
+            if flow[PWE.target] in pipeline['all_nodes']:
+                delete_flow_id_from_node_io(pipeline['all_nodes'][flow[PWE.target]], flow_id, PWE.incoming)
 
     # 添加真实长边到节点引用中
-    pipeline[PE.flows].update(real_flows_chain)
+    pipeline[PWE.flows].update(real_flows_chain)
     for flow_id, flow in real_flows_chain.items():
-        add_flow_id_to_node_io(pipeline['all_nodes'][flow[PE.source]], flow_id, PE.outgoing)
-        add_flow_id_to_node_io(pipeline['all_nodes'][flow[PE.target]], flow_id, PE.incoming)
+        add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.source]], flow_id, PWE.outgoing)
+        add_flow_id_to_node_io(pipeline['all_nodes'][flow[PWE.target]], flow_id, PWE.incoming)

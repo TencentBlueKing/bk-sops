@@ -34,4 +34,8 @@ def get_user_projects(username):
 
     iam = get_iam_client()
     filters = iam.make_filter(request, key_mapping=key_mapping)
+
+    if not filters:
+        return []
+
     return Project.objects.filter(filters)

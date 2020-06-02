@@ -17,7 +17,7 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
-from tastypie.constants import ALL
+from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
 from tastypie.validation import FormValidation
 
@@ -27,6 +27,7 @@ from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
+from pipeline_web.label.models import LabelGroup, Label
 
 from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.commons.tastypie import GCloudModelResource
@@ -207,7 +208,11 @@ class CommonProjectResource(GCloudModelResource):
     def get_default_projects(empty_query, username):
         """初始化并返回用户有权限的项目"""
 
-        project_ids = get_user_projects(username).values_list("id", flat=True)
+        projects = get_user_projects(username)
+        if not projects:
+            return ProjectCounter.objects.none()
+
+        project_ids = projects.values_list("id", flat=True)
 
         # 初始化用户有权限的项目
         ProjectCounter.objects.bulk_create(
@@ -226,3 +231,28 @@ class CommonProjectResource(GCloudModelResource):
             query = self.get_default_projects(query, request.user.username)
 
         return query
+
+
+class LabelGroupModelResource(GCloudModelResource):
+    code = fields.CharField(attribute="code", readonly=True)
+    name = fields.CharField(attribute="name", readonly=True)
+
+    class Meta(GCloudModelResource.Meta):
+        queryset = LabelGroup.objects.all()
+        resource_name = "label_group"
+        detail_uri_name = "id"
+        authorization = ReadOnlyAuthorization()
+        filtering = {"code": ALL}
+
+
+class LabelModelResource(GCloudModelResource):
+    group = fields.ForeignKey(LabelGroupModelResource, "group", full=True)
+    code = fields.CharField(attribute="code", readonly=True)
+    name = fields.CharField(attribute="name", readonly=True)
+
+    class Meta(GCloudModelResource.Meta):
+        queryset = Label.objects.all()
+        resource_name = "label"
+        detail_uri_name = "id"
+        authorization = ReadOnlyAuthorization()
+        filtering = {"group": ALL_WITH_RELATIONS, "code": ALL}

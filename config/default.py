@@ -73,6 +73,8 @@ INSTALLED_APPS += (
     "pipeline_plugins",
     "pipeline_plugins.components",
     "pipeline_plugins.variables",
+    "pipeline_web.core",
+    "pipeline_web.label",
     "data_migration",
     "weixin.core",
     "weixin",
@@ -126,6 +128,8 @@ if os.getenv("BKAPP_CORS_ALLOW", None):
 else:
     CORS_ALLOW_CREDENTIALS = False
 
+if os.getenv("BKAPP_PYINSTRUMENT_ENABLE", None):
+    MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
 
 MIDDLEWARE = ("weixin.core.middlewares.WeixinProxyPatchMiddleware",) + MIDDLEWARE
 
@@ -240,7 +244,7 @@ if locals().get("DISABLED_APPS"):
 # python manage.py createcachetable django_cache
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache"},
-    "dbcache": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "django_cache"},
+    "locmem": {"BACKEND": "gcloud.utils.cache.LocMemCache", "LOCATION": "django_cache"},
     "dummy": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"},
 }
 
@@ -275,12 +279,11 @@ DEFAULT_BK_API_VER = "v2"
 # IAM权限中心配置
 BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
 BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
-BK_IAM_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam_app")
+BK_IAM_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
 # 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 # 权限中心 SaaS host
 BK_IAM_SAAS_HOST = os.environ.get("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_APP_CODE))
-print("################ BK_IAM_INNER_HOST: {}".format(BK_IAM_INNER_HOST))
 
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
@@ -301,7 +304,13 @@ PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 COMPONENT_PATH = [
     "components.collections.http",
     "components.collections.sites.%s" % RUN_VER,
-    "components.collections.sites.%s.cc_plugins" % RUN_VER,
+    "components.collections.sites.%s.cc.create_set" % RUN_VER,
+    "components.collections.sites.%s.cc.batch_delete_set" % RUN_VER,
+    "components.collections.sites.%s.cc.empty_set_hosts" % RUN_VER,
+    "components.collections.sites.%s.cc.transfer_host_module" % RUN_VER,
+    "components.collections.sites.%s.cc.update_module" % RUN_VER,
+    "components.collections.sites.%s.cc.update_set" % RUN_VER,
+    "components.collections.sites.%s.cc.update_set_service_status" % RUN_VER,
 ]
 VARIABLE_PATH = ["variables.collections.sites.%s" % RUN_VER]
 
