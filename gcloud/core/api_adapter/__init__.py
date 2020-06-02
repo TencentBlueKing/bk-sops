@@ -24,7 +24,7 @@ app_maker_funcs = ["create_maker_app", "edit_maker_app", "del_maker_app", "modif
 for func_name in app_maker_funcs:
     locals()[func_name] = getattr(app_maker, func_name)
 
-user_role_funcs = ["get_operate_user_list", "get_auditor_user_list", "is_user_functor", "is_user_auditor"]
+user_role_funcs = ["is_user_functor", "is_user_auditor"]
 for func_name in user_role_funcs:
     locals()[func_name] = getattr(user_role, func_name)
 
