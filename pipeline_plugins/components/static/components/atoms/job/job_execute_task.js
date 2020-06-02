@@ -120,7 +120,7 @@
                     },
                     {
                         tag_code: "type",
-                        type: "text",
+                        type: "category",
                         attrs: {
                             name: gettext("参数类型"),
                             hidden: true,
