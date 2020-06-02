@@ -23,7 +23,8 @@ from pipeline.component_framework.component import Component
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_format_tree_mode_id,
-    cc_list_select_node_inst_id
+    cc_list_select_node_inst_id,
+    cc_format_prop_data,
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -57,9 +58,7 @@ class CCCreateModuleService(Service):
                 name=_("拓扑-集群列表"),
                 key="cc_set_select_topo",
                 type="array",
-                schema=ArrayItemSchema(
-                    description=_("所属集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))
-                ),
+                schema=ArrayItemSchema(description=_("所属集群 ID 列表"), item_schema=IntItemSchema(description=_("集群 ID"))),
             ),
             self.InputItem(
                 name=_("文本路径-集群"),
@@ -106,18 +105,41 @@ class CCCreateModuleService(Service):
             data.set_outputs("ex_data", _("请选择填参方式"))
             return False
 
-        cc_module_infos = data.get_one_of_inputs("cc_module_infos")
+        cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos")
+        cc_module_infos = []
+        for cc_module_info_untreated in cc_module_infos_untreated:
+            # 过滤空值
+            cc_module_info = {
+                module_property: module_prop_value
+                for module_property, module_prop_value in cc_module_info_untreated.items()
+                if len(module_prop_value) != 0
+            }
 
+            if "bk_module_name" not in cc_module_info:
+                data.set_outputs("ex_data", _("模块名称不能为空"))
+                return False
+            if "bk_module_type" in cc_module_info:
+                format_prop_data_return = cc_format_prop_data(
+                    executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"), supplier_account
+                )
+                if not format_prop_data_return["result"]:
+                    data.set_outputs("ex_data", format_prop_data_return["message"])
+                    return False
+
+                bk_module_type = format_prop_data_return["data"].get(cc_module_info["bk_module_type"])
+                if not bk_module_type:
+                    data.set_outputs("ex_data", _("模块类型校验失败，请重试并填写正确的模块类型"))
+                    return False
+                cc_module_info["bk_module_type"] = bk_module_type
+            cc_module_infos.append(cc_module_info)
         for parent_id in cc_set_select:
             for cc_module_info in cc_module_infos:
                 cc_kwargs = {
                     "bk_biz_id": biz_cc_id,
                     "bk_set_id": parent_id,
-                    "data": {
-                        "bk_parent_id": parent_id,
-                        "bk_module_name": cc_module_info["cc_module_name"]
-                    }
+                    "data": {"bk_parent_id": parent_id},
                 }
+                cc_kwargs["data"].update(cc_module_info)
                 cc_create_module_return = client.cc.create_module(cc_kwargs)
                 if not cc_create_module_return["result"]:
                     message = cc_handle_api_error("cc.create_module", cc_kwargs, cc_create_module_return)
@@ -135,4 +157,4 @@ class CCCreateModuleComponent(Component):
     name = _("创建模块")
     code = "cc_create_module"
     bound_service = CCCreateModuleService
-    form = '{static_url}components/atoms/cc/create_module/legacy.js'.format(static_url=settings.STATIC_URL)
+    form = "{static_url}components/atoms/cc/create_module/legacy.js".format(static_url=settings.STATIC_URL)
