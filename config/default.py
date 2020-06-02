@@ -325,7 +325,9 @@ EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY",
 # 是否只允许加载远程 https 仓库的插件
 EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE", "1") == "0"
 
-PIPELINE_DATA_BACKEND = "pipeline.engine.core.data.redis_backend.RedisDataBackend"
+PIPELINE_DATA_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_BACKEND",
+                                  "pipeline.engine.core.data.redis_backend.RedisDataBackend")
+PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
 
 ENABLE_EXAMPLE_COMPONENTS = False
 

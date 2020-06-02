@@ -16,7 +16,7 @@ from django.views.i18n import javascript_catalog
 
 from version_log import config as version_log_config
 
-from gcloud.core import views, api, command
+from gcloud.core import views, api
 
 urlpatterns = [
     url(r'^$', views.home),
@@ -30,10 +30,6 @@ urlpatterns = [
     url(r'^core/api/query_resource_verify_perms/$', api.query_resource_verify_perms),
     url(r'^core/api/get_user_list/$', api.get_user_list),
     url(r'^core/footer/$', api.get_footer),
-
-    url(r'^core/get_cache_key/(?P<key>\w+)/$', command.get_cache_key),
-    url(r'^core/delete_cache_key/(?P<key>\w+)/$', command.delete_cache_key),
-    url(r'^core/get_settings/$', command.get_settings),
 
     # i18n
     url(r'^jsi18n/(?P<packages>\S+?)/$', javascript_catalog),

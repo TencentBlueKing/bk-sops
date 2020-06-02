@@ -17,6 +17,9 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 
+from pipeline.engine.core.data.api import _backend, _candidate_backend
+from pipeline.engine.core.data.redis_backend import RedisDataBackend
+
 from gcloud.core.decorators import check_is_superuser
 
 
@@ -36,3 +39,27 @@ def get_cache_key(request, key):
 def get_settings(request):
     data = {s: getattr(settings, s) for s in dir(settings)}
     return JsonResponse({'result': True, 'data': data})
+
+
+@check_is_superuser()
+def migrate_pipeline_parent_data(request):
+    """
+    @summary: 将 pipeline 的 schedule_parent_data 从 _backend(redis) 迁移到 _candidate_backend(mysql)
+    @param request:
+    @return:
+    """
+    if not isinstance(_backend, RedisDataBackend):
+        return JsonResponse({'result': False, 'message': '_backend should be RedisDataBackend'})
+
+    if _candidate_backend is None:
+        return JsonResponse({'result': False,
+                             'message': ('_candidate_backend is None, please set '
+                                         'env variable(BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND) first')})
+
+    r = settings.redis_inst
+    pipeline_data_keys = list(r.scan_iter('*_schedule_parent_data'))
+    for key in pipeline_data_keys:
+        value = _backend.get_object(key)
+        _candidate_backend.set_object(key, value)
+
+    return JsonResponse({'result': True, 'data': pipeline_data_keys})
