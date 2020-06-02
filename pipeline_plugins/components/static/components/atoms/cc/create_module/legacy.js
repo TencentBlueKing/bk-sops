@@ -197,30 +197,235 @@
             ]
         },
         {
-            tag_code: "cc_module_infos",
-            type: "datatable",
+            tag_code: "cc_create_method",
+            type: "radio",
             attrs: {
-                name: gettext("模块信息"),
-                hookable: true,
-                add_btn: true,
-                editable: true,
-                deleteable: true,
-                empty_text: gettext("请填写模块信息"),
+                name: gettext("创建方式"),
+                hookable: false,
+                items: [
+                    {value: "template", name: gettext("从模板创建")},
+                    {value: "category", name: gettext("直接创建")},
+                ],
+                default: "category",
                 validation: [
                     {
                         type: "required"
                     }
                 ],
-                columns: [
-                    {
-                        tag_code: "cc_module_name",
-                        type: "input",
-                        attrs: {
-                            name: gettext("模块名称"),
-                        }
-                    },
-                ]
             },
-        }
+            events: [
+                {
+                    source: "cc_create_method",
+                    type: "init",
+                    action: function () {
+                        this.emit_event(this.tagCode, "change", this.value)
+                    }
+                },
+            ]
+        },
+        {
+            tag_code: "cc_module_infos_category",
+            type: "datatable",
+            attrs: {
+                name: gettext("模块信息"),
+                remote_url: function () {
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/';
+                    return url
+                },
+                remote_data_init: function (resp) {
+                    const data = resp.data;
+                    data.forEach(function (column) {
+                        column.type = 'input';
+                        column.attrs.width = "200px";
+                    });
+
+                    data.push({
+                        tag_code: "cc_service_category",
+                        type: "cascader",
+                        attrs: {
+                            name: gettext("服务实例分类"),
+                            width: "200px",
+                            items: [],
+                            multiple: false,
+                            lazy: true,
+                            lazyLoad(node, resolve) {
+                                let self = this;
+                                const {level, value} = node;
+                                setTimeout(() => {
+                                    let url = '';
+                                    if (level === 0) {
+                                        url = `${$.context.get('site_url')}pipeline/cc_list_service_category/${$.context.getBkBizId()}/0/`;
+                                    }else {
+                                        url = `${$.context.get('site_url')}pipeline/cc_list_service_category/${$.context.getBkBizId()}/${value}/`;
+                                    }
+                                    // 通过调用resolve将子节点数据返回，通知组件数据加载完成
+                                    $.ajax({
+                                        url: url,
+                                        type: 'GET',
+                                        dataType: 'json',
+                                        success: function (resp) {
+                                            let nodes = resp.data.map(item => ({
+                                                value: item.value,
+                                                label: item.label,
+                                                leaf: level >= 1
+                                            }));
+                                            if (level === 0) {
+                                                self.items = nodes;
+                                            } else {
+                                                self.items.every(element => {
+                                                    if (element.value === value) {
+                                                        element.children = nodes;
+                                                        return false
+                                                    } else return true
+                                                })
+                                            }
+                                            resolve(nodes)
+                                        },
+                                        error: function (resp) {
+                                            resolve([]);
+                                            show_msg(resp.message, 'error');
+                                        }
+                                    })
+                                }, 100);
+                            }
+                        }
+                    });
+                    return data;
+                },
+                hookable: true,
+                add_btn: true,
+            },
+            events: [
+                {
+                    source: "cc_create_method",
+                    type: "change",
+                    action: function (value) {
+                        let self = this;
+                        if (value === "category") {
+                            self.show();
+                        } else {
+                            self.hide();
+                        }
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        this.columns = [];
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        if ($.context.canSelectBiz()) {
+                            this._set_value('');
+                        }
+                        this.columns = [];
+                        if (value !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + value + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                }
+            ],
+        },
+        {
+            tag_code: "cc_module_infos_template",
+            type: "datatable",
+            attrs: {
+                name: gettext("模块信息"),
+                remote_url: function () {
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/';
+                    return url
+                },
+                remote_data_init: function (resp) {
+                    const data = resp.data;
+                    data.forEach(function (column) {
+                        column.type = 'input';
+                        column.attrs.width = "200px";
+                    });
+                    let name_index = -1;
+                    data.every((column, index) => {
+                        if (column.tag_code === "bk_module_name") {
+                            name_index = index;
+                            return false
+                        } else return true
+                    });
+                    if (name_index !== -1) {
+                        data.splice(name_index, 1);
+                    }
+                    data.unshift({
+                        tag_code: "cc_service_template",
+                        type: "select",
+                        attrs: {
+                            name: gettext("服务模板"),
+                            width: "200px",
+                            default: "Default_-1",
+                            hookable: false,
+                            remote_url: function () {
+                                return `${$.context.get('site_url')}pipeline/cc_list_service_template/${$.context.getBkBizId()}/`;
+                            },
+                            remote_data_init: function (resp) {
+                                let data = resp.data;
+                                if (data.length !== 0) {
+                                    this.value = data[0].value;
+                                }
+                                return resp.data;
+                            },
+                        }
+                    });
+                    return data;
+                },
+                hookable: true,
+                add_btn: true,
+            },
+            events: [
+                {
+                    source: "cc_create_method",
+                    type: "change",
+                    action: function (value) {
+                        let self = this;
+                        if (value === "template") {
+                            self.show();
+                        } else {
+                            self.hide();
+                        }
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        this.columns = [];
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        if ($.context.canSelectBiz()) {
+                            this._set_value('');
+                        }
+                        this.columns = [];
+                        if (value !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + value + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                }
+            ],
+        },
     ]
 })();
