@@ -37,10 +37,10 @@
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
                                     <span
-                                        v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                         v-cursor="{ active: true }"
                                         class="text-permission-disable"
-                                        @click="onApplyPerm(['view'], props.row, 'tpl')">
+                                        @click="onApplyPerm(['flow_view'], props.row, 'tpl')">
                                         {{props.row.name}}
                                     </span>
                                     <a
@@ -67,10 +67,10 @@
                                     </span>
                                     <template v-else>
                                         <span
-                                            v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                            v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
                                             v-cursor="{ active: true }"
                                             class="text-permission-disable"
-                                            @click="onApplyPerm(['edit'], props.row, 'tpl')">
+                                            @click="onApplyPerm(['flow_edit'], props.row, 'tpl')">
                                             {{$t('编辑')}}
                                         </span>
                                         <a
@@ -105,10 +105,10 @@
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
                                     <span
-                                        v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                        v-if="!hasPermission(['task_view'], props.row.auth_actions, taskOperations)"
                                         v-cursor="{ active: true }"
                                         class="text-permission-disable"
-                                        @click="onApplyPerm(['view'], props.row, 'task')">
+                                        @click="onApplyPerm(['task_view'], props.row, 'task')">
                                         {{props.row.name}}
                                     </span>
                                     <a
@@ -271,7 +271,6 @@
                 templateResultTotal: 0,
                 taskResultTotal: 0,
                 tplFilter: {},
-                tplOperations: [],
                 tplResource: {},
                 taskFilter: {},
                 tplData: [],
@@ -355,7 +354,6 @@
                     const res = await this.template(params)
                     this.tplData = res.objects
                     this.templateResultTotal = res.meta.total_count
-                    this.tplOperations = res.meta.auth_operations
                     this.tplResource = res.meta.auth_resource
                     this.tplPagination.count = res.meta.total_count
                 } catch (e) {
@@ -461,9 +459,15 @@
                 this.getSearchResult()
             },
             onApplyPerm (required, data, type) {
-                const operations = type === 'tpl' ? this.tplOperations : this.taskOperations
-                const resource = type === 'tpl' ? this.tplResource : this.taskResource
-                this.applyForPermission(required, data, operations, resource)
+                console.log(data)
+                const resourceData = {}
+                const reItem = { id: data.id, name: data.name }
+                if (type === 'tpl') {
+                    resourceData.flow = [reItem]
+                } else {
+                    resourceData.task = [reItem]
+                }
+                this.applyForPermission(required, data.auth_actions, resourceData)
             },
             onRestoreTemplate (tpl) {
                 this.isRestoreDialogShow = true

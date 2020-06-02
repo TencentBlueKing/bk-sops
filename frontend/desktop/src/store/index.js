@@ -12,7 +12,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import modules from './modules/index.js'
-import qs from 'qs'
 import axios from 'axios'
 
 Vue.use(Vuex)
@@ -41,7 +40,12 @@ const store = new Vuex.Store({
         components: [],
         isSuperUser: window.IS_SUPERUSER === 1,
         v1_import_flag: window.IMPORT_V1_FLAG,
-        rsa_pub_key: window.RSA_PUB_KEY
+        rsa_pub_key: window.RSA_PUB_KEY,
+        permissionMeta: {
+            system: [],
+            resources: [],
+            actions: []
+        }
     },
     mutations: {
         setAppId (state, id) {
@@ -68,6 +72,9 @@ const store = new Vuex.Store({
         setUserRights (state, data) {
             const { type, val } = data
             state.userRights[type] = val
+        },
+        setPermissionMeta (state, data) {
+            state.permissionMeta = data
         }
     },
     actions: {
@@ -158,33 +165,25 @@ const store = new Vuex.Store({
         },
         // <--- 开区资源选择器接口 end
         /**
-         * 获取申请权限 url
-         * @param {String} data 权限数据
+         * 获取权限相关元数据
          */
-        getPermissionUrl ({ commit }, data) {
-            const dataBody = qs.stringify({ permission: data })
-            return axios.post('core/api/query_apply_permission_url/', dataBody, {
-                headers: {
-                    'content-type': 'application/x-www-form-urlencoded'
-                }
-            }).then(response => response.data)
+        getPermissionMeta ({ commit }) {
+            return axios.get('iam/api/meta/').then(response => {
+                commit('setPermissionMeta', response.data.data)
+                return response.data
+            })
         },
         /**
-         * 查询用户是否具有某权限
-         * @param {Object} data 查询参数 {resource_type: 'xxx', instance_id: 0, action_ids: "['aaa', 'bbb']"}
+         * 查询用户是否有某项权限
          */
         queryUserPermission ({ commit }, data) {
-            const { resource_type, instance_id, action_ids } = data
-            const dataBody = qs.stringify({
-                resource_type,
-                instance_id,
-                action_ids
-            })
-            return axios.post('core/api/query_resource_verify_perms/', dataBody, {
-                headers: {
-                    'content-type': 'application/x-www-form-urlencoded'
-                }
-            }).then(response => response.data)
+            return axios.post('iam/api/is_allow', data).then(response => response.data)
+        },
+        /**
+         * 获取权限中心跳转链接
+         */
+        getIamUrl ({ commit }, data) {
+            return axios.post('iam/api/apply_perms_url/', data).then(response => response.data)
         }
     },
     modules

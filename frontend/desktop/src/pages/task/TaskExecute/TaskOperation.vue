@@ -19,7 +19,6 @@
             :node-info-type="nodeInfoType"
             :task-operation-btns="taskOperationBtns"
             :instance-actions="instanceActions"
-            :instance-operations="instanceOperations"
             :admin-view="adminView"
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
@@ -69,8 +68,6 @@
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
-                    :instance-resource="instanceResource"
-                    :instance-operations="instanceOperations"
                     :instance-name="instanceName"
                     :instance_id="instance_id">
                 </ModifyParams>
@@ -182,7 +179,7 @@
         mixins: [permission],
         props: [
             'project_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id',
-            'templateSource', 'instanceActions', 'instanceOperations', 'instanceResource'
+            'templateSource', 'instanceActions'
         ],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
@@ -837,13 +834,14 @@
                     return
                 }
 
-                if (!this.hasPermission(['operate'], this.instanceActions, this.instanceOperations)) {
+                if (!this.hasPermission(['task_operate'], this.instanceActions)) {
                     const resourceData = {
-                        name: this.instanceName,
-                        id: this.instance_id,
-                        auth_actions: this.instanceActions
+                        task: [{
+                            id: this.instance_id,
+                            name: this.instanceName
+                        }]
                     }
-                    this.applyForPermission(['operate'], resourceData, this.instanceOperations, this.instanceResource)
+                    this.applyForPermission(['task_operate'], this.instanceActions, resourceData)
                     return
                 }
 

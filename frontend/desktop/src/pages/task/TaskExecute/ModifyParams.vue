@@ -61,7 +61,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'instanceOperations', 'instanceResource'],
+        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions'],
         data () {
             return {
                 bkMessageInstance: null,
@@ -76,7 +76,7 @@
                 return !Object.keys(this.constants).length
             },
             hasSavePermission () {
-                return this.hasPermission(['edit'], this.instanceActions, this.instanceOperations)
+                return this.hasPermission(['task_edit'], this.instanceActions)
             },
             loading () {
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
@@ -112,11 +112,13 @@
             async onModifyParams () {
                 if (!this.hasSavePermission) {
                     const resourceData = {
-                        id: this.instance_id,
-                        name: this.instanceName,
-                        auth_actions: this.instanceActions
+                        task: [{
+                            id: this.instance_id,
+                            name: this.instanceName
+                        }]
                     }
-                    this.applyForPermission(['edit'], resourceData, this.instanceOperations, this.instanceResource)
+                    this.applyForPermission(['task_edit'], this.instanceActions, resourceData)
+                    return
                 }
 
                 if (this.pending) {

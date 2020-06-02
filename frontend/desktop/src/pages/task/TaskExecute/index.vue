@@ -33,9 +33,7 @@
                 :instance_id="instance_id"
                 :instance-name="instanceName"
                 :instance-flow="instanceFlow"
-                :instance-actions="instanceActions"
-                :instance-operations="instanceOperations"
-                :instance-resource="instanceResource">
+                :instance-actions="instanceActions">
             </TaskFunctionalization>
             <TaskOperation
                 v-if="!isFunctional"
@@ -46,8 +44,6 @@
                 :template_id="templateId"
                 :template-source="templateSource"
                 :instance-actions="instanceActions"
-                :instance-operations="instanceOperations"
-                :instance-resource="instanceResource"
                 @taskStatusLoadChange="taskStatusLoadChange">
             </TaskOperation>
         </template>
@@ -96,8 +92,6 @@
                 instanceFlow: '',
                 templateSource: '',
                 instanceActions: [],
-                instanceOperations: [],
-                instanceResource: {},
                 templateId: ''
             }
         },
@@ -137,8 +131,6 @@
                     this.templateId = instanceData.template_id
                     this.templateSource = instanceData.template_source
                     this.instanceActions = instanceData.auth_actions
-                    this.instanceOperations = instanceData.auth_operations
-                    this.instanceResource = instanceData.auth_resource
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true
                     }

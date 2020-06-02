@@ -44,8 +44,6 @@
                 :is-common-process="isCommonProcess"
                 :selected-nodes="selectedNodes"
                 :tpl-actions="tplActions"
-                :tpl-operations="tplOperations"
-                :tpl-resource="tplResource"
                 @selectScheme="selectScheme"
                 @togglePreviewMode="togglePreviewMode">
             </task-scheme>
@@ -93,9 +91,7 @@
                 templateName: '',
                 templateLoading: true,
                 previewDataLoading: true,
-                tplActions: [],
-                tplOperations: [],
-                tplResource: {}
+                tplActions: []
             }
         },
         computed: {
@@ -163,8 +159,6 @@
                     const selectedNodes = []
                     const templateData = await this.loadTemplateData(data)
                     this.tplActions = templateData.auth_actions
-                    this.tplOperations = templateData.auth_operations
-                    this.tplResource = templateData.auth_resource
                     this.version = templateData.version
                     this.templateName = templateData.name
 

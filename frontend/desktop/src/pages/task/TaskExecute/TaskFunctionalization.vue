@@ -52,10 +52,10 @@
             <bk-button
                 theme="primary"
                 :class="['task-claim-button', {
-                    'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
+                    'btn-permission-disable': !hasPermission(['task_claim'], instanceActions)
                 }]"
                 :loading="isSubmit"
-                v-cursor="{ active: !hasPermission(['claim'], instanceActions, instanceOperations) }"
+                v-cursor="{ active: !hasPermission(['task_claim'], instanceActions) }"
                 @click="onTaskClaim">
                 {{ $t('认领') }}
             </bk-button>
@@ -102,7 +102,7 @@
         mixins: [permission],
         props: [
             'project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName',
-            'instanceActions', 'instanceOperations', 'instanceResource'
+            'instanceActions'
         ],
         data () {
             return {
@@ -180,13 +180,14 @@
             onTaskClaim () {
                 if (this.isSubmit) return
 
-                if (!this.hasPermission(['claim'], this.instanceActions, this.instanceOperations)) {
+                if (!this.hasPermission(['task_claim'], this.instanceActions)) {
                     const resourceData = {
-                        name: this.instanceName,
-                        id: this.instance_id,
-                        auth_actions: this.instanceActions
+                        task: [{
+                            id: this.instance_id,
+                            name: this.instanceName
+                        }]
                     }
-                    this.applyForPermission(['claim'], resourceData, this.instanceOperations, this.instanceResource)
+                    this.applyForPermission(['task_claim'], this.instanceActions, resourceData)
                     return
                 }
 

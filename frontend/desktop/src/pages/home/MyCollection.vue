@@ -55,8 +55,6 @@
             @onCloseDialog="onCloseDialog">
         </add-collection-dialog>
         <select-create-task-dialog
-            :tpl-resource="collectionResource.common_flow"
-            :tpl-operations="tplOperations"
             :create-task-item="createTaskItem"
             :is-create-task-dialog-show="isCreateTaskDialogShow"
             @cancel="onHideCreateTask">
@@ -98,9 +96,7 @@
         mixins: [permission],
         data () {
             return {
-                createTaskItem: '',
-                tplOperations: [],
-                collectionResource: {},
+                createTaskItem: {},
                 collectionList: [],
                 collectionGrounpList: [],
                 categorySwitchMap: {},
@@ -132,10 +128,6 @@
                 try {
                     this.collectionBodyLoading = true
                     const res = await this.loadCollectList()
-                    if (res.objects && res.objects.length > 0) {
-                        this.tplOperations = res.meta.auth_operations
-                        this.collectionResource = res.meta.auth_resource
-                    }
                     this.collectionList = res.objects
                     this.collectionGrounpList = this.getGrounpList(res.objects)
                     this.collectionBodyLoading = false
@@ -245,11 +237,11 @@
                 this.createTaskItem = item
             },
             /**
-             * 判断单个资源权限
+             * 判断单个资源权限，这里只做了流程模板的权限校验
              */
             getRourcePerm (item) {
                 if (item.category === 'flow') {
-                    return !this.hasPermission(['create_task'], item.auth_actions, this.tplOperations)
+                    return !this.hasPermission(['flow_create_task'], item.auth_actions)
                 }
                 return false
             },
@@ -259,7 +251,7 @@
             checkForPermission (item) {
                 if (item.category === 'flow') {
                     item.name = item.extra_info.name
-                    this.applyForPermission(['create_task'], item, this.tplOperations, this.collectionResource.flow)
+                    this.applyForPermission(['flow_create_task'], item.auth_actions, { flow: [item] })
                 }
             },
             onHideCreateTask () {

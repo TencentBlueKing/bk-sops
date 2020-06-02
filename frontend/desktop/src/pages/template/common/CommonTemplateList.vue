@@ -25,10 +25,10 @@
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
                         <bk-button
-                            v-cursor="{ active: !hasPermission(createTplRequired, createCommonTplAction, tplOperations) }"
+                            v-cursor="{ active: !hasCreateCommonTplPerm }"
                             theme="primary"
                             :class="['create-template', {
-                                'btn-permission-disable': !hasPermission(createTplRequired, createCommonTplAction, tplOperations)
+                                'btn-permission-disable': !hasCreateCommonTplPerm
                             }]"
                             @click="checkCreatePermission">
                             {{$t('新建')}}
@@ -60,10 +60,10 @@
                     <bk-table-column :label="$t('流程名称')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
+                                v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
-                                @click="onTemplatePermissonCheck(['view'], props.row, $event)">
+                                @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
                                 {{props.row.name}}
                             </a>
                             <a
@@ -89,24 +89,23 @@
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
-                                    <a
-                                        v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
+                                    <!-- <a
+                                        v-if="!hasPermission(['common_flow_create_task'], props.row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['create_task'], props.row, $event)">
+                                        @click="onTemplatePermissonCheck(['common_flow_create_task'], props.row)">
                                         {{$t('新建任务')}}
-                                    </a>
+                                    </a> -->
                                     <a
-                                        v-else
                                         class="template-operate-btn"
                                         @click.prevent="getJumpUrl('newTask', props.row.id)">
                                         {{$t('新建任务')}}
                                     </a>
                                     <a
-                                        v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['common_flow_view'], props.row.auth_actions)"
                                         v-cursor
                                         class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
+                                        @click="onTemplatePermissonCheck(['common_flow_view'], props.row)">
                                         {{$t('克隆')}}
                                     </a>
                                     <a
@@ -128,11 +127,11 @@
                                         <ul slot="content">
                                             <li class="opt-btn">
                                                 <a
-                                                    v-cursor="{ active: !hasPermission(['view'], props.row.auth_actions, tplOperations) }"
+                                                    v-cursor="{ active: !hasPermission(['common_flow_view'], props.row.auth_actions) }"
                                                     href="javascript:void(0);"
                                                     :class="{
                                                         'disable': collectingId === props.row.id || collectListLoading,
-                                                        'text-permission-disable': !hasPermission(['view'], props.row.auth_actions, tplOperations)
+                                                        'text-permission-disable': !hasPermission(['common_flow_view'], props.row.auth_actions)
                                                     }"
                                                     @click="onCollectTemplate(props.row, $event)">
                                                     {{ isCollected(props.row.id) ? $t('取消收藏') : $t('收藏') }}
@@ -140,10 +139,10 @@
                                             </li>
                                             <li class="opt-btn">
                                                 <a
-                                                    v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                                    v-if="!hasPermission(['common_flow_edit'], props.row.auth_actions)"
                                                     v-cursor
                                                     class="text-permission-disable"
-                                                    @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
+                                                    @click="onTemplatePermissonCheck(['common_flow_edit'], props.row)">
                                                     {{$t('编辑')}}
                                                 </a>
                                                 <a
@@ -155,10 +154,10 @@
                                             </li>
                                             <li class="opt-btn">
                                                 <a
-                                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                                    v-cursor="{ active: !hasPermission(['common_flow_delete'], props.row.auth_actions) }"
                                                     href="javascript:void(0);"
                                                     :class="{
-                                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                                        'text-permission-disable': !hasPermission(['common_flow_delete'], props.row.auth_actions)
                                                     }"
                                                     @click="onDeleteTemplate(props.row, $event)">
                                                     {{$t('删除')}}
@@ -310,11 +309,8 @@
                     limit: 15,
                     'limit-list': [15, 20, 30]
                 },
-                createTplRequired: ['create'],
                 collectingId: '', // 正在被收藏/取消收藏的模板id
-                tplOperations: [], // 模板权限字典
-                tplResource: {}, // 模板资源信息
-                createCommonTplAction: [] // 创建公共流程权限
+                hasCreateCommonTplPerm: false // 创建公共流程权限
             }
         },
         computed: {
@@ -374,15 +370,9 @@
             async queryCreateCommonTplPerm () {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: 'common_flow',
-                        action_ids: JSON.stringify(['create'])
+                        action: 'common_flow_create'
                     })
-                    const hasCreatePerm = !!res.data.details.find(item => {
-                        return item.action_id === 'create' && item.is_pass
-                    })
-                    if (hasCreatePerm) {
-                        this.createCommonTplAction = ['create']
-                    }
+                    this.hasCreateCommonTplPerm = res.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 }
@@ -419,8 +409,6 @@
                     this.setTemplateListData({ list, isCommon: true })
                     this.pagination.count = templateListData.meta.total_count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
-                    this.tplOperations = templateListData.meta.auth_operations
-                    this.tplResource = templateListData.meta.auth_resource
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -470,13 +458,8 @@
                 }
             },
             checkCreatePermission () {
-                if (!this.hasPermission(this.createTplRequired, this.createCommonTplAction, this.tplOperations)) {
-                    const resourceData = {
-                        name: i18n.t('公共流程'),
-                        id: '',
-                        auth_actions: this.createCommonTplAction
-                    }
-                    this.applyForPermission(this.createTplRequired, resourceData, this.tplOperations, this.tplResource)
+                if (!this.hasCreateCommonTplPerm) {
+                    this.applyForPermission(['common_flow_create'])
                 } else {
                     this.$router.push({
                         name: 'commonTemplatePanel',
@@ -530,9 +513,9 @@
             onExportCancel () {
                 this.isExportDialogShow = false
             },
-            onDeleteTemplate (template, event) {
-                if (!this.hasPermission(['delete'], template.auth_actions, this.tplOperations)) {
-                    this.onTemplatePermissonCheck(['delete'], template, event)
+            onDeleteTemplate (template) {
+                if (!this.hasPermission(['common_flow_delete'], template.auth_actions)) {
+                    this.onTemplatePermissonCheck(['common_flow_delete'], template)
                     return
                 }
                 this.theDeleteTemplateId = template.id
@@ -547,11 +530,22 @@
              * 单个模板操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} template 模板数据对象
-             * @params {Object} event 事件对象
              */
-            onTemplatePermissonCheck (required, template, event) {
-                this.applyForPermission(required, template, this.tplOperations, this.tplResource)
-                event.preventDefault()
+            onTemplatePermissonCheck (required, template) {
+                const curPermission = template.auth_actions.slice(0)
+                const permissionData = {
+                    common_flow: [{
+                        id: template.id,
+                        name: template.name
+                    }]
+                }
+                if (required.includes('common_flow_create_task')) {
+                    permissionData.project = [{
+                        id: '需要项目信息',
+                        name: '需要项目信息'
+                    }]
+                }
+                this.applyForPermission(required, curPermission, permissionData)
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return
@@ -602,7 +596,7 @@
                 }
                 if (name === 'newTask') {
                     this.$refs.ProjectSelectorModal.show(template_id)
-                    return false
+                    return
                 }
                 this.$router.push(url)
             },
@@ -641,9 +635,9 @@
                 searchComp.submit()
             },
             // 添加/取消收藏模板
-            async onCollectTemplate (template, event) {
-                if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
-                    this.onTemplatePermissonCheck(['view'], template, event)
+            async onCollectTemplate (template) {
+                if (!this.hasPermission(['common_flow_view'], template.auth_actions)) {
+                    this.onTemplatePermissonCheck(['common_flow_view'], template)
                     return
                 }
                 if (typeof this.collectingId === 'number') {

@@ -283,7 +283,7 @@
                     const res = await this.loadProjectList({ limit: 0 })
                     this.setProjectPerm(res.meta)
                     // 是否展示管理员入口
-                    const hasAdminPerm = await this.getActionPerm('admin_operate', ['view'])
+                    const hasAdminPerm = await this.getActionPerm('admin_view')
                     this.hasAdminPerm = hasAdminPerm
                     this.setAdminPerm(hasAdminPerm)
                     this.checkRouterPerm()
@@ -299,7 +299,7 @@
                 const name = routerName || this.$route.name
                 const { function: hasFunction, audit: hasAudit } = this.userRights
                 if (functionRouterMap.includes(name) && !hasFunction) {
-                    const result = await this.getActionPerm('function_center', ['view'])
+                    const result = await this.getActionPerm('function_view')
                     this.setUserRights({ type: 'function', val: result })
                     if (!result) {
                         this.togglePermissionApplyPage(
@@ -314,7 +314,7 @@
                         )
                     }
                 } else if (auditRouterMap.includes(name) && !hasAudit) {
-                    const result = await this.getActionPerm('audit_center', ['view'])
+                    const result = await this.getActionPerm('audit_view')
                     this.setUserRights({ type: 'audit', val: result })
                     if (!result) {
                         this.togglePermissionApplyPage(
@@ -354,17 +354,13 @@
             /**
              * 获取单个类型的权限
              * @param {String} type 类型
-             * @param {Array} actions 具体操作类型
              */
-            async getActionPerm (type, actions) {
+            async getActionPerm (type) {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: type,
-                        action_ids: JSON.stringify(actions)
+                        action: type
                     })
-                    return actions.every(action => {
-                        return res.data.details.some(m => m.action_id === action && m.is_pass)
-                    })
+                    return res.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 }

@@ -103,11 +103,11 @@
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
-                    'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
+                    'btn-permission-disable': !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
                 :loading="isSubmit"
-                v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
+                v-cursor="{ active: !hasPermission(nextStepPerm, actions) }"
                 @click="onCreateTask">
                 {{$t('下一步')}}
             </bk-button>
@@ -161,9 +161,7 @@
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
                 disabledButton: true,
-                tplActions: [],
-                tplOperations: [],
-                tplResource: {}
+                tplActions: []
             }
         },
         computed: {
@@ -174,7 +172,8 @@
                 'app_id': state => state.app_id
             }),
             ...mapState('project', {
-                'timeZone': state => state.timezone
+                'timeZone': state => state.timezone,
+                'projectName': state => state.projectName
             }),
             ...mapState('appmaker', {
                 'appmakerDetail': state => state.appmakerDetail
@@ -189,22 +188,18 @@
                 return this.entrance.indexOf('periodicTask') > -1
             },
             nextStepPerm () {
-                return this.isStartNow ? ['create_task'] : ['create_periodic_task']
-            },
-            resourceName () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.name : this.templateName
-            },
-            resourceId () {
-                return this.viewMode === 'appmaker' ? this.app_id : this.template_id
+                if (this.viewMode === 'appmaker') {
+                    return ['mini_app_create_task']
+                } else {
+                    if (this.isStartNow) {
+                        return this.common ? ['common_flow_create_task'] : ['flow_create_task']
+                    } else {
+                        return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
+                    }
+                }
             },
             actions () {
                 return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_actions : this.tplActions
-            },
-            resource () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_resource : this.tplResource
-            },
-            operations () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_operations : this.tplOperations
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
@@ -249,8 +244,6 @@
                     }
 
                     this.tplActions = templateData.auth_actions
-                    this.tplResource = templateData.auth_resource
-                    this.tplOperations = templateData.auth_operations
                     this.setTemplateData(templateData)
                     const params = {
                         templateId: this.template_id,
@@ -340,13 +333,37 @@
                 this.$router.push(url)
             },
             onCreateTask () {
-                if (!this.hasPermission(this.nextStepPerm, this.actions, this.operations)) {
-                    const resourceData = {
-                        name: this.resourceName,
-                        id: this.resourceId,
-                        auth_actions: this.actions
+                if (!this.hasPermission(this.nextStepPerm, this.actions)) {
+                    let resourceData = {}
+                    if (this.viewMode === 'appmaker') {
+                        resourceData = {
+                            mini_app: [{
+                                id: this.app_id,
+                                name: this.appmakerDetail.name
+                            }]
+                        }
+                    } else {
+                        if (this.common) {
+                            resourceData = {
+                                common_flow: [{
+                                    id: this.template_id,
+                                    name: this.templateName
+                                }],
+                                project: [{
+                                    id: this.project_id,
+                                    name: this.projectName
+                                }]
+                            }
+                        } else {
+                            resourceData = {
+                                flow: [{
+                                    id: this.template_id,
+                                    name: this.templateName
+                                }]
+                            }
+                        }
                     }
-                    this.applyForPermission(this.nextStepPerm, resourceData, this.operations, this.resource)
+                    this.applyForPermission(this.nextStepPerm, this.actions, resourceData)
                     return
                 }
 

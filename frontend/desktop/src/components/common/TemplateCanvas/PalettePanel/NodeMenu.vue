@@ -141,18 +141,6 @@
                 type: Boolean,
                 default: false
             },
-            tplOperations: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            tplResource: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
             nodes: {
                 type: Array,
                 default () {
@@ -262,7 +250,13 @@
                 }
             },
             onApplyPermission (node) {
-                this.applyForPermission(['view'], node, this.tplOperations, this.tplResource)
+                const permissionData = {
+                    flow: [{
+                        id: node.id,
+                        name: node.name
+                    }]
+                }
+                this.applyForPermission(['flow_view'], [], permissionData)
             }
         }
     }
