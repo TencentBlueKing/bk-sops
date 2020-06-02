@@ -17,8 +17,9 @@ import logging
 
 from gcloud.core import roles
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
@@ -32,25 +33,20 @@ def get_business_group_members(bk_biz_id, groups):
     group_fileds = [group for group in group_fileds if group]
 
     kwargs = {
-        'bk_supplier_account': 0,
-        'condition': {
-            'bk_biz_id': bk_biz_id
-        },
-        'fields': group_fileds
+        "bk_supplier_account": EnvironmentVariables.objects.get_var("BKAPP_DEFAULT_SUPPLIER_ACCOUNT", 0),
+        "condition": {"bk_biz_id": bk_biz_id},
+        "fields": group_fileds,
     }
     result = client.cc.search_business(kwargs)
 
-    if not result['result']:
-        logger.error('get_business_group_members search_business fail: args: {}, result: {}'.format(
-            kwargs,
-            result
-        ))
+    if not result["result"]:
+        logger.error("get_business_group_members search_business fail: args: {}, result: {}".format(kwargs, result))
         return []
 
     group_members = []
-    info = result['data']['info'][0]
+    info = result["data"]["info"][0]
     for field in group_fileds:
-        members = info.get(field, '').split(',')
+        members = info.get(field, "").split(",")
         if members:
             group_members.extend(members)
 
