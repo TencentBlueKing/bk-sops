@@ -98,7 +98,7 @@
                                     </a> -->
                                     <a
                                         class="template-operate-btn"
-                                        @click.prevent="getJumpUrl('newTask', props.row.id)">
+                                        @click.prevent="handleCreateTaskClick(props.row)">
                                         {{$t('新建任务')}}
                                     </a>
                                     <a
@@ -188,10 +188,15 @@
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
-        <ProjectSelectorModal
-            ref="ProjectSelectorModal"
-            @confirm="selectedProjectToNewTask">
-        </ProjectSelectorModal>
+        <SelectProjectModal
+            :title="$t('创建任务')"
+            :show="isSelectProjectShow"
+            :confirm-loading="permissionLoading"
+            :confirm-cursor="!hasCreateTaskPerm"
+            @onChange="handleProjectChange"
+            @onConfirm="handleCreateTaskConfirm"
+            @onCancel="handleCreateTaskCancel">
+        </SelectProjectModal>
         <bk-dialog
             :mask-close="false"
             :header-position="'left'"
@@ -218,7 +223,7 @@
     import AdvanceSearchForm from '@/components/common/advanceSearchForm/index.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
-    import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
+    import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import ListPageTipsTitle from '../ListPageTipsTitle.vue'
@@ -264,7 +269,7 @@
             CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
-            ProjectSelectorModal,
+            SelectProjectModal,
             ListPageTipsTitle,
             AdvanceSearchForm,
             NoData
@@ -280,7 +285,7 @@
                 isImportDialogShow: false,
                 isExportDialogShow: false,
                 isAuthorityDialogShow: false,
-                isShowProjectSelector: false,
+                isSelectProjectShow: false,
                 theDeleteTemplateId: undefined,
                 theAuthorityManageId: undefined,
                 active: true,
@@ -310,7 +315,11 @@
                     'limit-list': [15, 20, 30]
                 },
                 collectingId: '', // 正在被收藏/取消收藏的模板id
-                hasCreateCommonTplPerm: false // 创建公共流程权限
+                hasCreateCommonTplPerm: false, // 创建公共流程权限
+                permissionLoading: false,
+                hasCreateTaskPerm: true,
+                selectedProject: {},
+                selectedTpl: {}
             }
         },
         computed: {
@@ -319,13 +328,11 @@
                 'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
                 'projectBaseInfo': state => state.template.projectBaseInfo,
-                'v1_import_flag': state => state.v1_import_flag
+                'v1_import_flag': state => state.v1_import_flag,
+                'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
-                'authActions': state => state.authActions,
-                'authOperations': state => state.authOperations,
-                'authResource': state => state.authResource,
                 'projectName': state => state.projectName,
                 'project_id': state => state.project_id
             }),
@@ -594,19 +601,7 @@
                     template_id,
                     common: '1'
                 }
-                if (name === 'newTask') {
-                    this.$refs.ProjectSelectorModal.show(template_id)
-                    return
-                }
                 this.$router.push(url)
-            },
-            // 选完项目后新建任务
-            selectedProjectToNewTask (projectId, templateId) {
-                this.$router.push({
-                    name: 'taskStep',
-                    query: { template_id: templateId, common: '1' },
-                    params: { project_id: projectId, step: 'selectnode' }
-                })
             },
             getExecuteHistoryUrl (id) {
                 return {
@@ -673,6 +668,72 @@
             // 判断是否已在收藏列表
             isCollected (id) {
                 return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'common_flow')
+            },
+
+            // 点击创建任务
+            handleCreateTaskClick (tpl) {
+                this.selectedTpl = tpl
+                this.isSelectProjectShow = true
+                this.permissionLoading = false
+                this.hasCreateTaskPerm = true
+            },
+            async handleProjectChange (project) {
+                try {
+                    this.permissionLoading = false
+                    this.selectedProject = project
+                    const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                    const data = {
+                        action: 'common_flow_create_task',
+                        resources: [
+                            {
+                                system: bkSops.id,
+                                type: 'project',
+                                id: this.selectedProject.id,
+                                attributes: {}
+                            },
+                            {
+                                system: bkSops.id,
+                                type: 'common_flow',
+                                id: this.selectedTpl.id,
+                                attributes: {}
+                            }
+                        ]
+                    }
+                    const resp = await this.queryUserPermission(data)
+                    this.hasCreateTaskPerm = resp.is_allow
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.permissionLoading = false
+                }
+            },
+            handleCreateTaskConfirm () {
+                if (!this.hasCreateTaskPerm) {
+                    const reqPerimmison = ['common_flow_create_task']
+                    const curPermission = [...this.selectedTpl.auth_actions, ...this.selectedProject.auth_actions]
+                    const resourceData = {
+                        common_flow: [{
+                            id: this.selectedTpl.id,
+                            name: this.selectedTpl.name
+                        }],
+                        project: [{
+                            id: this.selectedProject.id,
+                            name: this.selectedProject.name
+                        }]
+                    }
+                    this.applyForPermission(reqPerimmison, curPermission, resourceData)
+                } else {
+                    this.$router.push({
+                        name: 'taskStep',
+                        query: { template_id: this.selectedTpl.id, common: '1' },
+                        params: { project_id: this.selectedProject.id, step: 'selectnode' }
+                    })
+                }
+            },
+            handleCreateTaskCancel () {
+                this.selectedTpl = {}
+                this.selectedProject = {}
+                this.isSelectProjectShow = false
             }
         }
     }

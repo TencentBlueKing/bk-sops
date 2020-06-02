@@ -256,9 +256,6 @@
             ...mapActions('project', [
                 'loadProjectList'
             ]),
-            ...mapMutations('project', [
-                'setProjectPerm'
-            ]),
             ...mapMutations([
                 'setUserRights',
                 'setAdminPerm'
@@ -280,8 +277,7 @@
             },
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
-                    const res = await this.loadProjectList({ limit: 0 })
-                    this.setProjectPerm(res.meta)
+                    await this.loadProjectList({ limit: 0 })
                     // 是否展示管理员入口
                     const hasAdminPerm = await this.getActionPerm('admin_view')
                     this.hasAdminPerm = hasAdminPerm

@@ -18,8 +18,6 @@ const project = {
         projectName: '',
         projectList: [],
         timeZone: window.TIMEZONE,
-        authResource: {},
-        authOperations: [],
         authActions: []
     },
     mutations: {
@@ -40,10 +38,6 @@ const project = {
         },
         setProjectActions (state, data) {
             state.authActions = data
-        },
-        setProjectPerm (state, data) {
-            state.authResource = data.auth_resource
-            state.authOperations = data.auth_operations
         }
     },
     actions: {

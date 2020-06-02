@@ -237,7 +237,6 @@
         },
         computed: {
             ...mapState('project', {
-                'authResource': state => state.authResource,
                 'project_id': state => state.project_id
             }),
             projectDialogTitle () {
