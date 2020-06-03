@@ -105,6 +105,7 @@ class ImportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         project_id = kwargs["project_id"]
         templates_data = read_template_data_file(request.FILES["data_file"])["data"]["template_data"]
+        request.FILES["data_file"].seek(0)
         override = request.POST["override"]
 
         check_info = CommonTemplate.objects.import_operation_check(templates_data, project_id)
@@ -129,7 +130,7 @@ class ImportInterceptor(ViewInterceptor):
                 allowed = iam.is_allowed(create_request)
 
                 if not allowed:
-                    raise AuthFailedException(IAMMeta.SYSTEM_ID, create_action, project_resources)
+                    raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, create_action, project_resources)
 
             # check flow edit permission
             if check_info["override_template"]:

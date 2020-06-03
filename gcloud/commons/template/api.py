@@ -26,6 +26,7 @@ from gcloud.exceptions import FlowExportError
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.utils.dates import time_now_str
+from gcloud.utils.strings import string_to_boolean
 from gcloud.utils.decorators import request_validate
 from gcloud.commons.template.validators import (
     FormValidator,
@@ -93,7 +94,7 @@ def export_templates(request):
 @iam_intercept(ImportInterceptor())
 def import_templates(request):
     f = request.FILES["data_file"]
-    override = request.POST["override"]
+    override = string_to_boolean(request.POST["override"])
 
     r = read_template_data_file(f)
     templates_data = r["data"]["template_data"]

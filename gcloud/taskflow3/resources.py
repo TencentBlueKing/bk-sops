@@ -22,7 +22,7 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
 from iam import Resource, Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
 from pipeline.engine import states
@@ -204,7 +204,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 except AppMaker.DoesNotExist:
                     raise BadRequest("app_maker[pk=%s] does not exist" % app_maker_id)
 
-                allow_or_raise_auth_failed(
+                allow_or_raise_immediate_response(
                     iam=iam,
                     system=IAMMeta.SYSTEM_ID,
                     subject=Subject("user", bundle.request.user.username),
@@ -221,7 +221,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
             # flow create task perm
             else:
-                allow_or_raise_auth_failed(
+                allow_or_raise_immediate_response(
                     iam=iam,
                     system=IAMMeta.SYSTEM_ID,
                     subject=Subject("user", bundle.request.user.username),
@@ -242,7 +242,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
             except CommonTemplate.DoesNotExist:
                 raise BadRequest("common template[pk=%s] does not exist" % template_id)
 
-            allow_or_raise_auth_failed(
+            allow_or_raise_immediate_response(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", bundle.request.user.username),
