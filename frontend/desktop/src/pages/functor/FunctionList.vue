@@ -15,7 +15,7 @@
             <base-title :title="$t('职能化中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
-                    :search-config="{ placeholder: $t('请输入ID或流程名称') }"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">

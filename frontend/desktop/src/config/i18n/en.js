@@ -455,7 +455,6 @@ const en = {
     '请输入执行人': 'Input executor please',
     '请选择状态': 'Choose status please',
     '未完成': 'Unfinished',
-    '请输入ID或流程名称': 'Please enter ID or flow name',
     '任务类型': 'Task types',
     '请输入更新人': 'Input editor please',
     '请输入轻应用名称': 'Please enter name',

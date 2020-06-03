@@ -38,7 +38,7 @@
                     @page-limit-change="handlePageLimitChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="$t('名称')" prop="name" min-width="200">
+                    <bk-table-column :label="$t('任务名称')" prop="name" min-width="200">
                         <template slot-scope="props">
                             <span :title="props.row.name">{{props.row.name}}</span>
                         </template>
