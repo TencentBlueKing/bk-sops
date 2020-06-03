@@ -98,7 +98,7 @@ const project = {
     getters: {
         userCanViewProjects (state) {
             return state.projectList.filter(item => {
-                return item.auth_actions.indexOf('view') > -1
+                return item.auth_actions.indexOf('project_view') > -1
             })
         }
     }
