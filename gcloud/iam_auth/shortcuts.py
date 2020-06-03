@@ -42,14 +42,17 @@ def get_user_projects(username):
 
 
 def filter_flows_can_create_task(username, flows_id):
+    allowed_flows_id = set()
+
+    if not flows_id:
+        return allowed_flows_id
+
     iam_result = get_resources_allowed_actions_for_user(
         username,
         IAMMeta.SYSTEM_ID,
         [IAMMeta.FLOW_CREATE_TASK_ACTION],
-        [[Resource(IAMMeta.SYSTEM_ID, IAMMeta.FLOW_RESOURCE, rid, {}) for rid in flows_id]],
+        [[Resource(IAMMeta.SYSTEM_ID, IAMMeta.FLOW_RESOURCE, rid, {})] for rid in flows_id],
     )
-
-    allowed_flows_id = set()
 
     if not iam_result:
         return allowed_flows_id

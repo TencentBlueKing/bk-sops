@@ -24,7 +24,7 @@ iam = get_iam_client()
 
 class PeriodicTaskSingleActionInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
-        task_id = args[1]
+        task_id = kwargs["task_id"]
 
         subject = Subject("user", request.user.username)
         action = Action(self.action)

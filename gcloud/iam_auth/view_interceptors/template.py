@@ -103,7 +103,7 @@ class ExportInterceptor(ViewInterceptor):
 
 class ImportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
-        project_id = args[0]
+        project_id = kwargs["project_id"]
         templates_data = read_template_data_file(request.FILES["data_file"])["data"]["template_data"]
         override = request.POST["override"]
 
