@@ -12,12 +12,12 @@
 <template>
     <div class="search-result">
         <div class="search-input">
-            <bk-input v-model="searchStr" right-icon="bk-icon icon-search" @enter="onSearch"></bk-input>
+            <bk-input v-model.trim="searchStr" right-icon="bk-icon icon-search" @enter="onSearch"></bk-input>
         </div>
         <div class="result-wrapper" v-bkloading="{ isLoading: searchLoading, opacity: 1 }">
             <div class="result-title">
-                <h3>{{ i18n.resultTitle }}</h3>
-                <span>{{ i18n.find }}</span>{{ matchedList.length }}<span>{{ i18n.result }}</span>
+                <h3>{{ $t('搜索结果') }}</h3>
+                <span>{{ $t('找到') }}</span>{{ searchResultTotal }}<span>{{ $t('条结果') }}</span>
             </div>
             <template v-if="matchedList.length">
                 <div class="list-table template-list-table" v-if="tplDataLoading || tplData.length">
@@ -37,10 +37,10 @@
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
                                     <span
-                                        v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
+                                        v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
                                         v-cursor="{ active: true }"
                                         class="text-permission-disable"
-                                        @click="onApplyPerm(['view'], props.row, 'tpl')">
+                                        @click="onApplyPerm(['flow_view'], props.row, 'tpl')">
                                         {{props.row.name}}
                                     </span>
                                     <a
@@ -56,29 +56,29 @@
                                     <span :title="props.row[col.prop]">{{ props.row.project.name }}</span>
                                 </template>
                                 <template v-else-if="col.prop === 'is_deleted'">
-                                    <span>{{ props.row.is_deleted ? i18n.yes : i18n.no }}</span>
+                                    <span>{{ props.row.is_deleted ? $t('是') : $t('否') }}</span>
                                 </template>
                                 <template v-else-if="col.prop === 'operation'">
                                     <span
                                         v-if="props.row.is_deleted"
                                         class="table-link"
                                         @click="onRestoreTemplate(props.row)">
-                                        {{ i18n.restore }}
+                                        {{ $t('恢复模板') }}
                                     </span>
                                     <template v-else>
                                         <span
-                                            v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                            v-if="!hasPermission(['flow_edit'], props.row.auth_actions)"
                                             v-cursor="{ active: true }"
                                             class="text-permission-disable"
-                                            @click="onApplyPerm(['edit'], props.row, 'tpl')">
-                                            {{i18n.edit}}
+                                            @click="onApplyPerm(['flow_edit'], props.row, 'tpl')">
+                                            {{$t('编辑')}}
                                         </span>
                                         <a
                                             v-else
                                             class="table-link"
                                             target="_blank"
                                             :href="`${site_url}template/edit/${props.row.project.id}/?template_id=${props.row.id}`">
-                                            {{ i18n.edit }}
+                                            {{ $t('编辑') }}
                                         </a>
                                     </template>
                                 </template>
@@ -105,10 +105,10 @@
                             <template slot-scope="props">
                                 <template v-if="col.prop === 'name'">
                                     <span
-                                        v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                        v-if="!hasPermission(['task_view'], props.row.auth_actions, taskOperations)"
                                         v-cursor="{ active: true }"
                                         class="text-permission-disable"
-                                        @click="onApplyPerm(['view'], props.row, 'task')">
+                                        @click="onApplyPerm(['task_view'], props.row, 'task')">
                                         {{props.row.name}}
                                     </span>
                                     <a
@@ -142,7 +142,7 @@
                     </bk-table>
                 </div>
             </template>
-            <div v-else class="no-data-matched" slot="empty"><no-data :message="i18n.empty"></no-data></div>
+            <div v-else class="no-data-matched" slot="empty"><no-data :message="$t('没有找到相关内容')"></no-data></div>
         </div>
         <bk-dialog
             width="400"
@@ -150,19 +150,19 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.restore"
+            :title="$t('恢复模板')"
             :value="isRestoreDialogShow"
             :loading="restorePending"
             @confirm="onRestoreConfirm"
             @cancel="isRestoreDialogShow = false">
             <div class="dialog-content">
-                {{i18n.restoreTip + '"' + restoreData.name + '"?'}}
+                {{$t('确认恢复') + '"' + restoreData.name + '"?'}}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
@@ -170,31 +170,31 @@
 
     const TEMPLATE_TABLE_COLUMN = [
         {
-            label: gettext('ID'),
+            label: i18n.t('ID'),
             prop: 'id',
             width: 100
         },
         {
-            label: gettext('流程名称'),
+            label: i18n.t('流程名称'),
             prop: 'name'
         },
         {
-            label: gettext('项目'),
+            label: i18n.t('项目'),
             prop: 'projectName',
             width: 200
         },
         {
-            label: gettext('更新时间'),
+            label: i18n.t('更新时间'),
             prop: 'edit_time',
             width: 200
         },
         {
-            label: gettext('是否已删除'),
+            label: i18n.t('是否已删除'),
             prop: 'is_deleted',
             width: 100
         },
         {
-            label: gettext('操作'),
+            label: i18n.t('操作'),
             prop: 'operation',
             width: 100
         }
@@ -202,45 +202,45 @@
 
     const TASK_TABLE_COLUMN = [
         {
-            label: gettext('ID'),
+            label: i18n.t('ID'),
             prop: 'id',
             width: 90
         },
         {
-            label: gettext('任务名称'),
+            label: i18n.t('任务名称'),
             prop: 'name'
         },
         {
-            label: gettext('项目'),
+            label: i18n.t('项目'),
             prop: 'projectName'
         },
         {
-            label: gettext('执行开始'),
+            label: i18n.t('执行开始'),
             prop: 'start_time',
             width: 200
         },
         {
-            label: gettext('执行结束'),
+            label: i18n.t('执行结束'),
             prop: 'finish_time',
             width: 200
         },
         {
-            label: gettext('创建人'),
+            label: i18n.t('创建人'),
             prop: 'creator_name',
             width: 100
         },
         {
-            label: gettext('执行人'),
+            label: i18n.t('执行人'),
             prop: 'executor_name',
             width: 100
         },
         {
-            label: gettext('创建方式'),
+            label: i18n.t('创建方式'),
             prop: 'create_method',
             width: 100
         },
         {
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             prop: 'status',
             width: 100
         }
@@ -268,8 +268,9 @@
                 taskDataLoading: false,
                 matchedList: [],
                 methodList: {},
+                templateResultTotal: 0,
+                taskResultTotal: 0,
                 tplFilter: {},
-                tplOperations: [],
                 tplResource: {},
                 taskFilter: {},
                 tplData: [],
@@ -291,24 +292,16 @@
                     count: 0,
                     'limit-list': [15, 20, 30],
                     limit: 15
-                },
-                i18n: {
-                    resultTitle: gettext('搜索结果'),
-                    find: gettext('找到'),
-                    result: gettext('条结果'),
-                    empty: gettext('没有找到相关内容'),
-                    yes: gettext('是'),
-                    no: gettext('否'),
-                    restore: gettext('恢复模板'),
-                    edit: gettext('编辑'),
-                    restoreTip: gettext('确认恢复')
                 }
             }
         },
         computed: {
             ...mapState({
                 site_url: state => state.site_url
-            })
+            }),
+            searchResultTotal () {
+                return this.templateResultTotal + this.taskResultTotal
+            }
         },
         created () {
             this.getSearchResult()
@@ -327,6 +320,8 @@
             async getSearchResult () {
                 try {
                     this.searchLoading = true
+                    this.templateResultTotal = 0
+                    this.taskResultTotal = 0
                     const res = await this.search({ keyword: this.searchStr })
                     if (res.result) {
                         this.matchedList = res.data.matched
@@ -358,7 +353,7 @@
                     }
                     const res = await this.template(params)
                     this.tplData = res.objects
-                    this.tplOperations = res.meta.auth_operations
+                    this.templateResultTotal = res.meta.total_count
                     this.tplResource = res.meta.auth_resource
                     this.tplPagination.count = res.meta.total_count
                 } catch (e) {
@@ -377,6 +372,7 @@
                     }
                     const res = await this.taskflow(params)
                     this.taskData = res.objects
+                    this.taskResultTotal = res.meta.total_count
                     this.taskOperations = res.meta.auth_operations
                     this.taskResource = res.meta.auth_resource
                     this.taskPagination.count = res.meta.total_count
@@ -385,16 +381,16 @@
                         
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
-                            status.text = gettext('完成')
+                            status.text = i18n.t('完成')
                         } else if (item.is_revoked) {
                             status.cls = 'revoke common-icon-dark-circle-shape'
-                            status.text = gettext('撤销')
+                            status.text = i18n.t('撤销')
                         } else if (item.is_started) {
                             status.cls = 'loading common-icon-loading'
                             this.getExecuteDetail(item, index)
                         } else {
                             status.cls = 'created common-icon-dark-circle-shape'
-                            status.text = gettext('未执行')
+                            status.text = i18n.t('未执行')
                         }
                         return status
                     })
@@ -418,22 +414,22 @@
                             case 'RUNNING':
                             case 'BLOCKED':
                                 status.cls = 'running common-icon-dark-circle-ellipsis'
-                                status.text = gettext('执行中')
+                                status.text = i18n.t('执行中')
                                 break
                             case 'SUSPENDED':
                                 status.cls = 'execute common-icon-dark-circle-pause'
-                                status.text = gettext('暂停')
+                                status.text = i18n.t('暂停')
                                 break
                             case 'NODE_SUSPENDED':
                                 status.cls = 'execute common-icon-dark-circle-pause'
-                                status.text = gettext('节点暂停')
+                                status.text = i18n.t('节点暂停')
                                 break
                             case 'FAILED':
                                 status.cls = 'failed common-icon-dark-circle-close'
-                                status.text = gettext('失败')
+                                status.text = i18n.t('失败')
                                 break
                             default:
-                                status.text = gettext('未知')
+                                status.text = i18n.t('未知')
                         }
                         this.executeStatus.splice(index, 1, status)
                     } else {
@@ -463,9 +459,15 @@
                 this.getSearchResult()
             },
             onApplyPerm (required, data, type) {
-                const operations = type === 'tpl' ? this.tplOperations : this.taskOperations
-                const resource = type === 'tpl' ? this.tplResource : this.taskResource
-                this.applyForPermission(required, data, operations, resource)
+                console.log(data)
+                const resourceData = {}
+                const reItem = { id: data.id, name: data.name }
+                if (type === 'tpl') {
+                    resourceData.flow = [reItem]
+                } else {
+                    resourceData.task = [reItem]
+                }
+                this.applyForPermission(required, data.auth_actions, resourceData)
             },
             onRestoreTemplate (tpl) {
                 this.isRestoreDialogShow = true

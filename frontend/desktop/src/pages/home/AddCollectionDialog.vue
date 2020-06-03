@@ -13,7 +13,7 @@
     <bk-dialog
         width="850"
         :ext-cls="'common-dialog add-collection'"
-        :title="i18n.title"
+        :title="$t('')"
         :mask-close="false"
         :value="isAddCollectionDialogShow"
         :header-position="'left'"
@@ -54,16 +54,16 @@
                                             'template-item',
                                             {
                                                 'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission(['view'], template.auth_actions, tplOperations)
+                                                'permission-disable': !hasPermission([viewPermission], template.auth_actions)
                                             }
                                         ]"
-                                        @click="onSelectTemplate(template)">
+                                        @click="onSelectItem(template)">
                                         <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
                                         <div class="item-name-box">
                                             <div class="template-item-name">{{template.name}}</div>
                                         </div>
                                         <div class="apply-permission-mask">
-                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
+                                            <bk-button theme="primary" size="small">{{$t('申请权限')}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>
@@ -75,9 +75,9 @@
             </div>
             <div class="selected-wrapper">
                 <div class="selected-area-title">
-                    {{i18n.selected}}
+                    {{$t('已选择')}}
                     <span class="select-count">{{selectedList.length}}</span>
-                    {{i18n.num}}
+                    {{$t('项')}}
                 </div>
                 <ul class="selected-list">
                     <li
@@ -90,12 +90,12 @@
                         <div class="item-name-box">
                             <div class="selected-item-name">{{template.name}}</div>
                         </div>
-                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
+                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="onUnselectItem(template)"></i>
                     </li>
                 </ul>
             </div>
             <div class="task-footer" v-if="selectError">
-                <span class="error-info">{{i18n.errorInfo}}</span>
+                <span class="error-info">{{$t('请选择收藏项')}}</span>
             </div>
         </div>
         <DialogLoadingBtn
@@ -107,42 +107,44 @@
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import toolsUtils from '@/utils/tools.js'
     import { mapGetters, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import permission from '@/mixins/permission.js'
     import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
+
     const FILTER_LIST = [
         {
-            name: gettext('选择类型'),
+            name: i18n.t('选择类型'),
             id: 'type',
             children: [
                 {
-                    name: gettext('公共流程'),
-                    id: 'common'
+                    name: i18n.t('公共流程'),
+                    id: 'common_flow'
                 },
                 {
-                    name: gettext('项目流程'),
-                    id: 'process'
+                    name: i18n.t('项目流程'),
+                    id: 'flow'
                 },
                 {
-                    name: gettext('周期任务'),
-                    id: 'periodic'
+                    name: i18n.t('周期任务'),
+                    id: 'periodic_task'
                 },
                 {
-                    name: gettext('轻应用'),
-                    id: 'app_maker'
+                    name: i18n.t('轻应用'),
+                    id: 'mini_app'
                 }
             ]
         },
         {
-            name: gettext('选择项目'),
+            name: i18n.t('选择项目'),
             id: 'project',
             children: []
         }
     ]
+
     export default {
         name: 'AddCollectionDialog',
         components: {
@@ -162,28 +164,18 @@
         },
         data () {
             return {
-                i18n: {
-                    num: gettext('项'),
-                    delete: gettext('删除'),
-                    selected: gettext('已选择'),
-                    errorInfo: gettext('请选择收藏项'),
-                    applyPermission: gettext('申请权限'),
-                    noSearchResult: gettext('搜索结果为空')
-                },
                 selectError: false,
                 collectionPending: false,
-                tplOperations: [],
-                tplResource: {},
                 panelList: [],
                 selectedList: [],
                 dialogFooterData: [
                     {
                         type: 'primary',
                         loading: false,
-                        btnText: gettext('确认'),
+                        btnText: i18n.t('确认'),
                         click: 'onConfirm'
                     }, {
-                        btnText: gettext('取消'),
+                        btnText: i18n.t('取消'),
                         click: 'onCancel'
                     }
                 ],
@@ -191,8 +183,8 @@
                 searchValue: [ // 搜索值
                     {
                         id: 'type',
-                        name: gettext('选择类型'),
-                        values: [{ id: 'common', name: '公共流程' }]
+                        name: i18n.t('选择类型'),
+                        values: [{ id: 'common_flow', name: i18n.t('公共流程') }]
                     }
                 ]
             }
@@ -213,6 +205,17 @@
                 set (val) {
                     this.filterList = val
                 }
+            },
+            listItemType () {
+                const typeCondition = this.searchValue.find(item => item.id === 'type')
+                if (!typeCondition) {
+                    return ''
+                } else {
+                    return typeCondition.values[0].id
+                }
+            },
+            viewPermission () {
+                return `${this.listItemType}_view`
             }
         },
         watch: {
@@ -225,7 +228,7 @@
             }
         },
         methods: {
-            ...mapActions('template/', [
+            ...mapActions([
                 'addToCollectList'
             ]),
             ...mapActions('templateList/', [
@@ -253,21 +256,21 @@
                             searchStr += value.id
                         }
                     })
-                    if (reqType !== 'common' && !projectId) {
+                    if (reqType !== 'common_flow' && !projectId) {
                         return false
                     }
                     this.collectionPending = true
                     switch (reqType) {
-                        case 'common':
+                        case 'common_flow':
                             panelList = await this.getTemplateList(1, searchStr)
                             break
-                        case 'process':
+                        case 'flow':
                             panelList = await this.getTemplateList(false, searchStr, projectId)
                             break
-                        case 'periodic':
+                        case 'periodic_task':
                             panelList = await this.getPeriodicList(projectId, searchStr)
                             break
-                        case 'app_maker':
+                        case 'mini_app':
                             panelList = await this.getAppMakerList(projectId, searchStr)
                             break
                         default:
@@ -292,8 +295,6 @@
                     project__id: projectId || undefined,
                     pipeline_template__name__contains: searchStr || undefined
                 })
-                this.tplOperations = data.meta.auth_operations
-                this.tplResource = data.meta.auth_resource
                 return data.objects || []
             },
             async getAppMakerList (projectId, searchStr) {
@@ -345,24 +346,27 @@
             getTemplateIcon (template) {
                 return template.name.trim().substr(0, 1).toUpperCase()
             },
-            // 选择收藏
-            onSelectTemplate (template) {
-                if (this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
+            // 选中/取消选中
+            onSelectItem (item) {
+                if (this.hasPermission([this.viewPermission], item.auth_actions)) {
                     this.selectError = false
-                    const tplIndex = this.getTplIndexInSelected(template)
-                    if (tplIndex > -1) {
-                        this.selectedList.splice(tplIndex, 1)
+                    const index = this.getTplIndexInSelected(item)
+                    if (index > -1) {
+                        this.selectedList.splice(index, 1)
                     } else {
-                        this.selectedList.push(template)
+                        this.selectedList.push(item)
                     }
                 } else {
-                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
+                    const resources = {
+                        [this.listItemType]: [item]
+                    }
+                    this.applyForPermission([this.viewPermission], item.auth_actions, resources)
                 }
             },
             // 取消选中
-            deleteTemplate (template) {
-                const tplIndex = this.getTplIndexInSelected(template)
-                this.selectedList.splice(tplIndex, 1)
+            onUnselectItem (item) {
+                const index = this.getTplIndexInSelected(item)
+                this.selectedList.splice(index, 1)
             },
             /**
              *过滤已选项
@@ -377,7 +381,7 @@
                         const item = list[0]
                         // type
                         if (item.id === 'type') {
-                            if (item.values[0].id === 'common') {
+                            if (item.values[0].id === 'common_flow') {
                                 this.searchOptionalList = []
                                 break
                             }
@@ -414,15 +418,9 @@
                 }
                 const saveList = this.selectedList.map(template => {
                     const extra_info = this.getExtraInfo(template, template.collectType, projectId)
-                    const saveCategoryMap = {
-                        'process': 'flow',
-                        'common': 'common_flow',
-                        'periodic': 'periodic_task',
-                        'app_maker': 'mini_app'
-                    }
                     return {
                         extra_info,
-                        category: saveCategoryMap[template.collectType]
+                        category: template.collectType
                     }
                 })
                 try {
@@ -430,7 +428,7 @@
                     this.dialogFooterData[0].loading = false
                     if (res.objects) {
                         this.$bkMessage({
-                            message: gettext('保存成功'),
+                            message: i18n.t('保存成功'),
                             theme: 'success'
                         })
                         this.$emit('onCloseDialog', true)
@@ -445,14 +443,14 @@
             getExtraInfo (template, type, projectId) {
                 let extraInfo = {}
                 switch (type) {
-                    case 'common':
+                    case 'common_flow':
                         extraInfo = {
                             template_id: template.template_id,
                             name: template.name,
                             id: template.id
                         }
                         break
-                    case 'process':
+                    case 'flow':
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
@@ -461,7 +459,7 @@
                             id: template.id
                         }
                         break
-                    case 'periodic':
+                    case 'periodic_task':
                         extraInfo = {
                             project_id: projectId,
                             template_id: template.template_id,
@@ -469,7 +467,7 @@
                             id: template.id
                         }
                         break
-                    case 'app_maker':
+                    case 'mini_app':
                         extraInfo = {
                             app_id: template.id,
                             project_id: projectId,

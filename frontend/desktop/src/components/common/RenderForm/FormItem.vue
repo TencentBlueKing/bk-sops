@@ -19,64 +19,75 @@
                 'rf-has-hook': option.showHook,
                 'show-label': option.showLabel,
                 'rf-view-mode': !option.formMode,
-                'rf-col-layout': scheme.attrs.cols
+                'rf-col-layout': scheme.attrs.cols,
+                'rf-section-item': scheme.type === 'section'
             }
         ]"
         :style="{
             width: (scheme.attrs.cols ? scheme.attrs.cols / 12 * 100 : 100) + '%'
         }">
-        <div v-if="showFormTitle" class="rf-group-name">
-            <span class="name">{{scheme.name || scheme.attrs.name}}</span>
-            <span v-if="scheme.attrs.desc" class="rf-group-desc">
-                <i
+        <!-- 分组 Tag，样式特殊处理 -->
+        <tag-section
+            v-if="scheme.type === 'section'"
+            ref="tagComponent"
+            :name="scheme.attrs.name"
+            :tag-code="scheme.tag_code">
+        </tag-section>
+        <template v-else>
+            <!-- 表单作为全局变量时的名称 -->
+            <div v-if="showFormTitle" class="rf-group-name">
+                <span class="name">{{scheme.name || scheme.attrs.name}}</span>
+                <span v-if="scheme.attrs.desc" class="rf-group-desc">
+                    <i
+                        v-bk-tooltips="{
+                            content: scheme.attrs.desc,
+                            placements: ['right'],
+                            zIndex: 2002
+                        }"
+                        class="common-icon-info">
+                    </i>
+                </span>
+            </div>
+            <!-- 表单名称 -->
+            <label
+                v-if="option.showLabel && scheme.attrs.name"
+                :class="['rf-tag-label', { 'required': isRequired() }]">
+                {{scheme.attrs.name}}
+            </label>
+            <!-- 表单勾选为全局变量 -->
+            <div v-show="hook" class="rf-tag-form">
+                <el-input :disabled="true" :value="String(value)"></el-input>
+            </div>
+            <!-- 表单元素 -->
+            <component
+                v-show="!hook"
+                :class="scheme.attrs.name ? 'rf-tag-form' : ''"
+                ref="tagComponent"
+                :is="tagComponent"
+                v-bind="getDefaultAttrs()"
+                :tag-code="scheme.tag_code"
+                :atom-events="scheme.events"
+                :atom-methods="scheme.methods"
+                :value="formValue"
+                :parent-value="parentValue"
+                @change="updateForm"
+                @onShow="onShowForm"
+                @onHide="onHideForm">
+            </component>
+            <!-- 变量勾选checkbox -->
+            <div class="rf-tag-hook" v-if="showHook">
+                <bk-checkbox
                     v-bk-tooltips="{
-                        content: scheme.attrs.desc,
-                        placements: ['right'],
+                        content: hook ? i18n.hooked : i18n.cancelHook,
+                        placements: ['left'],
+                        customClass: 'offset-left-tooltip',
                         zIndex: 2002
                     }"
-                    class="common-icon-info">
-                </i>
-            </span>
-        </div>
-        <!-- 表单名称 -->
-        <label
-            v-if="option.showLabel && scheme.attrs.name"
-            :class="['rf-tag-label', { 'required': isRequired() }]">
-            {{scheme.attrs.name}}
-        </label>
-        <!-- 表单勾选为全局变量 -->
-        <div v-show="hook" class="rf-tag-form">
-            <el-input :disabled="true" :value="String(value)"></el-input>
-        </div>
-        <!-- 表单元素 -->
-        <component
-            v-show="!hook"
-            :class="scheme.attrs.name ? 'rf-tag-form' : ''"
-            ref="tagComponent"
-            :is="tagComponent"
-            v-bind="getDefaultAttrs()"
-            :tag-code="scheme.tag_code"
-            :atom-events="scheme.events"
-            :atom-methods="scheme.methods"
-            :value="formValue"
-            :parent-value="parentValue"
-            @change="updateForm"
-            @onShow="onShowForm"
-            @onHide="onHideForm">
-        </component>
-        <!-- 变量勾选checkbox -->
-        <div class="rf-tag-hook" v-if="showHook">
-            <bk-checkbox
-                v-bk-tooltips="{
-                    content: hook ? i18n.hooked : i18n.cancelHook,
-                    placements: ['left'],
-                    customClass: 'offset-left-tooltip',
-                    zIndex: 2002
-                }"
-                :value="hook"
-                @change="onHookForm">
-            </bk-checkbox>
-        </div>
+                    :value="hook"
+                    @change="onHookForm">
+                </bk-checkbox>
+            </div>
+        </template>
     </div>
 </template>
 <script>
@@ -102,7 +113,7 @@
             const componentConfig = context(fileName)
             const comp = componentConfig.default
             const typeName = comp.name.slice(3).replace(/[A-Z]/g, match => {
-                return `_${match.toLowerCase()}`
+                return `-${match.toLowerCase()}`
             })
             const name = 'tag' + typeName
 
@@ -165,7 +176,7 @@
             const formValue = this.getFormValue(this.value)
 
             return {
-                tagComponent: `tag_${this.scheme.type}`,
+                tagComponent: `tag-${this.scheme.type.replace(/_/g, '-')}`,
                 showForm,
                 showHook,
                 formValue,
@@ -182,7 +193,7 @@
         },
         watch: {
             scheme (val) {
-                this.tagComponent = `tag_${this.scheme.type}`
+                this.tagComponent = `tag-${this.scheme.type.replace(/_/g, '-')}`
             },
             value (val) {
                 this.formValue = this.getFormValue(val)
@@ -356,6 +367,7 @@
     margin: 15px 0;
     min-height: 32px;
     font-size: 12px;
+    color: #63656e;
     &:first-child {
         margin-top: 0;
     }
@@ -375,6 +387,9 @@
     }
     &.rf-view-mode {
         margin: 8px 0;
+    }
+    &.rf-section-item {
+        min-height: initial;
     }
     .rf-tag-label {
         float: left;

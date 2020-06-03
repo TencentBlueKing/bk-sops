@@ -16,34 +16,18 @@ import ujson as json
 from django.views.decorators.http import require_POST
 from django.http.response import JsonResponse
 
-from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
-
-from gcloud.core.permissions import admin_operate_resource
-from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor
 
 
 @require_POST
+@iam_intercept(AdminEditViewInterceptor())
 def restore_template(request):
 
-    verify_or_raise_auth_failed(principal_type='user',
-                                principal_id=request.user.username,
-                                resource=admin_operate_resource,
-                                action_ids=[admin_operate_resource.actions.edit.id],
-                                instance=None)
-
     data = json.loads(request.body)
-    template_id = data['template_id']
+    template_id = data["template_id"]
 
     res = TaskTemplate.objects.filter(id=template_id, is_deleted=True).update(is_deleted=False)
 
-    if res:
-        template = TaskTemplate.objects.get(id=template_id)
-        task_template_resource.register_instance(template)
-
-    return JsonResponse({
-        'result': True,
-        'data': {
-            'affect': res
-        }
-    })
+    return JsonResponse({"result": True, "data": {"affect": res}})

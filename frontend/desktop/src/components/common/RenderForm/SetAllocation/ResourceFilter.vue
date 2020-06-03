@@ -308,6 +308,9 @@
             ]),
             async getSetTopo () {
                 try {
+                    if (!this.urls['cc_search_topo_set']) {
+                        return
+                    }
                     this.pending.set = true
                     const resp = await this.getCCSearchTopoSet({
                         url: this.urls['cc_search_topo_set']
@@ -333,6 +336,9 @@
             },
             async getResource () {
                 try {
+                    if (!this.urls['cc_search_topo_module']) {
+                        return
+                    }
                     this.pending.resource = true
                     const resp = await this.getCCSearchTopoResource({
                         url: this.urls['cc_search_topo_module']
@@ -355,6 +361,9 @@
             async getModule (id) {
                 const setId = id.replace(/^set_/, '')
                 try {
+                    if (!this.urls['cc_search_module']) {
+                        return
+                    }
                     this.pending.set = true
                     const params = {
                         url: this.urls['cc_search_module'],
@@ -375,6 +384,9 @@
             },
             async getCondition () {
                 try {
+                    if (!this.urls['cc_search_object_attribute_host']) {
+                        return
+                    }
                     this.pending.condition = true
                     const resp = await this.getCCSearchObjAttrHost({
                         url: this.urls['cc_search_object_attribute_host']
@@ -414,7 +426,7 @@
             },
             // 由集群ID递归查找集群名称
             filterSetName (id, list) {
-                let name
+                let name = ''
                 list.some(item => {
                     if (item.id === id) {
                         name = item.label

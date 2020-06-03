@@ -19,11 +19,11 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -37,11 +37,7 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    taskflow_resource,
-    [taskflow_resource.actions.operate],
-    get_kwargs={"task_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(TaskOperateInterceptor())
 def operate_node(request, project_id, task_id):
     try:
         req_data = json.loads(request.body)
@@ -85,7 +81,5 @@ def operate_node(request, project_id, task_id):
     }
     task = TaskFlowInstance.objects.get(pk=task_id)
     result = task.nodes_action(action, node_id, username, **kwargs)
-    result["code"] = (
-        err_code.SUCCESS.code if result["result"] else err_code.UNKNOW_ERROR.code
-    )
+    result["code"] = err_code.SUCCESS.code if result["result"] else err_code.UNKNOW_ERROR.code
     return JsonResponse(result)

@@ -19,11 +19,11 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.periodictask.permissions import periodic_task_resource
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import PeriodicTaskEditInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -37,22 +37,14 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    periodic_task_resource,
-    [periodic_task_resource.actions.edit],
-    get_kwargs={"task_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(PeriodicTaskEditInterceptor())
 def modify_constants_for_periodic_task(request, task_id, project_id):
     project = request.project
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid json format",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
     constants = params.get("constants", {})
@@ -61,20 +53,12 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
         task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "task(%s) does not exist" % task_id,
-                "code": err_code.CONTENT_NOT_EXIST.code,
-            }
+            {"result": False, "message": "task(%s) does not exist" % task_id, "code": err_code.CONTENT_NOT_EXIST.code}
         )
 
     try:
         new_constants = task.modify_constants(constants)
     except Exception as e:
-        return JsonResponse(
-            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
-        )
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code})
 
-    return JsonResponse(
-        {"result": True, "data": new_constants, "code": err_code.SUCCESS.code}
-    )
+    return JsonResponse({"result": True, "data": new_constants, "code": err_code.SUCCESS.code})

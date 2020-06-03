@@ -13,7 +13,7 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <span v-if="isShowBackBtn" class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
+                <span v-if="isShowBackBtn" class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ $t('返回') }}</span>
                 <span class="task-title">{{ taskTemplateTitle }}</span>
                 <span class="task-name">{{ instanceName }}</span>
             </div>
@@ -41,7 +41,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
@@ -56,19 +56,9 @@
             'template_id',
             'isFunctional'
         ],
-        data () {
-            return {
-                i18n: {
-                    newTask: gettext('新建任务'),
-                    taskExecution: gettext('任务执行'),
-                    return: gettext('返回')
-                }
-            }
-        },
         computed: {
             ...mapState({
-                'lang': state => state.lang,
-                userRights: state => state.userRights,
+                lang: state => state.lang,
                 view_mode: state => state.view_mode
             }),
             currentStepIndex () {
@@ -78,7 +68,7 @@
                 return this.getCurrentStepIndex() === this.list.length - 1 && this.list.length > 2
             },
             taskTemplateTitle () {
-                return this.$route.query.instance_id === undefined ? this.i18n.newTask : this.i18n.taskExecution
+                return this.$route.query.instance_id === undefined ? i18n.t('新建任务') : i18n.t('任务执行')
             },
             isShowBackBtn () {
                 return !(this.view_mode === 'appmaker' && this.$route.path.indexOf('newtask') !== -1)

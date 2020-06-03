@@ -33,9 +33,7 @@
                 :instance_id="instance_id"
                 :instance-name="instanceName"
                 :instance-flow="instanceFlow"
-                :instance-actions="instanceActions"
-                :instance-operations="instanceOperations"
-                :instance-resource="instanceResource">
+                :instance-actions="instanceActions">
             </TaskFunctionalization>
             <TaskOperation
                 v-if="!isFunctional"
@@ -46,15 +44,13 @@
                 :template_id="templateId"
                 :template-source="templateSource"
                 :instance-actions="instanceActions"
-                :instance-operations="instanceOperations"
-                :instance-resource="instanceResource"
                 @taskStatusLoadChange="taskStatusLoadChange">
             </TaskOperation>
         </template>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import TaskStep from '../TaskStep.vue'
@@ -63,15 +59,15 @@
     const STEP_DICT = [
         {
             step: 'selectnode',
-            name: gettext('节点选择')
+            name: i18n.t('节点选择')
         },
         {
             step: 'paramfill',
-            name: gettext('参数填写')
+            name: i18n.t('参数填写')
         },
         {
             step: 'taskexecute',
-            name: gettext('任务执行')
+            name: i18n.t('任务执行')
         }
     ]
     export default {
@@ -96,8 +92,6 @@
                 instanceFlow: '',
                 templateSource: '',
                 instanceActions: [],
-                instanceOperations: [],
-                instanceResource: {},
                 templateId: ''
             }
         },
@@ -118,7 +112,7 @@
                 if (!isHasFunctionalization) {
                     this.stepList.splice(2, 0, {
                         step: 'functionalization',
-                        name: gettext('职能化认领')
+                        name: i18n.t('职能化认领')
                     })
                 }
             },
@@ -137,8 +131,6 @@
                     this.templateId = instanceData.template_id
                     this.templateSource = instanceData.template_source
                     this.instanceActions = instanceData.auth_actions
-                    this.instanceOperations = instanceData.auth_operations
-                    this.instanceResource = instanceData.auth_resource
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true
                     }

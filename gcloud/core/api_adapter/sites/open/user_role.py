@@ -13,87 +13,44 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
-from blueapps.utils.cache import with_cache
+from iam import Subject, Action, Request
 
-from gcloud.conf import settings
-from gcloud.contrib.audit.permissions import audit_center_resource
-from gcloud.contrib.function.permissions import function_center_resource
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import get_iam_client
 
 logger = logging.getLogger("root")
-CACHE_PREFIX = __name__.replace('.', '_')
-
-
-def get_operate_user_list(request):
-    """
-    获取职能化人员列表
-    """
-    return get_role_user_list('functor')
-
-
-def get_auditor_user_list(request):
-    """
-    获取职能化人员列表
-    """
-    return get_role_user_list('auditor')
-
-
-@with_cache(settings.DEFAULT_CACHE_TIME_FOR_AUTH, ex=[0, 1])
-def get_role_user_list(role):
-    if role == 'functor':
-        auth_resource = function_center_resource
-    else:
-        auth_resource = audit_center_resource
-    resources_actions = {
-        'action_id': auth_resource.actions.view.id,
-    }
-    search_result = auth_resource.search_resources_perms_principals(resources_actions)
-    if not search_result['result']:
-        message = ('search perms principals of Resource[{resource}] by backend[{backend_cls}] '
-                   'return error: {error}').format(
-            resource=auth_resource.name,
-            backend_cls=auth_resource.backend,
-            error=search_result['message']
-        )
-        logger.error(message)
-        return []
-    perms_principals = search_result['data']
-    user_list = [principal['principal_id'] for principal in perms_principals[0]['perms_principals']]
-    return user_list
+iam = get_iam_client()
+CACHE_PREFIX = __name__.replace(".", "_")
 
 
 def is_user_functor(request):
     """
     判断是否是职能化人员
     """
-    return is_user_role(request.user.username, 'functor')
+    return is_user_role(request.user.username, IAMMeta.FUNCTION_VIEW_ACTION)
 
 
 def is_user_auditor(request):
     """
     判断是否是审计人员
     """
-    return is_user_role(request.user.username, 'auditor')
+    return is_user_role(request.user.username, IAMMeta.AUDIT_VIEW_ACTION)
 
 
-@with_cache(settings.DEFAULT_CACHE_TIME_FOR_AUTH, ex=[0, 1])
-def is_user_role(username, role):
-    if role == 'functor':
-        auth_resource = function_center_resource
-    else:
-        auth_resource = audit_center_resource
-    verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER, username, [auth_resource.actions.view.id])
-    if not verify_result['result']:
-        message = ('verify perms of Resource[{resource}] by backend[{backend_cls}] '
-                   'return error: {error}').format(
-            resource=auth_resource.name,
-            backend_cls=auth_resource.backend,
-            error=verify_result['message']
+def is_user_role(username, role_action):
+
+    subject = Subject("user", username)
+    action = Action(role_action)
+    request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
+
+    # can not raise exception at here, will cause index access error
+    try:
+        return iam.is_allowed(request)
+    except Exception:
+        logger.exception(
+            "user {username} role action({role_action}) allow request failed.".format(
+                username=username, role_action=role_action
+            )
         )
-        logger.error(message)
-        return False
-    verify_data = verify_result['data']
-    for action_resource in verify_data:
-        if not action_resource['is_pass']:
-            return False
-    return True
+
+    return False

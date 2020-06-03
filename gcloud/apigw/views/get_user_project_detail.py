@@ -17,12 +17,12 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_proj_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
-from gcloud.core.permissions import project_resource
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -35,12 +35,10 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_proj_perms([project_resource.actions.view])
+@iam_intercept(ProjectViewInterceptor())
 def get_user_project_detail(request, project_id):
     try:
-        biz_detail = get_business_detail(
-            request.user.username, request.project.bk_biz_id
-        )
+        biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
     except Exception as e:
         logger.exception("[API] get_user_business_detail call fail: {}".format(e))
         return JsonResponse(

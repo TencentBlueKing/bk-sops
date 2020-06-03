@@ -21,267 +21,270 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
-from auth_backend.plugins.tastypie.shortcuts import (batch_verify_or_raise_immediate_response,
-                                                     verify_or_raise_immediate_response)
-from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from iam import Resource, Subject, Action
+from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
 from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
-from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.core.utils import name_handler, pipeline_node_name_handle
+from gcloud.utils.strings import name_handler, pipeline_node_name_handle
 from gcloud.core.constant import TASK_NAME_MAX_LENGTH
-from gcloud.core.permissions import project_resource
 from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.permissions import common_template_resource
+from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.constants import PROJECT
-from gcloud.taskflow3.permissions import taskflow_resource
-from gcloud.webservice3.resources import (
-    GCloudModelResource,
-    ProjectResource,
-)
+from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.contrib.appmaker.permissions import mini_app_resource
+from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
+from gcloud.iam_auth.shortcuts import filter_flows_can_create_task
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
+iam = get_iam_client()
 
 
 class PipelineInstanceResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = PipelineInstance.objects.filter(is_deleted=False)
-        resource_name = 'pipeline_instance'
+        resource_name = "pipeline_instance"
         authorization = ReadOnlyAuthorization()
         filtering = {
-            'name': ALL,
-            'is_finished': ALL,
-            'creator': ALL,
-            'category': ALL,
-            'subprocess_has_update': ALL,
-            'edit_time': ['gte', 'lte'],
-            'executor': ALL,
-            'is_started': ALL,
-            'start_time': ['gte', 'lte']
+            "name": ALL,
+            "is_finished": ALL,
+            "creator": ALL,
+            "category": ALL,
+            "subprocess_has_update": ALL,
+            "edit_time": ["gte", "lte"],
+            "executor": ALL,
+            "is_started": ALL,
+            "start_time": ["gte", "lte"],
         }
-
-
-class CustomCreateDetailAuthorization(BkSaaSLooseAuthorization):
-    """
-    @summary: 在obj_create自行控制复杂权限校验逻辑，上层不使用统一的create权限校验
-    """
-    def create_detail(self, object_list, bundle):
-        return True
 
 
 class TaskFlowInstanceResource(GCloudModelResource):
-    project = fields.ForeignKey(
-        ProjectResource,
-        'project',
-        full=True)
-    pipeline_instance = fields.ForeignKey(
-        PipelineInstanceResource,
-        'pipeline_instance')
-    name = fields.CharField(
-        attribute='name',
-        readonly=True,
-        null=True)
-    instance_id = fields.IntegerField(
-        attribute='instance_id',
-        readonly=True)
-    category_name = fields.CharField(
-        attribute='category_name',
-        readonly=True)
-    create_time = fields.DateTimeField(
-        attribute='create_time',
-        readonly=True,
-        null=True)
-    start_time = fields.DateTimeField(
-        attribute='start_time',
-        readonly=True,
-        null=True)
-    finish_time = fields.DateTimeField(
-        attribute='finish_time',
-        readonly=True,
-        null=True)
-    elapsed_time = fields.IntegerField(
-        attribute='elapsed_time',
-        readonly=True)
-    is_started = fields.BooleanField(
-        attribute='is_started',
-        readonly=True,
-        null=True)
-    is_finished = fields.BooleanField(
-        attribute='is_finished',
-        readonly=True,
-        null=True)
-    is_revoked = fields.BooleanField(
-        attribute='is_revoked',
-        readonly=True,
-        null=True)
-    creator_name = fields.CharField(
-        attribute='creator_name',
-        readonly=True,
-        null=True)
-    executor_name = fields.CharField(
-        attribute='executor_name',
-        readonly=True,
-        null=True)
-    pipeline_tree = fields.DictField(
-        attribute='pipeline_tree',
-        use_in='detail',
-        readonly=True,
-        null=True)
-    subprocess_info = fields.DictField(
-        attribute='subprocess_info',
-        use_in='detail',
-        readonly=True)
+    project = fields.ForeignKey(ProjectResource, "project", full=True)
+    pipeline_instance = fields.ForeignKey(PipelineInstanceResource, "pipeline_instance")
+    name = fields.CharField(attribute="name", readonly=True, null=True)
+    instance_id = fields.IntegerField(attribute="instance_id", readonly=True)
+    category_name = fields.CharField(attribute="category_name", readonly=True)
+    create_time = fields.DateTimeField(attribute="create_time", readonly=True, null=True)
+    start_time = fields.DateTimeField(attribute="start_time", readonly=True, null=True)
+    finish_time = fields.DateTimeField(attribute="finish_time", readonly=True, null=True)
+    elapsed_time = fields.IntegerField(attribute="elapsed_time", readonly=True)
+    is_started = fields.BooleanField(attribute="is_started", readonly=True, null=True)
+    is_finished = fields.BooleanField(attribute="is_finished", readonly=True, null=True)
+    is_revoked = fields.BooleanField(attribute="is_revoked", readonly=True, null=True)
+    creator_name = fields.CharField(attribute="creator_name", readonly=True, null=True)
+    executor_name = fields.CharField(attribute="executor_name", readonly=True, null=True)
+    pipeline_tree = fields.DictField(attribute="pipeline_tree", use_in="detail", readonly=True, null=True)
+    subprocess_info = fields.DictField(attribute="subprocess_info", use_in="detail", readonly=True)
 
     class Meta(GCloudModelResource.Meta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
-        resource_name = 'taskflow'
-        auth_resource = taskflow_resource
-        authorization = CustomCreateDetailAuthorization(auth_resource=auth_resource,
-                                                        read_action_id='view',
-                                                        update_action_id='edit')
+        resource_name = "taskflow"
         filtering = {
-            'id': ALL,
-            'project': ALL_WITH_RELATIONS,
-            'name': ALL,
-            'category': ALL,
-            'create_method': ALL,
-            'create_info': ALL,
-            'template_source': ALL,
-            'template_id': ALL,
-            'pipeline_instance': ALL_WITH_RELATIONS,
+            "id": ALL,
+            "project": ALL_WITH_RELATIONS,
+            "name": ALL,
+            "category": ALL,
+            "create_method": ALL,
+            "create_info": ALL,
+            "template_source": ALL,
+            "template_id": ALL,
+            "pipeline_instance": ALL_WITH_RELATIONS,
         }
-        q_fields = ['id', 'pipeline_instance__name']
-        creator_or_executor_fields = ['pipeline_instance__creator', 'pipeline_instance__executor']
+        q_fields = ["id", "pipeline_instance__name"]
+        creator_or_executor_fields = ["pipeline_instance__creator", "pipeline_instance__executor"]
+        # iam config
+        authorization = CustomCreateCompleteListIAMAuthorization(
+            iam=iam,
+            helper=TaskIAMAuthorizationHelper(
+                system=IAMMeta.SYSTEM_ID,
+                create_action=None,
+                read_action=IAMMeta.TASK_VIEW_ACTION,
+                update_action=IAMMeta.TASK_EDIT_ACTION,
+                delete_action=IAMMeta.TASK_DELETE_ACTION,
+            ),
+        )
+        iam_resource_helper = SimpleResourceHelper(
+            type=IAMMeta.TASK_RESOURCE,
+            id_field="id",
+            creator_field="creator_name",
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            actions=[
+                IAMMeta.TASK_VIEW_ACTION,
+                IAMMeta.TASK_EDIT_ACTION,
+                IAMMeta.TASK_OPERATE_ACTION,
+                IAMMeta.TASK_CLAIM_ACTION,
+                IAMMeta.TASK_DELETE_ACTION,
+                IAMMeta.TASK_CLONE_ACTION,
+            ],
+        )
+
+    def alter_list_data_to_serialize(self, request, data):
+        data = super().alter_list_data_to_serialize(request, data)
+        templates_id = {bundle.obj.template_id for bundle in data["objects"]}
+
+        allowed_templates_id = filter_flows_can_create_task(request.user.username, templates_id)
+        for bundle in data["objects"]:
+            if bundle.obj.template_id in allowed_templates_id:
+                bundle.data["auth_actions"].append(IAMMeta.FLOW_CREATE_TASK_ACTION)
+
+        return data
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
         if filters is None:
             filters = {}
 
-        orm_filters = super(GCloudModelResource, self).build_filters(
-            filters,
-            ignore_bad_filters
-        )
-        if filters.get('creator_or_executor', '').strip():
-            if getattr(self.Meta, 'creator_or_executor_fields', []):
-                queries = [Q(**{'%s' % field: filters['creator_or_executor']})
-                           for field in self.Meta.creator_or_executor_fields]
+        orm_filters = super(GCloudModelResource, self).build_filters(filters, ignore_bad_filters)
+        if filters.get("creator_or_executor", "").strip():
+            if getattr(self.Meta, "creator_or_executor_fields", []):
+                queries = [
+                    Q(**{"%s" % field: filters["creator_or_executor"]})
+                    for field in self.Meta.creator_or_executor_fields
+                ]
                 query = queries.pop()
                 for item in queries:
                     query |= item
-                if 'q' in orm_filters:
-                    orm_filters['q'] |= query
+                if "q" in orm_filters:
+                    orm_filters["q"] |= query
                 else:
-                    orm_filters['q'] = query
+                    orm_filters["q"] = query
         return orm_filters
 
     @staticmethod
     def handle_task_name_attr(data):
-        data['name'] = name_handler(data['name'],
-                                    TASK_NAME_MAX_LENGTH)
-        pipeline_node_name_handle(data['pipeline_tree'])
+        data["name"] = name_handler(data["name"], TASK_NAME_MAX_LENGTH)
+        pipeline_node_name_handle(data["pipeline_tree"])
 
     def dehydrate_pipeline_tree(self, bundle):
-        return json.dumps(bundle.data['pipeline_tree'])
+        return json.dumps(bundle.data["pipeline_tree"])
 
     def obj_create(self, bundle, **kwargs):
         model = bundle.obj.__class__
         try:
-            template_id = bundle.data['template_id']
-            template_source = bundle.data.get('template_source', PROJECT)
+            template_id = bundle.data["template_id"]
+            template_source = bundle.data.get("template_source", PROJECT)
             creator = bundle.request.user.username
             pipeline_instance_kwargs = {
-                'name': bundle.data.pop('name'),
-                'creator': creator,
-                'pipeline_tree': json.loads(bundle.data.pop('pipeline_tree')),
+                "name": bundle.data.pop("name"),
+                "creator": creator,
+                "pipeline_tree": json.loads(bundle.data.pop("pipeline_tree")),
             }
-            if 'description' in bundle.data:
-                pipeline_instance_kwargs['description'] = bundle.data.pop('description')
+            if "description" in bundle.data:
+                pipeline_instance_kwargs["description"] = bundle.data.pop("description")
         except (KeyError, ValueError) as e:
             raise BadRequest(str(e))
-        # XSS handle
-        self.handle_task_name_attr(pipeline_instance_kwargs)
-
-        # validate pipeline tree
-        try:
-            validate_web_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'])
-            validate_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'], cycle_tolerate=True)
-        except PipelineException as e:
-            raise BadRequest(str(e))
 
         try:
-            project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
+            project = ProjectResource().get_via_uri(bundle.data.get("project"), request=bundle.request)
         except NotFound:
-            raise BadRequest('project with uri(%s) does not exist' % bundle.data.get('project'))
+            raise BadRequest("project with uri(%s) does not exist" % bundle.data.get("project"))
 
+        # perms validate
         if template_source == PROJECT:
             try:
                 template = TaskTemplate.objects.get(pk=template_id, project=project, is_deleted=False)
             except TaskTemplate.DoesNotExist:
-                raise BadRequest('template[pk=%s] does not exist' % template_id)
+                raise BadRequest("template[pk=%s] does not exist" % template_id)
 
-            create_method = bundle.data['create_method']
+            create_method = bundle.data["create_method"]
 
-            if create_method == 'app_maker':
-                app_maker_id = bundle.data['create_info']
+            # mini app create task perm
+            if create_method == "app_maker":
+                app_maker_id = bundle.data["create_info"]
                 try:
                     app_maker = AppMaker.objects.get(id=app_maker_id)
                 except AppMaker.DoesNotExist:
-                    raise BadRequest('app_maker[pk=%s] does not exist' % app_maker_id)
+                    raise BadRequest("app_maker[pk=%s] does not exist" % app_maker_id)
 
-                verify_or_raise_immediate_response(principal_type='user',
-                                                   principal_id=creator,
-                                                   resource=mini_app_resource,
-                                                   action_ids=[mini_app_resource.actions.create_task.id],
-                                                   instance=app_maker)
+                allow_or_raise_auth_failed(
+                    iam=iam,
+                    system=IAMMeta.SYSTEM_ID,
+                    subject=Subject("user", bundle.request.user.username),
+                    action=Action(IAMMeta.MINI_APP_CREATE_TASK_ACTION),
+                    resources=[
+                        Resource(
+                            system=IAMMeta.SYSTEM_ID,
+                            type=IAMMeta.MINI_APP_RESOURCE,
+                            id=str(app_maker.id),
+                            attribute={"iam_resource_owner": app_maker.creator},
+                        )
+                    ],
+                )
 
+            # flow create task perm
             else:
-                verify_or_raise_immediate_response(principal_type='user',
-                                                   principal_id=creator,
-                                                   resource=task_template_resource,
-                                                   action_ids=[task_template_resource.actions.create_task.id],
-                                                   instance=template)
+                allow_or_raise_auth_failed(
+                    iam=iam,
+                    system=IAMMeta.SYSTEM_ID,
+                    subject=Subject("user", bundle.request.user.username),
+                    action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
+                    resources=[
+                        Resource(
+                            system=IAMMeta.SYSTEM_ID,
+                            type=IAMMeta.FLOW_RESOURCE,
+                            id=str(template.id),
+                            attribute={"iam_resource_owner": template.creator},
+                        )
+                    ],
+                )
 
         else:
             try:
                 template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
             except CommonTemplate.DoesNotExist:
-                raise BadRequest('common template[pk=%s] does not exist' % template_id)
+                raise BadRequest("common template[pk=%s] does not exist" % template_id)
 
-            perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
-                            (common_template_resource, [common_template_resource.actions.create_task.id], template)]
-            batch_verify_or_raise_immediate_response(principal_type='user',
-                                                     principal_id=creator,
-                                                     perms_tuples=perms_tuples)
-
-        try:
-            pipeline_instance = model.objects.create_pipeline_instance(
-                template,
-                **pipeline_instance_kwargs
+            allow_or_raise_auth_failed(
+                iam=iam,
+                system=IAMMeta.SYSTEM_ID,
+                subject=Subject("user", bundle.request.user.username),
+                action=Action(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION),
+                resources=[
+                    Resource(system=IAMMeta.SYSTEM_ID, type=IAMMeta.PROJECT_RESOURCE, id=str(project.id), attribute={}),
+                    Resource(
+                        system=IAMMeta.SYSTEM_ID,
+                        type=IAMMeta.COMMON_FLOW_RESOURCE,
+                        id=str(template.id),
+                        attribute={"iam_resource_owner": template.creator},
+                    ),
+                ],
             )
+
+        # XSS handle
+        self.handle_task_name_attr(pipeline_instance_kwargs)
+
+        # validate pipeline tree
+        try:
+            validate_web_pipeline_tree(pipeline_instance_kwargs["pipeline_tree"])
         except PipelineException as e:
             raise BadRequest(str(e))
-        kwargs['category'] = template.category
-        if bundle.data['flow_type'] == 'common_func':
-            kwargs['current_flow'] = 'func_claim'
+
+        try:
+            pipeline_instance = model.objects.create_pipeline_instance(template, **pipeline_instance_kwargs)
+        except PipelineException as e:
+            raise BadRequest(str(e))
+        kwargs["category"] = template.category
+        if bundle.data["flow_type"] == "common_func":
+            kwargs["current_flow"] = "func_claim"
         else:
-            kwargs['current_flow'] = 'execute_task'
-        kwargs['pipeline_instance_id'] = pipeline_instance.id
+            kwargs["current_flow"] = "execute_task"
+        kwargs["pipeline_instance_id"] = pipeline_instance.id
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
         return bundle
 
     def obj_delete(self, bundle, **kwargs):
         try:
-            taskflow = TaskFlowInstance.objects.get(id=kwargs['pk'])
+            taskflow = TaskFlowInstance.objects.get(id=kwargs["pk"])
         except Exception:
-            raise BadRequest('taskflow does not exits')
+            raise BadRequest("taskflow does not exits")
 
         raw_state = taskflow.raw_state
 

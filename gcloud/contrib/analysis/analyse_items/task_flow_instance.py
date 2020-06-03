@@ -16,13 +16,14 @@ import logging
 import datetime
 
 from gcloud.core.constant import AE
-from gcloud.core.utils.common import timestamp_to_datetime
+from gcloud.utils.dates import timestamp_to_datetime
 from gcloud.taskflow3.models import TaskFlowInstance
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
-PIPELINE_REGEX = re.compile(r'^name|create_time|creator|create_time|executor|'
-                            r'start_time|finish_time|is_started|is_finished')
+PIPELINE_REGEX = re.compile(
+    r"^name|create_time|creator|create_time|executor|" r"start_time|finish_time|is_started|is_finished"
+)
 TASK_GROUP_BY_METHODS = {
     # 按流程执行状态查询流程个数
     AE.state: TaskFlowInstance.objects.group_by_state,
@@ -56,20 +57,19 @@ def produce_filter(filters):
     orm_filters = {}
     for cond, value in list(filters.items()):
         # 如果conditions内容为空或为空字符，不可加入查询条件中
-        if value in ['None', ''] or cond in ['component_code', 'order_by', 'type']:
+        if value in ["None", ""] or cond in ["component_code", "order_by", "type"]:
             continue
         if PIPELINE_REGEX.match(cond):
-            filter_cond = 'pipeline_instance__%s' % cond
+            filter_cond = "pipeline_instance__%s" % cond
             # 时间范围
-            if cond == 'create_time':
-                filter_cond = '%s__gte' % filter_cond
+            if cond == "create_time":
+                filter_cond = "%s__gte" % filter_cond
                 orm_filters.update({filter_cond: timestamp_to_datetime(value)})
                 continue
             # 结束时间由创建时间来决定
-            if cond == 'finish_time':
-                filter_cond = 'pipeline_instance__create_time__lt'
-                orm_filters.update(
-                    {filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
+            if cond == "finish_time":
+                filter_cond = "pipeline_instance__create_time__lt"
+                orm_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
                 continue
         else:
             filter_cond = cond
@@ -94,8 +94,8 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         taskflow = TaskFlowInstance.objects.filter(**orm_filters)
     except Exception as e:
         message = "query taskflow params conditions[{filters}] have invalid key or value: {error}".format(
-            filters=filters,
-            error=e)
+            filters=filters, error=e
+        )
         logger.error(message)
         return False, message
 
@@ -107,5 +107,5 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     else:
         total, groups = TASK_GROUP_BY_METHODS[group_by](taskflow, filters, page, limit)
 
-    data = {'total': total, 'groups': groups}
+    data = {"total": total, "groups": groups}
     return True, data

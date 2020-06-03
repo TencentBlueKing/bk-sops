@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
+import ujson as json
 import mock  # noqa
 from mock import MagicMock, patch, call  # noqa
 
@@ -23,6 +24,13 @@ class MockRequest(object):
     def __init__(self, method, data, username="a_user"):
         self.method = method
         setattr(self, method, data)
+        self.user = MagicMock(username=username)
+
+
+class MockJsonBodyRequest(object):
+    def __init__(self, method, data, username="a_user"):
+        self.method = method
+        self.body = json.dumps(data)
         self.user = MagicMock(username=username)
 
 
@@ -162,7 +170,7 @@ class MockSyncPackageSource(object):
 class MockComponentModel(object):
     def __init__(self, code):
         self.code = code
-        self.version = 'version'
+        self.version = "version"
 
 
 class MockComponent(object):
@@ -173,7 +181,7 @@ class MockComponent(object):
         self.code = code
         self.name = name
         self.group_name = group_name
-        self.version = 'version'
+        self.version = "version"
 
     def inputs_format(self):
         return self.inputs

@@ -14,7 +14,7 @@
         <div class="card-basic">
             <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
-                    <i class="common-icon-blueking"></i>
+                    <img class="default-icon" :src="require(`@/assets/images/appmaker-default-icon-1.png`)" alt="default-icon-1">
                 </div>
                 <div v-else>
                     <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo" />
@@ -31,15 +31,15 @@
             <div class="card-operation">
                 <span
                     :class="['common-icon-box-pen', 'operate-btn', {
-                        'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
+                        'permission-disable': !hasPermission(['mini_app_edit'], appData.auth_actions)
                     }]"
-                    :title="i18n.modifier"
-                    v-cursor="{ active: !hasPermission(['edit'], appData.auth_actions, appOperations) }"
+                    :title="$t('修改轻应用')"
+                    v-cursor="{ active: !hasPermission(['mini_app_edit'], appData.auth_actions) }"
                     @click.stop="onCardEdit">
                 </span>
                 <router-link
                     class="common-icon-clock-reload operate-btn"
-                    :title="i18n.executive"
+                    :title="$t('执行历史')"
                     :to="getExecuteHistoryUrl(appData.template_id)">
                 </router-link>
                 <bk-popover
@@ -53,24 +53,24 @@
                     <span class="common-icon-circle-ellipsis operate-btn"></span>
                     <ul class="operate-list" slot="content">
                         <li
-                            v-cursor="{ active: !hasPermission(['view'], appData.auth_actions, appOperations) }"
+                            v-cursor="{ active: !hasPermission(['mini_app_view'], appData.auth_actions) }"
                             href="javascript:void(0);"
                             :class="{
                                 'opt-btn': true,
                                 'disable': collectingId === appData.id || collectedLoading,
-                                'text-permission-disable': !hasPermission(['view'], appData.auth_actions, appOperations)
+                                'text-permission-disable': !hasPermission(['mini_app_view'], appData.auth_actions)
                             }"
                             @click="onCollectAppMaker(appData, $event)">
-                            {{ isCollected(appData.id) ? i18n.cancelCollection : i18n.collect }}
+                            {{ isCollected(appData.id) ? $t('取消收藏') : $t('收藏') }}
                         </li>
                         <li
                             :class="{
                                 'opt-btn': true,
-                                'text-permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
+                                'text-permission-disable': !hasPermission(['mini_app_delete'], appData.auth_actions)
                             }"
-                            v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
+                            v-cursor="{ active: !hasPermission(['mini_app_delete'], appData.auth_actions) }"
                             @click="onCardDelete">
-                            {{i18n.delete}}
+                            {{$t('删除')}}
                         </li>
                     </ul>
                 </bk-popover>
@@ -78,24 +78,24 @@
         </div>
         <div class="card-particular">
             <div class="app-detail">
-                <div class="app-template">{{i18n.template}}
+                <div class="app-template">{{$t('流程模板')}}
                     <p>{{appData.template_name}}</p>
                 </div>
-                <div class="editor-name">{{i18n.editor}}
+                <div class="editor-name">{{$t('更新人')}}
                     <p>{{appData.editor_name}}</p>
                 </div>
-                <div class="edit-time">{{i18n.editTime}}
+                <div class="edit-time">{{$t('更新时间')}}
                     <p>{{appData.edit_time}}</p>
                 </div>
             </div>
-            <div class="app-synopsis">{{i18n.appDesc}}
+            <div class="app-synopsis">{{$t('应用简介')}}
                 <p class="synopsis-content">{{appData.desc || '--'}}</p>
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import { mapActions } from 'vuex'
@@ -106,8 +106,6 @@
         props: {
             appData: Object,
             project_id: [Number, String],
-            appResource: Object,
-            appOperations: Array,
             collectedLoading: Boolean,
             collectedList: Array
         },
@@ -116,21 +114,6 @@
                 isLogoLoadingError: false,
                 isShowEdit: false,
                 mouseAccess: true,
-                i18n: {
-                    edit: gettext('编辑'),
-                    delete: gettext('删除'),
-                    collect: gettext('收藏'),
-                    cancelCollection: gettext('取消收藏'),
-                    addCollectSuccess: gettext('添加收藏成功！'),
-                    cancelCollectSuccess: gettext('取消收藏成功！'),
-                    template: gettext('流程模板'),
-                    appDesc: gettext('应用简介'),
-                    editor: gettext('更新人'),
-                    editTime: gettext('更新时间'),
-                    executive: gettext('执行历史'),
-                    modifier: gettext('修改轻应用'),
-                    jurisdiction: gettext('使用权限')
-                },
                 collectingId: '', // 正在被收藏/取消收藏的轻应用id
                 collectionList: []
             }
@@ -141,7 +124,7 @@
             }
         },
         methods: {
-            ...mapActions('template/', [
+            ...mapActions([
                 'addToCollectList',
                 'deleteCollect'
             ]),
@@ -152,11 +135,15 @@
              * 单个轻应用操作项点击时校验
              * @params {Array} required 需要的权限
              * @params {Object} app 模板数据对象
-             * @params {Object} event 事件对象
              */
-            onAppMakerPermissonCheck (required, app, event) {
-                this.applyForPermission(required, app, this.appOperations, this.appResource)
-                event.preventDefault()
+            onAppMakerPermissonCheck (required) {
+                const resourceData = {
+                    mini_app: [{
+                        id: this.appData.id,
+                        name: this.appData.name
+                    }]
+                }
+                this.applyForPermission(required, this.appData.auth_actions, resourceData)
             },
             onShowOperation () {
                 this.isShowEdit = true
@@ -165,25 +152,22 @@
                 this.isShowEdit = false
             },
             onCardEdit () {
-                if (!this.hasPermission(['edit'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['edit'], this.appData, event)
+                if (!this.hasPermission(['mini_app_edit'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_edit'])
                     return
                 }
                 this.$emit('onCardEdit', this.appData)
             },
-            onOpenPermissions (id) {
-                this.$emit('onOpenPermissions', this.appData)
-            },
             onCardDelete () {
-                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['delete'], this.appData, event)
+                if (!this.hasPermission(['mini_app_delete'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_delete'])
                     return
                 }
                 this.$emit('onCardDelete', this.appData)
             },
             onGotoAppMaker () {
-                if (!this.hasPermission(['view'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+                if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_view'])
                     return
                 }
                 if (self === top) {
@@ -201,9 +185,9 @@
                 }
             },
             // 添加/取消收藏模板
-            async onCollectAppMaker (data, event) {
-                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
-                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+            async onCollectAppMaker (data) {
+                if (!this.hasPermission(['mini_app_view'], this.appData.auth_actions)) {
+                    this.onAppMakerPermissonCheck(['mini_app_view'])
                     return
                 }
                 if (typeof this.collectingId === 'number') {
@@ -221,12 +205,12 @@
                             category: 'mini_app'
                         }])
                         if (res.objects.length) {
-                            this.$bkMessage({ message: this.i18n.addCollectSuccess, theme: 'success' })
+                            this.$bkMessage({ message: i18n.t('添加收藏成功！'), theme: 'success' })
                         }
                     } else { // cancel
                         const delId = this.collectedList.find(m => m.extra_info.id === data.id && m.category === 'mini_app').id
                         await this.deleteCollect(delId)
-                        this.$bkMessage({ message: this.i18n.cancelCollectSuccess, theme: 'success' })
+                        this.$bkMessage({ message: i18n.t('取消收藏成功！'), theme: 'success' })
                     }
                     this.$emit('getCollectList')
                 } catch (e) {
@@ -284,13 +268,10 @@
         width: 100%;
         height: 100%;
         text-align: center;
-        border: 1px dashed #1b7cef;
         border-radius: 6px;
-        .common-icon-blueking {
-            display: inline-block;
+        .default-icon {
             margin-top: 10px;
-            color: #1b7cef;
-            font-size: 40px;
+            max-height: 55px;
         }
     }
     .app-name-wrap {

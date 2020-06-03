@@ -16,7 +16,7 @@ import ujson as json
 import jsonschema
 
 
-from gcloud.core.utils import format_datetime
+from gcloud.utils.dates import format_datetime
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask
@@ -54,10 +54,7 @@ class CreatePeriodicTaskAPITest(APITest):
             "pipeline_tree": task.pipeline_tree,
         }
         proj = MockProject(
-            project_id=TEST_PROJECT_ID,
-            name=TEST_PROJECT_NAME,
-            bk_biz_id=TEST_BIZ_CC_ID,
-            from_cmdb=True,
+            project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
         )
         template = MockTaskTemplate()
         replace_template_id_mock = MagicMock()
@@ -66,13 +63,10 @@ class CreatePeriodicTaskAPITest(APITest):
             with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
                 with mock.patch(PERIODIC_TASK_CREATE, MagicMock(return_value=task)):
                     with mock.patch(
-                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID,
-                        replace_template_id_mock,
+                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID, replace_template_id_mock,
                     ):
                         response = self.client.post(
-                            path=self.url().format(
-                                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
-                            ),
+                            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                             data=json.dumps(
                                 {
                                     "name": task.name,
@@ -100,9 +94,7 @@ class CreatePeriodicTaskAPITest(APITest):
 
                         data = json.loads(response.content)
 
-                        replace_template_id_mock.assert_called_once_with(
-                            TaskTemplate, template.pipeline_tree
-                        )
+                        replace_template_id_mock.assert_called_once_with(TaskTemplate, template.pipeline_tree)
 
                         self.assertTrue(data["result"], msg=data)
                         self.assertEqual(data["data"], assert_data)
@@ -125,10 +117,7 @@ class CreatePeriodicTaskAPITest(APITest):
             "pipeline_tree": task.pipeline_tree,
         }
         proj = MockProject(
-            project_id=TEST_PROJECT_ID,
-            name=TEST_PROJECT_NAME,
-            bk_biz_id=TEST_BIZ_CC_ID,
-            from_cmdb=True,
+            project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
         )
         template = MockCommonTemplate()
         replace_template_id_mock = MagicMock()
@@ -137,13 +126,10 @@ class CreatePeriodicTaskAPITest(APITest):
             with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
                 with mock.patch(PERIODIC_TASK_CREATE, MagicMock(return_value=task)):
                     with mock.patch(
-                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID,
-                        replace_template_id_mock,
+                        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID, replace_template_id_mock,
                     ):
                         response = self.client.post(
-                            path=self.url().format(
-                                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
-                            ),
+                            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                             data=json.dumps(
                                 {
                                     "name": task.name,
@@ -171,9 +157,7 @@ class CreatePeriodicTaskAPITest(APITest):
 
                         data = json.loads(response.content)
 
-                        replace_template_id_mock.assert_called_once_with(
-                            TaskTemplate, template.pipeline_tree
-                        )
+                        replace_template_id_mock.assert_called_once_with(TaskTemplate, template.pipeline_tree)
 
                         self.assertTrue(data["result"], msg=data)
                         self.assertEqual(data["data"], assert_data)
@@ -181,9 +165,7 @@ class CreatePeriodicTaskAPITest(APITest):
     @mock.patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist()))
     def test_create_periodic_task__template_does_not_exist(self):
         response = self.client.post(
-            path=self.url().format(
-                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
-            ),
+            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
             content_type="application/json",
         )
 
@@ -194,14 +176,11 @@ class CreatePeriodicTaskAPITest(APITest):
 
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     @mock.patch(
-        APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE,
-        MagicMock(side_effect=jsonschema.ValidationError("")),
+        APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError("")),
     )
     def test_create_periodic_task__params_validate_fail(self):
         response = self.client.post(
-            path=self.url().format(
-                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
-            ),
+            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
             content_type="application/json",
         )
 
@@ -215,9 +194,7 @@ class CreatePeriodicTaskAPITest(APITest):
     @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock(side_effect=Exception()))
     def test_create_periodic_task__preview_pipeline_fail(self):
         response = self.client.post(
-            path=self.url().format(
-                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
-            ),
+            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
             content_type="application/json",
         )
 
@@ -230,24 +207,17 @@ class CreatePeriodicTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     @mock.patch(APIGW_CREATE_PERIODIC_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
-    @mock.patch(
-        APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID, MagicMock(side_effect=Exception)
-    )
+    @mock.patch(APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID, MagicMock(side_effect=Exception))
     def test_create_periodic_task__replace_template_id_fail(self):
         response = self.client.post(
-            path=self.url().format(
-                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
-            ),
+            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
             data=json.dumps({"name": "name", "cron": "cron"}),
             content_type="application/json",
         )
@@ -260,10 +230,7 @@ class CreatePeriodicTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -274,9 +241,7 @@ class CreatePeriodicTaskAPITest(APITest):
     @mock.patch(APIGW_CREATE_PERIODIC_TASK_REPLACE_TEMPLATE_ID, MagicMock())
     def test_create_periodic_task__periodic_task_create_fail(self):
         response = self.client.post(
-            path=self.url().format(
-                template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID
-            ),
+            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
             data=json.dumps({"name": "name", "cron": "cron"}),
             content_type="application/json",
         )

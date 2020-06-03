@@ -17,309 +17,138 @@ import logging
 import traceback
 
 import ujson as json
-from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
-
-from auth_backend.plugins.decorators import verify_perms
-from auth_backend.plugins.shortcuts import (
-    verify_or_raise_auth_failed,
-    batch_verify_or_raise_auth_failed,
-    verify_or_return_insufficient_perms
-)
 
 from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
 
+from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.core.models import Project
-from gcloud.core.utils import time_now_str, check_and_rename_params
+from gcloud.utils.strings import check_and_rename_params
+from gcloud.utils.dates import time_now_str
+from gcloud.utils.decorators import request_validate
 from gcloud.commons.template.utils import read_template_data_file
-from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.validators import (
+    FormValidator,
+    ExportValidator,
+    ImportValidator,
+    CheckBeforeImportValidator,
+    GetTemplateCountValidator,
+    DrawPipelineValidator,
+)
 from gcloud.contrib.analysis.analyse_items import task_template
-from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.template import (
+    FormInterceptor,
+    ExportInterceptor,
+    ImportInterceptor,
+)
 
-logger = logging.getLogger('root')
-
-VAR_ID_MAP = 'var_id_map'
+logger = logging.getLogger("root")
 
 
 @require_GET
-@verify_perms(auth_resource=task_template_resource,
-              resource_get={'from': 'request', 'key': 'template_id'},
-              actions=[task_template_resource.actions.view])
+@request_validate(FormValidator)
+@iam_intercept(FormInterceptor())
 def form(request, project_id):
-    template_id = request.GET.get('template_id')
-    version = request.GET.get('version')
-    try:
-        template = TaskTemplate.objects.get(pk=template_id,
-                                            project_id=project_id,
-                                            is_deleted=False)
-    except TaskTemplate.DoesNotExist:
-        return JsonResponse({
-            'result': False,
-            'message': 'there is no template with id(%s)' % template_id
-        })
+    template_id = request.GET["template_id"]
+    version = request.GET.get("version")
+
+    template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
+
     ctx = {
-        'form': template.get_form(version),
-        'outputs': template.get_outputs(version),
-        'version': version or template.version
+        "form": template.get_form(version),
+        "outputs": template.get_outputs(version),
+        "version": version or template.version,
     }
-    return JsonResponse(ctx)
+
+    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS})
 
 
 @require_POST
-def collect(request, project_id):
-    template_id = request.POST.get('template_id')
-    template_list = json.loads(request.POST.get('template_list', '[]'))
-
-    if template_id:
-        method = request.POST.get('method', 'add')
-        try:
-            template = TaskTemplate.objects.get(pk=template_id,
-                                                project_id=project_id,
-                                                is_deleted=False)
-        except TaskTemplate.DoesNotExist:
-            return JsonResponse({
-                'result': False,
-                'message': 'flow[id=%s] does not exist' % template_id
-            })
-
-        verify_or_raise_auth_failed(principal_type='user',
-                                    principal_id=request.user.username,
-                                    resource=task_template_resource,
-                                    action_ids=[task_template_resource.actions.view.id],
-                                    instance=template)
-        ctx = template.user_collect(request.user.username, method)
-        return JsonResponse(ctx)
-
-    if template_list:
-        if len(template_list) > 10:
-            return JsonResponse({'result': False, 'message': "template list must not larger than 10"})
-        user_model = get_user_model()
-        user = user_model.objects.get(username=request.user.username)
-        try:
-            templates = TaskTemplate.objects.filter(pk__in=template_list,
-                                                    project_id=project_id,
-                                                    is_deleted=False)
-            perms_tuples = [(task_template_resource, [task_template_resource.actions.view.id], t) for t in templates]
-            batch_verify_or_raise_auth_failed(principal_type='user',
-                                              principal_id=request.user.username,
-                                              perms_tuples=perms_tuples)
-
-            collected_template = user.tasktemplate_set.filter(project_id=project_id)
-            user.tasktemplate_set.remove(*collected_template)
-            user.tasktemplate_set.add(*templates)
-        except Exception as e:
-            message = "collect template error: %s" % e
-            ctx = {'result': False, 'message': message}
-        else:
-            ctx = {'result': True, 'data': ''}
-        return JsonResponse(ctx)
-    else:
-        try:
-            user_model = get_user_model()
-            user = user_model.objects.get(username=request.user.username)
-            collected_template = user.tasktemplate_set.filter(project_id=project_id)
-            user.tasktemplate_set.remove(*collected_template)
-        except Exception as e:
-            message = "collect template error: %s" % e
-            ctx = {'result': False, 'message': message}
-        else:
-            ctx = {'result': True, 'data': ''}
-        return JsonResponse(ctx)
-
-
-@require_POST
+@request_validate(ExportValidator)
+@iam_intercept(ExportInterceptor())
 def export_templates(request, project_id):
     data = json.loads(request.body)
-    template_id_list = data['template_id_list']
-
-    if not isinstance(template_id_list, list):
-        return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
-
-    if not template_id_list:
-        return JsonResponse({'result': False, 'message': 'template_id_list can not be empty'})
-
-    templates = TaskTemplate.objects.filter(id__in=template_id_list, project_id=project_id, is_deleted=False)
-    perms_tuples = [(task_template_resource, [task_template_resource.actions.view.id], t) for t in templates]
-    batch_verify_or_raise_auth_failed(
-        principal_type='user',
-        principal_id=request.user.username,
-        perms_tuples=perms_tuples
-    )
+    template_id_list = data["template_id_list"]
 
     # wash
     try:
-        templates_data = json.loads(json.dumps(
-            TaskTemplate.objects.export_templates(template_id_list, project_id), sort_keys=True
-        ))
-    except TaskTemplate.DoesNotExist:
-        return JsonResponse({
-            'result': False,
-            'message': 'Invalid template id list'
-        })
+        templates_data = json.loads(
+            json.dumps(TaskTemplate.objects.export_templates(template_id_list, project_id), sort_keys=True)
+        )
     except FlowExportError as e:
-        return JsonResponse({
-            'result': False,
-            'message': str(e)
-        })
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR, "data": None})
 
-    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode('utf-8')
+    data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
 
-    file_data = base64.b64encode(json.dumps({
-        'template_data': templates_data,
-        'digest': digest
-    }, sort_keys=True).encode('utf-8'))
-    filename = 'bk_sops_%s_%s.dat' % (project_id, time_now_str())
+    file_data = base64.b64encode(
+        json.dumps({"template_data": templates_data, "digest": digest}, sort_keys=True).encode("utf-8")
+    )
+    filename = "bk_sops_%s_%s.dat" % (project_id, time_now_str())
     response = HttpResponse()
-    response['Content-Disposition'] = 'attachment; filename=%s' % filename
-    response['mimetype'] = 'application/octet-stream'
-    response['Content-Type'] = 'application/octet-stream'
+    response["Content-Disposition"] = "attachment; filename=%s" % filename
+    response["mimetype"] = "application/octet-stream"
+    response["Content-Type"] = "application/octet-stream"
     response.write(file_data)
     return response
 
 
 @require_POST
+@request_validate(ImportValidator)
+@iam_intercept(ImportInterceptor())
 def import_templates(request, project_id):
-    f = request.FILES.get('data_file', None)
-    form_data = TemplateImportForm(request.POST)
-    if not form_data.is_valid():
-        return JsonResponse({
-            'result': False,
-            'message': form_data.errors
-        })
-    override = form_data.clean()['override']
+    f = request.FILES["data_file"]
+    override = request.POST["override"]
 
     r = read_template_data_file(f)
-    if not r['result']:
-        return JsonResponse(r)
-
-    templates_data = r['data']['template_data']
-
-    # check again and authenticate
-    check_info = TaskTemplate.objects.import_operation_check(templates_data, project_id)
-    perms_tuples = []
-    if override:
-        if check_info['new_template']:
-            project = Project.objects.get(id=project_id)
-            perms_tuples.append((project_resource, [project_resource.actions.create_template.id], project))
-
-        if check_info['override_template']:
-            templates_id = [template_info['id'] for template_info in check_info['override_template']]
-            templates = TaskTemplate.objects.filter(id__in=templates_id, project_id=project_id, is_deleted=False)
-            for template in templates:
-                perms_tuples.append((task_template_resource, [task_template_resource.actions.edit.id], template))
-    else:
-        project = Project.objects.get(id=project_id)
-        perms_tuples.append((project_resource, [project_resource.actions.create_template.id], project))
-
-    batch_verify_or_raise_auth_failed(
-        principal_type='user',
-        principal_id=request.user.username,
-        perms_tuples=perms_tuples
-    )
+    templates_data = r["data"]["template_data"]
 
     # reset biz_cc_id select in templates
+    project = Project.objects.get(id=project_id)
     _reset_biz_selector_value(templates_data, project.bk_biz_id)
 
     try:
         result = TaskTemplate.objects.import_templates(templates_data, override, project_id, request.user.username)
     except Exception as e:
         logger.error(traceback.format_exc(e))
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid flow data or error occur, please contact administrator'
-        })
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "invalid flow data or error occur, please contact administrator",
+                "code": err_code.UNKNOW_ERROR,
+                "data": None,
+            }
+        )
 
     return JsonResponse(result)
 
 
 def _reset_biz_selector_value(templates_data, bk_biz_id):
-    for template in templates_data['pipeline_template_data']['template'].values():
-        for act in [act for act in template['tree']['activities'].values() if act['type'] == 'ServiceActivity']:
-            biz_cc_id_field = act['component']['data'].get('biz_cc_id')
-            if biz_cc_id_field and (not biz_cc_id_field['hook']):
-                biz_cc_id_field['value'] = bk_biz_id
+    for template in templates_data["pipeline_template_data"]["template"].values():
+        for act in [act for act in template["tree"]["activities"].values() if act["type"] == "ServiceActivity"]:
+            biz_cc_id_field = act["component"]["data"].get("biz_cc_id")
+            if biz_cc_id_field and (not biz_cc_id_field["hook"]):
+                biz_cc_id_field["value"] = bk_biz_id
 
-        for constant in template['tree']['constants'].values():
-            if constant['source_tag'].endswith('.biz_cc_id') and constant['value']:
-                constant['value'] = bk_biz_id
+        for constant in template["tree"]["constants"].values():
+            if constant["source_tag"].endswith(".biz_cc_id") and constant["value"]:
+                constant["value"] = bk_biz_id
 
 
 @require_POST
+@request_validate(CheckBeforeImportValidator)
 def check_before_import(request, project_id):
-    f = request.FILES.get('data_file', None)
-    r = read_template_data_file(f)
-    if not r['result']:
-        return JsonResponse(r)
+    r = read_template_data_file(request.FILES["data_file"])
 
-    check_info = TaskTemplate.objects.import_operation_check(r['data']['template_data'], project_id)
+    check_info = TaskTemplate.objects.import_operation_check(r["data"]["template_data"], project_id)
 
-    perms_tuples = []
-    project = Project.objects.get(id=project_id)
-    perms_tuples.append((project_resource, [project_resource.actions.create_template.id], project))
-    if check_info['override_template']:
-        templates_id = [template_info['id'] for template_info in check_info['override_template']]
-        templates = TaskTemplate.objects.filter(id__in=templates_id, project_id=project_id, is_deleted=False)
-        for template in templates:
-            perms_tuples.append((task_template_resource, [task_template_resource.actions.edit.id], template))
-    permissions = verify_or_return_insufficient_perms(principal_type='user',
-                                                      principal_id=request.user.username,
-                                                      perms_tuples=perms_tuples)
-
-    return JsonResponse({
-        'result': True,
-        'data': check_info,
-        'permission': permissions
-    })
-
-
-@require_POST
-def import_preset_template_and_replace_job_id(request, project_id):
-    f = request.FILES.get('data_file', None)
-    r = read_template_data_file(f)
-    if not r['result']:
-        return JsonResponse(r)
-
-    job_id_map_json = request.POST.get('job_id_map', None)
-
-    if job_id_map_json is None:
-        return JsonResponse({
-            'result': False,
-            'message': 'job_id_map can not be None'
-        })
-
-    # replace str to int
-    try:
-        job_id_map = json.loads(job_id_map_json)
-    except Exception:
-        return JsonResponse({
-            'result': False,
-            'message': 'job_id_map is not a valid json string'
-        })
-
-    job_id_map = job_id_map_convert(job_id_map)
-
-    # replace job id
-    templates_data = r['data']['template_data']
-
-    # for each template
-    replace_job_relate_id_in_templates_data(job_id_map, templates_data)
-
-    try:
-        result = TaskTemplate.objects.import_templates(templates_data, False, project_id, request.user.username)
-    except Exception as e:
-        logger.error(traceback.format_exc(e))
-        return JsonResponse({
-            'result': False,
-            'message': 'invalid flow data or error occur, please contact administrator'
-        })
-
-    return JsonResponse(result)
+    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS, "message": ""})
 
 
 def replace_all_templates_tree_node_id(request):
@@ -332,110 +161,60 @@ def replace_all_templates_tree_node_id(request):
         return HttpResponseForbidden()
 
     total, success = TaskTemplate.objects.replace_all_template_tree_node_id()
-    return JsonResponse({
-        'result': True,
-        'data': {
-            'total': total,
-            'success': success
-        }
-    })
+    return JsonResponse(
+        {"result": True, "data": {"total": total, "success": success}, "code": err_code.SUCCESS, "message": ""}
+    )
 
 
 @require_GET
+@request_validate(GetTemplateCountValidator)
 def get_template_count(request, project_id):
-    group_by = request.GET.get('group_by', 'category')
+    group_by = request.GET.get("group_by", "category")
     result_dict = check_and_rename_params({}, group_by)
-    if not result_dict['success']:
-        return JsonResponse({'result': False, 'message': result_dict['content']})
-    filters = {'is_deleted': False, 'project_id': project_id}
-    success, content = task_template.dispatch(result_dict['group_by'], filters)
+
+    filters = {"is_deleted": False, "project_id": project_id}
+    success, content = task_template.dispatch(result_dict["group_by"], filters)
     if not success:
-        return JsonResponse({'result': False, 'message': content})
-    return JsonResponse({'result': True, 'data': content})
-
-
-@require_GET
-def get_collect_template(request, project_id):
-    username = request.user.username
-    success, content = TaskTemplate.objects.get_collect_template(project_id, username)
-    if not success:
-        return JsonResponse({'result': False, 'message': content})
-    return JsonResponse({'result': True, 'data': content})
-
-
-def job_id_map_convert(origin_id_maps):
-    new_id_map = {}
-    for id_map in origin_id_maps:
-        _map = {'id': int(id_map['new_job_id']),
-                VAR_ID_MAP: {}}
-
-        for var_id_map in id_map['global_var_id_mapping']:
-            _map[VAR_ID_MAP][int(var_id_map['original_id'])] = int(var_id_map['new_id'])
-
-        new_id_map[int(id_map['original_job_id'])] = _map
-
-    return new_id_map
-
-
-def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
-    for template in list(templates_data['pipeline_template_data']['template'].values()):
-
-        # for each act in template
-        for act in [act for act in list(template['tree']['activities'].values()) if act['type'] == 'ServiceActivity']:
-            act_comp = act['component']
-            constants = template['tree']['constants']
-
-            # try to replace job id
-            if act_comp['code'] == 'job_execute_task':
-                origin_job_id = act_comp['data']['job_task_id']['value']
-                id_map = job_id_map.get(origin_job_id, {})
-
-                # replace job id
-                act_comp['data']['job_task_id']['value'] = id_map.get('id', origin_job_id)
-
-                # replace global vars id
-                if act_comp['data']['job_global_var']['hook']:
-                    constant_key = act_comp['data']['job_global_var']['value']
-                    for var in constants[constant_key]['value']:
-                        if 'id' in var:
-                            var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
-                else:
-                    for var in act_comp['data']['job_global_var']['value']:
-                        if 'id' in var:
-                            var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
+        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOW_ERROR, "data": None})
+    return JsonResponse({"result": True, "data": content, "code": err_code.SUCCESS, "message": ""})
 
 
 @require_POST
+@request_validate(DrawPipelineValidator)
 def draw_pipeline(request):
     """
     @summary：自动排版画布
     @param request:
     @return:
     """
-    try:
-        params = json.loads(request.body)
-        pipeline_tree = params['pipeline_tree']
-        canvas_width = int(params.get('canvas_width', CANVAS_WIDTH))
-    except Exception as e:
-        message = 'json loads pipeline_tree error: %s' % e
-        logger.exception(e)
-        return JsonResponse({'result': False, 'message': message})
-    kwargs = {'canvas_width': canvas_width}
+    params = json.loads(request.body)
+    pipeline_tree = params["pipeline_tree"]
+    canvas_width = int(params.get("canvas_width", CANVAS_WIDTH))
+
+    kwargs = {"canvas_width": canvas_width}
+
     for kw in list(POSITION.keys()):
         if kw in params:
             kwargs[kw] = params[kw]
     try:
         draw_pipeline_tree(pipeline_tree, **kwargs)
     except Exception as e:
-        message = 'draw pipeline_tree error: %s' % e
+        message = "draw pipeline_tree error: %s" % e
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': message})
-    return JsonResponse({'result': True, 'data': {'pipeline_tree': pipeline_tree}})
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR, "data": None})
+
+    return JsonResponse(
+        {"result": True, "data": {"pipeline_tree": pipeline_tree}, "code": err_code.SUCCESS, "message": ""}
+    )
 
 
 @require_GET
 def get_templates_with_expired_subprocess(request, project_id):
-    return JsonResponse({
-        'result': True,
-        'data': TaskTemplate.objects.get_templates_with_expired_subprocess(project_id)
-    })
+    return JsonResponse(
+        {
+            "result": True,
+            "data": TaskTemplate.objects.get_templates_with_expired_subprocess(project_id),
+            "code": err_code.SUCCESS,
+            "message": "",
+        }
+    )

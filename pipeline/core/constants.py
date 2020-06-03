@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 
 class PipelineElement(object):
     ServiceActivity = 'ServiceActivity'
-    LoopServiceActivity = 'LoopServiceActivity'
     SubProcess = 'SubProcess'
     ExclusiveGateway = 'ExclusiveGateway'
     ParallelGateway = 'ParallelGateway'
@@ -23,7 +22,8 @@ class PipelineElement(object):
     EmptyStartEvent = 'EmptyStartEvent'
     EmptyEndEvent = 'EmptyEndEvent'
 
-    TaskNodes = {ServiceActivity, LoopServiceActivity, SubProcess}
+    Activities = {ServiceActivity}
+    TaskNodes = {ServiceActivity, SubProcess}
     BranchGateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway}
     Gateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway, ConvergeGateway}
 
@@ -72,6 +72,7 @@ class PipelineElement(object):
     splice = 'splice'
     lazy = 'lazy'
     version = 'version'
+    subprocess_detail = 'subprocess_detail'
 
 
 PE = PipelineElement()

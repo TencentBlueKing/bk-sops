@@ -22,174 +22,153 @@ from gcloud.tests.mock_settings import *  # noqa
 from gcloud.taskflow3 import api
 
 
-TEST_PROJECT_ID = '2'  # do not change this to non number
+TEST_PROJECT_ID = "2"  # do not change this to non number
 TEST_ID_LIST = [node_uniqid() for i in range(10)]
 TEST_PIPELINE_TREE = {
-    'id': TEST_ID_LIST[0],
-    'name': 'name',
-    'start_event': {
-        'id': TEST_ID_LIST[1],
-        'name': 'start',
-        'type': 'EmptyStartEvent',
-        'incoming': None,
-        'outgoing': TEST_ID_LIST[5]
+    "id": TEST_ID_LIST[0],
+    "name": "name",
+    "start_event": {
+        "id": TEST_ID_LIST[1],
+        "name": "start",
+        "type": "EmptyStartEvent",
+        "incoming": None,
+        "outgoing": TEST_ID_LIST[5],
     },
-    'end_event': {
-        'id': TEST_ID_LIST[2],
-        'name': 'end',
-        'type': 'EmptyEndEvent',
-        'incoming': TEST_ID_LIST[7],
-        'outgoing': None
+    "end_event": {
+        "id": TEST_ID_LIST[2],
+        "name": "end",
+        "type": "EmptyEndEvent",
+        "incoming": TEST_ID_LIST[7],
+        "outgoing": None,
     },
-    'activities': {
+    "activities": {
         TEST_ID_LIST[3]: {
-            'id': TEST_ID_LIST[3],
-            'type': 'ServiceActivity',
-            'name': 'first_task',
-            'incoming': TEST_ID_LIST[5],
-            'outgoing': TEST_ID_LIST[6],
-            'optional': True,
-            'component': {
-                'code': 'test',
-                'data': {
-                    'input_test': {
-                        'hook': False,
-                        'value': '${custom_key1}',
-                    },
-                    'radio_test': {
-                        'hook': False,
-                        'value': '1',
-                    },
+            "id": TEST_ID_LIST[3],
+            "type": "ServiceActivity",
+            "name": "first_task",
+            "incoming": TEST_ID_LIST[5],
+            "outgoing": TEST_ID_LIST[6],
+            "optional": True,
+            "component": {
+                "code": "test",
+                "data": {
+                    "input_test": {"hook": False, "value": "${custom_key1}"},
+                    "radio_test": {"hook": False, "value": "1"},
                 },
-            }
+            },
         },
         TEST_ID_LIST[4]: {
-            'id': TEST_ID_LIST[4],
-            'type': 'ServiceActivity',
-            'name': 'first_task',
-            'incoming': TEST_ID_LIST[6],
-            'outgoing': TEST_ID_LIST[7],
-            'optional': True,
-            'component': {
-                'code': 'test',
-                'data': {
-                    'input_test': {
-                        'hook': True,
-                        'value': '${custom_key2}'
-                    },
-                    'radio_test': {
-                        'hook': False,
-                        'value': '2'
-                    },
+            "id": TEST_ID_LIST[4],
+            "type": "ServiceActivity",
+            "name": "first_task",
+            "incoming": TEST_ID_LIST[6],
+            "outgoing": TEST_ID_LIST[7],
+            "optional": True,
+            "component": {
+                "code": "test",
+                "data": {
+                    "input_test": {"hook": True, "value": "${custom_key2}"},
+                    "radio_test": {"hook": False, "value": "2"},
                 },
-            }
+            },
         },
     },
-    'flows': {  # 存放该 Pipeline 中所有的线
-        TEST_ID_LIST[5]: {
-            'id': TEST_ID_LIST[5],
-            'source': TEST_ID_LIST[1],
-            'target': TEST_ID_LIST[3]
+    "flows": {  # 存放该 Pipeline 中所有的线
+        TEST_ID_LIST[5]: {"id": TEST_ID_LIST[5], "source": TEST_ID_LIST[1], "target": TEST_ID_LIST[3]},
+        TEST_ID_LIST[6]: {"id": TEST_ID_LIST[6], "source": TEST_ID_LIST[3], "target": TEST_ID_LIST[4]},
+        TEST_ID_LIST[7]: {"id": TEST_ID_LIST[7], "source": TEST_ID_LIST[4], "target": TEST_ID_LIST[2]},
+    },
+    "gateways": {},  # 这里存放着网关的详细信息
+    "constants": {
+        "${custom_key1}": {
+            "index": 0,
+            "name": "input1",
+            "key": "${custom_key1}",
+            "desc": "",
+            "validation": "^.*$",
+            "show_type": "show",
+            "value": "value1",
+            "source_type": "custom",
+            "source_tag": "",
+            "source_info": {},
+            "custom_type": "input",
         },
-        TEST_ID_LIST[6]: {
-            'id': TEST_ID_LIST[6],
-            'source': TEST_ID_LIST[3],
-            'target': TEST_ID_LIST[4]
-        },
-        TEST_ID_LIST[7]: {
-            'id': TEST_ID_LIST[7],
-            'source': TEST_ID_LIST[4],
-            'target': TEST_ID_LIST[2]
+        "${custom_key2}": {
+            "index": 1,
+            "name": "input2",
+            "key": "${custom_key2}",
+            "desc": "",
+            "validation": "^.*$",
+            "show_type": "show",
+            "value": "value1",
+            "source_type": "custom",
+            "source_tag": "",
+            "source_info": {},
+            "custom_type": "input",
         },
     },
-    'gateways': {  # 这里存放着网关的详细信息
-    },
-    'constants': {
-        '${custom_key1}': {
-            'index': 0,
-            'name': 'input1',
-            'key': '${custom_key1}',
-            'desc': '',
-            'validation': '^.*$',
-            'show_type': 'show',
-            'value': 'value1',
-            'source_type': 'custom',
-            'source_tag': '',
-            'source_info': {},
-            'custom_type': 'input',
-        },
-        '${custom_key2}': {
-            'index': 1,
-            'name': 'input2',
-            'key': '${custom_key2}',
-            'desc': '',
-            'validation': '^.*$',
-            'show_type': 'show',
-            'value': 'value1',
-            'source_type': 'custom',
-            'source_tag': '',
-            'source_info': {},
-            'custom_type': 'input',
-        },
-    },
-    'outputs': ['${custom_key1}'],
+    "outputs": ["${custom_key1}"],
 }
 
 
 class APITest(TestCase):
-
     def setUp(self):
-        self.PREVIEW_TASK_TREE_URL = '/taskflow/api/preview_task_tree/{biz_cc_id}/'
+        self.PREVIEW_TASK_TREE_URL = "/taskflow/api/preview_task_tree/{biz_cc_id}/"
         self.client = Client()
 
-    @mock.patch('gcloud.taskflow3.api.JsonResponse', MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.api.JsonResponse", MockJsonResponse())
     def test_preview_task_tree__constants_not_referred(self):
 
-        with mock.patch(TASKTEMPLATE_GET,
-                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
             data1 = {
-                'template_source': 'project',
-                'template_id': 1,
-                'version': 'test_version',
-                'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[3]
+                "template_source": "project",
+                "template_id": 1,
+                "version": "test_version",
+                "exclude_task_nodes_id": [TEST_ID_LIST[3]],
             }
-            result = api.preview_task_tree(MockRequest('POST', data1), TEST_PROJECT_ID)
-            self.assertTrue(result['result'])
-            self.assertEqual(list(result['data']['constants_not_referred'].keys()), ['${custom_key1}'])
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data1), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}"])
 
-        with mock.patch(TASKTEMPLATE_GET,
-                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
             data2 = {
-                'template_source': 'project',
-                'template_id': 1,
-                'version': 'test_version',
-                'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[4]
+                "template_source": "project",
+                "template_id": 1,
+                "version": "test_version",
+                "exclude_task_nodes_id": [TEST_ID_LIST[4]],
             }
-            result = api.preview_task_tree(MockRequest('POST', data2), TEST_PROJECT_ID)
-            self.assertTrue(result['result'])
-            self.assertEqual(list(result['data']['constants_not_referred'].keys()), ['${custom_key2}'])
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data2), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), ["${custom_key2}"])
 
-        with mock.patch(TASKTEMPLATE_GET,
-                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
             data3 = {
-                'template_source': 'project',
-                'template_id': 1,
-                'version': 'test_version',
-                'exclude_task_nodes_id': '[]'
+                "template_source": "project",
+                "template_id": 1,
+                "version": "test_version",
+                "exclude_task_nodes_id": [],
             }
-            result = api.preview_task_tree(MockRequest('POST', data3), TEST_PROJECT_ID)
-            self.assertTrue(result['result'])
-            self.assertEqual(list(result['data']['constants_not_referred'].keys()), [])
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data3), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertEqual(list(result["data"]["constants_not_referred"].keys()), [])
 
-        with mock.patch(TASKTEMPLATE_GET,
-                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
             data4 = {
-                'template_source': 'project',
-                'template_id': 1,
-                'version': 'test_version',
-                'exclude_task_nodes_id': '["%s", "%s"]' % (TEST_ID_LIST[3], TEST_ID_LIST[4])
+                "template_source": "project",
+                "template_id": 1,
+                "version": "test_version",
+                "exclude_task_nodes_id": [TEST_ID_LIST[3], TEST_ID_LIST[4]],
             }
-            result = api.preview_task_tree(MockRequest('POST', data4), TEST_PROJECT_ID)
-            self.assertTrue(result['result'])
-            self.assertEqual(list(result['data']['constants_not_referred'].keys()),
-                             ['${custom_key1}', '${custom_key2}'])
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data4), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertEqual(
+                list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}", "${custom_key2}"]
+            )

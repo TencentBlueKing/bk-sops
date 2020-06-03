@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-from gcloud.core.utils import format_datetime
+from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -33,10 +33,7 @@ class GetTemplateListAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -50,8 +47,7 @@ class GetTemplateListAPITest(APITest):
         task_templates = [task_tmpl1, task_tmpl2]
 
         with patch(
-            TASKTEMPLATE_SELECT_RELATE,
-            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ):
             assert_data = [
                 {
@@ -70,9 +66,7 @@ class GetTemplateListAPITest(APITest):
                 for tmpl in task_templates
             ]
 
-            response = self.client.get(
-                path=self.url().format(project_id=TEST_PROJECT_ID)
-            )
+            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
 
             self.assertEqual(response.status_code, 200)
 
@@ -82,14 +76,11 @@ class GetTemplateListAPITest(APITest):
             self.assertEqual(data["data"], assert_data)
 
         with patch(
-            TASKTEMPLATE_SELECT_RELATE,
-            MagicMock(return_value=MockQuerySet(filter_result=[])),
+            TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[])),
         ):
             assert_data = []
 
-            response = self.client.get(
-                path=self.url().format(project_id=TEST_PROJECT_ID)
-            )
+            response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
 
@@ -100,10 +91,7 @@ class GetTemplateListAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -117,8 +105,7 @@ class GetTemplateListAPITest(APITest):
         task_templates = [task_tmpl1, task_tmpl2]
 
         with patch(
-            COMMONTEMPLATE_SELECT_RELATE,
-            MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
+            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ):
             assert_data = [
                 {
@@ -138,8 +125,7 @@ class GetTemplateListAPITest(APITest):
             ]
 
             response = self.client.get(
-                path=self.url().format(project_id=TEST_PROJECT_ID),
-                data={"template_source": "common"},
+                path=self.url().format(project_id=TEST_PROJECT_ID), data={"template_source": "common"},
             )
 
             self.assertEqual(response.status_code, 200)
@@ -150,14 +136,12 @@ class GetTemplateListAPITest(APITest):
             self.assertEqual(data["data"], assert_data)
 
         with patch(
-            COMMONTEMPLATE_SELECT_RELATE,
-            MagicMock(return_value=MockQuerySet(filter_result=[])),
+            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[])),
         ):
             assert_data = []
 
             response = self.client.get(
-                path=self.url().format(project_id=TEST_PROJECT_ID),
-                data={"template_source": "common"},
+                path=self.url().format(project_id=TEST_PROJECT_ID), data={"template_source": "common"},
             )
 
             data = json.loads(response.content)

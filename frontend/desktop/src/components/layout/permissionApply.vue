@@ -5,30 +5,20 @@
                 <img :src="lock" alt="permission-lock" />
             </div>
             <h3>{{permissionTitle}}</h3>
-            <p>{{i18n.resourceContent}}</p>
+            <p>{{$t('你没有相应资源的访问权限，请申请权限或联系管理员授权')}}</p>
             <div class="operation-btns">
                 <bk-button
                     theme="primary"
                     :loading="loading"
                     @click="applyBtnClick">
-                    {{i18n.apply}}
+                    {{$t('去申请')}}
                 </bk-button>
-                <!-- <bk-button
-                    theme="default"
-                    v-if="permissionData.type === 'project' && viewMode !== 'appmaker'"
-                    v-cursor="{ active: !hasProjectPermission }"
-                    :class="{
-                        'btn-permission-disable': !hasProjectPermission
-                    }"
-                    @click="goToCreateProject">
-                    {{i18n.create}}
-                </bk-button> -->
             </div>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapActions, mapState, mapGetters } from 'vuex'
     import permission from '@/mixins/permission.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -42,7 +32,7 @@
                 default () {
                     return {
                         type: 'project', // 无权限类型: project、other
-                        permission: []
+                        permission: null
                     }
                 }
             }
@@ -52,15 +42,7 @@
                 url: '',
                 loading: false,
                 authActions: [],
-                lock: require('../../assets/images/lock-radius.svg'),
-                i18n: {
-                    resourceTitle: gettext('无权限访问'),
-                    projectTitle: gettext('无权限访问项目'),
-                    resourceContent: gettext('你没有相应资源的访问权限，请申请权限或联系管理员授权'),
-                    // projectContent: gettext('你可以申请已有项目的权限'),
-                    apply: gettext('去申请'),
-                    create: gettext('新建项目')
-                }
+                lock: require('../../assets/images/lock-radius.svg')
             }
         },
         computed: {
@@ -68,28 +50,20 @@
                 'viewMode': state => state.view_mode
             }),
             ...mapState('project', {
-                'projectList': state => state.projectList,
-                'authResource': state => state.authResource,
-                'authOperations': state => state.authOperations
+                'projectList': state => state.projectList
             }),
             ...mapGetters('project', [
                 'userCanViewProjects'
             ]),
             permissionTitle () {
-                return this.permissionData.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
-            },
-            // permissionContent () {
-            //     return this.permissionData.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
-            // },
-            hasProjectPermission () {
-                return this.hasPermission(['create'], this.authActions, this.authOperations)
+                return this.permissionData.type === 'project' ? i18n.t('无权限访问项目') : i18n.t('无权限访问')
             }
         },
         watch: {
             'permissionData': {
                 deep: true,
                 handler (val) {
-                    if (val.permission.length > 0) {
+                    if (val.permission) {
                         this.loadPermissionUrl()
                     }
                 }
@@ -99,14 +73,14 @@
             if (this.permissionData.type === 'project' && this.viewMode !== 'appmaker') {
                 this.queryProjectCreatePerm()
             }
-            if (this.permissionData.permission.length > 0) {
+            if (this.permissionData.permission) {
                 this.loadPermissionUrl()
             }
         },
         methods: {
             ...mapActions([
                 'queryUserPermission',
-                'getPermissionUrl'
+                'getIamUrl'
             ]),
             ...mapMutations('project', [
                 'setProjectActions'
@@ -143,31 +117,23 @@
                 }
             },
             goToCreateProject () {
-                if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
-                    this.goToApply('create')
+                if (!this.hasPermission(['project_create'], this.authActions)) {
+                    this.goToApply()
                 } else {
                     this.$router.push({ name: 'projectHome' })
                 }
             },
-            goToApply (perm) {
-                const resourceData = {
-                    name,
-                    auth_actions: this.authActions
-                }
-                this.applyForPermission([perm], resourceData, this.authOperations, this.authResource)
+            goToApply () {
+                this.applyForPermission(['project_create'])
             },
             async queryProjectCreatePerm () {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: 'project',
-                        action_ids: JSON.stringify(['create'])
+                        action: 'project_create'
                     })
     
-                    const hasCreatePerm = !!res.data.details.find(item => {
-                        return item.action_id === 'create' && item.is_pass
-                    })
-                    if (hasCreatePerm) {
-                        this.authActions.push('create')
+                    if (res.data.is_allow) {
+                        this.authActions.push('project_create')
                     }
                 } catch (err) {
                     errorHandler(err, this)
@@ -176,8 +142,12 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const res = await this.getPermissionUrl(JSON.stringify(this.permissionData.permission))
-                    this.url = res.data.url
+                    const res = await this.getIamUrl(this.permissionData.permission)
+                    if (res.result) {
+                        this.url = res.data.url
+                    } else {
+                        errorHandler(res, this)
+                    }
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {

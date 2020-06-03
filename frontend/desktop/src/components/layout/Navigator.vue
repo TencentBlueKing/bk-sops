@@ -14,11 +14,11 @@
         <!-- 轻应用打开页面，logo不支持单击和右键跳转到首页 -->
         <span v-if="view_mode === 'appmaker'" class="nav-logo">
             <img :src="logo" class="logo" />
-            <span class="header-title">{{ i18n.title }}</span>
+            <span class="header-title">{{ $t('标准运维') }}</span>
         </span>
         <router-link v-else :to="{ name: 'home' }" class="nav-logo" @click.native="onLogoClick">
             <img :src="logo" class="logo" />
-            <span class="header-title">{{ i18n.title }}</span>
+            <span class="header-title">{{ $t('标准运维') }}</span>
         </router-link>
         <ul class="nav-left" v-if="!appmakerDataLoading">
             <li
@@ -58,7 +58,7 @@
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
                     target="_blank"
                     v-bk-tooltips="{
-                        content: i18n.help,
+                        content: $t('帮助文档'),
                         placement: 'bottom-end',
                         theme: 'light',
                         zIndex: 1001
@@ -69,7 +69,7 @@
                 <i
                     class="common-icon-info"
                     v-bk-tooltips="{
-                        content: i18n.logVersion,
+                        content: $t('版本日志'),
                         placement: 'bottom-end',
                         theme: 'light',
                         zIndex: 1001
@@ -100,7 +100,7 @@
     </header>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import bus from '@/utils/bus.js'
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -110,61 +110,61 @@
     const ROUTE_LIST = [
         {
             routerName: 'process',
-            name: gettext('项目流程'),
+            name: i18n.t('项目流程'),
             path: '/template/',
             params: ['project_id']
         },
         {
             routerName: 'taskList',
-            name: gettext('任务管理'),
+            name: i18n.t('任务管理'),
             path: '/taskflow/',
             params: ['project_id']
         },
         {
             routerName: 'appMakerList',
-            name: gettext('轻应用'),
+            name: i18n.t('轻应用'),
             path: '/appmaker/',
             params: ['project_id']
         },
         {
             routerName: 'commonProcessList',
-            name: gettext('公共流程'),
+            name: i18n.t('公共流程'),
             path: '/common'
         },
         {
             routerName: 'functionHome',
             path: '/function/',
-            name: gettext('职能化')
+            name: i18n.t('职能化')
         },
         {
             routerName: 'auditHome',
             path: '/audit/',
-            name: gettext('操作审计')
+            name: i18n.t('审计中心')
         },
         {
             routerName: 'projectHome',
             path: '/project/',
-            name: gettext('项目管理')
+            name: i18n.t('项目管理')
         },
         {
             routerName: 'adminSearch',
             path: '/admin',
-            name: gettext('管理员入口'),
+            name: i18n.t('管理员入口'),
             children: [
                 {
                     routerName: 'adminSearch',
                     path: '/admin/manage/',
-                    name: gettext('后台管理')
+                    name: i18n.t('后台管理')
                 },
                 {
                     routerName: 'statisticsTemplate',
                     path: '/admin/statistics/',
-                    name: gettext('运营数据')
+                    name: i18n.t('运营数据')
                 },
                 {
                     routerName: 'atomDev',
                     path: '/admin/atomdev',
-                    name: gettext('插件开发')
+                    name: i18n.t('插件开发')
                 }
             ]
         }
@@ -174,13 +174,13 @@
             routerName: 'appmakerTaskCreate',
             path: 'appmakerTaskCreate',
             params: ['app_id', 'project_id'],
-            name: gettext('新建任务')
+            name: i18n.t('新建任务')
         },
         {
             routerName: 'appmakerTaskHome',
             path: 'appmakerTaskHome',
             params: ['project_id'],
-            name: gettext('任务记录')
+            name: i18n.t('任务记录')
         }
     ]
     export default {
@@ -194,11 +194,6 @@
         data () {
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
-                i18n: {
-                    help: gettext('帮助文档'),
-                    logVersion: gettext('版本日志'),
-                    title: gettext('标准运维')
-                },
                 logList: [],
                 logDetail: '',
                 logListLoading: false,
@@ -215,7 +210,8 @@
                 username: state => state.username,
                 app_id: state => state.app_id,
                 notFoundPage: state => state.notFoundPage,
-                userRights: state => state.userRights
+                userRights: state => state.userRights,
+                permissionMeta: state => state.permissionMeta
             }),
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
@@ -261,9 +257,6 @@
             ...mapActions('project', [
                 'loadProjectList'
             ]),
-            ...mapMutations('project', [
-                'setProjectPerm'
-            ]),
             ...mapMutations([
                 'setUserRights',
                 'setAdminPerm'
@@ -285,10 +278,9 @@
             },
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
-                    const res = await this.loadProjectList({ limit: 0 })
-                    this.setProjectPerm(res.meta)
+                    await this.loadProjectList({ limit: 0 })
                     // 是否展示管理员入口
-                    const hasAdminPerm = await this.getActionPerm('admin_operate', ['view'])
+                    const hasAdminPerm = await this.getActionPerm('admin_view')
                     this.hasAdminPerm = hasAdminPerm
                     this.setAdminPerm(hasAdminPerm)
                     this.checkRouterPerm()
@@ -304,72 +296,48 @@
                 const name = routerName || this.$route.name
                 const { function: hasFunction, audit: hasAudit } = this.userRights
                 if (functionRouterMap.includes(name) && !hasFunction) {
-                    const result = await this.getActionPerm('function_center', ['view'])
+                    const result = await this.getActionPerm('function_view')
                     this.setUserRights({ type: 'function', val: result })
                     if (!result) {
-                        this.togglePermissionApplyPage(
-                            {
-                                type: 'function_center',
-                                name: gettext('职能化中心')
-                            },
-                            {
-                                id: 'view',
-                                name: gettext('查看')
-                            }
-                        )
+                        this.togglePermissionApplyPage('function_view')
                     }
                 } else if (auditRouterMap.includes(name) && !hasAudit) {
-                    const result = await this.getActionPerm('audit_center', ['view'])
+                    const result = await this.getActionPerm('audit_view')
                     this.setUserRights({ type: 'audit', val: result })
                     if (!result) {
-                        this.togglePermissionApplyPage(
-                            {
-                                type: 'audit_center',
-                                name: gettext('审计中心')
-                            },
-                            {
-                                id: 'view',
-                                name: gettext('查看')
-                            }
-                        )
+                        this.togglePermissionApplyPage('audit_view')
                     }
                 }
             },
             /**
              * 切换到权限申请页
              */
-            togglePermissionApplyPage (resource, action) {
-                const permissions = []
-                const { scope_id, scope_name, scope_type, scope_type_name, system_id, system_name } = this.authResource
-                permissions.push({
-                    scope_id,
-                    scope_name,
-                    scope_type_name,
-                    resource_type: resource.type,
-                    resource_type_name: resource.name,
-                    scope_type,
-                    system_id,
-                    system_name,
-                    resources: [],
-                    action_id: action.id,
-                    action_name: action.name
-                })
-                bus.$emit('togglePermissionApplyPage', true, resource.type, permissions)
+            togglePermissionApplyPage (action) {
+                const bksops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                const name = this.permissionMeta.actions.find(item => item.id === action).name
+                const { id: systemId, name: systemName } = bksops
+                const permissions = {
+                    system_id: systemId,
+                    system_name: systemName,
+                    actions: [{
+                        id: action,
+                        name,
+                        related_resource_types: []
+                    }]
+                }
+
+                bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
             },
             /**
              * 获取单个类型的权限
              * @param {String} type 类型
-             * @param {Array} actions 具体操作类型
              */
-            async getActionPerm (type, actions) {
+            async getActionPerm (type) {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: type,
-                        action_ids: JSON.stringify(actions)
+                        action: type
                     })
-                    return actions.every(action => {
-                        return res.data.details.some(m => m.action_id === action && m.is_pass)
-                    })
+                    return res.data.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 }

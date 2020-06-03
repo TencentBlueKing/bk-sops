@@ -9,7 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from '@/api/index.js'
+import axios from 'axios'
 
 const project = {
     namespaced: true,
@@ -18,8 +18,6 @@ const project = {
         projectName: '',
         projectList: [],
         timeZone: window.TIMEZONE,
-        authResource: {},
-        authOperations: [],
         authActions: []
     },
     mutations: {
@@ -40,47 +38,67 @@ const project = {
         },
         setProjectActions (state, data) {
             state.authActions = data
-        },
-        setProjectPerm (state, data) {
-            state.authResource = data.auth_resource
-            state.authOperations = data.auth_operations
         }
     },
     actions: {
-        changeDefaultProject ({ commit }, data) {
-            return api.changeDefaultProject(data).then(
-                response => response.data
-            )
+        // 更改用户的默认项目
+        changeDefaultProject ({ state }, data) {
+            return axios.post(`core/api/change_default_project/${state.project_id}/`, {
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                }
+            }).then(response => response.data)
         },
         loadProjectList ({ commit }, data) {
-            return api.loadProjectList(data).then(response => {
+            const { limit, offset, is_disable = false, q } = data
+            return axios.get(`api/v3/project/`, {
+                params: {
+                    limit,
+                    offset,
+                    is_disable,
+                    q
+                }
+            }).then(response => {
                 if (data && data.limit === 0) {
                     commit('setProjectList', response.data.objects)
                 }
-                
+
                 return response.data
             })
         },
+        // 获取常用业务
+        loadCommonProject ({ commit }, data) {
+            return axios.get('api/v3/common_use_project/').then(response => response.data)
+        },
         createProject ({ commit }, data) {
-            return api.createProject(data).then(
-                response => response.data
-            )
+            const { name, time_zone, desc } = data
+
+            return axios.post(`api/v3/project/`, {
+                name,
+                time_zone,
+                desc
+            }).then(response => response.data)
         },
         loadProjectDetail ({ commit }, id) {
-            return api.loadProjectDetail(id).then(
+            return axios.get(`api/v3/project/${id}/`).then(
                 response => response.data
             )
         },
+        // 更新项目详情
         updateProject ({ commit }, data) {
-            return api.updateProject(data).then(
-                response => response.data
-            )
+            const { id, name, time_zone, desc, is_disable } = data
+            return axios.patch(`api/v3/project/${id}/`, {
+                name,
+                time_zone,
+                desc,
+                is_disable
+            }).then(response => response.data)
         }
     },
     getters: {
         userCanViewProjects (state) {
             return state.projectList.filter(item => {
-                return item.auth_actions.indexOf('view') > -1
+                return item.auth_actions.indexOf('project_view') > -1
             })
         }
     }

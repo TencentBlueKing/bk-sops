@@ -15,8 +15,8 @@ from django.apps import AppConfig
 
 
 class FunctionConfig(AppConfig):
-    name = 'gcloud.contrib.function'
-    verbose_name = 'GcloudContribFunction'
+    name = "gcloud.contrib.function"
+    verbose_name = "GcloudContribFunction"
 
     def ready(self):
         from gcloud.contrib.function.handlers import (  # noqa
@@ -25,4 +25,3 @@ class FunctionConfig(AppConfig):
             function_task_started_handler,
             function_task_finished_handler,
         )
-        from gcloud.contrib.function.permissions import function_center_resource  # noqa

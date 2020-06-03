@@ -20,44 +20,48 @@ from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
 
+from gcloud import err_code
 from gcloud.core.models import Project
 
 logger = logging.getLogger("root")
 
 
 class TimezoneMiddleware(MiddlewareMixin):
-
     def process_view(self, request, view_func, view_args, view_kwargs):
-        project_id = view_kwargs.get('project_id')
+        project_id = view_kwargs.get("project_id")
         if project_id:
             try:
                 project = Project.objects.get(id=project_id)
             except Project.DoesNotExist:
-                logger.error('project[id={project_id}] does not exist'.format(project_id=project_id))
+                logger.error("project[id={project_id}] does not exist".format(project_id=project_id))
                 return None
 
             # set time_zone of business
-            request.session['blueking_timezone'] = project.time_zone
+            request.session["blueking_timezone"] = project.time_zone
 
-        tzname = request.session.get('blueking_timezone')
+        tzname = request.session.get("blueking_timezone")
         if tzname:
             try:
                 timezone.activate(pytz.timezone(tzname))
             except Exception as e:
-                logger.error('activate timezone[{blueking_timezone}] raise error[{error}]'.format(
-                    blueking_timezone=tzname,
-                    error=e
-                ))
+                logger.error(
+                    "activate timezone[{blueking_timezone}] raise error[{error}]".format(
+                        blueking_timezone=tzname, error=e
+                    )
+                )
         else:
             timezone.deactivate()
 
 
 class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
-
     def process_exception(self, request, exception):
         if isinstance(exception, ObjectDoesNotExist):
             logger.error(traceback.format_exc())
-            return JsonResponse({
-                'result': False,
-                'message': 'Object not found: %s' % exception
-            })
+            return JsonResponse(
+                {
+                    "result": False,
+                    "message": "Object not found: %s" % exception,
+                    "data": None,
+                    "code": err_code.CONTENT_NOT_EXIST,
+                }
+            )

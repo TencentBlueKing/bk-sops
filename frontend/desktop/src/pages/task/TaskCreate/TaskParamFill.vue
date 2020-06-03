@@ -13,11 +13,11 @@
     <div class="param-fill-wrapper">
         <div :class="['task-info', { 'functor-task-info': userRights.function }]">
             <div class="task-info-title">
-                <span>{{ i18n.taskInfo }}</span>
+                <span>{{ $t('任务信息') }}</span>
             </div>
             <div>
                 <div class="common-form-item">
-                    <label class="required">{{ i18n.taskName }}</label>
+                    <label class="required">{{ $t('任务名称') }}</label>
                     <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
                         <bk-input
                             v-model="taskName"
@@ -31,18 +31,18 @@
                 <div
                     v-if="!isExecuteSchemeHide"
                     class="common-form-item">
-                    <label class="required">{{i18n.startMethod}}</label>
+                    <label class="required">{{$t('执行计划')}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
-                                {{ i18n.startNow }}
+                                {{ $t('立即执行') }}
                             </bk-button>
                             <bk-button
                                 :theme="!isStartNow ? 'primary' : 'default'"
                                 @click="onChangeStartNow(false)">
-                                {{ i18n.periodicStart }}
+                                {{ $t('周期执行') }}
                             </bk-button>
                         </div>
                     </div>
@@ -50,18 +50,18 @@
                 <div
                     v-if="isTaskTypeShow"
                     class="common-form-item">
-                    <label class="required">{{ i18n.flowType }}</label>
+                    <label class="required">{{ $t('流程类型') }}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
                                 :theme="isSelectFunctionalType ? 'default' : 'primary'"
                                 @click="onSwitchTaskType(false)">
-                                {{ i18n.defaultFlowType }}
+                                {{ $t('默认任务流程') }}
                             </bk-button>
                             <bk-button
                                 :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                 @click="onSwitchTaskType(true)">
-                                {{ i18n.functionFlowType }}
+                                {{ $t('职能化任务流程') }}
                             </bk-button>
                         </div>
                     </div>
@@ -69,7 +69,7 @@
                 <div
                     v-if="!isStartNow"
                     class="common-form-item">
-                    <label class="required">{{i18n.periodicCron}}</label>
+                    <label class="required">{{$t('周期表达式')}}</label>
                     <div class="common-form-content step-form-item-cron">
                         <LoopRuleSelect
                             ref="loopRuleSelect"
@@ -82,7 +82,7 @@
         <div class="param-info">
             <div class="param-info-title">
                 <span>
-                    {{ i18n.paramsInfo }}
+                    {{ $t('参数信息') }}
                 </span>
             </div>
             <div>
@@ -99,23 +99,23 @@
             <bk-button
                 class="preview-step-button"
                 @click="onGotoSelectNode">
-                {{ i18n.previous }}
+                {{ $t('上一步') }}
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
-                    'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
+                    'btn-permission-disable': !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
                 :loading="isSubmit"
-                v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
+                v-cursor="{ active: !hasPermission(nextStepPerm, actions) }"
                 @click="onCreateTask">
-                {{i18n.new}}
+                {{$t('下一步')}}
             </bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
     import { mapState, mapActions, mapMutations } from 'vuex'
@@ -137,20 +137,6 @@
         props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
         data () {
             return {
-                i18n: {
-                    taskInfo: gettext('任务信息'),
-                    taskName: gettext('任务名称'),
-                    flowType: gettext('流程类型'),
-                    defaultFlowType: gettext('默认任务流程'),
-                    functionFlowType: gettext('职能化任务流程'),
-                    paramsInfo: gettext('参数信息'),
-                    previous: gettext('上一步'),
-                    new: gettext('下一步'),
-                    startNow: gettext('立即执行'),
-                    periodicStart: gettext('周期执行'),
-                    periodicCron: gettext('周期表达式'),
-                    startMethod: gettext('执行计划')
-                },
                 bkMessageInstance: null,
                 isSubmit: false,
                 isSelectFunctionalType: false,
@@ -168,16 +154,14 @@
                     required: true,
                     regex: PERIODIC_REG
                 },
-                periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
+                periodicCronImg: require('@/assets/images/' + i18n.t('task-zh') + '.png'),
                 lastTaskName: '',
                 node: {},
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
                 disabledButton: true,
-                tplActions: [],
-                tplOperations: [],
-                tplResource: {}
+                tplActions: []
             }
         },
         computed: {
@@ -188,7 +172,8 @@
                 'app_id': state => state.app_id
             }),
             ...mapState('project', {
-                'timeZone': state => state.timezone
+                'timeZone': state => state.timezone,
+                'projectName': state => state.projectName
             }),
             ...mapState('appmaker', {
                 'appmakerDetail': state => state.appmakerDetail
@@ -203,22 +188,18 @@
                 return this.entrance.indexOf('periodicTask') > -1
             },
             nextStepPerm () {
-                return this.isStartNow ? ['create_task'] : ['create_periodic_task']
-            },
-            resourceName () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.name : this.templateName
-            },
-            resourceId () {
-                return this.viewMode === 'appmaker' ? this.app_id : this.template_id
+                if (this.viewMode === 'appmaker') {
+                    return ['mini_app_create_task']
+                } else {
+                    if (this.isStartNow) {
+                        return this.common ? ['common_flow_create_task'] : ['flow_create_task']
+                    } else {
+                        return this.common ? ['common_flow_create_periodic_task'] : ['flow_create_periodic_task']
+                    }
+                }
             },
             actions () {
                 return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_actions : this.tplActions
-            },
-            resource () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_resource : this.tplResource
-            },
-            operations () {
-                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_operations : this.tplOperations
             },
             // 不显示【执行计划】的情况
             isExecuteSchemeHide () {
@@ -263,8 +244,6 @@
                     }
 
                     this.tplActions = templateData.auth_actions
-                    this.tplResource = templateData.auth_resource
-                    this.tplOperations = templateData.auth_operations
                     this.setTemplateData(templateData)
                     const params = {
                         templateId: this.template_id,
@@ -354,13 +333,37 @@
                 this.$router.push(url)
             },
             onCreateTask () {
-                if (!this.hasPermission(this.nextStepPerm, this.actions, this.operations)) {
-                    const resourceData = {
-                        name: this.resourceName,
-                        id: this.resourceId,
-                        auth_actions: this.actions
+                if (!this.hasPermission(this.nextStepPerm, this.actions)) {
+                    let resourceData = {}
+                    if (this.viewMode === 'appmaker') {
+                        resourceData = {
+                            mini_app: [{
+                                id: this.app_id,
+                                name: this.appmakerDetail.name
+                            }]
+                        }
+                    } else {
+                        if (this.common) {
+                            resourceData = {
+                                common_flow: [{
+                                    id: this.template_id,
+                                    name: this.templateName
+                                }],
+                                project: [{
+                                    id: this.project_id,
+                                    name: this.projectName
+                                }]
+                            }
+                        } else {
+                            resourceData = {
+                                flow: [{
+                                    id: this.template_id,
+                                    name: this.templateName
+                                }]
+                            }
+                        }
                     }
-                    this.applyForPermission(this.nextStepPerm, resourceData, this.operations, this.resource)
+                    this.applyForPermission(this.nextStepPerm, this.actions, resourceData)
                     return
                 }
 
@@ -464,7 +467,7 @@
                         try {
                             await this.createPeriodic(data)
                             this.$bkMessage({
-                                'message': gettext('创建周期任务成功'),
+                                'message': i18n.t('创建周期任务成功'),
                                 'theme': 'success'
                             })
                             this.$router.push({ name: 'periodicTemplate', params: { project_id: this.project_id } })

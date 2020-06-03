@@ -16,13 +16,12 @@ import logging
 import datetime
 
 from gcloud.core.constant import AE
-from gcloud.core.utils.common import timestamp_to_datetime
+from gcloud.utils.dates import timestamp_to_datetime
 from gcloud.tasktmpl3.models import TaskTemplate
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
-TEMPLATE_REGEX = re.compile(r'^name|creator_name|editor_name|'
-                            r'create_time|edit_time|edit_finish_time|finish_time')
+TEMPLATE_REGEX = re.compile(r"^name|creator_name|editor_name|" r"create_time|edit_time|edit_finish_time|finish_time")
 TEMPLATE_GROUP_BY_METHODS = {
     # 按流程模板执行状态查询流程个数
     AE.state: TaskTemplate.objects.group_by_state,
@@ -35,7 +34,7 @@ TEMPLATE_GROUP_BY_METHODS = {
     # 需要获得符合的查询的对应 template_id 列表
     AE.atom_execute: TaskTemplate.objects.group_by_atom_execute,
     # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
-    AE.template_node: TaskTemplate.objects.group_by_template_node
+    AE.template_node: TaskTemplate.objects.group_by_template_node,
 }
 
 
@@ -48,19 +47,18 @@ def produce_filter(filters):
     orm_filters = {}
     for cond, value in list(filters.items()):
         # component_code不加入查询条件中
-        if value in ['None', ''] or cond in ['component_code', 'order_by', 'type']:
+        if value in ["None", ""] or cond in ["component_code", "order_by", "type"]:
             continue
         if TEMPLATE_REGEX.match(cond):
-            filter_cond = 'pipeline_template__%s' % cond
+            filter_cond = "pipeline_template__%s" % cond
             # 时间范围
-            if cond == 'create_time':
-                filter_cond = '%s__gte' % filter_cond
+            if cond == "create_time":
+                filter_cond = "%s__gte" % filter_cond
                 orm_filters.update({filter_cond: timestamp_to_datetime(value)})
                 continue
-            elif cond == 'finish_time':
-                filter_cond = 'pipeline_template__create_time__lt'
-                orm_filters.update(
-                    {filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
+            elif cond == "finish_time":
+                filter_cond = "pipeline_template__create_time__lt"
+                orm_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
                 continue
         else:
             filter_cond = cond
@@ -84,8 +82,8 @@ def dispatch(group_by, filters=None, page=None, limit=None):
         tasktmpl = TaskTemplate.objects.filter(**orm_filters)
     except Exception as e:
         message = "query template params conditions[{filters}] have invalid key or value: {error}".format(
-            filters=filters,
-            error=e)
+            filters=filters, error=e
+        )
         logger.error(message)
         return False, message
 
@@ -97,5 +95,5 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     else:
         total, groups = TEMPLATE_GROUP_BY_METHODS[group_by](tasktmpl, filters, page, limit)
 
-    data = {'total': total, 'groups': groups}
+    data = {"total": total, "groups": groups}
     return True, data

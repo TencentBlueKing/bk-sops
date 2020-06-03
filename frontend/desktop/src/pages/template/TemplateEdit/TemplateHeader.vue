@@ -25,7 +25,7 @@
                 :name="'templateName'"
                 :has-error="errors.has('templateName')"
                 :value="name"
-                :placeholder="i18n.placeholder"
+                :placeholder="$t('请输入名称')"
                 @input="onInputName"
                 @enter="onInputBlur"
                 @blur="onInputBlur">
@@ -38,43 +38,48 @@
                 :class="[
                     'save-canvas',
                     'task-btn',
-                    { 'btn-permission-disable': !isSaveBtnEnable }]"
+                    { 'btn-permission-disable': !saveBtnActive }]"
                 :loading="templateSaving"
-                v-cursor="{ active: !isSaveBtnEnable }"
+                v-cursor="{ active: !saveBtnActive }"
                 @click.stop="onSaveClick(false)">
-                {{i18n.save}}
+                {{$t('保存')}}
             </bk-button>
             <bk-button
                 theme="primary"
                 :class="['task-btn', {
-                    'btn-permission-disable': !isSaveAndCreateBtnEnable
+                    'btn-permission-disable': !createTaskBtnActive
                 }]"
                 :loading="createTaskSaving"
-                v-cursor="{ active: !isSaveAndCreateBtnEnable }"
+                v-cursor="{ active: !createTaskBtnActive }"
                 @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>
+            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{$t('返回')}}</router-link>
         </div>
-        <ProjectSelectorModal
-            :is-new-task="false"
-            ref="ProjectSelectorModal">
-        </ProjectSelectorModal>
+        <SelectProjectModal
+            :title="$t('创建任务')"
+            :show="isSelectProjectShow"
+            :confirm-loading="commonTplCreateTaskPermLoading"
+            :confirm-cursor="!hasCommonTplCreateTaskPerm"
+            @onChange="handleProjectChange"
+            @onConfirm="handleCreateTaskConfirm"
+            @onCancel="handleCreateTaskCancel">
+        </SelectProjectModal>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
+    import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
     export default {
         name: 'TemplateHeader',
         components: {
             BaseTitle,
-            ProjectSelectorModal
+            SelectProjectModal
         },
         mixins: [permission],
         props: {
@@ -110,19 +115,7 @@
                 type: Boolean,
                 default: false
             },
-            tplResource: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
             tplActions: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            tplOperations: {
                 type: Array,
                 default () {
                     return []
@@ -138,74 +131,48 @@
                     regex: NAME_REG
                 },
                 isShowMode: true,
-                hasCreateTplPerm: false, // 是否有创建公共流程权限
-                i18n: {
-                    placeholder: gettext('请输入名称'),
-                    create: gettext('新建流程'),
-                    edit: gettext('编辑流程'),
-                    save: gettext('保存'),
-                    createTask: gettext('新建任务'),
-                    saveAndCreateTask: gettext('保存并新建任务'),
-                    back: gettext('返回')
-                }
+                isSelectProjectShow: false, // 是否显示项目选择弹窗
+                saveBtnActive: false, // 保存按钮是否激活
+                createTaskBtnActive: false, // 新建任务按钮是否激活
+                hasCreateCommonTplPerm: false, // 创建公共流程权限
+                hasCommonTplCreateTaskPerm: false, // 公共流程在项目下创建任务权限
+                createCommonTplPermLoading: false,
+                commonTplCreateTaskPermLoading: false,
+                selectedProject: {} // 公共流程创建任务所选择的项目
             }
         },
         computed: {
+            ...mapState({
+                'permissionMeta': state => state.permissionMeta
+            }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
-                'authOperations': state => state.authOperations,
-                'authResource': state => state.authResource
+                'projectName': state => state.projectName
             }),
             title () {
-                return this.$route.query.template_id === undefined ? this.i18n.create : this.i18n.edit
+                return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
             },
             createTaskBtnText () {
-                return this.isSaveAndCreateTaskType ? this.i18n.saveAndCreateTask : this.i18n.createTask
+                return this.isSaveAndCreateTaskType ? i18n.t('保存并新建任务') : i18n.t('新建任务')
             },
             saveRequiredPerm () {
                 if (['new', 'clone'].includes(this.type)) {
-                    return this.common ? ['create'] : ['create_template'] // 新建、克隆流程保存按钮对公共流程和普通流程的权限要求
+                    return this.common ? ['common_flow_create'] : ['flow_create'] // 新建、克隆流程保存按钮对公共流程和普通流程的权限要求
                 } else {
-                    return ['edit']
+                    return this.common ? ['common_flow_edit'] : ['flow_edit']
                 }
             },
             saveAndCreateRequiredPerm () {
                 if (['new', 'clone'].includes(this.type)) {
-                    return this.common ? ['create'] : ['create_template']
+                    return this.common ? ['common_flow_create'] : ['flow_create']
                 } else {
-                    return this.isTemplateDataChanged ? ['create_task', 'edit'] : ['create_task']
-                }
-            },
-            isSaveBtnEnable () {
-                if (!this.common) { // 普通流程保存/新建按钮是否可用
-                    if (['new', 'clone'].includes(this.type)) {
-                        return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
+                    if (this.isTemplateDataChanged) {
+                        return this.common ? ['common_flow_edit'] : ['flow_edit', 'flow_create_task']
                     } else {
-                        return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
-                    }
-                } else { // 公共流程保存/新建按钮是否可用
-                    if (['new', 'clone'].includes(this.type)) {
-                        return this.hasCreateTplPerm
-                    } else {
-                        return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
-                    }
-                }
-            },
-            isSaveAndCreateBtnEnable () {
-                if (!this.common) { // 普通流程新建任务/保存并新建按钮是否可用
-                    if (['new', 'clone'].includes(this.type)) {
-                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
-                    } else {
-                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
-                    }
-                } else { // 公共流程新建任务/保存并新建按钮是否可用
-                    if (['new', 'clone'].includes(this.type)) {
-                        return this.hasCreateTplPerm
-                    } else {
-                        return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                        return this.common ? [] : ['flow_create_task']
                     }
                 }
             }
@@ -215,9 +182,12 @@
                 this.tName = val
             }
         },
-        created () {
-            if (['new', 'clone'].includes(this.type) && this.common) { // 公共流程新建、克隆需要单独查询权限
-                this.queryCreateCommonTplPerm()
+        async mounted () {
+            // 新建、克隆公共流程需要查询创建公共流程权限
+            if (this.common) {
+                await this.queryCreateCommonTplPerm()
+                this.setSaveBtnPerm()
+                this.setCreateTaskBtnPerm()
             }
         },
         methods: {
@@ -230,26 +200,42 @@
             onInputName (val) {
                 this.$emit('onChangeName', val)
             },
+            /**
+             * 保存按钮，新建/保存并新建任务按钮点击
+             * @param {Boolean} saveAndCreate 是否为新建/保存并新建任务按钮
+             */
             onSaveClick (saveAndCreate = false) {
-                if (saveAndCreate && this.common) {
-                    this.$refs.ProjectSelectorModal.show()
-                    this.$refs.ProjectSelectorModal.$on('confirm', (projectId) => {
-                        this.saveTemplate(true)
-                    })
-                    return false
-                }
-                this.saveTemplate(saveAndCreate)
-            },
-            saveTemplate (saveAndCreate = false, projectId) {
-                const { resourceData, operations, actions, resource } = this.getPermissionData()
-                const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
-                if (!this.common || !['new', 'clone'].includes(this.type)) { // 创建、克隆公共流程执行事后校验
-                    if (!this.hasPermission(required, actions, operations)) {
-                        this.applyForPermission(required, resourceData, operations, resource)
-                        return
-                    }
+                if (this.createCommonTplPermLoading || this.commonTplCreateTaskPermLoading) {
+                    return
                 }
 
+                if (saveAndCreate) {
+                    if (this.createTaskBtnActive) {
+                        if (this.common) {
+                            this.isSelectProjectShow = true
+                        } else {
+                            this.saveTemplate(saveAndCreate)
+                        }
+                    } else {
+                        if (this.common) {
+                            this.applyCreateCommonTplPerm(this.saveAndCreateRequiredPerm)
+                        } else {
+                            this.applyTplPerm(this.saveAndCreateRequiredPerm)
+                        }
+                    }
+                } else {
+                    if (this.saveBtnActive) {
+                        this.saveTemplate(saveAndCreate)
+                    } else {
+                        if (this.common) {
+                            this.applyCreateCommonTplPerm(this.saveRequiredPerm)
+                        } else {
+                            this.applyTplPerm(this.saveRequiredPerm)
+                        }
+                    }
+                }
+            },
+            saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
                     this.tName = this.tName.trim()
@@ -262,27 +248,23 @@
                 })
             },
             getPermissionData () {
-                let resourceData, operations, actions, resource
+                let resourceData, actions
                 if (['new', 'clone'].includes(this.type)) {
                     resourceData = {
                         id: this.project_id,
-                        name: gettext('项目'),
+                        name: i18n.t('项目'),
                         auth_actions: this.authActions
                     }
-                    operations = this.authOperations
                     actions = this.authActions
-                    resource = this.authResource
                 } else {
                     resourceData = {
                         id: this.template_id,
                         name: this.name,
                         auth_actions: this.tplActions
                     }
-                    operations = this.tplOperations
                     actions = this.tplActions
-                    resource = this.tplResource
                 }
-                return { resourceData, operations, actions, resource }
+                return { resourceData, actions }
             },
             getHomeUrl () {
                 const url = { name: 'process', params: { project_id: this.project_id } }
@@ -318,18 +300,115 @@
                     this.isShowMode = true
                 })
             },
+            handleProjectChange (project) {
+                this.selectedProject = project
+                this.queryCommonTplCreateTaskPerm()
+            },
+            handleCreateTaskConfirm () {
+                if (this.hasCommonTplCreateTaskPerm) {
+                    this.saveTemplate(true)
+                } else {
+                    this.applyCommonTplCreateTaskPerm()
+                }
+            },
+            handleCreateTaskCancel () {
+                this.selectedProject = {}
+                this.isSelectProjectShow = false
+            },
+            setSaveBtnPerm () {
+                if (this.common && ['new', 'clone'].includes(this.type)) {
+                    this.saveBtnActive = this.hasCreateCommonTplPerm
+                } else {
+                    const actions = [...this.authActions, ...this.tplActions]
+                    this.saveBtnActive = this.hasPermission(this.saveRequiredPerm, actions)
+                }
+            },
+            setCreateTaskBtnPerm () {
+                if (this.common && ['new', 'clone'].includes(this.type)) {
+                    this.createTaskBtnActive = this.hasCreateCommonTplPerm
+                } else {
+                    const actions = [...this.authActions, ...this.tplActions]
+                    this.createTaskBtnActive = this.hasPermission(this.saveAndCreateRequiredPerm, actions)
+                }
+            },
+            // 查询创建公共流程权限
             async queryCreateCommonTplPerm () {
                 try {
+                    this.createCommonTplPermLoading = true
                     const res = await this.queryUserPermission({
-                        resource_type: 'common_flow',
-                        action_ids: JSON.stringify(['create'])
+                        action: 'common_flow_create'
                     })
-                    this.hasCreateTplPerm = !!res.data.details.find(item => {
-                        return item.action_id === 'create' && item.is_pass
-                    })
+                    this.hasCreateCommonTplPerm = res.data.is_allow
                 } catch (err) {
                     errorHandler(err, this)
+                } finally {
+                    this.createCommonTplPermLoading = false
                 }
+            },
+            // 查询公共流程在项目下的创建任务权限
+            async queryCommonTplCreateTaskPerm () {
+                try {
+                    this.commonTplCreateTaskPermLoading = true
+                    const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                    const res = await this.queryUserPermission({
+                        action: 'common_flow_create_task',
+                        resoures: [
+                            {
+                                system: bkSops.id,
+                                type: 'project',
+                                id: this.selectedProject.id,
+                                attributes: {}
+                            },
+                            {
+                                system: bkSops.id,
+                                type: 'common_flow',
+                                id: this.template_id,
+                                attributes: {}
+                            }
+                        ]
+                    })
+                    this.hasCommonTplCreateTaskPerm = res.data.is_allow
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.commonTplCreateTaskPermLoading = false
+                }
+            },
+            applyCreateCommonTplPerm () {
+                this.applyForPermission(['common_flow_create'])
+            },
+            applyCommonTplCreateTaskPerm () {
+                const curPermission = [...this.tplActions, ...this.selectedProject.auth_actions]
+                const resourceData = {
+                    common_flow: [{
+                        id: this.template_id,
+                        name: this.name
+                    }],
+                    project: [{
+                        id: this.selectedProject.id,
+                        name: this.selectedProject.name
+                    }]
+                }
+                this.applyForPermission(['common_flow_create_task'], curPermission, resourceData)
+            },
+            applyTplPerm (requiredPerm) {
+                let curPermission = [...this.authActions]
+                let resourceData = {
+                    project: [{
+                        id: this.project_id,
+                        name: this.projectName
+                    }]
+                }
+                if (this.type === 'edit') {
+                    curPermission = [...this.tplActions]
+                    resourceData = {
+                        flow: [{
+                            id: this.template_id,
+                            name: this.name
+                        }]
+                    }
+                }
+                this.applyForPermission(requiredPerm, curPermission, resourceData)
             }
         }
     }

@@ -12,10 +12,10 @@
 <template>
     <div class="functor-container">
         <div class="list-wrapper">
-            <base-title :title="i18n.functorList"></base-title>
+            <base-title :title="$t('职能化中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
-                    :search-config="{ placeholder: i18n.placeholder }"
+                    :search-config="{ placeholder: $t('请输入ID或流程名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -24,12 +24,12 @@
                             theme="primary"
                             class="task-create-btn"
                             @click="onCreateTask">
-                            {{i18n.new}}
+                            {{$t('新建')}}
                         </bk-button>
                     </template>
                     <template v-slot:search-extend>
                         <span class="auto-redraw" @click.stop>
-                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ i18n.autoRedraw }}</bk-checkbox>
+                            <bk-checkbox v-model="isAutoRedraw" @change="onAutoRedrawChange">{{ $t('实时刷新') }}</bk-checkbox>
                         </span>
                     </template>
                 </advance-search-form>
@@ -41,20 +41,20 @@
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
-                    <bk-table-column :label="i18n.business" width="160">
+                    <bk-table-column :label="$t('所属项目')" width="160">
                         <template slot-scope="props">
                             <span :title="props.row.task.project.name">{{ props.row.task.project.name }}</span>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.taskId" prop="task.id" width="110"></bk-table-column>
-                    <bk-table-column :label="i18n.name" min-width="200">
+                    <bk-table-column :label="$t('任务ID')" prop="task.id" width="110"></bk-table-column>
+                    <bk-table-column :label="$t('任务名称')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.task.name"
-                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                @click="onTaskPermissonCheck(['task_view'], props.row)">
                                 {{props.row.task.name}}
                             </a>
                             <router-link
@@ -70,25 +70,25 @@
                             </router-link>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.createdTime" prop="create_time" width="200"></bk-table-column>
-                    <bk-table-column :label="i18n.claimedTime" width="200">
+                    <bk-table-column :label="$t('提单时间')" prop="create_time" width="200"></bk-table-column>
+                    <bk-table-column :label="$t('认领时间')" width="200">
                         <template slot-scope="props">
                             {{ props.row.claim_time || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.claimant" width="120">
+                    <bk-table-column :label="$t('提单人')" prop="creator" width="120"></bk-table-column>
+                    <bk-table-column :label="$t('认领人')" width="120">
                         <template slot-scope="props">
                             {{ props.row.claimant || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.claimStatus" width="120">
+                    <bk-table-column :label="$t('认领状态')" width="120">
                         <template slot-scope="props">
                             <span :class="statusClass(props.row.status)"></span>
                             {{statusMethod(props.row.status, props.row.status_name)}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.taskStatus" width="120">
+                    <bk-table-column :label="$t('执行状态')" width="120">
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -96,15 +96,15 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="100">
+                    <bk-table-column :label="$t('操作')" width="100">
                         <template slot-scope="props">
                             <template v-if="props.row.status === 'submitted'">
                                 <a
-                                    v-if="!hasPermission(['claim'], props.row.auth_actions, tplAuthOperations)"
+                                    v-if="!hasPermission(['task_claim'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable"
-                                    @click="onTaskPermissonCheck(['claim'], props.row, $event)">
-                                    {{ i18n.claim }}
+                                    @click="onTaskPermissonCheck(['task_claim'], props.row)">
+                                    {{ $t('认领') }}
                                 </a>
                                 <router-link
                                     v-else
@@ -114,16 +114,16 @@
                                         params: { project_id: props.row.task.project.id },
                                         query: { instance_id: props.row.task.id }
                                     }">
-                                    {{ i18n.claim }}
+                                    {{ $t('认领') }}
                                 </router-link>
                             </template>
                             <template v-else>
                                 <a
-                                    v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                    v-if="!hasPermission(['task_view'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable"
-                                    @click="onTaskPermissonCheck(['view'], props.row, $event)">
-                                    {{ i18n.view }}
+                                    @click="onTaskPermissonCheck(['task_view'], props.row)">
+                                    {{ $t('查看') }}
                                 </a>
                                 <router-link
                                     v-else
@@ -133,12 +133,12 @@
                                         params: { project_id: props.row.task.project.id },
                                         query: { instance_id: props.row.task.id }
                                     }">
-                                    {{ i18n.view }}
+                                    {{ $t('查看') }}
                                 </router-link>
                             </template>
                         </template>
                     </bk-table-column>
-                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                    <div class="empty-data" slot="empty"><NoData :message="$t('无数据')" /></div>
                 </bk-table>
             </div>
         </div>
@@ -149,13 +149,13 @@
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
-            :title="i18n.new"
+            :title="$t('新建')"
             :value="isShowNewTaskDialog"
             @confirm="onConfirmlNewTask"
             @cancel="onCancelNewTask">
             <div class="create-task-content">
                 <div class="common-form-item">
-                    <label>{{i18n.choiceBusiness}}</label>
+                    <label>{{$t('选择项目')}}</label>
                     <div class="common-form-content">
                         <bk-select
                             v-model="business.id"
@@ -163,7 +163,7 @@
                             :popover-width="430"
                             :searchable="true"
                             :is-loading="business.loading"
-                            :placeholder="i18n.statusPlaceholder"
+                            :placeholder="$t('请选择')"
                             :clearable="true"
                             @clear="onClearBusiness"
                             @selected="onSelectedBusiness">
@@ -174,11 +174,11 @@
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
-                        <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
+                        <span v-show="business.empty" class="common-error-tip error-msg">{{$t('选择项目')}}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
-                    <label>{{i18n.choiceTemplate}}</label>
+                    <label>{{$t('选择模板')}}</label>
                     <div class="common-form-content">
                         <bk-select
                             v-model="template.id"
@@ -186,7 +186,7 @@
                             :popover-width="260"
                             :is-loading="business.loading"
                             :searchable="template.searchable"
-                            :placeholder="i18n.statusPlaceholder"
+                            :placeholder="$t('请选择')"
                             :clearable="true"
                             :disabled="template.disabled"
                             @selected="onSelectedTemplate"
@@ -206,30 +206,27 @@
                             v-bk-tooltips="{
                                 width: 400,
                                 placement: 'top',
-                                content: i18n.tips }"></i>
-                        <span v-show="template.empty" class="common-error-tip error-msg">{{i18n.choiceTemplate}}</span>
+                                content: $t('如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”') }"></i>
+                        <span v-show="template.empty" class="common-error-tip error-msg">{{$t('选择模板')}}</span>
                     </div>
                 </div>
             </div>
             <div slot="footer" class="dialog-footer">
-                <div class="bk-button-group">
-                    <bk-button
-                        theme="primary"
-                        :class="{
-                            'btn-permission-disable': !hasConfirmPerm
-                        }"
-                        v-cursor="{ active: !hasConfirmPerm }"
-                        @click="onConfirmlNewTask">
-                        {{i18n.confirm}}
-                    </bk-button>
-                    <bk-button theme="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
-                </div>
+                <bk-button
+                    theme="primary"
+                    :loading="permissionLoading"
+                    :class="{ 'btn-permission-disable': !hasCreateTaskPerm }"
+                    v-cursor="{ active: !hasCreateTaskPerm }"
+                    @click="onConfirmlNewTask">
+                    {{$t('确认')}}
+                </bk-button>
+                <bk-button theme="default" @click="onCancelNewTask">{{$t('取消')}}</bk-button>
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapMutations, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
@@ -243,37 +240,37 @@
     const searchForm = [
         {
             type: 'select',
-            label: gettext('所属项目'),
+            label: i18n.t('所属项目'),
             key: 'selectedProject',
             loading: false,
-            placeholder: gettext('请选择项目'),
+            placeholder: i18n.t('请选择项目'),
             list: []
         },
         {
             type: 'dateRange',
             key: 'executeTime',
-            placeholder: gettext('选择日期时间范围'),
-            label: gettext('提单时间'),
+            placeholder: i18n.t('选择日期时间范围'),
+            label: i18n.t('提单时间'),
             value: []
         },
         {
             type: 'input',
             key: 'creator',
-            label: gettext('提单人'),
-            placeholder: gettext('请输入提单人'),
+            label: i18n.t('提单人'),
+            placeholder: i18n.t('请输入提单人'),
             value: ''
         },
         {
             type: 'select',
-            label: gettext('状态'),
+            label: i18n.t('状态'),
             key: 'statusSync',
             loading: false,
-            placeholder: gettext('请选择状态'),
+            placeholder: i18n.t('请选择状态'),
             list: [
-                { 'value': 'submitted', 'name': gettext('未认领') },
-                { 'value': 'claimed', 'name': gettext('已认领') },
-                { 'value': 'executed', 'name': gettext('已执行') },
-                { 'value': 'finished', 'name': gettext('完成') }
+                { 'value': 'submitted', 'name': i18n.t('未认领') },
+                { 'value': 'claimed', 'name': i18n.t('已认领') },
+                { 'value': 'executed', 'name': i18n.t('已执行') },
+                { 'value': 'finished', 'name': i18n.t('完成') }
             ]
         }
     ]
@@ -289,40 +286,6 @@
         props: ['project_id', 'app_id'],
         data () {
             return {
-                i18n: {
-                    functorList: gettext('职能化中心'),
-                    placeholder: gettext('请输入ID或流程名称'),
-                    business: gettext('所属项目'),
-                    taskId: gettext('任务ID'),
-                    createdTime: gettext('提单时间'),
-                    claimedTime: gettext('认领时间'),
-                    finishedTime: gettext('执行结束'),
-                    name: gettext('任务名称'),
-                    billTimePlaceholder: gettext('请选择时间'),
-                    creator: gettext('提单人'),
-                    claimant: gettext('认领人'),
-                    claimStatus: gettext('认领状态'),
-                    taskStatus: gettext('执行状态'),
-                    operation: gettext('操作'),
-                    claim: gettext('认领'),
-                    view: gettext('查看'),
-                    new: gettext('新建'),
-                    choiceBusiness: gettext('选择项目'),
-                    choiceTemplate: gettext('选择模板'),
-                    tips: gettext('如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
-                    total: gettext('共'),
-                    item: gettext('条记录'),
-                    comma: gettext('，'),
-                    currentPageTip: gettext('当前第'),
-                    page: gettext('页'),
-                    functorType: gettext('任务分类'),
-                    functorTypePlaceholder: gettext('请选择分类'),
-                    query: gettext('搜索'),
-                    reset: gettext('清空'),
-                    confirm: gettext('确认'),
-                    cancel: gettext('取消'),
-                    autoRedraw: gettext('实时刷新')
-                },
                 listLoading: true,
                 functorSync: 0,
                 searchStr: undefined,
@@ -340,11 +303,11 @@
                 template: {
                     list: [
                         {
-                            name: gettext('项目流程'),
+                            name: i18n.t('项目流程'),
                             children: []
                         },
                         {
-                            name: gettext('公共流程'),
+                            name: i18n.t('公共流程'),
                             children: []
                         }
                     ],
@@ -373,24 +336,19 @@
                     limit: 15,
                     'limit-list': [15, 20, 30]
                 },
-                tplAuthResource: {},
-                commonTplAuthResource: {},
-                tplAuthOperations: [],
-                commonTplAuthOperations: [],
-                tplAction: []
+                permissionLoading: false, // 查询公共流程在项目下的创建任务权限 loading
+                tplAction: [],
+                hasCreateTaskPerm: true
             }
         },
         computed: {
             ...mapState({
-                categorys: state => state.categorys
+                'categorys': state => state.categorys,
+                'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
             }),
-            hasConfirmPerm () {
-                const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
-                return this.hasPermission(['create_task'], this.tplAction, authOperations)
-            },
             searchForm () {
                 const value = searchForm
                 value[0].list = this.business.list.map(m => ({ name: m.name, value: m.id }))
@@ -406,17 +364,20 @@
             this.clearAutoRedraw()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('functionTask/', [
                 'loadFunctionTaskList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
-            ...mapMutations('atomForm/', [
-                'clearAtomForm'
-            ]),
             ...mapActions('project/', [
                 'loadProjectList'
+            ]),
+            ...mapMutations('atomForm/', [
+                'clearAtomForm'
             ]),
             async loadFunctionTask () {
                 this.listLoading = true
@@ -442,8 +403,6 @@
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
                     const taskList = functorListData.objects.map(m => m.task)
-                    this.tplAuthOperations = functorListData.meta.auth_operations
-                    this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.pagination.count = functorListData.meta.total_count
                     // mixins getExecuteStatus
@@ -467,11 +426,11 @@
             },
             statusMethod (status, status_name) {
                 if (status === 'finished') {
-                    return gettext('完成')
+                    return i18n.t('完成')
                 } else if (status === 'submitted') {
-                    return gettext('未认领')
+                    return i18n.t('未认领')
                 } else if (status === 'rejected') {
-                    return gettext('已驳回')
+                    return i18n.t('已驳回')
                 }
                 return status_name
             },
@@ -523,10 +482,6 @@
                     ]).then(value => {
                         this.template.list[0].children = value[0].objects
                         this.template.list[1].children = value[1].objects
-                        this.tplAuthResource = value[0].meta.auth_resource
-                        this.tplAuthOperations = value[0].meta.auth_operations
-                        this.commonTplAuthResource = value[1].meta.auth_resource
-                        this.commonTplAuthOperations = value[1].meta.auth_operations
                         this.clearAtomForm()
                     })
                 } catch (e) {
@@ -536,13 +491,16 @@
                 }
             },
             onSelectedBusiness (id) {
+                const business = this.business.list.find(item => item.id === id)
                 this.business.id = id
+                this.business.name = business.name
+                this.business.auth_actions = business.auth_actions
                 this.getTemplateList()
                 this.business.empty = false
                 this.template.id = ''
                 this.template.name = ''
                 this.template.disabled = false
-                this.template.id = ''
+                this.hasCreateTaskPerm = true
             },
             onSelectedTemplate (id) {
                 const templateList = this.template.list
@@ -573,6 +531,69 @@
                 this.template.name = name
                 this.template.empty = false
                 this.tplAction = tplAction
+                this.checkCreateTaskPerm()
+            },
+            async checkCreateTaskPerm () {
+                if (this.isCommonTemplate) {
+                    try {
+                        this.permissionLoading = true
+                        const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                        const data = {
+                            action: ['common_flow_create_task'],
+                            resources: [
+                                {
+                                    system: bkSops.id,
+                                    type: 'project',
+                                    id: this.business.id,
+                                    attributes: {}
+                                },
+                                {
+                                    system: bkSops.id,
+                                    type: 'common_flow',
+                                    id: this.template.id,
+                                    attributes: {}
+                                }
+                            ]
+                        }
+                        const resp = await this.queryUserPermission(data)
+                        this.hasCreateTaskPerm = resp.data.is_allow
+                    } catch (error) {
+                        errorHandler(error, this)
+                    } finally {
+                        this.permissionLoading = false
+                    }
+                } else {
+                    this.hasCreateTaskPerm = this.hasPermission(['flow_create_task'], this.tplAction)
+                }
+            },
+            applyCreateTaskPerm () {
+                let reqPermission = []
+                let curPermission = []
+                let resourceData = {}
+                if (this.isCommonTemplate) {
+                    reqPermission = ['common_flow_create_task']
+                    curPermission = [...this.tplAction, ...this.business.auth_actions]
+                    resourceData = {
+                        common_flow: [{
+                            id: this.template.id,
+                            name: this.template.name
+                        }],
+                        project: [{
+                            id: this.business.id,
+                            name: this.business.name
+                        }]
+                    }
+                } else {
+                    reqPermission = ['flow_create_task']
+                    curPermission = [...this.tplAction]
+                    resourceData = {
+                        flow: [{
+                            id: this.template.id,
+                            name: this.template.name
+                        }]
+                    }
+                }
+                this.applyForPermission(reqPermission, curPermission, resourceData)
             },
             onConfirmlNewTask () {
                 if (this.business.id === '') {
@@ -583,15 +604,12 @@
                     this.template.empty = true
                     return
                 }
-                if (!this.hasConfirmPerm) {
-                    const authResource = this.isCommonTemplate ? this.commonTplAuthResource : this.tplAuthResource
-                    const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
-                    const resourceData = {
-                        name: this.template.name,
-                        id: this.template.id,
-                        auth_actions: this.tplAction
-                    }
-                    this.applyForPermission(['create_task'], resourceData, authOperations, authResource)
+                if (this.permissionLoading) {
+                    return
+                }
+
+                if (!this.hasCreateTaskPerm) {
+                    this.applyCreateTaskPerm()
                     return
                 }
 
@@ -615,6 +633,7 @@
                 this.isShowNewTaskDialog = false
                 this.business.empty = false
                 this.template.empty = false
+                this.hasCreateTaskPerm = true
             },
             onClearTemplate () {
                 this.template.id = ''
@@ -622,16 +641,23 @@
             },
             onClearBusiness () {
                 this.business.id = ''
+                this.business.auth_actions = []
                 this.template.id = ''
                 this.template.name = ''
                 this.template.disabled = true
             },
-            onTaskPermissonCheck (required, template, event) {
-                this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
-                event.preventDefault()
+            onTaskPermissonCheck (required, data) {
+                const permissionData = {
+                    task: [{
+                        id: data.task.id,
+                        name: data.task.name
+                    }]
+                }
+                this.applyForPermission(required, data.auth_actions, permissionData)
             },
             onSearchFormSubmit (data) {
                 this.requestData = data
+                this.pagination.current = 1
                 this.loadFunctionTask()
             },
             onAutoRedrawChange (val) {

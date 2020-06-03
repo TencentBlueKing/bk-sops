@@ -14,62 +14,60 @@ specific language governing permissions and limitations under the License.
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
-from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAuthorization
-from auth_backend.plugins.tastypie.inspect import ResourceInspect
+from iam.contrib.tastypie.authorization import ReadOnlyCompleteListIAMAuthorization
 
-from gcloud.taskflow3.permissions import taskflow_resource
-from gcloud.webservice3.resources import GCloudModelResource
+from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
+from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.authorization_helpers import FunctionTaskIAMAuthorizationHelper
 
-
-class FunctionTaskResourceInspect(ResourceInspect):
-
-    def scope_id(self, bundle):
-        return None
-
-    def resource_id(self, bundle):
-        return bundle.obj.task.id
+iam = get_iam_client()
 
 
 class FunctionTaskResource(GCloudModelResource):
-    task = fields.ForeignKey(
-        TaskFlowInstanceResource,
-        'task',
-        full=True
-    )
-    creator_name = fields.CharField(
-        attribute='creator_name',
-        readonly=True,
-        null=True
-    )
-    editor_name = fields.CharField(
-        attribute='editor_name',
-        readonly=True,
-        null=True
-    )
-    status_name = fields.CharField(
-        attribute='status_name',
-        readonly=True,
-        null=True
-    )
+    task = fields.ForeignKey(TaskFlowInstanceResource, "task", full=True)
+    creator_name = fields.CharField(attribute="creator_name", readonly=True, null=True)
+    editor_name = fields.CharField(attribute="editor_name", readonly=True, null=True)
+    status_name = fields.CharField(attribute="status_name", readonly=True, null=True)
 
     class Meta(GCloudModelResource.Meta):
         queryset = FunctionTask.objects.filter(task__is_deleted=False)
-        resource_name = 'function_task'
-        auth_resource = taskflow_resource
-        authorization = BkSaaSLooseReadOnlyAuthorization(auth_resource=auth_resource,
-                                                         read_action_id='view',
-                                                         update_action_id='edit',
-                                                         resource_f='task')
-        inspect = FunctionTaskResourceInspect()
+        resource_name = "function_task"
+        # iam config, use task permission
+        authorization = ReadOnlyCompleteListIAMAuthorization(
+            iam=iam,
+            helper=FunctionTaskIAMAuthorizationHelper(
+                system=IAMMeta.SYSTEM_ID,
+                create_action=None,
+                read_action=IAMMeta.TASK_VIEW_ACTION,
+                update_action=None,
+                delete_action=None,
+            ),
+        )
+        iam_resource_helper = SimpleResourceHelper(
+            type=IAMMeta.TASK_RESOURCE,
+            id_field="task_id",
+            creator_field="creator_name",
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            actions=[
+                IAMMeta.TASK_VIEW_ACTION,
+                IAMMeta.TASK_EDIT_ACTION,
+                IAMMeta.TASK_OPERATE_ACTION,
+                IAMMeta.TASK_CLAIM_ACTION,
+                IAMMeta.TASK_DELETE_ACTION,
+                IAMMeta.TASK_CLONE_ACTION,
+            ],
+        )
 
         filtering = {
-            'task': ALL_WITH_RELATIONS,
-            'creator': ALL,
-            'editor': ALL,
-            'status': ALL,
-            'create_time': ['gte', 'lte'],
-            'claim_time': ['gte', 'lte']
+            "task": ALL_WITH_RELATIONS,
+            "creator": ALL,
+            "editor": ALL,
+            "status": ALL,
+            "create_time": ["gte", "lte"],
+            "claim_time": ["gte", "lte"],
         }
-        q_fields = ['task__pipeline_instance__name']
+        q_fields = ["task__pipeline_instance__name"]

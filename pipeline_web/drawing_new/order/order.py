@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from copy import deepcopy
 
-from pipeline.core.constants import PE
 from pipeline.validators.utils import format_to_list
 
+from pipeline_web.constants import PWE
 from pipeline_web.drawing_new.constants import MIN_LEN
 from pipeline_web.drawing_new.rank.utils import max_rank, min_rank
 
@@ -57,10 +57,10 @@ def init_order(pipeline, ranks):
         next_layer_rk = rk + MIN_LEN
         for node_id in orders[rk]:
             node = pipeline['all_nodes'][node_id]
-            for flow_id in format_to_list(node[PE.outgoing]):
-                flow = pipeline[PE.flows][flow_id]
-                if flow[PE.target] not in orders[next_layer_rk]:
-                    orders[next_layer_rk].append(flow[PE.target])
+            for flow_id in format_to_list(node[PWE.outgoing]):
+                flow = pipeline[PWE.flows][flow_id]
+                if flow[PWE.target] not in orders[next_layer_rk]:
+                    orders[next_layer_rk].append(flow[PWE.target])
         rk = next_layer_rk
 
     return orders
@@ -81,14 +81,14 @@ def wmedian(pipeline, orders, loop, ranks):
         for r in range(min_rk + MIN_LEN, max_rk + MIN_LEN, MIN_LEN):
             median_r = []
             for node_id in orders[r]:
-                refer_nodes = refer_node_ids(pipeline, node_id, PE.incoming)
+                refer_nodes = refer_node_ids(pipeline, node_id, PWE.incoming)
                 median_r.append(median_value(refer_nodes, orders[r - MIN_LEN]))
             orders[r] = sort_layer(orders[r], median_r)
     else:
         for r in range(max_rk - MIN_LEN, min_rk - MIN_LEN, - MIN_LEN):
             median_r = []
             for node_id in orders[r]:
-                refer_nodes = refer_node_ids(pipeline, node_id, PE.outgoing)
+                refer_nodes = refer_node_ids(pipeline, node_id, PWE.outgoing)
                 median_r.append(median_value(refer_nodes, orders[r + MIN_LEN]))
             orders[r] = sort_layer(orders[r], median_r)
 
@@ -96,9 +96,9 @@ def wmedian(pipeline, orders, loop, ranks):
 def refer_node_ids(pipeline, node_id, io):
     node = pipeline['all_nodes'][node_id]
     refer_nodes = []
-    flow_direction = PE.source if io == PE.incoming else PE.target
+    flow_direction = PWE.source if io == PWE.incoming else PWE.target
     for flow_id in format_to_list(node[io]):
-        refer_nodes.append(pipeline[PE.flows][flow_id][flow_direction])
+        refer_nodes.append(pipeline[PWE.flows][flow_id][flow_direction])
     return refer_nodes
 
 
@@ -149,18 +149,18 @@ def crossing_count(pipeline, orders):
     for rk in range(min(list(orders.keys())), max(list(orders.keys())), MIN_LEN):
         current_layer_nodes = orders[rk]
         next_layer_nodes = orders[rk + MIN_LEN]
-        current_layer_flows = [flow for flow in pipeline[PE.flows].values()
-                               if flow[PE.source] in current_layer_nodes and flow[PE.target] in next_layer_nodes]
+        current_layer_flows = [flow for flow in pipeline[PWE.flows].values()
+                               if flow[PWE.source] in current_layer_nodes and flow[PWE.target] in next_layer_nodes]
         if len(current_layer_flows) >= 2:
             for flow_index in range(len(current_layer_flows) - 1):
                 first_flow = current_layer_flows[flow_index]
-                first_source_index = current_layer_nodes.index(first_flow[PE.source])
-                first_target_index = next_layer_nodes.index(first_flow[PE.target])
+                first_source_index = current_layer_nodes.index(first_flow[PWE.source])
+                first_target_index = next_layer_nodes.index(first_flow[PWE.target])
 
                 for next_flow_index in range(flow_index + 1, len(current_layer_flows)):
                     next_flow = current_layer_flows[next_flow_index]
-                    next_source_index = current_layer_nodes.index(next_flow[PE.source])
-                    next_target_index = next_layer_nodes.index(next_flow[PE.target])
+                    next_source_index = current_layer_nodes.index(next_flow[PWE.source])
+                    next_target_index = next_layer_nodes.index(next_flow[PWE.target])
                     # 起始点次序不一致说明有交叉
                     if (first_source_index - next_source_index) * (first_target_index - next_target_index) < 0:
                         count += 1

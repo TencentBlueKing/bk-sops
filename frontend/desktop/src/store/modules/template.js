@@ -10,11 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 import Vue from 'vue'
-import api from '@/api/index.js'
 import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid, random4 } from '@/utils/uuid.js'
 import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
+import axios from 'axios'
+import i18n from '@/config/i18n/index.js'
 
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
@@ -39,7 +40,7 @@ function generateInitLocation () {
             x: 240,
             y: 145,
             name: '',
-            stage_name: gettext('步骤1'),
+            stage_name: i18n.t('步骤1'),
             type: 'tasknode'
         },
         {
@@ -66,7 +67,7 @@ function generateInitActivities (location, line) {
             name: '',
             optional: false,
             outgoing: line[1].id,
-            stage_name: gettext('步骤1'),
+            stage_name: i18n.t('步骤1'),
             type: 'ServiceActivity',
             retryable: true,
             skippable: true
@@ -365,7 +366,6 @@ const template = {
 
             for (const key in state.constants) {
                 const varItem = state.constants[key]
-                console.log(varItem.name, varItem.index, constant.index)
                 if (varItem.index > constant.index) {
                     varItem.index = varItem.index - 1
                 }
@@ -586,7 +586,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: gettext('步骤1'),
+                            stage_name: i18n.t('步骤1'),
                             type: 'ServiceActivity',
                             retryable: true,
                             skippable: true
@@ -601,7 +601,7 @@ const template = {
                             name: location.name || '',
                             optional: false,
                             outgoing: '',
-                            stage_name: gettext('步骤1'),
+                            stage_name: i18n.t('步骤1'),
                             template_id: location.atomId,
                             version: location.atomVersion,
                             type: 'SubProcess'
@@ -756,15 +756,25 @@ const template = {
     },
     actions: {
         loadProjectBaseInfo () {
-            return api.getProjectBaseInfo().then(response => response.data)
+            return axios.get('core/api/get_basic_info/').then(response => response.data)
         },
         loadTemplateData ({ commit }, data) {
-            return api.getTemplateData(data).then(response => response.data)
+            const { templateId, common } = data
+            let prefixUrl = ''
+            if (common) {
+                prefixUrl = 'api/v3/common_template/'
+            } else {
+                prefixUrl = 'api/v3/template/'
+            }
+            return axios.get(`${prefixUrl}${templateId}/`).then(response => response.data)
         },
         loadCustomVarCollection () {
-            return api.getCustomVarCollection().then(response => response.data.objects)
+            return axios.get('api/v3/variable/').then(response => response.data.objects)
         },
-        // 保存模板数据
+        /**
+         * 保存模板数据
+         * @param {Object} data 模板完整数据
+         */
         saveTemplateData ({ state }, { templateId, projectId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type, time_out, category
@@ -794,66 +804,61 @@ const template = {
                 outputs,
                 start_event
             }
-            const data = {
-                projectId,
-                templateId,
-                timeout: time_out,
-                category,
-                notifyReceivers: JSON.stringify(notify_receivers),
-                notifyType: JSON.stringify(notify_type),
-                name: state.name,
-                pipelineTree: JSON.stringify(fullCanvasData),
-                common
-            }
             const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
 
             if (!validateResult.result) {
                 return new Promise((resolve, reject) => {
                     const info = {
-                        message: `${gettext('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
+                        message: `${i18n.t('流程数据格式错误，请检查节点、连线或者全局变量')} error_message: ${validateResult.message}`
                     }
                     reject(info)
                 })
             }
-            return api.saveTemplate(data).then(response => {
+
+            const name = state.name
+            const pipelineTree = JSON.stringify(fullCanvasData)
+            const notifyReceivers = JSON.stringify(notify_receivers)
+            const notifyType = JSON.stringify(notify_type)
+            const timeout = time_out
+            const headers = {}
+            const project = SITE_URL + 'api/v3/project/' + projectId + '/'
+            let url = ''
+            if (common) {
+                url = 'api/v3/common_template/'
+            } else {
+                url = 'api/v3/template/'
+            }
+
+            if (templateId !== undefined) {
+                url = `${url}${templateId}/`
+                headers['X-HTTP-Method-Override'] = 'PATCH'
+            }
+
+            return axios.post(url, {
+                name,
+                project,
+                category,
+                timeout,
+                pipeline_tree: pipelineTree,
+                notify_receivers: notifyReceivers,
+                notify_type: notifyType
+            }, {
+                headers
+            }).then(response => {
                 return response.data
             })
         },
+        // 自动排版
         getLayoutedPipeline ({ commit }, data) {
-            return api.getLayoutedPipeline(data).then(response => response.data)
-        },
-        // 获取常用业务
-        loadCommonProject ({ commit }, data) {
-            return api.getCommonProject(data).then(response => response.data)
-        },
-        // 获取收藏列表
-        loadCollectList ({ commit }, data) {
-            return api.loadCollectList(data).then(response => response.data)
-        },
-        // 收藏模板，批量操作
-        addToCollectList ({ commit }, list) {
-            return api.addToCollectList(list).then(response => response.data)
-        },
-        // 删除收藏模板，单个删除
-        deleteCollect ({ commit }, id) {
-            return api.deleteCollect(id).then(response => response.data)
-        },
-        queryTemplateData ({ commit }, data) {
-            return api.queryTemplate(data).then(response => response.data)
-        },
-        loadTemplateSummary ({ commit }, data) {
-            return api.loadTemplateSummary(data).then(response => response.data)
-        },
-        getCollectedTemplateDetail ({ commit }, ids) {
-            return api.getCollectedTemplateDetail(ids).then(
-                response => response.data
-            )
+            return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
         },
         // 获取内置变量
-        loadInternalVariable ({ commit }) {
-            return api.getInternalVariableList().then(
-                response => response.data
-            )
+        loadInternalVariable () {
+            return axios.get('taskflow/api/context/').then(response => response.data)
+        },
+        // 获取节点标签列表
+        getLabels ({ commit }, data) {
+            return axios.get('api/v3/label/', { params: data }).then(response => response.data)
         }
     },
     getters: {

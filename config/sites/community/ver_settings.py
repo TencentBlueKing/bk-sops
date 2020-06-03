@@ -52,6 +52,7 @@ APIGW_APP_CODE_KEY = 'bk_app_code'
 APIGW_USER_USERNAME_KEY = 'bk_username'
 
 COMPATIBLE_MODULE_MAP = {
+    # 插件路径迁移兼容
     'pipeline.components.collections.common': 'pipeline_plugins.components.collections.common',
     'pipeline.components.collections.controller': 'pipeline_plugins.components.collections.controller',
     'pipeline.components.collections.sites.community.bk': 'pipeline_plugins.components.collections.sites.open.bk',
@@ -63,6 +64,10 @@ COMPATIBLE_MODULE_MAP = {
         'pipeline_plugins.components.collections.sites.open.cc',
     'pipeline_plugins.components.collections.sites.community.job':
         'pipeline_plugins.components.collections.sites.open.job',
+    'pipeline_plugins.components.collections.sites.open.cc_plugins.v1_0':
+        'pipeline_plugins.components.collections.sites.open.cc.create_set.v1_0',
+
+    # 变量路径迁移兼容
     'pipeline.variables.collections.common': 'pipeline_plugins.variables.collections.common',
     'pipeline.variables.collections.sites.community.cc': 'pipeline_plugins.variables.collections.sites.open.cc',
     'pipeline_plugins.variables.variables.collections.sites.community.cc':

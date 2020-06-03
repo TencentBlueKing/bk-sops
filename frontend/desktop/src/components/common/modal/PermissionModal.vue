@@ -11,40 +11,49 @@
 */
 <template>
     <bk-dialog
-        width="600"
-        padding="0 24px 40px 24px"
+        width="768"
         ext-cls="permission-dialog"
-        :z-index="2000"
-        :theme="'primary'"
+        :z-index="2010"
         :mask-close="false"
         :header-position="'left'"
         :title="''"
         :value="isModalShow"
         @cancel="onCloseDialog">
-        <div class="permission-content">
+        <div class="permission-modal">
             <div class="permission-header">
                 <span class="title-icon">
                     <img :src="lock" alt="permission-lock" class="lock-img" />
                 </span>
-                <h3>{{i18n.permissionTitle}}</h3>
+                <h3>{{$t('该操作需要以下权限')}}</h3>
             </div>
             <table class="permission-table table-header">
                 <thead>
                     <tr>
-                        <th width="60%">{{i18n.resource}}</th>
-                        <th width="40%">{{i18n.requiredPermissions}}</th>
+                        <th width="20%">{{$t('系统')}}</th>
+                        <th width="30%">{{$t('需要申请的资源')}}</th>
+                        <th width="50%">{{$t('关联的资源实例')}}</th>
                     </tr>
                 </thead>
             </table>
             <div class="table-content">
                 <table class="permission-table">
                     <tbody>
-                        <tr v-for="(permission, index) in list" :key="index">
-                            <td width="60%">{{getResource(permission)}}</td>
-                            <td width="40%">{{permission.action_name}}</td>
-                        </tr>
-                        <tr v-if="false">
-                            <td class="no-data" colspan="2">{{i18n.noData}}</td>
+                        <template v-if="permissionData.actions && permissionData.actions.length > 0">
+                            <tr v-for="(action, index) in permissionData.actions" :key="index">
+                                <td width="20%">{{permissionData.system_name}}</td>
+                                <td width="30%">{{action.name}}</td>
+                                <td width="50%">
+                                    <p
+                                        class="resource-type-item"
+                                        v-for="(reItem, reIndex) in getResource(action.related_resource_types)"
+                                        :key="reIndex">
+                                        {{reItem}}
+                                    </p>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr v-else>
+                            <td class="no-data" colspan="3">{{$t('无数据')}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -52,14 +61,13 @@
         </div>
         <div class="permission-footer" slot="footer">
             <div class="button-group">
-                <bk-button theme="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
-                <bk-button theme="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
+                <bk-button theme="primary" :loading="loading" @click="goToApply">{{ $t('去申请') }}</bk-button>
+                <bk-button theme="default" @click="onCloseDialog">{{ $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -69,19 +77,9 @@
         data () {
             return {
                 isModalShow: false,
-                list: [],
+                permissionData: {},
                 loading: false,
-                lock: require('../../../assets/images/lock-radius.svg'),
-                i18n: {
-                    permissionTitle: gettext('没有权限访问或操作此资源'),
-                    system: gettext('系统'),
-                    resource: gettext('资源'),
-                    requiredPermissions: gettext('需要申请的权限'),
-                    noData: gettext('无数据'),
-                    apply: gettext('去申请'),
-                    cancel: gettext('取消'),
-                    project: gettext('项目')
-                }
+                lock: require('../../../assets/images/lock-radius.svg')
             }
         },
         watch: {
@@ -93,14 +91,17 @@
         },
         methods: {
             ...mapActions([
-                'getPermissionUrl'
+                'getIamUrl'
             ]),
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const permission = this.list
-                    const res = await this.getPermissionUrl(JSON.stringify(permission))
-                    this.url = res.data.url
+                    const res = await this.getIamUrl(this.permissionData)
+                    if (res.result) {
+                        this.url = res.data.url
+                    } else {
+                        errorHandler(res, this)
+                    }
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
@@ -109,18 +110,24 @@
             },
             show (data) {
                 this.isModalShow = true
-                this.list = data
+                this.permissionData = data
             },
-            getResource (permission) {
-                const type = permission.resource_type_name
-                if (permission.resources.length === 0) {
-                    return type
+            getResource (resoures) {
+                if (resoures.length === 0) {
+                    return ['--']
                 }
 
-                const names = permission.resources.map(res => {
-                    return res.map(item => item.resource_name).join(',')
-                }).join(',')
-                return type + '：' + names
+                const data = []
+                resoures.forEach(resource => {
+                    if (resource.instances.length > 0) {
+                        const instances = resource.instances.map(instanceItem => {
+                            return instanceItem.map(item => item.name).join('，')
+                        }).join('，')
+                        const resourceItemData = resource.type_name + `：` + instances
+                        data.push(resourceItemData)
+                    }
+                })
+                return data
             },
             goToApply () {
                 if (this.loading) {
@@ -140,26 +147,27 @@
     }
 </script>
 <style lang="scss" scoped>
-    .permission-dialog {
-        z-index: 1501;
-    }
-    /deep/ .permission-content {
+.permission-modal {
         .permission-header {
             text-align: center;
+            .title-icon {
+                display: inline-block;
+            }
             .lock-img {
-                width: 56px;
-                box-shadow: 0 6px 5px -5px rgba(180, 180, 180, 0.9);
+                width: 120px;
             }
             h3 {
-                margin: 10px 0 30px;
-                color: #313238;
+                margin: 6px 0 24px;
+                color: #63656e;
                 font-size: 20px;
+                font-weight: normal;
+                line-height: 1;
             }
         }
         .permission-table {
             width: 100%;
             color: #63656e;
-            border: 1px solid #dcdee5;
+            border-bottom: 1px solid #e7e8ed;
             border-collapse: collapse;
             table-layout: fixed;
             th,
@@ -167,17 +175,17 @@
                 padding: 12px 18px;
                 font-size: 12px;
                 text-align: left;
-                border-bottom: 1px solid #dcdee5;
-                border-right: 1px solid #dcdee5;
+                border-bottom: 1px solid #e7e8ed;
+                word-break: break-all;
             }
             th {
                 color: #313238;
-                background: rgb(250, 251, 253);
+                background: #f5f6fa;
             }
         }
         .table-content {
-            max-height: 180px;
-            border-bottom: 1px solid #dcdee5;
+            max-height: 260px;
+            border-bottom: 1px solid #e7e8ed;
             border-top: none;
             overflow: auto;
             .permission-table {
@@ -189,8 +197,13 @@
                 tr:last-child td {
                     border-bottom: none;
                 }
+                .resource-type-item {
+                    padding: 0;
+                    margin: 0;
+                }
             }
             .no-data {
+                padding: 30px;
                 text-align: center;
                 color: #999999;
             }

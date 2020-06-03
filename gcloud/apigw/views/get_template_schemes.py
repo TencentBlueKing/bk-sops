@@ -17,12 +17,12 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.permissions import task_template_resource
 from pipeline.models import TemplateScheme
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -35,11 +35,7 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    task_template_resource,
-    [task_template_resource.actions.view],
-    get_kwargs={"template_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(FlowViewInterceptor())
 def get_template_schemes(request, project_id, template_id):
     template = TaskTemplate.objects.get(project_id=request.project.id, id=template_id)
 

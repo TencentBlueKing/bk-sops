@@ -25,7 +25,6 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -127,6 +126,7 @@
         },
         methods: {
             ...mapActions([
+                'getPermissionMeta',
                 'queryUserPermission',
                 'getFooterContent'
             ]),
@@ -148,10 +148,11 @@
                 'setPageFooter',
                 'setAdminPerm'
             ]),
-            initData () {
+            async initData () {
                 if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
                     this.getProjectDetail()
                 }
+                await this.getPermissionMeta()
                 if (this.viewMode === 'appmaker') {
                     this.getAppmakerDetail()
                 } else {
@@ -187,35 +188,10 @@
             async queryAdminPerm () {
                 try {
                     const res = await this.queryUserPermission({
-                        resource_type: 'admin_operate',
-                        action_ids: JSON.stringify(['view'])
+                        action: 'admin_view'
                     })
-    
-                    const hasPerm = !!res.data.details.find(item => {
-                        return item.action_id === 'view' && item.is_pass
-                    })
-                    this.setAdminPerm(hasPerm)
-                } catch (err) {
-                    errorHandler(err, this)
-                }
-            },
-            /**
-             * 查询用户是否有管理员查看权限
-             *
-             */
-            async getAdminPerm () {
-                try {
-                    this.adminPermLoading = true
-                    const res = await this.queryUserPermission({
-                        resource_type: 'admin_operate',
-                        action_ids: JSON.stringify(['view'])
-                    })
-    
-                    const hasPerm = !!res.data.details.find(item => {
-                        return item.action_id === 'view' && item.is_pass
-                    })
-                    this.setAdminPerm(hasPerm)
-                    this.adminPermLoading = false
+
+                    this.setAdminPerm(res.data.is_allow)
                 } catch (err) {
                     errorHandler(err, this)
                 }

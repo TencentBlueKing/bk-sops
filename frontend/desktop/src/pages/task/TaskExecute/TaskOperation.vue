@@ -19,7 +19,6 @@
             :node-info-type="nodeInfoType"
             :task-operation-btns="taskOperationBtns"
             :instance-actions="instanceActions"
-            :instance-operations="instanceOperations"
             :admin-view="adminView"
             :is-breadcrumb-show="isBreadcrumbShow"
             :is-show-view-process="isShowViewProcess"
@@ -69,8 +68,6 @@
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
                     :instance-actions="instanceActions"
-                    :instance-resource="instanceResource"
-                    :instance-operations="instanceOperations"
                     :instance-name="instanceName"
                     :instance_id="instance_id">
                 </ModifyParams>
@@ -114,7 +111,7 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions, mapState } from 'vuex'
     import axios from 'axios'
     import tools from '@/utils/tools.js'
@@ -140,22 +137,22 @@
         execute: {
             action: 'execute',
             icon: 'common-icon-right-triangle',
-            text: gettext('执行')
+            text: i18n.t('执行')
         },
         pause: {
             action: 'pause',
             icon: 'common-icon-double-vertical-line',
-            text: gettext('暂停')
+            text: i18n.t('暂停')
         },
         resume: {
             action: 'resume',
             icon: 'common-icon-right-triangle',
-            text: gettext('继续')
+            text: i18n.t('继续')
         },
         revoke: {
             action: 'revoke',
             icon: 'common-icon-return-arrow',
-            text: gettext('撤销')
+            text: i18n.t('撤销')
         }
     }
     // 执行按钮的变更
@@ -182,7 +179,7 @@
         mixins: [permission],
         props: [
             'project_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id',
-            'templateSource', 'instanceActions', 'instanceOperations', 'instanceResource'
+            'templateSource', 'instanceActions'
         ],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
@@ -437,7 +434,7 @@
                         this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: gettext('任务开始执行'),
+                            message: i18n.t('任务开始执行'),
                             theme: 'success'
                         })
                     } else {
@@ -464,7 +461,7 @@
                     if (res.result) {
                         this.state = 'SUSPENDED'
                         this.$bkMessage({
-                            message: gettext('任务暂停成功'),
+                            message: i18n.t('任务暂停成功'),
                             theme: 'success'
                         })
                     } else {
@@ -492,7 +489,7 @@
                         this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
-                            message: gettext('任务继续成功'),
+                            message: i18n.t('任务继续成功'),
                             theme: 'success'
                         })
                     } else {
@@ -510,7 +507,7 @@
                     if (res.result) {
                         this.state = 'REVOKED'
                         this.$bkMessage({
-                            message: gettext('任务撤销成功'),
+                            message: i18n.t('任务撤销成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -531,7 +528,7 @@
                     const res = await this.instanceNodeSkip(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('跳过成功'),
+                            message: i18n.t('跳过成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -559,7 +556,7 @@
                     const res = await this.taskflowNodeForceFail(params)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('强制失败执行成功'),
+                            message: i18n.t('强制失败执行成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -580,7 +577,7 @@
                     const res = await this.skipExclusiveGateway(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('跳过成功'),
+                            message: i18n.t('跳过成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -601,7 +598,7 @@
                     const res = await this.pauseNodeResume(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('继续成功'),
+                            message: i18n.t('继续成功'),
                             theme: 'success'
                         })
                         setTimeout(() => {
@@ -667,7 +664,7 @@
                 }
                 this.nodeDetailConfig = {
                     component_code: nodeActivities.component.code,
-                    version: nodeActivities.component.version,
+                    version: nodeActivities.component.version || 'legacy',
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
@@ -837,13 +834,14 @@
                     return
                 }
 
-                if (!this.hasPermission(['operate'], this.instanceActions, this.instanceOperations)) {
+                if (!this.hasPermission(['task_operate'], this.instanceActions)) {
                     const resourceData = {
-                        name: this.instanceName,
-                        id: this.instance_id,
-                        auth_actions: this.instanceActions
+                        task: [{
+                            id: this.instance_id,
+                            name: this.instanceName
+                        }]
                     }
-                    this.applyForPermission(['operate'], resourceData, this.instanceOperations, this.instanceResource)
+                    this.applyForPermission(['task_operate'], this.instanceActions, resourceData)
                     return
                 }
 
@@ -869,7 +867,7 @@
                 const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
                 const nodeActivities = this.pipelineData.activities[id]
                 const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
-                const version = type === 'singleAtom' ? nodeActivities.component.version : undefined
+                const version = type === 'singleAtom' ? (nodeActivities.component.version || 'legacy') : undefined
                 let isPanelShow = false
                 if (nodeState) {
                     if (type === 'singleAtom') {

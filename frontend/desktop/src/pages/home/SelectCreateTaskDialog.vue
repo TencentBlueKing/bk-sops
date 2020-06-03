@@ -11,26 +11,25 @@
 */
 <template>
     <bk-dialog
-        width="850"
+        width="600"
+        :render-directive="'if'"
         :ext-cls="'common-dialog'"
-        :title="i18n.title"
-        :ok-text="okText"
+        :title="$t('创建任务')"
         :mask-close="false"
         :value="isCreateTaskDialogShow"
         :header-position="'left'"
         :auto-close="false"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1 }">
-            <bk-form :model="formData" :rules="rules" ref="taskCreateForm" form-type="inline">
-                <bk-form-item :label="i18n.taskName" :required="true" :property="'taskType'">
+            <bk-form :model="formData" :rules="rules" ref="taskCreateForm">
+                <bk-form-item :label="$t('任务类型')" :required="true" :property="'taskType'">
                     <bk-select
                         class="bk-select-inline"
                         v-model="formData.taskType"
                         :loading="loadingStatus.taskType"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.taskPlaceholder"
+                        :placeholder="$t('请选择任务类型')"
                         @change="checkPermission">
                         <bk-option
                             v-for="option in taskTypeList"
@@ -39,16 +38,16 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <div v-show="isShowtaskError" class="error-info">{{ i18n.taskPlaceholder }}</div>
+                    <div v-show="isShowtaskError" class="error-info">{{ $t('请选择任务类型') }}</div>
                 </bk-form-item>
-                <bk-form-item :label="i18n.projectName" :required="true" :property="'selectedProject'">
+                <bk-form-item :label="$t('项目名称')" :required="true" :property="'selectedProject'">
                     <bk-select
                         class="bk-select-inline"
                         v-model="formData.selectedProject"
                         :loading="loadingStatus.project"
                         :popover-width="260"
                         :clearable="false"
-                        :placeholder="i18n.projectPlaceholder"
+                        :placeholder="$t('请选择项目')"
                         @change="checkPermission">
                         <bk-option
                             v-for="option in projectList"
@@ -57,39 +56,47 @@
                             :name="option.name">
                         </bk-option>
                     </bk-select>
-                    <div v-show="isShowProjectError" class="error-info">{{ i18n.projectPlaceholder }}</div>
+                    <div v-show="isShowProjectError" class="error-info">{{ $t('请选择项目') }}</div>
                 </bk-form-item>
             </bk-form>
+        </div>
+        <div class="dialog-footer" slot="footer">
+            <bk-button
+                theme="primary"
+                :loading="permissionLoading"
+                :class="{ 'btn-permission-disable': !hasUseCommonTplPerm }"
+                v-cursor="{ active: !hasUseCommonTplPerm }"
+                @click="onConfirm">
+                {{ $t('确定') }}
+            </bk-button>
+            <bk-button @click="onCancel">{{ $t('取消') }}</bk-button>
         </div>
     </bk-dialog>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
-    import { mapGetters, mapState } from 'vuex'
+    import { mapGetters, mapState, mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
     export default {
         name: 'SelectCreateTaskDialog',
         components: {
         },
         mixins: [permission],
-        props: ['isCreateTaskDialogShow', 'createTaskItem', 'tplOperations', 'tplResource'],
+        props: {
+            isCreateTaskDialogShow: Boolean,
+            createTaskItem: Object
+        },
         data () {
             return {
-                i18n: {
-                    title: gettext('创建任务'),
-                    taskName: gettext('任务类型'),
-                    projectName: gettext('项目名称'),
-                    taskPlaceholder: gettext('请选择任务类型'),
-                    projectPlaceholder: gettext('请选择项目')
-                },
                 loadingStatus: {
                     taskType: false,
                     project: false,
                     taskContainer: false
                 },
                 taskTypeList: [
-                    { name: gettext('普通任务'), value: 'taskflow' },
-                    { name: gettext('周期任务'), value: 'periodic' }
+                    { name: i18n.t('普通任务'), value: 'taskflow' },
+                    { name: i18n.t('周期任务'), value: 'periodic' }
                 ],
                 rules: {
                     taskType: [{
@@ -109,19 +116,19 @@
                 },
                 isShowtaskError: false,
                 isShowProjectError: false,
-                hasCreateTaskPer: true, // 新建任务权限
-                hasUseCommonTplPer: true // 使用公共流程权限
+                permissionLoading: false,
+                hasUseCommonTplPerm: true // 公共流程创建普通任务、周期任务权限
             }
         },
         computed: {
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
             }),
-            ...mapState('project', {
-                'authOperations': state => state.authOperations
+            ...mapState({
+                'permissionMeta': state => state.permissionMeta
             }),
-            okText () {
-                return this.hasCreateTaskPer && this.hasUseCommonTplPer ? gettext('确定') : gettext('去申请')
+            createTaskPerm () {
+                return this.formData.taskType === 'taskflow' ? ['common_flow_create_task'] : ['common_flow_create_periodic_task']
             }
         },
         watch: {
@@ -131,23 +138,26 @@
                     this.formData.selectedProject = ''
                     this.isShowtaskError = false
                     this.isShowProjectError = false
-                    this.hasCreateTaskPer = true
-                    this.hasUseCommonTplPer = true
+                    this.hasUseCommonTplPerm = true
                 }
             }
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             onConfirm () {
                 const templateId = this.createTaskItem.extra_info.template_id
                 if (!this.checkEmpty()) {
-                    return false
-                }
-                if (!this.hasCreateTaskPer) {
-                    this.applyForPermission(['create_task'], this.createTaskItem, this.tplOperations, this.tplResource)
                     return
                 }
-                if (!this.hasUseCommonTplPer) {
-                    this.applyUseCommonPer()
+                // 权限查询过程中
+                if (this.permissionLoading) {
+                    return
+                }
+                // 没有创建任务权限
+                if (!this.hasUseCommonTplPerm) {
+                    this.applyUseCommonPerm()
                     return
                 }
                 const entrance = this.formData.taskType === 'periodic' ? 'periodicTask' : undefined
@@ -168,26 +178,58 @@
                 }
                 return true
             },
-            checkPermission () {
+            async checkPermission () {
                 this.checkEmpty()
                 const { taskType, selectedProject } = this.formData
                 if (taskType && selectedProject) {
-                    const { auth_actions } = this.createTaskItem
-                    const hasPer = this.hasPermission(['create_task'], auth_actions, this.tplOperations)
-                    const action = this.projectList.find(m => m.id === selectedProject)
-                    this.hasCreateTaskPer = !!hasPer
-                    this.hasUseCommonTplPer = action.auth_actions.indexOf('use_common_template') > -1
+                    try {
+                        this.permissionLoading = true
+                        const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                        const data = {
+                            action: this.createTaskPerm[0],
+                            resources: [
+                                {
+                                    system: bkSops.id,
+                                    type: 'project',
+                                    id: this.formData.selectedProject,
+                                    attributes: {}
+                                },
+                                {
+                                    system: bkSops.id,
+                                    type: 'common_flow',
+                                    id: this.createTaskItem.id,
+                                    attributes: {}
+                                }
+                            ]
+                        }
+                        const resp = await this.queryUserPermission(data)
+                        if (resp.data.is_allow) {
+                            this.hasUseCommonTplPerm = true
+                        } else {
+                            this.hasUseCommonTplPerm = false
+                        }
+                    } catch (error) {
+                        errorHandler(error, this)
+                    } finally {
+                        this.permissionLoading = false
+                    }
                 }
             },
             // 申请公共流程使用权限
-            applyUseCommonPer () {
+            applyUseCommonPerm () {
                 const project = this.projectList.find(m => m.id === this.formData.selectedProject)
+                const curPermission = [...this.createTaskItem.auth_actions, ...project.auth_actions]
                 const resourceData = {
-                    name: gettext('项目'),
-                    id: project.id,
-                    auth_actions: project.auth_actions
+                    common_flow: [{
+                        id: this.createTaskItem.extra_info.template_id,
+                        name: this.createTaskItem.extra_info.name
+                    }],
+                    project: [{
+                        id: project.name,
+                        name: project.name
+                    }]
                 }
-                this.applyForPermission(['use_common_template'], resourceData, this.authOperations, this.authResource)
+                this.applyForPermission(this.createTaskPerm, curPermission, resourceData)
             }
         }
     }

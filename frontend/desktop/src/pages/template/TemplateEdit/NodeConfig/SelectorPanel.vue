@@ -16,6 +16,7 @@
                 class="select-group"
                 v-model="selectedGroup"
                 :clearable="false"
+                searchable
                 @selected="onSelectGroup">
                 <bk-option
                     v-for="item in groupList"
@@ -26,9 +27,9 @@
             </bk-select>
             <bk-input
                 class="search-input"
-                v-model="searchStr"
+                v-model.trim="searchStr"
                 right-icon="bk-icon icon-search"
-                :placeholder="i18n.placeholder"
+                :placeholder="$t('请输入名称')"
                 :clearable="true"
                 @input="onSearchInput"
                 @clear="onClearSearch">
@@ -112,7 +113,7 @@
 </template>
 
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
@@ -138,12 +139,6 @@
         },
         data () {
             return {
-                i18n: {
-                    choose: gettext('选择'),
-                    selected: gettext('已选'),
-                    view: gettext('查看'),
-                    placeholder: gettext('请输入名称')
-                },
                 selectedGroup: 'all', // 标准插件/子流程搜索分组
                 searchStr: '',
                 searchResult: []
@@ -160,7 +155,7 @@
                 const list = []
                 list.push({
                     type: 'all',
-                    group_name: this.isSubflow ? gettext('所有分类') : gettext('所有分组')
+                    group_name: this.isSubflow ? i18n.t('所有分类') : i18n.t('所有分组')
                 })
                 this.listData.forEach(item => {
                     list.push({
@@ -251,8 +246,13 @@
                 window.open(href, '_blank')
             },
             onApplyPermission (tpl) {
-                const { tplOperations, tplResource } = this.atomTypeList.subflow
-                this.applyForPermission(['view'], tpl, tplOperations, tplResource)
+                const resourceData = {
+                    flow: [{
+                        id: tpl.id,
+                        name: tpl.name
+                    }]
+                }
+                this.applyForPermission(['flow_view'], [], resourceData)
             }
         }
     }

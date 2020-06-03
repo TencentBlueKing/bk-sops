@@ -18,12 +18,12 @@ from django.views.decorators.http import require_GET
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -36,11 +36,7 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    taskflow_resource,
-    [taskflow_resource.actions.view],
-    get_kwargs={"task_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(TaskViewInterceptor())
 def get_task_node_detail(request, task_id, project_id):
     """
     @summary: 获取节点输入输出
@@ -53,18 +49,14 @@ def get_task_node_detail(request, task_id, project_id):
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = "[API] get_task_node_detail task[id={task_id}] " \
-                  "of project[project_id={project_id}, biz_id{biz_id}] does not exist".format(
-                      task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
-                  )
-        logger.exception(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "message": message,
-                "code": err_code.CONTENT_NOT_EXIST.code,
-            }
+        message = (
+            "[API] get_task_node_detail task[id={task_id}] "
+            "of project[project_id={project_id}, biz_id{biz_id}] does not exist".format(
+                task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
+            )
         )
+        logger.exception(message)
+        return JsonResponse({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
 
     node_id = request.GET.get("node_id")
     component_code = request.GET.get("component_code")
@@ -79,7 +71,5 @@ def get_task_node_detail(request, task_id, project_id):
                 "code": err_code.UNKNOW_ERROR.code,
             }
         )
-    result = task.get_node_detail(
-        node_id, request.user.username, component_code, subprocess_stack
-    )
+    result = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
     return JsonResponse(result)

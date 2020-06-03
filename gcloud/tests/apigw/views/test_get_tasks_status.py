@@ -17,7 +17,7 @@ import ujson as json
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 from gcloud import err_code
-from gcloud.core.utils import format_datetime
+from gcloud.utils.dates import format_datetime
 
 from .utils import APITest
 

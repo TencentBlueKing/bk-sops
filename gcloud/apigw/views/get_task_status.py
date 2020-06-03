@@ -20,12 +20,12 @@ from pipeline.engine import api as pipeline_api
 from pipeline.engine.exceptions import InvalidOperationException
 
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.apigw.views.utils import logger
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 
 try:
     from bkoauth.decorators import apigw_required
@@ -38,27 +38,19 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    taskflow_resource,
-    [taskflow_resource.actions.view],
-    get_kwargs={"task_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(TaskViewInterceptor())
 def get_task_status(request, task_id, project_id):
     project = request.project
     subprocess_id = request.GET.get("subprocess_id")
 
     if not subprocess_id:
         try:
-            task = TaskFlowInstance.objects.get(
-                pk=task_id, project_id=project.id, is_deleted=False
-            )
+            task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
             task_status = task.get_status()
             result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}
             return JsonResponse(result)
         except Exception as e:
-            message = "task[id={task_id}] get status error: {error}".format(
-                task_id=task_id, error=e
-            )
+            message = "task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
             logger.error(message)
             result = {
                 "result": False,
@@ -80,12 +72,10 @@ def get_task_status(request, task_id, project_id):
             "skip": 0,
             "finish_time": None,
             "elapsed_time": 0,
-            "children": {}
+            "children": {},
         }
     except Exception as e:
-        message = "[API] get_task_status task[id={task_id}] get status error: {error}".format(
-            task_id=task_id, error=e
-        )
+        message = "[API] get_task_status task[id={task_id}] get status error: {error}".format(task_id=task_id, error=e)
         logger.error(message)
         result = {
             "result": False,

@@ -15,12 +15,12 @@
         v-bkloading="{ isLoading: loading, opacity: 1 }"
         @click="e => e.stopPropagation()">
         <div class="panel-title">
-            <h3>{{ i18n.changeParams }}</h3>
+            <h3>{{ $t('修改全局参数') }}</h3>
         </div>
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
-                {{ i18n.editTaskDisable }}
+                {{ $t('已开始执行的任务不能修改参数') }}
             </p>
         </div>
         <div class="edit-wrapper">
@@ -41,13 +41,13 @@
                 }"
                 v-cursor="{ active: !hasSavePermission }"
                 @click="onModifyParams">
-                {{ i18n.save }}
+                {{ $t('保存') }}
             </bk-button>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
@@ -61,19 +61,14 @@
             NoData
         },
         mixins: [permission],
-        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'instanceOperations', 'instanceResource'],
+        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions'],
         data () {
             return {
                 bkMessageInstance: null,
                 constants: [],
                 cntLoading: true, // 全局变量加载
                 configLoading: true, // 变量配置项加载
-                pending: false, // 提交修改中
-                i18n: {
-                    editTaskDisable: gettext('已开始执行的任务不能修改参数'),
-                    changeParams: gettext('修改全局参数'),
-                    save: gettext('保存')
-                }
+                pending: false // 提交修改中
             }
         },
         computed: {
@@ -81,7 +76,7 @@
                 return !Object.keys(this.constants).length
             },
             hasSavePermission () {
-                return this.hasPermission(['edit'], this.instanceActions, this.instanceOperations)
+                return this.hasPermission(['task_edit'], this.instanceActions)
             },
             loading () {
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
@@ -117,11 +112,13 @@
             async onModifyParams () {
                 if (!this.hasSavePermission) {
                     const resourceData = {
-                        id: this.instance_id,
-                        name: this.instanceName,
-                        auth_actions: this.instanceActions
+                        task: [{
+                            id: this.instance_id,
+                            name: this.instanceName
+                        }]
                     }
-                    this.applyForPermission(['edit'], resourceData, this.instanceOperations, this.instanceResource)
+                    this.applyForPermission(['task_edit'], this.instanceActions, resourceData)
+                    return
                 }
 
                 if (this.pending) {
@@ -148,7 +145,7 @@
                     const res = await this.instanceModifyParams(data)
                     if (res.result) {
                         this.$bkMessage({
-                            message: gettext('参数修改成功'),
+                            message: i18n.t('参数修改成功'),
                             theme: 'success'
                         })
                     } else {

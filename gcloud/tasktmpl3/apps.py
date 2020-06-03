@@ -15,8 +15,5 @@ from django.apps import AppConfig
 
 
 class Tasktmpl3Config(AppConfig):
-    name = 'gcloud.tasktmpl3'
-    verbose_name = 'GcloudTasktmpl3'
-
-    def ready(self):
-        from .permissions import task_template_resource  # noqa
+    name = "gcloud.tasktmpl3"
+    verbose_name = "GcloudTasktmpl3"

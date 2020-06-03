@@ -19,11 +19,12 @@ from django.views.decorators.http import require_POST
 
 from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import api_verify_perms
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
+
 
 try:
     from bkoauth.decorators import apigw_required
@@ -37,27 +38,17 @@ except ImportError:
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-@api_verify_perms(
-    taskflow_resource,
-    [taskflow_resource.actions.operate],
-    get_kwargs={"task_id": "id", "project_id": "project_id"},
-)
+@iam_intercept(TaskOperateInterceptor())
 def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid json format",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
     action = params.get("action")
     username = request.user.username
     project = request.project
-    task = TaskFlowInstance.objects.get(
-        pk=task_id, project_id=project.id, is_deleted=False
-    )
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
