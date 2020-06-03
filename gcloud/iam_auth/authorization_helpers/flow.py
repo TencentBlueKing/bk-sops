@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from iam import Resource
 
+from tastypie.exceptions import BadRequest, NotFound
+
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
@@ -26,7 +28,15 @@ class FlowIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
         ]
 
     def get_create_detail_resources(self, bundle):
-        return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(bundle.obj.project__id), {})]
+
+        from gcloud.core.resources import ProjectResource
+
+        try:
+            project = ProjectResource().get_via_uri(bundle.data.get("project"), request=bundle.request)
+        except NotFound:
+            raise BadRequest("project with uri(%s) does not exist" % bundle.data.get("project"))
+
+        return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project.id), {})]
 
     def get_read_detail_resources(self, bundle):
         return self._get_flow_resources(bundle)
