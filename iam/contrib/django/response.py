@@ -17,7 +17,7 @@ from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 
 
 class IAMAuthFailedResponse(JsonResponse):
-    def __init__(exc, *args, **kwargs):
+    def __init__(self, exc, *args, **kwargs):
         kwargs["data"] = {
             "result": False,
             "code": HTTP_AUTH_FORBIDDEN_CODE,

@@ -27,7 +27,7 @@ from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from iam import Resource, Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
 from gcloud.commons.template.resources import PipelineTemplateResource
@@ -266,7 +266,7 @@ class TemplateSchemeResource(GCloudModelResource):
             logger.error(message)
             raise BadRequest(message)
 
-        allow_or_raise_auth_failed(
+        allow_or_raise_immediate_response(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),
@@ -299,7 +299,7 @@ class TemplateSchemeResource(GCloudModelResource):
         except TaskTemplate.DoesNotExist:
             raise BadRequest("flow template the deleted scheme belongs to does not exist")
 
-        allow_or_raise_auth_failed(
+        allow_or_raise_immediate_response(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),

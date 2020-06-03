@@ -26,7 +26,7 @@ from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriod
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from iam import Resource, Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
 from gcloud.constants import PROJECT, COMMON
@@ -154,7 +154,7 @@ class PeriodicTaskResource(GCloudModelResource):
                     )
                 )
 
-            allow_or_raise_auth_failed(
+            allow_or_raise_immediate_response(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", bundle.request.user.username),
@@ -180,7 +180,7 @@ class PeriodicTaskResource(GCloudModelResource):
             except CommonTemplate.DoesNotExist:
                 raise BadRequest("common template[id=%s] does not exist" % template_id)
 
-            allow_or_raise_auth_failed(
+            allow_or_raise_immediate_response(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", bundle.request.user.username),

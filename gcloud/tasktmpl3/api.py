@@ -27,7 +27,7 @@ from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.core.models import Project
-from gcloud.utils.strings import check_and_rename_params
+from gcloud.utils.strings import check_and_rename_params, string_to_boolean
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.commons.template.utils import read_template_data_file
@@ -104,7 +104,7 @@ def export_templates(request, project_id):
 @iam_intercept(ImportInterceptor())
 def import_templates(request, project_id):
     f = request.FILES["data_file"]
-    override = request.POST["override"]
+    override = string_to_boolean(request.POST["override"])
 
     r = read_template_data_file(f)
     templates_data = r["data"]["template_data"]
