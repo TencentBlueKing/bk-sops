@@ -177,7 +177,7 @@ const store = new Vuex.Store({
          * 查询用户是否有某项权限
          */
         queryUserPermission ({ commit }, data) {
-            return axios.post('iam/api/is_allow', data).then(response => response.data)
+            return axios.post('iam/api/is_allow/', data).then(response => response.data)
         },
         /**
          * 获取权限中心跳转链接
