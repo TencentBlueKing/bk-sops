@@ -337,7 +337,7 @@
                     const res = await this.queryUserPermission({
                         action: type
                     })
-                    return !res.data.is_allow
+                    return res.data.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 }
