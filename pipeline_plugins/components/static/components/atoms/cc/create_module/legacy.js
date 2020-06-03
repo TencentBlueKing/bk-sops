@@ -18,7 +18,7 @@
                 name: gettext("业务"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
+                remote_url: `${$.context.get('site_url')}pipeline/cc_get_business_list/`,
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
@@ -73,8 +73,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/';
-                    return url
+                    return $.context.canSelectBiz() ? '' : `${$.context.get('site_url')}pipeline/cc_search_topo/set/normal/${$.context.getBkBizId()}/`;
                 },
                 remote_data_init: function (resp) {
                     return resp.data;
@@ -114,7 +113,7 @@
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.items = [];
                         if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + cc_id + '/';
+                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_topo/set/normal/${cc_id}/`;
                             this.remoteMethod();
                         }
                     }
@@ -128,7 +127,7 @@
                         }
                         this.items = [];
                         if (value !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + value + '/';
+                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_topo/set/normal/${cc_id}/`;
                             this.remoteMethod();
                         }
                     }
@@ -228,9 +227,10 @@
             type: "datatable",
             attrs: {
                 name: gettext("模块信息"),
+                hookable: true,
+                add_btn: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/';
-                    return url
+                    return $.context.canSelectBiz() ? '' : `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/set/${$.context.getBkBizId()}/`
                 },
                 remote_data_init: function (resp) {
                     const data = resp.data;
@@ -246,6 +246,7 @@
                             name: gettext("服务实例分类"),
                             width: "200px",
                             items: [],
+                            validation: [{type: "required"}],
                             multiple: false,
                             lazy: true,
                             lazyLoad(node, resolve) {
@@ -258,7 +259,6 @@
                                     }else {
                                         url = `${$.context.get('site_url')}pipeline/cc_list_service_category/${$.context.getBkBizId()}/${value}/`;
                                     }
-                                    // 通过调用resolve将子节点数据返回，通知组件数据加载完成
                                     $.ajax({
                                         url: url,
                                         type: 'GET',
@@ -275,8 +275,8 @@
                                                 self.items.every(element => {
                                                     if (element.value === value) {
                                                         element.children = nodes;
-                                                        return false
-                                                    } else return true
+                                                        return false;
+                                                    } else return true;
                                                 })
                                             }
                                             resolve(nodes)
@@ -286,14 +286,12 @@
                                             show_msg(resp.message, 'error');
                                         }
                                     })
-                                }, 100);
+                                }, 200);
                             }
                         }
                     });
                     return data;
                 },
-                hookable: true,
-                add_btn: true,
             },
             events: [
                 {
@@ -315,7 +313,7 @@
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.columns = [];
                         if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
+                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${cc_id}/`;
                             this.remoteMethod();
                         }
                     }
@@ -329,7 +327,7 @@
                         }
                         this.columns = [];
                         if (value !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + value + '/';
+                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${value}/`;
                             this.remoteMethod();
                         }
                     }
@@ -342,11 +340,10 @@
             attrs: {
                 name: gettext("模块信息"),
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/';
-                    return url
+                    return $.context.canSelectBiz() ? '' : `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${$.context.getBkBizId()}/`;
                 },
                 remote_data_init: function (resp) {
-                    const data = resp.data;
+                    let data = resp.data;
                     data.forEach(function (column) {
                         column.type = 'input';
                         column.attrs.width = "200px";
@@ -367,16 +364,12 @@
                         attrs: {
                             name: gettext("服务模板"),
                             width: "200px",
-                            default: "Default_-1",
+                            empty_text: gettext("无可用模板，请选择直接创建或先创建模板"),
                             hookable: false,
                             remote_url: function () {
                                 return `${$.context.get('site_url')}pipeline/cc_list_service_template/${$.context.getBkBizId()}/`;
                             },
                             remote_data_init: function (resp) {
-                                let data = resp.data;
-                                if (data.length !== 0) {
-                                    this.value = data[0].value;
-                                }
                                 return resp.data;
                             },
                         }
@@ -406,7 +399,7 @@
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.columns = [];
                         if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
+                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${cc_id}/`;
                             this.remoteMethod();
                         }
                     }
@@ -420,7 +413,7 @@
                         }
                         this.columns = [];
                         if (value !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + value + '/';
+                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${value}/`;
                             this.remoteMethod();
                         }
                     }

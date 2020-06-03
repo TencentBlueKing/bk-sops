@@ -22,9 +22,12 @@ from pipeline.component_framework.component import Component
 
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
+    SelectMethod,
+    ModuleCreateMethod,
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
     cc_format_prop_data,
+    cc_get_name_id_from_combine_value
 )
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
@@ -67,8 +70,23 @@ class CCCreateModuleService(Service):
                 schema=StringItemSchema(description=_("集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔")),
             ),
             self.InputItem(
-                name=_("模块信息列表"),
-                key="cc_module_infos",
+                name=_("创建方式"),
+                key="cc_create_method",
+                type="string",
+                schema=StringItemSchema(description=_("从模板创建(template)，层级文本(ca)"), enum=["topo", "text"]),
+            ),
+            self.InputItem(
+                name=_("模块信息列表-直接创建（通过服务分类创建）"),
+                key="cc_module_infos_category",
+                type="array",
+                schema=ArrayItemSchema(
+                    description=_("模块信息对象列表"),
+                    item_schema=ObjectItemSchema(description=_("模块信息描述对象"), property_schemas={}),
+                ),
+            ),
+            self.InputItem(
+                name=_("模块信息列表-按服务模板创建"),
+                key="cc_module_infos_template",
                 type="array",
                 schema=ArrayItemSchema(
                     description=_("模块信息对象列表"),
@@ -86,13 +104,20 @@ class CCCreateModuleService(Service):
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
-
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select_method = data.get_one_of_inputs("cc_set_select_method")
-        if cc_set_select_method == "topo":
+        cc_create_method = data.get_one_of_inputs("cc_create_method")
+        # 校验创建及填参方式，避免中途校验失败时已进行多余的逻辑判断
+        if cc_set_select_method not in [SelectMethod.TOPO.value, SelectMethod.TEXT.value]:
+            data.set_outputs("ex_data", _("请选择填参方式"))
+            return False
+        if cc_create_method not in [ModuleCreateMethod.CATEGORY.value, ModuleCreateMethod.TEMPLATE.value]:
+            data.set_outputs("ex_data", _("请选择创建方式"))
+            return False
+        if cc_set_select_method == SelectMethod.TOPO.value:
             cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
-        elif cc_set_select_method == "text":
+        else:   # text
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
                 executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
@@ -101,23 +126,41 @@ class CCCreateModuleService(Service):
                 data.set_outputs("ex_data", cc_list_select_node_inst_id_return["message"])
                 return False
             cc_set_select = cc_list_select_node_inst_id_return["data"]
-        else:
-            data.set_outputs("ex_data", _("请选择填参方式"))
-            return False
 
-        cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos")
+        if cc_create_method == ModuleCreateMethod.TEMPLATE.value:
+            cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos_template")
+        else:   # category
+            cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos_category")
         cc_module_infos = []
         for cc_module_info_untreated in cc_module_infos_untreated:
+            if cc_create_method == ModuleCreateMethod.TEMPLATE.value:
+                service_template_name, service_template_id = cc_get_name_id_from_combine_value(
+                    cc_module_info_untreated.pop("cc_service_template")
+                )
+                if service_template_id is None:
+                    data.set_outputs("ex_data", _("请选择正确的服务模板"))
+                    return False
+                cc_module_info_untreated["service_template_id"] = service_template_id
+                # 按模板创建时，模块名称与模板名称保持一致
+                cc_module_info_untreated["bk_module_name"] = service_template_name
+            else:   # category
+                if len(cc_module_info_untreated["cc_service_category"]) != 2:
+                    data.set_outputs("ex_data", _("请选择正确的服务类型"))
+                    return False
+                service_category_id = cc_module_info_untreated.pop("cc_service_category")[-1]
+                cc_module_info_untreated["service_category_id"] = service_category_id
+
             # 过滤空值
             cc_module_info = {
                 module_property: module_prop_value
                 for module_property, module_prop_value in cc_module_info_untreated.items()
-                if len(module_prop_value) != 0
+                if module_prop_value
             }
 
-            if "bk_module_name" not in cc_module_info:
+            if cc_create_method == ModuleCreateMethod.CATEGORY.value and "bk_module_name" not in cc_module_info:
                 data.set_outputs("ex_data", _("模块名称不能为空"))
                 return False
+            # 校验模块类型
             if "bk_module_type" in cc_module_info:
                 format_prop_data_return = cc_format_prop_data(
                     executor, "module", "bk_module_type", parent_data.get_one_of_inputs("language"), supplier_account
@@ -125,7 +168,6 @@ class CCCreateModuleService(Service):
                 if not format_prop_data_return["result"]:
                     data.set_outputs("ex_data", format_prop_data_return["message"])
                     return False
-
                 bk_module_type = format_prop_data_return["data"].get(cc_module_info["bk_module_type"])
                 if not bk_module_type:
                     data.set_outputs("ex_data", _("模块类型校验失败，请重试并填写正确的模块类型"))
@@ -151,7 +193,9 @@ class CCCreateModuleService(Service):
 
 class CCCreateModuleComponent(Component):
     """
-    @version legacy:支持手动输入拓扑路径选择集群，并提供相应输入容错： 冗余回车/换行
+    @version legacy:
+        - 支持手动输入拓扑路径选择集群，并提供相应输入容错：冗余回车/换行
+        - 支持按服务模板创建 & 直接创建
     """
 
     name = _("创建模块")
