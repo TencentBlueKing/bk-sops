@@ -189,7 +189,7 @@ def create_task(request, template_id, project_id):
                 {
                     "result": False,
                     "message": message,
-                    "code": err_code.UNKNOW_ERROR.code,
+                    "code": err_code.UNKNOWN_ERROR.code,
                 }
             )
 
@@ -206,7 +206,7 @@ def create_task(request, template_id, project_id):
                 {
                     "result": False,
                     "message": message,
-                    "code": err_code.UNKNOW_ERROR.code,
+                    "code": err_code.UNKNOWN_ERROR.code,
                 }
             )
     else:
@@ -222,11 +222,11 @@ def create_task(request, template_id, project_id):
             )
         except PipelineException as e:
             return JsonResponse(
-                {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+                {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
             )
         if not result:
             return JsonResponse(
-                {"result": False, "message": data, "code": err_code.UNKNOW_ERROR.code}
+                {"result": False, "message": data, "code": err_code.UNKNOWN_ERROR.code}
             )
 
     task = TaskFlowInstance.objects.create(

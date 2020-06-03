@@ -20,25 +20,26 @@ from django.http import JsonResponse
 from pipeline.engine.core.data.api import _backend, _candidate_backend
 from pipeline.engine.core.data.redis_backend import RedisDataBackend
 
+from gcloud import err_code
 from gcloud.core.decorators import check_is_superuser
 
 
 @check_is_superuser()
 def delete_cache_key(request, key):
     cache.delete(key)
-    return JsonResponse({'result': True, 'data': 'success'})
+    return JsonResponse({'result': True, 'code': err_code.SUCCESS.code, 'data': 'success'})
 
 
 @check_is_superuser()
 def get_cache_key(request, key):
     data = cache.get(key)
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({'result': True, 'code': err_code.SUCCESS.code, 'data': data})
 
 
 @check_is_superuser()
 def get_settings(request):
     data = {s: getattr(settings, s) for s in dir(settings)}
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({'result': True, 'code': err_code.SUCCESS.code, 'data': data})
 
 
 @check_is_superuser()
@@ -49,10 +50,13 @@ def migrate_pipeline_parent_data(request):
     @return:
     """
     if not isinstance(_backend, RedisDataBackend):
-        return JsonResponse({'result': False, 'message': '_backend should be RedisDataBackend'})
+        return JsonResponse({'result': False,
+                             'code': err_code.OPERATION_FAIL.code,
+                             'message': '_backend should be RedisDataBackend'})
 
     if _candidate_backend is None:
         return JsonResponse({'result': False,
+                             'code': err_code.ENV_ERROR.code,
                              'message': ('_candidate_backend is None, please set '
                                          'env variable(BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND) first')})
 
@@ -62,4 +66,4 @@ def migrate_pipeline_parent_data(request):
         value = _backend.get_object(key)
         _candidate_backend.set_object(key, value)
 
-    return JsonResponse({'result': True, 'data': pipeline_data_keys})
+    return JsonResponse({'result': True, 'code': err_code.SUCCESS.code, 'data': pipeline_data_keys})

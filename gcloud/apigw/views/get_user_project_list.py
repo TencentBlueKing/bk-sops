@@ -43,7 +43,7 @@ def get_user_project_list(request):
                 "message": "can not fetch business for user[{}]".format(
                     request.user.username
                 ),
-                "code": err_code.UNKNOW_ERROR.code,
+                "code": err_code.UNKNOWN_ERROR.code,
             }
         )
 
