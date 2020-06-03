@@ -115,11 +115,7 @@ const store = new Vuex.Store({
         },
         // 删除收藏模板，单个删除
         deleteCollect ({ commit }, id) {
-            return axios.delete(`api/v3/collection/${id}/`, {
-                headers: {
-                    'content-type': 'application/x-www-form-urlencoded'
-                }
-            }).then(response => response.data)
+            return axios.delete(`api/v3/collection/${id}/`).then(response => response.data)
         },
         // ip 选择器接口 start --->
         // 查询业务在 CMDB 的主机

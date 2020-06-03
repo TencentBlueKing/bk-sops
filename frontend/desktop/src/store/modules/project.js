@@ -42,12 +42,8 @@ const project = {
     },
     actions: {
         // 更改用户的默认项目
-        changeDefaultProject ({ state }, data) {
-            return axios.post(`core/api/change_default_project/${state.project_id}/`, {
-                headers: {
-                    'content-type': 'application/x-www-form-urlencoded'
-                }
-            }).then(response => response.data)
+        changeDefaultProject ({ state }) {
+            return axios.post(`core/api/change_default_project/${state.project_id}/`).then(response => response.data)
         },
         loadProjectList ({ commit }, data) {
             const { limit, offset, is_disable = false, q } = data

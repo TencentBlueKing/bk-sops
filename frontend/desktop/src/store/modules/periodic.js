@@ -10,7 +10,6 @@
 * specific language governing permissions and limitations under the License.
 */
 import axios from 'axios'
-import qs from 'qs'
 import store from '@/store/index.js'
 
 const periodic = {
@@ -47,13 +46,8 @@ const periodic = {
         setPeriodicEnable ({ commit }, data) {
             const { project_id } = store.state.project
             const { enabled, taskId } = data
-            const dataString = qs.stringify({
-                enabled
-            })
 
-            return axios.post(`periodictask/api/enabled/${project_id}/${taskId}/`, dataString, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`periodictask/api/enabled/${project_id}/${taskId}/`, { enabled }).then(response => response.data)
         },
         /**
          * 修改定时任务表达式
@@ -62,13 +56,7 @@ const periodic = {
         modifyPeriodicCron ({ commit }, data) {
             const { project_id } = store.state.project
             const { cron, taskId } = data
-            const dataString = qs.stringify({
-                'cron': cron
-            })
-
-            return axios.post(`periodictask/api/cron/${project_id}/${taskId}/`, dataString, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`periodictask/api/cron/${project_id}/${taskId}/`, { cron }).then(response => response.data)
         },
         // 获取周期任务详情
         getPeriodic ({ commit }, data) {
@@ -83,12 +71,7 @@ const periodic = {
         modifyPeriodicConstants ({ commit }, data) {
             const { project_id } = store.state.project
             const { constants, taskId } = data
-            const dataString = qs.stringify({
-                'constants': constants
-            })
-            return axios.post(`periodictask/api/constants/${project_id}/${taskId}/`, dataString, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`periodictask/api/constants/${project_id}/${taskId}/`, { constants }).then(response => response.data)
         },
         // 删除单个周期任务
         deletePeriodic ({ commit }, taskId) {
