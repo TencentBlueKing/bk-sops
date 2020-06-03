@@ -45,6 +45,7 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - upload
 - memberSelector
 - setAllocation
+- TagSection
 - codeEditor
 # Tag 组件属性、方法
 
