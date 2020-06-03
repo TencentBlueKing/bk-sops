@@ -24,9 +24,16 @@
     * 换行区分路径，`>`区分层级
     * example: `a>b>c\n   a>b`
     * 已容错：冗余回车/空格
+    
+* `cc_create_method` 创建方式
+    * `category` 直接创建（按服务分类创建）
+    * `template` 通过服务模板创建
 
-* `cc_module_infos` 模块信息列表（对象列表）
-    * `cc_module_name` 模块名称
+* `cc_module_infos_category` 模块信息列表-直接创建（通过服务分类创建）(对象列表)
+    * 必须参数：`bk_module_name` 模块名称
+
+* `cc_module_infos_template` 模块信息列表-按服务模板创建(对象列表)
+    * 必须参数：`cc_service_templates` 模板名称_模板id
 
 ## 输出参数说明
 
@@ -42,11 +49,16 @@
 
 ![](../images/create_module_legacy_text.png)
 
+通过服务模板创建集群
+![](../images/create_module_legacy_template.png)
+
+通过服务分类创建
+![](../images/create_module_legacy_category.png)
+
 ## 注意事项
 
 * `cc_set_select_topo` 字段只在`cc_set_select_method`为`topo`时有效
 
 * `cc_set_select_text` 字段只在`cc_set_select_method`为`text`时有效
   
-
-  
+* 通过服务模板创建时，模块名称`bk_module_id`与服务模板名称`service_template_name`保持一致，无需填写
