@@ -77,7 +77,7 @@
             return {
                 nodeTypeList: [
                     { key: 'tasknode', tips: i18n.t('标准插件节点') },
-                    { key: 'subflow', tips: i18n.t('子流程') },
+                    { key: 'subflow', tips: i18n.t('子流程节点') },
                     { key: 'parallelgateway', tips: i18n.t('并行网关') },
                     { key: 'branchgateway', tips: i18n.t('分支网关') },
                     { key: 'convergegateway', tips: i18n.t('汇聚网关') }

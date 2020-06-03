@@ -984,7 +984,7 @@ const en = {
     '节点标签': 'Node labels',
     '节点配置': 'Node config',
     '复制节点': 'Copy node',
-    '复制成功': 'Copy successful'
+    '复制成功': 'Successfully copied'
 }
 
 export default en
