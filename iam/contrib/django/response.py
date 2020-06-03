@@ -11,13 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.deprecation import MiddlewareMixin
+from django.http.response import JsonResponse
 
-from iam.exceptions import AuthFailedBaseException
-from iam.contrib.django.response import IAMAuthFailedResponse
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 
 
-class AuthFailedExceptionMiddleware(MiddlewareMixin):
-    def process_exception(self, request, exception):
-        if isinstance(exception, AuthFailedBaseException):
-            return IAMAuthFailedResponse(exception)
+class IAMAuthFailedResponse(JsonResponse):
+    def __init__(exc, *args, **kwargs):
+        kwargs["data"] = {
+            "result": False,
+            "code": HTTP_AUTH_FORBIDDEN_CODE,
+            "message": "you have no permission to opearte",
+            "data": None,
+            "permission": exc.perms_apply_data(),
+        }
+        kwargs["status"] = 499
+        super().__init__(*args, **kwargs)
