@@ -32,7 +32,7 @@ export const atomFormItemSchema = {
         },
         type: {
             type: 'string',
-            enum: tagNames
+            enum: ['combine', ...tagNames]
         },
         attrs: {
             type: 'object',

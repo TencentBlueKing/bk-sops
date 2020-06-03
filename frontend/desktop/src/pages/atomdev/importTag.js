@@ -26,7 +26,6 @@ export default function importTag () {
     // userComponent.keys().forEach(fileName => {
     //     register(fileName, userComponent)
     // })
-
     return {
         components: tagComponent,
         attrs: tagAttrs
