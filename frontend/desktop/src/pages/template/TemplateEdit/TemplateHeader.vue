@@ -338,7 +338,7 @@
                     const res = await this.queryUserPermission({
                         action: 'common_flow_create'
                     })
-                    this.hasCreateCommonTplPerm = res.is_allow
+                    this.hasCreateCommonTplPerm = res.data.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
@@ -367,7 +367,7 @@
                             }
                         ]
                     })
-                    this.hasCommonTplCreateTaskPerm = res.is_allow
+                    this.hasCommonTplCreateTaskPerm = res.data.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {

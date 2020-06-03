@@ -556,7 +556,7 @@
                             ]
                         }
                         const resp = await this.queryUserPermission(data)
-                        this.hasCreateTaskPerm = resp.is_allow
+                        this.hasCreateTaskPerm = resp.data.is_allow
                     } catch (error) {
                         errorHandler(error, this)
                     } finally {

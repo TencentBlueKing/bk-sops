@@ -203,7 +203,7 @@
                             ]
                         }
                         const resp = await this.queryUserPermission(data)
-                        if (resp.is_allow) {
+                        if (resp.data.is_allow) {
                             this.hasUseCommonTplPerm = true
                         } else {
                             this.hasUseCommonTplPerm = false

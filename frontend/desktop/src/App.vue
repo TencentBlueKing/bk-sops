@@ -191,7 +191,7 @@
                         action: 'admin_view'
                     })
 
-                    this.setAdminPerm(res.is_allow)
+                    this.setAdminPerm(res.data.is_allow)
                 } catch (err) {
                     errorHandler(err, this)
                 }
