@@ -182,7 +182,7 @@ def cc_get_name_id_from_combine_value(combine_value):
         return None, None
     try:
         return name_id_combine[0], int(name_id_combine[1])
-    except KeyError as error:
+    except KeyError:
         return None, None
 
 
