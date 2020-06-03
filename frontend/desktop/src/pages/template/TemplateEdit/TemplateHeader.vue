@@ -188,6 +188,9 @@
                 await this.queryCreateCommonTplPerm()
                 this.setSaveBtnPerm()
                 this.setCreateTaskBtnPerm()
+            } else {
+                this.setSaveBtnPerm()
+                this.setCreateTaskBtnPerm()
             }
         },
         methods: {
