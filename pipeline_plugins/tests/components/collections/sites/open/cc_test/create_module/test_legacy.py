@@ -34,6 +34,7 @@ class CCCreateModuleComponentTest(TestCase, ComponentTestMixin):
             SELECT_BY_TOPO_SUCCESS_CASE,
             SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE,
             SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE,
+            CREATE_BY_TEMPLATE_SUCCESS_CASE,
         ]
 
 
@@ -166,7 +167,17 @@ SELECT_BY_TEXT_SUCCESS_INPUTS = {
     "cc_set_select_method": "text",
     "cc_set_select_topo": [],
     "cc_set_select_text": "    蓝鲸>Tun>set\n\n",
-    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
+    "cc_create_method": "category",
+    "cc_module_infos_category": [
+        {
+            "bk_module_name": "1",
+            "bk_module_type": "普通",
+            "operator": "1",
+            "bk_bak_operator": "1",
+            "cc_service_category": [1, 2],
+        }
+    ],
+    "cc_module_infos_template": [],
     "_loop": 1,
 }
 
@@ -190,6 +201,7 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
                             "bk_module_type": "1",
                             "operator": "1",
                             "bk_bak_operator": "1",
+                            "service_category_id": 2,
                         },
                     }
                 )
@@ -214,8 +226,18 @@ SELECT_BY_TOPO_SUCCESS_INPUTS = {
     "biz_cc_id": 2,
     "cc_set_select_method": "topo",
     "cc_set_select_topo": ["set_5"],
-    "cc_set_select_text": None,
-    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
+    "cc_set_select_text": "",
+    "cc_create_method": "category",
+    "cc_module_infos_category": [
+        {
+            "bk_module_name": "1",
+            "bk_module_type": "普通",
+            "operator": "1",
+            "bk_bak_operator": "1",
+            "cc_service_category": [1, 2],
+        }
+    ],
+    "cc_module_infos_template": [],
     "_loop": 1,
 }
 
@@ -239,6 +261,7 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
                             "bk_module_type": "1",
                             "operator": "1",
                             "bk_bak_operator": "1",
+                            "service_category_id": 2,
                         },
                     }
                 )
@@ -263,7 +286,17 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_INPUTS = {
     "cc_set_select_method": "text",
     "cc_set_select_topo": [],
     "cc_set_select_text": "    蓝鲸>Yun >set\n\n",
-    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
+    "cc_create_method": "category",
+    "cc_module_infos_category": [
+        {
+            "bk_module_name": "1",
+            "bk_module_type": "普通",
+            "operator": "1",
+            "bk_bak_operator": "1",
+            "cc_service_category": [1, 2],
+        }
+    ],
+    "cc_module_infos_template": [],
     "_loop": 1,
 }
 
@@ -292,7 +325,17 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_INPUTS = {
     "cc_set_select_method": "text",
     "cc_set_select_topo": [],
     "cc_set_select_text": "    蓝鲸>Yun\n\n",
-    "cc_module_infos": [{"bk_module_name": "1", "bk_module_type": "普通", "operator": "1", "bk_bak_operator": "1"}],
+    "cc_create_method": "category",
+    "cc_module_infos_category": [
+        {
+            "bk_module_name": "1",
+            "bk_module_type": "普通",
+            "operator": "1",
+            "bk_bak_operator": "1",
+            "cc_service_category": [1, 2],
+        }
+    ],
+    "cc_module_infos_template": [],
     "_loop": 1,
 }
 
@@ -306,6 +349,51 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
+    ],
+)
+
+
+CREATE_BY_TEMPLATE_SUCCESS_CLIENT = MockClient(
+    get_mainline_object_topo_return=COMMON_MAINLINE,
+    search_biz_inst_topo_return=COMMON_TOPO,
+    create_module_return={"result": True, "code": 0, "message": "", "data": {}},
+)
+
+CREATE_BY_TEMPLATE_SUCCESS_INPUTS = {
+    "biz_cc_id": 2,
+    "cc_set_select_method": "text",
+    "cc_set_select_topo": [],
+    "cc_set_select_text": "    蓝鲸>Tun>set\n\n",
+    "cc_create_method": "template",
+    "cc_module_infos_template": [{"cc_service_template": "cxx_100"}],
+    "cc_module_infos_category": [],
+    "_loop": 1,
+}
+
+CREATE_BY_TEMPLATE_SUCCESS_CASE = ComponentTestCase(
+    name="success case: create module by template",
+    inputs=CREATE_BY_TEMPLATE_SUCCESS_INPUTS,
+    parent_data=COMMON_PARENT,
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    schedule_assertion=None,
+    execute_call_assertion=[
+        CallAssertion(
+            func=SELECT_BY_TEXT_SUCCESS_CLIENT.cc.create_module,
+            calls=[
+                Call(
+                    {
+                        "bk_biz_id": 2,
+                        "bk_set_id": 5,
+                        "data": {"bk_parent_id": 5, "bk_module_name": "cxx", "service_template_id": 100},
+                    }
+                )
+            ],
+        )
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
     ],
 )
