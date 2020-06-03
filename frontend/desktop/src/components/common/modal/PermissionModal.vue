@@ -97,7 +97,7 @@
                 try {
                     this.loading = true
                     const res = await this.getIamUrl(this.permissionData)
-                    this.url = res.data.url
+                    this.url = res.url
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {

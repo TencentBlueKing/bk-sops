@@ -80,8 +80,7 @@
         computed: {
             ...mapState({
                 locations: state => state.template.location,
-                lines: state => state.template.line,
-                userRights: state => state.userRights
+                lines: state => state.template.line
             }),
             currentStep () {
                 return this.step || 'selectnode'
