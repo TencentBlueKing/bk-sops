@@ -97,7 +97,15 @@
                         <template slot-scope="props">
                             <div class="task-operation">
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <a
+                                    v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
+                                    {{$t('再创建')}}
+                                </a>
                                 <router-link
+                                    v-else
                                     class="template-operate-btn"
                                     :to="{
                                         name: 'taskStep',
@@ -413,6 +421,10 @@
                     task: [{
                         id: task.id,
                         name: task.name
+                    }],
+                    flow: [{
+                        id: task.template_id,
+                        name: task.template_name
                     }]
                 }
                 this.applyForPermission(required, task.auth_actions, resourceData)
