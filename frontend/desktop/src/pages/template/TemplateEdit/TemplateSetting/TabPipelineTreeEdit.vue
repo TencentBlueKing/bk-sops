@@ -25,7 +25,7 @@
                     <code-editor
                         :value="template"
                         :options="{ readOnly: !hasAdminPerm, language: 'json' }"
-                        @changeContent="onDataChange">
+                        @input="onDataChange">
                     </code-editor>
                     <div class="error-tips" v-if="errorMessage" :title="errorMessage">
                         <i class="common-icon-info"></i>
