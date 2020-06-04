@@ -14,9 +14,13 @@ specific language governing permissions and limitations under the License.
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
+from iam import meta
+
 SYSTEM_ID = settings.APP_ID
 
-SYSTEM_INFO = ({"id": SYSTEM_ID, "name": settings.APP_NAME},)
+SYSTEM_INFO = [
+    {"id": SYSTEM_ID, "name": settings.APP_NAME},
+]
 
 RESOURCES = [
     {"id": "project", "name": _("项目")},
@@ -297,3 +301,13 @@ class IAMMeta(object):
     AUDIT_VIEW_ACTION = "audit_view"
     FUNCTION_VIEW_ACTION = "function_view"
     STATISTICS_VIEW_ACTION = "statistics_view"
+
+
+for system in SYSTEM_INFO:
+    meta.setup_system(system["id"], system["name"])
+
+for resource in RESOURCES:
+    meta.setup_resource(SYSTEM_ID, resource["id"], resource["name"])
+
+for action in ACTIONS:
+    meta.setup_action(SYSTEM_ID, action["id"], action["name"])
