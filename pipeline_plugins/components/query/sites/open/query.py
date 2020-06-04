@@ -111,6 +111,18 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
 
 @supplier_account_inject
 def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account):
+    """
+    查询指定节点bk_parent_id的所有子服务分类
+    url: /pipeline/cc_list_service_category/biz_cc_id/bk_parent_id/
+    :param request:
+    :param biz_cc_id:
+    :param bk_parent_id: 父服务分类id, 根id = 0
+    :param supplier_account:
+    :return:
+        - 请求成功 {"result": True, "data": service_categories, "message": "success"}
+            - service_categories: [{"value" : 服务分类id, "label": 服务分类名称}, ...]
+        - 请求失败 {"result": False, "data": [], "message": message}
+    """
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
     list_service_category_return = client.cc.list_service_category(kwargs)
@@ -134,6 +146,17 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
 
 @supplier_account_inject
 def cc_list_service_template(request, biz_cc_id, supplier_account):
+    """
+    获取服务模板
+    url: /pipeline/cc_list_service_template/biz_cc_id/
+    :param request:
+    :param biz_cc_id:
+    :param supplier_account:
+    :return:
+        - 请求成功 {"result": True, "data": service_templates, "message": "success"}
+            - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
+        - 请求失败 {"result": False, "data": [], "message": message}
+    """
     client = get_client_by_user(request.user.username)
     kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
     list_service_template_return = client.cc.list_service_template(kwargs)
