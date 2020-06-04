@@ -37,7 +37,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.resources import ProjectResource
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import FlowResourceHelper
 from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
 
 logger = logging.getLogger("root")
@@ -86,10 +86,7 @@ class TaskTemplateResource(GCloudModelResource):
                 delete_action=IAMMeta.FLOW_DELETE_ACTION,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.FLOW_RESOURCE,
-            id_field="id",
-            creator_field="creator_name",
+        iam_resource_helper = FlowResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[

@@ -23,7 +23,7 @@ from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import MiniAppResourceHelper
 from gcloud.iam_auth.authorization_helpers import MiniAppIAMAuthorizationHelper
 
 iam = get_iam_client()
@@ -73,10 +73,7 @@ class AppMakerResource(GCloudModelResource):
                 delete_action=IAMMeta.MINI_APP_DELETE_ACTION,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.MINI_APP_RESOURCE,
-            id_field="id",
-            creator_field="creator",
+        iam_resource_helper = MiniAppResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[

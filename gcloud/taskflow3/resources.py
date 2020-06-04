@@ -40,7 +40,7 @@ from gcloud.taskflow3.constants import PROJECT
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
 from gcloud.iam_auth.shortcuts import filter_flows_can_create_task
 
@@ -111,10 +111,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 delete_action=IAMMeta.TASK_DELETE_ACTION,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.TASK_RESOURCE,
-            id_field="id",
-            creator_field="creator_name",
+        iam_resource_helper = TaskResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[
