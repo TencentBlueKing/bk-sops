@@ -1,6 +1,6 @@
 <template>
     <transition>
-        <div v-if="show" class="notify-info">
+        <div v-if="show" :class="['notify-info', theme]">
             <i class="bk-icon icon-exclamation-circle tips-icon"></i>
             <div class="content-area">
                 <slot>
@@ -30,6 +30,10 @@
             show: {
                 type: Boolean,
                 default: true
+            },
+            theme: {
+                type: String,
+                default: 'danger'
             }
         },
         data () {
@@ -55,14 +59,25 @@
         justify-content: flex-start;
         align-items: center;
         padding: 6px 10px;
-        background: #ffeded;
-        border: 1px solid #ffdddd;
         border-radius: 2px;
+        &.danger {
+            background: #ffeded;
+            border: 1px solid #ffdddd;
+            .tips-icon {
+                color: #ff5656;
+            }
+        }
+        &.warning {
+            background: #fff4e2;
+            border: 1px solid #ffdfac;
+            .tips-icon {
+                color: #ff9c01;
+            }
+        }
     }
     .tips-icon {
         margin-right: 8px;
         font-size: 16px;
-        color: #ff5656;
     }
     .content-area {
         flex-grow: 1;
