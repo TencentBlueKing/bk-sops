@@ -18,7 +18,7 @@
                 name: gettext("业务"),
                 hookable: true,
                 remote: true,
-                remote_url: `${$.context.get('site_url')}pipeline/cc_get_business_list/`,
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
@@ -73,7 +73,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    return $.context.canSelectBiz() ? '' : `${$.context.get('site_url')}pipeline/cc_search_topo/set/normal/${$.context.getBkBizId()}/`;
+                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
                     return resp.data;
@@ -113,7 +113,7 @@
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.items = [];
                         if (cc_id !== '') {
-                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_topo/set/normal/${cc_id}/`;
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -127,7 +127,7 @@
                         }
                         this.items = [];
                         if (value !== '') {
-                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_topo/set/normal/${cc_id}/`;
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -206,7 +206,7 @@
                     {value: "template", name: gettext("从模板创建")},
                     {value: "category", name: gettext("直接创建")},
                 ],
-                default: "category",
+                default: "template",
                 validation: [
                     {
                         type: "required"
@@ -232,7 +232,7 @@
                 add_btn: true,
                 // 远程加载模块可填写属性
                 remote_url: function () {
-                    return $.context.canSelectBiz() ? '' : `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/set/${$.context.getBkBizId()}/`
+                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/set/' + $.context.getBkBizId() + '/'
                 },
                 remote_data_init: function (resp) {
                     const data = resp.data;
@@ -261,9 +261,9 @@
                                     let url = '';
                                     // level = 0 位于第一层，此时拉取父节点，父节点parent_id = 0， 其余情况下根据选中父节点的id拉取选中父节点下的孩子节点
                                     if (level === 0) {
-                                        url = `${$.context.get('site_url')}pipeline/cc_list_service_category/${$.context.getBkBizId()}/0/`;
+                                        url = $.context.get('site_url') + 'pipeline/cc_list_service_category/' + $.context.getBkBizId() + '/0/';
                                     }else {
-                                        url = `${$.context.get('site_url')}pipeline/cc_list_service_category/${$.context.getBkBizId()}/${value}/`;
+                                        url = $.context.get('site_url') + 'pipeline/cc_list_service_category/' + $.context.getBkBizId() + '/' + value + '/';
                                     }
                                     $.ajax({
                                         url: url,
@@ -321,7 +321,7 @@
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.columns = [];
                         if (cc_id !== '') {
-                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${cc_id}/`;
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -335,7 +335,7 @@
                         }
                         this.columns = [];
                         if (value !== '') {
-                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${value}/`;
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + value + '/';
                             this.remoteMethod();
                         }
                     }
@@ -348,7 +348,7 @@
             attrs: {
                 name: gettext("模块信息"),
                 remote_url: function () {
-                    return $.context.canSelectBiz() ? '' : `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${$.context.getBkBizId()}/`;
+                    return $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + $.context.getBkBizId() + '/';
                 },
                 remote_data_init: function (resp) {
                     let data = resp.data;
@@ -372,11 +372,11 @@
                         attrs: {
                             name: gettext("服务模板"),
                             width: "200px",
-                            empty_text: gettext("无可用模板，请选择直接创建或先创建模板"),
+                            empty_text: gettext("无可用模板，请选择直接创建或前往配置平台(CMDB)创建服务模板"),
                             hookable: false,
                             // 动态获取服务模板信息
                             remote_url: function () {
-                                return `${$.context.get('site_url')}pipeline/cc_list_service_template/${$.context.getBkBizId()}/`;
+                                return $.context.get('site_url') + 'pipeline/cc_list_service_template/' + $.context.getBkBizId() + '/';
                             },
                             remote_data_init: function (resp) {
                                 return resp.data;
@@ -408,7 +408,7 @@
                         const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.columns = [];
                         if (cc_id !== '') {
-                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${cc_id}/`;
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -422,7 +422,7 @@
                         }
                         this.columns = [];
                         if (value !== '') {
-                            this.remote_url = `${$.context.get('site_url')}pipeline/cc_search_create_object_attribute/module/${value}/`;
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + value + '/';
                             this.remoteMethod();
                         }
                     }

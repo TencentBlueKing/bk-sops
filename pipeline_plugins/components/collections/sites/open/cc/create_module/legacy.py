@@ -117,7 +117,7 @@ class CCCreateModuleService(Service):
             return False
         if cc_set_select_method == SelectMethod.TOPO.value:
             cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs("cc_set_select_topo"))
-        else:   # text
+        else:
             cc_set_select_text = data.get_one_of_inputs("cc_set_select_text")
             cc_list_select_node_inst_id_return = cc_list_select_node_inst_id(
                 executor, biz_cc_id, supplier_account, BkObjType.SET, cc_set_select_text
@@ -129,7 +129,7 @@ class CCCreateModuleService(Service):
 
         if cc_create_method == ModuleCreateMethod.TEMPLATE.value:
             cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos_template")
-        else:   # category
+        else:
             cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos_category")
         cc_module_infos = []
         for cc_module_info_untreated in cc_module_infos_untreated:
@@ -143,7 +143,7 @@ class CCCreateModuleService(Service):
                 cc_module_info_untreated["service_template_id"] = service_template_id
                 # 按模板创建时，模块名称与模板名称保持一致
                 cc_module_info_untreated["bk_module_name"] = service_template_name
-            else:   # category
+            else:
                 if len(cc_module_info_untreated["cc_service_category"]) != 2:
                     data.set_outputs("ex_data", _("请选择正确的服务类型"))
                     return False
