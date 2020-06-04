@@ -203,7 +203,7 @@
                 const excludeNodes = this.getExcludeNode()
                 const params = {
                     templateId: templateId,
-                    excludeTaskNodesId: JSON.stringify(excludeNodes),
+                    excludeTaskNodesId: excludeNodes,
                     common: this.common,
                     version: this.version
                 }
