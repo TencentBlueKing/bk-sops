@@ -247,7 +247,7 @@
                     this.setTemplateData(templateData)
                     const params = {
                         templateId: this.template_id,
-                        excludeTaskNodesId: JSON.stringify(this.excludeNode),
+                        excludeTaskNodesId: this.excludeNode,
                         common: this.common,
                         project_id: this.project_id,
                         template_source: templateSource,
