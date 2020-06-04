@@ -10,7 +10,6 @@
 * specific language governing permissions and limitations under the License.
 */
 import axios from 'axios'
-import qs from 'qs'
 import store from '@/store/index.js'
 
 const taskList = {
@@ -44,16 +43,14 @@ const taskList = {
             const { task_id, name } = data
             const { app_id, view_mode, project } = store.state
             const projectId = project.project_id
-            const dataString = qs.stringify({
+            const dataJson = {
                 name,
                 instance_id: task_id,
                 create_method: view_mode === 'appmaker' ? 'app_maker' : 'app',
                 create_info: app_id,
                 test: 1
-            })
-            return axios.post(`taskflow/api/clone/${projectId}/`, dataString, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            }
+            return axios.post(`taskflow/api/clone/${projectId}/`, dataJson).then(response => response.data)
         }
     }
 }

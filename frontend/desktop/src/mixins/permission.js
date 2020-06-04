@@ -13,10 +13,13 @@ const permission = {
                 if (!permActionData) { // 权限没有在 meta 数据中返回，判定为无对应权限
                     return false
                 }
+                if (!curPermission.includes(item)) {
+                    return false
+                }
                 if (permActionData.relate_actions.length > 0) {
                     return this.hasPermission(permActionData.relate_actions, curPermission)
                 } else {
-                    return curPermission.includes(item)
+                    return true
                 }
             })
         },
