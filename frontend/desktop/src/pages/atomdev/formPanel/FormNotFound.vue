@@ -13,7 +13,6 @@
     <div class="form-not-found">{{ $t('未找到对应组件') }}</div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
         name: 'FormNotFound'
     }

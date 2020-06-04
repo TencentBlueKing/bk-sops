@@ -50,3 +50,13 @@ class CollectionsCMSI(object):
             path='/api/c/compapi{bk_api_ver}/cmsi/send_weixin/',
             description='发送微信消息'
         )
+        self.get_msg_type = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi{bk_api_ver}/cmsi/get_msg_type/',
+            description='查询 send_msg 组件支持发送消息的类型'
+        )
+        self.send_msg = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/cmsi/send_msg/',
+            description='通用消息发送接口'
+        )

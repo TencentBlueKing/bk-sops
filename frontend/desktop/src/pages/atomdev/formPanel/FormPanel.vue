@@ -19,45 +19,16 @@
             @add="onAddHander"
             @end="onSortHandler">
             <div class="form-item" v-for="(form, index) in formList" :key="index">
-                <div :class="['content-wrapper', { active: tagInfo && tagInfo.tagCode === form.config.tag_code }]">
-                    <div v-if="form.config.type === 'section'" class="form-item-section">
-                        <tag-section v-bind="getFormProps(form.config)"></tag-section>
-                    </div>
-                    <template v-else>
-                        <label class="form-item-label">{{ form.tag && form.config.attrs.name.value }}</label>
-                        <div class="form-item-content">
-                            <template v-if="form.tag">
-                                <component :is="form.tag" v-bind="getFormProps(form.config)"></component>
-                            </template>
-                        </div>
-                    </template>
-                    <div class="content-mask">
-                        <i class="operation-btn common-icon-horizon-line-group"></i>
-                        <i
-                            :class="[
-                                'operation-btn',
-                                'common-icon-tooltips',
-                                { 'active': tagInfo && tagInfo.tagCode === form.config.tag_code }
-                            ]"
-                            @click="onShowInfoClick(form)">
-                        </i>
-                        <i class="operation-btn common-icon-box-pen" @click="onEditClick(form)"></i>
-                        <i class="operation-btn bk-icon common-icon-close-linear-circle" @click="onDeleteClick(index)"></i>
-                    </div>
-                </div>
-                <div v-if="tagInfo && tagInfo.tagCode === form.config.tag_code" class="tag-info">
-                    <h3>{{tagInfo.title}}</h3>
-                    <h3 v-if="tagInfo.desc">{{tagInfo.desc}}</h3>
-                    <section v-if="tagInfo.attrs">
-                        <p>{{ $t('属性') }}</p>
-                        <template v-for="(attr, name) in tagInfo.attrs">
-                            <p class="attr-item" :key="name">
-                                {{name}}
-                                <template v-if="attr.desc">：{{attr.desc}}</template>
-                            </p>
-                        </template>
-                    </section>
-                </div>
+                <component
+                    :is="form.tag === 'combine' ? 'Combine' : 'AtomFormItem'"
+                    :tag-info="tagInfo"
+                    :form="form"
+                    :index="index"
+                    @combineAdded="combineAdded"
+                    @onShowInfoClick="onShowInfoClick"
+                    @onEditClick="onEditClick"
+                    @onDeleteClick="onDeleteClick">
+                </component>
             </div>
         </draggable>
     </div>
@@ -65,17 +36,17 @@
 <script>
     import draggable from 'vuedraggable'
     import tools from '@/utils/tools.js'
-    import FormNotFound from './FormNotFound.vue'
     import importTag from '../importTag.js'
-
+    import AtomFormItem from './AtomFormItem.vue'
+    import Combine from './Combine.vue'
     const { components: TAGS, attrs: ATTRS } = importTag()
 
     export default {
         name: 'FormPanel',
         components: {
             draggable,
-            FormNotFound,
-            ...TAGS
+            AtomFormItem,
+            Combine
         },
         props: {
             forms: {
@@ -112,26 +83,56 @@
                 if (this.tagInfo && this.tagInfo.tagCode === form.config.tag_code) {
                     this.tagInfo = null
                 } else {
-                    this.tagInfo = {
-                        tagCode: form.config.tag_code,
-                        title: form.tag,
-                        attrs: ATTRS[form.tag],
-                        methods: TAGS[form.tag].methods
+                    if (form.tag === 'combine') {
+                        this.tagInfo = {
+                            tagCode: form.config.tag_code,
+                            title: form.tag,
+                            attrs: {},
+                            methods: {}
+                        }
+                    } else {
+                        this.tagInfo = {
+                            tagCode: form.config.tag_code,
+                            title: form.tag,
+                            attrs: ATTRS[form.tag],
+                            methods: TAGS[form.tag].methods
+                        }
                     }
                 }
             },
             onEditClick (form) {
                 this.$emit('editForm', form)
             },
-            onDeleteClick (index) {
+            /**
+             * 遍历删除某一个表单项
+             * @param {Array} formList 需要处理的表单列表
+             * @param {String} tagCode 需要删除表单的 tag_code 值
+             */
+            deleteFormInFormList (formList, tagCode) {
+                for (let i = 0; i < formList.length; i++) {
+                    const item = formList[i]
+                    if (item.tag === 'combine') {
+                        this.deleteFormInFormList(item.config.attrs.children.value, tagCode)
+                    }
+                    if (item.config.tag_code === tagCode) {
+                        formList.splice(i, 1)
+                        return
+                    }
+                }
+            },
+            onDeleteClick (tagCode) {
                 const formListCopy = tools.deepClone(this.formList)
-                formListCopy.splice(index, 1)
+                this.deleteFormInFormList(formListCopy, tagCode)
                 this.$emit('updateForm', formListCopy)
             },
             onSortHandler (evt) {
                 if (evt.newIndex !== evt.oldIndex) {
                     this.$emit('formSorted', tools.deepClone(this.formList))
                 }
+            },
+            combineAdded (index, combineList) {
+                this.formList[index] = combineList
+                this.onAddHander()
             }
         }
     }
@@ -173,103 +174,6 @@
     }
     .form-drag-area {
         min-height: 100%;
-    }
-    .form-item {
-        .content-wrapper {
-            position: relative;
-            padding: 10px 100px 10px 0;
-            border: 1px dotted transparent;
-            overflow: hidden;
-            cursor: move;
-            &.active,
-            &:hover {
-                border-color: #c4c6cc;
-                border-radius: 4px;
-                background: #f0f2f5;
-                .content-mask .operation-btn {
-                    display: inline-block;
-                }
-            }
-        }
-        .form-item-label {
-            float: left;
-            width: 100px;
-            line-height: 32px;
-            font-size: 12px;
-            text-align: right;
-            vertical-align: middle;
-        }
-        .form-item-content {
-            margin-left: 120px;
-            min-height: 32px;
-        }
-        .content-mask {
-            display: flex;
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-            background: transparent;
-            justify-content: flex-end;
-            align-items: center;
-            text-align: right;
-            z-index: 1;
-            .operation-btn {
-                display: none;
-                color: #979ba5;
-                margin-right: 10px;
-                font-size: 14px;
-                cursor: pointer;
-                &:not(.common-icon-horizon-line-group):hover {
-                    color: #63656e;
-                }
-                &.active {
-                    color: #3a84ff;
-                }
-                &.common-icon-box-pen {
-                    font-size: 12px;
-                }
-                &.common-icon-horizon-line-group {
-                    position: absolute;
-                    left: 10px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    cursor: move;
-                }
-            }
-        }
-    }
-    .tag-info {
-        position: relative;
-        margin-top: 10px;
-        padding: 20px;
-        color: #63656e;
-        background: #ffffff;
-        border-radius: 4px;
-        font-size: 14px;
-        box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
-        &:after {
-            content: '';
-            position: absolute;
-            top: -5px;
-            right: 56px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 0 8px 8px 8px;
-            border-color: transparent transparent #ffffff transparent;
-            outline: #c4c6cc;
-        }
-        &>h3 {
-            margin: 0;
-        }
-        &>section {
-            margin: 20px 0;
-        }
-        .attr-item {
-            margin: 8px 0;
-        }
     }
     /deep/ {
         .rf-tag-hook {

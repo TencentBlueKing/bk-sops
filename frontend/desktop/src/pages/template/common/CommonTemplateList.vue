@@ -21,6 +21,7 @@
                 <advance-search-form
                     ref="advanceSearch"
                     :search-form="searchForm"
+                    :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                     <template v-slot:operation>
