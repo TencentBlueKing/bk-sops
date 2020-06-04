@@ -73,7 +73,8 @@ class CCCreateModuleService(Service):
                 name=_("创建方式"),
                 key="cc_create_method",
                 type="string",
-                schema=StringItemSchema(description=_("从模板创建(template)，层级文本(ca)"), enum=["topo", "text"]),
+                schema=StringItemSchema(description=_("按模板创建(template)，直接创建-按服务分类创建(category)"),
+                                        enum=["template", "category"]),
             ),
             self.InputItem(
                 name=_("模块信息列表-直接创建（通过服务分类创建）"),
