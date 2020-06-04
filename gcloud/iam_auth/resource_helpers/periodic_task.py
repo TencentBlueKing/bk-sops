@@ -26,7 +26,7 @@ class PeriodicTaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper)
             Resource(
                 IAMMeta.SYSTEM_ID,
                 IAMMeta.PERIODIC_TASK_RESOURCE,
-                bundle.obj.id,
+                str(bundle.obj.id),
                 {"iam_resource_owner": bundle.obj.creator, "path": "/project,{}/".format(bundle.obj.project_id)},
             )
         ]

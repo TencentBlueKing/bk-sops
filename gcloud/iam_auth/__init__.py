@@ -12,4 +12,4 @@ specific language governing permissions and limitations under the License.
 """
 
 from .conf import IAMMeta  # noqa
-from .shortcuts import get_iam_client, get_user_projects  # noqa
+from .shortcuts import get_iam_client  # noqa

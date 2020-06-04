@@ -42,7 +42,7 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
-from gcloud.iam_auth.shortcuts import filter_flows_can_create_task
+from gcloud.iam_auth.filter import filter_flows_can_create_task
 
 logger = logging.getLogger("root")
 iam = get_iam_client()

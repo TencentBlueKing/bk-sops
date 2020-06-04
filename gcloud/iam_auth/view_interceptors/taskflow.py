@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import ujson as json
+
 from iam import Resource, Action, Subject, Request
 from iam.exceptions import AuthFailedException
 
@@ -24,7 +26,7 @@ iam = get_iam_client()
 
 class TaskSingleActionInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
-        task_id = request.GET["instance_id"]
+        task_id = json.loads(request.body)["instance_id"]
 
         subject = Subject("user", request.user.username)
         action = Action(self.action)

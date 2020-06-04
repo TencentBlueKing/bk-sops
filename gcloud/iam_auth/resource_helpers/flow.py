@@ -26,7 +26,7 @@ class FlowResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
             Resource(
                 IAMMeta.SYSTEM_ID,
                 IAMMeta.FLOW_RESOURCE,
-                bundle.obj.id,
+                str(bundle.obj.id),
                 {"iam_resource_owner": bundle.obj.creator_name, "path": "/project,{}/".format(bundle.obj.project_id)},
             )
         ]
