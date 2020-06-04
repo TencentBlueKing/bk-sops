@@ -16,7 +16,7 @@ import logging
 from gcloud.conf import settings
 from gcloud.core.utils import get_user_business_list
 from gcloud.core.models import Business, Project, UserDefaultProject
-from gcloud.iam_auth import get_user_projects
+from gcloud.iam_auth.filter import get_user_projects
 from gcloud.core.api_adapter import fetch_business_location
 
 logger = logging.getLogger("root")

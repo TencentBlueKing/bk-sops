@@ -31,7 +31,8 @@ from pipeline_web.label.models import LabelGroup, Label
 
 from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.commons.tastypie import GCloudModelResource
-from gcloud.iam_auth import IAMMeta, get_iam_client, get_user_projects
+from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.filter import get_user_projects
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
 from gcloud.iam_auth.authorization_helpers import ProjectIAMAuthorizationHelper
 
