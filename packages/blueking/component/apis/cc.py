@@ -611,3 +611,13 @@ class CollectionsCC(object):
             path='/api/c/compapi{bk_api_ver}/cc/list_biz_hosts/',
             description='查询业务下的主机'
         )
+        self.list_service_category = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/cc/list_service_category/',
+            description='查询服务分类列表'
+        )
+        self.list_service_template = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/cc/list_service_template/',
+            description='查询服务模板列表'
+        )
