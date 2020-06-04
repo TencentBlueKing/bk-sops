@@ -11,8 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .base import SimpleResourceHelper  # noqa
-from .flow import FlowResourceHelper  # noqa
-from .task import TaskResourceHelper  # noqa
-from .mini_app import MiniAppResourceHelper  # noqa
-from .periodic_task import PeriodicTaskResourceHelper  # noqa
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
+
+
+from iam import Resource
+from iam.contrib.tastypie.resource import IAMResourceHelper
+
+
+class PeriodicTaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
+    def get_resources(self, bundle):
+
+        return [
+            Resource(
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.PERIODIC_TASK_RESOURCE,
+                bundle.obj.id,
+                {"iam_resource_owner": bundle.obj.creator, "path": "/project,{}/".format(bundle.obj.project_id)},
+            )
+        ]
+
+    def get_resources_id(self, bundle):
+        return bundle.obj.id

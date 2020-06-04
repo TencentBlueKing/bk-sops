@@ -38,7 +38,7 @@ from gcloud.core.resources import ProjectResource
 from gcloud.commons.template.models import replace_template_id, CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import PeriodicTaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import PeriodicTaskIAMAuthorizationHelper
 
 logger = logging.getLogger("root")
@@ -111,10 +111,7 @@ class PeriodicTaskResource(GCloudModelResource):
                 delete_action=IAMMeta.PERIODIC_TASK_DELETE_ACTION,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.PERIODIC_TASK_RESOURCE,
-            id_field="id",
-            creator_field="creator",
+        iam_resource_helper = PeriodicTaskResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[
