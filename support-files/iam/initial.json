@@ -742,7 +742,17 @@
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
-                                "id": "project_common_flow"
+                                "id": "common_flow"
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
@@ -766,7 +776,17 @@
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
-                                "id": "project_common_flow"
+                                "id": "common_flow"
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
