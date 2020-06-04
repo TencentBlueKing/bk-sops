@@ -742,7 +742,17 @@
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
-                                "id": "project_common_flow"
+                                "id": "common_flow"
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
@@ -766,7 +776,17 @@
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
-                                "id": "project_common_flow"
+                                "id": "common_flow"
+                            }
+                        ]
+                    },
+                    {
+                        "system_id": "bk_sops",
+                        "id": "project",
+                        "related_instance_selections": [
+                            {
+                                "system_id": "bk_sops",
+                                "id": "project"
                             }
                         ]
                     }
@@ -1012,13 +1032,52 @@
             "data": [
                 {
                     "id": "flow_create",
+                    "sub_actions": [
+                        {
+                            "id": "flow_create_mini_app",
+                            "sub_actions": [
+                                {
+                                    "id": "mini_app_create_task",
+                                    "related_actions": [
+                                        "task_view",
+                                        "task_edit",
+                                        "task_operate",
+                                        "task_claim",
+                                        "task_delete",
+                                        "task_clone"
+                                    ]
+                                }
+                            ],
+                            "related_actions": [
+                                "mini_app_view",
+                                "mini_app_edit",
+                                "mini_app_delete"
+                            ]
+                        },
+                        {
+                            "id": "flow_create_periodic_task",
+                            "related_actions": [
+                                "periodic_task_view",
+                                "periodic_task_edit",
+                                "periodic_task_delete"
+                            ]
+                        },
+                        {
+                            "id": "flow_create_task",
+                            "related_actions": [
+                                "task_view",
+                                "task_edit",
+                                "task_operate",
+                                "task_claim",
+                                "task_delete",
+                                "task_clone"
+                            ]
+                        }
+                    ],
                     "related_actions": [
                         "flow_view",
                         "flow_edit",
-                        "flow_delete",
-                        "flow_create_task",
-                        "flow_create_mini_app",
-                        "flow_create_periodic_task"
+                        "flow_delete"
                     ]
                 },
                 {
@@ -1045,11 +1104,23 @@
                 },
                 {
                     "id": "flow_create_mini_app",
+                    "sub_actions":[
+                        {
+                            "id": "mini_app_create_task",
+                            "related_actions": [
+                                "task_view",
+                                "task_edit",
+                                "task_operate",
+                                "task_claim",
+                                "task_delete",
+                                "task_clone"
+                            ]
+                        }
+                    ],
                     "related_actions": [
                         "mini_app_view",
                         "mini_app_edit",
-                        "mini_app_delete",
-                        "mini_app_create_task"
+                        "mini_app_delete"
                     ]
                 },
                 {
@@ -1073,12 +1144,31 @@
                 },
                 {
                     "id": "common_flow_create",
+                    "sub_actions": [
+                        {
+                            "id": "common_flow_create_task",
+                            "related_actions": [
+                                "task_view",
+                                "task_edit",
+                                "task_operate",
+                                "task_claim",
+                                "task_delete",
+                                "task_clone"
+                            ]
+                        },
+                        {
+                            "id": "common_flow_create_periodic_task",
+                            "related_actions": [
+                                "periodic_task_view",
+                                "periodic_task_edit",
+                                "periodic_task_delete"
+                            ]
+                        }
+                    ],
                     "related_actions": [
                         "common_flow_view",
                         "common_flow_edit",
-                        "common_flow_delete",
-                        "common_flow_create_task",
-                        "common_flow_create_periodic_task"
+                        "common_flow_delete"
                     ]
                 },
                 {
