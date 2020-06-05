@@ -82,7 +82,7 @@ def import_common_template(request):
             {
                 "result": False,
                 "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOW_ERROR.code,
+                "code": err_code.UNKNOWN_ERROR.code,
             }
         )
 

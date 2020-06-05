@@ -73,7 +73,7 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
         task.modify_cron(cron, tz)
     except Exception as e:
         return JsonResponse(
-            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+            {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
         )
 
     return JsonResponse(

@@ -72,7 +72,7 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
         new_constants = task.modify_constants(constants)
     except Exception as e:
         return JsonResponse(
-            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+            {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
         )
 
     return JsonResponse(

@@ -154,7 +154,7 @@ def create_periodic_task(request, template_id, project_id):
     except Exception as e:
         logger.exception("[API] create_periodic_task preview tree error: {}".format(e))
         return JsonResponse(
-            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+            {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
         )
 
     for key, val in list(params["constants"].items()):
@@ -169,7 +169,7 @@ def create_periodic_task(request, template_id, project_id):
     except Exception as e:
         logger.exception("[API] create_periodic_task replace id error: {}".format(e))
         return JsonResponse(
-            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+            {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
         )
 
     try:
@@ -185,7 +185,7 @@ def create_periodic_task(request, template_id, project_id):
     except Exception as e:
         logger.exception("[API] create_periodic_task create error: {}".format(e))
         return JsonResponse(
-            {"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code}
+            {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
         )
 
     data = info_data_from_period_task(task)

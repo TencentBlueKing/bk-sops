@@ -98,5 +98,5 @@ def dispatch_plugin_query(request):
         return JsonResponse({
             'result': False,
             'message': 'dispatch_plugin_query: exception for {}'.format(e),
-            'code': err_code.UNKNOW_ERROR.code
+            'code': err_code.UNKNOWN_ERROR.code
         })
