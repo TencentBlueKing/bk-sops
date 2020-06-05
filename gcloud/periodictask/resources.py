@@ -202,7 +202,7 @@ class PeriodicTaskResource(GCloudModelResource):
             try:
                 template = TaskTemplate.objects.get(id=template_id, project=project, is_deleted=False)
             except TaskTemplate.DoesNotExist:
-                raise BadRequest('template[id={template_id}] of project[project_id] does not exist'.format(
+                raise BadRequest('template[id={template_id}] of project[{project_id}] does not exist'.format(
                     template_id=template_id,
                     project_id=project.id
                 ))
