@@ -804,6 +804,8 @@ class StatusManager(models.Manager):
         history = History.objects.record(s)
         LogEntry.objects.link_history(node_id=node.id, history_id=history.id)
         s.retry += 1
+        s.started_time = None
+        s.archived_time = None
         s.save()
 
         # update inputs
