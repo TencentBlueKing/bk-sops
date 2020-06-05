@@ -59,9 +59,11 @@ def modify_cron(request, project_id, task_id):
     try:
         task.modify_cron(data["cron"], project.time_zone)
     except Exception as e:
-        return JsonResponse({"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID})
+        return JsonResponse(
+            {"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
+        )
 
-    return JsonResponse({"result": True, "message": "success", "data": None, "code": err_code.SUCCESS})
+    return JsonResponse({"result": True, "message": "success", "data": None, "code": err_code.SUCCESS.code})
 
 
 @require_POST
@@ -75,6 +77,8 @@ def modify_constants(request, project_id, task_id):
     try:
         new_constants = task.modify_constants(data["constants"])
     except Exception as e:
-        return JsonResponse({"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID})
+        return JsonResponse(
+            {"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
+        )
 
-    return JsonResponse({"result": True, "message": "success", "data": new_constants, "code": err_code.SUCCESS})
+    return JsonResponse({"result": True, "message": "success", "data": new_constants, "code": err_code.SUCCESS.code})
