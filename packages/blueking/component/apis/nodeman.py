@@ -37,3 +37,51 @@ class CollectionsNodeMan(object):
             path='/api/c/compapi/v2/nodeman/get_log/',
             description='获取任务执行日志'
         )
+        #  nodeman v2.0
+        self.job_install = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/job/install/',
+            description='新安装Agent、新安装Proxy、重装、替换等操作'
+        )
+
+        self.job_operate = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/job/operate/',
+            description='用于只有bk_host_id参数的主机下线、重启等操作'
+        )
+
+        self.remove_host = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/host/remove_host/',
+            description='移除主机'
+        )
+
+        self.ap_list = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/ap/',
+            description='查询接入点列表'
+        )
+
+        self.get_job_log = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/job/log/',
+            description='查询单个主机操作日志'
+        )
+
+        self.job_details = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/job/details/',
+            description='查询任务执行状态'
+        )
+
+        self.search = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/plugin/search/',
+            description='查询主机'
+        )
+
+        self.get_cloud = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi{bk_api_ver}/nodeman/api/cloud/',
+            description='查询去区域'
+        )

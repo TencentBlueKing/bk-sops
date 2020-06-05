@@ -482,6 +482,42 @@ def apply_upload_ticket(request):
     return JsonResponse({"result": True, "data": {"ticket": ticket.code}})
 
 
+def nodeman_get_cloud_area(request):
+    client = get_client_by_user(request.user.username)
+    cloud_area_result = client.nodeman.get_cloud()
+    if not cloud_area_result['result']:
+        message = handle_api_error(_("节点管理(nodeman)"),
+                                   'nodeman.get_cloud', '', cloud_area_result)
+        logger.error(message)
+        return JsonResponse({
+            'result': cloud_area_result['result'], 'code': cloud_area_result['code'], 'message': message})
+
+    data = cloud_area_result['data']
+
+    result = [{'text': cloud['bk_cloud_name'], 'value': cloud['bk_cloud_id']} for cloud in data]
+
+    cloud_area_result['data'] = result
+    return JsonResponse(cloud_area_result)
+
+
+def nodman_get_ap_id(request):
+    client = get_client_by_user(request.user.username)
+    ap_list = client.nodeman.ap_list()
+    if not ap_list['result']:
+        message = handle_api_error(_("配置平台(CMDB)"),
+                                   'nodeman.ap_list', '', ap_list)
+        logger.error(message)
+        return JsonResponse({
+            'result': ap_list['result'], 'code': ap_list['code'], 'message': message})
+
+    data = ap_list['data']
+
+    result = [{'text': ap['name'], 'value': ap['id']} for ap in data]
+
+    ap_list['data'] = result
+    return JsonResponse(ap_list)
+
+
 urlpatterns = [
     url(
         r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
@@ -523,4 +559,7 @@ urlpatterns = [
     ),
     url(r"^cc_get_business_list/$", cc_get_business),
     url(r"^apply_upload_ticket/$", apply_upload_ticket),
+
+    url(r"^get_cloud_area/$", nodeman_get_cloud_area),
+    url(r"^nodman_get_ap_id/$", nodman_get_ap_id),
 ]
