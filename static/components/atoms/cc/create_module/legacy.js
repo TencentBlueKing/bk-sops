@@ -127,7 +127,7 @@
                         }
                         this.items = [];
                         if (value !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + cc_id + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + value + '/';
                             this.remoteMethod();
                         }
                     }
