@@ -24,6 +24,9 @@ from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.exceptions import SubprocessExpiredError
 
 from pipeline_web.constants import PWE
+from pipeline_web.core.abstract import NodeAttr
+from pipeline_web.core.models import NodeInTemplate
+from pipeline_web.parser.clean import PipelineWebTreeCleaner
 
 
 class PipelineTemplateWebWrapper(object):
@@ -108,6 +111,13 @@ class PipelineTemplateWebWrapper(object):
             'template_id': template_obj.template_id
         }
         tree = template_obj.data
+
+        # add nodes attr
+        pipeline_web_clean = PipelineWebTreeCleaner(tree)
+        nodes = NodeInTemplate.objects.filter(template_id=template_obj.template_id,
+                                              version=template_obj.version)
+        nodes_attr = NodeAttr.get_nodes_attr(nodes, 'template')
+        pipeline_web_clean.to_web(nodes_attr)
 
         for act_id, act in list(tree[PWE.activities].items()):
             if act[PWE.type] == PWE.SubProcess:
@@ -288,12 +298,24 @@ class PipelineTemplateWebWrapper(object):
                 if old_id not in temp_id_old_to_new:
                     temp_id_old_to_new[old_id] = old_id
 
+            # clean pipeline tree before update version
+            origin_data = {}
+            for tid, template_dict in list(template.items()):
+                # prepare data before create node in template
+                pipeline_web_tree = PipelineWebTreeCleaner(template_dict['tree'])
+                pipeline_web_tree.clean()
+                origin_data[tid] = pipeline_web_tree.origin_data
+
             cls._update_or_create_version(template, cls._update_order_from_refs(refs, temp_id_old_to_new))
 
             # import template
             for tid, template_dict in list(template.items()):
+
                 defaults = cls._kwargs_for_template_dict(template_dict, include_str_id=True)
-                PipelineTemplate.objects.create(**defaults)
+                pipeline_template = PipelineTemplate.objects.create(**defaults)
+
+                # create node in template
+                NodeInTemplate.objects.create_nodes_in_template(pipeline_template, origin_data[tid])
         else:
 
             # 1. replace subprocess template id
@@ -317,15 +339,25 @@ class PipelineTemplateWebWrapper(object):
             new_template.update(template)
             template = new_template
 
+            # clean pipeline tree before update version
+            origin_data = {}
+            for tid, template_dict in list(template.items()):
+                # prepare data before create node in template
+                pipeline_web_tree = PipelineWebTreeCleaner(template_dict['tree'])
+                pipeline_web_tree.clean()
+                origin_data[tid] = pipeline_web_tree.origin_data
+
             cls._update_or_create_version(template, cls._update_order_from_refs(refs, tid_to_reuse))
 
             # override
             for tid, template_dict in list(template.items()):
                 defaults = cls._kwargs_for_template_dict(template_dict, include_str_id=False)
-
-                PipelineTemplate.objects.update_or_create(template_id=tid,
-                                                          defaults=defaults)
+                pipeline_template, no_use = PipelineTemplate.objects.update_or_create(template_id=tid,
+                                                                                      defaults=defaults)
                 temp_id_old_to_new[template_dict.get('old_id', tid)] = tid
+
+                # create node in template
+                NodeInTemplate.objects.update_nodes_in_template(pipeline_template, origin_data[tid])
 
         return {
             cls.ID_MAP_KEY: temp_id_old_to_new,
