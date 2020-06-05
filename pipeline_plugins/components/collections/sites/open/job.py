@@ -93,10 +93,7 @@ class JobService(Service):
             return False
 
         if not job_instance_id or not status:
-            data.outputs.ex_data = (
-                "invalid callback_data, job_instance_id: %s, status: %s"
-                % (job_instance_id, status)
-            )
+            data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
             self.finish_schedule()
             return False
 
@@ -108,29 +105,22 @@ class JobService(Service):
 
                 # 全局变量重载
                 get_var_kwargs = {
-                    "bk_biz_id": data.get_one_of_inputs(
-                        "biz_cc_id", parent_data.inputs.biz_cc_id
-                    ),
+                    "bk_biz_id": data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
                     "job_instance_id": job_instance_id,
                 }
-                global_var_result = client.job.get_job_instance_global_var_value(
-                    get_var_kwargs
-                )
+                global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
+                self.logger.info("get_job_instance_global_var_value return: {}".format(global_var_result))
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "job.get_job_instance_global_var_value",
-                        get_var_kwargs,
-                        global_var_result,
+                        "job.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
                     self.finish_schedule()
                     return False
 
-                global_var_list = global_var_result["data"].get(
-                    "job_instance_var_values", []
-                )
+                global_var_list = global_var_result["data"].get("job_instance_var_values", [])
                 if global_var_list:
                     for global_var in global_var_list[-1]["step_instance_var_values"]:
                         if global_var["category"] != JOB_VAR_TYPE_IP:
@@ -142,9 +132,7 @@ class JobService(Service):
             data.set_outputs(
                 "ex_data",
                 {
-                    "exception_msg": _(
-                        "任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
-                    )
+                    "exception_msg": _("任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>")
                     % data.outputs.job_inst_url,
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
@@ -194,9 +182,7 @@ class JobExecuteTaskService(JobService):
                     item_schema=ObjectItemSchema(
                         description=_("全局变量"),
                         property_schemas={
-                            "category": IntItemSchema(
-                                description=_("变量类型，云参(1) 上下文参数(2) IP(3)")
-                            ),
+                            "category": IntItemSchema(description=_("变量类型，云参(1) 上下文参数(2) IP(3)")),
                             "name": StringItemSchema(description=_("变量名")),
                             "value": StringItemSchema(description=_("变量值")),
                         },
@@ -223,24 +209,15 @@ class JobExecuteTaskService(JobService):
             # 3-IP
             val = loose_strip(_value["value"])
             if _value["category"] == 3:
-                var_ip = cc_get_ips_info_by_str(
-                    username=executor, biz_cc_id=biz_cc_id, ip_str=val, use_cache=False
-                )
-                ip_list = [
-                    {"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]}
-                    for _ip in var_ip["ip_result"]
-                ]
+                var_ip = cc_get_ips_info_by_str(username=executor, biz_cc_id=biz_cc_id, ip_str=val, use_cache=False)
+                ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in var_ip["ip_result"]]
                 if val and not ip_list:
                     data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
                     return False
                 if ip_list:
-                    global_vars.append(
-                        {"name": _value["name"], "ip_list": ip_list}
-                    )
+                    global_vars.append({"name": _value["name"], "ip_list": ip_list})
             else:
-                global_vars.append(
-                    {"name": _value["name"], "value": val}
-                )
+                global_vars.append({"name": _value["name"], "value": val})
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
@@ -250,11 +227,7 @@ class JobExecuteTaskService(JobService):
         }
 
         job_result = client.job.execute_job(job_kwargs)
-        LOGGER.info(
-            "job_result: {result}, job_kwargs: {kwargs}".format(
-                result=job_result, kwargs=job_kwargs
-            )
-        )
+        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
             data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
@@ -269,9 +242,7 @@ class JobExecuteTaskService(JobService):
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobExecuteTaskService, self).schedule(
-            data, parent_data, callback_data
-        )
+        return super(JobExecuteTaskService, self).schedule(data, parent_data, callback_data)
 
 
 class JobExecuteTaskComponent(Component):
@@ -304,13 +275,10 @@ class JobFastPushFileService(JobService):
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
-                schema=StringItemSchema(description=_('文件分发目标机器 IP，多个用英文逗号 `,` 分隔')),
+                schema=StringItemSchema(description=_("文件分发目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("文件分发目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("文件分发目标机器账户")),
             ),
             self.InputItem(
                 name=_("目标路径"),
@@ -333,32 +301,19 @@ class JobFastPushFileService(JobService):
         file_source = []
         for item in original_source_files:
             ip_info = cc_get_ips_info_by_str(
-                username=executor,
-                biz_cc_id=biz_cc_id,
-                ip_str=item["ip"],
-                use_cache=False,
+                username=executor, biz_cc_id=biz_cc_id, ip_str=item["ip"], use_cache=False,
             )
             file_source.append(
                 {
-                    "files": [
-                        _file.strip()
-                        for _file in item["files"].split("\n")
-                        if _file.strip()
-                    ],
-                    "ip_list": [
-                        {"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]}
-                        for _ip in ip_info["ip_result"]
-                    ],
+                    "files": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                    "ip_list": [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]],
                     "account": loose_strip(item["account"]),
                 }
             )
 
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, original_ip_list)
-        ip_list = [
-            {"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]}
-            for _ip in ip_info["ip_result"]
-        ]
+        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
@@ -370,11 +325,7 @@ class JobFastPushFileService(JobService):
         }
 
         job_result = client.job.fast_push_file(job_kwargs)
-        LOGGER.info(
-            "job_result: {result}, job_kwargs: {kwargs}".format(
-                result=job_result, kwargs=job_kwargs
-            )
-        )
+        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
             data.outputs.job_inst_id = job_instance_id
@@ -389,9 +340,7 @@ class JobFastPushFileService(JobService):
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(
-            data, parent_data, callback_data
-        )
+        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return super(JobFastPushFileService, self).outputs_format()
@@ -401,10 +350,7 @@ class JobFastPushFileComponent(Component):
     name = _("快速分发文件")
     code = "job_fast_push_file"
     bound_service = JobFastPushFileService
-    form = "%scomponents/atoms/sites/%s/job/job_fast_push_file.js" % (
-        settings.STATIC_URL,
-        settings.RUN_VER,
-    )
+    form = "%scomponents/atoms/sites/%s/job/job_fast_push_file.js" % (settings.STATIC_URL, settings.RUN_VER,)
 
 
 class JobFastExecuteScriptService(JobService):
@@ -430,10 +376,7 @@ class JobFastExecuteScriptService(JobService):
                 key="job_script_type",
                 type="string",
                 schema=StringItemSchema(
-                    description=_(
-                        "待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)"
-                        "，仅在脚本来源为手动时生效"
-                    ),
+                    description=_("待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"),
                     enum=["1", "2", "3", "4", "5"],
                 ),
             ),
@@ -465,13 +408,10 @@ class JobFastExecuteScriptService(JobService):
                 name=_("目标 IP"),
                 key="job_ip_list",
                 type="string",
-                schema=StringItemSchema(description=_('执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔')),
+                schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"),
-                key="job_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
         ]
 
@@ -488,15 +428,9 @@ class JobFastExecuteScriptService(JobService):
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_ip_list = data.get_one_of_inputs("job_ip_list")
         ip_info = cc_get_ips_info_by_str(
-            username=executor,
-            biz_cc_id=biz_cc_id,
-            ip_str=original_ip_list,
-            use_cache=False,
+            username=executor, biz_cc_id=biz_cc_id, ip_str=original_ip_list, use_cache=False,
         )
-        ip_list = [
-            {"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]}
-            for _ip in ip_info["ip_result"]
-        ]
+        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
@@ -508,39 +442,23 @@ class JobFastExecuteScriptService(JobService):
 
         script_param = str(data.get_one_of_inputs("job_script_param"))
         if script_param:
-            job_kwargs.update(
-                {
-                    "script_param": base64.b64encode(
-                        script_param.encode("utf-8")
-                    ).decode("utf-8")
-                }
-            )
+            job_kwargs.update({"script_param": base64.b64encode(script_param.encode("utf-8")).decode("utf-8")})
 
         script_source = data.get_one_of_inputs("job_script_source")
         if script_source in ["general", "public"]:
-            job_kwargs.update(
-                {
-                    "script_id": data.get_one_of_inputs(
-                        "job_script_list_%s" % script_source
-                    )
-                }
-            )
+            job_kwargs.update({"script_id": data.get_one_of_inputs("job_script_list_%s" % script_source)})
         else:
             job_kwargs.update(
                 {
                     "script_type": data.get_one_of_inputs("job_script_type"),
-                    "script_content": base64.b64encode(
-                        data.get_one_of_inputs("job_content").encode("utf-8")
-                    ).decode("utf-8"),
+                    "script_content": base64.b64encode(data.get_one_of_inputs("job_content").encode("utf-8")).decode(
+                        "utf-8"
+                    ),
                 }
             )
 
         job_result = client.job.fast_execute_script(job_kwargs)
-        LOGGER.info(
-            "job_result: {result}, job_kwargs: {kwargs}".format(
-                result=job_result, kwargs=job_kwargs
-            )
-        )
+        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
             data.outputs.job_inst_id = job_instance_id
@@ -549,17 +467,13 @@ class JobFastExecuteScriptService(JobService):
             data.outputs.client = client
             return True
         else:
-            message = job_handle_api_error(
-                "job.fast_execute_script", job_kwargs, job_result
-            )
+            message = job_handle_api_error("job.fast_execute_script", job_kwargs, job_result)
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastExecuteScriptService, self).schedule(
-            data, parent_data, callback_data
-        )
+        return super(JobFastExecuteScriptService, self).schedule(data, parent_data, callback_data)
 
 
 class JobFastExecuteScriptComponent(Component):
@@ -594,25 +508,17 @@ class JobCronTaskService(Service):
                 name=_("定时作业状态"),
                 key="job_cron_status",
                 type="string",
-                schema=IntItemSchema(
-                    description=_("待创建的定时作业状态，暂停(1) 启动(2)"), enum=[1, 2]
-                ),
+                schema=IntItemSchema(description=_("待创建的定时作业状态，暂停(1) 启动(2)"), enum=[1, 2]),
             ),
         ]
 
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("定时作业ID"),
-                key="cron_id",
-                type="int",
-                schema=IntItemSchema(description=_("成功创建的定时作业 ID")),
+                name=_("定时作业ID"), key="cron_id", type="int", schema=IntItemSchema(description=_("成功创建的定时作业 ID")),
             ),
             self.OutputItem(
-                name=_("定时作业状态"),
-                key="status",
-                type="string",
-                schema=StringItemSchema(description=_("成功创建的定时作业状态")),
+                name=_("定时作业状态"), key="status", type="string", schema=StringItemSchema(description=_("成功创建的定时作业状态")),
             ),
         ]
 
@@ -636,11 +542,7 @@ class JobCronTaskService(Service):
 
         # 新建作业
         job_save_result = client.job.save_cron(job_kwargs)
-        LOGGER.info(
-            "job_result: {result}, job_kwargs: {kwargs}".format(
-                result=job_save_result, kwargs=job_kwargs
-            )
-        )
+        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_save_result, kwargs=job_kwargs))
         if not job_save_result["result"]:
             message = job_handle_api_error("job.save_cron", job_kwargs, job_save_result)
             self.logger.error(message)
@@ -662,11 +564,7 @@ class JobCronTaskService(Service):
                 data.outputs.status = _("启动")
             else:
                 message = _("新建定时任务成功但是启动失败：{error}").format(
-                    error=job_handle_api_error(
-                        "job.update_cron_status",
-                        job_update_cron_kwargs,
-                        job_update_result,
-                    )
+                    error=job_handle_api_error("job.update_cron_status", job_update_cron_kwargs, job_update_result,)
                 )
                 self.logger.error(message)
                 data.outputs.ex_data = message
@@ -701,13 +599,9 @@ class JobPushLocalFilesService(JobService):
         target_account = data.inputs.job_target_account
         target_path = data.inputs.job_target_path
 
-        file_manager_type = EnvironmentVariables.objects.get_var(
-            "BKAPP_FILE_MANAGER_TYPE"
-        )
+        file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
         if not file_manager_type:
-            data.outputs.ex_data = (
-                "File Manager configuration error, contact administrator please."
-            )
+            data.outputs.ex_data = "File Manager configuration error, contact administrator please."
             return False
 
         try:
@@ -721,10 +615,7 @@ class JobPushLocalFilesService(JobService):
         client = get_client_by_user(executor)
 
         ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
-        ip_list = [
-            {"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]}
-            for _ip in ip_info["ip_result"]
-        ]
+        ip_list = [{"ip": _ip["InnerIP"], "bk_cloud_id": _ip["Source"]} for _ip in ip_info["ip_result"]]
 
         file_tags = [_file["tag"] for _file in local_files]
 
