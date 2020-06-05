@@ -40,7 +40,7 @@ from gcloud.iam_auth.view_interceptors.periodic_task import (
 def set_enabled_for_periodic_task(request, project_id, task_id):
     data = json.loads(request.body)
 
-    task = PeriodicTask.object.get(id=task_id)
+    task = PeriodicTask.objects.get(id=task_id)
     task.set_enabled(data["enabled"])
 
     return JsonResponse({"result": True, "message": "success"})
@@ -53,8 +53,8 @@ def modify_cron(request, project_id, task_id):
 
     data = json.loads(request.body)
 
-    task = PeriodicTask.object.get(id=task_id)
-    project = Project.object.get(id=project_id)
+    task = PeriodicTask.objects.get(id=task_id)
+    project = Project.objects.get(id=project_id)
 
     try:
         task.modify_cron(data["cron"], project.time_zone)
@@ -72,7 +72,7 @@ def modify_cron(request, project_id, task_id):
 def modify_constants(request, project_id, task_id):
     data = json.loads(request.body)
 
-    task = PeriodicTask.object.get(id=task_id)
+    task = PeriodicTask.objects.get(id=task_id)
 
     try:
         new_constants = task.modify_constants(data["constants"])
