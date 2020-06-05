@@ -788,7 +788,7 @@
             }
             &.position-right-cache {
                 /deep/ .bk-sideslider-wrapper {
-                    right: 476px;
+                    right: 856px;
                     border-right: 1px solid #dcdee5;
                 }
             }
