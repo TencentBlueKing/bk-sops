@@ -56,7 +56,7 @@ def form(request):
         "version": version or template.version,
     }
 
-    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS})
+    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
 
 
 @require_POST
@@ -72,7 +72,7 @@ def export_templates(request):
             json.dumps(CommonTemplate.objects.export_templates(template_id_list), sort_keys=True)
         )
     except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR, "data": None})
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code, "data": None})
 
     data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
@@ -107,7 +107,7 @@ def import_templates(request):
             {
                 "result": False,
                 "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOW_ERROR,
+                "code": err_code.UNKNOW_ERROR.code,
                 "data": None,
             }
         )
@@ -122,4 +122,4 @@ def check_before_import(request):
 
     check_info = CommonTemplate.objects.import_operation_check(r["data"]["template_data"])
 
-    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS, "message": ""})
+    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})

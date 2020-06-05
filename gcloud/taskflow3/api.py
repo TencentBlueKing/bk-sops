@@ -76,7 +76,9 @@ def context(request):
     @param request:
     @return:
     """
-    return JsonResponse({"result": True, "data": TaskContext.flat_details(), "code": err_code.SUCCESS, "message": ""})
+    return JsonResponse(
+        {"result": True, "data": TaskContext.flat_details(), "code": err_code.SUCCESS.code, "message": ""}
+    )
 
 
 @require_GET
@@ -89,26 +91,26 @@ def status(request, project_id):
         try:
             task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
             task_status = task.get_status()
-            ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS}
+            ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
             return JsonResponse(ctx)
         except Exception as e:
             message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
             logger.exception(message)
-            ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOW_ERROR}
+            ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOW_ERROR.code}
             return JsonResponse(ctx)
 
     # 请求子流程的状态，直接通过pipeline api查询
     try:
         task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
         TaskFlowInstance.format_pipeline_status(task_status)
-        ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS}
+        ctx = {"result": True, "data": task_status, "message": "", "code": err_code.SUCCESS.code}
     # subprocess pipeline has not executed
     except exceptions.InvalidOperationException:
-        ctx = {"result": True, "data": {"state": states.CREATED}, "message": "", "code": err_code.SUCCESS}
+        ctx = {"result": True, "data": {"state": states.CREATED}, "message": "", "code": err_code.SUCCESS.code}
     except Exception as e:
         message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
         logger.exception(message)
-        ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOW_ERROR}
+        ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOW_ERROR.code}
 
     return JsonResponse(ctx)
 
@@ -134,8 +136,8 @@ def data(request, project_id):
 @request_validate(DetailValidator)
 @iam_intercept(DetailViewInterceptor())
 def detail(request, project_id):
-    task_id = request.GET.get("instance_id")
-    node_id = request.GET.get("node_id")
+    task_id = request.GET["instance_id"]
+    node_id = request.GET["node_id"]
     loop = request.GET.get("loop")
     component_code = request.GET.get("component_code")
 
@@ -234,7 +236,7 @@ def task_clone(request, project_id):
 
     new_task_id = task.clone(username, **kwargs)
 
-    ctx = {"result": True, "data": {"new_instance_id": new_task_id}, "message": "", "code": err_code.SUCCESS}
+    ctx = {"result": True, "data": {"new_instance_id": new_task_id}, "message": "", "code": err_code.SUCCESS.code}
 
     return JsonResponse(ctx)
 
@@ -250,10 +252,15 @@ def task_modify_inputs(request, project_id):
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
 
     if task.is_started:
-        ctx = {"result": False, "message": "task is started", "data": None, "code": err_code.REQUEST_PARAM_INVALID}
+        ctx = {"result": False, "message": "task is started", "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     elif task.is_finished:
-        ctx = {"result": False, "message": "task is finished", "data": None, "code": err_code.REQUEST_PARAM_INVALID}
+        ctx = {
+            "result": False,
+            "message": "task is finished",
+            "data": None,
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     else:
         constants = data["constants"]
@@ -323,9 +330,9 @@ def query_task_count(request, project_id):
     success, content = task_flow_instance.dispatch(group_by, filters)
 
     if not success:
-        return JsonResponse({"result": False, "message": content, "data": None, "code": err_code.UNKNOW_ERROR})
+        return JsonResponse({"result": False, "message": content, "data": None, "code": err_code.UNKNOW_ERROR.code})
 
-    return JsonResponse({"result": True, "data": content, "message": "", "code": err_code.SUCCESS})
+    return JsonResponse({"result": True, "data": content, "message": "", "code": err_code.SUCCESS.code})
 
 
 @require_GET
