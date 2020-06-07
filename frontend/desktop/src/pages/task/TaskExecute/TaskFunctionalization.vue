@@ -205,7 +205,7 @@
                         name: this.name,
                         instance_id: this.instance_id,
                         project_id: this.project_id,
-                        constants: JSON.stringify(formData)
+                        constants: formData
                     }
                     try {
                         const res = await this.claimFuncTask(data)

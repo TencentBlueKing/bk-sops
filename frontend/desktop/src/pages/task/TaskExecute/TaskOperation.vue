@@ -730,7 +730,7 @@
                 const data = {
                     instance_id: this.instance_id,
                     node_id: id,
-                    data: JSON.stringify({ callback: 'resume' })
+                    data: { callback: 'resume' }
                 }
                 this.nodeResume(data)
             },

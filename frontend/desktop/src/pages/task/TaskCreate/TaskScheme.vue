@@ -191,7 +191,7 @@
                         project_id: this.project_id,
                         template_id: this.template_id,
                         name: this.schemaName,
-                        data: JSON.stringify(selectedNodes),
+                        data: selectedNodes,
                         isCommon: this.isCommonProcess
                     }
                     try {

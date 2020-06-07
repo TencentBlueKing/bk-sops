@@ -121,7 +121,7 @@
                     instance_id,
                     node_id,
                     component_code,
-                    inputs: JSON.stringify(this.renderData)
+                    inputs: this.renderData
                 }
                 this.retrying = true
                 try {
