@@ -18,6 +18,8 @@ from tastypie.resources import ModelResource, ALL
 
 from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.collection.authorization import CollectionAuthorization
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import utils as iam_auth_utils
 
 
 logger = logging.getLogger("root")
@@ -32,6 +34,11 @@ class CollectionResources(ModelResource):
         authorization = CollectionAuthorization()
         allowed_methods = ["get", "post", "delete", "put"]
         filtering = {"id": ALL, "category": ALL}
+        append_resource_actions = {
+            IAMMeta.FLOW_RESOURCE: [IAMMeta.FLOW_CREATE_TASK_ACTION, IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION],
+            IAMMeta.COMMON_FLOW_RESOURCE: [IAMMeta.COMMON_FLOW_VIEW_ACTION],
+            IAMMeta.MINI_APP_RESOURCE: [IAMMeta.MINI_APP_VIEW_ACTION],
+        }
 
     def get_object_list(self, request):
         query = super(CollectionResources, self).get_object_list(request)
@@ -71,18 +78,30 @@ class CollectionResources(ModelResource):
         bundle.data["extra_info"] = json.dumps(extra_info)
         return bundle
 
-    def dehydrate(self, bundle):
-        # username = bundle.request.user.username
-        # category = bundle.data.get("category", "")
-        # TODO 对接 iam?
-        bundle.data["auth_actions"] = []
-        return bundle
-
     def alter_list_data_to_serialize(self, request, data):
-        # objects = data.get(self._meta.collection_name, False)
-        # TODO 对接 iam?
-        return data
 
-    def alter_detail_data_to_serialize(self, request, data):
-        # TODO 对接 iam?
+        resource_id_list_map = {r_type: [] for r_type in self._meta.append_resource_actions}
+
+        resource_allowed_actions_map = {}
+
+        for bundle in data["objects"]:
+            if bundle.obj.category in resource_id_list_map:
+                resource_id_list_map[bundle.obj.category].append(bundle.data["extra_info"]["id"])
+
+        for r_type, id_list in resource_id_list_map.items():
+            resource_allowed_actions_map[r_type] = getattr(
+                iam_auth_utils, "get_{}_allowed_actions_for_user".format(r_type)
+            )(request.user.username, self._meta.append_resource_actions[r_type], id_list)
+
+        for bundle in data["objects"]:
+            if bundle.obj.category not in resource_allowed_actions_map:
+                bundle.data["auth_actions"] = []
+                continue
+
+            resource_allowed_actions = resource_allowed_actions_map[bundle.obj.category]
+
+            bundle.data["auth_actions"] = [
+                act for act, allow in resource_allowed_actions.get(bundle.data["extra_info"]["id"], {}).items() if allow
+            ]
+
         return data
