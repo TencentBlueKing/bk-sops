@@ -981,6 +981,9 @@ const en = {
     '更改': 'Change',
     '默认图标': 'Default icon',
     '节点标签': 'Node labels',
+    ' 个流程涉及到子流程的更新，请及时处理。': ' Processes involve the update of subprocess, please handle in time.',
+    '待更新': 'Waiting update',
+    '立即查看': 'View now',
     '节点配置': 'Node config',
     '复制节点': 'Copy node',
     '复制成功': 'Successfully copied'
