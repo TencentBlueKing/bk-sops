@@ -138,7 +138,7 @@
 
                 const data = {
                     instance_id: this.instance_id,
-                    constants: JSON.stringify(formData)
+                    constants: formData
                 }
                 try {
                     this.pending = true

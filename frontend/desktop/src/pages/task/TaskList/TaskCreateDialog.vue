@@ -312,7 +312,7 @@
             },
             onSelectTask (template) {
                 if (this.selectedTplType === 'businessProcess') {
-                    if (this.hasPermission(['flow_create_task'], template.auth_actions)) {
+                    if (this.hasPermission(this.action, template.auth_actions)) {
                         this.selectError = false
                         this.selectedTpl = template
                     } else {
@@ -322,7 +322,7 @@
                                 name: template.name
                             }]
                         }
-                        this.applyForPermission(['flow_create_task'], template.auth_actions, resourceData)
+                        this.applyForPermission(this.action, template.auth_actions, resourceData)
                     }
                 } else {
                     this.selectError = false

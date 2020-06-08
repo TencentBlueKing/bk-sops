@@ -56,41 +56,42 @@ const permission = {
             const actionsData = []
             reqPermission.forEach(requiredItem => {
                 const permActionData = actions.find(action => action.id === requiredItem)
-                // 用户已拥有该权限或者权限字典里不存在该权限时
-                if (curPermission.includes(requiredItem) || !permActionData) {
+                // 权限字典里不存在该权限时
+                if (!permActionData) {
                     return
                 }
-
-                const relateResources = []
-                permActionData.relate_resources.forEach(reItem => {
-                    const resourceMap = resources.find(item => item.id === reItem)
-                    const instanceMap = resourceData[reItem]
-                    if (!resourceMap || !instanceMap) {
-                        return
-                    }
-                    const instances = [instanceMap.map(item => {
-                        return {
+                // 用户没有该权限
+                if (!curPermission.includes(requiredItem)) {
+                    const relateResources = []
+                    permActionData.relate_resources.forEach(reItem => {
+                        const resourceMap = resources.find(item => item.id === reItem)
+                        const instanceMap = resourceData[reItem]
+                        if (!resourceMap || !instanceMap) {
+                            return
+                        }
+                        const instances = [instanceMap.map(item => {
+                            return {
+                                type: resourceMap.id,
+                                type_name: resourceMap.name,
+                                id: item.id,
+                                name: item.name
+                            }
+                        })]
+                        relateResources.push({
+                            system_id: systemId,
+                            system_name: systemName,
                             type: resourceMap.id,
                             type_name: resourceMap.name,
-                            id: item.id,
-                            name: item.name
-                        }
-                    })]
-                    relateResources.push({
-                        system_id: systemId,
-                        system_name: systemName,
-                        type: resourceMap.id,
-                        type_name: resourceMap.name,
-                        instances
+                            instances
+                        })
                     })
-                })
-                actionsData.push({
-                    id: permActionData.id,
-                    name: permActionData.name,
-                    related_resource_types: relateResources
-                })
-                permActionData.relate_actions.forEach(actionItem => {
-                })
+                    actionsData.push({
+                        id: permActionData.id,
+                        name: permActionData.name,
+                        related_resource_types: relateResources
+                    })
+                }
+                // 该权限依赖其他权限
                 if (permActionData.relate_actions.length > 0) {
                     const relateActions = this.assembleActionsData(
                         permActionData.relate_actions,

@@ -130,13 +130,13 @@
                         this.dialogFooterData[0].loading = false
                         return
                     }
-                    const jsonCron = JSON.stringify({
+                    const jsonCron = {
                         'minute': cronArray[0],
                         'hour': cronArray[1],
                         'day_of_week': cronArray[2],
                         'day_of_month': cronArray[3],
                         'month_of_year': cronArray[4]
-                    })
+                    }
                     const cronData = {
                         'taskId': this.taskId,
                         'cron': jsonCron
@@ -154,7 +154,7 @@
                         }
                         const constantsData = {
                             'taskId': this.taskId,
-                            'constants': JSON.stringify(constants)
+                            'constants': constants
                         }
                         this.modifyPeriodic(cronData, constantsData)
                     }

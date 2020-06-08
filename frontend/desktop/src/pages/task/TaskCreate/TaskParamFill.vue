@@ -450,13 +450,13 @@
                     } else {
                         // 创建周期任务
                         const cronArray = loopRule.rule.split(' ')
-                        const cron = JSON.stringify({
+                        const cron = {
                             'minute': cronArray[0],
                             'hour': cronArray[1],
                             'day_of_week': cronArray[2],
                             'day_of_month': cronArray[3],
                             'month_of_year': cronArray[4]
-                        })
+                        }
                         const data = {
                             'name': this.taskName,
                             'cron': cron,
