@@ -30,7 +30,6 @@ TASK_RESULT = [
 """
 
 import base64
-import logging
 import traceback
 from functools import partial
 from copy import deepcopy
@@ -67,7 +66,6 @@ JOB_VAR_TYPE_IP = 2
 
 __group_name__ = _("作业平台(JOB)")
 
-LOGGER = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
@@ -227,7 +225,7 @@ class JobExecuteTaskService(JobService):
         }
 
         job_result = client.job.execute_job(job_kwargs)
-        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
+        self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
             data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
@@ -325,7 +323,7 @@ class JobFastPushFileService(JobService):
         }
 
         job_result = client.job.fast_push_file(job_kwargs)
-        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
+        self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
             data.outputs.job_inst_id = job_instance_id
@@ -458,7 +456,7 @@ class JobFastExecuteScriptService(JobService):
             )
 
         job_result = client.job.fast_execute_script(job_kwargs)
-        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
+        self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
             data.outputs.job_inst_id = job_instance_id
@@ -542,7 +540,7 @@ class JobCronTaskService(Service):
 
         # 新建作业
         job_save_result = client.job.save_cron(job_kwargs)
-        LOGGER.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_save_result, kwargs=job_kwargs))
+        self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_save_result, kwargs=job_kwargs))
         if not job_save_result["result"]:
             message = job_handle_api_error("job.save_cron", job_kwargs, job_save_result)
             self.logger.error(message)
