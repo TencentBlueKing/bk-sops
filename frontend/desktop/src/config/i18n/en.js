@@ -983,7 +983,7 @@ const en = {
     '节点标签': 'Node labels',
     ' 个流程涉及到子流程的更新，请及时处理。': ' Processes involve the update of sub-processes, please handle in time.',
     '待更新': 'Waiting update',
-    '立即查看': 'View now'
+    '立即查看': 'View now',
     '节点配置': 'Node config',
     '复制节点': 'Copy node',
     '复制成功': 'Successfully copied'
