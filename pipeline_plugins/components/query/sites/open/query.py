@@ -486,7 +486,7 @@ def nodeman_get_cloud_area(request):
     client = get_client_by_user(request.user.username)
     cloud_area_result = client.nodeman.get_cloud()
     if not cloud_area_result['result']:
-        message = handle_api_error(_("节点管理(nodeman)"),
+        message = handle_api_error(_("节点管理(NODEMAN)"),
                                    'nodeman.get_cloud', '', cloud_area_result)
         logger.error(message)
         return JsonResponse({
@@ -504,7 +504,7 @@ def nodman_get_ap_id(request):
     client = get_client_by_user(request.user.username)
     ap_list = client.nodeman.ap_list()
     if not ap_list['result']:
-        message = handle_api_error(_("配置平台(CMDB)"),
+        message = handle_api_error(_("节点管理(NODEMAN)"),
                                    'nodeman.ap_list', '', ap_list)
         logger.error(message)
         return JsonResponse({

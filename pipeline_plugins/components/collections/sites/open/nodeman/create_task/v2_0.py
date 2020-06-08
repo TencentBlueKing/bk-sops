@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.component_framework.component import Component
+from pipeline.utils.crypt import rsa_decrypt_password
 from pipeline_plugins.components.utils import get_ip_by_regex
 
 from pipeline.core.flow.io import (
@@ -42,8 +43,11 @@ OPERATE_JOB = ["UPGRADE_PROXY", "UPGRADE_AGENT", "UNINSTALL_AGENT", "UNINSTALL_P
 # 移除(remove_host)
 REMOVE_JOB = ["REMOVE_AGENT", "REMOVE_PROXY"]
 
+# 主机其它参数
+HOST_EXTRA_PARAMS = ["outer_ip", "login_ip", "data_ip"]
 
-def get_host_id_by_inner_ip(client, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
+
+def get_host_id_by_inner_ip(client, logger, bk_cloud_id: int, bk_biz_id: int, ip_list: list):
     kwargs = {
         "bk_biz_id": [bk_biz_id],
         "conditions": [
@@ -60,8 +64,12 @@ def get_host_id_by_inner_ip(client, bk_cloud_id: int, bk_biz_id: int, ip_list: l
     result = client.nodeman.search(kwargs)
 
     bk_host_id = []
-    if result["result"]:
-        bk_host_id = [host["bk_host_id"] for host in result["data"]["list"]]
+    if not result["result"]:
+        error = handle_api_error(__group_name__, "nodeman.search", kwargs, result)
+        logger.error(error)
+        return bk_host_id
+
+    bk_host_id = [host["bk_host_id"] for host in result["data"]["list"]]
     return bk_host_id
 
 
@@ -88,7 +96,7 @@ class NodemanCreateTaskService(Service):
 
         # 获取bk_host_id
         ip_list = get_ip_by_regex(ip_str)
-        bk_host_id = get_host_id_by_inner_ip(client, bk_cloud_id, bk_biz_id, ip_list)
+        bk_host_id = get_host_id_by_inner_ip(client, self.logger, bk_cloud_id, bk_biz_id, ip_list)
 
         # 操作类任务（升级、卸载等）
         if job_name in OPERATE_JOB:
@@ -129,24 +137,32 @@ class NodemanCreateTaskService(Service):
                     "is_manual": False,  # 不手动操作
                     "peer_exchange_switch_for_agent": 0,  # 不加速
                 }
+
+                # 处理key/psw
+                try:
+                    auth_key = rsa_decrypt_password(auth_key, settings.RSA_PRIV_KEY)
+                except Exception:
+                    # password is not encrypted
+                    pass
+
                 if auth_type == "PASSWORD":
                     one["password"] = auth_key
                 else:
                     one["key"] = auth_key
 
                 # 组装其它可选参数
-                for ip_type in ["outer_ip", "login_ip", "data_ip"]:
+                for ip_type in HOST_EXTRA_PARAMS:
                     ip = get_ip_by_regex(host.get(ip_type, ""))
                     if ip:
                         one[ip_type] = ip[0]
 
                 # 重装必须要bk_host_id
                 if job_name in ["REINSTALL_PROXY", "REINSTALL_AGENT"]:
-                    bk_host_id = get_host_id_by_inner_ip(client, bk_cloud_id, bk_biz_id, inner_ip)
+                    bk_host_id = get_host_id_by_inner_ip(client, self.logger, bk_cloud_id, bk_biz_id, inner_ip)
                     if bk_host_id:
                         one["bk_host_id"] = bk_host_id[0]
                     else:
-                        data.set_outputs('ex_data', _("获取bk_host_id失败:{},请确认云区域是否正确".format(inner_ip)))
+                        data.set_outputs("ex_data", _("获取bk_host_id失败:{},请确认云区域是否正确".format(inner_ip)))
                         return False
 
                 hosts.append(one)
@@ -157,18 +173,24 @@ class NodemanCreateTaskService(Service):
                 "action": "job_install",
             }
         else:
-            data.set_outputs('ex_data', _("无效的操作请求:{}".format(job_name)))
+            data.set_outputs("ex_data", _("无效的操作请求:{}".format(job_name)))
             return False
 
         action = kwargs.pop("action")
         result = getattr(client.nodeman, action)(kwargs)
         if not result["result"]:
-            result["message"] += json.dumps(result["data"], ensure_ascii=False)
+            # 接口失败详细日志都存在 data 中，需要打印出来
+            try:
+                message = json.dumps(result.get("data", ""), ensure_ascii=False)
+            except TypeError:
+                message = ""
+            result["message"] += message
+
             error = handle_api_error(system=__group_name__,
-                                     api_name='nodeman.%s' % action,
+                                     api_name="nodeman.%s" % action,
                                      params=kwargs,
                                      result=result)
-            data.set_outputs('ex_data', error)
+            data.set_outputs("ex_data", error)
             self.logger.error(error)
             return False
 
@@ -189,15 +211,20 @@ class NodemanCreateTaskService(Service):
         job_kwargs = {"job_id": job_id}
         job_result = client.nodeman.job_details(job_kwargs)
         if not job_result["result"]:
-            job_result["message"] += json.dumps(job_result["data"], ensure_ascii=False)
+            # 接口失败详细日志都存在 data 中，需要打印出来
+            try:
+                message = json.dumps(job_result.get("data", ""), ensure_ascii=False)
+            except TypeError:
+                message = ""
+            job_result["message"] += message
 
-            error = handle_api_error(__group_name__, 'nodeman.job_details', job_kwargs, job_result)
+            error = handle_api_error(__group_name__, "nodeman.job_details", job_kwargs, job_result)
             data.set_outputs("ex_data", error)
             self.finish_schedule()
             return False
 
         result_data = job_result["data"]
-        job_statistics = result_data['statistics']
+        job_statistics = result_data["statistics"]
         success_num = job_statistics["success_count"]
         fail_num = job_statistics["failed_count"]
         host_list = result_data["list"]
@@ -227,7 +254,7 @@ class NodemanCreateTaskService(Service):
 
                 if not result["result"]:
                     result["message"] += json.dumps(result["data"], ensure_ascii=False)
-                    error = handle_api_error(__group_name__, 'nodeman.get_job_log', log_kwargs, result)
+                    error = handle_api_error(__group_name__, "nodeman.get_job_log", log_kwargs, result)
                     data.set_outputs("ex_data", error)
                     self.finish_schedule()
                     return False
