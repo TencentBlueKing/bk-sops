@@ -16,7 +16,7 @@
                         size="small"
                         ext-cls="close-notify-btn"
                         @click="showDetail = false">
-                        X
+                        <i class="common-icon common-icon-close"></i>
                     </bk-button>
                 </template>
             </notify-info>
