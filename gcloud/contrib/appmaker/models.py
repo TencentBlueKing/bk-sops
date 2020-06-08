@@ -75,7 +75,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.FLOW_RESOURCE,
                     str(task_template.id),
-                    {"iam_resource_owner", task_template.creator},
+                    {"iam_resource_owner": task_template.creator},
                 )
             ]
 
@@ -145,7 +145,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.MINI_APP_RESOURCE,
                     str(app_maker_obj.id),
-                    {"iam_resource_owner", app_maker_obj.creator},
+                    {"iam_resource_owner": app_maker_obj.creator},
                 )
             ]
 

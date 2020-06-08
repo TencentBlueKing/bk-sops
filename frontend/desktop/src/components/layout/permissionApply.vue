@@ -32,7 +32,7 @@
                 default () {
                     return {
                         type: 'project', // 无权限类型: project、other
-                        permission: []
+                        permission: null
                     }
                 }
             }
@@ -63,7 +63,7 @@
             'permissionData': {
                 deep: true,
                 handler (val) {
-                    if (val.permission.length > 0) {
+                    if (val.permission) {
                         this.loadPermissionUrl()
                     }
                 }
@@ -73,7 +73,7 @@
             if (this.permissionData.type === 'project' && this.viewMode !== 'appmaker') {
                 this.queryProjectCreatePerm()
             }
-            if (this.permissionData.permission.length > 0) {
+            if (this.permissionData.permission) {
                 this.loadPermissionUrl()
             }
         },
@@ -132,7 +132,7 @@
                         action: 'project_create'
                     })
     
-                    if (res.is_allow) {
+                    if (res.data.is_allow) {
                         this.authActions.push('project_create')
                     }
                 } catch (err) {
@@ -142,8 +142,12 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const res = await this.getIamUrl(this.permissionData)
-                    this.url = res.data.url
+                    const res = await this.getIamUrl(this.permissionData.permission)
+                    if (res.result) {
+                        this.url = res.data.url
+                    } else {
+                        errorHandler(res, this)
+                    }
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {

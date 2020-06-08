@@ -11,5 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .conf import IAMMeta  # noqa
-from .shortcuts import get_iam_client  # noqa
+from django.http.response import JsonResponse
+
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+
+
+class IAMAuthFailedResponse(JsonResponse):
+    def __init__(self, exc, *args, **kwargs):
+        kwargs["data"] = {
+            "result": False,
+            "code": HTTP_AUTH_FORBIDDEN_CODE,
+            "message": "you have no permission to opearte",
+            "data": None,
+            "permission": exc.perms_apply_data(),
+        }
+        kwargs["status"] = 499
+        super().__init__(*args, **kwargs)

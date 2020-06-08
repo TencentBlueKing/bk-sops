@@ -115,11 +115,7 @@ const store = new Vuex.Store({
         },
         // 删除收藏模板，单个删除
         deleteCollect ({ commit }, id) {
-            return axios.delete(`api/v3/collection/${id}/`, {
-                headers: {
-                    'content-type': 'application/x-www-form-urlencoded'
-                }
-            }).then(response => response.data)
+            return axios.delete(`api/v3/collection/${id}/`).then(response => response.data)
         },
         // ip 选择器接口 start --->
         // 查询业务在 CMDB 的主机
@@ -177,7 +173,7 @@ const store = new Vuex.Store({
          * 查询用户是否有某项权限
          */
         queryUserPermission ({ commit }, data) {
-            return axios.post('iam/api/is_allow', data).then(response => response.data)
+            return axios.post('iam/api/is_allow/', data).then(response => response.data)
         },
         /**
          * 获取权限中心跳转链接

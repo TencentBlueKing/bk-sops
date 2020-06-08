@@ -26,7 +26,7 @@ from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriod
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from iam import Resource, Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
 from gcloud.constants import PROJECT, COMMON
@@ -38,7 +38,7 @@ from gcloud.core.resources import ProjectResource
 from gcloud.commons.template.models import replace_template_id, CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import PeriodicTaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import PeriodicTaskIAMAuthorizationHelper
 
 logger = logging.getLogger("root")
@@ -111,10 +111,7 @@ class PeriodicTaskResource(GCloudModelResource):
                 delete_action=IAMMeta.PERIODIC_TASK_DELETE_ACTION,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.PERIODIC_TASK_RESOURCE,
-            id_field="id",
-            creator_field="creator",
+        iam_resource_helper = PeriodicTaskResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[
@@ -154,7 +151,7 @@ class PeriodicTaskResource(GCloudModelResource):
                     )
                 )
 
-            allow_or_raise_auth_failed(
+            allow_or_raise_immediate_response(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", bundle.request.user.username),
@@ -180,7 +177,7 @@ class PeriodicTaskResource(GCloudModelResource):
             except CommonTemplate.DoesNotExist:
                 raise BadRequest("common template[id=%s] does not exist" % template_id)
 
-            allow_or_raise_auth_failed(
+            allow_or_raise_immediate_response(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", bundle.request.user.username),

@@ -210,7 +210,8 @@
                 username: state => state.username,
                 app_id: state => state.app_id,
                 notFoundPage: state => state.notFoundPage,
-                userRights: state => state.userRights
+                userRights: state => state.userRights,
+                permissionMeta: state => state.permissionMeta
             }),
             ...mapGetters('project', {
                 projectList: 'userCanViewProjects'
@@ -256,9 +257,6 @@
             ...mapActions('project', [
                 'loadProjectList'
             ]),
-            ...mapMutations('project', [
-                'setProjectPerm'
-            ]),
             ...mapMutations([
                 'setUserRights',
                 'setAdminPerm'
@@ -280,8 +278,7 @@
             },
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
-                    const res = await this.loadProjectList({ limit: 0 })
-                    this.setProjectPerm(res.meta)
+                    await this.loadProjectList({ limit: 0 })
                     // 是否展示管理员入口
                     const hasAdminPerm = await this.getActionPerm('admin_view')
                     this.hasAdminPerm = hasAdminPerm
@@ -302,54 +299,34 @@
                     const result = await this.getActionPerm('function_view')
                     this.setUserRights({ type: 'function', val: result })
                     if (!result) {
-                        this.togglePermissionApplyPage(
-                            {
-                                type: 'function_center',
-                                name: i18n.t('职能化中心')
-                            },
-                            {
-                                id: 'view',
-                                name: i18n.t('查看')
-                            }
-                        )
+                        this.togglePermissionApplyPage('function_view')
                     }
                 } else if (auditRouterMap.includes(name) && !hasAudit) {
                     const result = await this.getActionPerm('audit_view')
                     this.setUserRights({ type: 'audit', val: result })
                     if (!result) {
-                        this.togglePermissionApplyPage(
-                            {
-                                type: 'audit_center',
-                                name: i18n.t('审计中心')
-                            },
-                            {
-                                id: 'view',
-                                name: i18n.t('查看')
-                            }
-                        )
+                        this.togglePermissionApplyPage('audit_view')
                     }
                 }
             },
             /**
              * 切换到权限申请页
              */
-            togglePermissionApplyPage (resource, action) {
-                const permissions = []
-                const { scope_id, scope_name, scope_type, scope_type_name, system_id, system_name } = this.authResource
-                permissions.push({
-                    scope_id,
-                    scope_name,
-                    scope_type_name,
-                    resource_type: resource.type,
-                    resource_type_name: resource.name,
-                    scope_type,
-                    system_id,
-                    system_name,
-                    resources: [],
-                    action_id: action.id,
-                    action_name: action.name
-                })
-                bus.$emit('togglePermissionApplyPage', true, resource.type, permissions)
+            togglePermissionApplyPage (action) {
+                const bksops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                const name = this.permissionMeta.actions.find(item => item.id === action).name
+                const { id: systemId, name: systemName } = bksops
+                const permissions = {
+                    system_id: systemId,
+                    system_name: systemName,
+                    actions: [{
+                        id: action,
+                        name,
+                        related_resource_types: []
+                    }]
+                }
+
+                bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
             },
             /**
              * 获取单个类型的权限
@@ -360,7 +337,7 @@
                     const res = await this.queryUserPermission({
                         action: type
                     })
-                    return res.is_allow
+                    return res.data.is_allow
                 } catch (err) {
                     errorHandler(err, this)
                 }

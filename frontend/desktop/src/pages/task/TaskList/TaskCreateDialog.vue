@@ -352,7 +352,7 @@
                         ]
                     }
                     const resp = await this.queryUserPermission(data)
-                    this.hasCommonTplCreateTaskPerm = resp.is_allow
+                    this.hasCommonTplCreateTaskPerm = resp.data.is_allow
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {

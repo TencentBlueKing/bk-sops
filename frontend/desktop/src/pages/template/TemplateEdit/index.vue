@@ -21,9 +21,7 @@
                 :is-template-data-changed="isTemplateDataChanged"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
-                :tpl-resource="tplResource"
                 :tpl-actions="tplActions"
-                :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
                 @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate">
@@ -194,9 +192,7 @@
                 templateUUID: uuid(),
                 localTemplateData: null,
                 isClickDraft: false,
-                tplOperations: [],
                 tplActions: [],
-                tplResource: {},
                 conditionData: {},
                 nodeGuideConfig: {
                     el: '',
@@ -482,9 +478,7 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
-                    this.tplOperations = templateData.auth_operations
                     this.tplActions = templateData.auth_actions
-                    this.tplResource = templateData.auth_resource
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
@@ -563,8 +557,6 @@
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     this.tplActions = data.auth_actions
-                    this.tplOperations = data.auth_operations
-                    this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
                         draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)

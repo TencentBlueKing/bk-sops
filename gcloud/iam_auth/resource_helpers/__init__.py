@@ -12,3 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from .base import SimpleResourceHelper  # noqa
+from .flow import FlowResourceHelper  # noqa
+from .task import TaskResourceHelper  # noqa
+from .mini_app import MiniAppResourceHelper  # noqa
+from .periodic_task import PeriodicTaskResourceHelper  # noqa

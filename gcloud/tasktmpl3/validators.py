@@ -60,6 +60,7 @@ class ImportValidator(RequestValidator):
         r = read_template_data_file(f)
         if not r["result"]:
             return False, r["message"]
+        f.seek(0)
 
         return True, ""
 
@@ -75,6 +76,7 @@ class CheckBeforeImportValidator(RequestValidator):
         r = read_template_data_file(f)
         if not r["result"]:
             return False, r["message"]
+        f.seek(0)
 
         return True, ""
 

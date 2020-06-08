@@ -32,7 +32,7 @@ def request_validate(validator_cls):
             is_valid, err = validator_cls().validate(request, *args, **kwargs)
             if not is_valid:
                 return JsonResponse(
-                    {"result": False, "message": err, "data": None, "code": err_code.REQUEST_PARAM_INVALID}
+                    {"result": False, "message": err, "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
                 )
 
             return view_func(request, *args, **kwargs)

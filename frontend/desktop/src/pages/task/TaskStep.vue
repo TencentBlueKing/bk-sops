@@ -58,8 +58,7 @@
         ],
         computed: {
             ...mapState({
-                'lang': state => state.lang,
-                userRights: state => state.userRights,
+                lang: state => state.lang,
                 view_mode: state => state.view_mode
             }),
             currentStepIndex () {

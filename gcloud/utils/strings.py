@@ -91,3 +91,12 @@ def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
     result_dict["group_by"] = group_by
     result_dict["conditions"] = conditions
     return result_dict
+
+
+def string_to_boolean(value):
+    if isinstance(value, six.string_types) and value.lower() in ("false", "0"):
+        value = False
+    else:
+        value = bool(value)
+
+    return value

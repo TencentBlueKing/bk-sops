@@ -22,7 +22,7 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
 from iam import Resource, Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
 from pipeline.engine import states
@@ -40,8 +40,9 @@ from gcloud.taskflow3.constants import PROJECT
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
+from gcloud.iam_auth.filter import filter_flows_can_create_task
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -110,10 +111,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 delete_action=IAMMeta.TASK_DELETE_ACTION,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.TASK_RESOURCE,
-            id_field="id",
-            creator_field="creator_name",
+        iam_resource_helper = TaskResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[
@@ -125,6 +123,17 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 IAMMeta.TASK_CLONE_ACTION,
             ],
         )
+
+    def alter_list_data_to_serialize(self, request, data):
+        data = super().alter_list_data_to_serialize(request, data)
+        templates_id = {bundle.obj.template_id for bundle in data["objects"]}
+
+        allowed_templates_id = filter_flows_can_create_task(request.user.username, templates_id)
+        for bundle in data["objects"]:
+            if int(bundle.obj.template_id) in allowed_templates_id:
+                bundle.data["auth_actions"].append(IAMMeta.FLOW_CREATE_TASK_ACTION)
+
+        return data
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
         if filters is None:
@@ -192,7 +201,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 except AppMaker.DoesNotExist:
                     raise BadRequest("app_maker[pk=%s] does not exist" % app_maker_id)
 
-                allow_or_raise_auth_failed(
+                allow_or_raise_immediate_response(
                     iam=iam,
                     system=IAMMeta.SYSTEM_ID,
                     subject=Subject("user", bundle.request.user.username),
@@ -209,7 +218,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
             # flow create task perm
             else:
-                allow_or_raise_auth_failed(
+                allow_or_raise_immediate_response(
                     iam=iam,
                     system=IAMMeta.SYSTEM_ID,
                     subject=Subject("user", bundle.request.user.username),
@@ -230,7 +239,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
             except CommonTemplate.DoesNotExist:
                 raise BadRequest("common template[pk=%s] does not exist" % template_id)
 
-            allow_or_raise_auth_failed(
+            allow_or_raise_immediate_response(
                 iam=iam,
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", bundle.request.user.username),

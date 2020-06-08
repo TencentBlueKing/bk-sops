@@ -237,7 +237,6 @@
         },
         computed: {
             ...mapState('project', {
-                'authResource': state => state.authResource,
                 'project_id': state => state.project_id
             }),
             projectDialogTitle () {
@@ -271,7 +270,7 @@
                     const res = await this.queryUserPermission({
                         action: 'project_create'
                     })
-                    if (res.is_allow) {
+                    if (res.data.is_allow) {
                         this.projectActions = ['project_create']
                     }
                 } catch (err) {

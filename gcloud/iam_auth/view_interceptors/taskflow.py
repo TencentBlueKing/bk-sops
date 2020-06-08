@@ -11,6 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import abc
+import ujson as json
+
 from iam import Resource, Action, Subject, Request
 from iam.exceptions import AuthFailedException
 
@@ -22,9 +25,13 @@ from gcloud.taskflow3.models import TaskFlowInstance
 iam = get_iam_client()
 
 
-class TaskSingleActionInterceptor(ViewInterceptor):
+class TaskSingleActionInterceptor(ViewInterceptor, metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def get_task_id(self, request, *args, **kwargs):
+        raise NotImplementedError()
+
     def process(self, request, *args, **kwargs):
-        task_id = request.GET["instance_id"]
+        task_id = self.get_task_id(request, *args, **kwargs)
 
         subject = Subject("user", request.user.username)
         action = Action(self.action)
@@ -44,37 +51,47 @@ class TaskSingleActionInterceptor(ViewInterceptor):
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
 
 
-class DataViewInterceptor(TaskSingleActionInterceptor):
+class TaskSingleActionPostInterceptor(TaskSingleActionInterceptor):
+    def get_task_id(self, request, *args, **kwargs):
+        return json.loads(request.body)["instance_id"]
+
+
+class TaskSingleActionGetInterceptor(TaskSingleActionInterceptor):
+    def get_task_id(self, request, *args, **kwargs):
+        return request.GET["instance_id"]
+
+
+class DataViewInterceptor(TaskSingleActionGetInterceptor):
     action = IAMMeta.TASK_VIEW_ACTION
 
 
-class DetailViewInterceptor(TaskSingleActionInterceptor):
+class DetailViewInterceptor(TaskSingleActionGetInterceptor):
     action = IAMMeta.TASK_VIEW_ACTION
 
 
-class TaskActionInterceptor(TaskSingleActionInterceptor):
+class TaskActionInterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_OPERATE_ACTION
 
 
-class NodesActionInpterceptor(TaskSingleActionInterceptor):
+class NodesActionInpterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_OPERATE_ACTION
 
 
-class SpecNodesTimerResetInpterceptor(TaskSingleActionInterceptor):
+class SpecNodesTimerResetInpterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_OPERATE_ACTION
 
 
-class TaskCloneInpterceptor(TaskSingleActionInterceptor):
+class TaskCloneInpterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_CLONE_ACTION
 
 
-class TaskModifyInputsInterceptor(TaskSingleActionInterceptor):
+class TaskModifyInputsInterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_EDIT_ACTION
 
 
-class TaskFuncClaimInterceptor(TaskSingleActionInterceptor):
+class TaskFuncClaimInterceptor(TaskSingleActionPostInterceptor):
     action = IAMMeta.TASK_CLAIM_ACTION
 
 
-class GetNodeLogInterceptor(TaskSingleActionInterceptor):
+class GetNodeLogInterceptor(TaskSingleActionGetInterceptor):
     action = IAMMeta.TASK_VIEW_ACTION

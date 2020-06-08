@@ -16,6 +16,7 @@ from tastypie.exceptions import ImmediateHttpResponse
 
 from iam import Request
 from iam.exceptions import AuthFailedException
+from iam.contrib.django.response import IAMAuthFailedResponse
 
 
 def allow_or_raise_immediate_response(iam, system, subject, action, resources, environment=None):
@@ -24,6 +25,6 @@ def allow_or_raise_immediate_response(iam, system, subject, action, resources, e
     allowed = iam.is_allowed(request)
 
     if not allowed:
-        raise ImmediateHttpResponse(AuthFailedException(system, subject, action, resources))
+        raise ImmediateHttpResponse(IAMAuthFailedResponse(AuthFailedException(system, subject, action, resources)))
 
     return

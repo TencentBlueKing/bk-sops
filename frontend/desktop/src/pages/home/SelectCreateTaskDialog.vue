@@ -18,7 +18,8 @@
         :mask-close="false"
         :value="isCreateTaskDialogShow"
         :header-position="'left'"
-        :auto-close="false">
+        :auto-close="false"
+        @cancel="onCancel">
         <div class="task-create-container" v-bkloading="{ isLoading: loadingStatus.taskContainer, opacity: 1 }">
             <bk-form :model="formData" :rules="rules" ref="taskCreateForm">
                 <bk-form-item :label="$t('任务类型')" :required="true" :property="'taskType'">
@@ -202,7 +203,7 @@
                             ]
                         }
                         const resp = await this.queryUserPermission(data)
-                        if (resp.is_allow) {
+                        if (resp.data.is_allow) {
                             this.hasUseCommonTplPerm = true
                         } else {
                             this.hasUseCommonTplPerm = false

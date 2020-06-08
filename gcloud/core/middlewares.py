@@ -62,6 +62,6 @@ class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
                     "result": False,
                     "message": "Object not found: %s" % exception,
                     "data": None,
-                    "code": err_code.CONTENT_NOT_EXIST,
+                    "code": err_code.CONTENT_NOT_EXIST.code,
                 }
             )

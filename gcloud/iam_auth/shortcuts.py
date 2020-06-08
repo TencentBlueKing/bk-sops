@@ -13,29 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.conf import settings
 
-from iam import Request, Subject, Action, IAM
-
-from gcloud.core.models import Project
-
-from .conf import IAMMeta
+from iam import IAM
 
 
 def get_iam_client():
     return IAM(settings.APP_CODE, settings.SECRET_KEY, settings.BK_IAM_INNER_HOST, settings.BK_PAAS_HOST)
-
-
-def get_user_projects(username):
-    subject = Subject("user", username)
-    action = Action(IAMMeta.PROJECT_VIEW_ACTION)
-
-    request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
-
-    key_mapping = {"project.id": "id"}
-
-    iam = get_iam_client()
-    filters = iam.make_filter(request, key_mapping=key_mapping)
-
-    if not filters:
-        return []
-
-    return Project.objects.filter(filters)

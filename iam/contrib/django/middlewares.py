@@ -12,21 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.utils.deprecation import MiddlewareMixin
-from django.http.response import JsonResponse
 
 from iam.exceptions import AuthFailedBaseException
+from iam.contrib.django.response import IAMAuthFailedResponse
 
 
 class AuthFailedExceptionMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
         if isinstance(exception, AuthFailedBaseException):
-            return JsonResponse(
-                data={
-                    "result": False,
-                    "code": 9900403,
-                    "message": "you have no permission to opearte",
-                    "data": None,
-                    "permission": exception.perms_apply_data(),
-                },
-                status=499,
-            )
+            return IAMAuthFailedResponse(exception)

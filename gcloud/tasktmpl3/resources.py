@@ -27,7 +27,7 @@ from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from iam import Resource, Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
+from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
 from gcloud.commons.template.resources import PipelineTemplateResource
@@ -37,7 +37,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.resources import ProjectResource
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import FlowResourceHelper
 from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
 
 logger = logging.getLogger("root")
@@ -86,10 +86,7 @@ class TaskTemplateResource(GCloudModelResource):
                 delete_action=IAMMeta.FLOW_DELETE_ACTION,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.FLOW_RESOURCE,
-            id_field="id",
-            creator_field="creator_name",
+        iam_resource_helper = FlowResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[
@@ -266,7 +263,7 @@ class TemplateSchemeResource(GCloudModelResource):
             logger.error(message)
             raise BadRequest(message)
 
-        allow_or_raise_auth_failed(
+        allow_or_raise_immediate_response(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),
@@ -299,7 +296,7 @@ class TemplateSchemeResource(GCloudModelResource):
         except TaskTemplate.DoesNotExist:
             raise BadRequest("flow template the deleted scheme belongs to does not exist")
 
-        allow_or_raise_auth_failed(
+        allow_or_raise_immediate_response(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),

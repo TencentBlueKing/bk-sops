@@ -118,7 +118,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         result = {"can_override": True, "new_template": new_template, "override_template": override_template}
         return result
 
-    def _perform_import(self, template_data, check_info, override, defaults_getter, resource, operator):
+    def _perform_import(self, template_data, check_info, override, defaults_getter, operator):
         template = template_data["template"]
         tid_to_reuse = {}
 

@@ -62,29 +62,26 @@ axios.interceptors.response.use(
             case 403:
             case 405:
             case 406:
-            case 500:
-                bus.$emit('showErrorModal', response.status, response.data.responseText)
-                break
             case 499:
                 const permissions = response.data.permission
-                let viewType = ''
-                const isViewApply = permissions.some(perm => {
-                    if (perm.action_id === 'view') {
-                        perm.resources.some(resource => {
-                            viewType = 'other'
-                            if (resource.find(item => item.resource_type === 'project')) {
-                                viewType = 'project'
-                                return true
-                            }
-                        })
-                        return true
-                    }
-                })
+                let isViewApply = false
+                let viewType = 'other'
+                if (permissions.actions.find(item => item.id === 'project_view')) {
+                    viewType = 'project'
+                    isViewApply = true
+                } else {
+                    isViewApply = permissions.actions.some(item => {
+                        return ['flow_view', 'common_flow_view', 'mini_app_view', 'task_view'].includes(item.id)
+                    })
+                }
                 if (isViewApply) {
                     bus.$emit('togglePermissionApplyPage', true, viewType, permissions)
                 } else {
                     bus.$emit('showPermissionModal', permissions)
                 }
+                break
+            case 500:
+                bus.$emit('showErrorModal', response.status, response.data.responseText)
                 break
         }
         if (!response.data) {

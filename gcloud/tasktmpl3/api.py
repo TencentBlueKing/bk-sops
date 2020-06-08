@@ -27,7 +27,7 @@ from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.core.models import Project
-from gcloud.utils.strings import check_and_rename_params
+from gcloud.utils.strings import check_and_rename_params, string_to_boolean
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.commons.template.utils import read_template_data_file
@@ -66,7 +66,7 @@ def form(request, project_id):
         "version": version or template.version,
     }
 
-    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS})
+    return JsonResponse({"result": True, "data": ctx, "message": "", "code": err_code.SUCCESS.code})
 
 
 @require_POST
@@ -82,7 +82,7 @@ def export_templates(request, project_id):
             json.dumps(TaskTemplate.objects.export_templates(template_id_list, project_id), sort_keys=True)
         )
     except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR, "data": None})
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code, "data": None})
 
     data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
@@ -104,7 +104,7 @@ def export_templates(request, project_id):
 @iam_intercept(ImportInterceptor())
 def import_templates(request, project_id):
     f = request.FILES["data_file"]
-    override = request.POST["override"]
+    override = string_to_boolean(request.POST["override"])
 
     r = read_template_data_file(f)
     templates_data = r["data"]["template_data"]
@@ -121,7 +121,7 @@ def import_templates(request, project_id):
             {
                 "result": False,
                 "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOW_ERROR,
+                "code": err_code.UNKNOW_ERROR.code,
                 "data": None,
             }
         )
@@ -148,7 +148,7 @@ def check_before_import(request, project_id):
 
     check_info = TaskTemplate.objects.import_operation_check(r["data"]["template_data"], project_id)
 
-    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS, "message": ""})
+    return JsonResponse({"result": True, "data": check_info, "code": err_code.SUCCESS.code, "message": ""})
 
 
 def replace_all_templates_tree_node_id(request):
@@ -162,7 +162,7 @@ def replace_all_templates_tree_node_id(request):
 
     total, success = TaskTemplate.objects.replace_all_template_tree_node_id()
     return JsonResponse(
-        {"result": True, "data": {"total": total, "success": success}, "code": err_code.SUCCESS, "message": ""}
+        {"result": True, "data": {"total": total, "success": success}, "code": err_code.SUCCESS.code, "message": ""}
     )
 
 
@@ -175,8 +175,8 @@ def get_template_count(request, project_id):
     filters = {"is_deleted": False, "project_id": project_id}
     success, content = task_template.dispatch(result_dict["group_by"], filters)
     if not success:
-        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOW_ERROR, "data": None})
-    return JsonResponse({"result": True, "data": content, "code": err_code.SUCCESS, "message": ""})
+        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOW_ERROR.code, "data": None})
+    return JsonResponse({"result": True, "data": content, "code": err_code.SUCCESS.code, "message": ""})
 
 
 @require_POST
@@ -201,10 +201,10 @@ def draw_pipeline(request):
     except Exception as e:
         message = "draw pipeline_tree error: %s" % e
         logger.exception(e)
-        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR, "data": None})
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code, "data": None})
 
     return JsonResponse(
-        {"result": True, "data": {"pipeline_tree": pipeline_tree}, "code": err_code.SUCCESS, "message": ""}
+        {"result": True, "data": {"pipeline_tree": pipeline_tree}, "code": err_code.SUCCESS.code, "message": ""}
     )
 
 
@@ -214,7 +214,7 @@ def get_templates_with_expired_subprocess(request, project_id):
         {
             "result": True,
             "data": TaskTemplate.objects.get_templates_with_expired_subprocess(project_id),
-            "code": err_code.SUCCESS,
+            "code": err_code.SUCCESS.code,
             "message": "",
         }
     )

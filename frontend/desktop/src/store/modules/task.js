@@ -82,11 +82,8 @@ const task = {
             if (common) {
                 dataJson['template_source'] = 'common'
             }
-            const dataString = qs.stringify(dataJson)
 
-            return axios.post(`taskflow/api/preview_task_tree/${project_id}/`, dataString, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/preview_task_tree/${project_id}/`, dataJson).then(response => response.data)
         },
         /**
          * 创建任务
@@ -154,10 +151,7 @@ const task = {
          */
         instanceStart ({ commit }, instance_id) {
             const { project_id } = store.state.project
-            const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(`taskflow/api/action/start/${project_id}/`, data, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/action/start/${project_id}/`, { instance_id }).then(response => response.data)
         },
         /**
          * 暂停执行任务实例
@@ -165,10 +159,7 @@ const task = {
          */
         instancePause ({ commit }, instance_id) {
             const { project_id } = store.state.project
-            const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(`taskflow/api/action/pause/${project_id}/`, data, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/action/pause/${project_id}/`, { instance_id }).then(response => response.data)
         },
         /**
          * 继续执行任务实例
@@ -176,10 +167,7 @@ const task = {
          */
         instanceResume ({ commit }, instance_id) {
             const { project_id } = store.state.project
-            const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(`taskflow/api/action/resume/${project_id}/`, data, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/action/resume/${project_id}/`, { instance_id }).then(response => response.data)
         },
         /**
          * 撤销任务实例执行
@@ -187,10 +175,7 @@ const task = {
          */
         instanceRevoke ({ commit }, instance_id) {
             const { project_id } = store.state.project
-            const data = qs.stringify({ instance_id: instance_id })
-            return axios.post(`taskflow/api/action/revoke/${project_id}/`, data, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/action/revoke/${project_id}/`, { instance_id }).then(response => response.data)
         },
         /**
          * 暂停子流程任务
@@ -199,10 +184,8 @@ const task = {
         subInstancePause ({ commit }, data) {
             const { instance_id, node_id } = data
             const { project_id } = store.state.project
-            const qsData = qs.stringify({ instance_id: instance_id, node_id: node_id })
-            return axios.post(`taskflow/api/nodes/action/pause_subproc/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            const qsData = { instance_id: instance_id, node_id: node_id }
+            return axios.post(`taskflow/api/nodes/action/pause_subproc/${project_id}/`, qsData).then(response => response.data)
         },
         /**
          * 继续子流程任务
@@ -211,10 +194,8 @@ const task = {
         subInstanceResume ({ commit }, data) {
             const { instance_id, node_id } = data
             const { project_id } = store.state.project
-            const qsData = qs.stringify({ instance_id: instance_id, node_id: node_id })
-            return axios.post(`taskflow/api/nodes/action/resume_subproc/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            const qsData = { instance_id: instance_id, node_id: node_id }
+            return axios.post(`taskflow/api/nodes/action/resume_subproc/${project_id}/`, qsData).then(response => response.data)
         },
         /**
          * 修改实例参数
@@ -222,10 +203,7 @@ const task = {
          */
         instanceModifyParams ({ commit }, data) {
             const { project_id } = store.state.project
-            const qsData = qs.stringify(data)
-            return axios.post(`taskflow/api/inputs/modify/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/inputs/modify/${project_id}/`, data).then(response => response.data)
         },
         /**
          * 获取节点执行详情
@@ -266,10 +244,7 @@ const task = {
          */
         instanceRetry ({ commit }, data) {
             const { project_id } = store.state.project
-            const qsData = qs.stringify(data)
-            return axios.post(`taskflow/api/nodes/action/retry/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/nodes/action/retry/${project_id}/`, data).then(response => response.data)
         },
         /**
          * 设置定时间节点时间
@@ -277,10 +252,7 @@ const task = {
          */
         setSleepNode ({ commit }, data) {
             const { project_id } = store.state.project
-            const qsData = qs.stringify(data)
-            return axios.post(`taskflow/api/nodes/spec/timer/reset/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/nodes/spec/timer/reset/${project_id}/`, data).then(response => response.data)
         },
         /**
          * 跳过失败节点
@@ -288,10 +260,7 @@ const task = {
          */
         instanceNodeSkip ({ commit }, data) {
             const { project_id } = store.state.project
-            const qsData = qs.stringify(data)
-            return axios.post(`taskflow/api/nodes/action/skip/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/nodes/action/skip/${project_id}/`, data).then(response => response.data)
         },
         /**
          * 跳过分支网关节点
@@ -299,10 +268,7 @@ const task = {
          */
         skipExclusiveGateway ({ commit }, data) {
             const { project_id } = store.state.project
-            const qsData = qs.stringify(data)
-            return axios.post(`taskflow/api/nodes/action/skip_exg/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/nodes/action/skip_exg/${project_id}/`, data).then(response => response.data)
         },
         /**
          * 暂停节点继续
@@ -310,10 +276,7 @@ const task = {
          */
         pauseNodeResume ({ commit }, data) {
             const { project_id } = store.state.project
-            const qsData = qs.stringify(data)
-            return axios.post(`taskflow/api/nodes/action/callback/${project_id}/`, qsData, {
-                headers: { 'content-type': 'application/x-www-form-urlencoded' }
-            }).then(response => response.data)
+            return axios.post(`taskflow/api/nodes/action/callback/${project_id}/`, data).then(response => response.data)
         },
         // 加载创建任务方式数据
         loadCreateMethod () {

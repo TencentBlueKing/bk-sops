@@ -11,5 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .conf import IAMMeta  # noqa
-from .shortcuts import get_iam_client  # noqa
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
+
+
+from iam import Resource
+from iam.contrib.tastypie.resource import IAMResourceHelper
+
+
+class FlowResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
+    def get_resources(self, bundle):
+
+        return [
+            Resource(
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.FLOW_RESOURCE,
+                str(bundle.obj.id),
+                {"iam_resource_owner": bundle.obj.creator_name, "path": "/project,{}/".format(bundle.obj.project_id)},
+            )
+        ]
+
+    def get_resources_id(self, bundle):
+        return bundle.obj.id

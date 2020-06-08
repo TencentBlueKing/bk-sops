@@ -17,7 +17,21 @@ from iam.contrib.tastypie.resource import IAMResourceHelper
 from gcloud.iam_auth.conf import SYSTEM_ID
 
 
-class SimpleResourceHelper(IAMResourceHelper):
+class SimpleSubjectEnvHelperMixin(object):
+    def get_subject_for_alter_list(self, request, data):
+        return Subject("user", request.user.username)
+
+    def get_environment_for_alter_list(self, request, data):
+        return {}
+
+    def get_subject_for_alter_detail(self, request, data):
+        return Subject("user", request.user.username)
+
+    def get_environment_for_alter_detail(self, request, data):
+        return {}
+
+
+class SimpleResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
     def __init__(self, type, id_field, creator_field, *args, **kwargs):
         self.type = type
         self.id_field = id_field
@@ -34,15 +48,3 @@ class SimpleResourceHelper(IAMResourceHelper):
 
     def get_resources_id(self, bundle):
         return getattr(bundle.obj, self.id_field)
-
-    def get_subject_for_alter_list(self, request, data):
-        return Subject("user", request.user.username)
-
-    def get_environment_for_alter_list(self, request, data):
-        return {}
-
-    def get_subject_for_alter_detail(self, request, data):
-        return Subject("user", request.user.username)
-
-    def get_environment_for_alter_detail(self, request, data):
-        return {}

@@ -18,8 +18,6 @@ const project = {
         projectName: '',
         projectList: [],
         timeZone: window.TIMEZONE,
-        authResource: {},
-        authOperations: [],
         authActions: []
     },
     mutations: {
@@ -40,20 +38,12 @@ const project = {
         },
         setProjectActions (state, data) {
             state.authActions = data
-        },
-        setProjectPerm (state, data) {
-            state.authResource = data.auth_resource
-            state.authOperations = data.auth_operations
         }
     },
     actions: {
         // 更改用户的默认项目
-        changeDefaultProject ({ state }, data) {
-            return axios.post(`core/api/change_default_project/${state.project_id}/`, {
-                headers: {
-                    'content-type': 'application/x-www-form-urlencoded'
-                }
-            }).then(response => response.data)
+        changeDefaultProject ({ state }) {
+            return axios.post(`core/api/change_default_project/${state.project_id}/`).then(response => response.data)
         },
         loadProjectList ({ commit }, data) {
             const { limit, offset, is_disable = false, q } = data
@@ -104,7 +94,7 @@ const project = {
     getters: {
         userCanViewProjects (state) {
             return state.projectList.filter(item => {
-                return item.auth_actions.indexOf('view') > -1
+                return item.auth_actions.indexOf('project_view') > -1
             })
         }
     }
