@@ -147,7 +147,7 @@
     }
 </script>
 <style lang="scss" scoped>
-.permission-modal {
+    .permission-modal {
         .permission-header {
             text-align: center;
             .title-icon {
