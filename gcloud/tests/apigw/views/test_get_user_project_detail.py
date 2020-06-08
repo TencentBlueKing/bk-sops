@@ -58,7 +58,7 @@ class GetUserProjectDetailAPITest(APITest):
 
         self.assertFalse(data["result"])
         self.assertTrue("message" in data)
-        self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+        self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
     @patch(
         PROJECT_GET,

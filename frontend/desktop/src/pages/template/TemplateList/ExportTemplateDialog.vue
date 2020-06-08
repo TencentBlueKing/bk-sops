@@ -115,7 +115,14 @@
             BaseCard
         },
         mixins: [permission],
-        props: ['isExportDialogShow', 'businessInfoLoading', 'projectInfoLoading', 'common', 'pending'],
+        props: {
+            isExportDialogShow: Boolean,
+            businessInfoLoading: Boolean,
+            projectInfoLoading: Boolean,
+            common: String,
+            pending: Boolean,
+            project_id: [Number, String]
+        },
         data () {
             return {
                 exportPending: false,
@@ -186,8 +193,11 @@
                 this.exportPending = true
                 this.isCheckedDisabled = true
                 try {
-                    const data = {
-                        common: this.common || undefined
+                    const data = {}
+                    if (this.common) {
+                        data.common = 1
+                    } else {
+                        data.project__id = this.project_id
                     }
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects

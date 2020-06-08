@@ -43,6 +43,26 @@ class BkObjType(Enum):
     HOST = 0
 
 
+class SelectMethod(Enum):
+    """
+    选择父实例的方法
+    TOPO    拓扑树选择节点
+    TEXT    手动输入
+    """
+    TOPO = "topo"
+    TEXT = "text"
+
+
+class ModuleCreateMethod(Enum):
+    """
+    创建模块的方法
+    TEMPLATE    按模板创建
+    CATEGORY    直接创建（按服务分类创建）
+    """
+    TEMPLATE = "template"
+    CATEGORY = "category"
+
+
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     """
     获取主机ID
@@ -148,6 +168,22 @@ def cc_format_tree_mode_id(front_id_list):
     if front_id_list is None:
         return []
     return [int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x) for x in front_id_list]
+
+
+def cc_get_name_id_from_combine_value(combine_value):
+    """
+    组合value中获取id
+    :param combine_value: name_id
+    :return name -> str, id -> int
+        错误返回 None, None
+    """
+    name_id_combine = str(combine_value).split("_")
+    if len(name_id_combine) != 2:
+        return None, None
+    try:
+        return name_id_combine[0], int(name_id_combine[1])
+    except KeyError:
+        return None, None
 
 
 def cc_parse_path_text(path_text):

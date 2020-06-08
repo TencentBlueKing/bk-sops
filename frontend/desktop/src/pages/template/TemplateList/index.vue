@@ -194,6 +194,7 @@
             :is-export-dialog-show="isExportDialogShow"
             :project-info-loading="projectInfoLoading"
             :pending="pending.export"
+            :project_id="project_id"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
@@ -387,6 +388,7 @@
                     const has_subprocess = (subprocessUpdateVal === 1 || subprocessUpdateVal === -1) ? true : (subprocessUpdateVal === 0 ? false : undefined)
                     const subprocess_has_update = subprocessUpdateVal === 1 ? true : (subprocessUpdateVal === -1 ? false : undefined)
                     const data = {
+                        project__id: this.project_id,
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         pipeline_template__name__contains: flowName || undefined,

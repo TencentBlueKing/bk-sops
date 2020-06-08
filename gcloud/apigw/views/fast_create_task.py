@@ -89,7 +89,7 @@ def fast_create_task(request, project_id):
         message = "[API] fast_create_task get invalid pipeline_tree: %s" % str(e)
         logger.exception(message)
         return JsonResponse(
-            {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
+            {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
         )
 
     try:
@@ -116,7 +116,7 @@ def fast_create_task(request, project_id):
         message = "[API] fast_create_task create pipeline error: %s" % str(e)
         logger.exception(message)
         return JsonResponse(
-            {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
+            {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
         )
 
     taskflow_kwargs = {

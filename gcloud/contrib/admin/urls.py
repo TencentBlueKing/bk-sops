@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import include, url
 from tastypie.api import Api
 
-from gcloud.contrib.admin import views
+from gcloud.contrib.admin import views, command
 
 from gcloud.contrib.admin.resources import (
     AdminTaskTemplateResource,
@@ -37,4 +37,9 @@ urlpatterns = [
     url(r'^taskflow/node/history/log', views.get_node_history_log),
     url(r'^taskflow/node/force_fail', views.force_fail_node),
     url(r'^search', views.search),
+
+    url(r'^command/get_cache_key/(?P<key>\w+)/$', command.get_cache_key),
+    url(r'^command/delete_cache_key/(?P<key>\w+)/$', command.delete_cache_key),
+    url(r'^command/get_settings/$', command.get_settings),
+    url(r'^command/migrate_pipeline_parent_data/$', command.migrate_pipeline_parent_data),
 ]

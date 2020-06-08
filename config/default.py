@@ -312,6 +312,7 @@ COMPONENT_PATH = [
     'components.collections.sites.%s.cc.update_module' % RUN_VER,
     'components.collections.sites.%s.cc.update_set' % RUN_VER,
     'components.collections.sites.%s.cc.update_set_service_status' % RUN_VER,
+    'components.collections.sites.%s.cc.create_module' % RUN_VER,
 ]
 VARIABLE_PATH = ["variables.collections.sites.%s" % RUN_VER]
 
@@ -325,7 +326,9 @@ EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY",
 # 是否只允许加载远程 https 仓库的插件
 EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE", "1") == "0"
 
-PIPELINE_DATA_BACKEND = "pipeline.engine.core.data.redis_backend.RedisDataBackend"
+PIPELINE_DATA_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_BACKEND",
+                                  "pipeline.engine.core.data.redis_backend.RedisDataBackend")
+PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
 
 ENABLE_EXAMPLE_COMPONENTS = False
 

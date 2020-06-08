@@ -19,23 +19,36 @@
         <ul class="shortcut-wrap">
             <li
                 v-if="isShowConfigIcon"
+                v-bk-tooltips="{
+                    content: $t('节点配置'),
+                    delay: 500
+                }"
                 class="shortcut-item common-icon-gear"
                 @click.stop="onConfigBtnClick"></li>
             <li
                 v-if="isShowConfigIcon"
+                v-bk-tooltips="{
+                    content: $t('复制节点'),
+                    delay: 500
+                }"
                 class="shortcut-item common-icon-double-paper-2"
                 @click.stop="onCopyBtnClick"></li>
             <li
-                v-for="(name, index) in nodeTypeList"
+                v-for="(item, index) in nodeTypeList"
                 :key="index"
-                :class="['shortcut-item', `common-icon-node-${name}-shortcut`]"
-                @click.stop="onAppendNode(name)"></li>
+                v-bk-tooltips="{
+                    content: item.tips,
+                    delay: 500
+                }"
+                :class="['shortcut-item', `common-icon-node-${item.key}-shortcut`]"
+                @click.stop="onAppendNode(item.key)"></li>
         </ul>
     </div>
 </template>
 <script>
     import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
+    import i18n from '@/config/i18n/index.js'
     export default {
         name: 'ShortcutPanel',
         props: {
@@ -62,7 +75,13 @@
         },
         data () {
             return {
-                nodeTypeList: ['tasknode', 'subflow', 'parallelgateway', 'branchgateway', 'convergegateway']
+                nodeTypeList: [
+                    { key: 'tasknode', tips: i18n.t('标准插件节点') },
+                    { key: 'subflow', tips: i18n.t('子流程节点') },
+                    { key: 'parallelgateway', tips: i18n.t('并行网关') },
+                    { key: 'branchgateway', tips: i18n.t('分支网关') },
+                    { key: 'convergegateway', tips: i18n.t('汇聚网关') }
+                ]
             }
         },
         computed: {
@@ -198,6 +217,7 @@
             // 克隆当前节点
             onCopyBtnClick () {
                 this.onAppendNode(this.node.type, true)
+                this.$bkMessage({ message: i18n.t('复制成功'), theme: 'success' })
             }
         }
     }

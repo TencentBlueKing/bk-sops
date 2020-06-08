@@ -86,6 +86,6 @@ def operate_node(request, project_id, task_id):
     task = TaskFlowInstance.objects.get(pk=task_id)
     result = task.nodes_action(action, node_id, username, **kwargs)
     result["code"] = (
-        err_code.SUCCESS.code if result["result"] else err_code.UNKNOW_ERROR.code
+        err_code.SUCCESS.code if result["result"] else err_code.UNKNOWN_ERROR.code
     )
     return JsonResponse(result)

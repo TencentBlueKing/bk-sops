@@ -196,6 +196,8 @@
                     if (!this.isCollected(data.id)) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
+                                app_id: data.id,
+                                project_id: data.project.id,
                                 template_id: data.template_id,
                                 name: data.name,
                                 id: data.id
