@@ -17,10 +17,10 @@ from django.utils.translation import ugettext_lazy as _
 
 class Collection(models.Model):
     COLLECTION_TYPE = (
-        ('flow', _(u"项目流程")),
-        ('common_flow)', _(u"公共流程")),
-        ('periodic_task', _(u"周期任务")),
-        ('mini_app', _(u"轻应用")),
+        ("flow", _(u"项目流程")),
+        ("common_flow", _(u"公共流程")),
+        ("periodic_task", _(u"周期任务")),
+        ("mini_app", _(u"轻应用")),
     )
     username = models.CharField(_(u"用户名"), max_length=255)
     category = models.CharField(_(u"收藏对象类型"), max_length=255, choices=COLLECTION_TYPE)
@@ -31,4 +31,4 @@ class Collection(models.Model):
         verbose_name_plural = _(u"用户收藏 Collection")
 
     def __unicode__(self):
-        return '%s_%s_%s' % (self.id, self.username, self.category)
+        return "%s_%s_%s" % (self.id, self.username, self.category)
