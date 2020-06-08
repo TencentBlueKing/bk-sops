@@ -49,7 +49,7 @@ def get_role_user_list(role):
     }
     search_result = auth_resource.search_resources_perms_principals(resources_actions)
     if not search_result['result']:
-        message = ('search perms principals of Resource[{resource}] by backend[{beckend_cls}] '
+        message = ('search perms principals of Resource[{resource}] by backend[{backend_cls}] '
                    'return error: {error}').format(
             resource=auth_resource.name,
             backend_cls=auth_resource.backend,
