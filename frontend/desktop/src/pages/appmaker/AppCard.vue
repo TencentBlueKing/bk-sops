@@ -99,6 +99,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import { mapActions } from 'vuex'
+    import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
         name: 'AppCard',
@@ -168,11 +169,7 @@
                     this.onAppMakerPermissonCheck(['view'], this.appData, event)
                     return
                 }
-                if (self === top) {
-                    window.open(this.appData.link, '_blank')
-                } else {
-                    window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
-                }
+                openOtherApp(this.appData.code, this.appData.link)
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {

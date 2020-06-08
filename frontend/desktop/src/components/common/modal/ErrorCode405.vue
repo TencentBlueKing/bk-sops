@@ -27,12 +27,14 @@
     </div>
 </template>
 <script>
+    import openOtherApp from '@/utils/openOtherApp.js'
+
     export default {
         name: 'ErrorCode405',
         props: ['responseText'],
         methods: {
             onGotoCC () {
-                window.PAAS_API.open_other_app('bk_cmdb')
+                openOtherApp('bk_cmdb', window.BK_CC_HOST)
             }
         }
     }
