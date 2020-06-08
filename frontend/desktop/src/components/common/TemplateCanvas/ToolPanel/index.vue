@@ -16,7 +16,7 @@
                 class="tool-icon"
                 v-bk-tooltips="{
                     content: $t('放大'),
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onZoomIn">
@@ -26,7 +26,7 @@
                 class="tool-icon"
                 v-bk-tooltips="{
                     content: $t('放大'),
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onZoomOut">
@@ -36,7 +36,7 @@
                 class="tool-icon"
                 v-bk-tooltips="{
                     content: $t('复位'),
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onResetPosition">
@@ -49,7 +49,7 @@
                 v-if="editable"
                 v-bk-tooltips="{
                     content: $t('节点框选'),
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onOpenFrameSelect">
@@ -60,7 +60,7 @@
                 v-if="editable"
                 v-bk-tooltips="{
                     content: $t('排版'),
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onFormatPosition">
@@ -71,7 +71,7 @@
                 v-if="isShowSelectAllTool"
                 v-bk-tooltips="{
                     content: selectNodeName,
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onToggleAllNode">
@@ -84,7 +84,7 @@
                 class="tool-icon"
                 v-bk-tooltips="{
                     content: $t('快捷键'),
-                    delay: 1000,
+                    delay: 300,
                     placements: ['bottom']
                 }"
                 @click="onToggleHotKeyInfo">
