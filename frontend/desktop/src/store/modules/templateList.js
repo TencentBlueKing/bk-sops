@@ -31,7 +31,6 @@ const templateList = {
     },
     actions: {
         loadTemplateList ({ commit }, data) {
-            const { project_id } = store.state.project
             let url = ''
             if (data) {
                 const { common } = data
@@ -43,10 +42,8 @@ const templateList = {
             } else {
                 url = 'api/v3/template/'
             }
-            const querystring = Object.assign({}, { 'project__id': project_id }, data)
-
             return axios.get(url, {
-                params: querystring
+                params: data
             }).then(response => response.data)
         },
         deleteTemplate ({ commit }, data) {
