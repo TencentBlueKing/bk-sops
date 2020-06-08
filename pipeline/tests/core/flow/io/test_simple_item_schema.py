@@ -17,22 +17,18 @@ from pipeline.core.flow.io import StringItemSchema, IntItemSchema, FloatItemSche
 
 
 class SimpleItemSchemaTestCase(TestCase):
-
     def setUp(self):
-        self.description = 'a simple item'
-        self.enum = ['1', '2', '3']
+        self.description = "a simple item"
+        self.enum = ["1", "2", "3"]
 
     def test_as_dict(self):
-        schema = StringItemSchema(description=self.description,
-                                  enum=self.enum)
+        schema = StringItemSchema(description=self.description, enum=self.enum)
 
         schema_dict = schema.as_dict()
-        self.assertEqual(schema_dict, {'type': 'string',
-                                       'description': self.description,
-                                       'enum': self.enum})
+        self.assertEqual(schema_dict, {"type": "string", "description": self.description, "enum": self.enum})
 
     def test_type(self):
-        self.assertEqual('int', IntItemSchema._type())
-        self.assertEqual('string', StringItemSchema._type())
-        self.assertEqual('float', FloatItemSchema._type())
-        self.assertEqual('boolean', BooleanItemSchema._type())
+        self.assertEqual("int", IntItemSchema._type())
+        self.assertEqual("string", StringItemSchema._type())
+        self.assertEqual("float", FloatItemSchema._type())
+        self.assertEqual("boolean", BooleanItemSchema._type())

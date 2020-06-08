@@ -24,10 +24,10 @@ class DataItem(object, metaclass=abc.ABCMeta):
 
     def as_dict(self):
         return {
-            'name': self.name,
-            'key': self.key,
-            'type': self.type,
-            'schema': self.schema.as_dict() if self.schema else {}
+            "name": self.name,
+            "key": self.key,
+            "type": self.type,
+            "schema": self.schema.as_dict() if self.schema else {},
         }
 
 
@@ -38,7 +38,7 @@ class InputItem(DataItem):
 
     def as_dict(self):
         base = super(InputItem, self).as_dict()
-        base['required'] = self.required
+        base["required"] = self.required
         return base
 
 
@@ -53,11 +53,7 @@ class ItemSchema(object, metaclass=abc.ABCMeta):
         self.enum = enum or []
 
     def as_dict(self):
-        return {
-            'type': self.type,
-            'description': self.description,
-            'enum': self.enum
-        }
+        return {"type": self.type, "description": self.description, "enum": self.enum}
 
     @abc.abstractmethod
     def _type(self):
@@ -71,51 +67,51 @@ class SimpleItemSchema(ItemSchema, metaclass=abc.ABCMeta):
 class IntItemSchema(SimpleItemSchema):
     @classmethod
     def _type(cls):
-        return 'int'
+        return "int"
 
 
 class StringItemSchema(SimpleItemSchema):
     @classmethod
     def _type(cls):
-        return 'string'
+        return "string"
 
 
 class FloatItemSchema(SimpleItemSchema):
     @classmethod
     def _type(cls):
-        return 'float'
+        return "float"
 
 
 class BooleanItemSchema(SimpleItemSchema):
     @classmethod
     def _type(cls):
-        return 'boolean'
+        return "boolean"
 
 
 class ArrayItemSchema(ItemSchema):
     def __init__(self, item_schema, *args, **kwargs):
         if not isinstance(item_schema, ItemSchema):
-            raise TypeError('item_schema of ArrayItemSchema must be subclass of ItemSchema')
+            raise TypeError("item_schema of ArrayItemSchema must be subclass of ItemSchema")
         self.item_schema = item_schema
         super(ArrayItemSchema, self).__init__(*args, **kwargs)
 
     def as_dict(self):
         base = super(ArrayItemSchema, self).as_dict()
-        base['items'] = self.item_schema.as_dict()
+        base["items"] = self.item_schema.as_dict()
         return base
 
     @classmethod
     def _type(cls):
-        return 'array'
+        return "array"
 
 
 class ObjectItemSchema(ItemSchema):
     def __init__(self, property_schemas, *args, **kwargs):
         if not isinstance(property_schemas, Mapping):
-            raise TypeError('property_schemas of ObjectItemSchema must be Mapping type')
+            raise TypeError("property_schemas of ObjectItemSchema must be Mapping type")
 
         if not all([isinstance(value, ItemSchema) for value in list(property_schemas.values())]):
-            raise TypeError('value in property_schemas of ObjectItemSchema must be subclass of ItemSchema')
+            raise TypeError("value in property_schemas of ObjectItemSchema must be subclass of ItemSchema")
 
         self.property_schemas = property_schemas
         super(ObjectItemSchema, self).__init__(*args, **kwargs)
@@ -123,9 +119,9 @@ class ObjectItemSchema(ItemSchema):
     def as_dict(self):
         base = super(ObjectItemSchema, self).as_dict()
         properties = {prop: schema.as_dict() for prop, schema in list(self.property_schemas.items())}
-        base['properties'] = properties
+        base["properties"] = properties
         return base
 
     @classmethod
     def _type(cls):
-        return 'object'
+        return "object"

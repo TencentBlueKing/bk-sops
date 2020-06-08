@@ -16,25 +16,23 @@ from pipeline.core.flow.io import IntItemSchema, ArrayItemSchema
 
 
 class ArrayItemSchemaTestCase(TestCase):
-
     def setUp(self):
-        self.description = 'a simple item'
-        self.enum = ['1', '2', '3']
+        self.description = "a simple item"
+        self.enum = ["1", "2", "3"]
 
-        self.item_description = 'a integer'
+        self.item_description = "a integer"
         self.item_schema = IntItemSchema(description=self.item_description)
 
     def test_as_dict(self):
-        schema = ArrayItemSchema(description=self.description,
-                                 enum=self.enum,
-                                 item_schema=self.item_schema)
+        schema = ArrayItemSchema(description=self.description, enum=self.enum, item_schema=self.item_schema)
 
         schema_dict = schema.as_dict()
-        self.assertEqual(schema_dict, {'type': 'array',
-                                       'description': self.description,
-                                       'enum': self.enum,
-                                       'items': {
-                                           'type': 'int',
-                                           'description': self.item_description,
-                                           'enum': []
-                                       }})
+        self.assertEqual(
+            schema_dict,
+            {
+                "type": "array",
+                "description": self.description,
+                "enum": self.enum,
+                "items": {"type": "int", "description": self.item_description, "enum": []},
+            },
+        )

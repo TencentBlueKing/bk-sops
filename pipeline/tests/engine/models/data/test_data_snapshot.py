@@ -17,10 +17,10 @@ from pipeline.engine.models import DataSnapshot
 
 class DataSnapshotTestCase(TestCase):
     def setUp(self):
-        self.key_1 = 'test_key_1'
-        self.key_2 = 'test_key_2'
-        self.not_exist_key = 'not_exist'
-        self.obj_1 = {'a': 'a', 1: '1', 2: '2', 'list': [1, 2, 3]}
+        self.key_1 = "test_key_1"
+        self.key_2 = "test_key_2"
+        self.not_exist_key = "not_exist"
+        self.obj_1 = {"a": "a", 1: "1", 2: "2", "list": [1, 2, 3]}
         self.obj_2 = [1, 5, 3]
         self.obj_3 = [1, 2, 3]
 

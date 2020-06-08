@@ -23,7 +23,7 @@ from pipeline.models import (
     TemplateRelationship,
     TemplateVersion,
     TemplateCurrentVersion,
-    PipelineInstance
+    PipelineInstance,
 )
 
 
@@ -48,14 +48,18 @@ def pipeline_template_post_save_handler(sender, instance, created, **kwargs):
     with transaction.atomic():
         TemplateRelationship.objects.filter(ancestor_template_id=template.template_id).delete()
         acts = list(template.data[PE.activities].values())
-        subprocess_nodes = [act for act in acts if act['type'] == PE.SubProcess]
+        subprocess_nodes = [act for act in acts if act["type"] == PE.SubProcess]
         rs = []
         for sp in subprocess_nodes:
-            version = sp.get('version') or PipelineTemplate.objects.get(template_id=sp['template_id']).version
-            rs.append(TemplateRelationship(ancestor_template_id=template.template_id,
-                                           descendant_template_id=sp['template_id'],
-                                           subprocess_node_id=sp['id'],
-                                           version=version))
+            version = sp.get("version") or PipelineTemplate.objects.get(template_id=sp["template_id"]).version
+            rs.append(
+                TemplateRelationship(
+                    ancestor_template_id=template.template_id,
+                    descendant_template_id=sp["template_id"],
+                    subprocess_node_id=sp["id"],
+                    version=version,
+                )
+            )
         if rs:
             TemplateRelationship.objects.bulk_create(rs)
         TemplateVersion.objects.track(template)

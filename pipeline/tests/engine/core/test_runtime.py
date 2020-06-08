@@ -20,14 +20,13 @@ from pipeline.engine import states
 from pipeline.tests.engine.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
-PIPELINE_BUILD_RELATIONSHIP = 'pipeline.engine.models.NodeRelationship.objects.build_relationship'
-PIPELINE_STATUS_TRANSIT = 'pipeline.engine.models.Status.objects.transit'
-PIPELINE_ENGINE_IS_FROZEN = 'pipeline.engine.models.FunctionSwitch.objects.is_frozen'
-PIPELINE_SETTING_RERUN_MAX_LIMIT = 'pipeline.engine.core.runtime.RERUN_MAX_LIMIT'
+PIPELINE_BUILD_RELATIONSHIP = "pipeline.engine.models.NodeRelationship.objects.build_relationship"
+PIPELINE_STATUS_TRANSIT = "pipeline.engine.models.Status.objects.transit"
+PIPELINE_ENGINE_IS_FROZEN = "pipeline.engine.models.FunctionSwitch.objects.is_frozen"
+PIPELINE_SETTING_RERUN_MAX_LIMIT = "pipeline.engine.core.runtime.RERUN_MAX_LIMIT"
 
 
 class RuntimeTestCase(TestCase):
-
     def test_runtime_exception_handler(self):
         process = MockPipelineProcess()
         process.exit_gracefully = MagicMock()
@@ -54,9 +53,11 @@ class RuntimeTestCase(TestCase):
     def test_run_loop(self):
         # 1. test child meet destination
         destination_node = IdentifyObject()
-        process = MockPipelineProcess(top_pipeline=PipelineObject(node=destination_node),
-                                      destination_id=destination_node.id,
-                                      current_node_id=destination_node.id)
+        process = MockPipelineProcess(
+            top_pipeline=PipelineObject(node=destination_node),
+            destination_id=destination_node.id,
+            current_node_id=destination_node.id,
+        )
         runtime.run_loop(process)
 
         process.destroy_and_wake_up_parent.assert_called_with(destination_node.id)
@@ -83,9 +84,9 @@ class RuntimeTestCase(TestCase):
 
         # 2.1. root pipeline is revoke
         current_node = IdentifyObject()
-        process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                      destination_id=uniqid(),
-                                      current_node_id=current_node.id)
+        process = MockPipelineProcess(
+            top_pipeline=PipelineObject(node=current_node), destination_id=uniqid(), current_node_id=current_node.id
+        )
         process.root_sleep_check = MagicMock(return_value=(True, states.REVOKED))
 
         runtime.run_loop(process)
@@ -114,9 +115,9 @@ class RuntimeTestCase(TestCase):
         # 2.2. root pipeline is not revoke
         for state in states.SLEEP_STATES.difference({states.REVOKED}):
             current_node = IdentifyObject()
-            process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                          destination_id=uniqid(),
-                                          current_node_id=current_node.id)
+            process = MockPipelineProcess(
+                top_pipeline=PipelineObject(node=current_node), destination_id=uniqid(), current_node_id=current_node.id
+            )
             process.root_sleep_check = MagicMock(return_value=(True, state))
 
             runtime.run_loop(process)
@@ -144,9 +145,9 @@ class RuntimeTestCase(TestCase):
         # 3. test sub process sleep check return true
         current_node = IdentifyObject()
         subproc_above = uniqid()
-        process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                      destination_id=uniqid(),
-                                      current_node_id=current_node.id)
+        process = MockPipelineProcess(
+            top_pipeline=PipelineObject(node=current_node), destination_id=uniqid(), current_node_id=current_node.id
+        )
         process.root_sleep_check = MagicMock(return_value=(False, states.RUNNING))
         process.subproc_sleep_check = MagicMock(return_value=(True, subproc_above))
 
@@ -175,9 +176,9 @@ class RuntimeTestCase(TestCase):
         # 4. test engine is frozen
         with patch(PIPELINE_ENGINE_IS_FROZEN, MagicMock(return_value=True)):
             current_node = IdentifyObject()
-            process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                          destination_id=uniqid(),
-                                          current_node_id=current_node.id)
+            process = MockPipelineProcess(
+                top_pipeline=PipelineObject(node=current_node), destination_id=uniqid(), current_node_id=current_node.id
+            )
             process.root_sleep_check = MagicMock(return_value=(False, states.RUNNING))
             process.subproc_sleep_check = MagicMock(return_value=(False, []))
 
@@ -208,9 +209,9 @@ class RuntimeTestCase(TestCase):
         # 5. test transit fail
         with patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=False))):
             current_node = IdentifyObject()
-            process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                          destination_id=uniqid(),
-                                          current_node_id=current_node.id)
+            process = MockPipelineProcess(
+                top_pipeline=PipelineObject(node=current_node), destination_id=uniqid(), current_node_id=current_node.id
+            )
             process.root_sleep_check = MagicMock(return_value=(False, states.RUNNING))
             process.subproc_sleep_check = MagicMock(return_value=(False, []))
 
@@ -226,10 +227,9 @@ class RuntimeTestCase(TestCase):
 
             process.freeze.assert_not_called()
 
-            Status.objects.transit.assert_called_with(id=current_node.id,
-                                                      to_state=states.RUNNING,
-                                                      start=True,
-                                                      name=str(current_node.__class__))
+            Status.objects.transit.assert_called_with(
+                id=current_node.id, to_state=states.RUNNING, start=True, name=str(current_node.__class__)
+            )
 
             process.sleep.assert_called_once_with(adjust_status=True)
 
@@ -243,15 +243,14 @@ class RuntimeTestCase(TestCase):
             Status.objects.transit.reset_mock()
 
         # 6. test normal
-        hdl = MagicMock(return_value=MockHandlerResult(should_return=True,
-                                                       should_sleep=False))
+        hdl = MagicMock(return_value=MockHandlerResult(should_return=True, should_sleep=False))
 
-        with patch('pipeline.engine.core.runtime.HandlersFactory.handlers_for', MagicMock(return_value=hdl)):
+        with patch("pipeline.engine.core.runtime.HandlersFactory.handlers_for", MagicMock(return_value=hdl)):
             # 6.1. test should return
-            current_node = IdentifyObject(name='name')
-            process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                          destination_id=uniqid(),
-                                          current_node_id=current_node.id)
+            current_node = IdentifyObject(name="name")
+            process = MockPipelineProcess(
+                top_pipeline=PipelineObject(node=current_node), destination_id=uniqid(), current_node_id=current_node.id
+            )
             process.root_sleep_check = MagicMock(return_value=(False, states.RUNNING))
             process.subproc_sleep_check = MagicMock(return_value=(False, []))
 
@@ -267,15 +266,15 @@ class RuntimeTestCase(TestCase):
 
             process.freeze.assert_not_called()
 
-            Status.objects.transit.assert_called_with(id=current_node.id,
-                                                      to_state=states.RUNNING,
-                                                      start=True,
-                                                      name=current_node.name)
+            Status.objects.transit.assert_called_with(
+                id=current_node.id, to_state=states.RUNNING, start=True, name=current_node.name
+            )
 
             process.refresh_current_node.assert_called_once_with(current_node.id)
 
-            NodeRelationship.objects.build_relationship.assert_called_once_with(process.top_pipeline.id,
-                                                                                current_node.id)
+            NodeRelationship.objects.build_relationship.assert_called_once_with(
+                process.top_pipeline.id, current_node.id
+            )
 
             hdl.assert_called_once_with(process, current_node, None)
 
@@ -290,13 +289,14 @@ class RuntimeTestCase(TestCase):
 
             # 6.2. test should sleep
             for should_return in (False, True):
-                hdl.return_value = MockHandlerResult(should_return=should_return,
-                                                     should_sleep=True)
+                hdl.return_value = MockHandlerResult(should_return=should_return, should_sleep=True)
 
                 current_node = IdentifyObject()
-                process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                              destination_id=uniqid(),
-                                              current_node_id=current_node.id)
+                process = MockPipelineProcess(
+                    top_pipeline=PipelineObject(node=current_node),
+                    destination_id=uniqid(),
+                    current_node_id=current_node.id,
+                )
                 process.root_sleep_check = MagicMock(return_value=(False, states.RUNNING))
                 process.subproc_sleep_check = MagicMock(return_value=(False, []))
 
@@ -312,15 +312,15 @@ class RuntimeTestCase(TestCase):
 
                 process.freeze.assert_not_called()
 
-                Status.objects.transit.assert_called_with(id=current_node.id,
-                                                          to_state=states.RUNNING,
-                                                          start=True,
-                                                          name=str(current_node.__class__))
+                Status.objects.transit.assert_called_with(
+                    id=current_node.id, to_state=states.RUNNING, start=True, name=str(current_node.__class__)
+                )
 
                 process.refresh_current_node.assert_called_once_with(current_node.id)
 
-                NodeRelationship.objects.build_relationship.assert_called_once_with(process.top_pipeline.id,
-                                                                                    current_node.id)
+                NodeRelationship.objects.build_relationship.assert_called_once_with(
+                    process.top_pipeline.id, current_node.id
+                )
 
                 hdl.assert_called_once_with(process, current_node, None)
 
@@ -336,23 +336,25 @@ class RuntimeTestCase(TestCase):
             # 6.3. test execute 3 node and return
             nodes = [IdentifyObject(), IdentifyObject(), IdentifyObject()]
             hdl.return_value = None
-            hdl.side_effect = [MockHandlerResult(should_return=False,
-                                                 should_sleep=False,
-                                                 next_node=nodes[0]),
-                               MockHandlerResult(should_return=False,
-                                                 should_sleep=False,
-                                                 next_node=nodes[1]),
-                               MockHandlerResult(should_return=True,
-                                                 should_sleep=True,
-                                                 next_node=nodes[2])]
+            hdl.side_effect = [
+                MockHandlerResult(should_return=False, should_sleep=False, next_node=nodes[0]),
+                MockHandlerResult(should_return=False, should_sleep=False, next_node=nodes[1]),
+                MockHandlerResult(should_return=True, should_sleep=True, next_node=nodes[2]),
+            ]
 
             current_node = IdentifyObject()
-            process = MockPipelineProcess(top_pipeline=PipelineObject(nodes={current_node.id: current_node,
-                                                                             nodes[0].id: nodes[0],
-                                                                             nodes[1].id: nodes[1],
-                                                                             nodes[2].id: nodes[2]}),
-                                          destination_id=uniqid(),
-                                          current_node_id=current_node.id)
+            process = MockPipelineProcess(
+                top_pipeline=PipelineObject(
+                    nodes={
+                        current_node.id: current_node,
+                        nodes[0].id: nodes[0],
+                        nodes[1].id: nodes[1],
+                        nodes[2].id: nodes[2],
+                    }
+                ),
+                destination_id=uniqid(),
+                current_node_id=current_node.id,
+            )
             process.root_sleep_check = MagicMock(return_value=(False, states.RUNNING))
             process.subproc_sleep_check = MagicMock(return_value=(False, []))
 
@@ -368,39 +370,35 @@ class RuntimeTestCase(TestCase):
 
             process.freeze.assert_not_called()
 
-            Status.objects.transit.assert_has_calls([mock.call(id=current_node.id,
-                                                               to_state=states.RUNNING,
-                                                               start=True,
-                                                               name=str(current_node.__class__)),
-                                                     mock.call(id=nodes[0].id,
-                                                               to_state=states.RUNNING,
-                                                               start=True,
-                                                               name=str(current_node.__class__)),
-                                                     mock.call(id=nodes[1].id,
-                                                               to_state=states.RUNNING,
-                                                               start=True,
-                                                               name=str(current_node.__class__))])
+            Status.objects.transit.assert_has_calls(
+                [
+                    mock.call(
+                        id=current_node.id, to_state=states.RUNNING, start=True, name=str(current_node.__class__)
+                    ),
+                    mock.call(id=nodes[0].id, to_state=states.RUNNING, start=True, name=str(current_node.__class__)),
+                    mock.call(id=nodes[1].id, to_state=states.RUNNING, start=True, name=str(current_node.__class__)),
+                ]
+            )
 
-            process.refresh_current_node.assert_has_calls([mock.call(current_node.id),
-                                                           mock.call(nodes[0].id),
-                                                           mock.call(nodes[1].id)])
+            process.refresh_current_node.assert_has_calls(
+                [mock.call(current_node.id), mock.call(nodes[0].id), mock.call(nodes[1].id)]
+            )
 
-            NodeRelationship.objects.build_relationship.assert_has_calls([mock.call(process.top_pipeline.id,
-                                                                                    current_node.id),
-                                                                          mock.call(process.top_pipeline.id,
-                                                                                    nodes[0].id),
-                                                                          mock.call(process.top_pipeline.id,
-                                                                                    nodes[1].id)])
+            NodeRelationship.objects.build_relationship.assert_has_calls(
+                [
+                    mock.call(process.top_pipeline.id, current_node.id),
+                    mock.call(process.top_pipeline.id, nodes[0].id),
+                    mock.call(process.top_pipeline.id, nodes[1].id),
+                ]
+            )
 
-            hdl.assert_has_calls([mock.call(process,
-                                            current_node,
-                                            None),
-                                  mock.call(process,
-                                            nodes[0],
-                                            None),
-                                  mock.call(process,
-                                            nodes[1],
-                                            None)])
+            hdl.assert_has_calls(
+                [
+                    mock.call(process, current_node, None),
+                    mock.call(process, nodes[0], None),
+                    mock.call(process, nodes[1], None),
+                ]
+            )
 
             process.sleep.assert_called_once_with(adjust_status=True)
 
@@ -413,9 +411,9 @@ class RuntimeTestCase(TestCase):
     def __fail_with_node_reach_run_limit(self):
         with patch(PIPELINE_SETTING_RERUN_MAX_LIMIT, 10):
             current_node = IdentifyObject()
-            process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
-                                          destination_id=uniqid(),
-                                          current_node_id=current_node.id)
+            process = MockPipelineProcess(
+                top_pipeline=PipelineObject(node=current_node), destination_id=uniqid(), current_node_id=current_node.id
+            )
             process.root_sleep_check = MagicMock(return_value=(False, states.RUNNING))
             process.subproc_sleep_check = MagicMock(return_value=(False, []))
 
@@ -431,12 +429,11 @@ class RuntimeTestCase(TestCase):
 
             process.freeze.assert_not_called()
 
-            Status.objects.transit.assert_called_with(id=current_node.id,
-                                                      to_state=states.RUNNING,
-                                                      start=True,
-                                                      name=str(current_node.__class__))
+            Status.objects.transit.assert_called_with(
+                id=current_node.id, to_state=states.RUNNING, start=True, name=str(current_node.__class__)
+            )
 
-            Status.objects.fail.assert_called_once_with(current_node, 'rerun times exceed max limit: 10')
+            Status.objects.fail.assert_called_once_with(current_node, "rerun times exceed max limit: 10")
 
             process.sleep.assert_called_once_with(adjust_status=True)
 

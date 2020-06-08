@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -20,60 +19,62 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0017_auto_20190719_1010'),
+        ("engine", "0017_auto_20190719_1010"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='history',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="history",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='history',
-            name='data',
-            field=models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE,
-                                    to='engine.HistoryData'),
+            model_name="history",
+            name="data",
+            field=models.ForeignKey(
+                db_constraint=False, on_delete=django.db.models.deletion.CASCADE, to="engine.HistoryData"
+            ),
         ),
         migrations.AlterField(
-            model_name='historydata',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="historydata",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='nodecelerytask',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="nodecelerytask",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='noderelationship',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="noderelationship",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='processcelerytask',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="processcelerytask",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='pipelineprocess',
-            name='snapshot',
-            field=models.ForeignKey(db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE,
-                                    to='engine.ProcessSnapshot'),
+            model_name="pipelineprocess",
+            name="snapshot",
+            field=models.ForeignKey(
+                db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, to="engine.ProcessSnapshot"
+            ),
         ),
         migrations.AlterField(
-            model_name='processsnapshot',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="processsnapshot",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='schedulecelerytask',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="schedulecelerytask",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='subprocessrelationship',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="subprocessrelationship",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
     ]

@@ -20,9 +20,7 @@ from pipeline.builder.flow.data import Data, Params
 from pipeline.builder.flow.event import ExecutableEndEvent
 from pipeline.parser.utils import replace_all_id
 
-__all__ = [
-    'build_tree'
-]
+__all__ = ["build_tree"]
 
 __skeleton = {
     PE.id: None,
@@ -31,10 +29,7 @@ __skeleton = {
     PE.activities: {},
     PE.gateways: {},
     PE.flows: {},
-    PE.data: {
-        PE.inputs: {},
-        PE.outputs: {}
-    }
+    PE.data: {PE.inputs: {}, PE.outputs: {}},
 }
 
 __node_type = {
@@ -48,13 +43,9 @@ __node_type = {
     PE.ConvergeGateway: PE.gateways,
 }
 
-__start_elem = {
-    PE.EmptyStartEvent
-}
+__start_elem = {PE.EmptyStartEvent}
 
-__end_elem = {
-    PE.EmptyEndEvent
-}
+__end_elem = {PE.EmptyEndEvent}
 
 __multiple_incoming_type = {
     PE.ServiceActivity,
@@ -63,10 +54,10 @@ __multiple_incoming_type = {
     PE.ParallelGateway,
     PE.ConditionalParallelGateway,
     PE.ExclusiveGateway,
-    PE.SubProcess
+    PE.SubProcess,
 }
 
-__incoming = '__incoming'
+__incoming = "__incoming"
 
 
 def build_tree(start_elem, id=None, data=None, replace_id=False):
@@ -115,11 +106,11 @@ def __grow(tree, elem):
     if elem.type() in __start_elem:
         outgoing = uniqid()
         tree[PE.start_event] = {
-            PE.incoming: '',
+            PE.incoming: "",
             PE.outgoing: outgoing,
             PE.type: elem.type(),
             PE.id: elem.id,
-            PE.name: elem.name
+            PE.name: elem.name,
         }
 
         next_elem = elem.outgoing[0]
@@ -128,10 +119,10 @@ def __grow(tree, elem):
     elif elem.type() in __end_elem or isinstance(elem, ExecutableEndEvent):
         tree[PE.end_event] = {
             PE.incoming: tree[__incoming][elem.id],
-            PE.outgoing: '',
+            PE.outgoing: "",
             PE.type: elem.type(),
             PE.id: elem.id,
-            PE.name: elem.name
+            PE.name: elem.name,
         }
 
     elif elem.type() == PE.ServiceActivity:
@@ -149,7 +140,7 @@ def __grow(tree, elem):
             PE.retryable: elem.retryable,
             PE.component: elem.component_dict(),
             PE.optional: False,
-            PE.failure_handler: elem.failure_handler
+            PE.failure_handler: elem.failure_handler,
         }
 
         next_elem = elem.outgoing[0]
@@ -166,17 +157,14 @@ def __grow(tree, elem):
             PE.name: elem.name,
             PE.outgoing: outgoing,
             PE.type: elem.type(),
-            PE.params: subprocess_param
+            PE.params: subprocess_param,
         }
 
         if elem.template_id:
             subprocess[PE.template_id] = elem.template_id
         else:
             subprocess[PE.pipeline] = build_tree(
-                start_elem=elem.start,
-                id=elem.id,
-                data=elem.data,
-                replace_id=elem.replace_id
+                start_elem=elem.start, id=elem.id, data=elem.data, replace_id=elem.replace_id
             )
 
         tree[PE.activities][elem.id] = subprocess
@@ -192,7 +180,7 @@ def __grow(tree, elem):
             PE.incoming: tree[__incoming][elem.id],
             PE.outgoing: outgoing,
             PE.type: elem.type(),
-            PE.name: elem.name
+            PE.name: elem.name,
         }
 
         for i, next_elem in enumerate(elem.outgoing):
@@ -207,7 +195,7 @@ def __grow(tree, elem):
             PE.outgoing: outgoing,
             PE.type: elem.type(),
             PE.name: elem.name,
-            PE.conditions: elem.link_conditions_with(outgoing)
+            PE.conditions: elem.link_conditions_with(outgoing),
         }
 
         for i, next_elem in enumerate(elem.outgoing):
@@ -221,7 +209,7 @@ def __grow(tree, elem):
             PE.incoming: tree[__incoming][elem.id],
             PE.outgoing: outgoing,
             PE.type: elem.type(),
-            PE.name: elem.name
+            PE.name: elem.name,
         }
 
         next_elem = elem.outgoing[0]
@@ -232,12 +220,7 @@ def __grow(tree, elem):
 
 
 def __grow_flow(tree, outgoing, elem, next_element):
-    tree[PE.flows][outgoing] = {
-        PE.is_default: False,
-        PE.source: elem.id,
-        PE.target: next_element.id,
-        PE.id: outgoing
-    }
+    tree[PE.flows][outgoing] = {PE.is_default: False, PE.source: elem.id, PE.target: next_element.id, PE.id: outgoing}
     if next_element.type() in __multiple_incoming_type:
         tree[__incoming].setdefault(next_element.id, []).append(outgoing)
     else:

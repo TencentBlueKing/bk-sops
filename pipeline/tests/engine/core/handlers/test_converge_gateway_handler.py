@@ -25,7 +25,6 @@ handlers.converge_gateway_handler = handlers.ConvergeGatewayHandler()
 
 
 class ConvergeGatewayHandlerTestCase(TestCase):
-
     def test_element_cls(self):
         self.assertEqual(handlers.ConvergeGatewayHandler.element_cls(), ConvergeGateway)
 
@@ -64,16 +63,15 @@ class ConvergeGatewayHandlerTestCase(TestCase):
     def test_handle__sync_raise_exception(self):
         converge_gateway = MockConvergeGateway()
         e = ChildDataSyncError()
-        process = MockPipelineProcess(children=[1, 2, 3],
-                                      sync_exception=e)
+        process = MockPipelineProcess(children=[1, 2, 3], sync_exception=e)
 
         hdl_result = handlers.converge_gateway_handler(process, converge_gateway, MockStatus())
 
         process.sync_with_children.assert_called_once()
 
         Status.objects.fail.assert_called_once_with(
-            converge_gateway,
-            ex_data='Sync branch context error, check data backend status please.')
+            converge_gateway, ex_data="Sync branch context error, check data backend status please."
+        )
 
         Status.objects.finish.assert_not_called()
 

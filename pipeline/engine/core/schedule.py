@@ -19,13 +19,10 @@ from django.db import transaction
 
 from pipeline.django_signal_valve import valve
 from pipeline.engine import exceptions, signals, states
-from pipeline.engine.core.data import (delete_parent_data,
-                                       get_schedule_parent_data,
-                                       set_schedule_data)
-from pipeline.engine.models import (Data, PipelineProcess, ScheduleService,
-                                    Status)
+from pipeline.engine.core.data import delete_parent_data, get_schedule_parent_data, set_schedule_data
+from pipeline.engine.models import Data, PipelineProcess, ScheduleService, Status
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 
 @contextlib.contextmanager
@@ -33,14 +30,14 @@ def schedule_exception_handler(process_id, schedule_id):
     try:
         yield
     except Exception as e:
-        activity_id = schedule_id[:ScheduleService.SCHEDULE_ID_SPLIT_DIVISION]
-        version = schedule_id[ScheduleService.SCHEDULE_ID_SPLIT_DIVISION:]
+        activity_id = schedule_id[: ScheduleService.SCHEDULE_ID_SPLIT_DIVISION]
+        version = schedule_id[ScheduleService.SCHEDULE_ID_SPLIT_DIVISION :]
         if Status.objects.filter(id=activity_id, version=version).exists():
             logger.error(traceback.format_exc())
             process = PipelineProcess.objects.get(id=process_id)
             process.exit_gracefully(e)
         else:
-            logger.warning('schedule({} - {}) forced exit.'.format(activity_id, version))
+            logger.warning("schedule({} - {}) forced exit.".format(activity_id, version))
 
         delete_parent_data(schedule_id)
 
@@ -61,7 +58,7 @@ def schedule(process_id, schedule_id):
 
         if not Status.objects.filter(id=act_id, version=version).exists():
             # forced failed
-            logger.warning('schedule service failed, schedule({} - {}) had been forced exit.'.format(act_id, version))
+            logger.warning("schedule service failed, schedule({} - {}) had been forced exit.".format(act_id, version))
             sched_service.destroy()
             return
 
@@ -69,7 +66,8 @@ def schedule(process_id, schedule_id):
         parent_data = get_schedule_parent_data(sched_service.id)
         if parent_data is None:
             raise exceptions.DataRetrieveError(
-                'child process({}) retrieve parent_data error, sched_id: {}'.format(process_id, schedule_id))
+                "child process({}) retrieve parent_data error, sched_id: {}".format(process_id, schedule_id)
+            )
 
         # schedule
         ex_data = None
@@ -94,22 +92,22 @@ def schedule(process_id, schedule_id):
         if not success:
             if not Status.objects.transit(id=act_id, version=version, to_state=states.FAILED).result:
                 # forced failed
-                logger.warning('FAILED transit failed, schedule({} - {}) had been forced exit.'.format(act_id, version))
+                logger.warning("FAILED transit failed, schedule({} - {}) had been forced exit.".format(act_id, version))
                 sched_service.destroy()
                 return
 
             if service_act.timeout:
-                signals.service_activity_timeout_monitor_end.send(sender=service_act.__class__,
-                                                                  node_id=service_act.id,
-                                                                  version=version)
-                logger.info('node {} {} timeout monitor revoke'.format(service_act.id, version))
+                signals.service_activity_timeout_monitor_end.send(
+                    sender=service_act.__class__, node_id=service_act.id, version=version
+                )
+                logger.info("node {} {} timeout monitor revoke".format(service_act.id, version))
 
             Data.objects.write_node_data(service_act, ex_data=ex_data)
 
             with transaction.atomic():
                 process = PipelineProcess.objects.select_for_update().get(id=sched_service.process_id)
                 if not process.is_alive:
-                    logger.info('pipeline %s has been revoked, status adjust failed.' % process.root_pipeline_id)
+                    logger.info("pipeline %s has been revoked, status adjust failed." % process.root_pipeline_id)
                     return
 
                 process.adjust_status()
@@ -119,18 +117,20 @@ def schedule(process_id, schedule_id):
             try:
                 service_act.schedule_fail()
             except Exception:
-                logger.error('schedule_fail handler fail: %s' % traceback.format_exc())
+                logger.error("schedule_fail handler fail: %s" % traceback.format_exc())
 
-            signals.service_schedule_fail.send(sender=ScheduleService,
-                                               activity_shell=service_act,
-                                               schedule_service=sched_service,
-                                               ex_data=ex_data)
+            signals.service_schedule_fail.send(
+                sender=ScheduleService, activity_shell=service_act, schedule_service=sched_service, ex_data=ex_data
+            )
 
-            valve.send(signals, 'activity_failed',
-                       sender=process.root_pipeline,
-                       pipeline_id=process.root_pipeline_id,
-                       pipeline_activity_id=service_act.id,
-                       subprocess_id_stack=process.subprocess_stack)
+            valve.send(
+                signals,
+                "activity_failed",
+                sender=process.root_pipeline,
+                pipeline_id=process.root_pipeline_id,
+                pipeline_activity_id=service_act.id,
+                subprocess_id_stack=process.subprocess_stack,
+            )
             return
 
         # schedule execute finished or callback finished
@@ -138,16 +138,17 @@ def schedule(process_id, schedule_id):
             error_ignorable = not service_act.get_result_bit()
             if not Status.objects.transit(id=act_id, version=version, to_state=states.FINISHED).result:
                 # forced failed
-                logger.warning('FINISHED transit failed, schedule({} - {}) had been forced exit.'.format(act_id,
-                                                                                                         version))
+                logger.warning(
+                    "FINISHED transit failed, schedule({} - {}) had been forced exit.".format(act_id, version)
+                )
                 sched_service.destroy()
                 return
 
             if service_act.timeout:
-                signals.service_activity_timeout_monitor_end.send(sender=service_act.__class__,
-                                                                  node_id=service_act.id,
-                                                                  version=version)
-                logger.info('node {} {} timeout monitor revoke'.format(service_act.id, version))
+                signals.service_activity_timeout_monitor_end.send(
+                    sender=service_act.__class__, node_id=service_act.id, version=version
+                )
+                logger.info("node {} {} timeout monitor revoke".format(service_act.id, version))
 
             Data.objects.write_node_data(service_act)
             if error_ignorable:
@@ -159,7 +160,7 @@ def schedule(process_id, schedule_id):
             with transaction.atomic():
                 process = PipelineProcess.objects.select_for_update().get(id=sched_service.process_id)
                 if not process.is_alive:
-                    logger.warning('schedule({} - {}) revoked.'.format(act_id, version))
+                    logger.warning("schedule({} - {}) revoked.".format(act_id, version))
                     sched_service.destroy()
                     return
 
@@ -173,13 +174,16 @@ def schedule(process_id, schedule_id):
             # save schedule service
             sched_service.finish()
 
-            signals.service_schedule_success.send(sender=ScheduleService,
-                                                  activity_shell=service_act,
-                                                  schedule_service=sched_service)
+            signals.service_schedule_success.send(
+                sender=ScheduleService, activity_shell=service_act, schedule_service=sched_service
+            )
 
-            valve.send(signals, 'wake_from_schedule',
-                       sender=ScheduleService,
-                       process_id=sched_service.process_id,
-                       activity_id=sched_service.activity_id)
+            valve.send(
+                signals,
+                "wake_from_schedule",
+                sender=ScheduleService,
+                process_id=sched_service.process_id,
+                activity_id=sched_service.activity_id,
+            )
         else:
             sched_service.set_next_schedule()

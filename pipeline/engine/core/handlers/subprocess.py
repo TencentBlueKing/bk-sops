@@ -19,13 +19,12 @@ from pipeline.core.flow.activity import SubProcess
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['SubprocessHandler']
+__all__ = ["SubprocessHandler"]
 
 
 class SubprocessHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return SubProcess

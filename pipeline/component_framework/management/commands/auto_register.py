@@ -26,14 +26,10 @@ class Command(BaseCommand):
             if isinstance(component_cls, type) and issubclass(component_cls, Component):
 
                 # not register ignored component
-                ignore = getattr(component_cls, '__register_ignore__', False)
+                ignore = getattr(component_cls, "__register_ignore__", False)
                 if ignore:
                     continue
 
                 ComponentModel.objects.get_or_create(
-                    code=component_cls.code,
-                    defaults={
-                        'name': component_cls.name,
-                        'status': __debug__,
-                    }
+                    code=component_cls.code, defaults={"name": component_cls.name, "status": __debug__}
                 )

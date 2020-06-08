@@ -22,7 +22,7 @@ class MockNode(FlowNode):
 
 class TestFlowNode(TestCase):
     def test_flow_node(self):
-        node_id = '1'
+        node_id = "1"
         flow_node = MockNode(node_id)
         self.assertTrue(isinstance(flow_node, FlowElement))
         self.assertEqual(node_id, flow_node.id)
@@ -31,19 +31,19 @@ class TestFlowNode(TestCase):
         self.assertTrue(isinstance(default_collection_node.outgoing, SequenceFlowCollection))
 
     def test_next_exec_is_retry(self):
-        node_id = '1'
+        node_id = "1"
         flow_node = MockNode(node_id)
         flow_node.next_exec_is_retry()
         self.assertTrue(hasattr(flow_node, FlowNode.ON_RETRY))
 
     def test_on_retry(self):
-        node_id = '1'
+        node_id = "1"
         flow_node = MockNode(node_id)
         flow_node.next_exec_is_retry()
         self.assertTrue(flow_node.on_retry())
 
     def test_retry_at_current_exec(self):
-        node_id = '1'
+        node_id = "1"
         flow_node = MockNode(node_id)
         flow_node.next_exec_is_retry()
         self.assertTrue(flow_node.on_retry())

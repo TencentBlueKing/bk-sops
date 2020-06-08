@@ -22,13 +22,12 @@ from pipeline.engine.models import Status
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['ExclusiveGatewayHandler']
+__all__ = ["ExclusiveGatewayHandler"]
 
 
 class ExclusiveGatewayHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return ExclusiveGateway

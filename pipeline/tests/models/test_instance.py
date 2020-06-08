@@ -25,63 +25,82 @@ from pipeline.engine.models import Status, NodeRelationship
 class TestPipelineInstance(TestCase):
     def setUp(self):
         self.data = {
-            'activities': {'node8fe2bb234d29860981a2bc7e6077': {'retryable': True,
-                                                                'component': {'code': 'sleep_timer',
-                                                                              'data': {'bk_timing': {
-                                                                                  'hook': False,
-                                                                                  'value': '3'}}},
-                                                                'error_ignorable': False,
-                                                                'id': 'node8fe2bb234d29860981a2bc7e6077',
-                                                                'incoming': 'line67b0e8cc895b1b9f9e0413dc50d1',
-                                                                'isSkipped': True,
-                                                                'loop': None,
-                                                                'name': '\u5b9a\u65f6',
-                                                                'optional': False,
-                                                                'outgoing': 'line73943da9f6f17601a40dc46bd229',
-                                                                'stage_name': '\u6b65\u9aa41',
-                                                                'type': 'ServiceActivity'}},
-            'constants': {'${ip}': {'custom_type': 'input',
-                                    'desc': '',
-                                    'index': 0,
-                                    'key': '${ip}',
-                                    'name': 'ip',
-                                    'show_type': 'show',
-                                    'source_info': {},
-                                    'source_tag': '',
-                                    'source_type': 'custom',
-                                    'validation': '^.+$',
-                                    'validator': [],
-                                    'value': ''}},
-            'end_event': {'id': 'nodeade2061fe6e69dc5b64a588480a7',
-                          'incoming': 'line73943da9f6f17601a40dc46bd229',
-                          'name': '',
-                          'outgoing': '',
-                          'type': 'EmptyEndEvent'},
-            'flows': {'line67b0e8cc895b1b9f9e0413dc50d1': {'id': 'line67b0e8cc895b1b9f9e0413dc50d1',
-                                                           'is_default': False,
-                                                           'source': 'nodedee24d10226c975f4d2c659cc29d',
-                                                           'target': 'node8fe2bb234d29860981a2bc7e6077'},
-                      'line73943da9f6f17601a40dc46bd229': {'id': 'line73943da9f6f17601a40dc46bd229',
-                                                           'is_default': False,
-                                                           'source': 'node8fe2bb234d29860981a2bc7e6077',
-                                                           'target': 'nodeade2061fe6e69dc5b64a588480a7'}},
-            'gateways': {},
-            'outputs': [],
-            'start_event': {'id': 'nodedee24d10226c975f4d2c659cc29d',
-                            'incoming': '',
-                            'name': '',
-                            'outgoing': 'line67b0e8cc895b1b9f9e0413dc50d1',
-                            'type': 'EmptyStartEvent'}}
-        self.creator = 'start'
-        self.template = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id='1')
-        self.instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data,
-                                                                    creator=self.creator, instance_id='1')
-        self.instance_2, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data,
-                                                                      creator=self.creator, instance_id='2')
-        self.instance_3, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data,
-                                                                      creator=self.creator, instance_id='3')
+            "activities": {
+                "node8fe2bb234d29860981a2bc7e6077": {
+                    "retryable": True,
+                    "component": {"code": "sleep_timer", "data": {"bk_timing": {"hook": False, "value": "3"}}},
+                    "error_ignorable": False,
+                    "id": "node8fe2bb234d29860981a2bc7e6077",
+                    "incoming": "line67b0e8cc895b1b9f9e0413dc50d1",
+                    "isSkipped": True,
+                    "loop": None,
+                    "name": "\u5b9a\u65f6",
+                    "optional": False,
+                    "outgoing": "line73943da9f6f17601a40dc46bd229",
+                    "stage_name": "\u6b65\u9aa41",
+                    "type": "ServiceActivity",
+                }
+            },
+            "constants": {
+                "${ip}": {
+                    "custom_type": "input",
+                    "desc": "",
+                    "index": 0,
+                    "key": "${ip}",
+                    "name": "ip",
+                    "show_type": "show",
+                    "source_info": {},
+                    "source_tag": "",
+                    "source_type": "custom",
+                    "validation": "^.+$",
+                    "validator": [],
+                    "value": "",
+                }
+            },
+            "end_event": {
+                "id": "nodeade2061fe6e69dc5b64a588480a7",
+                "incoming": "line73943da9f6f17601a40dc46bd229",
+                "name": "",
+                "outgoing": "",
+                "type": "EmptyEndEvent",
+            },
+            "flows": {
+                "line67b0e8cc895b1b9f9e0413dc50d1": {
+                    "id": "line67b0e8cc895b1b9f9e0413dc50d1",
+                    "is_default": False,
+                    "source": "nodedee24d10226c975f4d2c659cc29d",
+                    "target": "node8fe2bb234d29860981a2bc7e6077",
+                },
+                "line73943da9f6f17601a40dc46bd229": {
+                    "id": "line73943da9f6f17601a40dc46bd229",
+                    "is_default": False,
+                    "source": "node8fe2bb234d29860981a2bc7e6077",
+                    "target": "nodeade2061fe6e69dc5b64a588480a7",
+                },
+            },
+            "gateways": {},
+            "outputs": [],
+            "start_event": {
+                "id": "nodedee24d10226c975f4d2c659cc29d",
+                "incoming": "",
+                "name": "",
+                "outgoing": "line67b0e8cc895b1b9f9e0413dc50d1",
+                "type": "EmptyStartEvent",
+            },
+        }
+        self.creator = "start"
+        self.template = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id="1")
+        self.instance, _ = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator, instance_id="1"
+        )
+        self.instance_2, _ = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator, instance_id="2"
+        )
+        self.instance_3, _ = PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator, instance_id="3"
+        )
 
-    @mock.patch('pipeline.models.PipelineTemplate.objects.unfold_subprocess', mock.MagicMock())
+    @mock.patch("pipeline.models.PipelineTemplate.objects.unfold_subprocess", mock.MagicMock())
     def test_create_instance(self):
         creator = self.creator
         instance = self.instance
@@ -93,21 +112,24 @@ class TestPipelineInstance(TestCase):
         self.assertFalse(instance.is_deleted)
 
         # test spread
-        PipelineInstance.objects.create_instance(self.template, exec_data=self.data,
-                                                 creator=self.creator, instance_id='1')
+        PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator, instance_id="1"
+        )
 
         PipelineTemplate.objects.unfold_subprocess.assert_called_with(self.data)
 
         PipelineTemplate.objects.unfold_subprocess.reset_mock()
 
-        PipelineInstance.objects.create_instance(self.template, exec_data=self.data,
-                                                 creator=self.creator, instance_id='1', spread=True)
+        PipelineInstance.objects.create_instance(
+            self.template, exec_data=self.data, creator=self.creator, instance_id="1", spread=True
+        )
 
         PipelineTemplate.objects.unfold_subprocess.assert_not_called()
 
     def test_create_instance__without_template(self):
-        self.instance_4, _ = PipelineInstance.objects.create_instance(template=None, exec_data=self.data,
-                                                                      creator=self.creator, instance_id='4')
+        self.instance_4, _ = PipelineInstance.objects.create_instance(
+            template=None, exec_data=self.data, creator=self.creator, instance_id="4"
+        )
         self.assertIsNone(self.instance_4.template)
         self.assertIsNone(self.instance_4.snapshot)
         self.assertIsNotNone(self.instance_4.execution_snapshot)
@@ -120,13 +142,13 @@ class TestPipelineInstance(TestCase):
     def test_set_finished(self):
         NodeRelationship.objects.build_relationship(self.instance.instance_id, self.instance.instance_id)
         Status.objects.create(id=self.instance.instance_id, state=states.FINISHED)
-        for act_id in self.data['activities']:
+        for act_id in self.data["activities"]:
             NodeRelationship.objects.build_relationship(self.instance.instance_id, act_id)
             Status.objects.create(id=act_id, state=states.FINISHED)
-        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data['start_event']['id'])
-        Status.objects.create(id=self.data['start_event']['id'], state=states.FINISHED)
-        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data['end_event']['id'])
-        Status.objects.create(id=self.data['end_event']['id'], state=states.FINISHED)
+        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data["start_event"]["id"])
+        Status.objects.create(id=self.data["start_event"]["id"], state=states.FINISHED)
+        NodeRelationship.objects.build_relationship(self.instance.instance_id, self.data["end_event"]["id"])
+        Status.objects.create(id=self.data["end_event"]["id"], state=states.FINISHED)
         PipelineInstance.objects.set_finished(self.instance.instance_id)
 
         self.instance.refresh_from_db()
@@ -150,12 +172,12 @@ class TestPipelineInstance(TestCase):
         self.assertTrue(i2.is_deleted)
         self.assertTrue(i3.is_deleted)
 
-    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=True, message='')))
+    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=True, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__success(self):
         instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
-        executor = 'token_1'
+        executor = "token_1"
         instance.start(executor)
 
         instance.refresh_from_db()
@@ -167,43 +189,43 @@ class TestPipelineInstance(TestCase):
 
         task_service.run_pipeline.assert_called_once()
 
-    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message='')))
+    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     def test_start__already_started(self):
         instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
         instance.is_started = True
         instance.save()
-        executor = 'token_1'
+        executor = "token_1"
 
         instance.start(executor)
 
         instance.calculate_tree_info.assert_not_called()
         task_service.run_pipeline.assert_not_called()
 
-    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message='')))
+    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(side_effect=ImportError()))
     def test_start__parser_cls_error(self):
         instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
-        executor = 'token_1'
+        executor = "token_1"
 
         instance.start(executor)
 
         instance.refresh_from_db()
 
         self.assertFalse(instance.is_started)
-        self.assertEqual(instance.executor, '')
+        self.assertEqual(instance.executor, "")
         self.assertIsNone(instance.start_time)
 
         instance.calculate_tree_info.assert_not_called()
         task_service.run_pipeline.assert_not_called()
 
-    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message='')))
+    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__task_service_call_fail(self):
         instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
-        executor = 'token_1'
+        executor = "token_1"
         instance.start(executor)
 
         instance.refresh_from_db()
@@ -212,14 +234,14 @@ class TestPipelineInstance(TestCase):
         task_service.run_pipeline.assert_called_once()
 
         self.assertFalse(instance.is_started)
-        self.assertEqual(instance.executor, '')
+        self.assertEqual(instance.executor, "")
         self.assertIsNone(instance.start_time)
 
-    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message='')))
+    @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock(side_effect=Exception()))
     def test_start__error_occurred_before_task_service_call(self):
         instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
-        executor = 'token_1'
+        executor = "token_1"
 
         try:
             instance.start(executor)
@@ -229,7 +251,7 @@ class TestPipelineInstance(TestCase):
         instance.refresh_from_db()
 
         self.assertFalse(instance.is_started)
-        self.assertEqual(instance.executor, '')
+        self.assertEqual(instance.executor, "")
         self.assertIsNone(instance.start_time)
 
         task_service.run_pipeline.assert_not_called()

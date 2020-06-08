@@ -17,9 +17,10 @@ from pipeline.conf import default_settings
 
 
 class LogConfig(AppConfig):
-    name = 'pipeline.log'
+    name = "pipeline.log"
     verbose_name = "Database Logging"
 
     def ready(self):
         from pipeline.log import setup
+
         setup(level=default_settings.PIPELINE_LOG_LEVEL)

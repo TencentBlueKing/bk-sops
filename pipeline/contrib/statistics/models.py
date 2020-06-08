@@ -21,7 +21,7 @@ class ComponentInTemplate(models.Model):
     node_id = models.CharField(_("节点ID"), max_length=32)
     is_sub = models.BooleanField(_("是否子流程引用"), default=False)
     subprocess_stack = models.TextField(_("子流程堆栈"), default="[]", help_text=_("JSON 格式的列表"))
-    version = models.CharField(_("插件版本"), max_length=255, default='legacy')
+    version = models.CharField(_("插件版本"), max_length=255, default="legacy")
 
     class Meta:
         verbose_name = _("Pipeline标准插件被引用数据")
@@ -43,7 +43,7 @@ class ComponentExecuteData(models.Model):
     status = models.BooleanField(_("是否执行成功"), default=False)
     is_skip = models.BooleanField(_("是否跳过"), default=False)
     is_retry = models.BooleanField(_("是否重试记录"), default=False)
-    version = models.CharField(_("插件版本"), max_length=255, default='legacy')
+    version = models.CharField(_("插件版本"), max_length=255, default="legacy")
 
     class Meta:
         verbose_name = _("Pipeline标准插件执行数据")

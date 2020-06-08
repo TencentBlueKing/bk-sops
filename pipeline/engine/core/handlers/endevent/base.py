@@ -22,7 +22,7 @@ from pipeline.engine.models import (
 
 from ..base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 
 class EndEventHandler(FlowElementHandler):

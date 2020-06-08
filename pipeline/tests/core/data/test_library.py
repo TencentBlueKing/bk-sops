@@ -20,39 +20,35 @@ from pipeline.core.data.var import LazyVariable
 
 class TestLibrary(TestCase):
     class VarIpPickerVariable(LazyVariable):
-        code = 'ip'
-        form = 'var.js'
+        code = "ip"
+        form = "var.js"
 
         def get_value(self):
             return self.value
 
     def setUp(self):
-        self.name = '${ip}'
+        self.name = "${ip}"
         self.info = {
-            'source_tag': 'var_ip_picker.ip_picker',
-            'custom_type': 'ip',
-            'type': 'lazy',
-            'value': {
-                'var_ip_custom_value': '1.1.1.11.1',
-                'var_ip_method': 'custom',
-                'var_ip_tree': ''
-            }
+            "source_tag": "var_ip_picker.ip_picker",
+            "custom_type": "ip",
+            "type": "lazy",
+            "value": {"var_ip_custom_value": "1.1.1.11.1", "var_ip_method": "custom", "var_ip_tree": ""},
         }
         self.context = Context(self.name)
         self.pipeline_data = {
-            'language': 'zh-cn',
-            'task_id': 78,
-            'biz_cc_name': 'UTC',
-            'task_name': '20180918175615',
-            'executor': 'username',
-            'operator': 'username',
-            'biz_cc_id': 0
+            "language": "zh-cn",
+            "task_id": 78,
+            "biz_cc_name": "UTC",
+            "task_name": "20180918175615",
+            "executor": "username",
+            "operator": "username",
+            "biz_cc_id": 0,
         }
-        self.code = 'ip'
+        self.code = "ip"
 
     def test_get_var_class(self):
         cls = library.VariableLibrary
-        variable_class = cls.get_var_class(self.info['custom_type'])
+        variable_class = cls.get_var_class(self.info["custom_type"])
         self.assertEqual(variable_class.code, self.code)
 
     def test_get_var(self):

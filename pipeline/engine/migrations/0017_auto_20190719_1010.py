@@ -12,20 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0016_auto_20181228_0345'),
+        ("engine", "0016_auto_20181228_0345"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='status',
-            name='created_time',
-            field=models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='\u521b\u5efa\u65f6\u95f4'),
+            model_name="status",
+            name="created_time",
+            field=models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="\u521b\u5efa\u65f6\u95f4"),
         ),
     ]

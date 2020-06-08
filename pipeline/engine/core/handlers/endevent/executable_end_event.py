@@ -19,20 +19,21 @@ from pipeline.engine.models import Status
 
 from .base import EndEventHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 
 class ExecutableEndEventHandler(EndEventHandler):
-
     @staticmethod
     def element_cls():
         return ExecutableEndEvent
 
     def handle(self, process, element, status):
         try:
-            element.execute(in_subprocess=process.in_subprocess,
-                            root_pipeline_id=process.root_pipeline.id,
-                            current_pipeline_id=process.top_pipeline.id)
+            element.execute(
+                in_subprocess=process.in_subprocess,
+                root_pipeline_id=process.root_pipeline.id,
+                current_pipeline_id=process.top_pipeline.id,
+            )
         except Exception:
             ex_data = traceback.format_exc()
             element.data.outputs.ex_data = ex_data

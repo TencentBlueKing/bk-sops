@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -20,13 +19,19 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pipeline', '0019_delete_variablemodel'),
+        ("pipeline", "0019_delete_variablemodel"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='template',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='pipeline.PipelineTemplate', verbose_name='Pipeline\u6a21\u677f'),
+            model_name="pipelineinstance",
+            name="template",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="pipeline.PipelineTemplate",
+                verbose_name="Pipeline\u6a21\u677f",
+            ),
         ),
     ]

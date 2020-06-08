@@ -18,7 +18,6 @@ from pipeline.builder.flow import EmptyEndEvent
 
 
 class EmptyEndEventTestCase(TestCase):
-
     def test_type(self):
         e = EmptyEndEvent()
         self.assertEqual(e.type(), PE.EmptyEndEvent)

@@ -17,7 +17,7 @@ class Graph(object):
         self.nodes = nodes
         self.flows = flows
         self.path = []
-        self.last_visited_node = ''
+        self.last_visited_node = ""
 
     def has_cycle(self):
         self.path = []
@@ -47,7 +47,7 @@ class Graph(object):
         return []
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     graph1 = Graph([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4]])
     print((graph1.has_cycle(), graph1.get_cycle()))
     graph2 = Graph([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4], [4, 1]])

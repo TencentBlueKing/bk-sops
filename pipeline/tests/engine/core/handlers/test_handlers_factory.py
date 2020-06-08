@@ -30,52 +30,41 @@ from pipeline.engine.core.handlers.converge_gateway import ConvergeGatewayHandle
 
 
 class CustomEndEventOne(ExecutableEndEvent):
-
     def execute(self, in_subprocess, root_pipeline_id, current_pipeline_id):
         pass
 
 
 class CustomEndEventTwo(ExecutableEndEvent):
-
     def execute(self, in_subprocess, root_pipeline_id, current_pipeline_id):
         pass
 
 
 class EngineHandlerTestCase(TestCase):
-
     def setUp(self):
-        self.empty_start_event = EmptyStartEvent(id='1')
-        self.empty_end_event = EmptyEndEvent(id='2')
-        self.service_activity = ServiceActivity(id='3', service=None)
-        self.subprocess = SubProcess(id='4', pipeline=MagicMock())
-        self.exclusive_gateway = ExclusiveGateway(id='5')
-        self.parallel_gateway = ParallelGateway(id='6', converge_gateway_id=None)
-        self.conditional_parallel_gateway = ConditionalParallelGateway(id='7', converge_gateway_id=None)
-        self.converge_gateway = ConvergeGateway(id='8')
-        self.executable_end_event_1 = CustomEndEventOne(id='9')
-        self.executable_end_event_2 = CustomEndEventTwo(id='9')
+        self.empty_start_event = EmptyStartEvent(id="1")
+        self.empty_end_event = EmptyEndEvent(id="2")
+        self.service_activity = ServiceActivity(id="3", service=None)
+        self.subprocess = SubProcess(id="4", pipeline=MagicMock())
+        self.exclusive_gateway = ExclusiveGateway(id="5")
+        self.parallel_gateway = ParallelGateway(id="6", converge_gateway_id=None)
+        self.conditional_parallel_gateway = ConditionalParallelGateway(id="7", converge_gateway_id=None)
+        self.converge_gateway = ConvergeGateway(id="8")
+        self.executable_end_event_1 = CustomEndEventOne(id="9")
+        self.executable_end_event_2 = CustomEndEventTwo(id="9")
 
     def test_handlers_for(self):
-        self.assertIsInstance(HandlersFactory.handlers_for(self.empty_start_event),
-                              EmptyStartEventHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.empty_end_event),
-                              EmptyEndEventHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.service_activity),
-                              ServiceActivityHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.subprocess),
-                              SubprocessHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.exclusive_gateway),
-                              ExclusiveGatewayHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.parallel_gateway),
-                              ParallelGatewayHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.conditional_parallel_gateway),
-                              ConditionalParallelGatewayHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.converge_gateway),
-                              ConvergeGatewayHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.executable_end_event_1),
-                              ExecutableEndEventHandler)
-        self.assertIsInstance(HandlersFactory.handlers_for(self.executable_end_event_2),
-                              ExecutableEndEventHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.empty_start_event), EmptyStartEventHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.empty_end_event), EmptyEndEventHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.service_activity), ServiceActivityHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.subprocess), SubprocessHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.exclusive_gateway), ExclusiveGatewayHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.parallel_gateway), ParallelGatewayHandler)
+        self.assertIsInstance(
+            HandlersFactory.handlers_for(self.conditional_parallel_gateway), ConditionalParallelGatewayHandler
+        )
+        self.assertIsInstance(HandlersFactory.handlers_for(self.converge_gateway), ConvergeGatewayHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.executable_end_event_1), ExecutableEndEventHandler)
+        self.assertIsInstance(HandlersFactory.handlers_for(self.executable_end_event_2), ExecutableEndEventHandler)
 
     def test_find_cluster_root_cls(self):
         self.assertEqual(HandlersFactory.find_cluster_root_cls(self.empty_start_event), EmptyStartEvent)
@@ -84,8 +73,9 @@ class EngineHandlerTestCase(TestCase):
         self.assertEqual(HandlersFactory.find_cluster_root_cls(self.subprocess), SubProcess)
         self.assertEqual(HandlersFactory.find_cluster_root_cls(self.exclusive_gateway), ExclusiveGateway)
         self.assertEqual(HandlersFactory.find_cluster_root_cls(self.parallel_gateway), ParallelGateway)
-        self.assertEqual(HandlersFactory.find_cluster_root_cls(self.conditional_parallel_gateway),
-                         ConditionalParallelGateway)
+        self.assertEqual(
+            HandlersFactory.find_cluster_root_cls(self.conditional_parallel_gateway), ConditionalParallelGateway
+        )
         self.assertEqual(HandlersFactory.find_cluster_root_cls(self.converge_gateway), ConvergeGateway)
         self.assertEqual(HandlersFactory.find_cluster_root_cls(self.executable_end_event_1), ExecutableEndEvent)
         self.assertEqual(HandlersFactory.find_cluster_root_cls(self.executable_end_event_2), ExecutableEndEvent)

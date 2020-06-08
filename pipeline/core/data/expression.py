@@ -22,9 +22,9 @@ from mako.exceptions import MakoException
 from pipeline import exceptions
 
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 # find mako template(format is ${xxx}，and ${}# not in xxx, # may raise memory error)
-TEMPLATE_PATTERN = re.compile(r'\${[^${}#]+}')
+TEMPLATE_PATTERN = re.compile(r"\${[^${}#]+}")
 
 
 def format_constant_key(key):
@@ -33,7 +33,7 @@ def format_constant_key(key):
     @param key:
     @return:
     """
-    return '${%s}' % key
+    return "${%s}" % key
 
 
 def deformat_constant_key(key):
@@ -75,12 +75,12 @@ class ConstantTemplate(object):
         if isinstance(data, str):
             return self.resolve_string(data, value_maps)
         if isinstance(data, list):
-            ldata = [''] * len(data)
+            ldata = [""] * len(data)
             for index, item in enumerate(data):
                 ldata[index] = ConstantTemplate(copy.deepcopy(item)).resolve_data(value_maps)
             return ldata
         if isinstance(data, tuple):
-            ldata = [''] * len(data)
+            ldata = [""] * len(data)
             for index, item in enumerate(data):
                 ldata[index] = ConstantTemplate(copy.deepcopy(item)).resolve_data(value_maps)
             return tuple(ldata)
@@ -101,13 +101,14 @@ class ConstantTemplate(object):
         try:
             node = lex.parse()
         except MakoException as e:
-            logger.warning('pipeline get template[%s] reference error[%s]' % (template, e))
+            logger.warning("pipeline get template[{}] reference error[{}]".format(template, e))
             return []
 
         # Dummy compiler. _Identifiers class requires one
         # but only interested in the reserved_names field
         def compiler():
             return None
+
         compiler.reserved_names = set()
         identifiers = codegen._Identifiers(compiler, node)
 
@@ -131,21 +132,22 @@ class ConstantTemplate(object):
     @staticmethod
     def resolve_template(template, value_maps):
         if not isinstance(template, str):
-            raise exceptions.ConstantTypeException('constant resolve error, template[%s] is not a string' % template)
+            raise exceptions.ConstantTypeException("constant resolve error, template[%s] is not a string" % template)
         try:
             tm = Template(template)
         except (MakoException, SyntaxError) as e:
-            logger.error('pipeline resolve template[%s] error[%s]' % (template, e))
+            logger.error("pipeline resolve template[{}] error[{}]".format(template, e))
             return template
         try:
             resolved = tm.render_unicode(**value_maps)
         except (NameError, TypeError, KeyError) as e:
-            logger.warning('constant content is invalid, variable referred does not exist or variable type error[%s]'
-                           % e)
+            logger.warning(
+                "constant content is invalid, variable referred does not exist or variable type error[%s]" % e
+            )
             return template
         except AttributeError as e:
             # lazy Variable resolve failed before execution
-            logger.error('constant content is invalid with error [%s]' % e)
+            logger.error("constant content is invalid with error [%s]" % e)
             return template
         else:
             return resolved

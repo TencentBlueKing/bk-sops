@@ -35,61 +35,47 @@ class ComponentMeta(type):
             return super_new(cls, name, bases, attrs)
 
         # Create the class
-        module_name = attrs.pop('__module__')
-        new_class = super_new(cls, name, bases, {'__module__': module_name})
+        module_name = attrs.pop("__module__")
+        new_class = super_new(cls, name, bases, {"__module__": module_name})
         module = importlib.import_module(new_class.__module__)
 
         # Add all attributes to the class
-        attrs.setdefault('desc', '')
+        attrs.setdefault("desc", "")
         for obj_name, obj in list(attrs.items()):
             setattr(new_class, obj_name, obj)
 
         # check
-        if not getattr(new_class, 'name', None):
-            raise ValueError("component %s name can't be empty" %
-                             new_class.__name__)
+        if not getattr(new_class, "name", None):
+            raise ValueError("component %s name can't be empty" % new_class.__name__)
 
-        if not getattr(new_class, 'code', None):
-            raise ValueError("component %s code can't be empty" %
-                             new_class.__name__)
+        if not getattr(new_class, "code", None):
+            raise ValueError("component %s code can't be empty" % new_class.__name__)
 
-        if not getattr(new_class, 'bound_service', None) or not issubclass(new_class.bound_service, Service):
-            raise ValueError("component %s service can't be empty and must be subclass of Service" %
-                             new_class.__name__)
+        if not getattr(new_class, "bound_service", None) or not issubclass(new_class.bound_service, Service):
+            raise ValueError("component %s service can't be empty and must be subclass of Service" % new_class.__name__)
 
-        if not getattr(new_class, 'form', None):
-            setattr(new_class, 'form', None)
+        if not getattr(new_class, "form", None):
+            setattr(new_class, "form", None)
 
-        if not getattr(new_class, 'version', None):
-            setattr(new_class, 'version', LEGACY_PLUGINS_VERSION)
+        if not getattr(new_class, "version", None):
+            setattr(new_class, "version", LEGACY_PLUGINS_VERSION)
 
         # category/group name
-        group_name = getattr(
-            module, "__group_name__",
-            new_class.__module__.split(".")[-1].title()
-        )
-        setattr(new_class, 'group_name', group_name)
+        group_name = getattr(module, "__group_name__", new_class.__module__.split(".")[-1].title())
+        setattr(new_class, "group_name", group_name)
         new_name = "{}-{}".format(group_name, new_class.name)
 
         # category/group name
-        group_icon = getattr(
-            module, "__group_icon__",
-            ''
-        )
-        setattr(new_class, 'group_icon', group_icon)
+        group_icon = getattr(module, "__group_icon__", "")
+        setattr(new_class, "group_icon", group_icon)
 
-        if not getattr(module, '__register_ignore__', False):
-            ComponentLibrary.register_component(component_code=new_class.code,
-                                                version=new_class.version,
-                                                component_cls=new_class)
+        if not getattr(module, "__register_ignore__", False):
+            ComponentLibrary.register_component(
+                component_code=new_class.code, version=new_class.version, component_cls=new_class
+            )
             try:
                 ComponentModel.objects.update_or_create(
-                    code=new_class.code,
-                    version=new_class.version,
-                    defaults={
-                        'name': new_name,
-                        'status': __debug__,
-                    }
+                    code=new_class.code, version=new_class.version, defaults={"name": new_name, "status": __debug__}
                 )
             except Exception as e:
                 if not isinstance(e, ProgrammingError):

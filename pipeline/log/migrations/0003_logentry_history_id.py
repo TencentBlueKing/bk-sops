@@ -12,20 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('log', '0002_auto_20180810_1054'),
+        ("log", "0002_auto_20180810_1054"),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='logentry',
-            name='history_id',
-            field=models.IntegerField(default=-1),
-        ),
+        migrations.AddField(model_name="logentry", name="history_id", field=models.IntegerField(default=-1),),
     ]

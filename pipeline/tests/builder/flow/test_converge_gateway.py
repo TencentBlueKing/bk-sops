@@ -18,7 +18,6 @@ from pipeline.builder.flow import ConvergeGateway
 
 
 class ConvergeGatewayTestCase(TestCase):
-
     def test_type(self):
         e = ConvergeGateway()
         self.assertEqual(e.type(), PE.ConvergeGateway)

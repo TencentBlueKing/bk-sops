@@ -24,13 +24,13 @@ from pipeline.models import PipelineInstance
 from pipeline.contrib.periodic_task.models import PeriodicTask, PeriodicTaskHistory
 from pipeline.contrib.periodic_task import signals
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 
 @task(ignore_result=True)
 def periodic_task_start(*args, **kwargs):
     try:
-        periodic_task = PeriodicTask.objects.get(id=kwargs['period_task_id'])
+        periodic_task = PeriodicTask.objects.get(id=kwargs["period_task_id"])
     except PeriodicTask.DoesNotExist:
         # task has been deleted
         return
@@ -39,8 +39,8 @@ def periodic_task_start(*args, **kwargs):
         PeriodicTaskHistory.objects.record_schedule(
             periodic_task=periodic_task,
             pipeline_instance=None,
-            ex_data='engine is frozen, can not start task',
-            start_success=False
+            ex_data="engine is frozen, can not start task",
+            start_success=False,
         )
         return
 
@@ -50,47 +50,34 @@ def periodic_task_start(*args, **kwargs):
         instance, _ = PipelineInstance.objects.create_instance(
             template=periodic_task.template,
             exec_data=periodic_task.execution_data,
-            spread=kwargs.get('spread', True),
-            name='%s_%s' % (periodic_task.name[:113], now.strftime('%Y%m%d%H%M%S')),
+            spread=kwargs.get("spread", True),
+            name="{}_{}".format(periodic_task.name[:113], now.strftime("%Y%m%d%H%M%S")),
             creator=periodic_task.creator,
-            description='periodic task instance')
+            description="periodic task instance",
+        )
 
         signals.pre_periodic_task_start.send(
-            sender=PeriodicTask,
-            periodic_task=periodic_task,
-            pipeline_instance=instance)
+            sender=PeriodicTask, periodic_task=periodic_task, pipeline_instance=instance
+        )
 
         result = instance.start(periodic_task.creator, check_workers=False)
     except Exception:
         et = traceback.format_exc()
         logger.error(et)
         PeriodicTaskHistory.objects.record_schedule(
-            periodic_task=periodic_task,
-            pipeline_instance=None,
-            ex_data=et,
-            start_success=False
+            periodic_task=periodic_task, pipeline_instance=None, ex_data=et, start_success=False
         )
         return
 
     if not result.result:
         PeriodicTaskHistory.objects.record_schedule(
-            periodic_task=periodic_task,
-            pipeline_instance=None,
-            ex_data=result.message,
-            start_success=False
+            periodic_task=periodic_task, pipeline_instance=None, ex_data=result.message, start_success=False
         )
         return
 
     periodic_task.total_run_count += 1
     periodic_task.last_run_at = timezone.now()
     periodic_task.save()
-    signals.post_periodic_task_start.send(
-        sender=PeriodicTask,
-        periodic_task=periodic_task,
-        pipeline_instance=instance)
+    signals.post_periodic_task_start.send(sender=PeriodicTask, periodic_task=periodic_task, pipeline_instance=instance)
 
-    PeriodicTaskHistory.objects.record_schedule(
-        periodic_task=periodic_task,
-        pipeline_instance=instance,
-        ex_data=''
-    )
+    PeriodicTaskHistory.objects.record_schedule(periodic_task=periodic_task, pipeline_instance=instance, ex_data="")

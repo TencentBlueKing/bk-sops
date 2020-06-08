@@ -21,6 +21,7 @@ class VariableModel(models.Model):
     """
     注册的变量
     """
+
     code = models.CharField(_("变量编码"), max_length=255, unique=True)
     status = models.BooleanField(_("变量是否可用"), default=True)
 
@@ -52,4 +53,4 @@ class VariableModel(models.Model):
 
     @property
     def meta_tag(self):
-        return getattr(self.get_class(), 'meta_tag')
+        return getattr(self.get_class(), "meta_tag")

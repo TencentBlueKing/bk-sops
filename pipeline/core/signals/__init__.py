@@ -13,4 +13,4 @@ specific language governing permissions and limitations under the License.
 
 from django.dispatch import Signal
 
-pre_variable_register = Signal(providing_args=['variable_code'])
+pre_variable_register = Signal(providing_args=["variable_code"])

@@ -20,10 +20,7 @@ from pipeline.exceptions import PipelineException
 
 class PipelineSpec(object):
     def __init__(self, start_event, end_event, flows, activities, gateways, data, context):
-        objects = {
-            start_event.id: start_event,
-            end_event.id: end_event
-        }
+        objects = {start_event.id: start_event, end_event.id: end_event}
         for act in activities:
             objects[act.id] = act
         for gw in gateways:
@@ -130,7 +127,7 @@ class Pipeline(object):
     def data_for_node(self, node):
         node = self.spec.objects.get(node.id)
         if not node:
-            raise PipelineException('Can not find node %s in this pipeline.' % node.id)
+            raise PipelineException("Can not find node %s in this pipeline." % node.id)
         return node.data
 
     def node(self, id):

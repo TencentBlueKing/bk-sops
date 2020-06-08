@@ -19,75 +19,71 @@ from botocore.client import Config
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 CONFIG = Config(connect_timeout=10, read_timeout=10, retries={"max_attempts": 2})
 
 
 class S3ModuleImporter(AutoInstallRequirementsImporter):
-    def __init__(self,
-                 name,
-                 modules,
-                 service_address,
-                 bucket,
-                 access_key,
-                 secret_key,
-                 use_cache=True,
-                 secure_only=True):
+    def __init__(
+        self, name, modules, service_address, bucket, access_key, secret_key, use_cache=True, secure_only=True
+    ):
         super(S3ModuleImporter, self).__init__(name=name, modules=modules)
 
-        if secure_only and not service_address.startswith('https'):
-            raise ValueError('Only accept https when secure_only is True.')
+        if secure_only and not service_address.startswith("https"):
+            raise ValueError("Only accept https when secure_only is True.")
         elif not secure_only:
-            logger.warning('Using not secure protocol is extremely dangerous!!')
+            logger.warning("Using not secure protocol is extremely dangerous!!")
 
-        self.service_address = service_address if service_address.endswith('/') else '%s/' % service_address
+        self.service_address = service_address if service_address.endswith("/") else "%s/" % service_address
         self.bucket = bucket
         self.use_cache = use_cache
-        self.s3 = boto3.resource('s3',
-                                 aws_access_key_id=access_key,
-                                 aws_secret_access_key=secret_key,
-                                 endpoint_url=self.service_address,
-                                 config=CONFIG)
+        self.s3 = boto3.resource(
+            "s3",
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            endpoint_url=self.service_address,
+            config=CONFIG,
+        )
         self.obj_cache = {}
 
     def is_package(self, fullname):
         return self._fetch_obj_content(self._obj_key(fullname, is_pkg=True)) is not None
 
     def get_code(self, fullname):
-        return compile(self.get_source(fullname), self.get_file(fullname), 'exec')
+        return compile(self.get_source(fullname), self.get_file(fullname), "exec")
 
     def get_source(self, fullname):
         source_code = self._fetch_obj_content(self._obj_key(fullname, is_pkg=self.is_package(fullname)))
 
         if source_code is None:
-            raise ImportError('Can not find {module} in {service_address}{bucket}'.format(
-                module=fullname,
-                service_address=self.service_address,
-                bucket=self.bucket
-            ))
+            raise ImportError(
+                "Can not find {module} in {service_address}{bucket}".format(
+                    module=fullname, service_address=self.service_address, bucket=self.bucket
+                )
+            )
 
         return source_code
 
     def get_path(self, fullname):
-        return [self.get_file(fullname).rpartition('/')[0]]
+        return [self.get_file(fullname).rpartition("/")[0]]
 
     def get_file(self, fullname):
-        return '{service_address}{bucket}/{key}'.format(
+        return "{service_address}{bucket}/{key}".format(
             service_address=self.service_address,
             bucket=self.bucket,
-            key=self._obj_key(fullname, is_pkg=self.is_package(fullname))
+            key=self._obj_key(fullname, is_pkg=self.is_package(fullname)),
         )
 
     def _obj_key(self, fullname, is_pkg):
-        base_key = fullname.replace('.', '/')
-        key = '%s/__init__.py' % base_key if is_pkg else '%s.py' % base_key
+        base_key = fullname.replace(".", "/")
+        key = "%s/__init__.py" % base_key if is_pkg else "%s.py" % base_key
         return key
 
     def _fetch_obj_content(self, key):
-        logger.info('Try to fetch object: {key}'.format(key=key))
+        logger.info("Try to fetch object: {key}".format(key=key))
 
         if self.use_cache and key in self.obj_cache:
-            logger.info('Use content in cache for s3 object: {key}'.format(key=key))
+            logger.info("Use content in cache for s3 object: {key}".format(key=key))
             return self.obj_cache[key]
 
         obj_content = self._get_s3_obj_content(key)
@@ -102,9 +98,9 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
 
         try:
             resp = obj.get()
-            obj_content = resp['Body'].read()
+            obj_content = resp["Body"].read()
         except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 obj_content = None
             else:
                 raise

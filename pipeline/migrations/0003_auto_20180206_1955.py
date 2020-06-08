@@ -21,37 +21,50 @@ import pipeline.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pipeline', '0002_auto_20180109_1825'),
+        ("pipeline", "0002_auto_20180109_1825"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TemplateScheme',
+            name="TemplateScheme",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('unique_id', models.CharField(blank=True, max_length=97, unique=True, verbose_name='\u552f\u4e00\u65b9\u6848\u540d\u79f0')),
-                ('name', models.CharField(max_length=64, verbose_name='\u65b9\u6848\u540d\u79f0')),
-                ('edit_time', models.DateTimeField(auto_now=True, verbose_name='\u4fee\u6539\u65f6\u95f4')),
-                ('data', pipeline.models.CompressJSONField(verbose_name='\u65b9\u6848\u6570\u636e')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "unique_id",
+                    models.CharField(
+                        blank=True, max_length=97, unique=True, verbose_name="\u552f\u4e00\u65b9\u6848\u540d\u79f0"
+                    ),
+                ),
+                ("name", models.CharField(max_length=64, verbose_name="\u65b9\u6848\u540d\u79f0")),
+                ("edit_time", models.DateTimeField(auto_now=True, verbose_name="\u4fee\u6539\u65f6\u95f4")),
+                ("data", pipeline.models.CompressJSONField(verbose_name="\u65b9\u6848\u6570\u636e")),
             ],
         ),
         migrations.AlterModelOptions(
-            name='variablemodel',
-            options={'ordering': ['-id'], 'verbose_name': 'Variable\u53d8\u91cf', 'verbose_name_plural': 'Variable\u53d8\u91cf'},
+            name="variablemodel",
+            options={
+                "ordering": ["-id"],
+                "verbose_name": "Variable\u53d8\u91cf",
+                "verbose_name_plural": "Variable\u53d8\u91cf",
+            },
         ),
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='name',
-            field=models.CharField(default=b'default_instance', max_length=64, verbose_name='\u5b9e\u4f8b\u540d\u79f0'),
+            model_name="pipelineinstance",
+            name="name",
+            field=models.CharField(default=b"default_instance", max_length=64, verbose_name="\u5b9e\u4f8b\u540d\u79f0"),
         ),
         migrations.AlterField(
-            model_name='pipelinetemplate',
-            name='name',
-            field=models.CharField(default=b'default_template', max_length=64, verbose_name='\u6a21\u677f\u540d\u79f0'),
+            model_name="pipelinetemplate",
+            name="name",
+            field=models.CharField(default=b"default_template", max_length=64, verbose_name="\u6a21\u677f\u540d\u79f0"),
         ),
         migrations.AddField(
-            model_name='templatescheme',
-            name='template',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='pipeline.PipelineTemplate', verbose_name='\u5bf9\u5e94\u6a21\u677f ID'),
+            model_name="templatescheme",
+            name="template",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="pipeline.PipelineTemplate",
+                verbose_name="\u5bf9\u5e94\u6a21\u677f ID",
+            ),
         ),
     ]

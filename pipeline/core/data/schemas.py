@@ -14,12 +14,5 @@ specific language governing permissions and limitations under the License.
 BASE_PARAM = {
     "type": "object",
     "required": ["inputs", "outputs"],
-    "properties": {
-        "inputs": {
-            "type": "object",
-        },
-        "outputs": {
-            "type": "object"
-        }
-    }
+    "properties": {"inputs": {"type": "object"}, "outputs": {"type": "object"}},
 }

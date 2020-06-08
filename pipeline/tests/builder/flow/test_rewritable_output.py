@@ -17,25 +17,29 @@ from pipeline.builder.flow import RewritableNodeOutput
 
 
 class RewritableNodeOutputTestCase(TestCase):
-
     def test_init(self):
-        output = RewritableNodeOutput(type=RewritableNodeOutput.PLAIN, value='val', source_act=[
-            {'source_act': 'act', 'source_key': 'key'}])
+        output = RewritableNodeOutput(
+            type=RewritableNodeOutput.PLAIN, value="val", source_act=[{"source_act": "act", "source_key": "key"}]
+        )
         self.assertEqual(output.type, RewritableNodeOutput.PLAIN)
         self.assertEqual(output.value, None)
-        self.assertEqual(output.source_act, [{'source_act': 'act', 'source_key': 'key'}])
+        self.assertEqual(output.source_act, [{"source_act": "act", "source_key": "key"}])
 
     def test_to_dict(self):
-        output = RewritableNodeOutput(type=RewritableNodeOutput.PLAIN, value='val', source_act=[
-            {'source_act': 'act', 'source_key': 'key'},
-            {'source_act': 'act2', 'source_key': 'key2'}
-        ])
+        output = RewritableNodeOutput(
+            type=RewritableNodeOutput.PLAIN,
+            value="val",
+            source_act=[{"source_act": "act", "source_key": "key"}, {"source_act": "act2", "source_key": "key2"}],
+        )
         d = output.to_dict()
-        self.assertTrue(d, {
-            'type': 'plain',
-            'value': 'val',
-            'source_act': [
-                {'source_act': 'act', 'source_key': 'key'},
-                {'source_act': 'act2', 'source_key': 'key2'}
-            ]
-        })
+        self.assertTrue(
+            d,
+            {
+                "type": "plain",
+                "value": "val",
+                "source_act": [
+                    {"source_act": "act", "source_key": "key"},
+                    {"source_act": "act2", "source_key": "key2"},
+                ],
+            },
+        )

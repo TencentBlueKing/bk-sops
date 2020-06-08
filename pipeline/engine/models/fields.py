@@ -35,7 +35,7 @@ class IOField(models.BinaryField):
             return pickle.loads(zlib.decompress(value))
         except UnicodeDecodeError:
             # py2 pickle data process
-            return convert_bytes_to_str(pickle.loads(zlib.decompress(value), encoding='bytes'))
+            return convert_bytes_to_str(pickle.loads(zlib.decompress(value), encoding="bytes"))
         except Exception:
             return "IOField to_python raise error: {}".format(traceback.format_exc())
 

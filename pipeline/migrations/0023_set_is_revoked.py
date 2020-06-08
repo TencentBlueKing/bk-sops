@@ -23,13 +23,11 @@ def reverse_func(apps, schema_editor):
 
 
 def forward_func(apps, schema_editor):
-    PipelineInstance = apps.get_model('pipeline', 'PipelineInstance')
-    Status = apps.get_model('engine', 'Status')
+    PipelineInstance = apps.get_model("pipeline", "PipelineInstance")
+    Status = apps.get_model("engine", "Status")
 
-    revoked_status = Status.objects.filter(state=states.REVOKED).values('id', 'archived_time')
-    id_to_time = {
-        status['id']: status['archived_time'] for status in revoked_status
-    }
+    revoked_status = Status.objects.filter(state=states.REVOKED).values("id", "archived_time")
+    id_to_time = {status["id"]: status["archived_time"] for status in revoked_status}
     instances = PipelineInstance.objects.filter(instance_id__in=list(id_to_time.keys()))
     for inst in instances:
         inst.finish_time = id_to_time[inst.instance_id]
@@ -39,9 +37,7 @@ def forward_func(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('pipeline', '0022_pipelineinstance_is_revoked'),
+        ("pipeline", "0022_pipelineinstance_is_revoked"),
     ]
 
-    operations = [
-        migrations.RunPython(forward_func, reverse_func)
-    ]
+    operations = [migrations.RunPython(forward_func, reverse_func)]

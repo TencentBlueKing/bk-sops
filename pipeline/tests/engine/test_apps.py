@@ -18,18 +18,17 @@ from pipeline.engine.apps import EngineConfig
 
 
 class EngineConfigTestCase(TestCase):
-
-    @mock.patch('pipeline.django_signal_valve.valve.set_valve_function', mock.MagicMock())
-    @mock.patch('pipeline.engine.models.FunctionSwitch.objects.init_db', mock.MagicMock())
-    @mock.patch('pipeline.engine.signals.dispatch.dispatch', mock.MagicMock())
+    @mock.patch("pipeline.django_signal_valve.valve.set_valve_function", mock.MagicMock())
+    @mock.patch("pipeline.engine.models.FunctionSwitch.objects.init_db", mock.MagicMock())
+    @mock.patch("pipeline.engine.signals.dispatch.dispatch", mock.MagicMock())
     def test_ready(self):
         from pipeline.engine.signals import dispatch  # noqa
         from pipeline.django_signal_valve import valve  # noqa
         from pipeline.engine.models import FunctionSwitch  # noqa
 
-        EngineConfig.path = 'test'
+        EngineConfig.path = "test"
 
-        config = EngineConfig('', '')
+        config = EngineConfig("", "")
 
         config.ready()
 

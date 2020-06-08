@@ -17,26 +17,19 @@ from copy import deepcopy
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity.base import Activity
-from pipeline.core.flow.io import (BooleanItemSchema, InputItem, IntItemSchema,
-                                   OutputItem)
+from pipeline.core.flow.io import BooleanItemSchema, InputItem, IntItemSchema, OutputItem
 from pipeline.utils.utils import convert_bytes_to_str
 
 
 class Service(object, metaclass=ABCMeta):
-    schedule_result_attr = '__schedule_finish__'
-    schedule_determine_attr = '__need_schedule__'
+    schedule_result_attr = "__schedule_finish__"
+    schedule_determine_attr = "__need_schedule__"
     InputItem = InputItem
     OutputItem = OutputItem
     interval = None
     default_outputs = [
-        OutputItem(name=_("执行结果"),
-                   key='_result',
-                   type='bool',
-                   schema=BooleanItemSchema(description=_("是否执行成功"))),
-        OutputItem(name=_("循环次数"),
-                   key='_loop',
-                   type='int',
-                   schema=IntItemSchema(description=_("循环执行次数")))
+        OutputItem(name=_("执行结果"), key="_result", type="bool", schema=BooleanItemSchema(description=_("是否执行成功"))),
+        OutputItem(name=_("循环次数"), key="_loop", type="int", schema=IntItemSchema(description=_("循环执行次数"))),
     ]
 
     def __init__(self, name=None):
@@ -76,8 +69,8 @@ class Service(object, metaclass=ABCMeta):
         return getattr(self, self.schedule_result_attr, False)
 
     def __getstate__(self):
-        if 'logger' in self.__dict__:
-            del self.__dict__['logger']
+        if "logger" in self.__dict__:
+            del self.__dict__["logger"]
         return self.__dict__
 
     def clean_status(self):
@@ -85,20 +78,22 @@ class Service(object, metaclass=ABCMeta):
 
 
 class ServiceActivity(Activity):
-    result_bit = '_result'
-    loop = '_loop'
-    ON_RETRY = '_on_retry'
+    result_bit = "_result"
+    loop = "_loop"
+    ON_RETRY = "_on_retry"
 
-    def __init__(self,
-                 id,
-                 service,
-                 name=None,
-                 data=None,
-                 error_ignorable=False,
-                 failure_handler=None,
-                 skippable=True,
-                 retryable=True,
-                 timeout=None):
+    def __init__(
+        self,
+        id,
+        service,
+        name=None,
+        data=None,
+        error_ignorable=False,
+        failure_handler=None,
+        skippable=True,
+        retryable=True,
+        timeout=None,
+    ):
         super(ServiceActivity, self).__init__(id, name, data, failure_handler)
         self.service = service
         self.error_ignorable = error_ignorable
@@ -165,8 +160,14 @@ class ServiceActivity(Activity):
         self.service.finish_schedule()
 
     def shell(self):
-        shell = ServiceActivity(id=self.id, service=self.service, name=self.name, data=self.data,
-                                error_ignorable=self.error_ignorable, timeout=self.timeout)
+        shell = ServiceActivity(
+            id=self.id,
+            service=self.service,
+            name=self.name,
+            data=self.data,
+            error_ignorable=self.error_ignorable,
+            timeout=self.timeout,
+        )
         return shell
 
     def schedule_fail(self):
@@ -184,12 +185,12 @@ class ServiceActivity(Activity):
         for attr, obj in list(state.items()):
             # py2 compatible
             if isinstance(attr, bytes):
-                attr = attr.decode('utf-8')
+                attr = attr.decode("utf-8")
                 obj = convert_bytes_to_str(obj)
 
             setattr(self, attr, obj)
 
-        if 'timeout' not in state:
+        if "timeout" not in state:
             self.timeout = None
 
 

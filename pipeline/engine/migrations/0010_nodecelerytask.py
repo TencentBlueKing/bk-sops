@@ -12,23 +12,25 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0010_auto_20180830_1203'),
+        ("engine", "0010_auto_20180830_1203"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='NodeCeleryTask',
+            name="NodeCeleryTask",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('node_id', models.CharField(unique=True, max_length=32, verbose_name='\u8282\u70b9 ID', db_index=True)),
-                ('celery_task_id', models.CharField(default=b'', max_length=40, verbose_name='celery \u4efb\u52a1 ID')),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                (
+                    "node_id",
+                    models.CharField(unique=True, max_length=32, verbose_name="\u8282\u70b9 ID", db_index=True),
+                ),
+                ("celery_task_id", models.CharField(default=b"", max_length=40, verbose_name="celery \u4efb\u52a1 ID")),
             ],
         ),
     ]

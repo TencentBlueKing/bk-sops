@@ -12,18 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pipeline', '0018_set_has_subprocess'),
+        ("pipeline", "0018_set_has_subprocess"),
     ]
 
     operations = [
-        migrations.DeleteModel(
-            name='VariableModel',
-        ),
+        migrations.DeleteModel(name="VariableModel",),
     ]

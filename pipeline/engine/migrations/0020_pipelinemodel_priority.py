@@ -8,13 +8,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0019_auto_20190729_1044'),
+        ("engine", "0019_auto_20190729_1044"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='pipelinemodel',
-            name='priority',
-            field=models.IntegerField(default=100, verbose_name='\u6d41\u7a0b\u4f18\u5148\u7ea7'),
+            model_name="pipelinemodel",
+            name="priority",
+            field=models.IntegerField(default=100, verbose_name="\u6d41\u7a0b\u4f18\u5148\u7ea7"),
         ),
     ]

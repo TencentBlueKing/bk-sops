@@ -14,10 +14,7 @@ specific language governing permissions and limitations under the License.
 from pipeline.utils.uniqid import uniqid
 from pipeline.core.constants import PE
 
-__all__ = [
-    'Element',
-    'PE'
-]
+__all__ = ["Element", "PE"]
 
 
 class Element(object):
@@ -79,6 +76,4 @@ class Element(object):
         return self.id == other.id
 
     def __repr__(self):
-        return "<{cls} {name}:{id}>".format(cls=type(self).__name__,
-                                            name=self.name,
-                                            id=self.id)
+        return "<{cls} {name}:{id}>".format(cls=type(self).__name__, name=self.name, id=self.id)

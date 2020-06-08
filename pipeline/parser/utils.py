@@ -17,7 +17,7 @@ from pipeline.utils.uniqid import node_uniqid, line_uniqid
 from pipeline.core.constants import PE
 from pipeline.exceptions import NodeNotExistException
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 def recursive_replace_id(pipeline_data):
@@ -87,7 +87,7 @@ def replace_all_id(pipeline_data):
         PE.activities: activity_id_maps,
         PE.gateways: gateway_id_maps,
         PE.flows: flow_id_maps,
-        PE.subprocess_detail: {}
+        PE.subprocess_detail: {},
     }
 
 
@@ -102,27 +102,27 @@ def _replace_id_in_data(pipeline_data, node_map):
 
 
 def _replace_front_end_data_id(pipeline_data, node_map, flow_map):
-    if 'line' in pipeline_data:
-        for line in pipeline_data['line']:
+    if "line" in pipeline_data:
+        for line in pipeline_data["line"]:
             line[PE.id] = flow_map[line[PE.id]]
             line[PE.source][PE.id] = node_map[line[PE.source][PE.id]]
             line[PE.target][PE.id] = node_map[line[PE.target][PE.id]]
-    if 'location' in pipeline_data:
-        for location in pipeline_data['location']:
+    if "location" in pipeline_data:
+        for location in pipeline_data["location"]:
             location[PE.id] = node_map[location[PE.id]]
-    if 'constants' in pipeline_data:
+    if "constants" in pipeline_data:
         for key, constant in list(pipeline_data[PE.constants].items()):
-            source_info = constant.get('source_info', None)
+            source_info = constant.get("source_info", None)
             if source_info:
                 replaced_constant = {}
                 for source_step, source_keys in list(source_info.items()):
                     try:
                         replaced_constant[node_map[source_step]] = source_keys
                     except KeyError as e:
-                        message = 'replace pipeline template id error: %s' % e
+                        message = "replace pipeline template id error: %s" % e
                         logger.exception(message)
                         raise NodeNotExistException(message)
-                    constant['source_info'] = replaced_constant
+                    constant["source_info"] = replaced_constant
 
 
 def _replace_flow_id(flows, flow_id, substituted_id, pipeline_data):
@@ -190,7 +190,7 @@ def _replace_gateway_id(flows, gateways, gateway_id, substituted_id):
         gateways.pop(gateway_id)
         gateways[substituted_id] = gateway
     except KeyError as e:
-        message = 'replace gateway id error: %s' % e
+        message = "replace gateway id error: %s" % e
         logger.exception(message)
         raise NodeNotExistException(message)
 
@@ -213,7 +213,7 @@ def _replace_activity_id(flows, activities, act_id, substituted_id):
         activities.pop(act_id)
         activities[substituted_id] = activity
     except KeyError as e:
-        message = 'replace activity id error: %s' % e
+        message = "replace activity id error: %s" % e
         logger.exception(message)
         raise NodeNotExistException(message)
 
@@ -232,7 +232,7 @@ def _replace_event_id(flows, event, substituted_id):
         else:
             flows[event[PE.outgoing]][PE.source] = substituted_id
     except KeyError as e:
-        message = 'replace event id error: %s' % e
+        message = "replace event id error: %s" % e
         logger.exception(message)
         raise NodeNotExistException(message)
 

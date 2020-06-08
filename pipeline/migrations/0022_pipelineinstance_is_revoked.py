@@ -19,13 +19,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pipeline', '0021_auto_20190906_1143'),
+        ("pipeline", "0021_auto_20190906_1143"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='pipelineinstance',
-            name='is_revoked',
-            field=models.BooleanField(default=False, verbose_name='\u662f\u5426\u5df2\u7ecf\u64a4\u9500'),
+            model_name="pipelineinstance",
+            name="is_revoked",
+            field=models.BooleanField(default=False, verbose_name="\u662f\u5426\u5df2\u7ecf\u64a4\u9500"),
         ),
     ]
