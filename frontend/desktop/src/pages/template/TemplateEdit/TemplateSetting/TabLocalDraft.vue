@@ -22,15 +22,11 @@
                 <i class="common-icon-info draft-tooltip"
                     v-bk-tooltips="{
                         allowHtml: true,
-                        content: '#draft-desc',
+                        content: $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。'),
                         placement: 'bottom-end',
                         duration: 0,
-                        width: 224 }"></i>
-                <div id="draft-desc">
-                    <div class="tips-item" style="white-space: normal;">
-                        <p>{{ $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。') }}</p>
-                    </div>
-                </div>
+                        width: 224 }">
+                </i>
             </div>
             <div class="content-wrap" slot="content">
                 <div class="local-draft-content">
@@ -63,8 +59,8 @@
                                     :title="draft.data.description.message">
                                     <div class="content">
                                         <bk-input
-                                            v-if="edittingDraf.key === draft.key"
-                                            v-model="edittingDraf.name"
+                                            v-if="editingDraf.key === draft.key"
+                                            v-model="editingDraf.name"
                                             v-focus
                                             v-validate="draftNameRule"
                                             data-vv-validate-on=" "
@@ -118,7 +114,7 @@
         },
         data () {
             return {
-                edittingDraf: {
+                editingDraf: {
                     key: null,
                     name: ''
                 },
@@ -156,8 +152,8 @@
             },
             // 点击编辑快照
             onEditDraftnName (draft) {
-                this.edittingDraf.key = draft.key
-                this.edittingDraf.name = draft.data.description.message
+                this.editingDraf.key = draft.key
+                this.editingDraf.name = draft.data.description.message
             },
             // 保存编辑后的快照
             saveDraftnName (draft) {
@@ -166,10 +162,10 @@
                         return
                     }
                     const newData = tools.deepClone(draft.data)
-                    newData.description.message = this.edittingDraf.name
-                    this.$emit('updateDraft', this.edittingDraf.key, newData)
-                    this.edittingDraf.key = null
-                    this.edittingDraf.name = ''
+                    newData.description.message = this.editingDraf.name
+                    this.$emit('updateDraft', this.editingDraf.key, newData)
+                    this.editingDraf.key = null
+                    this.editingDraf.name = ''
                 })
             },
             onBeforeClose () {
@@ -256,6 +252,10 @@
             .common-icon-edit {
                 display: none;
                 cursor: pointer;
+                color: #979ba5;
+                &:hover {
+                    color: #63656e;
+                }
             }
             .common-icon-info {
                 position: absolute;

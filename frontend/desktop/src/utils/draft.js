@@ -67,12 +67,7 @@ const draft = {
         }
     },
     updateDraft (key, data) {
-        try {
-            localStorage.setItem(key, JSON.stringify(data))
-            return true
-        } catch (e) {
-            return false
-        }
+        localStorage.setItem(key, JSON.stringify(data))
     },
     // 用于替换第一次创建模板id为 uuid 的id
     draftReplace (username, projectId, templateId, templateUUID) {
