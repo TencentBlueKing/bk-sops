@@ -301,7 +301,7 @@
             async getTemplateList () {
                 this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList()
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
                     this.templateList = templateListData.objects
                     this.tplOperations = templateListData.meta.auth_operations
                     this.tplResource = templateListData.meta.auth_resource

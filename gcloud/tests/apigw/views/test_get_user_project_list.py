@@ -40,7 +40,7 @@ class GetUserProjectListAPITest(APITest):
 
         self.assertFalse(data["result"])
         self.assertTrue("message" in data)
-        self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+        self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
     def test_get_user_project_list__success(self):
 

@@ -78,7 +78,7 @@ def preview_task_tree(request, project_id, template_id):
             {
                 "result": False,
                 "message": "preview_template_tree fail: {}".format(e),
-                "code": err_code.UNKNOW_ERROR.code,
+                "code": err_code.UNKNOWN_ERROR.code,
             }
         )
 

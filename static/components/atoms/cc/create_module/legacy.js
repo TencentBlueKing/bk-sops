@@ -110,10 +110,10 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.items = [];
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + cc_id + '/';
+                        if (biz_cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + biz_cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -127,7 +127,7 @@
                         }
                         this.items = [];
                         if (value !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + cc_id + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + value + '/';
                             this.remoteMethod();
                         }
                     }
@@ -318,10 +318,10 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.columns = [];
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
+                        if (biz_cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + biz_cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -405,10 +405,10 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const biz_cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.columns = [];
-                        if (cc_id !== '') {
-                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + cc_id + '/';
+                        if (biz_cc_id !== '') {
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_create_object_attribute/module/' + biz_cc_id + '/';
                             this.remoteMethod();
                         }
                     }

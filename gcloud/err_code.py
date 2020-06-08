@@ -29,7 +29,7 @@ SUCCESS = ErrorCode(
 
 REQUEST_PARAM_INVALID = ErrorCode(
     code='40000',
-    description='the content of param in your request is invalid'
+    description='your request parameters are invalid'
 )
 REQUEST_FORBIDDEN_INVALID = ErrorCode(
     code='40100',
@@ -37,7 +37,7 @@ REQUEST_FORBIDDEN_INVALID = ErrorCode(
 )
 CONTENT_NOT_EXIST = ErrorCode(
     code='40400',
-    description='the content you reqeust does not exist'
+    description='the content you requested does not exist'
 )
 INVALID_OPERATION = ErrorCode(
     code='45000',
@@ -45,7 +45,7 @@ INVALID_OPERATION = ErrorCode(
 )
 OPERATION_FAIL = ErrorCode(
     code='45100',
-    description='invalid operation'
+    description='operation failed'
 )
 VALIDATION_ERROR = ErrorCode(
     code='46100',
@@ -57,7 +57,7 @@ ENV_ERROR = ErrorCode(
     description='environment error'
 )
 
-UNKNOW_ERROR = ErrorCode(
+UNKNOWN_ERROR = ErrorCode(
     code='99999',
-    description='unknow error'
+    description='unknown error'
 )
