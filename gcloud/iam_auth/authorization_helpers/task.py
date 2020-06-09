@@ -21,7 +21,15 @@ class TaskIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
     def _get_flow_resources(self, bundle):
         return [
             Resource(
-                IAMMeta.SYSTEM_ID, IAMMeta.TASK_RESOURCE, str(bundle.obj.id), {"iam_resource_owner": bundle.obj.creator}
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.TASK_RESOURCE,
+                str(bundle.obj.id),
+                {
+                    "iam_resource_owner": bundle.obj.creator,
+                    "path": "/project,{}/".format(bundle.obj.project_id),
+                    "type": bundle.obj.flow_type,
+                    "name": bundle.obj.name,
+                },
             )
         ]
 

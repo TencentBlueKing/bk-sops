@@ -24,7 +24,7 @@ class CommonFlowIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
                 IAMMeta.SYSTEM_ID,
                 IAMMeta.COMMON_FLOW_RESOURCE,
                 str(bundle.obj.id),
-                {"iam_resource_owner": bundle.obj.creator},
+                {"iam_resource_owner": bundle.obj.creator, "name": bundle.obj.name},
             )
         ]
 
