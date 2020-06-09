@@ -25,7 +25,7 @@
                         content: $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。'),
                         placement: 'bottom-end',
                         duration: 0,
-                        width: 224 }">
+                        width: 400 }">
                 </i>
             </div>
             <div class="content-wrap" slot="content">
