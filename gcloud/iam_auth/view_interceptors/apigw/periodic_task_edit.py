@@ -31,12 +31,13 @@ class PeriodicTaskEditInterceptor(ViewInterceptor):
 
         subject = Subject(request.user.username)
         action = Action(IAMMeta.PERIODIC_TASK_EDIT_ACTION)
+        task_info = PeriodicTask.objects.fetch_values(task_id, "task__creator", "task__name")
         resources = [
             Resource(
                 IAMMeta.SYSTEM_ID,
                 IAMMeta.PERIODIC_TASK_RESOURCE,
                 str(task_id),
-                {"iam_resource_owner": PeriodicTask.objects.creator_for(task_id)},
+                {"iam_resource_owner": task_info["task__creator"], "name": task_info["task__name"]},
             )
         ]
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

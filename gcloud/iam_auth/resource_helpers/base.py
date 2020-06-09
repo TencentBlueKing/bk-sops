@@ -32,10 +32,11 @@ class SimpleSubjectEnvHelperMixin(object):
 
 
 class SimpleResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
-    def __init__(self, type, id_field, creator_field, *args, **kwargs):
+    def __init__(self, type, id_field, creator_field, name_field, *args, **kwargs):
         self.type = type
         self.id_field = id_field
         self.creator_field = creator_field
+        self.name_field = name_field
         super().__init__(*args, **kwargs)
 
     def get_resources(self, bundle):
@@ -43,6 +44,8 @@ class SimpleResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
         attributes = {}
         if self.creator_field:
             attributes["iam_resource_owner"] = getattr(bundle.obj, self.creator_field)
+        if self.name_field:
+            attributes["name"] = getattr(bundle.obj, self.name_field)
 
         return [Resource(SYSTEM_ID, self.type, str(getattr(bundle.obj, self.id_field)), attributes)]
 

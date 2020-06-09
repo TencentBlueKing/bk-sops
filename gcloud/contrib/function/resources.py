@@ -50,6 +50,7 @@ class FunctionTaskResource(GCloudModelResource):
             type=IAMMeta.TASK_RESOURCE,
             id_field="task_id",
             creator_field="creator_name",
+            name_field="name",
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[

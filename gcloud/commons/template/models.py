@@ -43,6 +43,14 @@ def replace_template_id(template_model, pipeline_data, reverse=False):
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
+    def fetch_values(self, id, *values):
+        qs = self.filter(id=id).values(*values)
+
+        if not qs:
+            raise self.model.DoesNotExist()
+
+        return qs.first()
+
     def creator_for(self, id):
         qs = self.filter(id=id).values("pipeline_template__creator")
 

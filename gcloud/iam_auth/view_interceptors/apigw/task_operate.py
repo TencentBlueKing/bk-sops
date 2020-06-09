@@ -28,6 +28,9 @@ class TaskOperateInterceptor(ViewInterceptor):
             return
 
         task_id = kwargs["task_id"]
+        task_info = TaskFlowInstance.objects.fetch_values(
+            task_id, "pipeline_instance__creator", "pipeline_instance__name"
+        )
 
         subject = Subject(request.user.username)
         action = Action(IAMMeta.TASK_OPERATE_ACTION)
@@ -36,7 +39,10 @@ class TaskOperateInterceptor(ViewInterceptor):
                 IAMMeta.SYSTEM_ID,
                 IAMMeta.TASK_RESOURCE,
                 str(task_id),
-                {"iam_resource_owner": TaskFlowInstance.objects.creator_for(task_id)},
+                {
+                    "iam_resource_owner": task_info["pipeline_instance__creator"],
+                    "name": task_info["pipeline_instance__name"],
+                },
             )
         ]
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

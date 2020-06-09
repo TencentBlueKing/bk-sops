@@ -96,6 +96,7 @@ class ProjectResource(GCloudModelResource):
             type=IAMMeta.PROJECT_RESOURCE,
             id_field="id",
             creator_field=None,
+            name_field="name",
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[

@@ -39,44 +39,6 @@ def get_user_projects(username):
     return Project.objects.filter(filters)
 
 
-def filter_flows_can_create_task(username, flow_id_list):
-    allowed_flows_id = set()
-
-    flows = TaskTemplate.objects.filter(id__in=flow_id_list).values("id", "pipeline_template__creator", "project_id")
-
-    if not flows:
-        return allowed_flows_id
-
-    iam_result = get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        [IAMMeta.FLOW_CREATE_TASK_ACTION],
-        [
-            [
-                Resource(
-                    IAMMeta.SYSTEM_ID,
-                    IAMMeta.FLOW_RESOURCE,
-                    flow["id"],
-                    {
-                        "iam_resource_owner": flow["pipeline_template__creator"],
-                        "path": "/project,{}/".format(flow["project_id"]),
-                    },
-                )
-            ]
-            for flow in flows
-        ],
-    )
-
-    if not iam_result:
-        return allowed_flows_id
-
-    for rid, action_allow in iam_result.items():
-        if action_allow.get(IAMMeta.FLOW_CREATE_TASK_ACTION):
-            allowed_flows_id.add(rid)
-
-    return allowed_flows_id
-
-
 def get_flow_allowed_actions_for_user(username, actions, flow_id_list):
     flows = TaskTemplate.objects.filter(id__in=flow_id_list).values("id", "pipeline_template__creator", "project_id")
 
@@ -92,7 +54,7 @@ def get_flow_allowed_actions_for_user(username, actions, flow_id_list):
                 Resource(
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.FLOW_RESOURCE,
-                    flow["id"],
+                    str(flow["id"]),
                     {
                         "iam_resource_owner": flow["pipeline_template__creator"],
                         "path": "/project,{}/".format(flow["project_id"]),
@@ -119,7 +81,7 @@ def get_common_flow_allowed_actions_for_user(username, actions, common_flow_id_l
                 Resource(
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.COMMON_FLOW_RESOURCE,
-                    flow["id"],
+                    str(flow["id"]),
                     {"iam_resource_owner": flow["pipeline_template__creator"]},
                 )
             ]
@@ -143,7 +105,7 @@ def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
                 Resource(
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.MINI_APP_RESOURCE,
-                    app["id"],
+                    str(app["id"]),
                     {"iam_resource_owner": app["creator"], "path": "/project,{}/".format(app["project_id"])},
                 )
             ]

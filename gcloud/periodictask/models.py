@@ -38,8 +38,16 @@ logger = logging.getLogger("root")
 
 
 class PeriodicTaskManager(models.Manager):
-    def creator_for(self, tid):
-        qs = self.filter(id=tid).values("task__creator")
+    def fetch_values(self, id, *values):
+        qs = self.filter(id=id).values(*values)
+
+        if not qs:
+            raise self.model.DoesNotExist()
+
+        return qs.first()
+
+    def creator_for(self, id):
+        qs = self.filter(id=id).values("task__creator")
 
         if not qs:
             raise self.model.DoesNotExist()

@@ -31,6 +31,7 @@ class TaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
                     "iam_resource_owner": bundle.obj.creator_name,
                     "path": "/project,{}/".format(bundle.obj.project_id),
                     "type": bundle.obj.flow_type,
+                    "name": bundle.obj.name,
                 },
             )
         ]

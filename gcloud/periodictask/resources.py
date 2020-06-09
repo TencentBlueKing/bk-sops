@@ -126,7 +126,7 @@ class PeriodicTaskResource(GCloudModelResource):
             template_id = bundle.data.pop("template_id")
             template_source = bundle.data.get("template_source", PROJECT)
             name = bundle.data.pop("name")
-            cron = json.loads(bundle.data.pop("cron"))
+            cron = bundle.data.pop("cron")
             pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
         except (KeyError, ValueError) as e:
             message = "create periodic_task params error: %s" % e.message
@@ -161,7 +161,7 @@ class PeriodicTaskResource(GCloudModelResource):
                         system=IAMMeta.SYSTEM_ID,
                         type=IAMMeta.FLOW_RESOURCE,
                         id=str(template.id),
-                        attribute={"iam_resource_owner": template.creator},
+                        attribute={"iam_resource_owner": template.creator, "name": template.name},
                     )
                 ],
             )
@@ -188,7 +188,7 @@ class PeriodicTaskResource(GCloudModelResource):
                         system=IAMMeta.SYSTEM_ID,
                         type=IAMMeta.COMMON_FLOW_RESOURCE,
                         id=str(template.id),
-                        attribute={"iam_resource_owner": template.creator},
+                        attribute={"iam_resource_owner": template.creator, "name": template.name},
                     ),
                 ],
             )
