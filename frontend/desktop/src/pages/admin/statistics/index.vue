@@ -10,41 +10,46 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-statistics">
-        <base-title
-            type="router"
-            :title="$t('运营数据')"
-            :tab-list="routers">
-            <template v-slot:expand>
-                <div class="date-picker">
-                    <bk-form form-type="inline">
-                        <bk-form-item :label="$t('时间范围')">
-                            <bk-date-picker
-                                v-model="dateRange"
-                                type="daterange"
-                                placement="top-end"
-                                :clearable="false"
-                                @change="onChangeDateRange">
-                            </bk-date-picker>
-                        </bk-form-item>
-                    </bk-form>
-                </div>
-            </template>
-        </base-title>
-        <div class="statistics-content">
-            <router-view
-                :date-range="dateStamp"
-                :project-list="projectList"
-                :category-list="categoryList">
-            </router-view>
-        </div>
+    <div class="page-statistics" v-bkloading="{ isLoading: permissionLoading, opacity: 0 }">
+        <template v-if="hasViewPerm">
+            <base-title
+                type="router"
+                :title="$t('运营数据')"
+                :tab-list="routers">
+                <template v-slot:expand>
+                    <div class="date-picker">
+                        <bk-form form-type="inline">
+                            <bk-form-item :label="$t('时间范围')">
+                                <bk-date-picker
+                                    v-model="dateRange"
+                                    type="daterange"
+                                    placement="top-end"
+                                    :clearable="false"
+                                    @change="onChangeDateRange">
+                                </bk-date-picker>
+                            </bk-form-item>
+                        </bk-form>
+                    </div>
+                </template>
+            </base-title>
+            <div class="statistics-content">
+                <router-view
+                    :date-range="dateStamp"
+                    :project-list="projectList"
+                    :category-list="categoryList">
+                </router-view>
+            </div>
+        </template>
     </div>
 </template>
 <script>
     import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
+    import bus from '@/utils/bus.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
+
     const ROUTERS = [
         {
             name: i18n.t('流程统计'),
@@ -72,12 +77,15 @@
             const format = 'YYYY-MM-DD'
             const defaultDateRange = [moment().subtract(1, 'month').format(format), moment().format(format)]
             return {
+                permissionLoading: true,
+                hasViewPerm: false,
                 routers: ROUTERS,
                 dateRange: defaultDateRange.slice(0)
             }
         },
         computed: {
             ...mapState({
+                permissionMeta: state => state.permissionMeta,
                 categorys: state => state.categorys
             }),
             ...mapState('project', {
@@ -95,13 +103,51 @@
                 return this.dateRange.map(item => moment(item).valueOf())
             }
         },
-        created () {
+        async created () {
+            await this.queryViewPerm()
             this.getCategorys()
         },
         methods: {
             ...mapActions([
+                'queryUserPermission',
                 'getCategorys'
             ]),
+            // 查询用户是否有运营数据查看权限
+            async queryViewPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        action: 'statistics_view'
+                    })
+                    if (res.data.is_allow) {
+                        this.permissionLoading = false
+                        this.hasViewPerm = true
+                    } else {
+                        this.showPermissionApplyPage()
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            /**
+             * 切换到权限申请页
+             */
+            showPermissionApplyPage () {
+                const action = 'statistics_view'
+                const bksops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                const name = this.permissionMeta.actions.find(item => item.id === action).name
+                const { id: systemId, name: systemName } = bksops
+                const permissions = {
+                    system_id: systemId,
+                    system_name: systemName,
+                    actions: [{
+                        id: action,
+                        name,
+                        related_resource_types: []
+                    }]
+                }
+
+                bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
+            },
             onChangeDateRange (dateRange) {
                 this.dateRange = dateRange
             }

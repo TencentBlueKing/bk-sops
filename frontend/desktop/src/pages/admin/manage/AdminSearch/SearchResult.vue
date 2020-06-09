@@ -61,7 +61,8 @@
                                 <template v-else-if="col.prop === 'operation'">
                                     <span
                                         v-if="props.row.is_deleted"
-                                        class="table-link"
+                                        :class="['table-link', { 'text-permission-disable': !hasEditPerm }]"
+                                        v-cursor="{ active: !hasEditPerm }"
                                         @click="onRestoreTemplate(props.row)">
                                         {{ $t('恢复模板') }}
                                     </span>
@@ -253,10 +254,9 @@
         },
         mixins: [permission],
         props: {
-            keyword: {
-                type: String,
-                default: ''
-            }
+            keyword: String,
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
         },
         data () {
             return {
@@ -459,7 +459,6 @@
                 this.getSearchResult()
             },
             onApplyPerm (required, data, type) {
-                console.log(data)
                 const resourceData = {}
                 const reItem = { id: data.id, name: data.name }
                 if (type === 'tpl') {
@@ -470,8 +469,15 @@
                 this.applyForPermission(required, data.auth_actions, resourceData)
             },
             onRestoreTemplate (tpl) {
-                this.isRestoreDialogShow = true
-                this.restoreData = tpl
+                if (this.editPermLoading) {
+                    return
+                }
+                if (!this.hasEditPerm) {
+                    this.applyForPermission(['admin_edit'])
+                } else {
+                    this.isRestoreDialogShow = true
+                    this.restoreData = tpl
+                }
             },
             async onRestoreConfirm () {
                 if (this.restorePending) {

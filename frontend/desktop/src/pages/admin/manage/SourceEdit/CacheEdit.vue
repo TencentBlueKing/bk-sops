@@ -24,6 +24,15 @@
         <div class="operate-area">
             <router-link :to="{ name: 'packageEdit' }" class="bk-button bk-default">{{ $t('上一步') }}</router-link>
             <bk-button
+                v-if="!hasEditPerm"
+                v-cursor="{ active: true }"
+                theme="primary"
+                class="btn-permission-disable save-btn"
+                @click="applyEditPerm">
+                {{ $t('完成') }}
+            </bk-button>
+            <bk-button
+                v-else
                 theme="primary"
                 class="save-btn"
                 :loading="pending"
@@ -36,6 +45,7 @@
 </template>
 <script>
     import tools from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import CacheForm from './CacheForm.vue'
 
     export default {
@@ -43,17 +53,12 @@
         components: {
             CacheForm
         },
+        mixins: [permission],
         props: {
-            cacheList: {
-                type: Array,
-                default () {
-                    return []
-                }
-            },
-            pending: {
-                type: Boolean,
-                default: false
-            }
+            cacheList: Array,
+            pending: Boolean,
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
         },
         data () {
             return {
@@ -104,6 +109,12 @@
                         this.$emit('saveSetting')
                     }
                 })
+            },
+            applyEditPerm () {
+                if (this.editPermLoading) {
+                    return
+                }
+                this.applyForPermission(['admin_edit'])
             }
         }
     }

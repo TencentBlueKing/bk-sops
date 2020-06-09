@@ -16,6 +16,8 @@
             :origin-list="originList"
             :cache-list="cacheList"
             :pending="pending"
+            :has-edit-perm="hasEditPerm"
+            :edit-perm-loading="editPermLoading"
             @updateList="updateList"
             @saveSetting="saveSetting">
         </router-view>
@@ -32,6 +34,10 @@
         name: 'SourceEdit',
         components: {
             EditHeader
+        },
+        props: {
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
         },
         data () {
             return {

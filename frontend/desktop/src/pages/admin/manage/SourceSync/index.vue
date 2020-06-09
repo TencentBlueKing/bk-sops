@@ -12,6 +12,15 @@
 <template>
     <div class="source-manage">
         <bk-button
+            v-if="!hasEditPerm"
+            v-cursor="{ active: true }"
+            theme="primary"
+            class="btn-permission-disable"
+            @click="applyEditPerm">
+            {{$t('同步到本地缓存')}}
+        </bk-button>
+        <bk-button
+            v-else
             theme="primary"
             :loading="pending"
             @click="onTaskSyncClick">
@@ -93,12 +102,18 @@
     import i18n from '@/config/i18n/index.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
-        name: 'SourceManage',
+        name: 'SourceSync',
         components: {
             NoData
+        },
+        mixins: [permission],
+        props: {
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
         },
         data () {
             return {
@@ -180,6 +195,12 @@
             onPageChange (page) {
                 this.currentPage = page
                 this.getSyncTask()
+            },
+            applyEditPerm () {
+                if (this.editPermLoading) {
+                    return
+                }
+                this.applyForPermission(['admin_edit'])
             }
         }
     }
