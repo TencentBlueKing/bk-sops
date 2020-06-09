@@ -126,7 +126,7 @@ class PeriodicTaskResource(GCloudModelResource):
             template_id = bundle.data.pop("template_id")
             template_source = bundle.data.get("template_source", PROJECT)
             name = bundle.data.pop("name")
-            cron = json.loads(bundle.data.pop("cron"))
+            cron = bundle.data.pop("cron")
             pipeline_tree = json.loads(bundle.data.pop("pipeline_tree"))
         except (KeyError, ValueError) as e:
             message = "create periodic_task params error: %s" % e.message
