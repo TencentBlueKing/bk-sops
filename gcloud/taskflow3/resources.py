@@ -134,8 +134,8 @@ class TaskFlowInstanceResource(GCloudModelResource):
         template_names = {t["id"]: t["pipeline_template__name"] for t in template_info}
 
         for bundle in data["objects"]:
-            bundle.data["template_name"] = template_names.get(int(bundle.obj.template_id))
-            if int(bundle.obj.template_id) in allowed_templates_id:
+            bundle.data["template_name"] = template_names.get(bundle.obj.template_id)
+            if str(bundle.obj.template_id) in allowed_templates_id:
                 bundle.data["auth_actions"].append(IAMMeta.FLOW_CREATE_TASK_ACTION)
 
         return data
