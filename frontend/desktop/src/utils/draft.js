@@ -59,12 +59,7 @@ const draft = {
     },
     // 删除本地缓存
     deleteDraft (key) {
-        try {
-            localStorage.removeItem(key)
-            return true
-        } catch (e) {
-            return false
-        }
+        localStorage.removeItem(key)
     },
     updateDraft (key, data) {
         localStorage.setItem(key, JSON.stringify(data))
