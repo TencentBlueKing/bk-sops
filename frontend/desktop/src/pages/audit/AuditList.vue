@@ -358,7 +358,6 @@
 .audit-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: #fafafa;
 }
 .list-wrapper {
     padding: 0 60px;

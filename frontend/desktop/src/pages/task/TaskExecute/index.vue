@@ -39,6 +39,7 @@
                 v-if="!isFunctional"
                 :project_id="project_id"
                 :instance_id="instance_id"
+                :router-type="routerType"
                 :instance-name="instanceName"
                 :instance-flow="instanceFlow"
                 :template_id="templateId"
@@ -77,7 +78,12 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['project_id', 'instance_id', 'common'],
+        props: {
+            project_id: [Number, String],
+            instance_id: [Number, String],
+            common: [Number, String],
+            routerType: String
+        },
         data () {
             return {
                 taskDataLoading: true,

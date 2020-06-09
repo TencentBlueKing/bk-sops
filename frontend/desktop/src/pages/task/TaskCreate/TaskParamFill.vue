@@ -11,7 +11,7 @@
 */
 <template>
     <div class="param-fill-wrapper">
-        <div :class="['task-info', { 'functor-task-info': userRights.function }]">
+        <div :class="['task-info', { 'functor-task-info': entrance === 'function' }]">
             <div class="task-info-title">
                 <span>{{ $t('任务信息') }}</span>
             </div>
@@ -167,7 +167,6 @@
         computed: {
             ...mapState({
                 'templateName': state => state.template.name,
-                'userRights': state => state.userRights,
                 'viewMode': state => state.view_mode,
                 'app_id': state => state.app_id
             }),
@@ -180,9 +179,6 @@
             }),
             isTaskTypeShow () {
                 return this.entrance !== 'function' && this.isStartNow
-            },
-            isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && !this.userRights.function && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
             },
             isPeriodicSelectShow () {
                 return this.entrance.indexOf('periodicTask') > -1

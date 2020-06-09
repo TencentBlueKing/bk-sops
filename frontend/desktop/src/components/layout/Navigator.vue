@@ -22,7 +22,7 @@
         </router-link>
         <ul class="nav-left" v-if="!appmakerDataLoading">
             <li
-                v-for="(item, index) in showRouterList"
+                v-for="(item, index) in routerList"
                 :key="index"
                 :class="['nav-item', { 'active': isNavActived(item) }]">
                 <router-link :to="getNavPath(item)" :event="''" @click.native="onGoToPath(item)">
@@ -101,8 +101,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import bus from '@/utils/bus.js'
-    import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+    import { mapState, mapGetters, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
@@ -198,9 +197,8 @@
                 logDetail: '',
                 logListLoading: false,
                 logDetailLoading: false,
-                routerList: ROUTE_LIST,
-                appmakerRouterList: APPMAKER_ROUTER_LIST,
-                hasAdminPerm: false // 管理员入口权限
+                appRouterList: ROUTE_LIST,
+                appmakerRouterList: APPMAKER_ROUTER_LIST
             }
         },
         computed: {
@@ -210,7 +208,7 @@
                 username: state => state.username,
                 app_id: state => state.app_id,
                 notFoundPage: state => state.notFoundPage,
-                userRights: state => state.userRights,
+                hasAdminPerm: state => state.hasAdminPerm,
                 permissionMeta: state => state.permissionMeta
             }),
             ...mapGetters('project', {
@@ -239,11 +237,12 @@
                 const paths = ['/audit/', '/function/']
                 return paths.some(path => this.$route.path.startsWith(path))
             },
-            showRouterList () {
+            // 页面展示的导航项
+            routerList () {
                 if (this.view_mode === 'appmaker') {
                     return this.appmakerRouterList
                 }
-                let list = this.routerList
+                let list = this.appRouterList
                 if (!this.hasAdminPerm) {
                     list = list.filter(item => item.path !== '/admin')
                 }
@@ -257,12 +256,7 @@
             ...mapActions('project', [
                 'loadProjectList'
             ]),
-            ...mapMutations([
-                'setUserRights',
-                'setAdminPerm'
-            ]),
             ...mapActions([
-                'queryUserPermission',
                 'getVersionList',
                 'getVersionDetail'
             ]),
@@ -279,67 +273,6 @@
             async initNavgator () {
                 if (this.view_mode !== 'appmaker') {
                     await this.loadProjectList({ limit: 0 })
-                    // 是否展示管理员入口
-                    const hasAdminPerm = await this.getActionPerm('admin_view')
-                    this.hasAdminPerm = hasAdminPerm
-                    this.setAdminPerm(hasAdminPerm)
-                    this.checkRouterPerm()
-                }
-            },
-            /**
-             * 校验路由权限
-             * @param {String} routerName
-             */
-            async checkRouterPerm (routerName) {
-                const functionRouterMap = ['functionHome', 'functionTemplateStep', 'functionTaskExecute']
-                const auditRouterMap = ['auditHome', 'auditTaskExecute']
-                const name = routerName || this.$route.name
-                const { function: hasFunction, audit: hasAudit } = this.userRights
-                if (functionRouterMap.includes(name) && !hasFunction) {
-                    const result = await this.getActionPerm('function_view')
-                    this.setUserRights({ type: 'function', val: result })
-                    if (!result) {
-                        this.togglePermissionApplyPage('function_view')
-                    }
-                } else if (auditRouterMap.includes(name) && !hasAudit) {
-                    const result = await this.getActionPerm('audit_view')
-                    this.setUserRights({ type: 'audit', val: result })
-                    if (!result) {
-                        this.togglePermissionApplyPage('audit_view')
-                    }
-                }
-            },
-            /**
-             * 切换到权限申请页
-             */
-            togglePermissionApplyPage (action) {
-                const bksops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
-                const name = this.permissionMeta.actions.find(item => item.id === action).name
-                const { id: systemId, name: systemName } = bksops
-                const permissions = {
-                    system_id: systemId,
-                    system_name: systemName,
-                    actions: [{
-                        id: action,
-                        name,
-                        related_resource_types: []
-                    }]
-                }
-
-                bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
-            },
-            /**
-             * 获取单个类型的权限
-             * @param {String} type 类型
-             */
-            async getActionPerm (type) {
-                try {
-                    const res = await this.queryUserPermission({
-                        action: type
-                    })
-                    return res.data.is_allow
-                } catch (err) {
-                    errorHandler(err, this)
                 }
             },
             // 获取导航的链接，供右键点击跳转
@@ -376,7 +309,6 @@
                 }
                 const config = this.getNavPath(route)
                 this.$router.push(config)
-                this.checkRouterPerm(route.routerName)
             },
             /* 打开版本日志 */
             async onOpenVersion () {

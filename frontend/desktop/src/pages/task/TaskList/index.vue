@@ -100,13 +100,13 @@
                                 <a
                                     v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                     v-cursor
-                                    class="text-permission-disable"
+                                    class="text-permission-disable task-operation-btn"
                                     @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
                                     {{$t('再创建')}}
                                 </a>
                                 <router-link
                                     v-else
-                                    class="template-operate-btn"
+                                    class="task-operation-btn"
                                     :to="{
                                         name: 'taskStep',
                                         query: { template_id: props.row.template_id },
@@ -116,7 +116,7 @@
                                 </router-link>
                                 <a
                                     v-cursor="{ active: !hasPermission(['task_clone'], props.row.auth_actions) }"
-                                    :class="['task-operation-clone', {
+                                    :class="['task-operation-btn', {
                                         'text-permission-disable': !hasPermission(['task_clone'], props.row.auth_actions)
                                     }]"
                                     href="javascript:void(0);"
@@ -125,7 +125,7 @@
                                 </a>
                                 <a
                                     v-cursor="{ active: !hasPermission(['task_delete'], props.row.auth_actions) }"
-                                    :class="['task-operation-delete', {
+                                    :class="['task-operation-btn', {
                                         'text-permission-disable': !hasPermission(['task_delete'], props.row.auth_actions)
                                     }]"
                                     href="javascript:void(0);"
@@ -600,12 +600,7 @@
        @include ui-task-status;
     }
     .task-operation {
-        .task-operation-clone {
-            padding: 5px;
-            color: #3a84ff;
-            font-size: 12px;
-        }
-        .task-operation-delete {
+        .task-operation-btn {
             padding: 5px;
             color: #3a84ff;
             font-size: 12px;

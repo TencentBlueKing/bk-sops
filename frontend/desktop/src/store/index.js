@@ -24,10 +24,6 @@ const store = new Vuex.Store({
     strict: process.env.NODE_ENV !== 'production',
     state: {
         username: window.USERNAME,
-        userRights: {
-            function: false,
-            audit: false
-        },
         footer: '',
         hasAdminPerm: false, // 是否有管理员权限
         hideHeader: window.HIDE_HEADER === 1,
@@ -68,10 +64,6 @@ const store = new Vuex.Store({
         },
         setSingleAtomList (state, data) {
             state.components = data
-        },
-        setUserRights (state, data) {
-            const { type, val } = data
-            state.userRights[type] = val
         },
         setPermissionMeta (state, data) {
             state.permissionMeta = data

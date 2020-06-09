@@ -67,7 +67,14 @@
             TaskSelectNode,
             TaskParamFill
         },
-        props: ['template_id', 'project_id', 'step', 'common', 'entrance'],
+        props: {
+            template_id: [String, Number],
+            project_id: [String, Number],
+            step: String,
+            common: [String, Number],
+            entrance: String,
+            routerType: String
+        },
         data () {
             return {
                 stepList: STEP_DICT.slice(),
@@ -128,7 +135,7 @@
             }
         },
         mounted () {
-            if (this.userRights.function && this.entrance === 'function') {
+            if (this.entrance === 'function') {
                 this.setFunctionalStep(true)
             }
             if (this.entrance === 'periodicTask') {
