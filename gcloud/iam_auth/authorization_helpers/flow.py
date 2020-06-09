@@ -23,7 +23,14 @@ class FlowIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
     def _get_flow_resources(self, bundle):
         return [
             Resource(
-                IAMMeta.SYSTEM_ID, IAMMeta.FLOW_RESOURCE, str(bundle.obj.id), {"iam_resource_owner": bundle.obj.creator}
+                IAMMeta.SYSTEM_ID,
+                IAMMeta.FLOW_RESOURCE,
+                str(bundle.obj.id),
+                {
+                    "iam_resource_owner": bundle.obj.creator,
+                    "path": "/project,{}/".format(bundle.obj.project_id),
+                    "name": bundle.obj.name,
+                },
             )
         ]
 

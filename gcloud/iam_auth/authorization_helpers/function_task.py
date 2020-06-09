@@ -24,7 +24,11 @@ class FunctionTaskIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
                 IAMMeta.SYSTEM_ID,
                 IAMMeta.TASK_RESOURCE,
                 str(bundle.obj.task_id),
-                {"iam_resource_owner": bundle.obj.creator_name},
+                {
+                    "iam_resource_owner": bundle.obj.creator_name,
+                    "path": "/project,{}/".format(bundle.obj.task.project_id),
+                    "name": bundle.obj.name,
+                },
             )
         ]
 
