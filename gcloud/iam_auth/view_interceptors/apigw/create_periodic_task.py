@@ -40,18 +40,27 @@ class CreatePeriodicTaskInterceptor(ViewInterceptor):
         subject = Subject("user", request.user.username)
 
         if template_source in NON_COMMON_TEMPLATE_TYPES:
+            template_info = TaskTemplate.objects.fetch_values(
+                template_id, "pipeline_template__creator", "pipeline_template__name"
+            )
             action = Action(IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION)
             resources = [
                 Resource(
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.FLOW_RESOURCE,
                     str(template_id),
-                    {"iam_resource_owner": TaskTemplate.objects.creator_for(template_id)},
+                    {
+                        "iam_resource_owner": template_info["pipeline_template__creator"],
+                        "name": template_info["pipeline_template__name"],
+                    },
                 )
             ]
             allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)
 
         else:
+            template_info = CommonTemplate.objects.fetch_values(
+                template_id, "pipeline_template__creator", "pipeline_template__name"
+            )
             action = Action(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION)
             resources = [
                 Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project_id), {}),
@@ -59,7 +68,10 @@ class CreatePeriodicTaskInterceptor(ViewInterceptor):
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.COMMON_FLOW_RESOURCE,
                     str(template_id),
-                    {"iam_resource_owner": CommonTemplate.objects.creator_for(template_id)},
+                    {
+                        "iam_resource_owner": template_info["pipeline_template__creator"],
+                        "name": template_info["pipeline_template__name"],
+                    },
                 ),
             ]
             allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

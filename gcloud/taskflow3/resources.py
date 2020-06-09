@@ -216,7 +216,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                             system=IAMMeta.SYSTEM_ID,
                             type=IAMMeta.MINI_APP_RESOURCE,
                             id=str(app_maker.id),
-                            attribute={"iam_resource_owner": app_maker.creator},
+                            attribute={"iam_resource_owner": app_maker.creator, "name": app_maker.name},
                         )
                     ],
                 )
@@ -233,7 +233,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                             system=IAMMeta.SYSTEM_ID,
                             type=IAMMeta.FLOW_RESOURCE,
                             id=str(template.id),
-                            attribute={"iam_resource_owner": template.creator},
+                            attribute={"iam_resource_owner": template.creator, "name": template.name},
                         )
                     ],
                 )
@@ -255,7 +255,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                         system=IAMMeta.SYSTEM_ID,
                         type=IAMMeta.COMMON_FLOW_RESOURCE,
                         id=str(template.id),
-                        attribute={"iam_resource_owner": template.creator},
+                        attribute={"iam_resource_owner": template.creator, "name": template.name},
                     ),
                 ],
             )

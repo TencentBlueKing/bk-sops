@@ -97,6 +97,7 @@ class CommonTemplateResource(GCloudModelResource):
             type=IAMMeta.COMMON_FLOW_RESOURCE,
             id_field="id",
             creator_field="creator",
+            name_field="name",
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[
@@ -254,7 +255,7 @@ class CommonTemplateSchemeResource(GCloudModelResource):
                     system=IAMMeta.SYSTEM_ID,
                     type=IAMMeta.COMMON_FLOW_RESOURCE,
                     id=str(common_template.id),
-                    attribute={"iam_resource_owner": common_template.creator},
+                    attribute={"iam_resource_owner": common_template.creator, "name": common_template.name},
                 )
             ],
         )
@@ -284,7 +285,7 @@ class CommonTemplateSchemeResource(GCloudModelResource):
                     system=IAMMeta.SYSTEM_ID,
                     type=IAMMeta.COMMON_FLOW_RESOURCE,
                     id=str(common_template.id),
-                    attribute={"iam_resource_owner": common_template.creator},
+                    attribute={"iam_resource_owner": common_template.creator, "name": common_template.name},
                 )
             ],
         )

@@ -390,6 +390,14 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         return qs.first()["pipeline_instance__creator"]
 
+    def fetch_values(self, id, *values):
+        qs = self.filter(id=id).values(*values)
+
+        if not qs:
+            raise self.model.DoesNotExist()
+
+        return qs.first()
+
     def callback(self, act_id, data):
         try:
             result = pipeline_api.activity_callback(activity_id=act_id, callback_data=data)
