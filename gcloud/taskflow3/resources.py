@@ -42,7 +42,7 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
-from gcloud.iam_auth.utils import filter_flows_can_create_task
+from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 
 logger = logging.getLogger("root")
 iam = get_iam_client()
@@ -128,15 +128,18 @@ class TaskFlowInstanceResource(GCloudModelResource):
         data = super().alter_list_data_to_serialize(request, data)
         templates_id = {bundle.obj.template_id for bundle in data["objects"]}
 
-        allowed_templates_id = filter_flows_can_create_task(request.user.username, templates_id)
+        templates_allowed_actions = get_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], templates_id
+        )
 
         template_info = TaskTemplate.objects.filter(id__in=templates_id).values("id", "pipeline_template__name")
         template_names = {t["id"]: t["pipeline_template__name"] for t in template_info}
 
         for bundle in data["objects"]:
             bundle.data["template_name"] = template_names.get(bundle.obj.template_id)
-            if str(bundle.obj.template_id) in allowed_templates_id:
-                bundle.data["auth_actions"].append(IAMMeta.FLOW_CREATE_TASK_ACTION)
+            for act, allowed in templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
+                if allowed:
+                    bundle.data["auth_actions"].append(act)
 
         return data
 
