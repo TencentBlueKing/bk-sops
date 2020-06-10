@@ -100,3 +100,21 @@ class TestConstantTemplate(TestCase):
 
         comma_exclude_template = expression.ConstantTemplate(['${a["c"]}', ['${"%s" % a}', '${a+int(b)}']])
         self.assertEqual(set(comma_exclude_template.get_reference()), set(['a', 'b', 'int']))
+
+    def test_built_in_functions__without_args(self):
+        int_template = expression.ConstantTemplate("${int}")
+        self.assertEqual(int_template.resolve_data({}), "int")
+
+        int_template = expression.ConstantTemplate("${str}")
+        self.assertEqual(int_template.resolve_data({}), "str")
+
+    def test_built_in_functions__with_args(self):
+        int_template = expression.ConstantTemplate("${int(111)}")
+        self.assertEqual(int_template.resolve_data({}), "111")
+
+        int_template = expression.ConstantTemplate("${str('aaa')}")
+        self.assertEqual(int_template.resolve_data({}), "aaa")
+
+    def test_built_in_functions__cover(self):
+        int_template = expression.ConstantTemplate("${int}")
+        self.assertEqual(int_template.resolve_data({"int": "cover"}), "cover")
