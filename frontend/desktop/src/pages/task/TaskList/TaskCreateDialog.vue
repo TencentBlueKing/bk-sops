@@ -102,10 +102,10 @@
         <div class="dialog-footer" slot="footer">
             <bk-button
                 theme="primary"
-                :class="{ 'btn-permission-disable': !hasCommonTplCreateTaskPerm }"
+                :class="{ 'btn-permission-disable': selectedTplType === 'publicProcess' && !hasCommonTplCreateTaskPerm }"
                 :loading="permissionLoading"
                 v-cursor="{
-                    actived: !hasCommonTplCreateTaskPerm
+                    active: selectedTplType === 'publicProcess' && !hasCommonTplCreateTaskPerm
                 }"
                 @click="onCreateTask">
                 {{ $t('确定') }}
