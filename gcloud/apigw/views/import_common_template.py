@@ -50,21 +50,13 @@ def import_common_template(request):
         req_data = json.loads(request.body)
     except Exception:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "invalid json format",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
     template_data = req_data.get("template_data", None)
     if not template_data:
         return JsonResponse(
-            {
-                "result": False,
-                "message": "template data can not be none",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
-            }
+            {"result": False, "message": "template data can not be none", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
     r = read_encoded_template_data(template_data)
     if not r["result"]:
@@ -74,7 +66,7 @@ def import_common_template(request):
 
     try:
         import_result = CommonTemplate.objects.import_templates(
-            r["data"]["template_data"], override
+            r["data"]["template_data"], override, request.user.username
         )
     except Exception as e:
         logger.exception("[API] import common tempalte error: {}".format(e))

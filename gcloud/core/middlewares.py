@@ -56,7 +56,7 @@ class TimezoneMiddleware(MiddlewareMixin):
 class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
         if isinstance(exception, ObjectDoesNotExist):
-            logger.error(traceback.format_exc())
+            logger.error("[ObjectDoesNotExistExceptionMiddleware] {} - {}".format(request.path, traceback.format_exc()))
             return JsonResponse(
                 {
                     "result": False,

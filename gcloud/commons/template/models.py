@@ -47,7 +47,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         qs = self.filter(id=id).values(*values)
 
         if not qs:
-            raise self.model.DoesNotExist()
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
 
         return qs.first()
 
@@ -55,7 +55,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         qs = self.filter(id=id).values("pipeline_template__creator")
 
         if not qs:
-            raise self.model.DoesNotExist()
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
 
         return qs.first()["pipeline_template__creator"]
 

@@ -382,11 +382,11 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         return True
 
-    def creator_for(self, tid):
-        qs = self.filter(id=tid).values("pipeline_instance__creator")
+    def creator_for(self, id):
+        qs = self.filter(id=id).values("pipeline_instance__creator")
 
         if not qs:
-            raise self.model.DoesNotExist()
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
 
         return qs.first()["pipeline_instance__creator"]
 
@@ -394,7 +394,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         qs = self.filter(id=id).values(*values)
 
         if not qs:
-            raise self.model.DoesNotExist()
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
 
         return qs.first()
 

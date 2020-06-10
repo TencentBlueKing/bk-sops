@@ -126,7 +126,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
 
     def alter_list_data_to_serialize(self, request, data):
         data = super().alter_list_data_to_serialize(request, data)
-        templates_id = {bundle.obj.template_id for bundle in data["objects"]}
+        templates_id = {bundle.obj.template_id for bundle in data["objects"] if bundle.obj.template_id}
 
         templates_allowed_actions = get_flow_allowed_actions_for_user(
             request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], templates_id
