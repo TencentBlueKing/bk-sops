@@ -427,10 +427,10 @@ class Client(object):
         if not ok:
             return set(), set(), set(), set()
 
-        system = data.get("base_info", {})
-        resource_types = data.get("resource_types", [])
-        actions = data.get("actions", [])
-        instance_selections = data.get("instance_selections") or []
+        system = data.get("base_info", {}) or {}
+        resource_types = data.get("resource_types", []) or []
+        actions = data.get("actions", []) or []
+        instance_selections = data.get("instance_selections", []) or []
 
         system_ids = {system.get("id")}
         resource_type_ids = {r.get("id") for r in resource_types}

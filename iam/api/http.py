@@ -62,7 +62,7 @@ def _http_request(
             content = content[:200] + b"......"
 
         message_format = (
-            "request: [method=`%s`, url=`%s`, data=`%s`] " "response: [status_code=`%s`, request_id=`%s`, content=`%s`]"
+            "request: [method=`%s`, url=`%s`, data=`%s`] response: [status_code=`%s`, request_id=`%s`, content=`%s`]"
         )
 
         if resp.status_code != 200:

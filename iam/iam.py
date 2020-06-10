@@ -213,16 +213,20 @@ class IAM(object):
         logger.debug("the request: %s", data)
 
         # NOTE: 不向服务端传任何resource
+        result = {}
         policies = self._do_policy_query(request, with_resources=False)
         logger.debug("the return policies: %s", policies)
         if not policies:
             logger.debug("no return policies, will return False")
-            return {resource.id: False for resource in resources_list}
+            for resources in resources_list:
+                _, resource_id = self._build_object_set(request.system, resources, only_local=False)
+                result[resource_id] = False
+
+            return result
 
         expr = make_expression(policies)
 
         # 4. make objSet
-        result = {}
         for resources in resources_list:
             obj_set, resource_id = self._build_object_set(request.system, resources, only_local=False)
 
