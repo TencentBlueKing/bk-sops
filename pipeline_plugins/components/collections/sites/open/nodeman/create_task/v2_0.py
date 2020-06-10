@@ -80,14 +80,17 @@ class NodemanCreateTaskService(Service):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = get_client_by_user(executor)
-
         bk_biz_id = data.inputs.bk_biz_id
-        bk_cloud_id = data.inputs.nodeman_bk_cloud_id
-        node_type = data.inputs.nodeman_node_type
-        op_type = data.inputs.nodeman_op_type
-        nodeman_hosts = data.inputs.nodeman_hosts
-        ap_id = data.inputs.nodeman_ap_id
-        ip_str = data.inputs.nodeman_ip_str
+
+        nodeman_op_target = data.inputs.nodeman_op_target
+        bk_cloud_id = nodeman_op_target.get("nodeman_bk_cloud_id", "")
+        node_type = nodeman_op_target.get("nodeman_node_type", "")
+
+        nodeman_op_info = data.inputs.nodeman_op_info
+        op_type = nodeman_op_info.get("nodeman_op_type", "")
+        nodeman_hosts = nodeman_op_info.get("nodeman_hosts", [])
+        ap_id = nodeman_op_info.get("nodeman_ap_id", "")
+        ip_str = nodeman_op_info.get("nodeman_ip_str", "")
 
         data.set_outputs("job_id", "")
 
@@ -125,6 +128,10 @@ class NodemanCreateTaskService(Service):
                 auth_type = host["auth_type"]
                 auth_key = host["auth_key"]
                 inner_ip = get_ip_by_regex(host.get("inner_ip"))
+                if not inner_ip:
+                    data.set_outputs("ex_data", _("请确认内网Ip是否合法host_info:{host}".format(host=host["inner_ip"])))
+                    return False
+
                 one = {
                     "bk_biz_id": bk_biz_id,
                     "bk_cloud_id": bk_cloud_id,
@@ -304,74 +311,62 @@ class NodemanCreateTaskService(Service):
                 type="int",
                 schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
+
             self.InputItem(
-                name=_("云区域 ID"),
-                key="nodeman_bk_cloud_id",
-                type="string",
-                schema=StringItemSchema(description=_("节点所在云区域 ID")),
+                name=_("操作对象"),
+                key="nodeman_op_target",
+                type="object",
+                schema=ObjectItemSchema(_("需要操作的对象"), property_schemas={
+                    "nodeman_bk_cloud_id": StringItemSchema(description=_("云区域 ID")),
+                    "nodeman_node_type": StringItemSchema(description=_(
+                        "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）")),
+                })
             ),
+
             self.InputItem(
-                name=_("接入点"),
-                key="nodeman_ap_id",
-                type="string",
-                schema=StringItemSchema(description=_("接入点 ID")),
-            ),
-            self.InputItem(
-                name=_("节点类型"),
-                key="nodeman_node_type",
-                type="string",
-                schema=StringItemSchema(
-                    description=_(
-                        "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 "
-                        "PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
-                    )
-                ),
-            ),
-            self.InputItem(
-                name=_("操作类型"),
-                key="nodeman_op_type",
-                type="string",
-                schema=StringItemSchema(
-                    description=_(
+                name=_("操作详情"),
+                key="nodeman_op_info",
+                type="object",
+                schema=ObjectItemSchema(_("操作内容信息"), property_schemas={
+                    "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
+                    "nodeman_op_type": StringItemSchema(description=_(
                         "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、"
-                        " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
-                    )
-                ),
-            ),
-            self.InputItem(
-                name=_("主机"),
-                key="nodeman_hosts",
-                type="array",
-                schema=ArrayItemSchema(
-                    description=_("主机所在云区域 ID"),
-                    item_schema=ObjectItemSchema(
-                        description=_("主机相关信息"),
-                        property_schemas={
-                            "inner_ip": StringItemSchema(description=_("内网 IP")),
-                            "login_ip": StringItemSchema(
-                                description=_("主机登录 IP，可以为空，适配复杂网络时填写")
-                            ),
-                            "data_ip": StringItemSchema(
-                                description=_("主机数据 IP，可以为空，适配复杂网络时填写")
-                            ),
-                            "outer_ip": StringItemSchema(
-                                description=_("外网 IP, 可以为空")
-                            ),
-                            "os_type": StringItemSchema(
-                                description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")
-                            ),
-                            "port": StringItemSchema(description=_("端口号")),
-                            "account": StringItemSchema(description=_("登录帐号")),
-                            "auth_type": StringItemSchema(
-                                description=_("认证方式，可以是 PASSWORD 或 KEY")
-                            ),
-                            "auth_key": StringItemSchema(
-                                description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
-                            ),
-                        },
+                        " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）")),
+                    "nodeman_ip_str": StringItemSchema(description=_("IP(升级，卸载，移除时需要)")),
+                    "nodeman_hosts": ArrayItemSchema(
+                        description=_("需要被操作的主机信息(安装与重装时需要)"),
+                        item_schema=ObjectItemSchema(
+                            description=_("主机相关信息"),
+                            property_schemas={
+                                "inner_ip": StringItemSchema(description=_("内网 IP")),
+                                "login_ip": StringItemSchema(
+                                    description=_("主机登录 IP，可以为空，适配复杂网络时填写")
+                                ),
+                                "data_ip": StringItemSchema(
+                                    description=_("主机数据 IP，可以为空，适配复杂网络时填写")
+                                ),
+                                "outer_ip": StringItemSchema(
+                                    description=_("外网 IP, 可以为空")
+                                ),
+                                "os_type": StringItemSchema(
+                                    description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")
+                                ),
+                                "port": StringItemSchema(description=_("端口号")),
+                                "account": StringItemSchema(description=_("登录帐号")),
+                                "auth_type": StringItemSchema(
+                                    description=_("认证方式，可以是 PASSWORD 或 KEY")
+                                ),
+                                "auth_key": StringItemSchema(
+                                    description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
+                                ),
+                            },
+
+                        )
+
                     ),
-                ),
+                })
             ),
+
         ]
 
 

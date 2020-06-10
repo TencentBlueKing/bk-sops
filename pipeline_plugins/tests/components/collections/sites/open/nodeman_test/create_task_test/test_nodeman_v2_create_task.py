@@ -184,26 +184,31 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 install task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_bk_cloud_id": "1",
-        "nodeman_ap_id": "1",
-        "nodeman_node_type": "AGENT",
-        "nodeman_op_type": "INSTALL",
-        "nodeman_ip_str": "",
-        "nodeman_hosts": [
-            {
-                "bk_biz_id": "1",
-                "bk_cloud_id": "1",
-                "inner_ip": "1.1.1.1",
-                "os_type": "LINUX",
-                "port": "22",
-                "account": "test",
-                "auth_type": "PASSWORD",
-                "auth_key": "123",
-                "outer_ip": "1.1.1.1",
-                "login_ip": "1.1.1.1",
-                "data_ip": "1.1.1.1",
-            }
-        ], },
+        "nodeman_op_target": {
+            "nodeman_bk_cloud_id": "1",
+            "nodeman_node_type": "AGENT",
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "INSTALL",
+            "nodeman_ip_str": "",
+            "nodeman_hosts": [
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "1.1.1.1",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "1.1.1.1",
+                    "login_ip": "1.1.1.1",
+                    "data_ip": "1.1.1.1",
+                }
+            ],
+        }
+    },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
@@ -258,26 +263,31 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 reinstall task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_bk_cloud_id": "1",
-        "nodeman_ap_id": "1",
-        "nodeman_node_type": "AGENT",
-        "nodeman_op_type": "REINSTALL",
-        "nodeman_ip_str": "",
-        "nodeman_hosts": [
-            {
-                "bk_biz_id": "1",
-                "bk_cloud_id": "1",
-                "inner_ip": "1.1.1.1",
-                "os_type": "LINUX",
-                "port": "22",
-                "account": "test",
-                "auth_type": "PASSWORD",
-                "auth_key": "123",
-                "outer_ip": "1.1.1.1",
-                "login_ip": "1.1.1.1",
-                "data_ip": "1.1.1.1",
-            }
-        ], },
+        "nodeman_op_target": {
+            "nodeman_bk_cloud_id": "1",
+            "nodeman_node_type": "AGENT",
+            "nodeman_ap_id": "1"
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "REINSTALL",
+            "nodeman_ip_str": "",
+            "nodeman_hosts": [
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "1.1.1.1",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "1.1.1.1",
+                    "login_ip": "1.1.1.1",
+                    "data_ip": "1.1.1.1",
+                }
+            ], }
+    },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
@@ -334,26 +344,32 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     name="nodeman v2.0 install task failed case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_bk_cloud_id": "1",
-        "nodeman_ap_id": "1",
-        "nodeman_node_type": "AGENT",
-        "nodeman_op_type": "REINSTALL",
-        "nodeman_ip_str": "",
-        "nodeman_hosts": [
-            {
-                "bk_biz_id": "1",
-                "bk_cloud_id": "1",
-                "inner_ip": "1.1.1.1",
-                "os_type": "LINUX",
-                "port": "22",
-                "account": "test",
-                "auth_type": "PASSWORD",
-                "auth_key": "123",
-                "outer_ip": "1.1.1.1",
-                "login_ip": "1.1.1.1",
-                "data_ip": "1.1.1.1",
-            }
-        ], },
+        "nodeman_op_target": {
+            "nodeman_node_type": "AGENT",
+            "nodeman_bk_cloud_id": "1",
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "REINSTALL",
+            "nodeman_ip_str": "",
+            "nodeman_hosts": [
+                {
+                    "bk_biz_id": "1",
+                    "bk_cloud_id": "1",
+                    "inner_ip": "1.1.1.1",
+                    "os_type": "LINUX",
+                    "port": "22",
+                    "account": "test",
+                    "auth_type": "PASSWORD",
+                    "auth_key": "123",
+                    "outer_ip": "1.1.1.1",
+                    "login_ip": "1.1.1.1",
+                    "data_ip": "1.1.1.1",
+                }
+            ],
+        },
+
+    },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={'job_id': "1"}),
     execute_call_assertion=[
@@ -424,12 +440,17 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 operate task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_bk_cloud_id": "1",
-        "nodeman_ap_id": "1",
-        "nodeman_node_type": "AGENT",
-        "nodeman_op_type": "UPGRADE",
-        "nodeman_ip_str": "1.1.1.1",
-        "nodeman_hosts": []
+        "nodeman_op_target": {
+            "nodeman_node_type": "AGENT",
+            "nodeman_bk_cloud_id": "1",
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "UPGRADE",
+            "nodeman_ip_str": "1.1.1.1",
+            "nodeman_hosts": []
+        },
+
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
@@ -470,12 +491,17 @@ OPERATE_FAIL_CASE = ComponentTestCase(
     name="nodeman v2.0 operate task failed case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_bk_cloud_id": "1",
-        "nodeman_ap_id": "1",
-        "nodeman_node_type": "AGENT",
-        "nodeman_op_type": "UPGRADE",
-        "nodeman_ip_str": "1.1.1.1",
-        "nodeman_hosts": []
+        "nodeman_op_target": {
+            "nodeman_node_type": "AGENT",
+            "nodeman_bk_cloud_id": "1",
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "UPGRADE",
+            "nodeman_ip_str": "1.1.1.1",
+            "nodeman_hosts": []
+        },
+
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=False, outputs={'job_id': '', "ex_data": "failed"}),
@@ -505,12 +531,17 @@ REMOVE_SUCCESS_CASE = ComponentTestCase(
     name="nodeman v2.0 remove host task success case",
     inputs={
         "bk_biz_id": "1",
-        "nodeman_bk_cloud_id": "1",
-        "nodeman_ap_id": "1",
-        "nodeman_node_type": "AGENT",
-        "nodeman_op_type": "REMOVE",
-        "nodeman_ip_str": "1.1.1.1",
-        "nodeman_hosts": []
+        "nodeman_op_target": {
+            "nodeman_node_type": "AGENT",
+            "nodeman_bk_cloud_id": "1",
+        },
+        "nodeman_op_info": {
+            "nodeman_ap_id": "1",
+            "nodeman_op_type": "REMOVE",
+            "nodeman_ip_str": "1.1.1.1",
+            "nodeman_hosts": []
+        },
+
     },
     parent_data={"executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": None}),

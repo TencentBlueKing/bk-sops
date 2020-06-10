@@ -490,7 +490,7 @@ def nodeman_get_cloud_area(request):
                                    'nodeman.get_cloud', '', cloud_area_result)
         logger.error(message)
         return JsonResponse({
-            'result': cloud_area_result['result'], 'code': cloud_area_result['code'], 'message': message})
+            'result': cloud_area_result['result'], 'code': cloud_area_result.get('code', '-1'), 'message': message})
 
     data = cloud_area_result['data']
 
@@ -508,7 +508,7 @@ def nodman_get_ap_id(request):
                                    'nodeman.ap_list', '', ap_list)
         logger.error(message)
         return JsonResponse({
-            'result': ap_list['result'], 'code': ap_list['code'], 'message': message})
+            'result': ap_list['result'], 'code': ap_list('code', '-1'), 'message': message})
 
     data = ap_list['data']
 
