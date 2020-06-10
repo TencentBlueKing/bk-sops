@@ -539,7 +539,7 @@
                         this.permissionLoading = true
                         const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                         const data = {
-                            action: ['common_flow_create_task'],
+                            action: 'common_flow_create_task',
                             resources: [
                                 {
                                     system: bkSops.id,

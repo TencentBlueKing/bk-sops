@@ -11,7 +11,7 @@
 */
 <template>
     <div class="functionalization-wrapper">
-        <div :class="['task-info', { 'functor-task-info': userRights.function }]">
+        <div class="task-info">
             <span class="task-info-title">{{ $t('任务信息') }}</span>
             <div class="task-info-division-line"></div>
             <div class="common-form-item">
@@ -82,7 +82,7 @@
     </div>
 </template>
 <script>
-    import { mapState, mapActions } from 'vuex'
+    import { mapActions } from 'vuex'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
@@ -124,9 +124,6 @@
             }
         },
         computed: {
-            ...mapState({
-                'userRights': state => state.userRights
-            }),
             isVariableEmpty () {
                 return Object.keys(this.pipelineData.constants).length === 0
             }
@@ -349,9 +346,6 @@
 }
 .param-info  {
     padding-bottom: 80px;
-}
-.functor-task-info {
-    padding-bottom: 0px;
 }
 .task-param-wrapper {
     width: 620px;

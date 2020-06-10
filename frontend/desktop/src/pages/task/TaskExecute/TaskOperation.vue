@@ -177,10 +177,16 @@
             TaskOperationHeader
         },
         mixins: [permission],
-        props: [
-            'project_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id',
-            'templateSource', 'instanceActions'
-        ],
+        props: {
+            project_id: [Number, String],
+            instance_id: [Number, String],
+            instanceFlow: String,
+            instanceName: String,
+            template_id: [Number, String],
+            templateSource: String,
+            instanceActions: Array,
+            routerType: String
+        },
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -226,7 +232,6 @@
         },
         computed: {
             ...mapState({
-                userRights: state => state.userRights,
                 view_mode: state => state.view_mode,
                 hasAdminPerm: state => state.hasAdminPerm
             }),
@@ -300,7 +305,7 @@
             },
             // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return !this.userRights.function && !this.userRights.audit && this.view_mode !== 'appmaker'
+                return !['function', 'audit'].includes(this.routerType) && this.view_mode !== 'appmaker'
             },
             adminView () {
                 return this.hasAdminPerm && this.$route.query.is_admin === 'true'

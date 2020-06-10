@@ -10,7 +10,6 @@
 * specific language governing permissions and limitations under the License.
 */
 import axios from 'axios'
-import qs from 'qs'
 import store from '@/store/index.js'
 
 const task = {
@@ -125,11 +124,11 @@ const task = {
          */
         claimFuncTask ({ commit }, data) {
             const { name, instance_id, constants, project_id } = data
-            const requestData = qs.stringify({
+            const requestData = {
                 name,
                 instance_id,
                 constants
-            })
+            }
             return axios.post(`taskflow/api/flow/claim/${project_id}/`, requestData).then(response => response.data)
         },
         /**

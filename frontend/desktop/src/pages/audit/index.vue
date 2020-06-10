@@ -10,18 +10,71 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div v-bkloading="{ isLoading: !userRights.audit, opacity: 0 }" class="loading-page">
-        <router-view v-if="userRights.audit"></router-view>
+    <div v-bkloading="{ isLoading: permissionLoading, opacity: 0 }" class="loading-page">
+        <router-view v-if="hasViewPerm" router-type="audit"></router-view>
     </div>
 </template>
 <script>
-    import { mapState } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
+    import bus from '@/utils/bus.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+
     export default {
         name: 'audit',
+        data () {
+            return {
+                permissionLoading: true,
+                hasViewPerm: false
+            }
+        },
         computed: {
             ...mapState({
-                userRights: state => state.userRights
+                permissionMeta: state => state.permissionMeta
             })
+        },
+        created () {
+            this.queryViewPerm()
+        },
+        methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
+            // 查询用户是否有审计中心查看权限
+            async queryViewPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        action: 'audit_view'
+                    })
+                    if (res.data.is_allow) {
+                        this.permissionLoading = false
+                        this.hasViewPerm = true
+                    } else {
+                        this.showPermissionApplyPage()
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            /**
+             * 切换到权限申请页
+             */
+            showPermissionApplyPage () {
+                const action = 'audit_view'
+                const bksops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                const name = this.permissionMeta.actions.find(item => item.id === action).name
+                const { id: systemId, name: systemName } = bksops
+                const permissions = {
+                    system_id: systemId,
+                    system_name: systemName,
+                    actions: [{
+                        id: action,
+                        name,
+                        related_resource_types: []
+                    }]
+                }
+
+                bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
+            }
         }
     }
 </script>

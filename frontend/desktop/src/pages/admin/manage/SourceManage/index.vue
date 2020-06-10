@@ -12,7 +12,16 @@
 <template>
     <div class="source-manage" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="operate-area">
+            <bk-button
+                v-if="!hasEditPerm"
+                v-cursor="{ active: true }"
+                theme="primary"
+                class="btn-permission-disable"
+                @click="applyEditPerm">
+                {{ emptyData ? $t('新建') : $t('编辑') }}
+            </bk-button>
             <router-link
+                v-else
                 :to="{ name: 'packageEdit' }"
                 class="bk-button bk-primary">
                 {{ emptyData ? $t('新建') : $t('编辑') }}
@@ -46,13 +55,24 @@
             </div>
         </div>
         <div class="empty-data" v-if="emptyData">
-            <p>{{$t('无数据，')}}<router-link :to="{ name: 'packageEdit' }">{{$t('新建')}}</router-link>{{$t('远程插件包源')}}</p>
+            <p>{{$t('无数据，')}}
+                <a
+                    v-if="!hasEditPerm"
+                    v-cursor="{ active: true }"
+                    class="text-permission-disable"
+                    @click="applyEditPerm">
+                    {{$t('新建')}}
+                </a>
+                <router-link v-else :to="{ name: 'packageEdit' }">{{$t('新建')}}</router-link>
+                {{$t('远程插件包源')}}
+            </p>
         </div>
     </div>
 </template>
 <script>
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import PackageTable from './PackageTable.vue'
     import LocalCache from './LocalCache.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -63,6 +83,11 @@
             PackageTable,
             LocalCache,
             NoData
+        },
+        mixins: [permission],
+        props: {
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
         },
         data () {
             return {
@@ -106,6 +131,12 @@
                 })
                 this.originList = originList
                 this.cacheList = cacheList
+            },
+            applyEditPerm () {
+                if (this.editPermLoading) {
+                    return
+                }
+                this.applyForPermission(['admin_edit'])
             }
         }
     }

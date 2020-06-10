@@ -10,18 +10,23 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-manage">
-        <base-title
-            class="title"
-            type="router"
-            :tab-list="routers"
-            :title="title">
-        </base-title>
-        <router-view></router-view>
+    <div class="page-manage" v-bkloading="{ isLoading: hasAdminPerm === null, opacity: 0 }">
+        <template v-if="hasViewPerm">
+            <base-title
+                class="title"
+                type="router"
+                :tab-list="routers"
+                :title="title">
+            </base-title>
+            <router-view :has-edit-perm="hasEditPerm" :edit-perm-loading="editPermLoading"></router-view>
+        </template>
     </div>
 </template>
 <script>
+    import { mapActions, mapState } from 'vuex'
+    import bus from '@/utils/bus.js'
     import i18n from '@/config/i18n/index.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     const ROUTERS = [
         {
@@ -47,12 +52,80 @@
         components: {
             BaseTitle
         },
+        data () {
+            return {
+                editPermLoading: true,
+                hasViewPerm: false,
+                hasEditPerm: false
+            }
+        },
         computed: {
+            ...mapState({
+                hasAdminPerm: state => state.hasAdminPerm,
+                permissionMeta: state => state.permissionMeta
+            }),
             routers () {
                 return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? [] : ROUTERS
             },
             title () {
                 return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? i18n.t('编辑包源') : i18n.t('后台管理')
+            }
+        },
+        watch: {
+            hasAdminPerm (val) {
+                if (val) {
+                    this.hasViewPerm = true
+                    this.queryEditPerm()
+                } else {
+                    this.showPermissionApplyPage()
+                }
+            }
+        },
+        created () {
+            if (this.hasAdminPerm !== null) {
+                if (this.hasAdminPerm === false) {
+                    this.showPermissionApplyPage()
+                } else {
+                    this.hasViewPerm = true
+                    this.queryEditPerm()
+                }
+            }
+        },
+        methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
+            // 查询用户是否有后台管理编辑权限
+            async queryEditPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        action: 'admin_edit'
+                    })
+                    this.hasEditPerm = res.data.is_allow
+                    this.editPermLoading = false
+                } catch (error) {
+                    errorHandler(error, this)
+                }
+            },
+            /**
+             * 切换到权限申请页
+             */
+            showPermissionApplyPage () {
+                const action = 'admin_view'
+                const bksops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                const name = this.permissionMeta.actions.find(item => item.id === action).name
+                const { id: systemId, name: systemName } = bksops
+                const permissions = {
+                    system_id: systemId,
+                    system_name: systemName,
+                    actions: [{
+                        id: action,
+                        name,
+                        related_resource_types: []
+                    }]
+                }
+
+                bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
             }
         }
     }

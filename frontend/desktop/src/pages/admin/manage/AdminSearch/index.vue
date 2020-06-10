@@ -24,6 +24,8 @@
         <search-result
             v-else
             :keyword="searchStr"
+            :has-edit-perm="hasEditPerm"
+            :edit-perm-loading="editPermLoading"
             @onSearch="onSearchInput">
         </search-result>
     </div>
@@ -35,6 +37,10 @@
         name: 'AdminSearch',
         components: {
             SearchResult
+        },
+        props: {
+            hasEditPerm: Boolean,
+            editPermLoading: Boolean
         },
         data () {
             return {
