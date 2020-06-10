@@ -51,7 +51,7 @@
             tag_code: "nodeman_op_target",
             type: "combine",
             attrs: {
-                name: "操作类型",
+                name: gettext("操作对象"),
                 hookable: true,
                 children: [
                     {
@@ -138,7 +138,7 @@
             tag_code: "nodeman_op_info",
             type: "combine",
             attrs: {
-                name: "操作类型",
+                name: gettext("操作类型"),
                 hookable: true,
                 children: [
                     {
