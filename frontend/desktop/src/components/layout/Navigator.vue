@@ -31,15 +31,17 @@
                 <div
                     v-if="item.children"
                     class="sub-nav">
-                    <router-link
-                        v-for="(sub, subIndex) in item.children"
-                        :key="subIndex"
-                        :to="{ name: item.routerName }"
-                        :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
-                        :event="''"
-                        @click.native="onGoToPath(sub)">
-                        {{ sub.name }}
-                    </router-link>
+                    <template v-for="(sub, subIndex) in item.children">
+                        <router-link
+                            v-if="isSubRouteShow(sub)"
+                            :key="subIndex"
+                            :to="{ name: item.routerName }"
+                            :class="['sub-nav-item', { 'active': isNavActived(sub) }]"
+                            :event="''"
+                            @click.native="onGoToPath(sub)">
+                            {{ sub.name }}
+                        </router-link>
+                    </template>
                 </div>
             </li>
         </ul>
@@ -146,7 +148,7 @@
             name: i18n.t('项目管理')
         },
         {
-            routerName: 'adminSearch',
+            routerName: 'admin',
             path: '/admin',
             name: i18n.t('管理员入口'),
             children: [
@@ -189,16 +191,16 @@
             ProjectSelector,
             VersionLog
         },
-        props: ['appmakerDataLoading'],
+        props: {
+            appmakerDataLoading: Boolean
+        },
         data () {
             return {
                 logo: require('../../assets/images/logo/logo_icon.svg'),
                 logList: [],
                 logDetail: '',
                 logListLoading: false,
-                logDetailLoading: false,
-                appRouterList: ROUTE_LIST,
-                appmakerRouterList: APPMAKER_ROUTER_LIST
+                logDetailLoading: false
             }
         },
         computed: {
@@ -209,6 +211,7 @@
                 app_id: state => state.app_id,
                 notFoundPage: state => state.notFoundPage,
                 hasAdminPerm: state => state.hasAdminPerm,
+                hasStatisticsPerm: state => state.hasStatisticsPerm,
                 permissionMeta: state => state.permissionMeta
             }),
             ...mapGetters('project', {
@@ -240,13 +243,9 @@
             // 页面展示的导航项
             routerList () {
                 if (this.view_mode === 'appmaker') {
-                    return this.appmakerRouterList
+                    return APPMAKER_ROUTER_LIST
                 }
-                let list = this.appRouterList
-                if (!this.hasAdminPerm) {
-                    list = list.filter(item => item.path !== '/admin')
-                }
-                return list
+                return ROUTE_LIST
             }
         },
         mounted () {
@@ -295,11 +294,23 @@
                     query
                 }
             },
+            isSubRouteShow (route) {
+                if (!this.hasAdminPerm && route.routerName === 'adminSearch') {
+                    return false
+                }
+                if (!this.hasStatisticsPerm && route.routerName === 'statisticsTemplate') {
+                    return false
+                }
+                return true
+            },
             /**
              * 左键点击导航跳转
              * @param {Object} route 路由信息
              */
             onGoToPath (route) {
+                if (route.children && route.children.length > 0) {
+                    return
+                }
                 if (this.$route.name === route.routerName) {
                     return this.reload()
                 }

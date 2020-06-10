@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-statistics" v-bkloading="{ isLoading: permissionLoading, opacity: 0 }">
+    <div class="page-statistics" v-bkloading="{ isLoading: hasStatisticsPerm === null, opacity: 0 }">
         <template v-if="hasViewPerm">
             <base-title
                 type="router"
@@ -46,7 +46,6 @@
     import moment from 'moment'
     import { mapActions, mapState } from 'vuex'
     import bus from '@/utils/bus.js'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import i18n from '@/config/i18n/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
 
@@ -77,7 +76,6 @@
             const format = 'YYYY-MM-DD'
             const defaultDateRange = [moment().subtract(1, 'month').format(format), moment().format(format)]
             return {
-                permissionLoading: true,
                 hasViewPerm: false,
                 routers: ROUTERS,
                 dateRange: defaultDateRange.slice(0)
@@ -85,6 +83,7 @@
         },
         computed: {
             ...mapState({
+                hasStatisticsPerm: state => state.hasStatisticsPerm,
                 permissionMeta: state => state.permissionMeta,
                 categorys: state => state.categorys
             }),
@@ -103,31 +102,32 @@
                 return this.dateRange.map(item => moment(item).valueOf())
             }
         },
-        async created () {
-            await this.queryViewPerm()
-            this.getCategorys()
-        },
-        methods: {
-            ...mapActions([
-                'queryUserPermission',
-                'getCategorys'
-            ]),
-            // 查询用户是否有运营数据查看权限
-            async queryViewPerm () {
-                try {
-                    const res = await this.queryUserPermission({
-                        action: 'statistics_view'
-                    })
-                    if (res.data.is_allow) {
-                        this.permissionLoading = false
+        watch: {
+            hasStatisticsPerm (val) {
+                if (val !== null) {
+                    if (val) {
                         this.hasViewPerm = true
+                        this.getCategorys()
                     } else {
                         this.showPermissionApplyPage()
                     }
-                } catch (error) {
-                    errorHandler(error, this)
                 }
-            },
+            }
+        },
+        async created () {
+            if (this.hasStatisticsPerm !== null) {
+                if (this.hasStatisticsPerm === false) {
+                    this.showPermissionApplyPage()
+                } else {
+                    this.hasViewPerm = true
+                    this.getCategorys()
+                }
+            }
+        },
+        methods: {
+            ...mapActions([
+                'getCategorys'
+            ]),
             /**
              * 切换到权限申请页
              */

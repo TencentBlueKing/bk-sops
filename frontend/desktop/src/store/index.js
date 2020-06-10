@@ -25,7 +25,8 @@ const store = new Vuex.Store({
     state: {
         username: window.USERNAME,
         footer: '',
-        hasAdminPerm: false, // 是否有管理员权限
+        hasAdminPerm: null, // 是否有管理员查看权限
+        hasStatisticsPerm: null, // 是否有运营数据查看权限
         hideHeader: window.HIDE_HEADER === 1,
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id
@@ -52,6 +53,9 @@ const store = new Vuex.Store({
         },
         setAdminPerm (state, perm) {
             state.hasAdminPerm = perm
+        },
+        setStatisticsPerm (state, perm) {
+            state.hasStatisticsPerm = perm
         },
         setViewMode (state, mode) {
             state.view_mode = mode

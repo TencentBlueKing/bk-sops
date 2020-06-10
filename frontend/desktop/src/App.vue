@@ -146,7 +146,8 @@
             ]),
             ...mapMutations([
                 'setPageFooter',
-                'setAdminPerm'
+                'setAdminPerm',
+                'setStatisticsPerm'
             ]),
             async initData () {
                 if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
@@ -157,6 +158,7 @@
                     this.getAppmakerDetail()
                 } else {
                     this.queryAdminPerm()
+                    this.queryStatisticsPerm()
                 }
             },
             async getProjectDetail () {
@@ -192,6 +194,17 @@
                     })
 
                     this.setAdminPerm(res.data.is_allow)
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
+            async queryStatisticsPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        action: 'statistics_view'
+                    })
+
+                    this.setStatisticsPerm(res.data.is_allow)
                 } catch (err) {
                     errorHandler(err, this)
                 }

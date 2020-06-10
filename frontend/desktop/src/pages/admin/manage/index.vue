@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="page-manage" v-bkloading="{ isLoading: viewPermLoading, opacity: 0 }">
+    <div class="page-manage" v-bkloading="{ isLoading: hasAdminPerm === null, opacity: 0 }">
         <template v-if="hasViewPerm">
             <base-title
                 class="title"
@@ -54,7 +54,6 @@
         },
         data () {
             return {
-                viewPermLoading: true,
                 editPermLoading: true,
                 hasViewPerm: false,
                 hasEditPerm: false
@@ -62,6 +61,7 @@
         },
         computed: {
             ...mapState({
+                hasAdminPerm: state => state.hasAdminPerm,
                 permissionMeta: state => state.permissionMeta
             }),
             routers () {
@@ -71,30 +71,30 @@
                 return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? i18n.t('编辑包源') : i18n.t('后台管理')
             }
         },
+        watch: {
+            hasAdminPerm (val) {
+                if (val) {
+                    this.hasViewPerm = true
+                    this.queryEditPerm()
+                } else {
+                    this.showPermissionApplyPage()
+                }
+            }
+        },
         created () {
-            this.queryViewPerm()
-            this.queryEditPerm()
+            if (this.hasAdminPerm !== null) {
+                if (this.hasAdminPerm === false) {
+                    this.showPermissionApplyPage()
+                } else {
+                    this.hasViewPerm = true
+                    this.queryEditPerm()
+                }
+            }
         },
         methods: {
             ...mapActions([
                 'queryUserPermission'
             ]),
-            // 查询用户是否有后台管理查看权限
-            async queryViewPerm () {
-                try {
-                    const res = await this.queryUserPermission({
-                        action: 'admin_view'
-                    })
-                    if (res.data.is_allow) {
-                        this.viewPermLoading = false
-                        this.hasViewPerm = true
-                    } else {
-                        this.showPermissionApplyPage()
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
-                }
-            },
             // 查询用户是否有后台管理编辑权限
             async queryEditPerm () {
                 try {
