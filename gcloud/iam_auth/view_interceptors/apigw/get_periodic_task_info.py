@@ -29,7 +29,7 @@ class GetPeriodicTaskInfoInterceptor(ViewInterceptor):
 
         task_id = kwargs["task_id"]
 
-        subject = Subject(request.user.username)
+        subject = Subject("user", request.user.username)
         action = Action(IAMMeta.PERIODIC_TASK_VIEW_ACTION)
         task_info = PeriodicTask.objects.fetch_values(task_id, "task__creator", "task__name", "project_id")
         resources = [

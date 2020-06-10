@@ -32,7 +32,7 @@ class TaskOperateInterceptor(ViewInterceptor):
             task_id, "pipeline_instance__creator", "pipeline_instance__name", "project_id"
         )
 
-        subject = Subject(request.user.username)
+        subject = Subject("user", request.user.username)
         action = Action(IAMMeta.TASK_OPERATE_ACTION)
         resources = [
             Resource(

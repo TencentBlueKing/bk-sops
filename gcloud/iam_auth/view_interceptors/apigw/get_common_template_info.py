@@ -29,7 +29,7 @@ class GetCommonTemplateInfoInterceptor(ViewInterceptor):
 
         template_id = kwargs["template_id"]
 
-        subject = Subject(request.user.username)
+        subject = Subject("user", request.user.username)
         action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
         template_info = CommonTemplate.objects.fetch_values(
             template_id, "pipeline_template__creator", "pipeline_template__name"

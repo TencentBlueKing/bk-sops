@@ -35,7 +35,7 @@ class CreateTaskInterceptor(ViewInterceptor):
         params = json.loads(request.body)
         template_source = params.get("template_source", PROJECT)
         template_id = kwargs["template_id"]
-        project_id = kwargs["project_id"]
+        project_id = request.project.id
         subject = Subject("user", request.user.username)
 
         if template_source in NON_COMMON_TEMPLATE_TYPES:
