@@ -100,7 +100,6 @@
                                 source: "nodeman_bk_cloud_id",
                                 type: "init",
                                 action: function (value) {
-                                    debugger
                                     if (value === 0) {
                                         this.items = [
                                             {value: "AGENT", name: gettext("AGENT")},
@@ -333,7 +332,6 @@
                                 {
                                     type: "custom",
                                     args: function (value) {
-                                        debugger
                                         let self = this
                                         let result = {
                                             result: true,
@@ -381,7 +379,6 @@
                                 {
                                     type: "custom",
                                     args: function (value) {
-                                        debugger
                                         let self = this
                                         let result = {
                                             result: true,
