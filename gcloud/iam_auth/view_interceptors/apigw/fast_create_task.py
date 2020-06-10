@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from iam import Resource, Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
-from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth.intercept import ViewInterceptor
@@ -27,10 +26,9 @@ class FastCreateTaskInterceptor(ViewInterceptor):
         if request.is_trust:
             return
 
-        project_id = kwargs["project_id"]
-        project = Project.objects.get(id=project_id)
+        project = request.project
 
-        subject = Subject(request.user.username)
+        subject = Subject("user", request.user.username)
         action = Action(IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION)
-        resources = [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project_id), {"name": project.name})]
+        resources = [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project.id), {"name": project.name})]
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

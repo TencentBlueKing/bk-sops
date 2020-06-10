@@ -30,7 +30,7 @@ class FlowViewInterceptor(ViewInterceptor):
 
         template_id = kwargs["template_id"]
 
-        subject = Subject(request.user.username)
+        subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
         template_info = TaskTemplate.objects.fetch_values(
             template_id, "pipeline_template__creator", "pipeline_template__name", "project_id"
