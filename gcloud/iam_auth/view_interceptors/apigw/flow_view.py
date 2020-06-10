@@ -33,7 +33,7 @@ class FlowViewInterceptor(ViewInterceptor):
         subject = Subject(request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
         template_info = TaskTemplate.objects.fetch_values(
-            template_id, "pipeline_template__creator", "pipeline_template__name"
+            template_id, "pipeline_template__creator", "pipeline_template__name", "project_id"
         )
         resources = [
             Resource(
@@ -42,6 +42,7 @@ class FlowViewInterceptor(ViewInterceptor):
                 str(template_id),
                 {
                     "iam_resource_owner": template_info["pipeline_template__creator"],
+                    "path": "/project,{}/".format(template_info["project_id"]),
                     "name": template_info["pipeline_template__name"],
                 },
             )

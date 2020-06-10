@@ -75,7 +75,11 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.FLOW_RESOURCE,
                     str(task_template.id),
-                    {"iam_resource_owner": task_template.creator, "name": task_template.name},
+                    {
+                        "iam_resource_owner": task_template.creator,
+                        "path": "/project,{}/".format(task_template.project_id),
+                        "name": task_template.name,
+                    },
                 )
             ]
 
@@ -145,7 +149,11 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                     IAMMeta.SYSTEM_ID,
                     IAMMeta.MINI_APP_RESOURCE,
                     str(app_maker_obj.id),
-                    {"iam_resource_owner": app_maker_obj.creator, "name": app_maker_obj.name},
+                    {
+                        "iam_resource_owner": app_maker_obj.creator,
+                        "path": "/project,{}/".format(app_maker_obj.project_id),
+                        "name": app_maker_obj.name,
+                    },
                 )
             ]
 

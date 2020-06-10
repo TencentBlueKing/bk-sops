@@ -161,7 +161,11 @@ class PeriodicTaskResource(GCloudModelResource):
                         system=IAMMeta.SYSTEM_ID,
                         type=IAMMeta.FLOW_RESOURCE,
                         id=str(template.id),
-                        attribute={"iam_resource_owner": template.creator, "name": template.name},
+                        attribute={
+                            "iam_resource_owner": template.creator,
+                            "path": "/project,{}/".format(template.project_id),
+                            "name": template.name,
+                        },
                     )
                 ],
             )

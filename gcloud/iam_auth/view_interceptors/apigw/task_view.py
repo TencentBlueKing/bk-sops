@@ -29,7 +29,7 @@ class TaskViewInterceptor(ViewInterceptor):
 
         task_id = kwargs["task_id"]
         task_info = TaskFlowInstance.objects.fetch_values(
-            task_id, "pipeline_instance__creator", "pipeline_instance__name"
+            task_id, "pipeline_instance__creator", "pipeline_instance__name", "project_id"
         )
 
         subject = Subject(request.user.username)
@@ -41,6 +41,7 @@ class TaskViewInterceptor(ViewInterceptor):
                 str(task_id),
                 {
                     "iam_resource_owner": task_info["pipeline_instance__creator"],
+                    "path": "/project,{}/".format(task_info["project_id"]),
                     "name": task_info["pipeline_instance__name"],
                 },
             )
