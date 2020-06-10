@@ -429,4 +429,3 @@ EMPTY_MODULE_INFOS_FAILED_CASE = ComponentTestCase(
         Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
     ],
 )
-
