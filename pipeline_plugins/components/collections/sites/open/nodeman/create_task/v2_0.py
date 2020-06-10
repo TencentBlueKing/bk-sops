@@ -80,14 +80,17 @@ class NodemanCreateTaskService(Service):
     def execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = get_client_by_user(executor)
-
         bk_biz_id = data.inputs.bk_biz_id
-        bk_cloud_id = data.inputs.nodeman_bk_cloud_id
-        node_type = data.inputs.nodeman_node_type
-        op_type = data.inputs.nodeman_op_type
-        nodeman_hosts = data.inputs.nodeman_hosts
-        ap_id = data.inputs.nodeman_ap_id
-        ip_str = data.inputs.nodeman_ip_str
+
+        nodeman_op_target = data.inputs.nodeman_op_target
+        bk_cloud_id = nodeman_op_target.get("nodeman_bk_cloud_id", "")
+        node_type = nodeman_op_target.get("nodeman_node_type", "")
+
+        nodeman_op_info = data.inputs.nodeman_op_info
+        op_type = nodeman_op_info.get("nodeman_op_type", "")
+        nodeman_hosts = nodeman_op_info.get("nodeman_hosts", "")
+        ap_id = nodeman_op_info.get("nodeman_ap_id", "")
+        ip_str = nodeman_op_info.get("nodeman_ip_str", "")
 
         data.set_outputs("job_id", "")
 
@@ -125,6 +128,10 @@ class NodemanCreateTaskService(Service):
                 auth_type = host["auth_type"]
                 auth_key = host["auth_key"]
                 inner_ip = get_ip_by_regex(host.get("inner_ip"))
+                if not inner_ip:
+                    data.set_outputs("ex_data", _("请确认内网Ip是否合法host_info:{host}".format(host=host["inner_ip"])))
+                    return False
+
                 one = {
                     "bk_biz_id": bk_biz_id,
                     "bk_cloud_id": bk_cloud_id,
