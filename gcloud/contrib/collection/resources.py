@@ -35,7 +35,11 @@ class CollectionResources(ModelResource):
         allowed_methods = ["get", "post", "delete", "put"]
         filtering = {"id": ALL, "category": ALL}
         append_resource_actions = {
-            IAMMeta.FLOW_RESOURCE: [IAMMeta.FLOW_CREATE_TASK_ACTION, IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION],
+            IAMMeta.FLOW_RESOURCE: [
+                IAMMeta.FLOW_VIEW_ACTION,
+                IAMMeta.FLOW_CREATE_TASK_ACTION,
+                IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION,
+            ],
             IAMMeta.COMMON_FLOW_RESOURCE: [IAMMeta.COMMON_FLOW_VIEW_ACTION],
             IAMMeta.MINI_APP_RESOURCE: [IAMMeta.MINI_APP_VIEW_ACTION],
         }
@@ -101,7 +105,9 @@ class CollectionResources(ModelResource):
             resource_allowed_actions = resource_allowed_actions_map[bundle.obj.category]
 
             bundle.data["auth_actions"] = [
-                act for act, allow in resource_allowed_actions.get(bundle.data["extra_info"]["id"], {}).items() if allow
+                act
+                for act, allow in resource_allowed_actions.get(str(bundle.data["extra_info"]["id"]), {}).items()
+                if allow
             ]
 
         return data
