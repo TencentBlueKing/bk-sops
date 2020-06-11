@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+import copy
 from functools import partial
 
 from django.utils import translation
@@ -128,10 +129,14 @@ class CCCreateModuleService(Service):
                 return False
             cc_set_select = cc_list_select_node_inst_id_return["data"]
 
+        # 对象深拷贝保证inputs对象执行前后不变
         if cc_create_method == ModuleCreateMethod.TEMPLATE.value:
-            cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos_template")
+            cc_module_infos_untreated = copy.deepcopy(data.get_one_of_inputs("cc_module_infos_template"))
         else:
-            cc_module_infos_untreated = data.get_one_of_inputs("cc_module_infos_category")
+            cc_module_infos_untreated = copy.deepcopy(data.get_one_of_inputs("cc_module_infos_category"))
+        if not cc_module_infos_untreated:
+            data.set_outputs("ex_data", _("模块信息不能为空"))
+            return False
         cc_module_infos = []
         for cc_module_info_untreated in cc_module_infos_untreated:
             if cc_create_method == ModuleCreateMethod.TEMPLATE.value:

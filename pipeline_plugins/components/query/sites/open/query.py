@@ -145,6 +145,52 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
 
 
 @supplier_account_inject
+def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
+    """
+    获取指定biz_cc_id模板类型拓扑
+    :param request:
+    :param biz_cc_id:
+    :param supplier_account:
+    :return:
+        - 请求成功
+        {
+            "result": True,
+            "message": "success",
+            "data": [
+                {
+                    "value": "1-1",
+                    "label": "1-1",
+                    children: [{"value": "2-1", "label": "2-1"},]
+                },
+                ...
+            ]
+        }
+        - 请求失败  {"result": False, "data": [], "message": message}
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    list_service_category_return = client.cc.list_service_category(kwargs)
+    if not list_service_category_return["result"]:
+        message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
+        logger.error(message)
+        return JsonResponse({"result": False, "data": [], "message": message})
+    service_categories = list_service_category_return["data"]["info"]
+    topo_merged_by_id = {
+        sc["id"]: {"value": sc["id"], "label": sc["name"], "children": []}
+        for sc in service_categories if sc["bk_parent_id"] == 0
+    }
+    for sc in service_categories:
+        if sc["bk_parent_id"] not in topo_merged_by_id:
+            continue
+        topo_merged_by_id[sc["bk_parent_id"]]["children"].append(
+            {"value": sc["id"], "label": sc["name"]}
+        )
+    # 筛选两层结构的拓扑
+    service_category_topo = [topo for topo in topo_merged_by_id.values() if topo["children"]]
+    return JsonResponse({"result": True, "data": service_category_topo, "message": "success"})
+
+
+@supplier_account_inject
 def cc_list_service_template(request, biz_cc_id, supplier_account):
     """
     获取服务模板
@@ -538,6 +584,10 @@ urlpatterns = [
     url(
         r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$",
         cc_list_service_template,
+    ),
+    url(
+        r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$",
+        cc_get_service_category_topo,
     ),
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(

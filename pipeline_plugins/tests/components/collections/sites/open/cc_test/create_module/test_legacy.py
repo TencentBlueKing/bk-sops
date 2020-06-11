@@ -35,6 +35,7 @@ class CCCreateModuleComponentTest(TestCase, ComponentTestMixin):
             SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE,
             SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE,
             CREATE_BY_TEMPLATE_SUCCESS_CASE,
+            EMPTY_MODULE_INFOS_FAILED_CASE,
         ]
 
 
@@ -394,6 +395,37 @@ CREATE_BY_TEMPLATE_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
         Patcher(target=CC_GET_CLIENT_BY_USER, return_value=SELECT_BY_TEXT_SUCCESS_CLIENT),
+        Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
+    ],
+)
+
+
+EMPTY_MODULE_INFOS_FAILED_CLIENT = MockClient(
+    get_mainline_object_topo_return=COMMON_MAINLINE,
+    search_biz_inst_topo_return=COMMON_TOPO,
+)
+
+EMPTY_MODULE_INFOS_FAILED_INPUTS = {
+    "biz_cc_id": 2,
+    "cc_set_select_method": "text",
+    "cc_set_select_topo": [],
+    "cc_set_select_text": "    蓝鲸>Tun>set\n\n",
+    "cc_create_method": "template",
+    "cc_module_infos_template": [],
+    "cc_module_infos_category": [],
+    "_loop": 1,
+}
+
+EMPTY_MODULE_INFOS_FAILED_CASE = ComponentTestCase(
+    name="fail case: module infos is empty",
+    inputs=EMPTY_MODULE_INFOS_FAILED_INPUTS,
+    parent_data=COMMON_PARENT,
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "模块信息不能为空"}),
+    schedule_assertion=None,
+    execute_call_assertion=None,
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=EMPTY_MODULE_INFOS_FAILED_CLIENT),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=EMPTY_MODULE_INFOS_FAILED_CLIENT),
         Patcher(target=CC_FORMAT_PROP_DATA, return_value=CC_FORMAT_PROP_DATA_RETURN),
     ],
 )
