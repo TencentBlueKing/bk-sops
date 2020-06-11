@@ -82,8 +82,7 @@ class ImportCommonTemplateAPITest(APITest):
         MagicMock(return_value={"result": True, "data": {"template_data": "token"}}),
     )
     @mock.patch(
-        COMMONTEMPLATE_IMPORT_TEMPLATES,
-        MagicMock(return_value={"result": False, "message": "token"}),
+        COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={"result": False, "message": "token"}),
     )
     def test_import_common_template__import_templates_fail(self):
         response = self.client.post(
@@ -103,8 +102,7 @@ class ImportCommonTemplateAPITest(APITest):
         MagicMock(return_value={"result": True, "data": {"template_data": "token"}}),
     )
     @mock.patch(
-        COMMONTEMPLATE_IMPORT_TEMPLATES,
-        MagicMock(return_value={"result": True, "message": "token"}),
+        COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={"result": True, "message": "token"}),
     )
     def test_import_common_template__success(self):
         response = self.client.post(
@@ -118,4 +116,4 @@ class ImportCommonTemplateAPITest(APITest):
         self.assertTrue(data["result"], msg=data)
         self.assertEqual(data["message"], "token")
 
-        CommonTemplate.objects.import_templates.assert_called_once_with("token", True)
+        CommonTemplate.objects.import_templates.assert_called_once_with("token", True, "")
