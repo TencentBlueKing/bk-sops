@@ -135,7 +135,7 @@ class CCCreateModuleService(Service):
         else:
             cc_module_infos_untreated = copy.deepcopy(data.get_one_of_inputs("cc_module_infos_category"))
         if not cc_module_infos_untreated:
-            data.set_outputs("ex_data", _("集群信息不能为空"))
+            data.set_outputs("ex_data", _("模块信息不能为空"))
             return False
         cc_module_infos = []
         for cc_module_info_untreated in cc_module_infos_untreated:

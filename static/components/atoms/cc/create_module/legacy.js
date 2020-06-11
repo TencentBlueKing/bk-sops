@@ -293,11 +293,11 @@
 
                                 if (self.get_parent().get_child("cc_create_method").value === "category" && !value.length) {
                                     result.result = false;
-                                    result.error_message = gettext("请填写模块信息");
+                                    result.error_message = gettext("模块信息不能为空");
                                 }
                             } else if (!value.length) {
                                 result.result = false;
-                                result.error_message = gettext("请填写模块信息");
+                                result.error_message = gettext("模块信息不能为空");
                             }
                             return result
                         }
@@ -406,11 +406,11 @@
 
                                 if (self.get_parent().get_child("cc_create_method").value === "template" && !value.length) {
                                     result.result = false;
-                                    result.error_message = gettext("请填写模块信息");
+                                    result.error_message = gettext("模块信息不能为空");
                                 }
                             } else if (!value.length) {
                                 result.result = false;
-                                result.error_message = gettext("请填写模块信息");
+                                result.error_message = gettext("模块信息不能为空");
                             }
                             return result
                         }

@@ -420,7 +420,7 @@ EMPTY_MODULE_INFOS_FAILED_CASE = ComponentTestCase(
     name="fail case: module infos is empty",
     inputs=EMPTY_MODULE_INFOS_FAILED_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "集群信息不能为空"}),
+    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "模块信息不能为空"}),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
