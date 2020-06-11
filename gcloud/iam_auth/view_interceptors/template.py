@@ -13,15 +13,17 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-from iam import Resource, Action, Subject, Request
+from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
+from gcloud.utils.strings import string_to_boolean
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.template.utils import read_template_data_file
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth import res_factory
 
 iam = get_iam_client()
 
@@ -32,14 +34,7 @@ class FormInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
-        resources = [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.FLOW_RESOURCE,
-                str(template_id),
-                {"iam_resource_owner": TaskTemplate.objects.creator_for(template_id)},
-            )
-        ]
+        resources = res_factory.resource_for_flow(template_id)
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
 
         allowed = iam.is_allowed(request)
@@ -56,26 +51,14 @@ class ExportInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
-        qs = TaskTemplate.objects.filter(id__in=template_id_list, is_deleted=False).values(
-            "id", "pipeline_template__creator"
-        )
+        resources_list = res_factory.resources_list_for_flows(template_id_list)
 
-        if not qs:
+        if not resources_list:
             return
 
         resources_map = {}
-        resources_list = []
-        for value in qs:
-            resources = [
-                Resource(
-                    IAMMeta.SYSTEM_ID,
-                    IAMMeta.FLOW_RESOURCE,
-                    str(value["id"]),
-                    {"iam_resource_owner": value["pipeline_template__creator"]},
-                )
-            ]
-            resources_map[str(value["id"])] = resources
-            resources_list.append(resources)
+        for resources in resources_list:
+            resources_map[resources[0].id] = resources
 
         request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
         result = iam.batch_is_allowed(request, resources_list)
@@ -86,16 +69,7 @@ class ExportInterceptor(ViewInterceptor):
         not_allowed_list = []
         for tid, allow in result.items():
             if not allow:
-                not_allowed_list.append(
-                    [
-                        Resource(
-                            IAMMeta.SYSTEM_ID,
-                            IAMMeta.FLOW_RESOURCE,
-                            tid,
-                            {"iam_resource_owner": resources_map[tid]["pipeline_template__creator"]},
-                        )
-                    ]
-                )
+                not_allowed_list.append(resources_map[tid])
 
         if not_allowed_list:
             raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)
@@ -106,14 +80,14 @@ class ImportInterceptor(ViewInterceptor):
         project_id = kwargs["project_id"]
         templates_data = read_template_data_file(request.FILES["data_file"])["data"]["template_data"]
         request.FILES["data_file"].seek(0)
-        override = request.POST["override"]
+        override = string_to_boolean(request.POST["override"])
 
         check_info = TaskTemplate.objects.import_operation_check(templates_data, project_id)
 
         subject = Subject("user", request.user.username)
 
         create_action = Action(IAMMeta.FLOW_CREATE_ACTION)
-        project_resources = [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project_id), {})]
+        project_resources = res_factory.resources_for_project(project_id)
         create_request = Request(IAMMeta.SYSTEM_ID, subject, create_action, project_resources, {})
 
         # check flow create permission
@@ -126,7 +100,7 @@ class ImportInterceptor(ViewInterceptor):
         else:
 
             # check flow create permission
-            if check_info["new_template"]:
+            if len(check_info["new_template"]) != len(check_info["override_template"]):
                 allowed = iam.is_allowed(create_request)
 
                 if not allowed:
@@ -135,28 +109,17 @@ class ImportInterceptor(ViewInterceptor):
             # check flow edit permission
             if check_info["override_template"]:
                 tids = [template_info["id"] for template_info in check_info["override_template"]]
-                qs = TaskTemplate.objects.filter(id__in=tids, is_deleted=False).values(
-                    "id", "pipeline_template__creator"
-                )
 
-                if not qs:
+                resources_list = res_factory.resources_list_for_flows(tids)
+
+                if not resources_list:
                     return
 
-                edit_action = Action(IAMMeta.FLOW_EDIT_ACTION)
                 resources_map = {}
-                resources_list = []
-                for value in qs:
-                    resources = [
-                        Resource(
-                            IAMMeta.SYSTEM_ID,
-                            IAMMeta.FLOW_RESOURCE,
-                            str(value["id"]),
-                            {"iam_resource_owner": value["pipeline_template__creator"]},
-                        )
-                    ]
-                    resources_map[str(value["id"])] = resources
-                    resources_list.append(resources)
+                for resources in resources_list:
+                    resources_map[resources[0].id] = resources
 
+                edit_action = Action(IAMMeta.FLOW_EDIT_ACTION)
                 edit_request = Request(IAMMeta.SYSTEM_ID, subject, edit_action, [], {})
                 result = iam.batch_is_allowed(edit_request, resources_list)
                 if not result:
@@ -165,16 +128,7 @@ class ImportInterceptor(ViewInterceptor):
                 not_allowed_list = []
                 for tid, allow in result.items():
                     if not allow:
-                        not_allowed_list.append(
-                            [
-                                Resource(
-                                    IAMMeta.SYSTEM_ID,
-                                    IAMMeta.FLOW_RESOURCE,
-                                    tid,
-                                    {"iam_resource_owner": resources_map[tid]["pipeline_template__creator"]},
-                                )
-                            ]
-                        )
+                        not_allowed_list.append(resources_map[tid])
 
                 if not_allowed_list:
                     raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, edit_action, not_allowed_list)

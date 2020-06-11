@@ -11,30 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
 
-
-from iam import Resource
 from iam.contrib.tastypie.resource import IAMResourceHelper
 
 
 class TaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
     def get_resources(self, bundle):
-
-        return [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.TASK_RESOURCE,
-                str(bundle.obj.id),
-                {
-                    "iam_resource_owner": bundle.obj.creator_name,
-                    "path": "/project,{}/".format(bundle.obj.project_id),
-                    "type": bundle.obj.flow_type,
-                    "name": bundle.obj.name,
-                },
-            )
-        ]
+        return res_factory.resources_for_task_obj(bundle.obj)
 
     def get_resources_id(self, bundle):
         return bundle.obj.id

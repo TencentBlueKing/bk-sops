@@ -13,9 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from tastypie.exceptions import Unauthorized
 
-from iam import Resource
-
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
 
@@ -24,7 +22,7 @@ class ProjectIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
         raise Unauthorized()
 
     def get_read_detail_resources(self, bundle):
-        return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(bundle.obj.id), {})]
+        return res_factory.resources_for_project_obj(bundle.obj)
 
     def get_update_detail_resources(self, bundle):
         raise Unauthorized()

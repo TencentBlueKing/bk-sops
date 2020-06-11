@@ -21,7 +21,7 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
-from iam import Resource, Subject, Action
+from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
@@ -39,6 +39,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.constants import PROJECT
 from gcloud.core.resources import ProjectResource
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import TaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import TaskIAMAuthorizationHelper
@@ -214,18 +215,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                     system=IAMMeta.SYSTEM_ID,
                     subject=Subject("user", bundle.request.user.username),
                     action=Action(IAMMeta.MINI_APP_CREATE_TASK_ACTION),
-                    resources=[
-                        Resource(
-                            system=IAMMeta.SYSTEM_ID,
-                            type=IAMMeta.MINI_APP_RESOURCE,
-                            id=str(app_maker.id),
-                            attribute={
-                                "iam_resource_owner": app_maker.creator,
-                                "path": "/project,{}/".format(app_maker.project_id),
-                                "name": app_maker.name,
-                            },
-                        )
-                    ],
+                    resources=res_factory.resources_for_mini_app_obj(app_maker),
                 )
 
             # flow create task perm
@@ -235,18 +225,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                     system=IAMMeta.SYSTEM_ID,
                     subject=Subject("user", bundle.request.user.username),
                     action=Action(IAMMeta.FLOW_CREATE_TASK_ACTION),
-                    resources=[
-                        Resource(
-                            system=IAMMeta.SYSTEM_ID,
-                            type=IAMMeta.FLOW_RESOURCE,
-                            id=str(template.id),
-                            attribute={
-                                "iam_resource_owner": template.creator,
-                                "path": "/project,{}/".format(template.project_id),
-                                "name": template.name,
-                            },
-                        )
-                    ],
+                    resources=res_factory.resources_for_flow_obj(template),
                 )
 
         else:
@@ -261,13 +240,8 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 subject=Subject("user", bundle.request.user.username),
                 action=Action(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION),
                 resources=[
-                    Resource(system=IAMMeta.SYSTEM_ID, type=IAMMeta.PROJECT_RESOURCE, id=str(project.id), attribute={}),
-                    Resource(
-                        system=IAMMeta.SYSTEM_ID,
-                        type=IAMMeta.COMMON_FLOW_RESOURCE,
-                        id=str(template.id),
-                        attribute={"iam_resource_owner": template.creator, "name": template.name},
-                    ),
+                    res_factory.resources_for_project_obj(project)[0],
+                    res_factory.resources_for_common_flow_obj(template)[0],
                 ],
             )
 

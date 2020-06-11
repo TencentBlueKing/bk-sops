@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
 
-from iam import Resource, Subject, Action
+from iam import Subject, Action
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.conf import settings
@@ -39,6 +39,7 @@ from gcloud.core.utils import convert_readable_username
 from gcloud.utils.strings import name_handler
 
 from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import get_iam_client
 
 logger = logging.getLogger("root")
@@ -70,18 +71,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         if not app_id:
             subject = Subject("user", app_params["username"])
             action = Action(IAMMeta.FLOW_CREATE_MINI_APP_ACTION)
-            resources = [
-                Resource(
-                    IAMMeta.SYSTEM_ID,
-                    IAMMeta.FLOW_RESOURCE,
-                    str(task_template.id),
-                    {
-                        "iam_resource_owner": task_template.creator,
-                        "path": "/project,{}/".format(task_template.project_id),
-                        "name": task_template.name,
-                    },
-                )
-            ]
+            resources = res_factory.resources_for_flow_obj(task_template)
 
             allow_or_raise_auth_failed(
                 iam=iam, system=IAMMeta.SYSTEM_ID, subject=subject, action=action, resources=resources
@@ -144,18 +134,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
             subject = Subject("user", app_params["username"])
             action = Action(IAMMeta.MINI_APP_EDIT_ACTION)
-            resources = [
-                Resource(
-                    IAMMeta.SYSTEM_ID,
-                    IAMMeta.MINI_APP_RESOURCE,
-                    str(app_maker_obj.id),
-                    {
-                        "iam_resource_owner": app_maker_obj.creator,
-                        "path": "/project,{}/".format(app_maker_obj.project_id),
-                        "name": app_maker_obj.name,
-                    },
-                )
-            ]
+            resources = res_factory.resources_for_mini_app_obj(app_maker_obj)
 
             allow_or_raise_auth_failed(
                 iam=iam, system=IAMMeta.SYSTEM_ID, subject=subject, action=action, resources=resources

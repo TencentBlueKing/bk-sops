@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Resource, Action, Subject, Request
+from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.periodictask.models import PeriodicTask
+from gcloud.iam_auth import res_factory
 
 iam = get_iam_client()
 
@@ -28,14 +28,7 @@ class PeriodicTaskSingleActionInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(self.action)
-        resources = [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.PERIODIC_TASK_RESOURCE,
-                str(task_id),
-                {"iam_resource_owner": PeriodicTask.objects.creator_for(task_id)},
-            )
-        ]
+        resources = res_factory.resources_for_periodic_task(task_id)
 
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
         allowed = iam.is_allowed(request)

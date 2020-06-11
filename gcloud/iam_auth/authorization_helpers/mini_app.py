@@ -11,35 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Resource
-
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
 
 class MiniAppIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def _get_flow_resources(self, bundle):
-        return [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.MINI_APP_RESOURCE,
-                str(bundle.obj.id),
-                {
-                    "iam_resource_owner": bundle.obj.creator,
-                    "path": "/project,{}/".format(bundle.obj.project_id),
-                    "name": bundle.obj.name,
-                },
-            )
-        ]
-
     def get_create_detail_resources(self, bundle):
-        return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(bundle.obj.project__id), {})]
+        return res_factory.resources_for_project(bundle.obj.project__id)
 
     def get_read_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_mini_app_obj(bundle.obj)
 
     def get_update_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_mini_app_obj(bundle.obj)
 
     def get_delete_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_mini_app_obj(bundle.obj)

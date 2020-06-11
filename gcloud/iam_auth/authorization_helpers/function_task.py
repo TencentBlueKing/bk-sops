@@ -11,35 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Resource
-
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
 
 class FunctionTaskIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def _get_flow_resources(self, bundle):
-        return [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.TASK_RESOURCE,
-                str(bundle.obj.task_id),
-                {
-                    "iam_resource_owner": bundle.obj.creator_name,
-                    "path": "/project,{}/".format(bundle.obj.task.project_id),
-                    "name": bundle.obj.name,
-                },
-            )
-        ]
-
     def get_create_detail_resources(self, bundle):
         return None
 
     def get_read_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_task(bundle.obj.task_id)
 
     def get_update_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_task(bundle.obj.task_id)
 
     def get_delete_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_task(bundle.obj.task_id)

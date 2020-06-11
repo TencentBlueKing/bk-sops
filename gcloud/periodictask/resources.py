@@ -25,7 +25,7 @@ from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from iam import Resource, Subject, Action
+from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CustomCreateCompleteListIAMAuthorization
 
@@ -37,6 +37,7 @@ from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.core.resources import ProjectResource
 from gcloud.commons.template.models import replace_template_id, CommonTemplate
 from gcloud.commons.tastypie import GCloudModelResource
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import PeriodicTaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import PeriodicTaskIAMAuthorizationHelper
@@ -156,18 +157,7 @@ class PeriodicTaskResource(GCloudModelResource):
                 system=IAMMeta.SYSTEM_ID,
                 subject=Subject("user", bundle.request.user.username),
                 action=Action(IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION),
-                resources=[
-                    Resource(
-                        system=IAMMeta.SYSTEM_ID,
-                        type=IAMMeta.FLOW_RESOURCE,
-                        id=str(template.id),
-                        attribute={
-                            "iam_resource_owner": template.creator,
-                            "path": "/project,{}/".format(template.project_id),
-                            "name": template.name,
-                        },
-                    )
-                ],
+                resources=res_factory.resources_for_flow_obj(template),
             )
 
             try:
@@ -187,13 +177,8 @@ class PeriodicTaskResource(GCloudModelResource):
                 subject=Subject("user", bundle.request.user.username),
                 action=Action(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION),
                 resources=[
-                    Resource(system=IAMMeta.SYSTEM_ID, type=IAMMeta.PROJECT_RESOURCE, id=str(project.id), attribute={}),
-                    Resource(
-                        system=IAMMeta.SYSTEM_ID,
-                        type=IAMMeta.COMMON_FLOW_RESOURCE,
-                        id=str(template.id),
-                        attribute={"iam_resource_owner": template.creator, "name": template.name},
-                    ),
+                    res_factory.resources_for_project_obj(project)[0],
+                    res_factory.resources_for_common_flow_obj(template)[0],
                 ],
             )
 

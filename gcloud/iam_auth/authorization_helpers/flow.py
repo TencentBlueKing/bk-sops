@@ -11,29 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Resource
-
 from tastypie.exceptions import BadRequest, NotFound
 
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
 
 
 class FlowIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def _get_flow_resources(self, bundle):
-        return [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.FLOW_RESOURCE,
-                str(bundle.obj.id),
-                {
-                    "iam_resource_owner": bundle.obj.creator,
-                    "path": "/project,{}/".format(bundle.obj.project_id),
-                    "name": bundle.obj.name,
-                },
-            )
-        ]
-
     def get_create_detail_resources(self, bundle):
 
         from gcloud.core.resources import ProjectResource
@@ -43,13 +27,13 @@ class FlowIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
         except NotFound:
             raise BadRequest("project with uri(%s) does not exist" % bundle.data.get("project"))
 
-        return [Resource(IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(project.id), {})]
+        return res_factory.resources_for_project_obj(project)
 
     def get_read_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_flow_obj(bundle.obj)
 
     def get_update_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_flow_obj(bundle.obj)
 
     def get_delete_detail_resources(self, bundle):
-        return self._get_flow_resources(bundle)
+        return res_factory.resources_for_flow_obj(bundle.obj)
