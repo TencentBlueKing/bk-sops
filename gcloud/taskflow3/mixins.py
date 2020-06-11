@@ -24,7 +24,6 @@ from pipeline.contrib.statistics.models import ComponentExecuteData, InstanceInP
 from gcloud.core.constant import TASK_CATEGORY, AE
 
 from gcloud.utils.dates import timestamp_to_datetime, format_datetime, gen_day_dates, get_month_dates
-from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
@@ -67,6 +66,7 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
     def group_by_appmaker_instance(self, taskflow, filters, page, limit):
         # 查询不同轻应用对应的流程数
+        from gcloud.contrib.appmaker.models import AppMaker
 
         # 获得所有类型的dict列表
         category_dict = dict(TASK_CATEGORY)
