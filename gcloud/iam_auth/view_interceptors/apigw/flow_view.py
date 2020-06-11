@@ -12,13 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from iam import Resource, Action, Subject
+from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.tasktmpl3.models import TaskTemplate
 
 iam = get_iam_client()
 
@@ -32,19 +32,5 @@ class FlowViewInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
-        template_info = TaskTemplate.objects.fetch_values(
-            template_id, "pipeline_template__creator", "pipeline_template__name", "project_id"
-        )
-        resources = [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.FLOW_RESOURCE,
-                str(template_id),
-                {
-                    "iam_resource_owner": template_info["pipeline_template__creator"],
-                    "path": "/project,{}/".format(template_info["project_id"]),
-                    "name": template_info["pipeline_template__name"],
-                },
-            )
-        ]
+        resources = res_factory.resources_for_flow(template_id)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

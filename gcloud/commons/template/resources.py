@@ -20,7 +20,7 @@ from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
-from iam import Resource, Subject, Action
+from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
@@ -33,6 +33,7 @@ from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.utils.strings import name_handler
 from gcloud.utils.strings import pipeline_node_name_handle
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
 from gcloud.iam_auth.authorization_helpers import CommonFlowIAMAuthorizationHelper
@@ -250,14 +251,7 @@ class CommonTemplateSchemeResource(GCloudModelResource):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),
             action=Action(IAMMeta.COMMON_FLOW_EDIT_ACTION),
-            resources=[
-                Resource(
-                    system=IAMMeta.SYSTEM_ID,
-                    type=IAMMeta.COMMON_FLOW_RESOURCE,
-                    id=str(common_template.id),
-                    attribute={"iam_resource_owner": common_template.creator, "name": common_template.name},
-                )
-            ],
+            resources=res_factory.resources_for_common_flow_obj(common_template),
         )
 
         bundle.data["name"] = name_handler(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
@@ -280,14 +274,7 @@ class CommonTemplateSchemeResource(GCloudModelResource):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),
             action=Action(IAMMeta.COMMON_FLOW_EDIT_ACTION),
-            resources=[
-                Resource(
-                    system=IAMMeta.SYSTEM_ID,
-                    type=IAMMeta.COMMON_FLOW_RESOURCE,
-                    id=str(common_template.id),
-                    attribute={"iam_resource_owner": common_template.creator, "name": common_template.name},
-                )
-            ],
+            resources=res_factory.resources_for_common_flow_obj(common_template),
         )
 
         return super(CommonTemplateSchemeResource, self).obj_delete(bundle, **kwargs)

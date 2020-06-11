@@ -26,7 +26,7 @@ from pipeline.models import TemplateScheme
 from pipeline.validators.base import validate_pipeline_tree
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from iam import Resource, Subject, Action
+from iam import Subject, Action
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response
 from iam.contrib.tastypie.authorization import CompleteListIAMAuthorization
 
@@ -36,6 +36,7 @@ from gcloud.utils.strings import name_handler, pipeline_node_name_handle
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.tastypie import GCloudModelResource, TemplateFilterPaginator
 from gcloud.core.resources import ProjectResource
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers import FlowResourceHelper
 from gcloud.iam_auth.authorization_helpers import FlowIAMAuthorizationHelper
@@ -268,18 +269,7 @@ class TemplateSchemeResource(GCloudModelResource):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),
             action=Action(IAMMeta.FLOW_EDIT_ACTION),
-            resources=[
-                Resource(
-                    system=IAMMeta.SYSTEM_ID,
-                    type=IAMMeta.FLOW_RESOURCE,
-                    id=str(template.id),
-                    attribute={
-                        "iam_resource_owner": template.creator,
-                        "path": "/project,{}/".format(template.project_id),
-                        "name": template.name,
-                    },
-                )
-            ],
+            resources=res_factory.resources_for_flow_obj(template),
         )
 
         bundle.data["name"] = name_handler(bundle.data["name"], TEMPLATE_NODE_NAME_MAX_LENGTH)
@@ -305,17 +295,6 @@ class TemplateSchemeResource(GCloudModelResource):
             system=IAMMeta.SYSTEM_ID,
             subject=Subject("user", bundle.request.user.username),
             action=Action(IAMMeta.FLOW_EDIT_ACTION),
-            resources=[
-                Resource(
-                    system=IAMMeta.SYSTEM_ID,
-                    type=IAMMeta.FLOW_RESOURCE,
-                    id=str(template.id),
-                    attribute={
-                        "iam_resource_owner": template.creator,
-                        "path": "/project,{}/".format(template.project_id),
-                        "name": template.name,
-                    },
-                )
-            ],
+            resources=res_factory.resources_for_flow_obj(template),
         )
         return super(TemplateSchemeResource, self).obj_delete(bundle, **kwargs)

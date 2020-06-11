@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Resource, Action, Subject
+from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.periodictask.models import PeriodicTask
 
 iam = get_iam_client()
 
@@ -31,17 +31,5 @@ class GetPeriodicTaskInfoInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.PERIODIC_TASK_VIEW_ACTION)
-        task_info = PeriodicTask.objects.fetch_values(task_id, "task__creator", "task__name", "project_id")
-        resources = [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.PERIODIC_TASK_RESOURCE,
-                str(task_id),
-                {
-                    "iam_resource_owner": task_info["task__creator"],
-                    "path": "/project,{}/".format(task_info["project_id"]),
-                    "name": task_info["task__name"],
-                },
-            )
-        ]
+        resources = res_factory.resources_for_periodic_task(task_id)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

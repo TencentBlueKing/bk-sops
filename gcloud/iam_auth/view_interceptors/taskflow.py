@@ -14,13 +14,13 @@ specific language governing permissions and limitations under the License.
 import abc
 import ujson as json
 
-from iam import Resource, Action, Subject, Request
+from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.iam_auth import res_factory
 
 iam = get_iam_client()
 
@@ -35,14 +35,7 @@ class TaskSingleActionInterceptor(ViewInterceptor, metaclass=abc.ABCMeta):
 
         subject = Subject("user", request.user.username)
         action = Action(self.action)
-        resources = [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.TASK_RESOURCE,
-                str(task_id),
-                {"iam_resource_owner": TaskFlowInstance.objects.creator_for(task_id)},
-            )
-        ]
+        resources = res_factory.resources_for_task(task_id)
 
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
         allowed = iam.is_allowed(request)

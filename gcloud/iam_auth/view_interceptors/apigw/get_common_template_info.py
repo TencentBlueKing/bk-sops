@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Resource, Action, Subject
+from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.commons.template.models import CommonTemplate
 
 iam = get_iam_client()
 
@@ -31,18 +31,5 @@ class GetCommonTemplateInfoInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-        template_info = CommonTemplate.objects.fetch_values(
-            template_id, "pipeline_template__creator", "pipeline_template__name"
-        )
-        resources = [
-            Resource(
-                IAMMeta.SYSTEM_ID,
-                IAMMeta.COMMON_FLOW_RESOURCE,
-                str(template_id),
-                {
-                    "iam_resource_owner": template_info["pipeline_template__creator"],
-                    "name": template_info["pipeline_template__name"],
-                },
-            )
-        ]
+        resources = res_factory.resources_for_common_flow(template_id)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources)

@@ -11,13 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Request, MultiActionRequest, Subject, Action, Resource
+from iam import Request, MultiActionRequest, Subject, Action
 
 from gcloud.core.models import Project
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import CommonTemplate
-from gcloud.contrib.appmaker.models import AppMaker
 
+from . import res_factory
 from .conf import IAMMeta
 from .shortcuts import get_iam_client
 
@@ -40,78 +38,32 @@ def get_user_projects(username):
 
 
 def get_flow_allowed_actions_for_user(username, actions, flow_id_list):
-    flows = TaskTemplate.objects.filter(id__in=flow_id_list).values("id", "pipeline_template__creator", "project_id")
+    resources_list = res_factory.resources_list_for_flows(flow_id_list)
 
-    if not flows:
+    if not resources_list:
         return {}
 
     return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        [
-            [
-                Resource(
-                    IAMMeta.SYSTEM_ID,
-                    IAMMeta.FLOW_RESOURCE,
-                    str(flow["id"]),
-                    {
-                        "iam_resource_owner": flow["pipeline_template__creator"],
-                        "path": "/project,{}/".format(flow["project_id"]),
-                    },
-                )
-            ]
-            for flow in flows
-        ],
+        username, IAMMeta.SYSTEM_ID, actions, res_factory.resources_list_for_flows(flow_id_list),
     )
 
 
 def get_common_flow_allowed_actions_for_user(username, actions, common_flow_id_list):
-    common_flows = CommonTemplate.objects.filter(id__in=common_flow_id_list).values("id", "pipeline_template__creator")
+    resources_list = res_factory.resources_list_for_common_flows(common_flow_id_list)
 
-    if not common_flows:
+    if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        [
-            [
-                Resource(
-                    IAMMeta.SYSTEM_ID,
-                    IAMMeta.COMMON_FLOW_RESOURCE,
-                    str(flow["id"]),
-                    {"iam_resource_owner": flow["pipeline_template__creator"]},
-                )
-            ]
-            for flow in common_flows
-        ],
-    )
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list,)
 
 
 def get_mini_app_allowed_actions_for_user(username, actions, mini_app_id_list):
-    mini_apps = AppMaker.objects.filter(id__in=mini_app_id_list).values("id", "creator", "project_id")
+    resources_list = res_factory.resources_list_for_mini_apps(mini_app_id_list)
 
-    if not mini_apps:
+    if not resources_list:
         return {}
 
-    return get_resources_allowed_actions_for_user(
-        username,
-        IAMMeta.SYSTEM_ID,
-        actions,
-        [
-            [
-                Resource(
-                    IAMMeta.SYSTEM_ID,
-                    IAMMeta.MINI_APP_RESOURCE,
-                    str(app["id"]),
-                    {"iam_resource_owner": app["creator"], "path": "/project,{}/".format(app["project_id"])},
-                )
-            ]
-            for app in mini_apps
-        ],
-    )
+    return get_resources_allowed_actions_for_user(username, IAMMeta.SYSTEM_ID, actions, resources_list,)
 
 
 def get_resources_allowed_actions_for_user(username, system_id, actions, resources_list):
