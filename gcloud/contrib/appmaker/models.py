@@ -39,7 +39,6 @@ from gcloud.core.utils import convert_readable_username
 from gcloud.utils.strings import name_handler
 
 from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import res_factory
 from gcloud.iam_auth import get_iam_client
 
 logger = logging.getLogger("root")
@@ -55,6 +54,8 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         @param fake: 为True则不会真正调用API创建轻应用
         @return:
         """
+        from gcloud.iam_auth import res_factory
+
         logger.info("save_app_maker params: %s" % app_params)
         app_id = app_params["id"]
         if app_id == "0" or not app_id:
