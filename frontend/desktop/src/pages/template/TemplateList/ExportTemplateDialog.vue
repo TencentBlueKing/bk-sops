@@ -66,7 +66,7 @@
                                         :key="i"
                                         :data="template"
                                         :selected="getTplIndexInSelected(template) > -1"
-                                        :is-apply-permission="!hasPermission(['flow_view'], template.auth_actions)"
+                                        :is-apply-permission="!hasPermission(reqPerm, template.auth_actions)"
                                         @onCardClick="onSelectTemplate(template)">
                                     </base-card>
                                 </ul>
@@ -154,6 +154,9 @@
                 const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
                 list.unshift({ value: 'all', name: i18n.t('全部分类') })
                 return list
+            },
+            reqPerm () {
+                return this.common ? ['common_flow_view'] : ['flow_view']
             }
         },
         watch: {
@@ -269,7 +272,7 @@
                 })
             },
             onSelectTemplate (template) {
-                if (this.hasPermission(['flow_view'], template.auth_actions)) {
+                if (this.hasPermission(this.reqPerm, template.auth_actions)) {
                     this.selectError = false
                     const tplIndex = this.getTplIndexInSelected(template)
                     if (tplIndex > -1) {
@@ -286,7 +289,7 @@
                             name: template.name
                         }]
                     }
-                    this.applyForPermission(['flow_view'], template.auth_actions, permissionData)
+                    this.applyForPermission(this.reqPerm, template.auth_actions, permissionData)
                 }
             },
             deleteTemplate (template) {
