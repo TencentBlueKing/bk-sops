@@ -16,6 +16,7 @@ import ujson as json
 from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
+from gcloud.utils.strings import string_to_boolean
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import read_template_data_file
 
@@ -76,34 +77,32 @@ class ExportInterceptor(ViewInterceptor):
 
 class ImportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
-        project_id = kwargs["project_id"]
         templates_data = read_template_data_file(request.FILES["data_file"])["data"]["template_data"]
         request.FILES["data_file"].seek(0)
-        override = request.POST["override"]
+        override = string_to_boolean(request.POST["override"])
 
-        check_info = CommonTemplate.objects.import_operation_check(templates_data, project_id)
+        check_info = CommonTemplate.objects.import_operation_check(templates_data)
 
         subject = Subject("user", request.user.username)
 
         create_action = Action(IAMMeta.COMMON_FLOW_CREATE_ACTION)
-        project_resources = res_factory.resources_for_project(project_id)
-        create_request = Request(IAMMeta.SYSTEM_ID, subject, create_action, project_resources, {})
+        create_request = Request(IAMMeta.SYSTEM_ID, subject, create_action, [], {})
 
         # check flow create permission
         if not override:
             allowed = iam.is_allowed(create_request)
 
             if not allowed:
-                raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, create_action, project_resources)
+                raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, create_action, [])
 
         else:
 
             # check flow create permission
-            if check_info["new_template"]:
+            if len(check_info["new_template"]) != len(check_info["override_template"]):
                 allowed = iam.is_allowed(create_request)
 
                 if not allowed:
-                    raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, create_action, project_resources)
+                    raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, create_action, [])
 
             # check flow edit permission
             if check_info["override_template"]:
@@ -122,7 +121,7 @@ class ImportInterceptor(ViewInterceptor):
                 edit_request = Request(IAMMeta.SYSTEM_ID, subject, edit_action, [], {})
                 result = iam.batch_is_allowed(edit_request, resources_list)
                 if not result:
-                    raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, edit_request, resources_list)
+                    raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, edit_action, resources_list)
 
                 not_allowed_list = []
                 for tid, allow in result.items():
@@ -130,4 +129,4 @@ class ImportInterceptor(ViewInterceptor):
                         not_allowed_list.append(resources_map[tid])
 
                 if not_allowed_list:
-                    raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, edit_request, not_allowed_list)
+                    raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, edit_action, not_allowed_list)
