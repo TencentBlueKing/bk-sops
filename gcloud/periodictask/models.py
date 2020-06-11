@@ -42,7 +42,7 @@ class PeriodicTaskManager(models.Manager):
         qs = self.filter(id=id).values(*values)
 
         if not qs:
-            raise self.model.DoesNotExist()
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
 
         return qs.first()
 
@@ -50,7 +50,7 @@ class PeriodicTaskManager(models.Manager):
         qs = self.filter(id=id).values("task__creator")
 
         if not qs:
-            raise self.model.DoesNotExist()
+            raise self.model.DoesNotExist("{}(id={}) does not exist.".format(self.model.__name__, id))
 
         return qs.first()["task__creator"]
 
