@@ -307,7 +307,7 @@ class NodemanCreateTaskService(Service):
         return [
             self.InputItem(
                 name=_("业务 ID"),
-                key="biz_cc_id",
+                key="bk_biz_id",
                 type="int",
                 schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
