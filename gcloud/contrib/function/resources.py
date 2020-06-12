@@ -20,7 +20,7 @@ from gcloud.commons.tastypie import GCloudModelResource
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_helpers import SimpleResourceHelper
+from gcloud.iam_auth.resource_helpers import FunctionTaskResourceHelper
 from gcloud.iam_auth.authorization_helpers import FunctionTaskIAMAuthorizationHelper
 
 iam = get_iam_client()
@@ -46,11 +46,7 @@ class FunctionTaskResource(GCloudModelResource):
                 delete_action=None,
             ),
         )
-        iam_resource_helper = SimpleResourceHelper(
-            type=IAMMeta.TASK_RESOURCE,
-            id_field="task_id",
-            creator_field="creator_name",
-            name_field="name",
+        iam_resource_helper = FunctionTaskResourceHelper(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             actions=[

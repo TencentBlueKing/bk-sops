@@ -11,9 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .base import SimpleResourceHelper  # noqa
-from .flow import FlowResourceHelper  # noqa
-from .task import TaskResourceHelper  # noqa
-from .mini_app import MiniAppResourceHelper  # noqa
-from .periodic_task import PeriodicTaskResourceHelper  # noqa
-from .function_task import FunctionTaskResourceHelper  # noqa
+from gcloud.iam_auth import res_factory
+from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
+
+from iam.contrib.tastypie.resource import IAMResourceHelper
+
+
+class FunctionTaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
+    def get_resources(self, bundle):
+        return res_factory.resources_for_function_task_obj(bundle.obj)
+
+    def get_resources_id(self, bundle):
+        return bundle.obj.task_id
