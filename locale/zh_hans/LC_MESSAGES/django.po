@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-06-08 22:04+0800\n"
+"POT-Creation-Date: 2020-06-12 19:36+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -209,7 +209,7 @@ msgstr "删除"
 #: gcloud/commons/template/permissions.py:35
 #: gcloud/contrib/appmaker/permissions.py:35 gcloud/tasktmpl3/permissions.py:35
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:306
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:379
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:374
 msgid "新建任务"
 msgstr "新建任务"
 
@@ -861,7 +861,7 @@ msgid "执行者"
 msgstr "执行者"
 
 #: gcloud/external_plugins/models/sync.py:38 gcloud/taskflow3/models.py:430
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:73
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:74
 msgid "创建方式"
 msgstr "创建方式"
 
@@ -965,7 +965,7 @@ msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期�
 msgstr "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
 
 #: gcloud/taskflow3/api.py:131
-#: pipeline_plugins/components/query/sites/open/query.py:302
+#: pipeline_plugins/components/query/sites/open/query.py:348
 #, python-format
 msgid "查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s"
 msgstr "查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s"
@@ -1844,7 +1844,7 @@ msgstr "请求参数格式错误: %s"
 #: pipeline_plugins/components/collections/sites/open/cc/base.py:26
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:33
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:36
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:40
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:41
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:34
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:38
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:40
@@ -2031,7 +2031,7 @@ msgstr "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 #: pipeline_plugins/components/collections/sites/open/bk.py:75
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:41
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:46
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:50
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:42
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:83
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:84
@@ -2054,7 +2054,7 @@ msgstr "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 #: pipeline_plugins/components/collections/sites/open/job.py:358
 #: pipeline_plugins/components/collections/sites/open/job.py:488
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:229
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:302
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:309
 msgid "业务 ID"
 msgstr "业务 ID"
 
@@ -2155,7 +2155,7 @@ msgstr "提交的任务在 JOB 平台的 URL"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:44
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:49
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:52
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:53
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/legacy.py:45
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v1_0.py:86
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:87
@@ -2178,7 +2178,7 @@ msgstr "提交的任务在 JOB 平台的 URL"
 #: pipeline_plugins/components/collections/sites/open/job.py:361
 #: pipeline_plugins/components/collections/sites/open/job.py:491
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:232
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:305
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:312
 msgid "当前操作所属的 CMDB 业务 ID"
 msgstr "当前操作所属的 CMDB 业务 ID"
 
@@ -2414,7 +2414,7 @@ msgstr "需要清空的集群 ID 列表"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:49
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:62
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:64
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:65
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:50
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:62
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:50
@@ -2430,7 +2430,7 @@ msgid "删除集群"
 msgstr "删除集群"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:52
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:55
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:56
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:90
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:52
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:54
@@ -2441,13 +2441,13 @@ msgid "填参方式"
 msgstr "填参方式"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:55
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:58
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:59
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:55
 msgid "集群填入方式，拓扑(topo)，层级文本(text)"
 msgstr "集群填入方式，拓扑(topo)，层级文本(text)"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:58
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:61
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:62
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:58
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:60
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:59
@@ -2455,7 +2455,7 @@ msgid "拓扑-集群列表"
 msgstr "拓扑-集群列表"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:66
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:67
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:68
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:66
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:68
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:67
@@ -2463,7 +2463,7 @@ msgid "文本路径-集群"
 msgstr "文本路径-集群"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:69
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:70
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:71
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:69
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:71
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:70
@@ -2471,7 +2471,7 @@ msgid "集群文本路径，请输入完整路径，从业务拓扑开始，如`
 msgstr "集群文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C`，多个目标集群用换行分隔"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:99
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:114
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:115
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:145
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:99
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:123
@@ -2480,55 +2480,59 @@ msgstr "集群文本路径，请输入完整路径，从业务拓扑开始，如
 msgid "请选择填参方式"
 msgstr "请选择填参方式"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:64
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:65
 msgid "所属集群 ID 列表"
 msgstr "所属集群 ID 列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:76
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:77
 msgid "按模板创建(template)，直接创建-按服务分类创建(category)"
 msgstr "按模板创建(template)，直接创建-按服务分类创建(category)"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:80
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:81
 msgid "模块信息列表-直接创建（通过服务分类创建）"
 msgstr "模块信息列表-直接创建（通过服务分类创建）"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:84
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:93
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:85
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:94
 msgid "模块信息对象列表"
 msgstr "模块信息对象列表"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:85
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:94
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:86
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:95
 msgid "模块信息描述对象"
 msgstr "模块信息描述对象"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:89
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:90
 msgid "模块信息列表-按服务模板创建"
 msgstr "模块信息列表-按服务模板创建"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:117
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:118
 msgid "请选择创建方式"
 msgstr "请选择创建方式"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:142
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:138
+msgid "模块信息不能为空"
+msgstr "模块信息不能为空"
+
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:147
 msgid "请选择正确的服务模板"
 msgstr "请选择正确的服务模板"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:149
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:154
 msgid "请选择正确的服务类型"
 msgstr "请选择正确的服务类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:162
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:167
 msgid "模块名称不能为空"
 msgstr "模块名称不能为空"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:174
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:179
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:101
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:135
 msgid "模块类型校验失败，请重试并填写正确的模块类型"
 msgstr "模块类型校验失败，请重试并填写正确的模块类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:202
+#: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:207
 msgid "创建模块"
 msgstr "创建模块"
 
@@ -2874,93 +2878,87 @@ msgid "查询失败，未能获得任务执行结果"
 msgstr "查询失败，未能获得任务执行结果"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:184
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:247
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:254
 msgid "日志信息为："
 msgstr "日志信息为："
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:194
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:267
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:274
 msgid "主机："
 msgstr "主机："
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:196
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:269
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:276
 msgid "日志："
 msgstr "日志："
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:207
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:280
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:287
 msgid "任务 ID"
 msgstr "任务 ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:210
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:283
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:290
 msgid "提交的任务的 job_id"
 msgstr "提交的任务的 job_id"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:213
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:286
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:293
 msgid "安装成功个数"
 msgstr "安装成功个数"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:216
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:289
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:296
 msgid "任务中安装成功的机器个数"
 msgstr "任务中安装成功的机器个数"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:219
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:292
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:299
 msgid "安装失败个数"
 msgstr "安装失败个数"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:222
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:295
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:302
 msgid "任务中安装失败的机器个数"
 msgstr "任务中安装失败的机器个数"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:235
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:308
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:320
 msgid "云区域 ID"
 msgstr "云区域 ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:238
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:311
 msgid "节点所在云区域 ID"
 msgstr "节点所在云区域 ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:241
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:320
 #: pipeline_web/core/abstract.py:20
 msgid "节点类型"
 msgstr "节点类型"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:245
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:324
 msgid "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
 msgstr "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:252
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:331
 msgid "操作类型"
 msgstr "操作类型"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:256
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:335
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:332
 msgid "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、 UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
 msgstr "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、 UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:263
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:342
 msgid "主机"
 msgstr "主机"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:267
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:346
 msgid "主机所在云区域 ID"
 msgstr "主机所在云区域 ID"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:269
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:348
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:339
 msgid "主机相关信息"
 msgstr "主机相关信息"
 
@@ -2969,12 +2967,12 @@ msgid "主机通信 IP"
 msgstr "主机通信 IP"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:273
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:352
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:343
 msgid "主机登录 IP，可以为空，适配复杂网络时填写"
 msgstr "主机登录 IP，可以为空，适配复杂网络时填写"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:276
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:355
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:346
 msgid "主机数据 IP，可以为空，适配复杂网络时填写"
 msgstr "主机数据 IP，可以为空，适配复杂网络时填写"
 
@@ -2983,7 +2981,7 @@ msgid "级联 IP, 可以为空，安装 PROXY 时必填"
 msgstr "级联 IP, 可以为空，安装 PROXY 时必填"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:282
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:361
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:352
 msgid "操作系统类型，可以是 LINUX, WINDOWS, 或 AIX"
 msgstr "操作系统类型，可以是 LINUX, WINDOWS, 或 AIX"
 
@@ -2992,68 +2990,96 @@ msgid "是否安装了 cygwin，True：表示已安装，False：表示未安装
 msgstr "是否安装了 cygwin，True：表示已安装，False：表示未安装, windows 操作系统时选填"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:290
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:363
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:354
 msgid "端口号"
 msgstr "端口号"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:291
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:364
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:355
 msgid "登录帐号"
 msgstr "登录帐号"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:293
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:366
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:357
 msgid "认证方式，可以是 PASSWORD 或 KEY"
 msgstr "认证方式，可以是 PASSWORD 或 KEY"
 
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:296
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:369
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:360
 msgid "认证密钥,根据认证方式，是登录密码或者登陆密钥"
 msgstr "认证密钥,根据认证方式，是登录密码或者登陆密钥"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:165
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:132
+msgid "请确认内网Ip是否合法host_info:{host}"
+msgstr "请确认内网Ip是否合法host_info:{host}"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:172
 msgid "获取bk_host_id失败:{},请确认云区域是否正确"
 msgstr "获取bk_host_id失败:{},请确认云区域是否正确"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:176
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:183
 msgid "无效的操作请求:{}"
 msgstr "无效的操作请求:{}"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:314
-msgid "接入点"
-msgstr "接入点"
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:316
+msgid "操作对象"
+msgstr "操作对象"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:317
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:319
+msgid "需要操作的对象"
+msgstr "需要操作的对象"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:321
+msgid "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）"
+msgstr "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:327
+msgid "操作详情"
+msgstr "操作详情"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:330
+msgid "操作内容信息"
+msgstr "操作内容信息"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:331
 msgid "接入点 ID"
 msgstr "接入点 ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:350
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:335
+msgid "IP(升级，卸载，移除时需要)"
+msgstr "IP(升级，卸载，移除时需要)"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:337
+msgid "需要被操作的主机信息(安装与重装时需要)"
+msgstr "需要被操作的主机信息(安装与重装时需要)"
+
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:341
 msgid "内网 IP"
 msgstr "内网 IP"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:358
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:349
 msgid "外网 IP, 可以为空"
 msgstr "外网 IP, 可以为空"
 
-#: pipeline_plugins/components/query/sites/open/query.py:327
+#: pipeline_plugins/components/query/sites/open/query.py:373
 #, python-format
 msgid "查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s"
 msgstr "查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s"
 
-#: pipeline_plugins/components/query/sites/open/query.py:340
+#: pipeline_plugins/components/query/sites/open/query.py:386
 msgid "脚本"
 msgstr "脚本"
 
-#: pipeline_plugins/components/query/sites/open/query.py:340
+#: pipeline_plugins/components/query/sites/open/query.py:386
 msgid "文件"
 msgstr "文件"
 
-#: pipeline_plugins/components/query/sites/open/query.py:454
+#: pipeline_plugins/components/query/sites/open/query.py:500
 msgid "File Manager 未配置，请联系管理员进行配置"
 msgstr "File Manager 未配置，请联系管理员进行配置"
 
-#: pipeline_plugins/components/query/sites/open/query.py:489
-#: pipeline_plugins/components/query/sites/open/query.py:507
+#: pipeline_plugins/components/query/sites/open/query.py:535
+#: pipeline_plugins/components/query/sites/open/query.py:553
 msgid "节点管理(NODEMAN)"
 msgstr "节点管理(NODEMAN)"
 
@@ -3288,4 +3314,7 @@ msgstr "微信用户"
 
 #~ msgid "安装"
 #~ msgstr "安装"
+
+#~ msgid "接入点"
+#~ msgstr "接入点"
 
