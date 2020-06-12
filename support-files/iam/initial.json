@@ -510,6 +510,7 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
+                        "selection_mode": "all",
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
@@ -534,6 +535,7 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
+                        "selection_mode": "all",
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
@@ -558,6 +560,7 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
+                        "selection_mode": "all",
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
@@ -582,6 +585,7 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
+                        "selection_mode": "all",
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
@@ -606,6 +610,7 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
+                        "selection_mode": "all",
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
@@ -630,6 +635,7 @@
                     {
                         "system_id": "bk_sops",
                         "id": "task",
+                        "selection_mode": "all",
                         "related_instance_selections": [
                             {
                                 "system_id": "bk_sops",
