@@ -248,3 +248,22 @@ def resources_list_for_mini_apps(mini_app_id_list):
         ]
         for value in qs
     ]
+
+
+# function task
+
+
+def resources_for_function_task_obj(task_obj):
+    return [
+        Resource(
+            IAMMeta.SYSTEM_ID,
+            IAMMeta.TASK_RESOURCE,
+            str(task_obj.task_id),
+            {
+                "iam_resource_owner": task_obj.task.creator,
+                "path": "/project,{}/".format(task_obj.task.project_id),
+                "name": task_obj.task.name,
+                "type": task_obj.task.flow_type,
+            },
+        )
+    ]
