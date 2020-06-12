@@ -186,7 +186,7 @@ class TaskFuncClaimValidator(ObjectJsonBodyValidator):
         if not self.data.get("instance_id"):
             return False, "instance_id can not be empty"
 
-        if not self.data.get("constants"):
+        if self.data.get("constants") is None:
             return False, "constants can not be empty"
 
         if not isinstance(self.data["constants"], dict):
