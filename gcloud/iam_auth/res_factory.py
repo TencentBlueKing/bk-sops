@@ -98,7 +98,7 @@ def resources_for_project_obj(project_obj):
 
 def resources_for_task(task_id):
     task_info = TaskFlowInstance.objects.fetch_values(
-        task_id, "pipeline_instance__creator", "pipeline_instance__name", "project_id"
+        task_id, "pipeline_instance__creator", "pipeline_instance__name", "project_id", "flow_type"
     )
 
     return [
@@ -110,6 +110,7 @@ def resources_for_task(task_id):
                 "iam_resource_owner": task_info["pipeline_instance__creator"],
                 "path": "/project,{}/".format(task_info["project_id"]),
                 "name": task_info["pipeline_instance__name"],
+                "type": task_info["flow_type"],
             },
         )
     ]
@@ -125,6 +126,7 @@ def resources_for_task_obj(task_obj):
                 "iam_resource_owner": task_obj.creator,
                 "path": "/project,{}/".format(task_obj.project_id),
                 "name": task_obj.name,
+                "type": task_obj.flow_type,
             },
         )
     ]
