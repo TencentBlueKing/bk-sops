@@ -19,7 +19,7 @@
                 :props="{
                     multiple,
                     lazy,
-                    lazyLoad: lazyload.bind(this)
+                    lazyLoad: lazyLoad.bind(this)
                 }"
                 :filterable="filterable">
             </el-cascader>
