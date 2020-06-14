@@ -67,6 +67,7 @@
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
                     :common="common"
+                    :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :is-setting-panel-show="isSettingPanelShow"
                     :setting-active-tab="settingActiveTab"
