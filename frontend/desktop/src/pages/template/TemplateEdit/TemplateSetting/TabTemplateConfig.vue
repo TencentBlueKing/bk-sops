@@ -13,7 +13,7 @@
     <div class="config-wrapper">
         <bk-sideslider
             ext-cls="common-template-setting-sideslider"
-            :width="420"
+            :width="800"
             :is-show="isShow"
             :before-close="onBeforeClose"
             :quick-close="true">
@@ -22,7 +22,7 @@
             </div>
             <div slot="content" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
                 <div class="common-form-item">
-                    <label>{{ $t('分类') }}</label>
+                    <label class="required">{{ $t('分类') }}</label>
                     <div class="common-form-content">
                         <bk-select
                             class="category-select"
@@ -40,14 +40,17 @@
                 </div>
                 <div class="common-form-item">
                     <label> {{$t('通知方式')}} </label>
-                    <div class="common-form-content">
+                    <div class="common-form-content" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
                         <bk-checkbox-group v-model="notifyType">
-                            <bk-checkbox
-                                v-for="item in notifyTypeList"
-                                :key="item.id"
-                                :value="item.id">
-                                {{item.name}}
-                            </bk-checkbox>
+                            <template v-for="item in notifyTypeList">
+                                <bk-checkbox
+                                    v-if="item.is_active"
+                                    :key="item.type"
+                                    :value="item.type">
+                                    <img class="notify-icon" :src="`data:image/png;base64,${item.icon}`" />
+                                    <span style="word-break: break-all;">{{item.label}}</span>
+                                </bk-checkbox>
+                            </template>
                         </bk-checkbox-group>
                     </div>
                 </div>
@@ -76,13 +79,21 @@
 </template>
 
 <script>
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+
     export default {
         name: 'TabTemplateConfig',
-        props: ['projectInfoLoading', 'isTemplateConfigValid', 'isShow'],
+        props: {
+            projectInfoLoading: Boolean,
+            isTemplateConfigValid: Boolean,
+            isShow: Boolean
+        },
         data () {
             return {
-                selectedTaskCategory: ''
+                selectedTaskCategory: '',
+                notifyTypeLoading: false,
+                notifyTypeList: []
             }
         },
         computed: {
@@ -96,17 +107,6 @@
                         return {
                             id: item.value,
                             name: item.text
-                        }
-                    })
-                }
-                return []
-            },
-            notifyTypeList () {
-                if (this.projectBaseInfo.notify_type_list) {
-                    return this.projectBaseInfo.notify_type_list.map(item => {
-                        return {
-                            id: item.value,
-                            name: item.name
                         }
                     })
                 }
@@ -149,6 +149,9 @@
                 }
             }
         },
+        created () {
+            this.getNotifyTypeList()
+        },
         methods: {
             ...mapMutations('template/', [
                 'setOutputs',
@@ -157,6 +160,20 @@
                 'setOvertime',
                 'setCategory'
             ]),
+            ...mapActions([
+                'getNotifyTypes'
+            ]),
+            async getNotifyTypeList () {
+                try {
+                    this.notifyTypeLoading = true
+                    const res = await this.getNotifyTypes()
+                    this.notifyTypeList = res.data
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.notifyTypeLoading = false
+                }
+            },
             onChangeTimeout (val) {
                 this.setOvertime(val)
             },
@@ -181,24 +198,36 @@
        margin: 20px
     }
     .common-form-item > label {
+        margin-top: 0;
         width: 70px;
+        height: 32px;
+        line-height: 32px;
         font-size: 12px;
         font-weight: normal;
     }
     .common-form-content {
+        margin-left: 94px;
         line-height: 32px;
-        .base-input {
-            height: 32px;
-            line-height: 32px;
-        }
     }
     .bk-form-checkbox {
-        margin: 0 30px 0 0;
+        margin: 14px 30px 0 0;
         min-width: 96px;
         /deep/ .bk-checkbox-text {
             color: $greyDefault;
             font-size: 12px;
         }
+        &:nth-child(-n + 4) {
+            margin-top: 0;
+        }
+    }
+    /deep/ .bk-checkbox-text {
+        display: inline-flex;
+        align-items: center;
+        width: 110px;
+    }
+    .notify-icon {
+        margin-right: 4px;
+        width: 18px;
     }
     .hide {
         display: none;
