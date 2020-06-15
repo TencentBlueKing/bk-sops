@@ -5,8 +5,6 @@ const en = {
     'HTTP状态码：': 'HTTP Status:',
     '错误码': 'ErrorCode',
     '请输入 IP': 'Please enter IP',
-    '分钟': 'minute',
-    '小时': 'hour',
     '星期': 'week',
     '日期': 'date',
     '月份': 'month',
@@ -23,7 +21,6 @@ const en = {
     '星期五': 'Friday',
     '星期六': 'Saturday',
     '星期天': 'Sunday',
-    '天': 'day',
     '手动输入': 'Enter Manually',
     '清空': 'Empty',
     '选择生成': 'Selection',
@@ -790,10 +787,10 @@ const en = {
     '当前访问的页面不存在': 'Page not found',
     'sorry，您没有访问权限!': 'sorry, you have no access permissions!',
     'Sorry，您的权限不足!': 'Sorry, you have no permissions',
-    ' 秒': ' Second',
-    ' 分': ' Minute',
-    ' 小时': ' Hour',
-    ' 天': ' Day',
+    '秒': 'Second | {n} second | {n} seconds',
+    '分钟': 'Minute | {n} minute | {n} minutes',
+    '小时': 'Hour | {n} hour | {n} hours',
+    '天': 'Day | {n} day | {n} days',
     '节点不可连接自身': 'Node can not link itself',
     '只能添加输入连线': ' can add input flow only',
     '只能添加输出连线': ' can add output flow only',
@@ -986,7 +983,10 @@ const en = {
     '立即查看': 'View now',
     '节点配置': 'Node config',
     '复制节点': 'Copy node',
-    '复制成功': 'Successfully copied'
+    '复制成功': 'Successfully copied',
+    '等于': 'equal to',
+    '大于': 'more than',
+    '小于': 'less than'
 }
 
 export default en

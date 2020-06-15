@@ -111,19 +111,35 @@ const tools = {
      * @param {String|Number} time 时间
      */
     timeTransform (time) {
+        time = 0
         const val = Number(time)
-        if (val > 0) {
-            const tempTime = moment.duration(val * 1000)
-            const day = tempTime.days() ? tempTime.days() + i18n.t('天 ') : ''
-            const hours = tempTime.hours() ? tempTime.hours() + i18n.t('小时 ') : ''
-            const minutes = tempTime.minutes() ? tempTime.minutes() + i18n.t('分 ') : ''
-            const seconds = tempTime.seconds() ? tempTime.seconds() + i18n.t('秒') : ''
-            return day + hours + minutes + seconds
-        } else if (val === 0) {
-            return 0
+        let timeStr = ''
+        if (val >= 0) {
+            if (val < 1) {
+                timeStr += `${i18n.tc('小于')} ${i18n.tc('秒', 1)}`
+            } else {
+                const timeRange = moment.duration(val * 1000)
+                const day = timeRange.days()
+                const hour = timeRange.hours()
+                const minute = timeRange.minutes()
+                const second = timeRange.seconds()
+                if (day > 0) {
+                    timeStr += i18n.tc('天', day, { n: day })
+                }
+                if (hour > 0) {
+                    timeStr += ` ${i18n.tc('小时', hour, { n: hour })}`
+                }
+                if (minute > 0) {
+                    timeStr += ` ${i18n.tc('分钟', minute, { n: minute })}`
+                }
+                if (second >= 1) {
+                    timeStr += ` ${i18n.tc('秒', second, { n: second })}`
+                }
+            }
         } else {
-            return '--'
+            timeStr = '--'
         }
+        return timeStr
     }
 }
 

@@ -141,7 +141,7 @@
             options: [
                 {
                     id: 'day',
-                    name: i18n.t('天')
+                    name: i18n.tc('天')
                 },
                 {
                     id: 'month',
