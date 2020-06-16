@@ -45,12 +45,12 @@ class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, execute_job_return, get_global_var_return=None, get_job_instance_log=None):
+    def __init__(self, execute_job_return, get_global_var_return=None, get_job_instance_log_return=None):
         self.set_bk_api_ver = MagicMock()
         self.job = MagicMock()
         self.job.execute_job = MagicMock(return_value=execute_job_return)
         self.job.get_job_instance_global_var_value = MagicMock(return_value=get_global_var_return)
-        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log)
+        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
 
 
 # mock path
@@ -71,16 +71,10 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                 {
                     "tag": "",
                     "ip_logs": [
-                        {
-                            "ip": "1.1.1.1",
-                            "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n",
-                        },
-                        {
-                            "ip": "1.1.1.2",
-                            "log_content": "",
-                        }
+                        {"ip": "1.1.1.1", "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"},
+                        {"ip": "1.1.1.2", "log_content": ""},
                     ],
-                    "ip_status": 9
+                    "ip_status": 9,
                 }
             ],
         },
@@ -95,19 +89,14 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                             "log_content": "<SOPS_VAR>key2:value2</SOPS_VAR>\ngsectl<SOPS_VAR>key3:value3</SOPS_VAR>",
                         },
                     ],
-                    "ip_status": 9
+                    "ip_status": 9,
                 }
             ],
-        }
-    ]
+        },
+    ],
 }
 
-GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {
-    "code": 0,
-    "result": False,
-    "message": "success",
-    "data": []
-}
+GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
 
 
 # mock clients
@@ -137,7 +126,7 @@ EXECUTE_SUCCESS_CLIENT = MockClient(
             ]
         },
     },
-    get_job_instance_log=EXECUTE_SUCCESS_GET_LOG_RETURN
+    get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
 )
 
 GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
@@ -155,7 +144,7 @@ GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
             ]
         },
     },
-    get_job_instance_log=GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN
+    get_job_instance_log_return=GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN,
 )
 
 # test cases
@@ -480,7 +469,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "client": EXECUTE_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
-            "log_outputs": {"key1": "value1", "key2": "value2", "key3": "value3"}
+            "log_outputs": {"key1": "value1", "key2": "value2", "key3": "value3"},
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),

@@ -142,9 +142,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id):
     - fail { "result": False, "message": message}
     """
     get_job_instance_log_kwargs = {"job_instance_id": job_instance_id}
-    get_job_instance_log_return = client.job.get_job_instance_log(
-        get_job_instance_log_kwargs
-    )
+    get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
     if not get_job_instance_log_return["result"]:
         message = handle_api_error(
             __group_name__, "job.get_job_instance_log", get_job_instance_log_kwargs, get_job_instance_log_return
@@ -219,17 +217,21 @@ class JobService(Service):
 
             get_job_sops_var_dict_return = get_job_sops_var_dict(data.outputs.client, self.logger, job_instance_id)
             if not get_job_sops_var_dict_return["result"]:
-                self.logger.warning(_("{group}.{job_service_name}: 提取日志失败，{message}").format(
-                    group=__group_name__,
-                    job_service_name=self.get_derived_class_name,
-                    message=get_job_sops_var_dict_return["message"]
-                ))
+                self.logger.warning(
+                    _("{group}.{job_service_name}: 提取日志失败，{message}").format(
+                        group=__group_name__,
+                        job_service_name=self.get_derived_class_name,
+                        message=get_job_sops_var_dict_return["message"],
+                    )
+                )
                 self.finish_schedule()
                 return True
 
             log_outputs = get_job_sops_var_dict_return["data"]
-            self.logger.info(_("{group}.{job_service_name}：输出日志提取变量为：{log_outputs}").format(
-                group=__group_name__, job_service_name=self.get_derived_class_name(), log_outputs=log_outputs)
+            self.logger.info(
+                _("{group}.{job_service_name}：输出日志提取变量为：{log_outputs}").format(
+                    group=__group_name__, job_service_name=self.get_derived_class_name(), log_outputs=log_outputs
+                )
             )
             data.set_outputs("log_outputs", log_outputs)
             self.finish_schedule()
