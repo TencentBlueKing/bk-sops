@@ -550,11 +550,9 @@ def nodman_get_ap_id(request):
     client = get_client_by_user(request.user.username)
     ap_list = client.nodeman.ap_list()
     if not ap_list['result']:
-        message = handle_api_error(_("节点管理(NODEMAN)"),
-                                   'nodeman.ap_list', '', ap_list)
+        message = handle_api_error(_("节点管理(NODEMAN)"),'nodeman.ap_list', {}, ap_list)
         logger.error(message)
-        return JsonResponse({
-            'result': ap_list['result'], 'code': ap_list('code', '-1'), 'message': message})
+        return JsonResponse({'result': ap_list['result'], 'code': ap_list.get('code', '-1'), 'message': message})
 
     data = ap_list['data']
 
