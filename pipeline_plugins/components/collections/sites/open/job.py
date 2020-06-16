@@ -72,7 +72,7 @@ LOG_VAR_SEPARATOR = ":"
 LOG_VAR_LABEL_RE = r"<SOPS_VAR>([\S]+{separator}[\S]+)</SOPS_VAR>".format(separator=LOG_VAR_SEPARATOR)
 
 # 需要从日志提取全局变量的组件
-JOB_SERVICE_NEED_GET_VAR = ["JobExecuteTaskService"]
+JOB_SERVICE_NEED_GET_VAR = ["JobExecuteTaskService", "JobFastExecuteScriptService"]
 
 __group_name__ = _("作业平台(JOB)")
 
