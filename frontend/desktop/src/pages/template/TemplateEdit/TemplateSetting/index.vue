@@ -57,6 +57,7 @@
                     @onDeleteDraft="onDeleteDraft"
                     @onReplaceTemplate="onReplaceTemplate"
                     @onNewDraft="onNewDraft"
+                    @updateDraft="updateDraft"
                     @hideConfigPanel="hideConfigPanel"
                     @updateLocalTemplateData="updateLocalTemplateData">
                 </TabLocalDraft>
@@ -92,7 +93,7 @@
         {
             id: 'localDraftTab',
             icon: 'common-icon-clock-reload',
-            title: i18n.t('本地缓存')
+            title: i18n.t('本地快照')
         },
         {
             id: 'templateDataEditTab',
@@ -216,6 +217,9 @@
             },
             onNewDraft (name) {
                 this.$emit('onNewDraft', name)
+            },
+            updateDraft (key, data) {
+                this.$emit('updateDraft', key, data)
             },
             hideConfigPanel () {
                 this.$emit('hideConfigPanel')

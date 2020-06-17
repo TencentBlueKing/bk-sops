@@ -1,12 +1,7 @@
 # 标准插件开发
-标准插件是标准运维任务执行的最小单元，对应于内部某项服务（如定时）或者第三方系统API的调用（如JOB-快速执行脚本），通过将API参数前端表单
-化，加上参数校验、逻辑封装等功能，以图形化的方式提供给用户使用。
 
-标准插件功能主要包括输入、执行、输出三部分。
-![](../resource/img/plugins_functions.png)
-
-标准插件架构包含插件定义Component、后台执行逻辑Service、以及前端表单配置Forms。
-![](../resource/img/plugins_framework.png)
+## 标准插件说明
+参考[标准插件说明](../features/plugin_usage.md)
 
 ## 标准插件开发步骤
 

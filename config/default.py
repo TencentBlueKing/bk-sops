@@ -302,21 +302,6 @@ STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
 PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 
-COMPONENT_PATH = [
-    "components.collections.http",
-    "components.collections.sites.%s" % RUN_VER,
-    "components.collections.sites.%s.cc.create_set" % RUN_VER,
-    "components.collections.sites.%s.cc.batch_delete_set" % RUN_VER,
-    "components.collections.sites.%s.cc.empty_set_hosts" % RUN_VER,
-    "components.collections.sites.%s.cc.transfer_host_module" % RUN_VER,
-    "components.collections.sites.%s.cc.update_module" % RUN_VER,
-    "components.collections.sites.%s.cc.update_set" % RUN_VER,
-    "components.collections.sites.%s.cc.update_set_service_status" % RUN_VER,
-    "components.collections.sites.%s.cc.create_module" % RUN_VER,
-    "components.collections.sites.%s.nodeman.create_task" % RUN_VER,
-]
-VARIABLE_PATH = ["variables.collections.sites.%s" % RUN_VER]
-
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
 PIPELINE_RERUN_MAX_TIMES = 50
