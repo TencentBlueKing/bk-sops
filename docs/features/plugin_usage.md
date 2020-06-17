@@ -1,3 +1,30 @@
+# 标准插件说明
+
+## 标准插件定义
+标准插件是标准运维任务执行的最小单元，对应于内部某项服务（如定时）或者第三方系统API的调用（如JOB-快速执行脚本），通过将API参数前端表单
+化，加上参数校验、逻辑封装等功能，以图形化的方式提供给用户使用。
+
+标准插件功能主要包括输入、执行、输出三部分。
+![](../resource/img/plugins_functions.png)
+
+标准插件架构包含插件定义Component、后台执行逻辑Service、以及前端表单配置Forms。
+![](../resource/img/plugins_framework.png)
+
+## 标准插件自动发现
+标准运维通过插件自动发现机制，在启动 SaaS 服务时扫描每个已经注册到 Django 中的 APP （INSTALLED_APPS）下特定的目录（包括子目录），自动发现并注册合法的标准插件，这些待扫描的目录能够通过 Django settings 下的 `COMPONENT_PATH` 进行配置：
+
+```python
+COMPONENT_PATH = [
+    'custom.components.path',
+]
+```
+
+标准运维默认会扫描已注册 APP 的 `components.collections` 目录，尝试从该目录下（包括子目录）所有的 Python 模块中发现并注册合法的标准插件。
+
+标准运维插件自动发现机制的实现代码可以参考 `pipeline.component_framework.apps` 和 `pipeline.utils.register` 模块。
+
+## 官方插件列表
+
 ### 蓝鲸服务系列
 
 #### 蓝鲸服务(BK)-定时
