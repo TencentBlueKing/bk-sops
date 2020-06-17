@@ -11,6 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline_plugins.variables import query
+from pipeline_plugins.variables.query.sites.open import select
 
-urlpatterns = query.urlpatterns
+urlpatterns = select.select_urlpatterns
