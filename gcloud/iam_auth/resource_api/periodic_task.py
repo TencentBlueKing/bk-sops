@@ -121,7 +121,7 @@ class PeriodicTaskResourceProvider(ResourceProvider):
         key_mapping = {
             "periodic_task.id": "id",
             "periodic_task.owner": "task__creator",  # TODO 优化
-            "periodic_task.path": "project__id",
+            "periodic_task._iam_path_": "project__id",
         }
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": periodic_task_path_value_hook})
         filters = converter.convert(expression)

@@ -157,5 +157,5 @@ class DjangoQuerySetConverter(Converter):
 
 class PathEqDjangoQuerySetConverter(DjangoQuerySetConverter):
     def operator_map(self, operator, field, value):
-        if field.endswith(".path") and operator == OP.STARTS_WITH:
+        if field.endswith("._iam_path_") and operator == OP.STARTS_WITH:
             return self._eq

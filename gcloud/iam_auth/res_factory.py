@@ -36,7 +36,7 @@ def resources_for_flow(flow_id):
             str(flow_id),
             {
                 "iam_resource_owner": template_info["pipeline_template__creator"],
-                "path": "/project,{}/".format(template_info["project_id"]),
+                "_iam_path_": "/project,{}/".format(template_info["project_id"]),
                 "name": template_info["pipeline_template__name"],
             },
         )
@@ -51,7 +51,7 @@ def resources_for_flow_obj(flow_obj):
             str(flow_obj.id),
             {
                 "iam_resource_owner": flow_obj.creator,
-                "path": "/project,{}/".format(flow_obj.project_id),
+                "_iam_path_": "/project,{}/".format(flow_obj.project_id),
                 "name": flow_obj.name,
             },
         )
@@ -71,7 +71,7 @@ def resources_list_for_flows(flow_id_list):
                 str(value["id"]),
                 {
                     "iam_resource_owner": value["pipeline_template__creator"],
-                    "path": "/project,{}/".format(value["project_id"]),
+                    "_iam_path_": "/project,{}/".format(value["project_id"]),
                     "name": value["pipeline_template__name"],
                 },
             )
@@ -108,7 +108,7 @@ def resources_for_task(task_id):
             str(task_id),
             {
                 "iam_resource_owner": task_info["pipeline_instance__creator"],
-                "path": "/project,{}/".format(task_info["project_id"]),
+                "_iam_path_": "/project,{}/".format(task_info["project_id"]),
                 "name": task_info["pipeline_instance__name"],
                 "type": task_info["flow_type"],
             },
@@ -124,7 +124,7 @@ def resources_for_task_obj(task_obj):
             str(task_obj.id),
             {
                 "iam_resource_owner": task_obj.creator,
-                "path": "/project,{}/".format(task_obj.project_id),
+                "_iam_path_": "/project,{}/".format(task_obj.project_id),
                 "name": task_obj.name,
                 "type": task_obj.flow_type,
             },
@@ -144,7 +144,7 @@ def resources_for_periodic_task(task_id):
             str(task_id),
             {
                 "iam_resource_owner": task_info["task__creator"],
-                "path": "/project,{}/".format(task_info["project_id"]),
+                "_iam_path_": "/project,{}/".format(task_info["project_id"]),
                 "name": task_info["task__name"],
             },
         )
@@ -159,7 +159,7 @@ def resources_for_periodic_task_obj(task_obj):
             str(task_obj.id),
             {
                 "iam_resource_owner": task_obj.creator,
-                "path": "/project,{}/".format(task_obj.project_id),
+                "_iam_path_": "/project,{}/".format(task_obj.project_id),
                 "name": task_obj.name,
             },
         )
@@ -227,7 +227,7 @@ def resources_for_mini_app_obj(mini_app_obj):
             str(mini_app_obj.id),
             {
                 "iam_resource_owner": mini_app_obj.creator,
-                "path": "/project,{}/".format(mini_app_obj.project_id),
+                "_iam_path_": "/project,{}/".format(mini_app_obj.project_id),
                 "name": mini_app_obj.name,
             },
         )
@@ -243,7 +243,7 @@ def resources_list_for_mini_apps(mini_app_id_list):
                 IAMMeta.SYSTEM_ID,
                 IAMMeta.MINI_APP_RESOURCE,
                 str(value["id"]),
-                {"iam_resource_owner": value["creator"], "path": "/project,{}/".format(value["project_id"])},
+                {"iam_resource_owner": value["creator"], "_iam_path_": "/project,{}/".format(value["project_id"])},
             )
         ]
         for value in qs
@@ -261,7 +261,7 @@ def resources_for_function_task_obj(task_obj):
             str(task_obj.task_id),
             {
                 "iam_resource_owner": task_obj.task.creator,
-                "path": "/project,{}/".format(task_obj.task.project_id),
+                "_iam_path_": "/project,{}/".format(task_obj.task.project_id),
                 "name": task_obj.task.name,
                 "type": task_obj.task.flow_type,
             },
