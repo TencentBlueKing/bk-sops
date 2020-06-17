@@ -29,3 +29,13 @@ Vue.directive('clickout', {
         window.removeEventListener('click', el.handler)
     }
 })
+Vue.directive('focus', {
+    inserted (el) {
+        const dom = el.querySelector('textarea,input')
+        if (['textarea', 'input'].includes(el.tagName)) {
+            el.focus()
+        } else if (dom) {
+            dom.focus()
+        }
+    }
+})

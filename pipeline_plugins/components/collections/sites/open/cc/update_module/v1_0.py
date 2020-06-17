@@ -118,7 +118,7 @@ class CCUpdateModuleService(Service):
                 return False
             cc_module_select = cc_list_select_node_inst_id_return["data"]
         else:
-            data.set_outputs("ex_data", "请选择填参方式")
+            data.set_outputs("ex_data", _("请选择模块填参方式"))
             return False
 
         cc_module_property = data.get_one_of_inputs("cc_module_property")

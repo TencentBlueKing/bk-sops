@@ -13,44 +13,22 @@
     <div class="local-draft-panel">
         <bk-sideslider
             ext-cls="common-template-setting-sideslider"
-            :width="420"
+            :width="800"
             :is-show="isShow"
             :before-close="onBeforeClose"
             :quick-close="true">
             <div slot="header">
-                <span> {{$t('本地缓存')}} </span>
+                <span> {{$t('本地快照')}} </span>
                 <i class="common-icon-info draft-tooltip"
                     v-bk-tooltips="{
                         allowHtml: true,
-                        content: '#draft-desc',
+                        content: $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。'),
                         placement: 'bottom-end',
                         duration: 0,
-                        width: 400 }"></i>
-                <div id="draft-desc">
-                    <div class="tips-item" style="white-space: normal;">
-                        <h4>{{ $t('简述：') }}</h4>
-                        <p>{{ $t('本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。') }}</p>
-                    </div>
-                </div>
+                        width: 400 }">
+                </i>
             </div>
             <div class="content-wrap" slot="content">
-                <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
-                    <div class="draft-form" v-if="newDraftShow">
-                        <bk-input
-                            name="draftName"
-                            class="draft-name-input"
-                            :placeholder="$t('名称')"
-                            v-model="newDraftName"
-                            data-vv-validate-on=" "
-                            v-validate="draftNameRule" />
-                        <bk-button theme="primary" @click="onNewDraft">{{$t('保存')}}</bk-button>
-                        <bk-button @click="onCancelNewDraft">{{$t('取消')}}</bk-button>
-                    </div>
-                    <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
-                        {{ $t('新建') }}
-                    </bk-button>
-                    <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
-                </div>
                 <div class="local-draft-content">
                     <table class="draft-table">
                         <thead>
@@ -58,27 +36,58 @@
                                 <th class="col-number">{{ $t('序号') }}</th>
                                 <th class="col-name">{{ $t('名称') }}</th>
                                 <th class="col-time">{{ $t('保存时间') }}</th>
-                                <th class="col-delete"></th>
+                                <th class="col-operation-group">{{ $t('操作') }}</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <tr style="background: #f0f1f5">
+                                <td class="col-number">{{ draftArray.length + 1 }}</td>
+                                <td class="col-name">—</td>
+                                <td class="col-time">—</td>
+                                <td class="col-operation-group">
+                                    <bk-button size="small" theme="default" @click="onNewDraft">{{ $t('新建') }}</bk-button>
+                                </td>
+                            </tr>
                             <tr
                                 v-for="(draft, index) in draftArray"
-                                :key="draft.key"
-                                @click="onReplaceTemplate(draft.data.template)">
-                                <td class="col-number"><div class="content">{{ index + 1 }}</div></td>
+                                :key="draft.key">
+                                <td class="col-number">
+                                    <div class="content">{{ draftArray.length - index }}</div>
+                                </td>
                                 <td
                                     class="col-name"
                                     :title="draft.data.description.message">
-                                    <div class="content">{{draft.data.description.message}}</div>
+                                    <div class="content">
+                                        <bk-input
+                                            v-if="editingDraf.key === draft.key"
+                                            v-model="editingDraf.name"
+                                            v-focus
+                                            v-validate="draftNameRule"
+                                            data-vv-validate-on=" "
+                                            class="draft-name-input"
+                                            :name="'draftName' + draft.key"
+                                            :placeholder="$t('名称')"
+                                            @blur="saveDraftnName(draft)"
+                                            @enter="saveDraftnName(draft)" />
+                                        <span v-else>{{draft.data.description.message}}</span>
+                                        <i class="common-icon-edit" @click.stop="onEditDraftnName(draft)"></i>
+                                        <span
+                                            v-if="errors.first('draftName' + draft.key)"
+                                            class="common-icon-info error-msg"
+                                            v-bk-tooltips="{
+                                                content: errors.first('draftName' + draft.key),
+                                                placements: ['top-end']
+                                            }">
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
-                                <td class="col-delete" @click.stop="onDeleteDraft(draft.key)">
-                                    <i class="close-btn common-icon-dark-circle-close"></i>
+                                <td class="col-operation-group">
+                                    <span class="operation-item" @click="onReplaceTemplate(draft.data.template, draftArray.length - index)">{{$t('还原')}}</span>
                                 </td>
                             </tr>
                             <tr v-if="!draftArray.length" class="empty-draft-tip">
-                                <td><NoData><p>{{$t('无数据，请手动添加缓存或等待自动保存')}}</p></NoData></td>
+                                <td><NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData></td>
                             </tr>
                         </tbody>
                     </table>
@@ -89,6 +98,8 @@
 </template>
 
 <script>
+    import i18n from '@/config/i18n/index.js'
+    import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
 
@@ -97,12 +108,18 @@
         components: {
             NoData
         },
-        props: ['draftArray', 'isShow'],
+        props: {
+            draftArray: Array,
+            isShow: Boolean
+        },
         data () {
             return {
+                editingDraf: {
+                    key: null,
+                    name: ''
+                },
                 replaceData: null,
                 newDraftShow: false,
-                newDraftName: '',
                 draftNameRule: {
                     required: true,
                     max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
@@ -111,41 +128,45 @@
             }
         },
         methods: {
-            // 单击模板记录
-            onReplaceTemplate (templateData) {
+            // 新建快照
+            onNewDraft () {
+                this.$emit('hideConfigPanel')
+                this.$emit('onNewDraft', i18n.t('新建快照'))
+            },
+            // 还原快照
+            onReplaceTemplate (templateData, index) {
                 if (!this.isClickDraft) {
                     this.$emit('updateLocalTemplateData')
                 }
                 const data = {
                     templateData: templateData,
-                    type: 'replace'
+                    type: 'replace',
+                    index: index
                 }
                 this.$emit('onReplaceTemplate', data)
                 this.$emit('hideConfigPanel')
             },
-            // 删除本地缓存
+            // 删除快照
             onDeleteDraft (key) {
                 this.$emit('onDeleteDraft', key)
             },
-            // 新增本地缓存
-            onShowDraftForm () {
-                this.newDraftShow = true
-                this.$emit('hideConfigPanel')
+            // 点击编辑快照
+            onEditDraftnName (draft) {
+                this.editingDraf.key = draft.key
+                this.editingDraf.name = draft.data.description.message
             },
-            onNewDraft () {
+            // 保存编辑后的快照
+            saveDraftnName (draft) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) {
                         return
                     }
-                    this.$emit('onNewDraft', this.newDraftName)
-                    this.newDraftName = ''
-                    this.newDraftShow = false
-                    this.$emit('hideConfigPanel')
+                    const newData = tools.deepClone(draft.data)
+                    newData.description.message = this.editingDraf.name
+                    this.$emit('updateDraft', this.editingDraf.key, newData)
+                    this.editingDraf.key = null
+                    this.editingDraf.name = ''
                 })
-            },
-            onCancelNewDraft () {
-                this.newDraftName = ''
-                this.newDraftShow = false
             },
             onBeforeClose () {
                 this.$emit('onColseTab', 'localDraftTab')
@@ -157,35 +178,11 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-.tips-item {
-    & > h4 {
-        margin: 0;
-    }
-}
+
 .local-draft-panel {
     height: 100%;
     .content-wrap {
         height: 100%;
-    }
-    .add-draft {
-        margin: 20px;
-        .draft-form {
-            display: inline-block;
-            .draft-name-input {
-                display: inline-block;
-                width: 200px;
-            }
-            .base-input {
-                height: 32px;
-                line-height: 32px;
-                padding-bottom: 2px;
-            }
-        }
-        .add-draft-btn {
-            width: 90px;
-            height: 32px;
-            line-height: 32px;
-        }
     }
     .draft-tooltip {
         display: inline-block;
@@ -198,8 +195,9 @@
         }
     }
     .local-draft-content {
-        height: calc(100% - 54px);
-        border-top: 1px solid $commonBorderColor;
+        padding: 26px 28px;
+        padding-bottom: 0;
+        height: 100%;
     }
     .draft-table {
         width: 100%;
@@ -207,23 +205,25 @@
         color: #313238;
         border-collapse: collapse;
         table-layout: fixed;
+        border: 1px solid $commonBorderColor;
         tr {
             display: block;
         }
         th, td {
             padding: 0 10px;
-            height: 40px;
-            line-height: 40px;
+            height: 42px;
+            line-height: 42px;
             font-size: 12px;
             border-bottom: 1px solid $commonBorderColor;
             text-align: left;
         }
         th {
             font-weight: normal;
-            background: #ecf0f4;
+            background: #fafbfd;
         }
         td {
             .content {
+                position: relative;
                 width: 100%;
                 overflow: hidden;
                 white-space: nowrap;
@@ -232,49 +232,52 @@
         }
         tbody {
             display: block;
-            height: calc(100% - 40px);
+            height: 100%;
             color: #63656e;
             overflow: auto;
             @include scrollbar;
             tr:not(.empty-draft-tip):hover {
                 background: $blueStatus;
-                cursor: pointer;
-                .close-btn {
+                .col-name .common-icon-edit {
                     display: inline-block;
                 }
             }
         }
         .col-number {
             padding-left: 20px;
-            width: 80px;
-            max-width: 80px;
+            width: 140px;
         }
         .col-name {
-            width: 174px;
-            max-width: 174px;
+            width: 382px;
+            .common-icon-edit {
+                display: none;
+                cursor: pointer;
+                color: #979ba5;
+                &:hover {
+                    color: #63656e;
+                }
+            }
+            .common-icon-info {
+                position: absolute;
+                right: 4px;
+                top: 14px;
+                font-size: 16px;
+                color: #ea3636;
+            }
         }
         .col-time {
-            width: 146px;
+            width: 140px;
         }
-        .col-delete {
-            position: relative;
-            width: 20px;
-            .close-btn {
-                display: none;
-                position: absolute;
-                top: 13px;
-                right: 14px;
-                font-size: 14px;
-                color: #c4c6cc;
+        .col-operation-group {
+            width: 80px;
+            .operation-item {
+                color: #3a84ff;
                 cursor: pointer;
-                &:hover {
-                    color: #979ba5;
-                }
             }
         }
         .empty-draft-tip {
             td {
-                width: 419px;
+                width: 742px;
                 border-bottom: none;
             }
             .no-data-wrapper {
