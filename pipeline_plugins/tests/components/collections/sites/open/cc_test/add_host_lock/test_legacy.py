@@ -79,9 +79,7 @@ ADD_HOST_LOCK_FAIL_CASE = ComponentTestCase(
     parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0, "language": "中文"},
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={
-            "ex_data": ('调用配置平台(CMDB)接口cc.add_host_lock返回失败, params={"id_list":["1.1.1.1","2.2.2.2"]}, error=fail')
-        },
+        outputs={"ex_data": '调用配置平台(CMDB)接口cc.add_host_lock返回失败, params={"id_list":["1.1.1.1","2.2.2.2"]}, error=fail'},
     ),
     schedule_assertion=None,
     execute_call_assertion=[
