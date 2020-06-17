@@ -71,9 +71,6 @@ LOG_VAR_SEPARATOR = ":"
 # 全局变量标签正则，用于提取key{separator}value
 LOG_VAR_LABEL_RE = r"<SOPS_VAR>([\S]+{separator}[\S]+)</SOPS_VAR>".format(separator=LOG_VAR_SEPARATOR)
 
-# 需要从日志提取全局变量的组件
-JOB_SERVICE_NEED_GET_VAR = ["JobExecuteTaskService", "JobFastExecuteScriptService"]
-
 __group_name__ = _("作业平台(JOB)")
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -159,8 +156,7 @@ class JobService(Service):
 
     reload_outputs = True
 
-    def get_derived_class_name(self):
-        return self.__class__.__name__
+    need_get_sops_var = False
 
     def execute(self, data, parent_data):
         pass
@@ -211,7 +207,7 @@ class JobService(Service):
                             data.set_outputs(global_var["name"], global_var["value"])
 
             # 无需提取全局变量的Service直接返回
-            if self.get_derived_class_name() not in JOB_SERVICE_NEED_GET_VAR:
+            if not self.need_get_sops_var:
                 self.finish_schedule()
                 return True
 
@@ -220,17 +216,18 @@ class JobService(Service):
                 self.logger.warning(
                     _("{group}.{job_service_name}: 提取日志失败，{message}").format(
                         group=__group_name__,
-                        job_service_name=self.get_derived_class_name,
+                        job_service_name=self.__class__.__name__,
                         message=get_job_sops_var_dict_return["message"],
                     )
                 )
+                data.set_outputs("log_outputs", {})
                 self.finish_schedule()
                 return True
 
             log_outputs = get_job_sops_var_dict_return["data"]
             self.logger.info(
                 _("{group}.{job_service_name}：输出日志提取变量为：{log_outputs}").format(
-                    group=__group_name__, job_service_name=self.get_derived_class_name(), log_outputs=log_outputs
+                    group=__group_name__, job_service_name=self.__class__.__name__, log_outputs=log_outputs
                 )
             )
             data.set_outputs("log_outputs", log_outputs)
@@ -267,6 +264,8 @@ class JobService(Service):
 
 
 class JobExecuteTaskService(JobService):
+    need_get_sops_var = True
+
     def inputs_format(self):
         return [
             self.InputItem(
@@ -300,7 +299,20 @@ class JobExecuteTaskService(JobService):
         ]
 
     def outputs_format(self):
-        return super(JobExecuteTaskService, self).outputs_format()
+        return super(JobExecuteTaskService, self).outputs_format() + [
+            self.OutputItem(
+                name=_("JOB全局变量"),
+                key="log_outputs",
+                type="dict",
+                schema=ObjectItemSchema(
+                    description=_("输出日志中提取的全局变量"),
+                    property_schemas={
+                        "name": StringItemSchema(description=_("全局变量名称")),
+                        "value": StringItemSchema(description=_("全局变量值"))
+                    }
+                )
+            ),
+        ]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
@@ -462,6 +474,8 @@ class JobFastPushFileComponent(Component):
 
 
 class JobFastExecuteScriptService(JobService):
+    need_get_sops_var = True
+
     def inputs_format(self):
         return [
             self.InputItem(
@@ -524,7 +538,20 @@ class JobFastExecuteScriptService(JobService):
         ]
 
     def outputs_format(self):
-        return super(JobFastExecuteScriptService, self).outputs_format()
+        return super(JobFastExecuteScriptService, self).outputs_format() + [
+            self.OutputItem(
+                name=_("JOB全局变量"),
+                key="log_outputs",
+                type="dict",
+                schema=ObjectItemSchema(
+                    description=_("输出日志中提取的全局变量"),
+                    property_schemas={
+                        "name": StringItemSchema(description=_("全局变量名称")),
+                        "value": StringItemSchema(description=_("全局变量值"))
+                    }
+                )
+            ),
+        ]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")

@@ -546,6 +546,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "client": GET_VAR_ERROR_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
+            "log_outputs": {}
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),
