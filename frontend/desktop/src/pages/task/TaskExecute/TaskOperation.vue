@@ -980,7 +980,7 @@
                         }
                         this.treeNodeConfig = {
                             component_code: nodeActivities.component.code,
-                            version: nodeActivities.component.version,
+                            version: nodeActivities.component.version || 'legacy',
                             node_id: nodeActivities.id,
                             instance_id: this.instance_id,
                             subprocess_stack: JSON.stringify(subprocessStack)
@@ -1009,7 +1009,7 @@
                 }
                 this.treeNodeConfig = {
                     component_code: nodeActivities.component.code,
-                    version: nodeActivities.component.version,
+                    version: nodeActivities.component.version || 'legacy',
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
