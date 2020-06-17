@@ -23,24 +23,24 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.cc import CmdbAddHostLockComponent
+from pipeline_plugins.components.collections.sites.open.cc import CmdbDeleteHostLockComponent
 
 
 class CmdbTransferFaultHostComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
-        # ADD_HOST_LOCK_SUCCESS_CASE 加锁成功的测试用例
-        # ADD_HOST_LOCK_FAIL_CASE 加锁失败的测试用例
-        return [ADD_HOST_LOCK_SUCCESS_CASE, ADD_HOST_LOCK_FAIL_CASE]
+        # DELETE_HOST_LOCK_SUCCESS_CASE 解锁成功的测试用例
+        # DELETE_HOST_LOCK_FAIL_CASE 解锁失败的测试用例
+        return [DELETE_HOST_LOCK_SUCCESS_CASE, DELETE_HOST_LOCK_FAIL_CASE]
 
     def component_cls(self):
-        return CmdbAddHostLockComponent
+        return CmdbDeleteHostLockComponent
 
 
 class MockClient(object):
-    def __init__(self, add_host_lock_return=None):
+    def __init__(self, delete_host_lock_return=None):
         self.set_bk_api_ver = MagicMock()
         self.cc = MagicMock()
-        self.cc.add_host_lock = MagicMock(return_value=add_host_lock_return)
+        self.cc.delete_host_lock = MagicMock(return_value=delete_host_lock_return)
 
 
 # mock path
@@ -48,14 +48,16 @@ GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.host
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.cc.host_lock.base.cc_get_ips_info_by_str"
 
 # mock client
-ADD_HOST_LOCK_SUCCESS_CLIENT = MockClient(
-    add_host_lock_return={"result": True, "code": 0, "message": "success", "data": {}}
+DELETE_HOST_LOCK_SUCCESS_CLIENT = MockClient(
+    delete_host_lock_return={"result": True, "code": 0, "message": "success", "data": {}}
 )
 
-ADD_HOST_LOCK_FAIL_CLIENT = MockClient(add_host_lock_return={"result": False, "code": 1, "message": "fail", "data": {}})
+DELETE_HOST_LOCK_FAIL_CLIENT = MockClient(
+    delete_host_lock_return={"result": False, "code": 1, "message": "fail", "data": {}}
+)
 
-ADD_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
-    name="add host lock success case",
+DELETE_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
+    name="delete host lock success case",
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
     parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0, "language": "中文"},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
@@ -63,36 +65,36 @@ ADD_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor_token", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
-            func=ADD_HOST_LOCK_SUCCESS_CLIENT.cc.add_host_lock, calls=[Call({"id_list": ["1.1.1.1", "2.2.2.2"]})]
+            func=DELETE_HOST_LOCK_SUCCESS_CLIENT.cc.delete_host_lock, calls=[Call({"id_list": ["1.1.1.1", "2.2.2.2"]})]
         ),
     ],
-    # add patch
+    # delete patch
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=DELETE_HOST_LOCK_SUCCESS_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": ["1.1.1.1", "2.2.2.2"]}),
     ],
 )
 
-ADD_HOST_LOCK_FAIL_CASE = ComponentTestCase(
-    name="add host lock fail case",
+DELETE_HOST_LOCK_FAIL_CASE = ComponentTestCase(
+    name="delete host lock fail case",
     inputs={"cc_host_ip": "1.1.1.1;2.2.2.2"},
     parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0, "language": "中文"},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": ('调用配置平台(CMDB)接口cc.add_host_lock返回失败, params={"id_list":["1.1.1.1","2.2.2.2"]}, error=fail')
+            "ex_data": '调用配置平台(CMDB)接口cc.delete_host_lock返回失败, params={"id_list":["1.1.1.1","2.2.2.2"]}, error=fail'
         },
     ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor_token", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
-            func=ADD_HOST_LOCK_FAIL_CLIENT.cc.add_host_lock, calls=[Call({"id_list": ["1.1.1.1", "2.2.2.2"]})]
+            func=DELETE_HOST_LOCK_FAIL_CLIENT.cc.delete_host_lock, calls=[Call({"id_list": ["1.1.1.1", "2.2.2.2"]})]
         ),
     ],
-    # add patch
+    # delete patch
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_FAIL_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=DELETE_HOST_LOCK_FAIL_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": ["1.1.1.1", "2.2.2.2"]}),
     ],
 )

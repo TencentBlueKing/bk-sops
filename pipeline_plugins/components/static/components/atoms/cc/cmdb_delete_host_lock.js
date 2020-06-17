@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 (function(){
-    $.atoms.cc_transfer_to_idle = [
+    $.atoms.cmdb_delete_host_lock = [
         {
             tag_code: "biz_cc_id",
             type: "select",
@@ -43,7 +43,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("主机内网IP"),
-                placeholder: gettext("请输入主机内网IP，多个用换行分隔"),
+                placeholder: gettext("需要解锁的主机内网 IP，多个用英文逗号 `,` 分隔"),
                 hookable: true,
                 validation: [
                     {
