@@ -731,11 +731,9 @@ const en = {
     '确认删除该变量？': 'Are you sure to delete this variable?',
     '替换': 'Replace',
     '保存时间': 'Date Saved',
-    '无数据，请手动添加缓存或等待自动保存': 'No data, please manually add a cache or wait for automatic save',
+    '无数据，请手动添加快照或等待自动保存': 'No data, please manually add a snapshot or wait for automatic save',
     '替换模板': 'Replacement',
     '是否替换模板？': 'Whether to replace the flow?',
-    '简述：': 'Introduction:',
-    '本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。': 'Local Caches can be used to record all information about the current flow, including node arrangement, global variables, the name, and attributes of the flow. The Caches support up to 50 recent records for each flow, which is stored in the localStorage of the local browser, and each user can only view and edit their own caches.',
     '重置模板': 'Reset template',
     '流程模板数据': 'Flow data',
     '通知方式': 'Notification Method',
@@ -748,9 +746,8 @@ const en = {
     '删除本地缓存成功': 'Local Caches deleted successfully',
     '该本地缓存不存在，删除失败': 'Local Cache deleted failed because it does not exist',
     '替换流程成功': 'Flow Replaced successfully',
-    '新增流程本地缓存成功': 'Local Cache added successfully',
-    '替换流程自动保存': 'Replacement saved',
-    '排版完成，原内容在本地缓存中': 'Layout completed, origin layout has been stored in cache',
+    '新增流程本地快照成功': 'Local snapshot added successfully',
+    '排版完成，原内容在本地快照中': 'Layout completed, origin layout has been stored in snapshot',
     '双击左键': 'Double click Mouse-Left',
     '可以快捷打开节点配置面板': 'will open node config panel',
     '普通变量': 'Common Variables',
@@ -986,7 +983,13 @@ const en = {
     '立即查看': 'View now',
     '节点配置': 'Node config',
     '复制节点': 'Copy node',
-    '复制成功': 'Successfully copied'
+    '复制成功': 'Successfully copied',
+    '本地快照': 'Local snapshot',
+    '快照名称': 'Snapshot name',
+    '新建快照': 'New snapshot',
+    '可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。': 'It can automatically save the last 50 snapshots, every 5 minutes. Store only in local browser.',
+    '最近快照已保存，并恢复至序号': 'The most recent snapshot has been saved and restored to the serial number',
+    '号的快照': 'Snapshot'
 }
 
 export default en
