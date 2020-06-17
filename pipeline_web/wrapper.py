@@ -81,6 +81,15 @@ class PipelineTemplateWebWrapper(object):
             if act[PWE.type] == PWE.SubProcess:
                 subproc_data = TaskTemplate.objects.get(pipeline_template__template_id=act['template_id']
                                                         ).get_pipeline_tree_by_version(act.get('version'))
+
+                if 'constants' in pipeline_data:
+                    constants_inputs = act.pop('constants')
+                    # replace show constants with inputs
+                    for key, info in list(constants_inputs.items()):
+                        if 'form' in info:
+                            info.pop('form')
+                        subproc_data['constants'][key] = info
+
                 cls.unfold_subprocess(subproc_data)
 
                 subproc_data['id'] = act_id
