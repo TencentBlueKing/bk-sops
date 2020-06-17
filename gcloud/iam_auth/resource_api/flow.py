@@ -108,7 +108,7 @@ class FlowResourceProvider(ResourceProvider):
         key_mapping = {
             "flow.id": "id",
             "flow.owner": "pipeline_template__creator",  # TODO 优化
-            "flow.path": "project__id",
+            "flow._iam_path_": "project__id",
         }
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": flow_path_value_hook})
         filters = converter.convert(expression)
