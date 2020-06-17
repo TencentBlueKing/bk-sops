@@ -199,7 +199,7 @@ const en = {
     '系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!': 'System error occurred. Please record error scenario and contact developer, thanks!',
     '没有权限访问或操作此资源': 'No access to or operation of this resource',
     '系统': 'System',
-    '需要申请的资源': 'Resource to apply',
+    '需要申请的权限': 'Permission to apply',
     '关联的资源实例': 'Related resource instance',
     '该操作需要以下权限': 'Permission required for operation',
     '去申请': 'Apply',
