@@ -62,7 +62,7 @@
                             hookable: true,
                             remote: true,
                             items: [],
-                            remote_url: $.context.get("site_url") + "pipeline/get_cloud_area/",
+                            remote_url: $.context.get("site_url") + "pipeline/nodeman_get_cloud_area/",
                             remote_data_init: function (resp) {
                                 if (resp.result === false) {
                                     show_msg(resp.message, "error");
@@ -169,7 +169,7 @@
                             hookable: true,
                             remote: true,
                             items: [],
-                            remote_url: $.context.get("site_url") + "pipeline/nodman_get_ap_id/",
+                            remote_url: $.context.get("site_url") + "pipeline/nodeman_get_ap_list/",
                             remote_data_init: function (resp) {
                                 if (resp.result === false) {
                                     show_msg(resp.message, "error");
