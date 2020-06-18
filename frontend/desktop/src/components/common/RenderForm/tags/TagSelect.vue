@@ -17,6 +17,7 @@
                 v-loading="loading"
                 clearable
                 filterable
+                popper-class="tag-select-popperover"
                 :disabled="!editable || disabled"
                 :remote="remote"
                 :multiple-limit="multiple_limit"
@@ -239,6 +240,16 @@
             height: 32px;
             line-height: 32px;
             font-size: 12px;
+        }
+    }
+</style>
+<style lang="scss">
+    .tag-select-popperover.el-select-dropdown {
+        max-width: 500px;
+        .el-select-dropdown__item {
+            white-space: normal;
+            word-break: break-all;
+            height: auto;
         }
     }
 </style>
