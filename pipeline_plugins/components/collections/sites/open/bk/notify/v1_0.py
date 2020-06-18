@@ -156,6 +156,11 @@ class NotifyService(Service):
             kwargs = {}
             kwargs.update(**base_kwargs)
             kwargs.update({"msg_type": msg_type})
+
+            # 保留通知内容中的换行和空格
+            if msg_type == "mail":
+                kwargs["content"] = "<pre>%s</pre>" % kwargs["content"]
+
             result = client.cmsi.send_msg(kwargs)
 
             if not result["result"]:

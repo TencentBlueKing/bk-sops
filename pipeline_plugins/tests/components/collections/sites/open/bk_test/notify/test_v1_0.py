@@ -156,7 +156,7 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
                 Call({
                     "receiver__username": ",".join(set("b,p1,p2,m1,m2,a".split(","))),
                     "title": "title",
-                    "content": "content",
+                    "content": "<pre>content</pre>",
                     "msg_type": "mail"
                 }),
                 Call({
