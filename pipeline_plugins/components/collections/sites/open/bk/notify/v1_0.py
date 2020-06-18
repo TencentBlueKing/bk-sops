@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 from functools import partial
 
 from django.utils import translation
@@ -27,6 +28,7 @@ from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
+logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 bk_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -49,15 +51,18 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     }
     cc_result = client.cc.search_business(kwargs)
     if not cc_result["result"]:
+        message = handle_api_error("CMDB", "cc.search_business", kwargs, cc_result)
+        logger.error(message)
         result = {
             "result": False,
-            "message": cc_result["message"],
+            "message": message,
             "data": None
         }
         return result
 
     biz_count = cc_result["data"]["count"]
     if biz_count != 1:
+        logger.error(handle_api_error("CMDB", "cc.search_business", kwargs, cc_result))
         result = {
             "result": False,
             "message": _("从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}".format(biz_cc_id, biz_count)),
@@ -68,7 +73,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     biz_data = cc_result["data"]["info"][0]
     receivers = []
 
-    if not isinstance(receiver_group, list):
+    if isinstance(receiver_group, str):
         receiver_group = receiver_group.split(",")
 
     for group in receiver_group:
@@ -97,7 +102,6 @@ class NotifyService(Service):
                            key="bk_notify_type",
                            type="array",
                            schema=ArrayItemSchema(description=_("需要使用的通知方式，从 API 网关自动获取已实现的通知渠道"),
-                                                  enum=["weixin", "mail", "sms"],
                                                   item_schema=StringItemSchema(description=_("通知方式")))),
             self.InputItem(name=_("通知分组"),
                            key="bk_receiver_group",
@@ -152,6 +156,8 @@ class NotifyService(Service):
             "title": title,
             "content": content,
         }
+        error_flag = False
+        error = ""
         for msg_type in notify_type:
             kwargs = {}
             kwargs.update(**base_kwargs)
@@ -166,8 +172,13 @@ class NotifyService(Service):
             if not result["result"]:
                 message = bk_handle_api_error("cmsi.send_msg", kwargs, result)
                 self.logger.error(message)
-                data.set_outputs("ex_data", message)
-                return False
+                error_flag = True
+                error += "%s;" % message
+
+        if error_flag:
+            # 这里不需要返回 html 格式到前端，避免导致异常信息展示格式错乱
+            data.set_outputs("ex_data", error.replace("<", "|").replace(">", "|"))
+            return False
 
         return True
 

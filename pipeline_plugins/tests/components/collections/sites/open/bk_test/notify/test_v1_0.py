@@ -46,6 +46,7 @@ class MockClient(object):
 
 
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.get_client_by_user"
+HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.handle_api_error"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.notify.v1_0.bk_handle_api_error"
 
 COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
@@ -82,7 +83,7 @@ CMSI_SEND_MSG_SUCCESS_RETURN = {
 
 
 GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
-    name="get notify receivers case",
+    name="get notify receivers fail case",
     inputs={
         "biz_cc_id": 2,
         "bk_notify_type": ["mail", "weixin"],
@@ -101,6 +102,8 @@ GET_NOTIFY_RECEIVERS_FAIL_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER,
                 return_value=MockClient(cc_search_business_return=CC_SEARCH_BUSINESS_FAIL_RETURN)),
+        Patcher(target=HANDLE_API_ERROR,
+                return_value="search business fail")
     ],
 )
 
@@ -119,7 +122,7 @@ SEND_MSG_FAIL_CASE = ComponentTestCase(
     },
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False,
-                                       outputs={"ex_data": "send msg fail"}),
+                                       outputs={"ex_data": "send msg fail;send msg fail;"}),
     execute_call_assertion=[],
     schedule_assertion=None,
     patchers=[
