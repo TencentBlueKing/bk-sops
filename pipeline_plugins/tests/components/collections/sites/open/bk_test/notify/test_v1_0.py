@@ -22,7 +22,7 @@ from pipeline.component_framework.test import (
     Call,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.bk.notify.v1_0 import NotifyComponent, bk_handle_api_error
+from pipeline_plugins.components.collections.sites.open.bk.notify.v1_0 import NotifyComponent
 
 
 class BkNotifyComponentTest(TestCase, ComponentTestMixin):
@@ -174,4 +174,3 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
                 return_value=SEND_MSG_SUCCESS_CLIENT),
     ],
 )
-
