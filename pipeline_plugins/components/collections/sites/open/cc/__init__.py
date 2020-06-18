@@ -28,3 +28,5 @@ from .update_host import *  # noqa
 from .update_module import *  # noqa
 from .update_set import *  # noqa
 from .update_set_service_status import *  # noqa
+from .host_lock.add_host_lock import *  # noqa
+from .host_lock.delete_host_lock import *  # noqa
