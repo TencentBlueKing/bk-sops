@@ -12,8 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-
 import requests
+
+from django.conf.urls import url
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
@@ -52,3 +53,8 @@ def variable_select_source_data_proxy(request):
         data = [{'text': text, 'value': ''}]
 
     return JsonResponse(data, safe=False)
+
+
+select_urlpatterns = [
+    url(r"^variable_select_source_data_proxy/$", variable_select_source_data_proxy),
+]
