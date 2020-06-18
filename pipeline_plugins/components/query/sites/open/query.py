@@ -237,13 +237,13 @@ def cc_format_topo_data(data, obj_id, category):
         if category == "prev":
             if item["bk_obj_id"] != obj_id:
                 tree_data.append(tree_item)
-                if 'child' in item:
-                    tree_item['children'] = cc_format_topo_data(item['child'], obj_id, category)
+                if "child" in item:
+                    tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category)
         else:
             if item["bk_obj_id"] == obj_id:
                 tree_data.append(tree_item)
-            elif 'child' in item:
-                tree_item['children'] = cc_format_topo_data(item['child'], obj_id, category)
+            elif "child" in item:
+                tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category)
                 tree_data.append(tree_item)
 
     return tree_data
@@ -267,7 +267,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         return JsonResponse(result)
 
     if category in ["normal", "prev"]:
-        cc_topo = cc_format_topo_data(cc_result['data'], obj_id, category)
+        cc_topo = cc_format_topo_data(cc_result["data"], obj_id, category)
     else:
         cc_topo = []
 
@@ -467,10 +467,10 @@ def cc_get_business(request):
     data = []
     for biz in business:
         # archive data filter
-        if biz.get('bk_data_status') != 'disabled':
+        if biz.get("bk_data_status") != "disabled":
             data.append({
-                'text': biz['bk_biz_name'],
-                'value': int(biz['bk_biz_id'])
+                "text": biz["bk_biz_name"],
+                "value": int(biz["bk_biz_id"])
             })
 
     return JsonResponse({"result": True, "data": data})
@@ -531,36 +531,33 @@ def apply_upload_ticket(request):
 def nodeman_get_cloud_area(request):
     client = get_client_by_user(request.user.username)
     cloud_area_result = client.nodeman.get_cloud()
-    if not cloud_area_result['result']:
-        message = handle_api_error(_("节点管理(NODEMAN)"),
-                                   'nodeman.get_cloud', '', cloud_area_result)
+    if not cloud_area_result["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.get_cloud", {}, cloud_area_result)
         logger.error(message)
         return JsonResponse({
-            'result': cloud_area_result['result'], 'code': cloud_area_result.get('code', '-1'), 'message': message})
+            "result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message})
 
-    data = cloud_area_result['data']
+    data = cloud_area_result["data"]
 
-    result = [{'text': cloud['bk_cloud_name'], 'value': cloud['bk_cloud_id']} for cloud in data]
+    result = [{"text": cloud["bk_cloud_name"], "value": cloud["bk_cloud_id"]} for cloud in data]
 
-    cloud_area_result['data'] = result
+    cloud_area_result["data"] = result
     return JsonResponse(cloud_area_result)
 
 
-def nodman_get_ap_id(request):
+def nodeman_get_ap_list(request):
     client = get_client_by_user(request.user.username)
     ap_list = client.nodeman.ap_list()
-    if not ap_list['result']:
-        message = handle_api_error(_("节点管理(NODEMAN)"),
-                                   'nodeman.ap_list', '', ap_list)
+    if not ap_list["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.ap_list", {}, ap_list)
         logger.error(message)
-        return JsonResponse({
-            'result': ap_list['result'], 'code': ap_list('code', '-1'), 'message': message})
+        return JsonResponse({"result": ap_list["result"], "code": ap_list.get("code", "-1"), "message": message})
 
-    data = ap_list['data']
+    data = ap_list["data"]
 
-    result = [{'text': ap['name'], 'value': ap['id']} for ap in data]
+    result = [{"text": ap["name"], "value": ap["id"]} for ap in data]
 
-    ap_list['data'] = result
+    ap_list["data"] = result
     return JsonResponse(ap_list)
 
 
@@ -610,6 +607,6 @@ urlpatterns = [
     url(r"^cc_get_business_list/$", cc_get_business),
     url(r"^apply_upload_ticket/$", apply_upload_ticket),
 
-    url(r"^get_cloud_area/$", nodeman_get_cloud_area),
-    url(r"^nodman_get_ap_id/$", nodman_get_ap_id),
+    url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
+    url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
 ]
