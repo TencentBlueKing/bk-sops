@@ -11,37 +11,44 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
 import re
-import os
+import logging
 
-from django.conf import settings
+ip_pattern = re.compile(r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)")
 
 logger = logging.getLogger("root")
 
-ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
-ip_pattern = re.compile(ip_re)
 
+def get_ip_by_regex(ip_str):
+    """从给定文本中匹配 IP 并返回
 
-def get_s3_file_path_of_time(biz_cc_id, time_str):
+    :param ip_str: 包含 IP 的文本
+    :type ip_str: string
+    :return: IP 字符串列表
+    :rtype: list[string]
     """
-    @summary: 根据业务、时间戳生成实际 S3 中的文件路径
-    @param biz_cc_id：
-    @param time_str：上传时间
+    ret = []
+    for match in ip_pattern.finditer(ip_str):
+        ret.append(match.group())
+    return ret
+
+    """
+    @summary: IP 格式化，如果是多 IP 的主机，只取第一个 IP 作为代表
+    @param ip:
     @return:
     """
-    return os.path.join(settings.APP_CODE, settings.RUN_MODE, "bkupload", str(biz_cc_id), time_str)
 
 
-def loose_strip(data):
+def format_sundry_ip(ip):
+    """返回逗号分隔多 IP 的第一个 IP
+
+    :param ip: IP 字符串
+    :type ip:
+    :return: 第一个 IP
+    :rtype: string
     """
-    @summary: 尝试把 data 当做字符串处理两端空白字符
-    @param data:
-    @return:
-    """
-    if isinstance(data, str):
-        return data.strip()
-    try:
-        return str(data).strip()
-    except Exception:
-        return data
+
+    if "," in ip:
+        logger.info("HOST[%s] has multiple ip" % ip)
+        return ip.split(",")[0]
+    return ip

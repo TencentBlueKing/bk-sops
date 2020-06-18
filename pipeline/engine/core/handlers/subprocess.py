@@ -19,13 +19,12 @@ from pipeline.core.flow.activity import SubProcess
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['SubprocessHandler']
+__all__ = ["SubprocessHandler"]
 
 
 class SubprocessHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return SubProcess
@@ -46,7 +45,7 @@ class SubprocessHandler(FlowElementHandler):
         # hydrate data
         hydrate_node_data(element)
 
-        # context injection
+        # context injection`
         data = element.pipeline.data
         context = element.pipeline.context
         for k, v in list(data.get_inputs().items()):

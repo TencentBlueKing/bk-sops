@@ -21,13 +21,13 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
 
-from pipeline_plugins.components.utils import get_ip_by_regex
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_id_by_innerip
 
 from gcloud.conf import settings
+from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.handlers import handle_api_error
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
@@ -36,53 +36,55 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class CmdbTransferHostResourceModuleService(Service):
-
     def inputs_format(self):
-        return [self.InputItem(name=_('业务 ID'),
-                               key='biz_cc_id',
-                               type='string',
-                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_('主机 IP'),
-                               key='cc_host_ip',
-                               type='string',
-                               schema=StringItemSchema(description=_('转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔')))]
+        return [
+            self.InputItem(
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="string",
+                schema=StringItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+            ),
+            self.InputItem(
+                name=_("主机 IP"),
+                key="cc_host_ip",
+                type="string",
+                schema=StringItemSchema(description=_("转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔")),
+            ),
+        ]
 
     def outputs_format(self):
         return []
 
     def execute(self, data, parent_data):
-        executor = parent_data.get_one_of_inputs('executor')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
+        executor = parent_data.get_one_of_inputs("executor")
+        supplier_account = parent_data.get_one_of_inputs("biz_supplier_account")
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         client = get_client_by_user(executor)
-        if parent_data.get_one_of_inputs('language'):
-            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
-            translation.activate(parent_data.get_one_of_inputs('language'))
+        if parent_data.get_one_of_inputs("language"):
+            setattr(client, "language", parent_data.get_one_of_inputs("language"))
+            translation.activate(parent_data.get_one_of_inputs("language"))
 
         # 查询主机id
-        ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
+        ip_list = get_ip_by_regex(data.get_one_of_inputs("cc_host_ip"))
         host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
-        if not host_result['result']:
-            data.set_outputs('ex_data', host_result['message'])
+        if not host_result["result"]:
+            data.set_outputs("ex_data", host_result["message"])
             return False
 
-        transfer_params = {
-            "bk_biz_id": biz_cc_id,
-            "bk_host_id": [int(host_id) for host_id in host_result['data']]
-        }
+        transfer_params = {"bk_biz_id": biz_cc_id, "bk_host_id": [int(host_id) for host_id in host_result["data"]]}
         transfer_result = client.cc.transfer_host_to_resourcemodule(transfer_params)
-        if transfer_result['result']:
+        if transfer_result["result"]:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_to_resource_module', transfer_params, transfer_result)
+            message = cc_handle_api_error("cc.transfer_host_to_resource_module", transfer_params, transfer_result)
             self.logger.error(message)
-            data.set_outputs('ex_data', message)
+            data.set_outputs("ex_data", message)
             return False
 
 
 class CmdbTransferHostResourceModuleComponent(Component):
-    name = _('上交主机至资源池')
-    code = 'cmdb_transfer_host_resource'
+    name = _("上交主机至资源池")
+    code = "cmdb_transfer_host_resource"
     bound_service = CmdbTransferHostResourceModuleService
-    form = '%scomponents/atoms/cc/cmdb_transfer_host_resource.js' % settings.STATIC_URL
+    form = "%scomponents/atoms/cc/cmdb_transfer_host_resource.js" % settings.STATIC_URL

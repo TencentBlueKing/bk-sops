@@ -12,14 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import re
 
 from gcloud.core.models import Business, Project
 
-logger = logging.getLogger('root')
-
-ip_re = r'((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)'
-ip_pattern = re.compile(ip_re)
+logger = logging.getLogger("root")
 
 
 def supplier_account_for_project(project_id):
@@ -66,12 +62,12 @@ def supplier_id_for_business(biz_cc_id):
 
 def supplier_account_inject(func):
     def wrapper(*args, **kwargs):
-        if 'project_id' in kwargs:
-            kwargs['supplier_account'] = supplier_account_for_project(kwargs['project_id'])
-        elif 'biz_cc_id' in kwargs:
-            kwargs['supplier_account'] = supplier_account_for_business(kwargs['biz_cc_id'])
-        elif 'bk_biz_id' in kwargs:
-            kwargs['supplier_account'] = supplier_account_for_business(kwargs['bk_biz_id'])
+        if "project_id" in kwargs:
+            kwargs["supplier_account"] = supplier_account_for_project(kwargs["project_id"])
+        elif "biz_cc_id" in kwargs:
+            kwargs["supplier_account"] = supplier_account_for_business(kwargs["biz_cc_id"])
+        elif "bk_biz_id" in kwargs:
+            kwargs["supplier_account"] = supplier_account_for_business(kwargs["bk_biz_id"])
 
         return func(*args, **kwargs)
 
@@ -80,12 +76,12 @@ def supplier_account_inject(func):
 
 def supplier_id_inject(func):
     def wrapper(*args, **kwargs):
-        if 'project_id' in kwargs:
-            kwargs['supplier_id'] = supplier_id_for_project(kwargs['project_id'])
-        elif 'biz_cc_id' in kwargs:
-            kwargs['supplier_id'] = supplier_id_for_business(kwargs['biz_cc_id'])
-        elif 'bk_biz_id' in kwargs:
-            kwargs['supplier_id'] = supplier_id_for_business(kwargs['bk_biz_id'])
+        if "project_id" in kwargs:
+            kwargs["supplier_id"] = supplier_id_for_project(kwargs["project_id"])
+        elif "biz_cc_id" in kwargs:
+            kwargs["supplier_id"] = supplier_id_for_business(kwargs["biz_cc_id"])
+        elif "bk_biz_id" in kwargs:
+            kwargs["supplier_id"] = supplier_id_for_business(kwargs["bk_biz_id"])
 
         return func(*args, **kwargs)
 
