@@ -10,25 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-import logging
-import re
-
-logger = logging.getLogger("root")
-
-ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
-ip_pattern = re.compile(ip_re)
-
-
-def loose_strip(data):
-    """
-    @summary: 尝试把 data 当做字符串处理两端空白字符
-    @param data:
-    @return:
-    """
-    if isinstance(data, str):
-        return data.strip()
-    try:
-        return str(data).strip()
-    except Exception:
-        return data

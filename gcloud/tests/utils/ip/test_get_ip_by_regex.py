@@ -11,24 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-import re
 
-logger = logging.getLogger("root")
+from django.test import TestCase
 
-ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
-ip_pattern = re.compile(ip_re)
+from gcloud.utils.ip import get_ip_by_regex
 
 
-def loose_strip(data):
-    """
-    @summary: 尝试把 data 当做字符串处理两端空白字符
-    @param data:
-    @return:
-    """
-    if isinstance(data, str):
-        return data.strip()
-    try:
-        return str(data).strip()
-    except Exception:
-        return data
+class GetIPByRegexTestCase(TestCase):
+    def test__normal(self):
+        self.assertEqual(get_ip_by_regex("1.1.1.1,2.2.2.2,3.3.3.3"), ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+
+    def test__empty_string(self):
+        self.assertEqual(get_ip_by_regex(""), [])

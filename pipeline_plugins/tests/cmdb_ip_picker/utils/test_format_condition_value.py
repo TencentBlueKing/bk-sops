@@ -11,24 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-import re
+from django.test import TestCase
 
-logger = logging.getLogger("root")
-
-ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
-ip_pattern = re.compile(ip_re)
+from pipeline_plugins.cmdb_ip_picker.utils import format_condition_value
 
 
-def loose_strip(data):
-    """
-    @summary: 尝试把 data 当做字符串处理两端空白字符
-    @param data:
-    @return:
-    """
-    if isinstance(data, str):
-        return data.strip()
-    try:
-        return str(data).strip()
-    except Exception:
-        return data
+class FormatConditionVlaueTestCase(TestCase):
+    def test__normal(self):
+        self.assertEqual(format_condition_value(["111", "222"]), list({"111", "222"}))
+        self.assertEqual(format_condition_value(["111", "222\n333"]), list({"111", "222", "333"}))
+        self.assertEqual(format_condition_value(["", "222\n", " 333  "]), list({"222", "333"}))
+
+    def test__number_case(self):
+        self.assertEqual(set(format_condition_value([111, 222, 333])), set([111, 222, 333]))
