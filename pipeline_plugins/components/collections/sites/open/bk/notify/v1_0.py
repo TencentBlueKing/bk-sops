@@ -28,12 +28,12 @@ from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
-logger = logging.getLogger("celery")
+logger_celery = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 bk_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver):
+def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver, logger=None):
     """
     @summary: 根据通知分组和附加通知人获取最终通知人
     @param client: API 客户端
@@ -41,8 +41,11 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     @param supplier_account: 租户 ID
     @param receiver_group: 通知分组
     @param more_receiver: 附加通知人
+    @param logger: 日志句柄
     @return:
     """
+    if logger is None:
+        logger = logger_celery
     kwargs = {
         "bk_supplier_account": supplier_account,
         "condition": {
@@ -145,7 +148,8 @@ class NotifyService(Service):
                                       biz_cc_id,
                                       supplier_account,
                                       receiver_group,
-                                      more_receiver)
+                                      more_receiver,
+                                      self.logger)
 
         if not result["result"]:
             data.set_outputs("ex_data", result["message"])
