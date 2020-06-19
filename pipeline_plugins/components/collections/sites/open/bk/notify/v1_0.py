@@ -42,8 +42,19 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
     @param receiver_group: 通知分组
     @param more_receiver: 附加通知人
     @param logger: 日志句柄
+    @note: 如果 receiver_group 为空，则直接返回 more_receiver；如果 receiver_group 不为空，需要从 CMDB 获取人员信息，人员信息
+        无先后顺序
     @return:
     """
+    more_receivers = [name.strip() for name in more_receiver.split(",")]
+    if not receiver_group:
+        result = {
+            "result": True,
+            "message": "success",
+            "data": ",".join(more_receivers)
+        }
+        return result
+
     if logger is None:
         logger = logger_celery
     kwargs = {
@@ -83,12 +94,12 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
         receivers.extend(biz_data[CC_V2_ROLE_MAP[group]].split(","))
 
     if more_receiver:
-        receivers.extend([name.strip() for name in more_receiver.split(",")])
+        receivers.extend(more_receivers)
 
     result = {
         "result": True,
         "message": "success",
-        "data": ",".join(set(receivers))
+        "data": ",".join(sorted(set(receivers)))
     }
     return result
 

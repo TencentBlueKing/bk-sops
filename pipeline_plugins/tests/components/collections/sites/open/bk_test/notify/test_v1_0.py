@@ -33,7 +33,8 @@ class BkNotifyComponentTest(TestCase, ComponentTestMixin):
         return [
             GET_NOTIFY_RECEIVERS_FAIL_CASE,
             SEND_MSG_FAIL_CASE,
-            SEND_MSG_SUCCESS_CASE
+            SEND_MSG_SUCCESS_CASE,
+            SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE
         ]
 
 
@@ -138,7 +139,7 @@ SEND_MSG_SUCCESS_CLIENT = MockClient(cc_search_business_return=CC_SEARCH_BUSINES
                                      cmsi_send_msg_return=CMSI_SEND_MSG_SUCCESS_RETURN)
 
 SEND_MSG_SUCCESS_CASE = ComponentTestCase(
-    name="send msg fail case",
+    name="send msg success case",
     inputs={
         "biz_cc_id": 2,
         "bk_notify_type": ["mail", "weixin"],
@@ -157,13 +158,55 @@ SEND_MSG_SUCCESS_CASE = ComponentTestCase(
             func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
             calls=[
                 Call({
-                    "receiver__username": ",".join(set("b,p1,p2,m1,m2,a".split(","))),
+                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a".split(",")))),
                     "title": "title",
                     "content": "<pre>content</pre>",
                     "msg_type": "mail"
                 }),
                 Call({
-                    "receiver__username": ",".join(set("b,p1,p2,m1,m2,a".split(","))),
+                    "receiver__username": ",".join(sorted(set("b,p1,p2,m1,m2,a".split(",")))),
+                    "title": "title",
+                    "content": "content",
+                    "msg_type": "weixin"
+                })
+            ],
+        )
+    ],
+    schedule_assertion=None,
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER,
+                return_value=SEND_MSG_SUCCESS_CLIENT),
+    ],
+)
+
+
+SEND_MSG_SUCCESS_RECEIVER_ORDER_CASE = ComponentTestCase(
+    name="send msg success receiver order case",
+    inputs={
+        "biz_cc_id": 2,
+        "bk_notify_type": ["mail", "weixin"],
+        "bk_receiver_info": {
+            "bk_receiver_group": [],
+            "bk_more_receiver": "c,a,b",
+        },
+        "bk_notify_title": "title",
+        "bk_notify_content": "content"
+    },
+    parent_data=COMMON_PARENT,
+    execute_assertion=ExecuteAssertion(success=True,
+                                       outputs={}),
+    execute_call_assertion=[
+        CallAssertion(
+            func=SEND_MSG_SUCCESS_CLIENT.cmsi.send_msg,
+            calls=[
+                Call({
+                    "receiver__username": "c,a,b",
+                    "title": "title",
+                    "content": "<pre>content</pre>",
+                    "msg_type": "mail"
+                }),
+                Call({
+                    "receiver__username": "c,a,b",
                     "title": "title",
                     "content": "content",
                     "msg_type": "weixin"
