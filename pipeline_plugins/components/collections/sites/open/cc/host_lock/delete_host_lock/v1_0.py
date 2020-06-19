@@ -15,17 +15,27 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.conf import settings
 
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.cc.host_lock.base import CCHostLockBaseService, AddHostLockMixin
+from pipeline_plugins.components.collections.sites.open.cc.host_lock.base import (CCHostLockBaseService,
+                                                                                  HostLockTypeService)
 
 __group_name__ = _("配置平台(CMDB)")
+VERSION = "v1.0"
 
 
-class CmdbAddHostLockService(AddHostLockMixin, CCHostLockBaseService):
+class DeleteHostLockMixin(HostLockTypeService):
+    def host_lock_method(self):
+        return "delete_host_lock"
+
+
+class CmdbDeleteHostLockService(DeleteHostLockMixin, CCHostLockBaseService):
     pass
 
 
-class CmdbAddHostLockComponent(Component):
-    name = _("主机加锁")
-    code = "cmdb_add_host_lock"
-    bound_service = CmdbAddHostLockService
-    form = "%scomponents/atoms/cc/cmdb_add_host_lock.js" % settings.STATIC_URL
+class CmdbDeleteHostLockComponent(Component):
+    name = _("主机解锁")
+    code = "cmdb_delete_host_lock"
+    bound_service = CmdbDeleteHostLockService
+    form = "%scomponents/atoms/cc/cmdb_delete_host_lock.js" % settings.STATIC_URL
+
+    version = VERSION
+

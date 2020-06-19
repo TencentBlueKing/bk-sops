@@ -15,7 +15,6 @@ from django.utils.translation import ugettext_lazy as _
 
 __group_name__ = _("配置平台(CMDB)")
 
-
 from .batch_delete_set import *  # noqa
 from .create_set import *  # noqa
 from .empty_set_hosts import *  # noqa
@@ -30,3 +29,4 @@ from .update_set import *  # noqa
 from .update_set_service_status import *  # noqa
 from .host_lock.add_host_lock import *  # noqa
 from .host_lock.delete_host_lock import *  # noqa
+

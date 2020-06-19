@@ -11,4 +11,4 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .legacy import CmdbDeleteHostLockService, CmdbDeleteHostLockComponent  # noqa
+from .v1_0 import CmdbDeleteHostLockService, CmdbDeleteHostLockComponent  # noqa

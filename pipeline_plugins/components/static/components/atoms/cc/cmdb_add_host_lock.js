@@ -43,7 +43,7 @@
             type: "textarea",
             attrs: {
                 name: gettext("主机内网IP"),
-                placeholder: gettext("需要加锁的主机内网 IP，多个用英文逗号 `,` 分隔"),
+                placeholder: gettext("需要加锁的主机内网 IP，多个用换行符分隔"),
                 hookable: true,
                 validation: [
                     {

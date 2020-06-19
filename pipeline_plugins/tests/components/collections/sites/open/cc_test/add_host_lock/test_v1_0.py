@@ -63,13 +63,14 @@ ADD_HOST_LOCK_SUCCESS_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor_token", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
-            func=ADD_HOST_LOCK_SUCCESS_CLIENT.cc.add_host_lock, calls=[Call({"id_list": ["1.1.1.1", "2.2.2.2"]})]
+            func=ADD_HOST_LOCK_SUCCESS_CLIENT.cc.add_host_lock, calls=[Call({"id_list": [1, 2]})]
         ),
     ],
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_SUCCESS_CLIENT),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": ["1.1.1.1", "2.2.2.2"]}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR,
+                return_value={"result": True, "ip_result": [{"HostID": 1}, {"HostID": 2}], "invalid_ip": []}),
     ],
 )
 
@@ -79,18 +80,19 @@ ADD_HOST_LOCK_FAIL_CASE = ComponentTestCase(
     parent_data={"executor": "executor_token", "biz_cc_id": 2, "biz_supplier_account": 0, "language": "中文"},
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={"ex_data": '调用配置平台(CMDB)接口cc.add_host_lock返回失败, params={"id_list":["1.1.1.1","2.2.2.2"]}, error=fail'},
+        outputs={"ex_data": '调用配置平台(CMDB)接口cc.add_host_lock返回失败, params={"id_list":[1,2]}, error=fail'},
     ),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call("executor_token", 2, "1.1.1.1;2.2.2.2")]),
         CallAssertion(
-            func=ADD_HOST_LOCK_FAIL_CLIENT.cc.add_host_lock, calls=[Call({"id_list": ["1.1.1.1", "2.2.2.2"]})]
+            func=ADD_HOST_LOCK_FAIL_CLIENT.cc.add_host_lock, calls=[Call({"id_list": [1, 2]})]
         ),
     ],
     # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=ADD_HOST_LOCK_FAIL_CLIENT),
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"result": True, "ip_result": ["1.1.1.1", "2.2.2.2"]}),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR,
+                return_value={"result": True, "ip_result": [{"HostID": 1}, {"HostID": 2}], "invalid_ip": []}),
     ],
 )
