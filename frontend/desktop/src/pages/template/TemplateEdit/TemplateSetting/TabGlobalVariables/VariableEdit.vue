@@ -342,6 +342,7 @@
                 const atom = tagStr.split('.')[0] || custom_type
                 const isMeta = this.varType === 'meta' ? 1 : 0
                 let classify = ''
+                this.atomConfigLoading = true
                 this.atomTypeKey = atom
                 if (this.theEditingData.custom_type) {
                     classify = 'variable'
@@ -350,9 +351,11 @@
                 }
                 if (atomFilter.isConfigExists(atom, this.version, this.atomFormConfig)) {
                     this.getRenderConfig()
+                    this.$nextTick(() => {
+                        this.atomConfigLoading = false
+                    })
                     return
                 }
-                this.atomConfigLoading = true
                 
                 try {
                     await this.loadAtomConfig({
