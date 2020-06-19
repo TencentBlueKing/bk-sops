@@ -19,7 +19,7 @@
                 name: gettext("业务"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
+                remote_url: $.context.get("site_url") + "pipeline/cc_get_business_list/",
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
@@ -105,7 +105,7 @@
                         attrs: {
                             name: gettext("通信IP"),
                             placeholder: gettext("多个用,隔开"),
-                            width: '100px',
+                            width: "100px",
                             editable: true,
                             validation: [
                                 {
@@ -120,7 +120,7 @@
                         attrs: {
                             name: gettext("登录IP"),
                             placeholder: gettext("可为空，适配复杂网络时填写"),
-                            width: '100px',
+                            width: "100px",
                             editable: true
                         }
                     },
@@ -130,7 +130,7 @@
                         attrs: {
                             name: gettext("数据IP"),
                             placeholder: gettext("可为空，适配复杂网络时填写"),
-                            width: '100px',
+                            width: "100px",
                             editable: true,
 
                         }
@@ -141,7 +141,7 @@
                         attrs: {
                             name: gettext("级联IP"),
                             placeholder: gettext("可为空，节点类型是 PROXY 时必填"),
-                            width: '100px',
+                            width: "100px",
                             editable: true
                         }
                     },
@@ -150,7 +150,7 @@
                         type: "select",
                         attrs: {
                             name: gettext("操作系统类型"),
-                            width: '100px',
+                            width: "100px",
                             items: [
                                 {value: "LINUX", text: gettext("LINUX")},
                                 {value: "WINDOWS", text: gettext("WINDOWS")},
@@ -173,7 +173,7 @@
                                 {value: true, text: gettext("是")},
                                 {value: false, text: gettext("否")},
                             ],
-                            width: '100px',
+                            width: "100px",
                             default: false,
                             validation: [
                                 {
@@ -187,7 +187,7 @@
                         type: "input",
                         attrs: {
                             name: gettext("端口号"),
-                            width: '100px',
+                            width: "100px",
                             editable: true,
                             validation: [
                                 {
@@ -201,7 +201,7 @@
                         type: "input",
                         attrs: {
                             name: gettext("登录账号"),
-                            width: '100px',
+                            width: "100px",
                             editable: true
                         }
                     },
@@ -210,7 +210,7 @@
                         type: "select",
                         attrs: {
                             name: gettext("认证方式"),
-                            width: '100px',
+                            width: "100px",
                             items: [
                                 {value: "PASSWORD", text: gettext("PASSWORD")},
                                 {value: "KEY", text: gettext("KEY")}
@@ -228,7 +228,7 @@
                         type: "input",
                         attrs: {
                             name: gettext("认证密钥"),
-                            width: '100px',
+                            width: "100px",
                             editable: true,
                             validation: [
                                 {

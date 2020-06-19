@@ -303,10 +303,7 @@ class NodemanCreateTaskService(Service):
 
 
 class NodemanCreateTaskComponent(Component):
-    name = _("安装")
+    name = _("新建任务")
     code = "nodeman_create_task"
     bound_service = NodemanCreateTaskService
-    form = "%scomponents/atoms/sites/%s/nodeman/nodeman_create_task.js" % (
-        settings.STATIC_URL,
-        settings.RUN_VER,
-    )
+    form = "%scomponents/atoms/nodeman/create_task/legacy.js" % settings.STATIC_URL

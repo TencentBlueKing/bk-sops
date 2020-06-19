@@ -112,4 +112,4 @@ class HttpComponent(Component):
              "2.响应状态码在200-300(不包括300)之间，并且相应内容是 JSON 格式才会执行成功")
     code = 'bk_http_request'
     bound_service = HttpRequestService
-    form = settings.STATIC_URL + 'components/atoms/bk/http.js'
+    form = settings.STATIC_URL + 'components/atoms/bk/http/legacy.js'

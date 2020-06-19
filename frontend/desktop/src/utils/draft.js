@@ -59,12 +59,10 @@ const draft = {
     },
     // 删除本地缓存
     deleteDraft (key) {
-        try {
-            localStorage.removeItem(key)
-            return true
-        } catch (e) {
-            return false
-        }
+        localStorage.removeItem(key)
+    },
+    updateDraft (key, data) {
+        localStorage.setItem(key, JSON.stringify(data))
     },
     // 用于替换第一次创建模板id为 uuid 的id
     draftReplace (username, projectId, templateId, templateUUID) {

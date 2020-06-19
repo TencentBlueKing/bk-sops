@@ -81,11 +81,12 @@
                     <bk-table-column :label="$t('分类')" prop="category_name" width="180"></bk-table-column>
                     <bk-table-column :label="$t('更新时间')" prop="edit_time" width="200"></bk-table-column>
                     <bk-table-column
-                        width="120"
+                        width="160"
                         :label="$t('子流程更新')">
                         <template slot-scope="props">
                             <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
                                 {{getSubflowContent(props.row)}}
+                                <span v-if="!isFlowVisited(props.row.id) " class="red-dot"></span>
                             </div>
                         </template>
                     </bk-table-column>
@@ -326,7 +327,8 @@
                 'site_url': state => state.site_url,
                 'templateList': state => state.templateList.templateListData,
                 'projectBaseInfo': state => state.template.projectBaseInfo,
-                'v1_import_flag': state => state.v1_import_flag
+                'v1_import_flag': state => state.v1_import_flag,
+                'username': state => state.username
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -342,6 +344,13 @@
             this.getExpiredSubflowData()
             this.getCollectList()
             this.onSearchInput = tools.debounce(this.searchInputhandler, 500)
+        },
+        beforeRouteLeave (to, from, next) {
+            // 记录访问过的流程 id
+            if (to.name === 'templatePanel' && to.query.template_id) {
+                this.pushToVisitedFlow(to.query.template_id)
+            }
+            next()
         },
         methods: {
             ...mapActions([
@@ -589,7 +598,7 @@
                 if (!item.has_subprocess) {
                     return '--'
                 }
-                return item.subprocess_has_update ? i18n.t('是') : i18n.t('否')
+                return item.subprocess_has_update ? i18n.t('待更新') : i18n.t('否')
             },
             handlePageLimitChange (val) {
                 this.pagination.limit = val
@@ -645,6 +654,26 @@
             // 判断是否已在收藏列表
             isCollected (id) {
                 return !!this.collectionList.find(m => m.extra_info.id === id && m.category === 'flow')
+            },
+            // 缓存记录访问过的流程 id
+            pushToVisitedFlow (id) {
+                const saveId = `${this.username}_${this.project_id}_${id}`
+                const visitedStr = sessionStorage.getItem('visitedFlow')
+                const visitedList = visitedStr ? JSON.parse(visitedStr) : []
+                if (!visitedList.some(item => item === saveId)) {
+                    visitedList.push(saveId)
+                    sessionStorage.setItem('visitedFlow', JSON.stringify(visitedList))
+                }
+            },
+            // 判断流程是否访问过
+            isFlowVisited (id) {
+                const saveId = `${this.username}_${this.project_id}_${id}`
+                const visitedStr = sessionStorage.getItem('visitedFlow')
+                if (visitedStr) {
+                    const visitedList = JSON.parse(visitedStr)
+                    return visitedList.some(item => item === saveId)
+                }
+                return false
             }
         }
     }
@@ -701,6 +730,15 @@
     }
     .subflow-has-update {
         color: $redDefault;
+        .red-dot {
+            margin-left: 3px;
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #ff5757;
+            border-radius: 50%;
+            vertical-align: 1px;
+        }
     }
 }
 </style>

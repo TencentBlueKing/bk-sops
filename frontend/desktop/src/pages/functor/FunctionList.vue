@@ -195,8 +195,8 @@
                                 v-for="(group, index) in template.list"
                                 :name="group.name"
                                 :key="index">
-                                <bk-option v-for="(childOption, childIndex) in group.children"
-                                    :key="childIndex"
+                                <bk-option v-for="childOption in group.children"
+                                    :key="childOption.id"
                                     :id="childOption.id"
                                     :name="childOption.name">
                                 </bk-option>

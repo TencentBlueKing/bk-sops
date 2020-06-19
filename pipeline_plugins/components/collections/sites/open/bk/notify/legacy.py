@@ -200,7 +200,7 @@ class NotifyComponent(Component):
     name = _('发送通知')
     code = 'bk_notify'
     bound_service = NotifyService
-    form = '%scomponents/atoms/bk/notify.js' % settings.STATIC_URL
+    form = '%scomponents/atoms/bk/notify/legacy.js' % settings.STATIC_URL
     desc = _("API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。"
              "API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网"
              "关->使用指南。")

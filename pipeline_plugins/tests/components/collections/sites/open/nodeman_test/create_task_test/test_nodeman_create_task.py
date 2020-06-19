@@ -23,9 +23,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
     Patcher,
 )
-from pipeline_plugins.components.collections.sites.open.nodeman import (
-    NodemanCreateTaskComponent,
-)
+from pipeline_plugins.components.collections.sites.open.nodeman import NodemanCreateTaskComponent
 
 
 class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
@@ -53,10 +51,10 @@ class MockClient(object):
 
 # mock path
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.nodeman.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.nodeman.create_task.legacy.get_client_by_user"
 )
 NODEMAN_RSA_ENCRYPT = (
-    "pipeline_plugins.components.collections.sites.open.nodeman.nodeman_rsa_encrypt"
+    "pipeline_plugins.components.collections.sites.open.nodeman.create_task.legacy.nodeman_rsa_encrypt"
 )
 
 # mock clients

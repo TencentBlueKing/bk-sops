@@ -45,43 +45,43 @@ if OPEN_VER == "open":
 
 # 请在这里加入你的自定义 APP
 INSTALLED_APPS += (
-    'gcloud.core',
-    'gcloud.tasktmpl3',
-    'gcloud.taskflow3',
-    'gcloud.webservice3',
-    'gcloud.contrib.analysis',
-    'gcloud.contrib.appmaker',
-    'gcloud.contrib.function',
-    'gcloud.contrib.audit',
-    'gcloud.contrib.develop',
-    'gcloud.contrib.collection',
-    'gcloud.apigw',
-    'gcloud.commons.template',
-    'gcloud.periodictask',
-    'gcloud.external_plugins',
-    'gcloud.contrib.admin',
-    'pipeline',
-    'pipeline.component_framework',
-    'pipeline.variable_framework',
-    'pipeline.engine',
-    'pipeline.log',
-    'pipeline.contrib.statistics',
-    'pipeline.contrib.periodic_task',
-    'pipeline.contrib.external_plugins',
-    'pipeline.django_signal_valve',
-    'pipeline_plugins',
-    'pipeline_plugins.components',
-    'pipeline_plugins.variables',
-    'pipeline_web.core',
-    'pipeline_web.label',
-    'data_migration',
-    'auth_backend',
-    'auth_backend.contrib.consistency',
-    'weixin.core',
-    'weixin',
-    'version_log',
-    'files',
-    'corsheaders',
+    "gcloud.core",
+    "gcloud.tasktmpl3",
+    "gcloud.taskflow3",
+    "gcloud.webservice3",
+    "gcloud.contrib.analysis",
+    "gcloud.contrib.appmaker",
+    "gcloud.contrib.function",
+    "gcloud.contrib.audit",
+    "gcloud.contrib.develop",
+    "gcloud.contrib.collection",
+    "gcloud.apigw",
+    "gcloud.commons.template",
+    "gcloud.periodictask",
+    "gcloud.external_plugins",
+    "gcloud.contrib.admin",
+    "pipeline",
+    "pipeline.component_framework",
+    "pipeline.variable_framework",
+    "pipeline.engine",
+    "pipeline.log",
+    "pipeline.contrib.statistics",
+    "pipeline.contrib.periodic_task",
+    "pipeline.contrib.external_plugins",
+    "pipeline.django_signal_valve",
+    "pipeline_plugins",
+    "pipeline_plugins.components",
+    "pipeline_plugins.variables",
+    "pipeline_web.core",
+    "pipeline_web.label",
+    "data_migration",
+    "auth_backend",
+    "auth_backend.contrib.consistency",
+    "weixin.core",
+    "weixin",
+    "version_log",
+    "files",
+    "corsheaders",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -143,7 +143,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.5.11'
+STATIC_VERSION = "3.5.13"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -302,20 +302,6 @@ STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
 PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 
-COMPONENT_PATH = [
-    'components.collections.http',
-    'components.collections.sites.%s' % RUN_VER,
-    'components.collections.sites.%s.cc.create_set' % RUN_VER,
-    'components.collections.sites.%s.cc.batch_delete_set' % RUN_VER,
-    'components.collections.sites.%s.cc.empty_set_hosts' % RUN_VER,
-    'components.collections.sites.%s.cc.transfer_host_module' % RUN_VER,
-    'components.collections.sites.%s.cc.update_module' % RUN_VER,
-    'components.collections.sites.%s.cc.update_set' % RUN_VER,
-    'components.collections.sites.%s.cc.update_set_service_status' % RUN_VER,
-    'components.collections.sites.%s.cc.create_module' % RUN_VER,
-]
-VARIABLE_PATH = ["variables.collections.sites.%s" % RUN_VER]
-
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
 PIPELINE_RERUN_MAX_TIMES = 50
@@ -326,8 +312,9 @@ EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY",
 # 是否只允许加载远程 https 仓库的插件
 EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE", "1") == "0"
 
-PIPELINE_DATA_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_BACKEND",
-                                  "pipeline.engine.core.data.redis_backend.RedisDataBackend")
+PIPELINE_DATA_BACKEND = os.getenv(
+    "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
+)
 PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
 
 ENABLE_EXAMPLE_COMPONENTS = False

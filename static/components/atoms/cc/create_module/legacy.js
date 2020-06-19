@@ -87,7 +87,6 @@
                                 result: true,
                                 error_message: ""
                             };
-                            console.log(result);
                             if (!self.get_parent) {
                                 return result
                             } else if (self.get_parent().get_child("cc_set_select_topo")) {
@@ -250,56 +249,60 @@
                             name: gettext("服务实例分类"),
                             width: "200px",
                             items: [],
+                            lazy: false,
                             validation: [{type: "required"}],
                             multiple: false,
-                            lazy: true,
-                            lazyLoad(node, resolve) {
-                                // 层级数据懒加载
-                                let self = this;
-                                const {level, value} = node;
-                                setTimeout(() => {
-                                    let url = '';
-                                    // level = 0 位于第一层，此时拉取父节点，父节点parent_id = 0， 其余情况下根据选中父节点的id拉取选中父节点下的孩子节点
-                                    if (level === 0) {
-                                        url = $.context.get('site_url') + 'pipeline/cc_list_service_category/' + $.context.getBkBizId() + '/0/';
-                                    }else {
-                                        url = $.context.get('site_url') + 'pipeline/cc_list_service_category/' + $.context.getBkBizId() + '/' + value + '/';
-                                    }
+                        },
+                        events: [
+                            {
+                                source: "cc_service_category",
+                                type: "init",
+                                action: function () {
+                                    const url = $.context.get('site_url') + 'pipeline/cc_get_service_category_topo/' + $.context.getBkBizId() + '/';
+                                    let self = this;
                                     $.ajax({
                                         url: url,
                                         type: 'GET',
                                         dataType: 'json',
                                         success: function (resp) {
-                                            let nodes = resp.data.map(item => ({
-                                                value: item.value,
-                                                label: item.label,
-                                                leaf: level >= 1    // 设置最多两层结构
-                                            }));
-                                            // 节点挂载，level = 0时直接赋值给级联选择器，其他情况下，将获取到的节点挂到选中父节点上
-                                            if (level === 0) {
-                                                self.items = nodes;
-                                            } else {
-                                                // 根据value查询父节点并更新父节点children属性
-                                                self.items.every(element => {
-                                                    if (element.value === value) {
-                                                        element.children = nodes;
-                                                        return false;
-                                                    } else return true;
-                                                })
-                                            }
-                                            resolve(nodes)
+                                            self.items = resp.data;
                                         },
                                         error: function (resp) {
-                                            resolve([]);
+                                            self.items = [];
                                             show_msg(resp.message, 'error');
                                         }
                                     })
-                                }, 200);
-                            }
-                        }
+                                }
+                            },
+                        ]
                     });
                     return data;
                 },
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            let self = this;
+                            let result = {
+                                result: true,
+                                error_message: ""
+                            };
+                            if (!self.get_parent) {
+                                return result
+                            } else if (self.get_parent().get_child("cc_create_method")) {
+
+                                if (self.get_parent().get_child("cc_create_method").value === "category" && !value.length) {
+                                    result.result = false;
+                                    result.error_message = gettext("模块信息不能为空");
+                                }
+                            } else if (!value.length) {
+                                result.result = false;
+                                result.error_message = gettext("模块信息不能为空");
+                            }
+                            return result
+                        }
+                    }
+                ]
             },
             events: [
                 {
@@ -372,6 +375,7 @@
                         attrs: {
                             name: gettext("服务模板"),
                             width: "200px",
+                            validation: [{type: "required"}],
                             empty_text: gettext("无可用模板，请选择直接创建或前往配置平台(CMDB)创建服务模板"),
                             hookable: false,
                             // 动态获取服务模板信息
@@ -387,6 +391,31 @@
                 },
                 hookable: true,
                 add_btn: true,
+                validation: [
+                    {
+                        type: "custom",
+                        args: function (value) {
+                            let self = this;
+                            let result = {
+                                result: true,
+                                error_message: ""
+                            };
+                            if (!self.get_parent) {
+                                return result
+                            } else if (self.get_parent().get_child("cc_create_method")) {
+
+                                if (self.get_parent().get_child("cc_create_method").value === "template" && !value.length) {
+                                    result.result = false;
+                                    result.error_message = gettext("模块信息不能为空");
+                                }
+                            } else if (!value.length) {
+                                result.result = false;
+                                result.error_message = gettext("模块信息不能为空");
+                            }
+                            return result
+                        }
+                    }
+                ]
             },
             events: [
                 {

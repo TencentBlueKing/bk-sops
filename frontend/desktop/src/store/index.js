@@ -92,6 +92,9 @@ const store = new Vuex.Store({
                 commit('setCategorys', response.data.data)
             })
         },
+        getNotifyTypes () {
+            return axios.get('core/api/get_msg_types/').then(response => response.data)
+        },
         // 获取收藏列表
         loadCollectList ({ commit }, data) {
             return axios.get('api/v3/collection/', {

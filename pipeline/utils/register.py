@@ -13,12 +13,26 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import pkgutil
+import os
 import sys
 from importlib import import_module
 
 from django.utils._os import npath, upath
 
-logger = logging.getLogger("root")
+logger = logging.getLogger('root')
+
+
+def find_all_modules(module_dir, sub_dir=None):
+    modules = []
+    for _, name, is_pkg in pkgutil.iter_modules([npath(module_dir)]):
+        if name.startswith('_'):
+            continue
+        module = name if sub_dir is None else "{}.{}".format(sub_dir, name)
+        if is_pkg:
+            modules += find_all_modules(os.path.join(module_dir, name), module)
+        else:
+            modules.append(module)
+    return modules
 
 
 def autodiscover_items(module):
@@ -28,15 +42,13 @@ def autodiscover_items(module):
     # Workaround for a Python 3.2 bug with pkgutil.iter_modules
     module_dir = upath(module.__path__[0])
     sys.path_importer_cache.pop(module_dir, None)
-    modules = [
-        name for _, name, is_pkg in pkgutil.iter_modules([npath(module_dir)]) if not is_pkg and not name.startswith("_")
-    ]
+    modules = find_all_modules(module_dir)
     for name in modules:
         module_path = "{}.{}".format(module.__name__, name)
         try:
             __import__(module_path)
         except Exception as e:
-            logger.error(f"[!] module({module_path}) import failed with err: {e}")
+            logger.error(f'[!] module({module_path}) import failed with err: {e}')
 
 
 def autodiscover_collections(path):
@@ -51,8 +63,9 @@ def autodiscover_collections(path):
         # Attempt to import the app's module.
         try:
 
-            _module = import_module("{}.{}".format(app_config.name, path))
+            _module = import_module('%s.%s' %
+                                    (app_config.name, path))
             autodiscover_items(_module)
         except ImportError as e:
-            if not str(e) == "No module named %s" % path:
+            if not str(e) == 'No module named %s' % path:
                 pass

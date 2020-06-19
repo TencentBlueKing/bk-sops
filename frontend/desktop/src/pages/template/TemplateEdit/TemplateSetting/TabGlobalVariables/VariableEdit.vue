@@ -175,7 +175,6 @@
         },
         data () {
             const theEditingData = tools.deepClone(this.variableData)
-            const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
             return {
                 atomConfigLoading: false,
                 bkMessageInstance: null,
@@ -183,7 +182,7 @@
                 theEditingData,
                 metaTag: undefined, // 元变量tag名称
                 varType: '', // 变量类型，general、meta
-                renderData,
+                renderData: {},
                 renderConfig: [],
                 renderOption: {
                     showHook: false,
@@ -305,7 +304,7 @@
                 }
             })
         },
-        mounted () {
+        async mounted () {
             const { is_meta, custom_type } = this.theEditingData
 
             // 若当前编辑变量为元变量，则取meta_tag
@@ -319,7 +318,12 @@
             }
             // 非输出参数变量需要加载标准插件配置项
             if (!this.isOutputVar) {
-                this.getAtomConfig()
+                await this.getAtomConfig()
+                if (this.theEditingData.hasOwnProperty('value')) {
+                    this.renderData = {
+                        [this.renderConfig[0].tag_code]: this.theEditingData.value
+                    }
+                }
             }
         },
         methods: {
@@ -342,6 +346,7 @@
                 const atom = tagStr.split('.')[0] || custom_type
                 const isMeta = this.varType === 'meta' ? 1 : 0
                 let classify = ''
+                this.atomConfigLoading = true
                 this.atomTypeKey = atom
                 if (this.theEditingData.custom_type) {
                     classify = 'variable'
@@ -350,9 +355,11 @@
                 }
                 if (atomFilter.isConfigExists(atom, this.version, this.atomFormConfig)) {
                     this.getRenderConfig()
+                    this.$nextTick(() => {
+                        this.atomConfigLoading = false
+                    })
                     return
                 }
-                this.atomConfigLoading = true
                 
                 try {
                     await this.loadAtomConfig({
@@ -381,7 +388,6 @@
 
                 const atomConfig = this.atomFormConfig[atom][this.version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
-                config.tag_code = 'customVariable'
                 if (custom_type === 'input' && this.theEditingData.validation !== '') {
                     config.attrs.validation.push({
                         type: 'regex',
@@ -493,11 +499,12 @@
                     }
 
                     const variable = this.theEditingData
+                    const tagCode = this.renderConfig[0].tag_code
                     let varValue = {}
                     this.theEditingData.name = this.theEditingData.name.trim()
 
                     // value为空且不渲染RenderForm组件的变量取表单默认值
-                    if (this.renderData.hasOwnProperty('customVariable')) {
+                    if (this.renderData.hasOwnProperty(tagCode)) {
                         varValue = this.renderData
                     } else {
                         varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
@@ -508,7 +515,7 @@
                         variable.key = '${' + variable.key + '}'
                     }
 
-                    this.theEditingData.value = varValue['customVariable']
+                    this.theEditingData.value = varValue[tagCode]
                     
                     this.$emit('onChangeEdit', false)
                     if (this.isNewVariable) { // 新增变量

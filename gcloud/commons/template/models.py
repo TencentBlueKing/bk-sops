@@ -303,7 +303,7 @@ class BaseTemplate(models.Model):
         return result
 
     def referencer_appmaker(self):
-        appmaker_referencer = self.appmaker_set.all().values("id", "name")
+        appmaker_referencer = self.appmaker_set.filter(is_deleted=False).values("id", "name")
         if not appmaker_referencer.exists():
             return []
 

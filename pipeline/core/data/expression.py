@@ -20,6 +20,7 @@ from mako import lexer, codegen
 from mako.exceptions import MakoException
 
 from pipeline import exceptions
+from pipeline.core.data.sandbox import SANDBOX
 
 
 logger = logging.getLogger("root")
@@ -131,6 +132,9 @@ class ConstantTemplate(object):
 
     @staticmethod
     def resolve_template(template, value_maps):
+        data = {}
+        data.update(SANDBOX)
+        data.update(value_maps)
         if not isinstance(template, str):
             raise exceptions.ConstantTypeException("constant resolve error, template[%s] is not a string" % template)
         try:
@@ -139,7 +143,7 @@ class ConstantTemplate(object):
             logger.error("pipeline resolve template[{}] error[{}]".format(template, e))
             return template
         try:
-            resolved = tm.render_unicode(**value_maps)
+            resolved = tm.render_unicode(**data)
         except (NameError, TypeError, KeyError) as e:
             logger.warning(
                 "constant content is invalid, variable referred does not exist or variable type error[%s]" % e

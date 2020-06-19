@@ -36,6 +36,7 @@ class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
             JOB_EXECUTE_NOT_SUCCESS_CASE,
             GET_GLOBAL_VAR_FAIL_CASE,
             EXECUTE_SUCCESS_CASE,
+            GET_VAR_ERROR_SUCCESS_CASE,
             INVALID_IP_CASE,
         ]
 
@@ -44,11 +45,12 @@ class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, execute_job_return, get_global_var_return=None):
+    def __init__(self, execute_job_return, get_global_var_return=None, get_job_instance_log_return=None):
         self.set_bk_api_ver = MagicMock()
         self.job = MagicMock()
         self.job.execute_job = MagicMock(return_value=execute_job_return)
         self.job.get_job_instance_global_var_value = MagicMock(return_value=get_global_var_return)
+        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
 
 
 # mock path
@@ -56,6 +58,46 @@ GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.get
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.job.get_node_callback_url"
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.get_job_instance_url"
+
+
+EXECUTE_SUCCESS_GET_LOG_RETURN = {
+    "code": 0,
+    "result": True,
+    "message": "success",
+    "data": [
+        {
+            "status": 3,
+            "step_results": [
+                {
+                    "tag": "",
+                    "ip_logs": [
+                        {"ip": "1.1.1.1", "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"},
+                        {"ip": "1.1.1.2", "log_content": ""},
+                    ],
+                    "ip_status": 9,
+                }
+            ],
+        },
+        {
+            "status": 3,
+            "step_results": [
+                {
+                    "tag": "",
+                    "ip_logs": [
+                        {
+                            "ip": "1.1.1.1",
+                            "log_content": "<SOPS_VAR>key2:value2</SOPS_VAR>\ngsectl<SOPS_VAR>key3:value3</SOPS_VAR>",
+                        },
+                    ],
+                    "ip_status": 9,
+                }
+            ],
+        },
+    ],
+}
+
+GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
+
 
 # mock clients
 EXECUTE_JOB_CALL_FAIL_CLIENT = MockClient(execute_job_return={"result": False, "message": "message token"})
@@ -84,6 +126,25 @@ EXECUTE_SUCCESS_CLIENT = MockClient(
             ]
         },
     },
+    get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
+)
+
+GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
+    execute_job_return={"result": True, "data": {"job_instance_id": 56789, "job_instance_name": "job_name_token"}},
+    get_global_var_return={
+        "result": True,
+        "data": {
+            "job_instance_var_values": [
+                {
+                    "step_instance_var_values": [
+                        {"category": 1, "name": "key_1", "value": "new_value_1"},
+                        {"category": 1, "name": "key_2", "value": "new_value_2"},
+                    ]
+                }
+            ]
+        },
+    },
+    get_job_instance_log_return=GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN,
 )
 
 # test cases
@@ -408,6 +469,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "client": EXECUTE_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
+            "log_outputs": {"key1": "value1", "key2": "value2", "key3": "value3"},
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),
@@ -453,6 +515,84 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
+
+GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
+    name="get var failed but execute result must be success",
+    inputs={
+        "job_global_var": [
+            {"category": 1, "name": "key_1", "value": "value_1"},
+            {"category": 1, "name": "key_2", "value": "value_2"},
+            {"category": 3, "name": "key_3", "value": "1.1.1.1,2.2.2.2"},
+        ],
+        "job_task_id": 12345,
+        "biz_cc_id": 1,
+    },
+    parent_data={"executor": "executor_token", "biz_cc_id": 1},
+    execute_assertion=ExecuteAssertion(
+        success=True,
+        outputs={
+            "job_inst_url": "instance_url_token",
+            "job_inst_id": 56789,
+            "job_inst_name": "job_name_token",
+            "client": GET_VAR_ERROR_SUCCESS_CLIENT,
+        },
+    ),
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        outputs={
+            "job_inst_url": "instance_url_token",
+            "job_inst_id": 56789,
+            "job_inst_name": "job_name_token",
+            "client": GET_VAR_ERROR_SUCCESS_CLIENT,
+            "key_1": "new_value_1",
+            "key_2": "new_value_2",
+            "log_outputs": {}
+        },
+        callback_data={"job_instance_id": 56789, "status": 3},
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=CC_GET_IPS_INFO_BY_STR,
+            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
+        ),
+        CallAssertion(
+            func=GET_VAR_ERROR_SUCCESS_CLIENT.job.execute_job,
+            calls=[
+                Call(
+                    {
+                        "bk_biz_id": 1,
+                        "bk_job_id": 12345,
+                        "global_vars": [
+                            {"name": "key_1", "value": "value_1"},
+                            {"name": "key_2", "value": "value_2"},
+                            {
+                                "name": "key_3",
+                                "ip_list": [{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}],
+                            },
+                        ],
+                        "bk_callback_url": "url_token",
+                    }
+                )
+            ],
+        ),
+    ],
+    schedule_call_assertion=[
+        CallAssertion(
+            func=GET_VAR_ERROR_SUCCESS_CLIENT.job.get_job_instance_global_var_value,
+            calls=[Call({"bk_biz_id": 1, "job_instance_id": 56789})],
+        )
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
+        Patcher(
+            target=CC_GET_IPS_INFO_BY_STR,
+            return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+    ],
+)
+
 
 INVALID_IP_CASE = ComponentTestCase(
     name="invalid ip case",

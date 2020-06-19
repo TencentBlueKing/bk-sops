@@ -145,6 +145,52 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
 
 
 @supplier_account_inject
+def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
+    """
+    获取指定biz_cc_id模板类型拓扑
+    :param request:
+    :param biz_cc_id:
+    :param supplier_account:
+    :return:
+        - 请求成功
+        {
+            "result": True,
+            "message": "success",
+            "data": [
+                {
+                    "value": "1-1",
+                    "label": "1-1",
+                    children: [{"value": "2-1", "label": "2-1"},]
+                },
+                ...
+            ]
+        }
+        - 请求失败  {"result": False, "data": [], "message": message}
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    list_service_category_return = client.cc.list_service_category(kwargs)
+    if not list_service_category_return["result"]:
+        message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
+        logger.error(message)
+        return JsonResponse({"result": False, "data": [], "message": message})
+    service_categories = list_service_category_return["data"]["info"]
+    topo_merged_by_id = {
+        sc["id"]: {"value": sc["id"], "label": sc["name"], "children": []}
+        for sc in service_categories if sc["bk_parent_id"] == 0
+    }
+    for sc in service_categories:
+        if sc["bk_parent_id"] not in topo_merged_by_id:
+            continue
+        topo_merged_by_id[sc["bk_parent_id"]]["children"].append(
+            {"value": sc["id"], "label": sc["name"]}
+        )
+    # 筛选两层结构的拓扑
+    service_category_topo = [topo for topo in topo_merged_by_id.values() if topo["children"]]
+    return JsonResponse({"result": True, "data": service_category_topo, "message": "success"})
+
+
+@supplier_account_inject
 def cc_list_service_template(request, biz_cc_id, supplier_account):
     """
     获取服务模板
@@ -191,13 +237,13 @@ def cc_format_topo_data(data, obj_id, category):
         if category == "prev":
             if item["bk_obj_id"] != obj_id:
                 tree_data.append(tree_item)
-                if 'child' in item:
-                    tree_item['children'] = cc_format_topo_data(item['child'], obj_id, category)
+                if "child" in item:
+                    tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category)
         else:
             if item["bk_obj_id"] == obj_id:
                 tree_data.append(tree_item)
-            elif 'child' in item:
-                tree_item['children'] = cc_format_topo_data(item['child'], obj_id, category)
+            elif "child" in item:
+                tree_item["children"] = cc_format_topo_data(item["child"], obj_id, category)
                 tree_data.append(tree_item)
 
     return tree_data
@@ -221,7 +267,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
         return JsonResponse(result)
 
     if category in ["normal", "prev"]:
-        cc_topo = cc_format_topo_data(cc_result['data'], obj_id, category)
+        cc_topo = cc_format_topo_data(cc_result["data"], obj_id, category)
     else:
         cc_topo = []
 
@@ -421,10 +467,10 @@ def cc_get_business(request):
     data = []
     for biz in business:
         # archive data filter
-        if biz.get('bk_data_status') != 'disabled':
+        if biz.get("bk_data_status") != "disabled":
             data.append({
-                'text': biz['bk_biz_name'],
-                'value': int(biz['bk_biz_id'])
+                "text": biz["bk_biz_name"],
+                "value": int(biz["bk_biz_id"])
             })
 
     return JsonResponse({"result": True, "data": data})
@@ -482,6 +528,39 @@ def apply_upload_ticket(request):
     return JsonResponse({"result": True, "data": {"ticket": ticket.code}})
 
 
+def nodeman_get_cloud_area(request):
+    client = get_client_by_user(request.user.username)
+    cloud_area_result = client.nodeman.get_cloud()
+    if not cloud_area_result["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.get_cloud", {}, cloud_area_result)
+        logger.error(message)
+        return JsonResponse({
+            "result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message})
+
+    data = cloud_area_result["data"]
+
+    result = [{"text": cloud["bk_cloud_name"], "value": cloud["bk_cloud_id"]} for cloud in data]
+
+    cloud_area_result["data"] = result
+    return JsonResponse(cloud_area_result)
+
+
+def nodeman_get_ap_list(request):
+    client = get_client_by_user(request.user.username)
+    ap_list = client.nodeman.ap_list()
+    if not ap_list["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.ap_list", {}, ap_list)
+        logger.error(message)
+        return JsonResponse({"result": ap_list["result"], "code": ap_list.get("code", "-1"), "message": message})
+
+    data = ap_list["data"]
+
+    result = [{"text": ap["name"], "value": ap["id"]} for ap in data]
+
+    ap_list["data"] = result
+    return JsonResponse(ap_list)
+
+
 urlpatterns = [
     url(
         r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
@@ -503,6 +582,10 @@ urlpatterns = [
         r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$",
         cc_list_service_template,
     ),
+    url(
+        r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$",
+        cc_get_service_category_topo,
+    ),
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(
         r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$",
@@ -523,4 +606,7 @@ urlpatterns = [
     ),
     url(r"^cc_get_business_list/$", cc_get_business),
     url(r"^apply_upload_ticket/$", apply_upload_ticket),
+
+    url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
+    url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
 ]
