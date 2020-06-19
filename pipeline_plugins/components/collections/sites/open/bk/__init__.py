@@ -11,13 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
+from django.utils.translation import ugettext_lazy as _
 
-from django.conf import settings
+__group_name__ = _("蓝鲸服务(BK)")
 
-from pipeline_plugins.components.utils.common import *  # noqa
-
-utils_module = importlib.import_module("pipeline_plugins.components.utils.sites.%s.utils" % settings.RUN_VER)
-
-for util in utils_module.__all__:
-    locals()[util] = getattr(utils_module, util)
+from .notify import *  # noqa

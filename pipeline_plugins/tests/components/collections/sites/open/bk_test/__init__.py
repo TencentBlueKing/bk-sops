@@ -10,14 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-import importlib
-
-from django.conf import settings
-
-from pipeline_plugins.components.utils.common import *  # noqa
-
-utils_module = importlib.import_module("pipeline_plugins.components.utils.sites.%s.utils" % settings.RUN_VER)
-
-for util in utils_module.__all__:
-    locals()[util] = getattr(utils_module, util)
