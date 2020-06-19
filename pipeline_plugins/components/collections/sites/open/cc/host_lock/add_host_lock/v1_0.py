@@ -37,6 +37,6 @@ class CmdbAddHostLockComponent(Component):
     name = _("主机加锁")
     code = "cmdb_add_host_lock"
     bound_service = CmdbAddHostLockService
-    form = "%scomponents/atoms/cc/cmdb_add_host_lock.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/cc/cmdb_add_host_lock/v1_0.js" % settings.STATIC_URL
 
     version = VERSION

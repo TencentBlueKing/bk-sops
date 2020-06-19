@@ -37,6 +37,6 @@ class CmdbDeleteHostLockComponent(Component):
     name = _("主机解锁")
     code = "cmdb_delete_host_lock"
     bound_service = CmdbDeleteHostLockService
-    form = "%scomponents/atoms/cc/cmdb_delete_host_lock.js" % settings.STATIC_URL
+    form = "%scomponents/atoms/cc/cmdb_delete_host_lock/v1_0.js" % settings.STATIC_URL
 
     version = VERSION
