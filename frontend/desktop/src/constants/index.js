@@ -34,7 +34,7 @@ const NODE_DICT = {
 
 const INVALID_NAME_CHAR = '\'‘"”$&<>'
 
-const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman']
+const SYSTEM_GROUP_ICON = ['CMDB', 'JOB', 'BK', 'Nodeman', 'Monitor', 'GCLOUD', 'TCM']
 const BK_PLUGIN_ICON = {
     'bk_http_request': 'common-icon-bk-plugin-http',
     'bk_notify': 'common-icon-bk-plugin-notify',
