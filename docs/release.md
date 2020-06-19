@@ -1,5 +1,10 @@
 # Release
 
+## 3.5.1302
+
+- bugfix
+  - 修复combine类型插件value字段缺失，表单值不能回填的问题
+
 ## 3.5.1301
 
 - bugfix
