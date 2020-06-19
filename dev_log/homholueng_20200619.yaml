@@ -1,0 +1,21 @@
+feature:
+  - "流程模板通知方式改为由接口动态获取"
+  - "JOB 系列插件支持从输出日志中提取全局变量"
+  - " 蓝鲸服务(BK)-v1.0，通知方式支持在蓝鲸PaaS API网关配置后并自动生效"
+
+improvement:
+  - "任务执行时间返回0时显示小于一秒"
+  - "tagSelect 选项设置最大宽度"
+  - "人员选择变量接口错误前端提示错误信息"
+
+bugfix:
+  - "修复子流程参数无法传入的问题"
+  - "修复旧版本任务节点点击树查看参数未兼容legacy版本问题"
+  - "修复职能化列表新建任务选择流程模板后选项不显示问题"
+  - "修复combine类型插件value字段缺失，表单值不能回填的问题"
+
+i18n:
+  - {
+    text: "通知方式从 API 网关自动获取已实现的通知渠道，API网关定义了这些消息通知组件的接口协议，但是并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。", 
+    trans: "The notification method automatically obtains the implemented notification channels from the API gateway. The API gateway defines the interface protocol of these message notification components, but the content of the component is not fully implemented. The user can rewrite this part of the component according to the interface protocol. In order to reduce the difficulty of implementing the message notification component, the API gateway provides a solution for updating the component configuration online without writing component code. For details, please refer to PaaS->API Gateway->User Guide."
+    }
