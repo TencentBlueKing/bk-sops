@@ -183,7 +183,7 @@
                 const id = this.isSubflow ? 'tpl' : 'plugin'
                 if (this.basicInfo[id]) {
                     data.some(group => {
-                        if (group.list.find(item => item[propertyName] === this.basicInfo[id])) {
+                        if (group.list.find(item => String(item[propertyName]) === this.basicInfo[id])) {
                             activeGroup = group.group_name
                             return true
                         }
