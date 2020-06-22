@@ -50,8 +50,9 @@
 - [标准插件说明](docs/features/plugin_usage.md)
 - [标准插件远程加载](docs/features/remote_plugins.md)
 - [变量引擎](docs/features/variables_engine.md)
-- [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
 - [移动端使用说明](docs/features/mobile.md)
+- [redis 部署模式支持](docs/features/redis_usage.md)
+- [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
 
 ## Version plan
 - [版本日志](docs/release.md)
