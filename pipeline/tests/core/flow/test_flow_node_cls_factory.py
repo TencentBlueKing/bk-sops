@@ -11,12 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import patch, MagicMock
-
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from pipeline.core import flow
-from pipeline.core.flow import FlowNodeClsFactory, EndEvent
+from pipeline.core.flow import EndEvent, FlowNodeClsFactory
 
 
 class FlowNodeClsFactoryTestCase(TestCase):

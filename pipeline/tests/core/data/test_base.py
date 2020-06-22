@@ -12,13 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import jsonschema
-
 import ujson as json
 from django.test import TestCase
 
+from pipeline import exceptions
 from pipeline.core.data.base import DataObject
 from pipeline.core.data.schemas import BASE_PARAM
-from pipeline import exceptions
 from pipeline.utils.collections import FancyDict
 
 

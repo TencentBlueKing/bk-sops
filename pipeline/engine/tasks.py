@@ -14,17 +14,15 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from celery import task
+from celery.decorators import periodic_task
+from celery.schedules import crontab
 
+from pipeline.conf import default_settings
 from pipeline.core.pipeline import Pipeline
-from pipeline.engine import states, api, signals
+from pipeline.engine import api, signals, states
 from pipeline.engine.core import runtime, schedule
-from pipeline.engine.models import (
-    PipelineProcess,
-    Status,
-    NodeRelationship,
-    ProcessCeleryTask,
-    NodeCeleryTask,
-)
+from pipeline.engine.health import zombie
+from pipeline.engine.models import NodeCeleryTask, NodeRelationship, PipelineProcess, ProcessCeleryTask, Status
 
 logger = logging.getLogger("celery")
 
@@ -127,8 +125,8 @@ def wake_from_schedule(process_id, service_act_id):
 
 
 @task(ignore_result=True)
-def service_schedule(process_id, schedule_id):
-    schedule.schedule(process_id, schedule_id)
+def service_schedule(process_id, schedule_id, data_id=None):
+    schedule.schedule(process_id, schedule_id, data_id)
 
 
 @task(ignore_result=True)
@@ -144,3 +142,17 @@ def node_timeout_check(node_id, version, root_pipeline_id):
         signals.activity_failed.send(sender=Pipeline, pipeline_id=root_pipeline_id, pipeline_activity_id=node_id)
     else:
         logger.warning("node {} - {} timeout kill failed".format(node_id, version))
+
+
+@periodic_task(run_every=(crontab(**default_settings.ENGINE_ZOMBIE_PROCESS_HEAL_CRON)), ignore_result=True)
+def heal_zombie_process():
+    logger.info("Zombie process heal start")
+
+    healer = zombie.get_healer()
+
+    try:
+        healer.heal()
+    except Exception:
+        logger.exception("An error occurred when healing zombies")
+
+    logger.info("Zombie process heal finish")

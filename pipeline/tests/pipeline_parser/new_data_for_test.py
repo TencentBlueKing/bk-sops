@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import copy
+
 from pipeline.utils.uniqid import node_uniqid
 
 id_list = [node_uniqid() for i in range(10)]

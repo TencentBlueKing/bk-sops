@@ -13,22 +13,22 @@ specific language governing permissions and limitations under the License.
 
 from pyparsing import (
     CaselessLiteral,
-    Word,
-    delimitedList,
-    Optional,
     Combine,
-    Group,
-    alphas,
-    nums,
-    alphanums,
-    ParseException,
     Forward,
-    oneOf,
-    QuotedString,
-    ZeroOrMore,
+    Group,
     Keyword,
+    Optional,
+    ParseException,
     ParseResults,
+    QuotedString,
     Suppress,
+    Word,
+    ZeroOrMore,
+    alphanums,
+    alphas,
+    delimitedList,
+    nums,
+    oneOf,
 )
 
 

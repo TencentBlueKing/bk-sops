@@ -15,9 +15,9 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.engine import models
-from pipeline.service import task_service
-from pipeline.engine.core import api
 from pipeline.engine.conf.function_switch import FREEZE_ENGINE
+from pipeline.engine.core import api
+from pipeline.service import task_service
 
 
 @admin.register(models.PipelineModel)

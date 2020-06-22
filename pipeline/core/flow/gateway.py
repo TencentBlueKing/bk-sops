@@ -15,9 +15,9 @@ from abc import ABCMeta
 
 import ujson as json
 
-from pipeline.core.flow.base import FlowNode
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
-from pipeline.exceptions import InvalidOperationException, ConditionExhaustedException, EvaluationException
+from pipeline.core.flow.base import FlowNode
+from pipeline.exceptions import ConditionExhaustedException, EvaluationException, InvalidOperationException
 from pipeline.utils.boolrule import BoolRule
 
 

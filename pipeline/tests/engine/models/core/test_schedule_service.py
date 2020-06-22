@@ -16,7 +16,8 @@ from django.test import TestCase
 from pipeline.django_signal_valve import valve
 from pipeline.engine import signals
 from pipeline.engine.exceptions import InvalidOperationException
-from pipeline.engine.models import ScheduleService, ScheduleCeleryTask
+from pipeline.engine.models import ScheduleCeleryTask, ScheduleService
+
 from ..mock import *  # noqa
 
 valve.unload_valve_function()

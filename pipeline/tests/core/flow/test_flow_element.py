@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
 from pipeline.core.flow.base import FlowElement
 
 

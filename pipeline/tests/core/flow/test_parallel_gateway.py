@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
 from pipeline.core.flow.base import FlowNode
 from pipeline.core.flow.gateway import Gateway, ParallelGateway
 from pipeline.exceptions import InvalidOperationException

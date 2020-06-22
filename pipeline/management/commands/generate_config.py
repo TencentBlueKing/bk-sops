@@ -13,9 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from pipeline.conf import settings
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
+
+from pipeline.conf import settings
 
 
 class Command(BaseCommand):

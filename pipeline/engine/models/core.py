@@ -183,6 +183,19 @@ class ProcessManager(models.Manager):
         """
         return PipelineModel.objects.get(id=self.get(id=process_id).root_pipeline_id).priority
 
+    def queue_for_process(self, process_id):
+        """
+        查询进程对应的 pipeline 所使用的队列
+        :param process_id: 进程 ID
+        :return:
+        """
+        return PipelineModel.objects.get(id=self.get(id=process_id).root_pipeline_id).queue
+
+    def task_args_for_process(self, process_id):
+        pipeline_model = PipelineModel.objects.get(id=self.get(id=process_id).root_pipeline_id)
+
+        return {"priority": pipeline_model.priority, "queue": pipeline_model.queue}
+
 
 class PipelineProcess(models.Model):
     """
@@ -193,15 +206,15 @@ class PipelineProcess(models.Model):
     """
 
     id = models.CharField(_("Process ID"), unique=True, primary_key=True, max_length=32)
-    root_pipeline_id = models.CharField(_("根 pipeline 的 ID"), max_length=32)
+    root_pipeline_id = models.CharField(_("根 pipeline 的 ID"), max_length=32, db_index=True)
     current_node_id = models.CharField(_("当前推进到的节点的 ID"), max_length=32, default="", db_index=True)
     destination_id = models.CharField(_("遇到该 ID 的节点就停止推进"), max_length=32, default="")
     parent_id = models.CharField(_("父 process 的 ID"), max_length=32, default="")
     ack_num = models.IntegerField(_("收到子节点 ACK 的数量"), default=0)
     need_ack = models.IntegerField(_("需要收到的子节点 ACK 的数量"), default=-1)
-    is_alive = models.BooleanField(_("该 process 是否还有效"), default=True)
-    is_sleep = models.BooleanField(_("该 process 是否正在休眠"), default=False)
-    is_frozen = models.BooleanField(_("该 process 是否被冻结"), default=False)
+    is_alive = models.BooleanField(_("该 process 是否还有效"), default=True, db_index=True)
+    is_sleep = models.BooleanField(_("该 process 是否正在休眠"), default=False, db_index=True)
+    is_frozen = models.BooleanField(_("该 process 是否被冻结"), default=False, db_index=True)
     snapshot = models.ForeignKey(ProcessSnapshot, null=True, on_delete=models.SET_NULL)
 
     objects = ProcessManager()
@@ -539,6 +552,13 @@ class PipelineProcess(models.Model):
             for child_id in self.children:
                 PipelineProcess.objects.get(id=child_id).revoke_subprocess()
 
+    def take_snapshot(self):
+        """
+        保存当前进程的快照对象
+        :return:
+        """
+        self.snapshot.save()
+
 
 def _destroy_recursively(process):
     if not process.is_alive:
@@ -553,8 +573,8 @@ def _destroy_recursively(process):
 
 
 class PipelineModelManager(models.Manager):
-    def prepare_for_pipeline(self, pipeline, process, priority):
-        return self.create(id=pipeline.id, process=process, priority=priority)
+    def prepare_for_pipeline(self, pipeline, process, priority, queue=""):
+        return self.create(id=pipeline.id, process=process, priority=priority, queue=queue)
 
     def pipeline_ready(self, process_id):
         valve.send(signals, "pipeline_ready", sender=Pipeline, process_id=process_id)
@@ -562,11 +582,17 @@ class PipelineModelManager(models.Manager):
     def priority_for_pipeline(self, pipeline_id):
         return self.get(id=pipeline_id).priority
 
+    def task_args_for_pipeline(self, pipeline_id):
+        model = self.get(id=pipeline_id)
+
+        return {"priority": model.priority, "queue": model.queue}
+
 
 class PipelineModel(models.Model):
     id = models.CharField("pipeline ID", unique=True, primary_key=True, max_length=32)
     process = models.ForeignKey(PipelineProcess, null=True, on_delete=models.SET_NULL)
     priority = models.IntegerField(_("流程优先级"), default=PIPELINE_DEFAULT_PRIORITY)
+    queue = models.CharField(_("流程使用的队列名"), max_length=512, default="")
 
     objects = PipelineModelManager()
 
@@ -590,7 +616,7 @@ class NodeRelationship(models.Model):
     id = models.BigAutoField(_("ID"), primary_key=True)
     ancestor_id = models.CharField(_("祖先 ID"), max_length=32, db_index=True)
     descendant_id = models.CharField(_("后代 ID"), max_length=32, db_index=True)
-    distance = models.IntegerField(_("距离"))
+    distance = models.IntegerField(_("距离"), db_index=True)
 
     objects = RelationshipManager()
 
@@ -614,9 +640,15 @@ class StatusManager(models.Manager):
         :param unchanged_pass: 当 to_state 与当前节点状态相同时则视为操作成功
         :return:
         """
-        defaults = {"name": name, "state": to_state, "version": uniqid()}
+        defaults = {
+            "name": name,
+            "state": to_state,
+            "version": uniqid(),
+        }
         if start:
-            defaults["started_time"] = timezone.now()
+            now = timezone.now()
+            defaults["started_time"] = now
+            defaults["state_refresh_at"] = now
         status, created = self.get_or_create(id=id, defaults=defaults)
 
         # reservation or first creation
@@ -669,6 +701,7 @@ class StatusManager(models.Manager):
                 if start:
                     status.started_time = timezone.now()
                 status.state = to_state
+                status.state_refresh_at = timezone.now()
                 status.save()
                 return ActionResult(result=True, message="success", extra=status)
             else:
@@ -852,6 +885,7 @@ class Status(models.Model):
     started_time = models.DateTimeField(_("开始时间"), null=True)
     archived_time = models.DateTimeField(_("归档时间"), null=True)
     version = models.CharField(_("版本"), max_length=32)
+    state_refresh_at = models.DateTimeField(_("上次状态更新的时间"), null=True)
 
     objects = StatusManager()
 
@@ -889,24 +923,36 @@ class DataManager(models.Manager):
 
 class Data(models.Model):
     id = models.CharField(_("节点 ID"), unique=True, primary_key=True, max_length=32)
-    inputs = IOField(verbose_name=_("输入数据"))
-    outputs = IOField(verbose_name=_("输出数据"))
-    ex_data = IOField(verbose_name=_("异常数据"))
+    inputs = IOField(verbose_name=_("输入数据"), default=None)
+    outputs = IOField(verbose_name=_("输出数据"), default=None)
+    ex_data = IOField(verbose_name=_("异常数据"), default=None)
 
     objects = DataManager()
 
 
 class HistoryData(models.Model):
     id = models.BigAutoField(_("ID"), primary_key=True)
-    inputs = IOField(verbose_name=_("输入数据"))
-    outputs = IOField(verbose_name=_("输出数据"))
-    ex_data = IOField(verbose_name=_("异常数据"))
+    inputs = IOField(verbose_name=_("输入数据"), default=None)
+    outputs = IOField(verbose_name=_("输出数据"), default=None)
+    ex_data = IOField(verbose_name=_("异常数据"), default=None)
 
     objects = DataManager()
 
 
+class MultiCallbackData(models.Model):
+    id = models.BigAutoField(_("自增ID"), primary_key=True)
+    schedule_id = models.CharField(_("回调服务ID"), max_length=NAME_MAX_LENGTH)
+    data = IOField(verbose_name=_("回调数据"))
+
+
+DO_NOT_RECORD_WHEN_RERUN = frozenset({"<class 'pipeline.core.flow.activity.LoopServiceActivity'>"})
+
+
 class HistoryManager(models.Manager):
     def record(self, status, is_rerunning=False):
+        if is_rerunning and status.name in DO_NOT_RECORD_WHEN_RERUN:
+            return None
+
         data = Data.objects.get(id=status.id)
         history_data = HistoryData.objects.create(inputs=data.inputs, outputs=data.outputs, ex_data=data.ex_data)
         return self.create(
@@ -956,12 +1002,14 @@ class History(models.Model):
 class ScheduleServiceManager(models.Manager):
     def set_schedule(self, activity_id, service_act, process_id, version, parent_data):
         wait_callback = service_act.service.interval is None
+        multi_callback_enabled = service_act.service.multi_callback_enabled()
         schedule = self.create(
             id="{}{}".format(activity_id, version),
             activity_id=activity_id,
             service_act=service_act,
             process_id=process_id,
             wait_callback=wait_callback,
+            multi_callback_enabled=multi_callback_enabled,
             version=version,
         )
         data_service.set_schedule_data(schedule.id, parent_data)
@@ -1002,11 +1050,12 @@ class ScheduleService(models.Model):
     process_id = models.CharField(_("Pipeline 进程 ID"), max_length=32)
     schedule_times = models.IntegerField(_("被调度次数"), default=0)
     wait_callback = models.BooleanField(_("是否是回调型调度"), default=False)
+    multi_callback_enabled = models.BooleanField(_("是否支持多次回调"), default=False)
     callback_data = IOField(verbose_name=_("回调数据"), default=None)
     service_act = IOField(verbose_name=_("待调度服务"))
     is_finished = models.BooleanField(_("是否已完成"), default=False)
     version = models.CharField(_("Activity 的版本"), max_length=32, db_index=True)
-    is_scheduling = models.BooleanField(_("是否正在被调度"), default=False)
+    is_scheduling = models.BooleanField(_("是否正在被调度"), default=False, db_index=True)
 
     objects = ScheduleServiceManager()
 
@@ -1044,11 +1093,31 @@ class ScheduleService(models.Model):
         if not self.wait_callback:
             raise exceptions.InvalidOperationException("can't callback a poll schedule.")
 
-        self.callback_data = callback_data
-        self.save()
-        valve.send(
-            signals, "schedule_ready", sender=ScheduleService, process_id=process_id, schedule_id=self.id, countdown=0
-        )
+        if self.multi_callback_enabled:
+            callback_data = MultiCallbackData.objects.create(schedule_id=self.id, data=callback_data)
+            valve.send(
+                signals,
+                "schedule_ready",
+                sender=ScheduleService,
+                process_id=process_id,
+                schedule_id=self.id,
+                data_id=callback_data.id,
+                countdown=0,
+            )
+        else:
+            self.callback_data = callback_data
+            self.save()
+            valve.send(
+                signals,
+                "schedule_ready",
+                sender=ScheduleService,
+                process_id=process_id,
+                schedule_id=self.id,
+                countdown=0,
+            )
+
+    def is_one_time_callback(self):
+        return self.wait_callback and not self.multi_callback_enabled
 
 
 class SubProcessRelationshipManager(models.Manager):

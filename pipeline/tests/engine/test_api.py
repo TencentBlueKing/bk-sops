@@ -17,23 +17,20 @@ from django.test import TestCase
 from django.utils import timezone
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from pipeline.engine import api
-from pipeline.constants import PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY, PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
 from pipeline.core.flow.activity import ServiceActivity
-from pipeline.core.flow.gateway import ParallelGateway, ExclusiveGateway
+from pipeline.core.flow.gateway import ExclusiveGateway, ParallelGateway
+from pipeline.engine import api, exceptions, states
 from pipeline.engine.models import (
-    Status,
     Data,
-    PipelineProcess,
-    PipelineModel,
     NodeRelationship,
-    ScheduleService,
+    PipelineModel,
+    PipelineProcess,
     ProcessCeleryTask,
+    ScheduleService,
+    Status,
 )
-from pipeline.engine import exceptions, states
 from pipeline.engine.utils import calculate_elapsed_time
-from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
-
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -118,7 +115,7 @@ class TestEngineAPI(TestCase):
             PipelineProcess.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance)
 
             PipelineModel.objects.prepare_for_pipeline.assert_called_once_with(
-                pipeline_instance, process, PIPELINE_DEFAULT_PRIORITY
+                pipeline_instance, process, PIPELINE_DEFAULT_PRIORITY, queue=""
             )
 
             PipelineModel.objects.pipeline_ready.assert_called_once_with(process_id=process.id)
@@ -640,6 +637,7 @@ class TestEngineAPI(TestCase):
                 "state": s.state,
                 "version": s.version,
                 "children": children,
+                "state_refresh_at": None,
             }
 
         tree_depth_1 = get_status_dict_with_children(
@@ -829,7 +827,11 @@ class TestEngineAPI(TestCase):
 
                 ProcessCeleryTask.objects.revoke.assert_called_once_with(process.id, kill)
 
-                process.sleep.assert_called_once_with(adjust_status=True)
+                process.adjust_status.assert_called_once()
+
+                self.assertTrue(process.is_sleep)
+
+                process.save.assert_called_once()
 
                 self.assertNotEqual(old_version, status.version)
 

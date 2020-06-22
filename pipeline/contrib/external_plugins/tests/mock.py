@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 
-from mock import MagicMock, patch, call  # noqa
+from mock import MagicMock, call, patch  # noqa
 
 
 def mock_s3_resource(resource, **kwargs):

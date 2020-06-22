@@ -17,6 +17,7 @@ import time
 from django.db import transaction
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from pipeline.celery.queues import ScalableQueues
 from pipeline.constants import PIPELINE_DEFAULT_PRIORITY, PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.gateway import ExclusiveGateway, ParallelGateway
@@ -87,7 +88,7 @@ def _worker_check(func):
 
 @_worker_check
 @_frozen_check
-def start_pipeline(pipeline_instance, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
+def start_pipeline(pipeline_instance, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY, queue=""):
     """
     start a pipeline
     :param pipeline_instance:
@@ -100,9 +101,12 @@ def start_pipeline(pipeline_instance, check_workers=True, priority=PIPELINE_DEFA
             "pipeline priority must between [{min}, {max}]".format(min=PIPELINE_MIN_PRIORITY, max=PIPELINE_MAX_PRIORITY)
         )
 
+    if queue and not ScalableQueues.has_queue(queue):
+        return ActionResult(result=False, message="can't not find queue({}) in any config queues.".format(queue))
+
     Status.objects.prepare_for_pipeline(pipeline_instance)
     process = PipelineProcess.objects.prepare_for_pipeline(pipeline_instance)
-    PipelineModel.objects.prepare_for_pipeline(pipeline_instance, process, priority)
+    PipelineModel.objects.prepare_for_pipeline(pipeline_instance, process, priority, queue=queue)
 
     PipelineModel.objects.pipeline_ready(process_id=process.id)
 
@@ -481,7 +485,9 @@ def forced_fail(node_id, kill=False, ex_data=""):
         ScheduleService.objects.delete_schedule(s.id, s.version)
         Data.objects.forced_fail(node_id, ex_data)
         ProcessCeleryTask.objects.revoke(process.id, kill)
-        process.sleep(adjust_status=True)
+        process.adjust_status()
+        process.is_sleep = True
+        process.save()
         s.version = uniqid.uniqid()
         s.save()
 

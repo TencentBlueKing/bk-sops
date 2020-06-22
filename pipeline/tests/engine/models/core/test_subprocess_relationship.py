@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.utils.uniqid import uniqid
 from pipeline.engine.models import SubProcessRelationship
+from pipeline.utils.uniqid import uniqid
 
 
 class TestSubprocessRelationship(TestCase):

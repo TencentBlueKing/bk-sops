@@ -13,9 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.contrib import admin
 
-from pipeline.contrib.external_plugins.models import GitRepoSource, S3Source, FileSystemSource
+from pipeline.contrib.external_plugins.models import FileSystemSource, GitRepoSource, S3Source
 from pipeline.contrib.external_plugins.models.forms import JsonFieldModelForm
-
 
 # Register your models here.
 

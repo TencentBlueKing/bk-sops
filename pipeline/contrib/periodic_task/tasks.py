@@ -11,18 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import pytz
+import datetime
 import logging
 import traceback
-import datetime
 
+import pytz
 from celery import task
 from django.utils import timezone
 
+from pipeline.contrib.periodic_task import signals
+from pipeline.contrib.periodic_task.models import PeriodicTask, PeriodicTaskHistory
 from pipeline.engine.models import FunctionSwitch
 from pipeline.models import PipelineInstance
-from pipeline.contrib.periodic_task.models import PeriodicTask, PeriodicTaskHistory
-from pipeline.contrib.periodic_task import signals
 
 logger = logging.getLogger("celery")
 
@@ -60,7 +60,9 @@ def periodic_task_start(*args, **kwargs):
             sender=PeriodicTask, periodic_task=periodic_task, pipeline_instance=instance
         )
 
-        result = instance.start(periodic_task.creator, check_workers=False)
+        result = instance.start(
+            periodic_task.creator, check_workers=False, priority=periodic_task.priority, queue=periodic_task.queue
+        )
     except Exception:
         et = traceback.format_exc()
         logger.error(et)

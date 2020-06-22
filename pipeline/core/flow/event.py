@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import traceback
-
 from abc import ABCMeta, abstractmethod
+
 from pipeline.core.flow.base import FlowNode
-from pipeline.engine.signals import pipeline_end
 from pipeline.core.pipeline import Pipeline
+from pipeline.engine.signals import pipeline_end
 
 logger = logging.getLogger("celery")
 

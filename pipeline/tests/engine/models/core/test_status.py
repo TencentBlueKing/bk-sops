@@ -16,8 +16,9 @@ import copy
 from django.test import TestCase
 
 from pipeline.engine import states
-from pipeline.engine.models import SubProcessRelationship, Data, LogEntry, Status
+from pipeline.engine.models import Data, LogEntry, Status, SubProcessRelationship
 from pipeline.tests.mock_settings import *  # noqa
+
 from ..mock import *  # noqa
 
 
@@ -49,11 +50,16 @@ class TestStatus(TestCase):
                                 state_id = uniqid()
                                 result = Status.objects.transit(id=state_id, to_state=from_state, start=True)
                                 self.assertTrue(result.result)
+                                state = Status.objects.get(id=state_id)
+                                self.assertIsNotNone(state.state_refresh_at)
+                                state.state_refresh_at = None
+                                state.save()
                                 result = Status.objects.transit(
                                     id=state_id, is_pipeline=is_pipeline, appoint=is_appoint, to_state=to_state
                                 )
                                 self.assertTrue(result.result, "valid: from {} to {}".format(from_state, to_state))
-                                state = Status.objects.get(id=state_id)
+                                state.refresh_from_db()
+                                self.assertIsNotNone(state.state_refresh_at)
                                 self.assertEqual(state.state, to_state)
                                 if to_state in states.ARCHIVED_STATES:
                                     self.assertIsNotNone(state.archived_time)

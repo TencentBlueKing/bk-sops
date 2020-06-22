@@ -12,9 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
 from pipeline.django_signal_valve import valve
-from pipeline.django_signal_valve.tests import mock_signal
 from pipeline.django_signal_valve.models import Signal
+from pipeline.django_signal_valve.tests import mock_signal
 
 
 class TestValve(TestCase):

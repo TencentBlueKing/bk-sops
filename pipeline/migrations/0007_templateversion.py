@@ -26,7 +26,12 @@ class Migration(migrations.Migration):
             name="TemplateVersion",
             fields=[
                 ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
-                ("md5", models.CharField(max_length=32, verbose_name="\u5feb\u7167\u5b57\u7b26\u4e32\u7684md5")),
+                (
+                    "md5",
+                    models.CharField(
+                        max_length=32, db_index=True, verbose_name="\u5feb\u7167\u5b57\u7b26\u4e32\u7684md5"
+                    ),
+                ),
                 ("date", models.DateTimeField(auto_now_add=True, verbose_name="\u6dfb\u52a0\u65e5\u671f")),
                 (
                     "snapshot_id",

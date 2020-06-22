@@ -14,11 +14,11 @@ specific language governing permissions and limitations under the License.
 import copy
 import queue
 
-from pipeline.utils.uniqid import uniqid
-from pipeline.core.constants import PE
 from pipeline.builder.flow.data import Data, Params
 from pipeline.builder.flow.event import ExecutableEndEvent
+from pipeline.core.constants import PE
 from pipeline.parser.utils import replace_all_id
+from pipeline.utils.uniqid import uniqid
 
 __all__ = ["build_tree"]
 

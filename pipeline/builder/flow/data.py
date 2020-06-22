@@ -47,15 +47,15 @@ class Var(object):
     SPLICE = PE.splice
     LAZY = PE.lazy
 
-    def __init__(self, type, value, source_tag=None):
+    def __init__(self, type, value, custom_type=None):
         self.type = type
         self.value = value
-        self.source_tag = source_tag
+        self.custom_type = custom_type
 
     def to_dict(self):
         base = {"type": self.type, "value": self.value}
         if self.type == self.LAZY:
-            base["source_tag"] = self.source_tag
+            base["custom_type"] = self.custom_type
 
         return base
 

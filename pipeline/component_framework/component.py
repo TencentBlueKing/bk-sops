@@ -11,10 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from pipeline.component_framework.base import ComponentMeta
 from pipeline.core.data.base import DataObject
 from pipeline.core.data.converter import get_variable
 from pipeline.exceptions import ComponentDataLackException
-from pipeline.component_framework.base import ComponentMeta
 
 
 class Component(object, metaclass=ComponentMeta):

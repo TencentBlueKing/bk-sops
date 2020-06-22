@@ -77,7 +77,7 @@ class DataObject(object):
         return json.dumps(result)
 
     def __setstate__(self, state):
-        # py2 compatible
+        # py2 pickle dumps data compatible
         input_key = b"inputs" if b"inputs" in state else "inputs"
         outputs_key = b"outputs" if b"outputs" in state else "outputs"
 

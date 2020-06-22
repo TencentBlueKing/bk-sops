@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
 from pipeline.builder.flow.gateway import ConditionalParallelGateway
+from pipeline.core.constants import PE
 
 
 class ConditionalParallelGatewayTestCase(TestCase):

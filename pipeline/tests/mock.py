@@ -130,10 +130,12 @@ class ServiceActObject(IdentifyObject):
         result_bit=True,
         data=None,
         need_schedule=False,
+        multi_callback_enabled=False,
         on_retry=False,
     ):
         self.service = Object()
         self.service.interval = interval
+        self.service.multi_callback_enabled = mock.MagicMock(return_value=multi_callback_enabled)
         self.schedule = (
             mock.MagicMock(return_value=schedule_return)
             if not schedule_exception
@@ -159,6 +161,7 @@ class ServiceActObject(IdentifyObject):
         self.shell = mock.MagicMock(return_value=self)
         self.on_retry = mock.MagicMock(return_value=on_retry)
         self.retry_at_current_exec = mock.MagicMock()
+        self.setup_runtime_attrs = mock.MagicMock()
         super(ServiceActObject, self).__init__(id)
 
     def next(self):
@@ -224,6 +227,7 @@ class MockPipelineProcess(IdentifyObject):
             return_value=kwargs.get("subproc_sleep_check_return", (False, [self.id]))
         )
         self.in_subprocess = mock.MagicMock(return_value=kwargs.get("in_subprocess_return", False))
+        self.take_snapshot = mock.MagicMock()
 
     def pop_pipeline(self):
         return self.pipeline_stack.pop()
@@ -261,12 +265,15 @@ class MockScheduleService(object):
         )
         self.callback_data = kwargs.get("callback_data", "callback_data")
         self.wait_callback = kwargs.get("wait_callback", False)
+        self.multi_callback_enabled = kwargs.get("multi_callback_enabled", False)
         self.process_id = kwargs.get("process_id", uniqid())
         self.is_finished = kwargs.get("is_finished", False)
         self.schedule_times = 0
         self.finish = mock.MagicMock()
         self.set_next_schedule = mock.MagicMock()
         self.callback = mock.MagicMock()
+        self.save = mock.MagicMock()
+        self.is_one_time_callback = mock.MagicMock(return_value=self.wait_callback and not self.multi_callback_enabled)
 
 
 class MockQuerySet(object):

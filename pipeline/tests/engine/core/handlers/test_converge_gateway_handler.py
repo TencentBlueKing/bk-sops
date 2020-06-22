@@ -13,11 +13,10 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline.core.flow.gateway import ConvergeGateway
+from pipeline.engine.core import handlers
 from pipeline.engine.exceptions import ChildDataSyncError
 from pipeline.engine.models import Status
-from pipeline.engine.core import handlers
-from pipeline.core.flow.gateway import ConvergeGateway
-
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 

@@ -15,7 +15,7 @@ from django.test import TestCase
 
 from pipeline.contrib.external_plugins.tests.mock import *  # noqa
 from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
-from pipeline.contrib.external_plugins.utils.importer.s3 import S3ModuleImporter, CONFIG
+from pipeline.contrib.external_plugins.utils.importer.s3 import CONFIG, S3ModuleImporter
 
 GET_FILE_RETURN = "GET_FILE_RETURN"
 GET_SOURCE_RETURN = "a=1"

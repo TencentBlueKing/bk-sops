@@ -137,3 +137,5 @@ ENGINE_DATA_API_SETTINGS = "pipeline.engine.core.data.api.settings"
 ENGINE_DATA_API_IMPORT_BACKEND = "pipeline.engine.core.data.api._import_backend"
 ENGINE_DATA_API_BACKEND = "pipeline.engine.core.data.api._backend"
 ENGINE_DATA_API_CANDIDATE_BACKEND = "pipeline.engine.core.data.api._candidate_backend"
+
+ENGINE_HEALTH_ZOMBIE_HEAL_DEFAULT_SETTINGS = "pipeline.engine.health.zombie.heal.default_settings"

@@ -56,4 +56,5 @@ class SubprocessHandler(FlowElementHandler):
 
         sub_pipeline = element.pipeline
         process.push_pipeline(sub_pipeline, is_subprocess=True)
+        process.take_snapshot()
         return self.HandleResult(next_node=sub_pipeline.start_event, should_return=False, should_sleep=False)

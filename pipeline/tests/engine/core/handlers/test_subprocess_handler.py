@@ -65,6 +65,8 @@ class SubprocessHandlerTestCase(TestCase):
 
                 process.push_pipeline.assert_called_once_with(subprocess_act.pipeline, is_subprocess=True)
 
+                process.take_snapshot.assert_called_once()
+
                 self.assertEqual(hdl_result.next_node, subprocess_act.pipeline.start_event)
                 self.assertFalse(hdl_result.should_return)
                 self.assertFalse(hdl_result.should_sleep)

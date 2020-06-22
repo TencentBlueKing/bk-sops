@@ -24,6 +24,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.conf import settings
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.core.constants import PE
 from pipeline.engine.utils import ActionResult, calculate_elapsed_time
 from pipeline.exceptions import SubprocessRefError
@@ -732,7 +733,7 @@ class PipelineInstance(models.Model):
             execution_snapshot=new_snapshot,
         )
 
-    def start(self, executor, check_workers=True):
+    def start(self, executor, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY, queue=""):
         """
         启动当前流程
         @param executor: 执行者
@@ -771,7 +772,7 @@ class PipelineInstance(models.Model):
 
             instance.save()
 
-        act_result = task_service.run_pipeline(pipeline, check_workers=check_workers)
+        act_result = task_service.run_pipeline(pipeline, check_workers=check_workers, priority=priority, queue=queue)
 
         if not act_result.result:
             with transaction.atomic():

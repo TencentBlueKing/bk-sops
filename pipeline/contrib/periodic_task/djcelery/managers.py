@@ -12,27 +12,26 @@ specific language governing permissions and limitations under the License.
 """
 
 import warnings
-
-from django.db import connection
 from functools import wraps
 from itertools import count
+
+from django.conf import settings
+from django.db import connection, models
+from django.db.models.query import QuerySet
+
+from pipeline.contrib.periodic_task.djcelery.db import commit_on_success, get_queryset, rollback_unless_managed
+from pipeline.contrib.periodic_task.djcelery.utils import now
 
 try:
     from django.db import connections, router
 except ImportError:  # pre-Django 1.2
     connections = router = None  # noqa
 
-from django.db import models
-from django.db.models.query import QuerySet
-from django.conf import settings
 
 try:
     from celery.utils.timeutils import maybe_timedelta
 except ImportError:
     from celery.utils.time import maybe_timedelta
-
-from pipeline.contrib.periodic_task.djcelery.db import get_queryset, commit_on_success, rollback_unless_managed
-from pipeline.contrib.periodic_task.djcelery.utils import now
 
 
 def update_model_with_dict(obj, fields):

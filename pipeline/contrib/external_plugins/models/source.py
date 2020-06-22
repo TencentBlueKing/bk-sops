@@ -15,8 +15,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.conf import settings
-from pipeline.contrib.external_plugins.utils.importer import GitRepoModuleImporter, S3ModuleImporter, FSModuleImporter
-from pipeline.contrib.external_plugins.models.base import GIT, S3, FILE_SYSTEM, package_source, ExternalPackageSource
+from pipeline.contrib.external_plugins.models.base import FILE_SYSTEM, GIT, S3, ExternalPackageSource, package_source
+from pipeline.contrib.external_plugins.utils.importer import FSModuleImporter, GitRepoModuleImporter, S3ModuleImporter
 
 
 @package_source
