@@ -1,0 +1,2 @@
+improvement:
+  - "节点最大循环次数支持通过 BKAPP_PIPELINE_RERUN_MAX_TIMES 环境变量配置"
