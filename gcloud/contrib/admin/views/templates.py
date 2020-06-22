@@ -11,29 +11,36 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
+import traceback
 import ujson as json
 
+from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.http.response import JsonResponse
 
 from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
 
 from gcloud.core.permissions import admin_operate_resource
+from gcloud.core.decorators import check_is_superuser
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.commons.template.models import CommonTemplate
 
 
 @require_POST
 def restore_template(request):
 
-    verify_or_raise_auth_failed(principal_type='user',
-                                principal_id=request.user.username,
-                                resource=admin_operate_resource,
-                                action_ids=[admin_operate_resource.actions.edit.id],
-                                instance=None)
+    verify_or_raise_auth_failed(
+        principal_type="user",
+        principal_id=request.user.username,
+        resource=admin_operate_resource,
+        action_ids=[admin_operate_resource.actions.edit.id],
+        instance=None,
+    )
 
     data = json.loads(request.body)
-    template_id = data['template_id']
+    template_id = data["template_id"]
 
     res = TaskTemplate.objects.filter(id=template_id, is_deleted=True).update(is_deleted=False)
 
@@ -41,9 +48,54 @@ def restore_template(request):
         template = TaskTemplate.objects.get(id=template_id)
         task_template_resource.register_instance(template)
 
-    return JsonResponse({
-        'result': True,
-        'data': {
-            'affect': res
-        }
-    })
+    return JsonResponse({"result": True, "data": {"affect": res}})
+
+
+def _refresh_template_notify_type(template, notify_trans_map):
+    err = None
+    before = None
+    after = None
+
+    try:
+        notify_type = json.loads(template.notify_type)
+        before = copy.deepcopy(notify_type)
+
+        for old_type, new_type in notify_trans_map.items():
+            if old_type in notify_type:
+                notify_type[old_type] = new_type
+
+        after = notify_type
+
+        template.notify_type = json.dumps(notify_type)
+        template.save()
+    except Exception:
+        err = traceback.format_exc()
+
+    return {
+        "type": "task template",
+        "id": template.id,
+        "name": template.name,
+        "before": before,
+        "after": after,
+        "err": err,
+    }
+
+
+@check_is_superuser()
+def refresh_template_notify_type(request):
+
+    try:
+        notify_trans_map = json.loads(request.GET.notify_trans_map)
+    except Exception:
+        return JsonResponse({"result": False, "message": "notify_trans_map is not a valid JSON"})
+
+    replace_results = []
+
+    task_templates = TaskTemplate.objects.all()
+    common_templates = CommonTemplate.objects.all()
+    with transaction.atomic():
+        for template in task_templates:
+            replace_results.append(_refresh_template_notify_type(template, notify_trans_map))
+
+        for template in common_templates:
+            replace_results.append(_refresh_template_notify_type(template, notify_trans_map))

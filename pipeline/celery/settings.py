@@ -17,7 +17,6 @@ from kombu import Exchange, Queue
 
 from pipeline.celery.queues import ScalableQueues
 from pipeline.constants import PIPELINE_MAX_PRIORITY
-from pipeline.utils.imoports import qualname
 
 default_exchange = Exchange("default", type="direct")
 
@@ -70,7 +69,7 @@ class QueueResolver(object):
 
     def default_setting_for(self, task, setting_key):
         if not isinstance(task, str):
-            task = qualname(task)
+            task = task.name
 
         return CELERY_ROUTES[task][setting_key]
 

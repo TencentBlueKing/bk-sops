@@ -47,9 +47,10 @@ class Service(object, metaclass=ABCMeta):
     def __getstate__(self):
         if "logger" in self.__dict__:
             del self.__dict__["logger"]
-
-        if "logger" in self._runtime_attrs:
-            del self._runtime_attrs["logger"]
+        # compatible with old version pickle obj
+        if "_runtime_attrs" in self.__dict__:
+            if "logger" in self._runtime_attrs:
+                del self._runtime_attrs["logger"]
 
         return self.__dict__
 
@@ -92,6 +93,9 @@ class Service(object, metaclass=ABCMeta):
         setattr(self, self.schedule_result_attr, False)
 
     def setup_runtime_attrs(self, **kwargs):
+        # compatible with old version pickle obj
+        if "_runtime_attrs" not in self.__dict__:
+            self._runtime_attrs = {}
         self._runtime_attrs.update(**kwargs)
 
 
