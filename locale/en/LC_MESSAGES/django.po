@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-06-12 19:36+0800\n"
+"POT-Creation-Date: 2020-06-22 21:22+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -108,11 +108,11 @@ msgstr "user properties"
 msgid "标准运维"
 msgstr "Standard OPS"
 
-#: config/default.py:195
+#: config/default.py:200
 msgid "English"
 msgstr "English"
 
-#: config/default.py:196
+#: config/default.py:201
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -208,8 +208,8 @@ msgstr "Delete"
 
 #: gcloud/commons/template/permissions.py:35
 #: gcloud/contrib/appmaker/permissions.py:35 gcloud/tasktmpl3/permissions.py:35
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:306
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:374
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:266
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:345
 msgid "新建任务"
 msgstr "New Task"
 
@@ -307,8 +307,8 @@ msgid "创建人"
 msgstr "Creator"
 
 #: gcloud/contrib/appmaker/models.py:267 gcloud/core/models.py:186
-#: pipeline/engine/models/core.py:847 pipeline/models.py:76
-#: pipeline/models.py:281 pipeline/models.py:626
+#: pipeline/engine/models/core.py:884 pipeline/models.py:78
+#: pipeline/models.py:282 pipeline/models.py:625
 #: pipeline_web/core/abstract.py:21
 msgid "创建时间"
 msgstr "Creation time"
@@ -348,7 +348,7 @@ msgstr "Project Flow"
 
 #: gcloud/contrib/collection/models.py:22 gcloud/periodictask/models.py:223
 #: gcloud/periodictask/permissions.py:27 gcloud/taskflow3/constants.py:23
-#: pipeline/contrib/periodic_task/models.py:399
+#: pipeline/contrib/periodic_task/models.py:382
 msgid "周期任务"
 msgstr "Periodic Task"
 
@@ -362,7 +362,7 @@ msgid "收藏对象类型"
 msgstr "Collection type"
 
 #: gcloud/contrib/collection/models.py:27
-#: pipeline/contrib/periodic_task/models.py:313
+#: pipeline/contrib/periodic_task/models.py:299
 msgid "额外信息"
 msgstr "Extra info"
 
@@ -603,7 +603,7 @@ msgid "变量描述"
 msgstr "Variable Description"
 
 #: gcloud/core/models.py:121
-#: pipeline_plugins/components/collections/sites/open/job.py:185
+#: pipeline_plugins/components/collections/sites/open/job.py:294
 msgid "变量值"
 msgstr "Variable Value"
 
@@ -619,8 +619,8 @@ msgstr "Name"
 msgid "项目时区"
 msgstr "Time zone"
 
-#: gcloud/core/models.py:184 pipeline/contrib/periodic_task/models.py:312
-#: pipeline/models.py:282 pipeline/models.py:625
+#: gcloud/core/models.py:184 pipeline/contrib/periodic_task/models.py:296
+#: pipeline/models.py:283 pipeline/models.py:624
 msgid "创建者"
 msgstr "Creator"
 
@@ -772,7 +772,7 @@ msgid "包源"
 msgstr "Package Source"
 
 #: gcloud/external_plugins/models/origin.py:96
-#: pipeline/contrib/external_plugins/models/base.py:83
+#: pipeline/contrib/external_plugins/models/base.py:80
 msgid "模块配置"
 msgstr "Modules Config"
 
@@ -781,7 +781,7 @@ msgid "仓库链接"
 msgstr "Repository URL"
 
 #: gcloud/external_plugins/models/origin.py:138
-#: pipeline/contrib/external_plugins/models/source.py:34
+#: pipeline/contrib/external_plugins/models/source.py:24
 msgid "文件托管仓库链接"
 msgstr "Repository Raw URL"
 
@@ -790,7 +790,7 @@ msgid "可以通过web直接访问源文件的链接前缀"
 msgstr "URL prefix of the source file directly accessing via the web"
 
 #: gcloud/external_plugins/models/origin.py:139
-#: pipeline/contrib/external_plugins/models/source.py:35
+#: pipeline/contrib/external_plugins/models/source.py:25
 msgid "分支名"
 msgstr "Branch"
 
@@ -800,22 +800,22 @@ msgid "GIT远程包源 GitRepoOriginalSource"
 msgstr "GitRepoOriginalSource"
 
 #: gcloud/external_plugins/models/origin.py:161
-#: pipeline/contrib/external_plugins/models/source.py:58
+#: pipeline/contrib/external_plugins/models/source.py:47
 msgid "对象存储服务地址"
 msgstr "Service Address"
 
 #: gcloud/external_plugins/models/origin.py:162
-#: pipeline/contrib/external_plugins/models/source.py:59
+#: pipeline/contrib/external_plugins/models/source.py:48
 msgid "bucket 名"
 msgstr "Bucket Name"
 
 #: gcloud/external_plugins/models/origin.py:163
-#: pipeline/contrib/external_plugins/models/source.py:60
+#: pipeline/contrib/external_plugins/models/source.py:49
 msgid "access key"
 msgstr "Access Key"
 
 #: gcloud/external_plugins/models/origin.py:164
-#: pipeline/contrib/external_plugins/models/source.py:61
+#: pipeline/contrib/external_plugins/models/source.py:50
 msgid "secret key"
 msgstr "Secret Key"
 
@@ -825,7 +825,7 @@ msgid "S3远程包源 S3OriginalSource"
 msgstr "S3OriginalSource"
 
 #: gcloud/external_plugins/models/origin.py:187
-#: pipeline/contrib/external_plugins/models/source.py:87
+#: pipeline/contrib/external_plugins/models/source.py:78
 msgid "文件系统路径"
 msgstr "FileSystem Path"
 
@@ -856,7 +856,7 @@ msgstr "Manual Trigger"
 msgid "部署自动触发"
 msgstr "Deployment Trigger"
 
-#: gcloud/external_plugins/models/sync.py:37 pipeline/models.py:627
+#: gcloud/external_plugins/models/sync.py:37 pipeline/models.py:626
 msgid "执行者"
 msgstr "Executor"
 
@@ -865,12 +865,12 @@ msgstr "Executor"
 msgid "创建方式"
 msgstr "Creation method"
 
-#: gcloud/external_plugins/models/sync.py:39 pipeline/models.py:628
+#: gcloud/external_plugins/models/sync.py:39 pipeline/models.py:627
 msgid "启动时间"
 msgstr "Date Started"
 
-#: gcloud/external_plugins/models/sync.py:40 pipeline/engine/models/core.py:940
-#: pipeline/models.py:629
+#: gcloud/external_plugins/models/sync.py:40 pipeline/engine/models/core.py:993
+#: pipeline/models.py:628
 msgid "结束时间"
 msgstr "Date Finished"
 
@@ -925,18 +925,18 @@ msgid "流程实例"
 msgstr "Flow Instance"
 
 #: gcloud/periodictask/models.py:225
-#: pipeline/contrib/periodic_task/models.py:409 pipeline/log/models.py:46
+#: pipeline/contrib/periodic_task/models.py:392 pipeline/log/models.py:46
 msgid "异常信息"
 msgstr "Exception"
 
 #: gcloud/periodictask/models.py:226
-#: pipeline/contrib/periodic_task/models.py:410
-#: pipeline/engine/models/core.py:848 pipeline/engine/models/core.py:939
+#: pipeline/contrib/periodic_task/models.py:393
+#: pipeline/engine/models/core.py:885 pipeline/engine/models/core.py:992
 msgid "开始时间"
 msgstr "Date Started"
 
 #: gcloud/periodictask/models.py:227
-#: pipeline/contrib/periodic_task/models.py:411
+#: pipeline/contrib/periodic_task/models.py:394
 msgid "是否启动成功"
 msgstr "Start Success"
 
@@ -1098,228 +1098,228 @@ msgstr "{system} API {api_name} returned false, params={params}, error={error}"
 msgid "停运"
 msgstr "Closed"
 
-#: pipeline/models.py:75
+#: pipeline/models.py:77
 msgid "快照字符串的md5sum"
 msgstr "Snapshot Md5sum"
 
-#: pipeline/models.py:82 pipeline/models.py:83
+#: pipeline/models.py:84 pipeline/models.py:85
 msgid "模板快照"
 msgstr "Template Snapshot"
 
-#: pipeline/models.py:156
+#: pipeline/models.py:157
 #, python-format
 msgid "子流程引用链中存在循环引用：%s"
 msgstr "Subprocess reference has circle: %s"
 
 #: pipeline/contrib/statistics/models.py:20
-#: pipeline/contrib/statistics/models.py:58 pipeline/models.py:279
-#: pipeline/models.py:471
+#: pipeline/contrib/statistics/models.py:58 pipeline/models.py:280
+#: pipeline/models.py:466
 msgid "模板ID"
 msgstr "Template ID"
 
-#: pipeline/models.py:280
+#: pipeline/models.py:281
 msgid "模板名称"
 msgstr "Template Name"
 
-#: pipeline/models.py:283 pipeline/models.py:630
+#: pipeline/models.py:284 pipeline/models.py:629
 msgid "描述"
 msgstr "Description"
 
-#: pipeline/models.py:284
+#: pipeline/models.py:285
 msgid "修改者"
 msgstr "Editor"
 
-#: pipeline/models.py:285 pipeline/models.py:515
+#: pipeline/models.py:286 pipeline/models.py:513
 #: pipeline_web/core/abstract.py:22
 msgid "修改时间"
 msgstr "Date Edit"
 
-#: pipeline/models.py:286
+#: pipeline/models.py:288
 msgid "模板结构数据"
 msgstr "Template Data"
 
-#: pipeline/models.py:289
+#: pipeline/models.py:290
 msgid "是否含有子流程"
 msgstr "Has Subprocess"
 
-#: pipeline/models.py:293
+#: pipeline/models.py:291
 msgid "表示当前模板是否删除"
 msgstr "Deleted"
 
-#: pipeline/models.py:299 pipeline/models.py:300 pipeline/models.py:622
+#: pipeline/models.py:296 pipeline/models.py:297 pipeline/models.py:621
 msgid "Pipeline模板"
 msgstr "Pipeline Template"
 
-#: pipeline/models.py:445
+#: pipeline/models.py:440
 msgid "根模板ID"
 msgstr "Root flow ID"
 
-#: pipeline/models.py:446
+#: pipeline/models.py:441
 msgid "子流程模板ID"
 msgstr "Subprocess flow ID"
 
-#: pipeline/models.py:447
+#: pipeline/models.py:442
 msgid "子流程节点 ID"
 msgstr "Subprocess node ID"
 
-#: pipeline/models.py:448 pipeline/models.py:472 pipeline/models.py:501
+#: pipeline/models.py:443 pipeline/models.py:467 pipeline/models.py:497
 msgid "快照字符串的md5"
 msgstr "Snapshot string md5"
 
-#: pipeline/models.py:499
+#: pipeline/models.py:495
 msgid "模板 ID"
 msgstr "Template ID"
 
-#: pipeline/models.py:500
+#: pipeline/models.py:496
 msgid "模板数据 ID"
 msgstr "Template Data ID"
 
-#: pipeline/models.py:502
+#: pipeline/models.py:498
 msgid "添加日期"
 msgstr "Datetime added"
 
-#: pipeline/models.py:511
+#: pipeline/models.py:509
 msgid "对应模板 ID"
 msgstr "Template ID"
 
-#: pipeline/models.py:513
+#: pipeline/models.py:511
 msgid "方案唯一ID"
 msgstr "Schema Unique ID"
 
-#: pipeline/models.py:514
+#: pipeline/models.py:512
 msgid "方案名称"
 msgstr "Schema Name"
 
-#: pipeline/models.py:516
+#: pipeline/models.py:514
 msgid "方案数据"
 msgstr "Schema Data"
 
 #: pipeline/contrib/statistics/models.py:36
-#: pipeline/contrib/statistics/models.py:72 pipeline/models.py:621
+#: pipeline/contrib/statistics/models.py:72 pipeline/models.py:619
 msgid "实例ID"
 msgstr "Instance ID"
 
-#: pipeline/models.py:624
+#: pipeline/models.py:623
 msgid "实例名称"
 msgstr "Instance Name"
 
-#: pipeline/models.py:631
+#: pipeline/models.py:630
 msgid "是否已经启动"
 msgstr "Started"
 
-#: pipeline/models.py:632
+#: pipeline/models.py:631
 msgid "是否已经完成"
 msgstr "Finished"
 
-#: pipeline/models.py:633
+#: pipeline/models.py:632
 msgid "是否已经撤销"
 msgstr "Revoked"
 
-#: pipeline/models.py:635
+#: pipeline/models.py:633
 msgid "是否已经删除"
 msgstr "Deleted"
 
-#: pipeline/models.py:637
+#: pipeline/models.py:633
 msgid "表示当前实例是否删除"
 msgstr "Deleted"
 
-#: pipeline/models.py:644
+#: pipeline/models.py:639
 msgid "实例结构数据，指向实例对应的模板的结构数据"
 msgstr "Template data for this instance"
 
-#: pipeline/models.py:652
+#: pipeline/models.py:647
 msgid "用于实例执行的结构数据"
 msgstr "Used for execution"
 
-#: pipeline/models.py:660
+#: pipeline/models.py:655
 msgid "提前计算好的一些流程结构数据"
 msgstr "Some structure info have been precomputed"
 
-#: pipeline/models.py:667 pipeline/models.py:668
+#: pipeline/models.py:662 pipeline/models.py:663
 msgid "Pipeline实例"
 msgstr "Pipeline Instance"
 
-#: pipeline/component_framework/models.py:41
+#: pipeline/component_framework/models.py:42
 #: pipeline/contrib/statistics/models.py:19
 #: pipeline/contrib/statistics/models.py:35
 msgid "组件编码"
 msgstr "Component Code"
 
-#: pipeline/component_framework/models.py:42
+#: pipeline/component_framework/models.py:43
 msgid "组件版本"
 msgstr "Component Version"
 
-#: pipeline/component_framework/models.py:43
+#: pipeline/component_framework/models.py:44
 msgid "组件名称"
 msgstr "Component Name"
 
-#: pipeline/component_framework/models.py:44
+#: pipeline/component_framework/models.py:45
 msgid "组件是否可用"
 msgstr "Available"
 
-#: pipeline/component_framework/models.py:49
 #: pipeline/component_framework/models.py:50
+#: pipeline/component_framework/models.py:51
 msgid "组件 Component"
 msgstr "Component"
 
-#: pipeline/contrib/external_plugins/models/base.py:81
+#: pipeline/contrib/external_plugins/models/base.py:78
 msgid "包源名"
 msgstr "Package Source NAme"
 
-#: pipeline/contrib/external_plugins/models/base.py:82
+#: pipeline/contrib/external_plugins/models/base.py:79
 msgid "是否是从配置文件中读取的"
 msgstr "Whether From Config File"
 
-#: pipeline/contrib/periodic_task/models.py:33
+#: pipeline/contrib/periodic_task/models.py:35
 msgid "Days"
 msgstr "Days"
 
-#: pipeline/contrib/periodic_task/models.py:34
+#: pipeline/contrib/periodic_task/models.py:36
 msgid "Hours"
 msgstr "Hours"
 
-#: pipeline/contrib/periodic_task/models.py:35
+#: pipeline/contrib/periodic_task/models.py:37
 msgid "Minutes"
 msgstr "Minutes"
 
-#: pipeline/contrib/periodic_task/models.py:36
+#: pipeline/contrib/periodic_task/models.py:38
 msgid "Seconds"
 msgstr "Seconds"
 
-#: pipeline/contrib/periodic_task/models.py:37
+#: pipeline/contrib/periodic_task/models.py:39
 msgid "Microseconds"
 msgstr "Microseconds"
 
-#: pipeline/contrib/periodic_task/models.py:42
+#: pipeline/contrib/periodic_task/models.py:45
 msgid "every"
 msgstr "every"
 
-#: pipeline/contrib/periodic_task/models.py:44
+#: pipeline/contrib/periodic_task/models.py:46
 msgid "period"
 msgstr "period"
 
-#: pipeline/contrib/periodic_task/models.py:48
-#: pipeline/contrib/periodic_task/models.py:167
+#: pipeline/contrib/periodic_task/models.py:49
+#: pipeline/contrib/periodic_task/models.py:159
 msgid "interval"
 msgstr "interval"
 
-#: pipeline/contrib/periodic_task/models.py:49
+#: pipeline/contrib/periodic_task/models.py:50
 msgid "intervals"
 msgstr "intervals"
 
-#: pipeline/contrib/periodic_task/models.py:69
+#: pipeline/contrib/periodic_task/models.py:70
 msgid "every {0.period_singular}"
 msgstr "every {0.period_singular}"
 
-#: pipeline/contrib/periodic_task/models.py:70
+#: pipeline/contrib/periodic_task/models.py:71
 msgid "every {0.every:d} {0.period}"
 msgstr "every {0.every:d} {0.period}"
 
-#: pipeline/contrib/periodic_task/models.py:83
+#: pipeline/contrib/periodic_task/models.py:84
 msgid "minute"
 msgstr "minute"
 
-#: pipeline/contrib/periodic_task/models.py:84
+#: pipeline/contrib/periodic_task/models.py:85
 msgid "hour"
 msgstr "hour"
 
@@ -1327,120 +1327,132 @@ msgstr "hour"
 msgid "day of week"
 msgstr "day of week"
 
-#: pipeline/contrib/periodic_task/models.py:89
+#: pipeline/contrib/periodic_task/models.py:87
 msgid "day of month"
 msgstr "day of month"
 
-#: pipeline/contrib/periodic_task/models.py:92
+#: pipeline/contrib/periodic_task/models.py:88
 msgid "month of year"
 msgstr "month of year"
 
-#: pipeline/contrib/periodic_task/models.py:97
-#: pipeline/contrib/periodic_task/models.py:171
+#: pipeline/contrib/periodic_task/models.py:92
+#: pipeline/contrib/periodic_task/models.py:165
 msgid "crontab"
 msgstr "crontab"
 
-#: pipeline/contrib/periodic_task/models.py:98
+#: pipeline/contrib/periodic_task/models.py:93
 msgid "crontabs"
 msgstr "crontabs"
 
-#: pipeline/contrib/periodic_task/models.py:161
+#: pipeline/contrib/periodic_task/models.py:156
 msgid "name"
 msgstr "name"
 
-#: pipeline/contrib/periodic_task/models.py:162
+#: pipeline/contrib/periodic_task/models.py:156
 msgid "Useful description"
 msgstr "Useful description"
 
-#: pipeline/contrib/periodic_task/models.py:164
+#: pipeline/contrib/periodic_task/models.py:157
 msgid "task name"
 msgstr "task name"
 
-#: pipeline/contrib/periodic_task/models.py:173
+#: pipeline/contrib/periodic_task/models.py:167
 msgid "Use one of interval/crontab"
 msgstr "Use one of interval/crontab"
 
-#: pipeline/contrib/periodic_task/models.py:176
+#: pipeline/contrib/periodic_task/models.py:169
 msgid "Arguments"
 msgstr "Arguments"
 
-#: pipeline/contrib/periodic_task/models.py:177
+#: pipeline/contrib/periodic_task/models.py:169
 msgid "JSON encoded positional arguments"
 msgstr "JSON encoded positional arguments"
 
-#: pipeline/contrib/periodic_task/models.py:180
+#: pipeline/contrib/periodic_task/models.py:171
 msgid "Keyword arguments"
 msgstr "Keyword arguments"
 
-#: pipeline/contrib/periodic_task/models.py:181
+#: pipeline/contrib/periodic_task/models.py:171
 msgid "JSON encoded keyword arguments"
 msgstr "JSON encoded keyword arguments"
 
-#: pipeline/contrib/periodic_task/models.py:184
+#: pipeline/contrib/periodic_task/models.py:174
 msgid "queue"
 msgstr "queue"
 
-#: pipeline/contrib/periodic_task/models.py:185
+#: pipeline/contrib/periodic_task/models.py:174
 msgid "Queue defined in CELERY_QUEUES"
 msgstr "Queue defined in CELERY_QUEUES"
 
-#: pipeline/contrib/periodic_task/models.py:188
+#: pipeline/contrib/periodic_task/models.py:176
 msgid "exchange"
 msgstr "exchange"
 
-#: pipeline/contrib/periodic_task/models.py:191
+#: pipeline/contrib/periodic_task/models.py:177
 msgid "routing key"
 msgstr "routing key"
 
-#: pipeline/contrib/periodic_task/models.py:194
+#: pipeline/contrib/periodic_task/models.py:178
 msgid "expires"
 msgstr "expires"
 
-#: pipeline/contrib/periodic_task/models.py:197
+#: pipeline/contrib/periodic_task/models.py:179
 msgid "enabled"
 msgstr "enabled"
 
-#: pipeline/contrib/periodic_task/models.py:207
+#: pipeline/contrib/periodic_task/models.py:183
 msgid "description"
 msgstr "description"
 
-#: pipeline/contrib/periodic_task/models.py:213
+#: pipeline/contrib/periodic_task/models.py:189
 msgid "djcelery periodic task"
 msgstr "djcelery periodic task"
 
-#: pipeline/contrib/periodic_task/models.py:214
+#: pipeline/contrib/periodic_task/models.py:190
 msgid "djcelery periodic tasks"
 msgstr "djcelery periodic tasks"
 
-#: pipeline/contrib/periodic_task/models.py:293
+#: pipeline/contrib/periodic_task/models.py:278
 msgid "周期任务名称"
 msgstr "Periodic task name"
 
-#: pipeline/contrib/periodic_task/models.py:298
+#: pipeline/contrib/periodic_task/models.py:283
 msgid "周期任务对应的模板"
 msgstr "Periodic task template"
 
-#: pipeline/contrib/periodic_task/models.py:301
+#: pipeline/contrib/periodic_task/models.py:287
 msgid "调度策略"
 msgstr "Crontab"
 
-#: pipeline/contrib/periodic_task/models.py:302
+#: pipeline/contrib/periodic_task/models.py:289
 msgid "celery 周期任务实例"
 msgstr "Celery periodic task"
 
-#: pipeline/contrib/periodic_task/models.py:307
+#: pipeline/contrib/periodic_task/models.py:292
 msgid "用于创建流程实例的结构数据"
 msgstr "Flow data"
 
-#: pipeline/contrib/periodic_task/models.py:310
+#: pipeline/contrib/periodic_task/models.py:294
 msgid "执行次数"
 msgstr "Execution times"
 
-#: pipeline/contrib/periodic_task/models.py:311
+#: pipeline/contrib/periodic_task/models.py:295
 msgid "上次运行时间"
 msgstr "Last run at"
 
-#: pipeline/contrib/periodic_task/models.py:405
+#: pipeline/contrib/periodic_task/models.py:297
+#: pipeline/contrib/periodic_task/models.py:395
+#: pipeline/engine/models/core.py:594
+msgid "流程优先级"
+msgstr "Flow Priority"
+
+#: pipeline/contrib/periodic_task/models.py:298
+#: pipeline/contrib/periodic_task/models.py:396
+#: pipeline/engine/models/core.py:595
+msgid "流程使用的队列名"
+msgstr "Flow use queue"
+
+#: pipeline/contrib/periodic_task/models.py:387
 msgid "Pipeline 实例"
 msgstr "Pipeline instance"
 
@@ -1487,12 +1499,12 @@ msgid "标准插件执行耗时(s)"
 msgstr "Standard Plugins execution Elapsed(s)"
 
 #: pipeline/contrib/statistics/models.py:43
-#: pipeline/core/flow/activity/service_activity.py:35
+#: pipeline/core/flow/activity/service_activity.py:32
 msgid "是否执行成功"
 msgstr "Success"
 
-#: pipeline/contrib/statistics/models.py:44 pipeline/engine/models/core.py:845
-#: pipeline/engine/models/core.py:942
+#: pipeline/contrib/statistics/models.py:44 pipeline/engine/models/core.py:882
+#: pipeline/engine/models/core.py:995
 msgid "是否跳过"
 msgstr "Skip OR Not"
 
@@ -1534,12 +1546,12 @@ msgstr "Pipeline Instance Reference Data"
 msgid "执行结果"
 msgstr "Execution Result"
 
-#: pipeline/core/flow/activity/service_activity.py:36
-#: pipeline/engine/models/core.py:844 pipeline/engine/models/core.py:941
+#: pipeline/core/flow/activity/service_activity.py:33
+#: pipeline/engine/models/core.py:881 pipeline/engine/models/core.py:994
 msgid "循环次数"
 msgstr "Loop Times"
 
-#: pipeline/core/flow/activity/service_activity.py:39
+#: pipeline/core/flow/activity/service_activity.py:33
 msgid "循环执行次数"
 msgstr "Loop execution times"
 
@@ -1555,22 +1567,22 @@ msgstr "Signal property name"
 msgid "信号参数"
 msgstr "Signal parameters"
 
-#: pipeline/engine/admin.py:121
+#: pipeline/engine/admin.py:124
 msgid "打开所选的功能"
 msgstr "Open Functions Selected"
 
-#: pipeline/engine/admin.py:122
+#: pipeline/engine/admin.py:125
 msgid "关闭所选的功能"
 msgstr "Close Functions Selected"
 
-#: pipeline/engine/conf/function_switch.py:21
+#: pipeline/engine/conf/function_switch.py:19
 msgid "用于冻结引擎, 冻结期间会屏蔽所有内部信号及暂停所有进程，同时拒绝所有流程控制请求"
 msgstr "Used to freeze engine. In which period all signals and processes will be shielded and all request refused."
 
-#: pipeline/engine/models/core.py:53 pipeline/engine/models/core.py:571
-#: pipeline/engine/models/core.py:896 pipeline/engine/models/core.py:937
-#: pipeline/engine/models/core.py:1048 pipeline/engine/models/core.py:1082
-#: pipeline/engine/models/core.py:1110 pipeline/engine/models/core.py:1143
+#: pipeline/engine/models/core.py:53 pipeline/engine/models/core.py:616
+#: pipeline/engine/models/core.py:934 pipeline/engine/models/core.py:990
+#: pipeline/engine/models/core.py:1142 pipeline/engine/models/core.py:1174
+#: pipeline/engine/models/core.py:1200 pipeline/engine/models/core.py:1231
 #: pipeline/log/models.py:42
 msgid "ID"
 msgstr "ID"
@@ -1579,162 +1591,174 @@ msgstr "ID"
 msgid "pipeline 运行时数据"
 msgstr "Pipeline Runtime"
 
-#: pipeline/engine/models/core.py:178
+#: pipeline/engine/models/core.py:208
 msgid "Process ID"
 msgstr "Process ID"
 
-#: pipeline/engine/models/core.py:179
+#: pipeline/engine/models/core.py:209
 msgid "根 pipeline 的 ID"
 msgstr "Root Process ID"
 
-#: pipeline/engine/models/core.py:180
+#: pipeline/engine/models/core.py:210
 msgid "当前推进到的节点的 ID"
 msgstr "Current Node ID"
 
-#: pipeline/engine/models/core.py:181
+#: pipeline/engine/models/core.py:211
 msgid "遇到该 ID 的节点就停止推进"
 msgstr "Pause Node ID"
 
-#: pipeline/engine/models/core.py:182
+#: pipeline/engine/models/core.py:212
 msgid "父 process 的 ID"
 msgstr "Father Process ID"
 
-#: pipeline/engine/models/core.py:183
+#: pipeline/engine/models/core.py:213
 msgid "收到子节点 ACK 的数量"
 msgstr "ACK Received"
 
-#: pipeline/engine/models/core.py:184
+#: pipeline/engine/models/core.py:214
 msgid "需要收到的子节点 ACK 的数量"
 msgstr "ACK Needed"
 
-#: pipeline/engine/models/core.py:185
+#: pipeline/engine/models/core.py:215
 msgid "该 process 是否还有效"
 msgstr "Available"
 
-#: pipeline/engine/models/core.py:186
+#: pipeline/engine/models/core.py:216
 msgid "该 process 是否正在休眠"
 msgstr "Sleep"
 
-#: pipeline/engine/models/core.py:187
+#: pipeline/engine/models/core.py:217
 msgid "该 process 是否被冻结"
 msgstr "Freeze"
 
-#: pipeline/engine/models/core.py:551
-msgid "流程优先级"
-msgstr "Flow Priority"
-
-#: pipeline/engine/models/core.py:572
+#: pipeline/engine/models/core.py:617
 msgid "祖先 ID"
 msgstr "Ancestor ID"
 
-#: pipeline/engine/models/core.py:573
+#: pipeline/engine/models/core.py:618
 msgid "后代 ID"
 msgstr "Descendant ID"
 
-#: pipeline/engine/models/core.py:574
+#: pipeline/engine/models/core.py:619
 msgid "距离"
 msgstr "Distance"
 
-#: pipeline/engine/models/core.py:840 pipeline/engine/models/core.py:887
-#: pipeline/engine/models/core.py:982 pipeline/engine/models/core.py:1144
+#: pipeline/engine/models/core.py:877 pipeline/engine/models/core.py:925
+#: pipeline/engine/models/core.py:1049 pipeline/engine/models/core.py:1232
 #: pipeline/log/models.py:49
 msgid "节点 ID"
 msgstr "Node ID"
 
-#: pipeline/engine/models/core.py:841
+#: pipeline/engine/models/core.py:878
 msgid "状态"
 msgstr "Status"
 
-#: pipeline/engine/models/core.py:842
+#: pipeline/engine/models/core.py:879
 msgid "节点名称"
 msgstr "Node Name"
 
-#: pipeline/engine/models/core.py:843
+#: pipeline/engine/models/core.py:880
 msgid "重试次数"
 msgstr "Retry Times"
 
-#: pipeline/engine/models/core.py:846
+#: pipeline/engine/models/core.py:883
 msgid "是否出错后自动忽略"
 msgstr "Error Ignorable"
 
-#: pipeline/engine/models/core.py:849
+#: pipeline/engine/models/core.py:886
 msgid "归档时间"
 msgstr "Date Archived"
 
-#: pipeline/engine/models/core.py:850
+#: pipeline/engine/models/core.py:887
 msgid "版本"
 msgstr "Version"
 
-#: pipeline/engine/models/core.py:888 pipeline/engine/models/core.py:897
+#: pipeline/engine/models/core.py:888
+msgid "上次状态更新的时间"
+msgstr "Last update time"
+
+#: pipeline/engine/models/core.py:926 pipeline/engine/models/core.py:935
 msgid "输入数据"
 msgstr "Input Data"
 
-#: pipeline/engine/models/core.py:889 pipeline/engine/models/core.py:898
+#: pipeline/engine/models/core.py:927 pipeline/engine/models/core.py:936
 msgid "输出数据"
 msgstr "Output Data"
 
-#: pipeline/engine/models/core.py:890 pipeline/engine/models/core.py:899
+#: pipeline/engine/models/core.py:928 pipeline/engine/models/core.py:937
 msgid "异常数据"
 msgstr "Exceptions"
 
-#: pipeline/engine/models/core.py:938
-msgid "节点 id"
-msgstr "Node ID"
+#: pipeline/engine/models/core.py:943
+msgid "自增ID"
+msgstr "Incremental ID"
 
-#: pipeline/engine/models/core.py:981
-msgid "ID 节点ID+version"
-msgstr "ID Node+Version"
+#: pipeline/engine/models/core.py:944
+msgid "回调服务ID"
+msgstr "Callback serice ID"
 
-#: pipeline/engine/models/core.py:983
-msgid "Pipeline 进程 ID"
-msgstr "Pipeline process ID"
-
-#: pipeline/engine/models/core.py:984
-msgid "被调度次数"
-msgstr "Schedule times"
-
-#: pipeline/engine/models/core.py:985
-msgid "是否是回调型调度"
-msgstr "Schedulable"
-
-#: pipeline/engine/models/core.py:986
+#: pipeline/engine/models/core.py:945 pipeline/engine/models/core.py:1054
 msgid "回调数据"
 msgstr "Callback Data"
 
-#: pipeline/engine/models/core.py:987
+#: pipeline/engine/models/core.py:991
+msgid "节点 id"
+msgstr "Node ID"
+
+#: pipeline/engine/models/core.py:1048
+msgid "ID 节点ID+version"
+msgstr "ID Node+Version"
+
+#: pipeline/engine/models/core.py:1050
+msgid "Pipeline 进程 ID"
+msgstr "Pipeline process ID"
+
+#: pipeline/engine/models/core.py:1051
+msgid "被调度次数"
+msgstr "Schedule times"
+
+#: pipeline/engine/models/core.py:1052
+msgid "是否是回调型调度"
+msgstr "Schedulable"
+
+#: pipeline/engine/models/core.py:1053
+msgid "是否支持多次回调"
+msgstr "Support mutilple times callback"
+
+#: pipeline/engine/models/core.py:1055
 msgid "待调度服务"
 msgstr "To be Scheduled"
 
-#: pipeline/engine/models/core.py:988
+#: pipeline/engine/models/core.py:1056
 msgid "是否已完成"
 msgstr "Finished"
 
-#: pipeline/engine/models/core.py:989
+#: pipeline/engine/models/core.py:1057
 msgid "Activity 的版本"
 msgstr "Activity Version"
 
-#: pipeline/engine/models/core.py:990
+#: pipeline/engine/models/core.py:1058
 msgid "是否正在被调度"
 msgstr "Dispatch"
 
-#: pipeline/engine/models/core.py:1049
+#: pipeline/engine/models/core.py:1143
 msgid "子流程 ID"
 msgstr "Subprocess ID"
 
-#: pipeline/engine/models/core.py:1050
+#: pipeline/engine/models/core.py:1144
 msgid "对应的进程 ID"
 msgstr "Process ID"
 
-#: pipeline/engine/models/core.py:1083
+#: pipeline/engine/models/core.py:1175
 msgid "pipeline 进程 ID"
 msgstr "Pipeline Process ID"
 
-#: pipeline/engine/models/core.py:1084 pipeline/engine/models/core.py:1112
-#: pipeline/engine/models/core.py:1145
+#: pipeline/engine/models/core.py:1176 pipeline/engine/models/core.py:1202
+#: pipeline/engine/models/core.py:1233
 msgid "celery 任务 ID"
 msgstr "Celery Task ID"
 
-#: pipeline/engine/models/core.py:1111
+#: pipeline/engine/models/core.py:1201
 msgid "schedule ID"
 msgstr "schedule ID"
 
@@ -1778,70 +1802,69 @@ msgstr "Log time"
 msgid "节点执行历史 ID"
 msgstr "Log history ID"
 
-#: pipeline/validators/connection.py:41
+#: pipeline/validators/connection.py:37
 #, python-format
 msgid "不能连接%s类型节点\n"
 msgstr "cannot connect to %s type nodes\n"
 
-#: pipeline/validators/connection.py:43
+#: pipeline/validators/connection.py:39
 #, python-format
 msgid "节点的入度最大为%s，最小为%s\n"
 msgstr "Incoming of node cannot larger than %s or smaller than %s\n"
 
-#: pipeline/validators/connection.py:45
+#: pipeline/validators/connection.py:41
 #, python-format
 msgid "节点的出度最大为%s，最小为%s\n"
 msgstr "Outgoing of node cannot larger than %s or smaller than %s\n"
 
-#: pipeline/validators/gateway.py:128 pipeline/validators/gateway.py:179
+#: pipeline/validators/gateway.py:130 pipeline/validators/gateway.py:183
 msgid "并行网关中的分支网关必须将所有分支汇聚到一个汇聚网关"
 msgstr "Exclusive Gateways in a Parallel Gateway must be connected to one Converge Gateway"
 
-#: pipeline/validators/gateway.py:189
+#: pipeline/validators/gateway.py:193
 msgid "分支网关的所有分支第一个遇到的汇聚网关必须是同一个"
 msgstr "All branches of one Exclusive Gateway must be connected to one Converge Gateway"
 
-#: pipeline/validators/gateway.py:199
+#: pipeline/validators/gateway.py:203
 msgid "非法网关，请检查其分支是否符合规则"
 msgstr "Invalid gateway, please check where the branch conforms the rules"
 
-#: pipeline/validators/gateway.py:216
+#: pipeline/validators/gateway.py:220
 msgid "汇聚网关只能汇聚来自同一个并行网关的分支"
 msgstr "All incoming of Converge Gateway must come from one Parallel Gateway"
 
-#: pipeline/validators/gateway.py:221
+#: pipeline/validators/gateway.py:225
 msgid "汇聚网关没有汇聚其对应的并行网关的所有分支"
 msgstr "Converge Gateway has not converge all branches"
 
-#: pipeline/validators/gateway.py:324
+#: pipeline/validators/gateway.py:319
 msgid "无法获取该网关距离开始节点的距离"
 msgstr "Cannot get the distance between gateway and start node"
 
-#: pipeline/variable_framework/models.py:24
+#: pipeline/variable_framework/models.py:25
 msgid "变量编码"
 msgstr "Variable Code"
 
-#: pipeline/variable_framework/models.py:25
+#: pipeline/variable_framework/models.py:26
 msgid "变量是否可用"
 msgstr "Available"
 
-#: pipeline/variable_framework/models.py:28
 #: pipeline/variable_framework/models.py:29
+#: pipeline/variable_framework/models.py:30
 msgid "Variable变量"
 msgstr "Variable"
 
-#: pipeline_plugins/base/query/cmdb.py:64
+#: pipeline_plugins/base/query/cmdb.py:66
 #, python-format
 msgid "请求参数格式错误: %s"
 msgstr "Request parameters format error: %s"
 
-#: pipeline_plugins/cmdb_ip_picker/query.py:118
-#: pipeline_plugins/cmdb_ip_picker/query.py:181
-#: pipeline_plugins/cmdb_ip_picker/utils.py:52
-#: pipeline_plugins/cmdb_ip_picker/utils.py:270
-#: pipeline_plugins/cmdb_ip_picker/utils.py:276
+#: pipeline_plugins/cmdb_ip_picker/query.py:90
+#: pipeline_plugins/cmdb_ip_picker/query.py:170
+#: pipeline_plugins/cmdb_ip_picker/utils.py:363
+#: pipeline_plugins/cmdb_ip_picker/utils.py:369
 #: pipeline_plugins/components/collections/sites/open/cc/__init__.py:16
-#: pipeline_plugins/components/collections/sites/open/cc/base.py:26
+#: pipeline_plugins/components/collections/sites/open/cc/base.py:28
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:33
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:36
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:41
@@ -1850,7 +1873,7 @@ msgstr "Request parameters format error: %s"
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:40
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:33
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:36
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:33
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:34
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:33
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:34
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:38
@@ -1866,15 +1889,15 @@ msgstr "Request parameters format error: %s"
 msgid "配置平台(CMDB)"
 msgstr "Conf System(CMDB)"
 
-#: pipeline_plugins/cmdb_ip_picker/query.py:148
+#: pipeline_plugins/cmdb_ip_picker/query.py:139
 msgid "管控平台(GSE)"
 msgstr "Control System(GSE)"
 
-#: pipeline_plugins/cmdb_ip_picker/utils.py:286
+#: pipeline_plugins/cmdb_ip_picker/utils.py:379
 msgid "集群"
 msgstr "Set"
 
-#: pipeline_plugins/cmdb_ip_picker/utils.py:292
+#: pipeline_plugins/cmdb_ip_picker/utils.py:386
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:49
 msgid "模块"
 msgstr "Module"
@@ -1882,7 +1905,9 @@ msgstr "Module"
 #: pipeline_plugins/components/collections/common.py:25
 #: pipeline_plugins/components/collections/controller.py:28
 #: pipeline_plugins/components/collections/http/v1_0.py:28
-#: pipeline_plugins/components/collections/sites/open/bk.py:28
+#: pipeline_plugins/components/collections/sites/open/bk/__init__.py:16
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:28
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:30
 msgid "蓝鲸服务(BK)"
 msgstr "BK Service(BK)"
 
@@ -1953,7 +1978,7 @@ msgid "提示: 1.请求URL需要在当前网络下可以访问，否则会超时
 msgstr "Notes: 1.Request URL needs to be accessible under the current network, otherwise it will timeout failure 2.The response status code is between 200-300 (excluding 300), and the corresponding content is JSON format will be executed successfully"
 
 #: pipeline_plugins/components/collections/controller.py:47
-#: pipeline_plugins/components/collections/sites/open/job.py:551
+#: pipeline_plugins/components/collections/sites/open/job.py:688
 msgid "暂停"
 msgstr "Suspend"
 
@@ -2024,11 +2049,45 @@ msgstr "Request sucesss but condition failed"
 msgid "请求成功条件判定出错: {}"
 msgstr "Request success but condition failed: {}"
 
-#: pipeline_plugins/components/collections/sites/open/bk.py:54
-msgid "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
-msgstr "Business got from CMDB to is not unique, business ID:{}, count:{}"
+#: pipeline_plugins/components/collections/sites/open/job.py:74
+msgid "作业平台(JOB)"
+msgstr "JOB System(JOB)"
 
-#: pipeline_plugins/components/collections/sites/open/bk.py:75
+#: pipeline_plugins/components/collections/sites/open/job.py:98
+msgid "[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]"
+msgstr "[{group}] extract log glbal vars, match [{index}]: [{line}]"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:217
+msgid "{group}.{job_service_name}: 提取日志失败，{message}"
+msgstr "{group}.{job_service_name}: log extract fail, {message}"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:229
+msgid "{group}.{job_service_name}：输出日志提取变量为：{log_outputs}"
+msgstr "{group}.{job_service_name}: log extract ouputs: {log_outputs}"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:240
+#, python-format
+msgid "任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
+msgstr "JOB task failed，<a href='%s' target='_blank'>GOTO(JOB)</a>"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:252
+msgid "JOB任务ID"
+msgstr "JOB Task ID"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:255
+msgid "提交的任务在 JOB 平台的实例 ID"
+msgstr "JOB instance ID in JOB system"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:258
+msgid "JOB任务链接"
+msgstr "JOB Instance URL"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:261
+msgid "提交的任务在 JOB 平台的 URL"
+msgstr "JOB Instance URL"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:75
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:111
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:41
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:46
 #: pipeline_plugins/components/collections/sites/open/cc/create_module/legacy.py:50
@@ -2037,12 +2096,12 @@ msgstr "Business got from CMDB to is not unique, business ID:{}, count:{}"
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:84
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:42
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:46
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:42
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:41
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:43
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:42
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:43
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:48
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:41
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:42
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:43
 #: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:43
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:45
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:48
@@ -2050,108 +2109,13 @@ msgstr "Business got from CMDB to is not unique, business ID:{}, count:{}"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:48
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:41
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:47
-#: pipeline_plugins/components/collections/sites/open/job.py:163
-#: pipeline_plugins/components/collections/sites/open/job.py:358
-#: pipeline_plugins/components/collections/sites/open/job.py:488
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:229
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:309
+#: pipeline_plugins/components/collections/sites/open/job.py:272
+#: pipeline_plugins/components/collections/sites/open/job.py:482
+#: pipeline_plugins/components/collections/sites/open/job.py:625
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:211
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:291
 msgid "业务 ID"
 msgstr "Business ID"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:78
-msgid "通知人员所属的 CMDB 业务 ID"
-msgstr "CMDB business ID which notification receivers belongs to "
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:79
-#: pipeline_plugins/components/collections/sites/open/bk.py:84
-msgid "通知方式"
-msgstr "Notification Method"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:82
-msgid "需要使用的通知方式"
-msgstr "Notification method to be used"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:85
-#: pipeline_plugins/components/collections/sites/open/bk.py:91
-msgid "通知分组"
-msgstr "Notification Group"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:89
-msgid "需要进行通知的业务人员分组"
-msgstr "Group of business people who need to be notified"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:92
-msgid "额外通知人"
-msgstr "Additional Notification Receivers"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:95
-msgid "除了通知分组外需要额外通知的人员"
-msgstr "In addition to notification group, people who need to be notified"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:96
-msgid "通知标题"
-msgstr "Notification Title"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:99
-msgid "通知的标题"
-msgstr "Notification title"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:100
-msgid "通知内容"
-msgstr "Notification Content"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:103
-msgid "通知的内容"
-msgstr "Notification content"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:107
-msgid "返回码"
-msgstr "Response Code"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:110
-msgid "通知接口的返回码"
-msgstr "Code return by notification API"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:111
-msgid "信息"
-msgstr "Message"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:114
-msgid "通知接口返回的信息"
-msgstr "Message return by notification API"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:200
-msgid "发送通知"
-msgstr "Send Message"
-
-#: pipeline_plugins/components/collections/sites/open/bk.py:204
-msgid "API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
-msgstr "API Gateway defines the Interface Protocols for these message notification components and gives component examples (see components/generic/templates/cmsi/ in the project). However, the component content is not fully implemented and the user can override the component of this part based on the interface protocol. To reduce the difficulty of implementing a message notification component, the API Gateway provides solutions to update the component configuration online without writing a component code.Please check PaaS->API Gateway->Guide for details."
-
-#: pipeline_plugins/components/collections/sites/open/job.py:67
-msgid "作业平台(JOB)"
-msgstr "JOB System(JOB)"
-
-#: pipeline_plugins/components/collections/sites/open/job.py:133
-#, python-format
-msgid "任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
-msgstr "JOB task failed，<a href='%s' target='_blank'>GOTO(JOB)</a>"
-
-#: pipeline_plugins/components/collections/sites/open/job.py:145
-msgid "JOB任务ID"
-msgstr "JOB Task ID"
-
-#: pipeline_plugins/components/collections/sites/open/job.py:148
-msgid "提交的任务在 JOB 平台的实例 ID"
-msgstr "JOB instance ID in JOB system"
-
-#: pipeline_plugins/components/collections/sites/open/job.py:151
-msgid "JOB任务链接"
-msgstr "JOB Instance URL"
-
-#: pipeline_plugins/components/collections/sites/open/job.py:154
-msgid "提交的任务在 JOB 平台的 URL"
-msgstr "JOB Instance URL"
 
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/legacy.py:44
 #: pipeline_plugins/components/collections/sites/open/cc/batch_delete_set/v1_0.py:49
@@ -2161,12 +2125,12 @@ msgstr "JOB Instance URL"
 #: pipeline_plugins/components/collections/sites/open/cc/create_set/v2_0.py:87
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/legacy.py:45
 #: pipeline_plugins/components/collections/sites/open/cc/empty_set_hosts/v1_0.py:49
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:45
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:44
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:45
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:46
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:51
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:44
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:45
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:46
 #: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:46
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:48
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:51
@@ -2174,224 +2138,339 @@ msgstr "JOB Instance URL"
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/v1_0.py:51
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/legacy.py:44
 #: pipeline_plugins/components/collections/sites/open/cc/update_set_service_status/v1_0.py:50
-#: pipeline_plugins/components/collections/sites/open/job.py:166
-#: pipeline_plugins/components/collections/sites/open/job.py:361
-#: pipeline_plugins/components/collections/sites/open/job.py:491
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:232
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:312
+#: pipeline_plugins/components/collections/sites/open/job.py:275
+#: pipeline_plugins/components/collections/sites/open/job.py:485
+#: pipeline_plugins/components/collections/sites/open/job.py:628
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:211
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:291
 msgid "当前操作所属的 CMDB 业务 ID"
 msgstr "CMDB business ID"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:169
+#: pipeline_plugins/components/collections/sites/open/job.py:278
 msgid "作业模板 ID"
 msgstr "JOB template ID"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:172
+#: pipeline_plugins/components/collections/sites/open/job.py:281
 msgid "需要执行的 JOB 作业模板 ID"
 msgstr "JOB template ID to be executed"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:175
-#: pipeline_plugins/components/collections/sites/open/job.py:181
+#: pipeline_plugins/components/collections/sites/open/job.py:284
+#: pipeline_plugins/components/collections/sites/open/job.py:290
 msgid "全局变量"
 msgstr "Global variables"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:179
+#: pipeline_plugins/components/collections/sites/open/job.py:288
 msgid "作业模板执行所需的全局变量列表"
 msgstr "Global variables to execute the JOB"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:183
+#: pipeline_plugins/components/collections/sites/open/job.py:292
 msgid "变量类型，云参(1) 上下文参数(2) IP(3)"
 msgstr "Variable type, Cloud Param(1),Context Param(2),IP(3)"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:184
+#: pipeline_plugins/components/collections/sites/open/job.py:293
 msgid "变量名"
 msgstr "Variable Name"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:213
+#: pipeline_plugins/components/collections/sites/open/job.py:304
+#: pipeline_plugins/components/collections/sites/open/job.py:543
+msgid "JOB全局变量"
+msgstr "JOB global vars"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:308
+#: pipeline_plugins/components/collections/sites/open/job.py:547
+msgid "输出日志中提取的全局变量"
+msgstr "Output vars extract from log"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:310
+#: pipeline_plugins/components/collections/sites/open/job.py:549
+msgid "全局变量名称"
+msgstr "Global var name"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:311
+#: pipeline_plugins/components/collections/sites/open/job.py:550
+msgid "全局变量值"
+msgstr "Global var value"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:335
 msgid "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"
 msgstr "Unable to query the corresponding IP from the Conf System(CMDB), please confirm whether the input IP is legal"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:247
+#: pipeline_plugins/components/collections/sites/open/job.py:369
 msgid "执行作业"
 msgstr "Execution JOB"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:257
+#: pipeline_plugins/components/collections/sites/open/job.py:379
 msgid "源文件"
 msgstr "Source File"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:261
+#: pipeline_plugins/components/collections/sites/open/job.py:383
 msgid "待分发文件列表"
 msgstr "File list to be distributed"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:263
+#: pipeline_plugins/components/collections/sites/open/job.py:385
 msgid "待分发文件信息"
 msgstr "Information of file list to be distributed"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:265
+#: pipeline_plugins/components/collections/sites/open/job.py:387
 msgid "机器 IP"
 msgstr "Host IP"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:266
+#: pipeline_plugins/components/collections/sites/open/job.py:388
 msgid "文件路径"
 msgstr "File Path"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:267
+#: pipeline_plugins/components/collections/sites/open/job.py:389
 msgid "执行账户"
 msgstr "Execution Account"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:273
-#: pipeline_plugins/components/collections/sites/open/job.py:406
+#: pipeline_plugins/components/collections/sites/open/job.py:395
+#: pipeline_plugins/components/collections/sites/open/job.py:530
 msgid "目标 IP"
 msgstr "Target IP"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:276
+#: pipeline_plugins/components/collections/sites/open/job.py:398
 msgid "文件分发目标机器 IP，多个用英文逗号 `,` 分隔"
 msgstr "Target IP which files are distributed to, multiple are separated by `,`"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:279
-#: pipeline_plugins/components/collections/sites/open/job.py:412
+#: pipeline_plugins/components/collections/sites/open/job.py:401
+#: pipeline_plugins/components/collections/sites/open/job.py:536
 msgid "目标账户"
 msgstr "Target Account"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:279
+#: pipeline_plugins/components/collections/sites/open/job.py:401
 msgid "文件分发目标机器账户"
 msgstr "Target host account which files are distributed to"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:282
+#: pipeline_plugins/components/collections/sites/open/job.py:404
 msgid "目标路径"
 msgstr "Target Path"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:285
+#: pipeline_plugins/components/collections/sites/open/job.py:407
 msgid "文件分发目标路径"
 msgstr "Target host path which files are distributed to"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:348
+#: pipeline_plugins/components/collections/sites/open/job.py:470
 msgid "快速分发文件"
 msgstr "Quick File Distribution"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:364
+#: pipeline_plugins/components/collections/sites/open/job.py:488
 msgid "脚本来源"
 msgstr "Script Source"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:368
+#: pipeline_plugins/components/collections/sites/open/job.py:492
 msgid "待执行的脚本来源，手动(manual)，业务脚本(general)，公共脚本(public)"
 msgstr "Source of script to be executed, manual or general or public"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:373
+#: pipeline_plugins/components/collections/sites/open/job.py:497
 msgid "脚本类型"
 msgstr "Script Type"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:377
+#: pipeline_plugins/components/collections/sites/open/job.py:501
 msgid "待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)，仅在脚本来源为手动时生效"
 msgstr "Type of script to be executed, shell(1) bat(2) perl(3) python(4) powershell(5), which is valid only when the source is manual"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:382
+#: pipeline_plugins/components/collections/sites/open/job.py:506
 msgid "脚本内容"
 msgstr "Script Content"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:385
+#: pipeline_plugins/components/collections/sites/open/job.py:509
 msgid "待执行的脚本内容，仅在脚本来源为手动时生效"
 msgstr "Content of script to be executed, which is valid only when the source is manual"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:388
+#: pipeline_plugins/components/collections/sites/open/job.py:512
 msgid "公共脚本"
 msgstr "Public Script"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:391
+#: pipeline_plugins/components/collections/sites/open/job.py:515
 msgid "待执行的公共脚本 ID，仅在脚本来源为公共脚本时生效"
 msgstr "Public script ID to be executed, which is valid only when the source is manual"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:394
+#: pipeline_plugins/components/collections/sites/open/job.py:518
 msgid "业务脚本"
 msgstr "Business Script"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:397
+#: pipeline_plugins/components/collections/sites/open/job.py:521
 msgid "待执行的业务脚本 ID，仅在脚本来源为业务脚本时生效"
 msgstr "Business script ID to be executed, which is valid only when the source is general"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:400
-#: pipeline_plugins/components/collections/sites/open/job.py:403
+#: pipeline_plugins/components/collections/sites/open/job.py:524
+#: pipeline_plugins/components/collections/sites/open/job.py:527
 msgid "脚本执行参数"
 msgstr "Execution script params"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:409
+#: pipeline_plugins/components/collections/sites/open/job.py:533
 msgid "执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔"
 msgstr "IP of target hosts that executes script, multiple are separated by `,`"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:412
+#: pipeline_plugins/components/collections/sites/open/job.py:536
 msgid "执行脚本的目标机器账户"
 msgstr "Account of target hosts that executes script"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:478
+#: pipeline_plugins/components/collections/sites/open/job.py:615
 msgid "快速执行脚本"
 msgstr "Quick Script Execution"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:494
+#: pipeline_plugins/components/collections/sites/open/job.py:631
 msgid "定时作业名称"
 msgstr "Timed JOB name"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:497
+#: pipeline_plugins/components/collections/sites/open/job.py:634
 msgid "待创建的定时作业名称"
 msgstr "Name of timed JOB to be created"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:500
+#: pipeline_plugins/components/collections/sites/open/job.py:637
 msgid "定时规则"
 msgstr "Timing rules"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:503
+#: pipeline_plugins/components/collections/sites/open/job.py:640
 msgid "待创建的定时作业定时规则"
 msgstr "Timing rules of JOB to be creating"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:506
-#: pipeline_plugins/components/collections/sites/open/job.py:519
+#: pipeline_plugins/components/collections/sites/open/job.py:643
+#: pipeline_plugins/components/collections/sites/open/job.py:656
 msgid "定时作业状态"
 msgstr "JOB status"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:509
+#: pipeline_plugins/components/collections/sites/open/job.py:646
 msgid "待创建的定时作业状态，暂停(1) 启动(2)"
 msgstr "Status of timing JOB to be creating, suspended(1) or run(2)"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:516
+#: pipeline_plugins/components/collections/sites/open/job.py:653
 msgid "定时作业ID"
 msgstr "Timed JOB ID"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:516
+#: pipeline_plugins/components/collections/sites/open/job.py:653
 msgid "成功创建的定时作业 ID"
 msgstr "Timing JOB ID created successfully"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:519
+#: pipeline_plugins/components/collections/sites/open/job.py:656
 msgid "成功创建的定时作业状态"
 msgstr "Timing JOB status created successfully"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:562
+#: pipeline_plugins/components/collections/sites/open/job.py:699
 msgid "启动"
 msgstr "Started"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:564
+#: pipeline_plugins/components/collections/sites/open/job.py:701
 msgid "新建定时任务成功但是启动失败：{error}"
 msgstr "Timed JOB created successfully but started failed: {error}"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:575
+#: pipeline_plugins/components/collections/sites/open/job.py:712
 msgid "新建定时作业"
 msgstr "New Timed JOB"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:641
+#: pipeline_plugins/components/collections/sites/open/job.py:778
 msgid "分发本地文件"
 msgstr "Push Local File"
 
-#: pipeline_plugins/components/collections/sites/open/cc/base.py:110
-msgid "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
-msgstr "querying Conf System(CMDB) API cc.search_host showing there is IP which is not belong to current business"
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:54
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:82
+msgid "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
+msgstr "Business got from CMDB to is not unique, business ID:{}, count:{}"
 
-#: pipeline_plugins/components/collections/sites/open/cc/base.py:286
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:78
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:114
+msgid "通知人员所属的 CMDB 业务 ID"
+msgstr "CMDB business ID which notification receivers belongs to "
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:79
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:84
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:115
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:119
+msgid "通知方式"
+msgstr "Notification Method"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:82
+msgid "需要使用的通知方式"
+msgstr "Notification method to be used"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:85
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:91
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:120
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:126
+msgid "通知分组"
+msgstr "Notification Group"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:89
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:124
+msgid "需要进行通知的业务人员分组"
+msgstr "Group of business people who need to be notified"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:92
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:127
+msgid "额外通知人"
+msgstr "Additional Notification Receivers"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:95
+msgid "除了通知分组外需要额外通知的人员"
+msgstr "In addition to notification group, people who need to be notified"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:96
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:133
+msgid "通知标题"
+msgstr "Notification Title"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:99
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:136
+msgid "通知的标题"
+msgstr "Notification title"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:100
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:137
+msgid "通知内容"
+msgstr "Notification Content"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:103
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:140
+msgid "通知的内容"
+msgstr "Notification content"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:107
+msgid "返回码"
+msgstr "Response Code"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:110
+msgid "通知接口的返回码"
+msgstr "Code return by notification API"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:111
+msgid "信息"
+msgstr "Message"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:114
+msgid "通知接口返回的信息"
+msgstr "Message return by notification API"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:200
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:202
+msgid "发送通知"
+msgstr "Send Message"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/legacy.py:204
+msgid "API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
+msgstr "API Gateway defines the Interface Protocols for these message notification components and gives component examples (see components/generic/templates/cmsi/ in the project). However, the component content is not fully implemented and the user can override the component of this part based on the interface protocol. To reduce the difficulty of implementing a message notification component, the API Gateway provides solutions to update the component configuration online without writing a component code.Please check PaaS->API Gateway->Guide for details."
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:118
+msgid "需要使用的通知方式，从 API 网关自动获取已实现的通知渠道"
+msgstr "Notify way, will collect from APIGW"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:131
+msgid "除了通知分组外需要额外通知的人员，多个用英文逗号 `,` 分隔"
+msgstr "Additional members to notify, mutiple split by `,`"
+
+#: pipeline_plugins/components/collections/sites/open/bk/notify/v1_0.py:207
+msgid "通知方式从 API 网关自动获取已实现的通知渠道，API网关定义了这些消息通知组件的接口协议，但是并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
+msgstr "The notification method automatically obtains the implemented notification channels from the API gateway. The API gateway defines the interface protocol of these message notification components, but the content of the component is not fully implemented. The user can rewrite this part of the component according to the interface protocol. In order to reduce the difficulty of implementing the message notification component, the API gateway provides a solution for updating the component configuration online without writing component code. For details, please refer to PaaS->API Gateway->User Guide."
+
+#: pipeline_plugins/components/collections/sites/open/cc/base.py:275
 msgid "不存在该拓扑路径：{}"
 msgstr "Topo path not exist: {}"
 
-#: pipeline_plugins/components/collections/sites/open/cc/base.py:304
+#: pipeline_plugins/components/collections/sites/open/cc/base.py:293
 msgid "该层级类型不存在：{}"
 msgstr "Layer not exist: {}"
 
-#: pipeline_plugins/components/collections/sites/open/cc/base.py:318
+#: pipeline_plugins/components/collections/sites/open/cc/base.py:307
 msgid "输入文本路径[{}]与业务拓扑层级不匹配"
 msgstr "Text topo[{}] not fit in topo in business config"
 
@@ -2634,89 +2713,89 @@ msgstr "Parent instance text path, please input complete path begin with busines
 msgid "清空集群中主机"
 msgstr "Empty Set"
 
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:46
 #: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:53
 msgid "主机替换信息"
 msgstr "Host Replacement Information"
 
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:51
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:55
 msgid "替换机与被替换机信息"
 msgstr "Information of replacement host and fault host"
 
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:54
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:57
 msgid "故障机 内网IP"
 msgstr "Fault Host IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:56
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:58
 msgid "替换机 内网IP"
 msgstr "Replacement Host IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:142
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:146
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:126
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:130
 #, python-format
 msgid "无法查询到 %s 机器信息，请确认该机器是否在当前业务下"
 msgstr "No information about %s found, please check whether they exist in current business"
 
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:204
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:186
 #, python-format
 msgid "成功替换的机器: %s"
 msgstr "Machine replaced successfully: %s"
 
-#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:211
+#: pipeline_plugins/components/collections/sites/open/cc/replace_fault_machine/legacy.py:194
 msgid "故障机替换"
 msgstr "Fault Host Replacement"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:45
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:45
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:46
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:48
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:48
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:49
 msgid "主机 IP"
 msgstr "Host IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:48
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:51
 msgid "转移到故障机的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "IP of hosts transferred to fault module, multiple are separated by `,`"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:85
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_fault_host/legacy.py:87
 msgid "转移主机至故障机模块"
 msgstr "Transfer Hosts To Fault Module"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:47
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:49
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:60
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:47
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:49
 msgid "主机内网 IP"
 msgstr "Host Inner IP"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:52
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:63
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:50
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:52
 msgid "待转移的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "Inner IP of hosts to be transferred, multiple is separated by `,`"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:51
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:55
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:59
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:70
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/legacy.py:53
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:64
 msgid "模块 ID"
 msgstr "Module ID"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:54
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:59
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:70
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:64
 msgid "转移目标模块 ID 列表"
 msgstr "Transfer Target Module ID List"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:56
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:63
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:80
 msgid "转移方式"
 msgstr "Transfer Type"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:59
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:66
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:83
 msgid "主机转移方式，覆盖(false)或追加(true)"
 msgstr "Host transfer type, false means overwrite or true means increment"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:105
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/legacy.py:112
 #: pipeline_plugins/components/collections/sites/open/cc/transfer_host_module/v1_0.py:148
 msgid "转移主机模块"
 msgstr "Transfer Host Module"
@@ -2742,51 +2821,51 @@ msgstr "Text - Module"
 msgid "请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
 msgstr "Please input complete path begin with business, multiple module are split by line breaker. e.g. business_a > network_b > set_c > module_d"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:48
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:51
 msgid "转移到资源池的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "IP of hosts transferred to resource module, multiple are separated by `,`"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:85
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_host_resource/legacy.py:87
 msgid "上交主机至资源池"
 msgstr "Transfer Hosts To Resource Module"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:49
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:52
 msgid "转移到空闲机的主机内网 IP，多个用英文逗号 `,` 分隔"
 msgstr "IP of hosts transferred to idle module, multiple are separated by `,`"
 
-#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:90
+#: pipeline_plugins/components/collections/sites/open/cc/transfer_to_idle/legacy.py:95
 msgid "转移主机至空闲机模块"
 msgstr "Transfer Hosts To Idle Module"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:51
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:55
 msgid "主机属性"
 msgstr "Host Attribute"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:54
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:55
 msgid "待修改主机属性"
 msgstr "Host attribute to be modified"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:55
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:58
 msgid "主机属性值"
 msgstr "Attribute Value"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:58
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:61
 msgid "更新后的属性值"
 msgstr "Attribute Value Updated"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:95
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:98
 msgid "所属运营商校验失败，请重试并修改为正确的所属运营商"
 msgstr "Isp name in invalid, please enter the correct"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:110
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:111
 msgid "所在国家校验失败，请重试并修改为正确的所在国家"
 msgstr "State name is invalid,  please enter the correct"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:123
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:122
 msgid "所在省份校验失败，请重试并修改为正确的所在省份"
 msgstr "Province name is invalid,  please enter the correct"
 
-#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:146
+#: pipeline_plugins/components/collections/sites/open/cc/update_host/legacy.py:143
 msgid "更新主机属性"
 msgstr "Update Host Property"
 
@@ -2824,6 +2903,10 @@ msgstr "Update Module Attribute"
 #: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:71
 msgid "模块文本路径，请输入完整路径，从业务拓扑开始，如`业务A>网络B>集群C>模块D`，多个目标模块用换行分隔"
 msgstr "Please input complete path begin with business, multiple module are split by line breaker. e.g. business_a > network_b > set_c > module_d"
+
+#: pipeline_plugins/components/collections/sites/open/cc/update_module/v1_0.py:121
+msgid "请选择模块填参方式"
+msgstr "Please choose module params fill way"
 
 #: pipeline_plugins/components/collections/sites/open/cc/update_set/legacy.py:49
 msgid "集群 ID 列表"
@@ -2864,200 +2947,200 @@ msgstr "Set service status, open(1) or close(2)"
 msgid "修改集群服务状态"
 msgstr "Update Set Service Status"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:32
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:32
 #: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:32
 msgid "节点管理(Nodeman)"
 msgstr "Nodeman(Nodeman)"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:72
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:70
 msgid "conn_ips 为空或输入格式错误"
 msgstr "conn_ips is empty or format error"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:157
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:153
 msgid "查询失败，未能获得任务执行结果"
 msgstr "query failed, cant not get task result"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:184
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:254
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:175
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:245
 msgid "日志信息为："
 msgstr "log: "
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:194
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:274
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:185
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:265
 msgid "主机："
 msgstr "host: "
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:196
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:276
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:187
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:267
 msgid "日志："
 msgstr "log: "
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:207
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:287
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:198
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:278
 msgid "任务 ID"
 msgstr "Task ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:210
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:290
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:198
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:278
 msgid "提交的任务的 job_id"
 msgstr "Nodeman job_id"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:213
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:293
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:201
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:281
 msgid "安装成功个数"
 msgstr "install success number"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:216
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:296
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:201
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:281
 msgid "任务中安装成功的机器个数"
 msgstr "install success number in task"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:219
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:299
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:204
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:284
 msgid "安装失败个数"
 msgstr "install fail number"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:222
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:302
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:204
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:284
 msgid "任务中安装失败的机器个数"
 msgstr "isntall fail number in task"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:235
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:320
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:214
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:300
 msgid "云区域 ID"
 msgstr "Cloud ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:238
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:217
 msgid "节点所在云区域 ID"
 msgstr "Node cloud ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:241
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:220
 #: pipeline_web/core/abstract.py:20
 msgid "节点类型"
 msgstr "Node type"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:245
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:224
 msgid "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
 msgstr "Node type: AGENT, PROXY, PAGENT"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:252
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:228
 msgid "操作类型"
 msgstr "Operation"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:256
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:332
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:232
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:316
 msgid "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、 UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
 msgstr "Operation: INSTALL, REINSTALL, UNINSTALL, REMOVE, UPGRADE"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:263
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:238
 msgid "主机"
 msgstr "Host"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:267
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:242
 msgid "主机所在云区域 ID"
 msgstr "Host cloud ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:269
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:339
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:244
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:324
 msgid "主机相关信息"
 msgstr "Host info"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:271
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:246
 msgid "主机通信 IP"
 msgstr "Host IP"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:273
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:343
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:247
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:327
 msgid "主机登录 IP，可以为空，适配复杂网络时填写"
 msgstr "Host login IP"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:276
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:346
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:248
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:328
 msgid "主机数据 IP，可以为空，适配复杂网络时填写"
 msgstr "Host data IP"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:279
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:249
 msgid "级联 IP, 可以为空，安装 PROXY 时必填"
 msgstr "Host Cascade IP, must provide when install PROXY"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:282
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:352
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:250
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:330
 msgid "操作系统类型，可以是 LINUX, WINDOWS, 或 AIX"
 msgstr "OS type: LINUX, WINDOWS, AIX"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:285
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:252
 msgid "是否安装了 cygwin，True：表示已安装，False：表示未安装, windows 操作系统时选填"
 msgstr "Is cygwin installed, value is True or False, must provide when OS is WINDOWS"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:290
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:354
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:254
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:331
 msgid "端口号"
 msgstr "Port"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:291
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:355
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:255
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:332
 msgid "登录帐号"
 msgstr "Login account"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:293
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:357
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:256
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:333
 msgid "认证方式，可以是 PASSWORD 或 KEY"
 msgstr "Auth type: PASSWORD or KEY"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/nodeman.py:296
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:360
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/legacy.py:257
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:334
 msgid "认证密钥,根据认证方式，是登录密码或者登陆密钥"
 msgstr "Auth key"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:132
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:123
 msgid "请确认内网Ip是否合法host_info:{host}"
 msgstr "please confirm inner ip is valid: {host}"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:172
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:163
 msgid "获取bk_host_id失败:{},请确认云区域是否正确"
 msgstr "Get bk_host_id failed: {}, please confirm cloud area's correctness"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:183
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:174
 msgid "无效的操作请求:{}"
 msgstr "invalid request: {}"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:316
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:294
 msgid "操作对象"
 msgstr "Operate Type"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:319
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:298
 msgid "需要操作的对象"
 msgstr "operate type"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:321
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:302
 msgid "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 PROXY（表示安装 Proxy）"
 msgstr "node type, AGENT or PROXY"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:327
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:308
 msgid "操作详情"
 msgstr "operate detail"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:330
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:312
 msgid "操作内容信息"
 msgstr "operate info"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:331
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:314
 msgid "接入点 ID"
 msgstr "Access Point ID"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:335
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:320
 msgid "IP(升级，卸载，移除时需要)"
 msgstr "IP(need it when upgrade, uninstall and remove)"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:337
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:322
 msgid "需要被操作的主机信息(安装与重装时需要)"
 msgstr "operate host info(need it when install and reinstall)"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:341
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:326
 msgid "内网 IP"
 msgstr "Inner IP"
 
-#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:349
+#: pipeline_plugins/components/collections/sites/open/nodeman/create_task/v2_0.py:329
 msgid "外网 IP, 可以为空"
 msgstr "Outter IP, can be empty"
 
@@ -3079,7 +3162,7 @@ msgid "File Manager 未配置，请联系管理员进行配置"
 msgstr "File Manager config not found, please contact administrator"
 
 #: pipeline_plugins/components/query/sites/open/query.py:535
-#: pipeline_plugins/components/query/sites/open/query.py:553
+#: pipeline_plugins/components/query/sites/open/query.py:552
 msgid "节点管理(NODEMAN)"
 msgstr "Nodeman(NODEMAN)"
 
@@ -3143,27 +3226,27 @@ msgstr "Datatable"
 msgid "表格变量"
 msgstr "Datatable variable"
 
-#: pipeline_plugins/variables/collections/sites/open/cc.py:36
+#: pipeline_plugins/variables/collections/sites/open/cc.py:38
 msgid "IP选择器(即将下线，请用新版)"
 msgstr "IP selector(Deprecated)"
 
-#: pipeline_plugins/variables/collections/sites/open/cc.py:90
+#: pipeline_plugins/variables/collections/sites/open/cc.py:92
 msgid "IP选择器"
 msgstr "IP selector"
 
-#: pipeline_plugins/variables/collections/sites/open/cc.py:135
+#: pipeline_plugins/variables/collections/sites/open/cc.py:136
 msgid "集群资源筛选"
 msgstr "Set resource filter"
 
-#: pipeline_plugins/variables/collections/sites/open/cc.py:153
+#: pipeline_plugins/variables/collections/sites/open/cc.py:154
 msgid "主机属性查询器"
 msgstr "Hosts property query"
 
-#: pipeline_plugins/variables/query/select.py:37
+#: pipeline_plugins/variables/query/sites/open/select.py:38
 msgid "请求数据异常: {error}"
 msgstr "Request error: {error}"
 
-#: pipeline_plugins/variables/query/select.py:51
+#: pipeline_plugins/variables/query/sites/open/select.py:52
 msgid "返回数据格式错误，不是合法 JSON 格式"
 msgstr "Response data is not valid JSON"
 
@@ -3317,4 +3400,7 @@ msgstr "Wechat User"
 
 #~ msgid "接入点"
 #~ msgstr "Access Point"
+
+#~ msgid "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
+#~ msgstr "querying Conf System(CMDB) API cc.search_host showing there is IP which is not belong to current business"
 
