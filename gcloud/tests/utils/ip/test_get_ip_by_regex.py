@@ -11,13 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
 
-from django.conf import settings
+from django.test import TestCase
 
-from pipeline_plugins.components.utils.common import *  # noqa
+from gcloud.utils.ip import get_ip_by_regex
 
-utils_module = importlib.import_module("pipeline_plugins.components.utils.sites.%s.utils" % settings.RUN_VER)
 
-for util in utils_module.__all__:
-    locals()[util] = getattr(utils_module, util)
+class GetIPByRegexTestCase(TestCase):
+    def test__normal(self):
+        self.assertEqual(get_ip_by_regex("1.1.1.1,2.2.2.2,3.3.3.3"), ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+
+    def test__empty_string(self):
+        self.assertEqual(get_ip_by_regex(""), [])

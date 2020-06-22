@@ -11,13 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
+from django.test import TestCase
 
-from django.conf import settings
+from pipeline_plugins.cmdb_ip_picker.utils import format_condition_value
 
-from pipeline_plugins.components.utils.common import *  # noqa
 
-utils_module = importlib.import_module("pipeline_plugins.components.utils.sites.%s.utils" % settings.RUN_VER)
+class FormatConditionVlaueTestCase(TestCase):
+    def test__normal(self):
+        self.assertEqual(format_condition_value(["111", "222"]), list({"111", "222"}))
+        self.assertEqual(format_condition_value(["111", "222\n333"]), list({"111", "222", "333"}))
+        self.assertEqual(format_condition_value(["", "222\n", " 333  "]), list({"222", "333"}))
 
-for util in utils_module.__all__:
-    locals()[util] = getattr(utils_module, util)
+    def test__number_case(self):
+        self.assertEqual(set(format_condition_value([111, 222, 333])), set([111, 222, 333]))

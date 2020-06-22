@@ -11,24 +11,38 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
 import re
+import logging
+
+ip_pattern = re.compile(r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)")
 
 logger = logging.getLogger("root")
 
-ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
-ip_pattern = re.compile(ip_re)
+
+def get_ip_by_regex(ip_str):
+    """从给定文本中匹配 IP 并返回
+
+    :param ip_str: 包含 IP 的文本
+    :type ip_str: string
+    :return: IP 字符串列表
+    :rtype: list[string]
+    """
+    ret = []
+    for match in ip_pattern.finditer(ip_str):
+        ret.append(match.group())
+    return ret
 
 
-def loose_strip(data):
+def format_sundry_ip(ip):
+    """返回逗号分隔多 IP 的第一个 IP
+
+    :param ip: IP 字符串
+    :type ip:
+    :return: 第一个 IP
+    :rtype: string
     """
-    @summary: 尝试把 data 当做字符串处理两端空白字符
-    @param data:
-    @return:
-    """
-    if isinstance(data, str):
-        return data.strip()
-    try:
-        return str(data).strip()
-    except Exception:
-        return data
+
+    if "," in ip:
+        logger.info("HOST[%s] has multiple ip" % ip)
+        return ip.split(",")[0]
+    return ip
