@@ -1,6 +1,6 @@
 feature:
   - "流程模板通知方式改为由接口动态获取"
-  - "JOB 系列插件支持从输出日志中（<>）提取全局变量"
+  - "JOB 系列插件支持从输出日志中（<SOPS_VAR>key:val</SOPS_VAR>）提取全局变量到log_outputs输出中，并通过${log_outputs['key']}引用"
   - "蓝鲸服务(BK)-发送通知插件升级到v1.0，通知方式支持在蓝鲸PaaS API网关配置通知渠道后自动同步"
 
 improvement:
