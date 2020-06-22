@@ -27,6 +27,7 @@ def hydrate_data(data):
     hydrated = {}
     for k, v in list(data.items()):
         from pipeline.core.data import var
+
         if issubclass(v.__class__, var.Variable):
             hydrated[k] = v.get()
         else:

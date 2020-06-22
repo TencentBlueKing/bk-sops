@@ -32,7 +32,7 @@ class ExclusiveGatewayHandlerTestCase(TestCase):
     @patch(PIPELINE_STATUS_FINISH, MagicMock())
     def test_handle__normal(self):
         for loop in (1, 2, 3):
-            hydrate_data_return = 'hydrate_data_return'
+            hydrate_data_return = "hydrate_data_return"
             exclusive_gateway = MockExclusiveGateway()
             context = MockContext()
             process = MockPipelineProcess(top_pipeline_context=context)
@@ -60,8 +60,8 @@ class ExclusiveGatewayHandlerTestCase(TestCase):
     @patch(PIPELINE_STATUS_FINISH, MagicMock())
     @patch(PIPELINE_STATUS_FAIL, MagicMock())
     def test_handle__next_raise_exception(self):
-        hydrate_data_return = 'hydrate_data_return'
-        e = PipelineException('ex_data')
+        hydrate_data_return = "hydrate_data_return"
+        e = PipelineException("ex_data")
         exclusive_gateway = MockExclusiveGateway(next_exception=e)
         context = MockContext()
         process = MockPipelineProcess(top_pipeline_context=context)

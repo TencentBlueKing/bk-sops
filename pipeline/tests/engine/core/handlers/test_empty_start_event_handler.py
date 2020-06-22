@@ -24,7 +24,6 @@ handlers.empty_start_event_handler = handlers.EmptyStartEventHandler()
 
 
 class EmptyStartEventHandlerTestCase(TestCase):
-
     def test_element_cls(self):
         self.assertEqual(handlers.EmptyStartEventHandler.element_cls(), EmptyStartEvent)
 

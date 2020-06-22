@@ -23,10 +23,10 @@ from pipeline.component_framework.library import ComponentLibrary
 from pipeline.contrib.external_plugins import exceptions
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
 
-GIT = 'git'
-S3 = 's3'
-FILE_SYSTEM = 'fs'
-logger = logging.getLogger('root')
+GIT = "git"
+S3 = "s3"
+FILE_SYSTEM = "fs"
+logger = logging.getLogger("root")
 source_cls_factory = {}
 
 
@@ -36,17 +36,16 @@ def package_source(cls):
 
 
 class SourceManager(models.Manager):
-
     def create_source(self, name, packages, from_config, **kwargs):
         create_kwargs = deepcopy(kwargs)
-        create_kwargs.update({'name': name, 'packages': packages, 'from_config': from_config})
+        create_kwargs.update({"name": name, "packages": packages, "from_config": from_config})
         return self.create(**create_kwargs)
 
     def remove_source(self, source_id):
         source = self.get(id=source_id)
 
         if source.from_config:
-            raise exceptions.InvalidOperationException('Can not remove source create from config')
+            raise exceptions.InvalidOperationException("Can not remove source create from config")
 
         source.delete()
 
@@ -54,7 +53,7 @@ class SourceManager(models.Manager):
 
         sources_from_config = self.filter(from_config=True).all()
         existing_source_names = {source.name for source in sources_from_config}
-        source_name_in_config = {config['name'] for config in configs}
+        source_name_in_config = {config["name"] for config in configs}
 
         invalid_source_names = existing_source_names - source_name_in_config
 
@@ -63,18 +62,16 @@ class SourceManager(models.Manager):
 
         # update and create source
         for config in configs:
-            defaults = deepcopy(config['details'])
-            defaults['packages'] = config['packages']
+            defaults = deepcopy(config["details"])
+            defaults["packages"] = config["packages"]
 
             try:
-                self.update_or_create(
-                    name=config['name'],
-                    from_config=True,
-                    defaults=defaults)
+                self.update_or_create(name=config["name"], from_config=True, defaults=defaults)
             except IntegrityError:
                 raise exceptions.InvalidOperationException(
                     'There is a external source named "{source_name}" but not create from config, '
-                    'can not do source update operation'.format(source_name=config['name']))
+                    "can not do source update operation".format(source_name=config["name"])
+                )
 
 
 class ExternalPackageSource(models.Model):
@@ -109,15 +106,17 @@ class ExternalPackageSource(models.Model):
             logger.exception("ExternalPackageSource[name={}] call importer error: {}".format(self.name, e))
             return plugins
         for component in ComponentLibrary.component_list():
-            component_importer = getattr(sys.modules[component.__module__], '__loader__', None)
+            component_importer = getattr(sys.modules[component.__module__], "__loader__", None)
             if isinstance(component_importer, type(importer)) and component_importer.name == self.name:
-                plugins.append({
-                    'code': component.code,
-                    'name': component.name,
-                    'group_name': component.group_name,
-                    'class_name': component.__name__,
-                    'module': component.__module__
-                })
+                plugins.append(
+                    {
+                        "code": component.code,
+                        "name": component.name,
+                        "group_name": component.group_name,
+                        "class_name": component.__name__,
+                        "module": component.__module__,
+                    }
+                )
         return plugins
 
     @property
@@ -125,7 +124,7 @@ class ExternalPackageSource(models.Model):
         modules = []
 
         for package_info in list(self.packages.values()):
-            modules.extend(package_info['modules'])
+            modules.extend(package_info["modules"])
 
         return modules
 
@@ -134,13 +133,13 @@ class ExternalPackageSource(models.Model):
         classified_config = {source_type: [] for source_type in list(source_cls_factory.keys())}
 
         for config in deepcopy(source_configs):
-            classified_config.setdefault(config.pop('type'), []).append(config)
+            classified_config.setdefault(config.pop("type"), []).append(config)
 
         for source_type, configs in list(classified_config.items()):
             try:
                 source_model_cls = source_cls_factory[source_type]
             except KeyError:
-                raise KeyError('Unsupported external source type: %s' % source_type)
+                raise KeyError("Unsupported external source type: %s" % source_type)
             source_model_cls.objects.update_source_from_config(configs=configs)
 
     @staticmethod

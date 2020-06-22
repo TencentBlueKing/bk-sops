@@ -24,56 +24,32 @@ class TestSubprocessRelationship(TestCase):
 
     def test_add_relation(self):
         rel_id = SubProcessRelationship.objects.add_relation(
-            subprocess_id=self.subprocess_id,
-            process_id=self.process_id).id
+            subprocess_id=self.subprocess_id, process_id=self.process_id
+        ).id
 
-        self.assertTrue(SubProcessRelationship.objects.filter(
-            subprocess_id=self.subprocess_id,
-            process_id=self.process_id
-        ).exists())
+        self.assertTrue(
+            SubProcessRelationship.objects.filter(subprocess_id=self.subprocess_id, process_id=self.process_id).exists()
+        )
 
         rel = SubProcessRelationship.objects.get(id=rel_id)
         self.assertEqual(rel.subprocess_id, self.subprocess_id)
         self.assertEqual(rel.process_id, self.process_id)
 
     def test_delete_relationship(self):
-        SubProcessRelationship.objects.add_relation(
-            subprocess_id=self.subprocess_id,
-            process_id='1')
-        SubProcessRelationship.objects.add_relation(
-            subprocess_id=self.subprocess_id,
-            process_id='2')
-        SubProcessRelationship.objects.add_relation(
-            subprocess_id=self.subprocess_id,
-            process_id='3')
-        SubProcessRelationship.objects.delete_relation(
-            subprocess_id=self.subprocess_id,
-            process_id=None
-        )
+        SubProcessRelationship.objects.add_relation(subprocess_id=self.subprocess_id, process_id="1")
+        SubProcessRelationship.objects.add_relation(subprocess_id=self.subprocess_id, process_id="2")
+        SubProcessRelationship.objects.add_relation(subprocess_id=self.subprocess_id, process_id="3")
+        SubProcessRelationship.objects.delete_relation(subprocess_id=self.subprocess_id, process_id=None)
         self.assertFalse(SubProcessRelationship.objects.filter(subprocess_id=self.subprocess_id))
 
-        SubProcessRelationship.objects.add_relation(
-            subprocess_id='1',
-            process_id=self.process_id)
-        SubProcessRelationship.objects.add_relation(
-            subprocess_id='2',
-            process_id=self.process_id)
-        SubProcessRelationship.objects.add_relation(
-            subprocess_id='3',
-            process_id=self.process_id)
-        SubProcessRelationship.objects.delete_relation(
-            subprocess_id=None,
-            process_id=self.process_id
-        )
+        SubProcessRelationship.objects.add_relation(subprocess_id="1", process_id=self.process_id)
+        SubProcessRelationship.objects.add_relation(subprocess_id="2", process_id=self.process_id)
+        SubProcessRelationship.objects.add_relation(subprocess_id="3", process_id=self.process_id)
+        SubProcessRelationship.objects.delete_relation(subprocess_id=None, process_id=self.process_id)
         self.assertFalse(SubProcessRelationship.objects.filter(process_id=self.process_id))
 
-        SubProcessRelationship.objects.add_relation(
-            subprocess_id=self.subprocess_id,
-            process_id=self.process_id)
-        SubProcessRelationship.objects.delete_relation(
-            subprocess_id=self.subprocess_id,
-            process_id=self.process_id
+        SubProcessRelationship.objects.add_relation(subprocess_id=self.subprocess_id, process_id=self.process_id)
+        SubProcessRelationship.objects.delete_relation(subprocess_id=self.subprocess_id, process_id=self.process_id)
+        self.assertFalse(
+            SubProcessRelationship.objects.filter(process_id=self.process_id, subprocess_id=self.subprocess_id)
         )
-        self.assertFalse(SubProcessRelationship.objects.filter(
-            process_id=self.process_id,
-            subprocess_id=self.subprocess_id))

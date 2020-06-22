@@ -34,8 +34,7 @@ class ConstantDict(dict):
     """
 
     def __setitem__(self, key, value):
-        raise TypeError("'%s' object does not support item assignment"
-                        % self.__class__.__name__)
+        raise TypeError("'%s' object does not support item assignment" % self.__class__.__name__)
 
 
 def calculate_elapsed_time(started_time, archived_time):

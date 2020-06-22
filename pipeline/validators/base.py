@@ -31,8 +31,8 @@ def validate_pipeline_tree(pipeline_tree, cycle_tolerate=False):
     # do not tolerate circle in flow
     if not cycle_tolerate:
         no_cycle = validate_graph_without_circle(pipeline_tree)
-        if not no_cycle['result']:
-            raise exceptions.ParserException(no_cycle['message'])
+        if not no_cycle["result"]:
+            raise exceptions.ParserException(no_cycle["message"])
 
     # 2. gateway validation
     validate_gateways(pipeline_tree)

@@ -44,15 +44,15 @@ class Component(object, metaclass=ComponentMeta):
 
     @classmethod
     def get_output_schema(cls, key):
-        return cls._get_item_schema(type='outputs', key=key).schema
+        return cls._get_item_schema(type="outputs", key=key).schema
 
     @classmethod
     def get_input_schema(cls, key):
-        return cls._get_item_schema(type='inputs', key=key).schema
+        return cls._get_item_schema(type="inputs", key=key).schema
 
     @classmethod
     def form_is_embedded(cls):
-        return getattr(cls, 'embedded_form', False)
+        return getattr(cls, "embedded_form", False)
 
     def clean_execute_data(self, context):
         """
@@ -68,7 +68,7 @@ class Component(object, metaclass=ComponentMeta):
 
         for key, tag_info in list(data_dict.items()):
             if tag_info is None:
-                raise ComponentDataLackException('Lack of inputs: %s' % key)
+                raise ComponentDataLackException("Lack of inputs: %s" % key)
 
             inputs[key] = get_variable(key, tag_info, context, pipeline_data)
 

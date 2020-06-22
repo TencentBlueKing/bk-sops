@@ -21,13 +21,15 @@ from pipeline.engine import api
 from pipeline.constants import PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.gateway import ParallelGateway, ExclusiveGateway
-from pipeline.engine.models import (Status,
-                                    Data,
-                                    PipelineProcess,
-                                    PipelineModel,
-                                    NodeRelationship,
-                                    ScheduleService,
-                                    ProcessCeleryTask)
+from pipeline.engine.models import (
+    Status,
+    Data,
+    PipelineProcess,
+    PipelineModel,
+    NodeRelationship,
+    ScheduleService,
+    ProcessCeleryTask,
+)
 from pipeline.engine import exceptions, states
 from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
@@ -50,10 +52,10 @@ class TestEngineAPIDecorator(TestCase):
             return True
 
         with patch(PIPELINE_STATUS_GET, MagicMock()):
-            self.assertTrue(test_func('id'))
+            self.assertTrue(test_func("id"))
 
         with patch(PIPELINE_STATUS_GET, MagicMock(side_effect=Status.DoesNotExist)):
-            act_result = test_func('id')
+            act_result = test_func("id")
             self.assertFalse(act_result.result)
 
     def test__frozen_check(self):
@@ -90,7 +92,6 @@ class TestEngineAPIDecorator(TestCase):
 
 
 class TestEngineAPI(TestCase):
-
     def setUp(self):
         self.pipeline_id = uniqid()
         self.node_id = uniqid()
@@ -106,7 +107,7 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_PIPELINE_MODEL_PIPELINE_READY, MagicMock())
     def test_start_pipeline(self):
         process = MockPipelineProcess()
-        pipeline_instance = 'pipeline_instance'
+        pipeline_instance = "pipeline_instance"
         with patch(PIPELINE_PROCESS_PREPARE_FOR_PIPELINE, MagicMock(return_value=process)):
             act_result = api.start_pipeline(pipeline_instance)
 
@@ -116,30 +117,38 @@ class TestEngineAPI(TestCase):
 
             PipelineProcess.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance)
 
-            PipelineModel.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance, process,
-                                                                               PIPELINE_DEFAULT_PRIORITY)
+            PipelineModel.objects.prepare_for_pipeline.assert_called_once_with(
+                pipeline_instance, process, PIPELINE_DEFAULT_PRIORITY
+            )
 
             PipelineModel.objects.pipeline_ready.assert_called_once_with(process_id=process.id)
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     def test_start_pipeline__raise_invalid_operation(self):
-        pipeline_instance = 'pipeline_instance'
+        pipeline_instance = "pipeline_instance"
 
-        self.assertRaises(exceptions.InvalidOperationException, api.start_pipeline, pipeline_instance,
-                          priority=PIPELINE_MAX_PRIORITY + 1)
-        self.assertRaises(exceptions.InvalidOperationException, api.start_pipeline, pipeline_instance,
-                          priority=PIPELINE_MIN_PRIORITY - 1)
+        self.assertRaises(
+            exceptions.InvalidOperationException,
+            api.start_pipeline,
+            pipeline_instance,
+            priority=PIPELINE_MAX_PRIORITY + 1,
+        )
+        self.assertRaises(
+            exceptions.InvalidOperationException,
+            api.start_pipeline,
+            pipeline_instance,
+            priority=PIPELINE_MIN_PRIORITY - 1,
+        )
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
     def test_pause_pipeline(self):
         act_result = api.pause_pipeline(self.pipeline_id)
 
-        Status.objects.transit.assert_called_once_with(id=self.pipeline_id,
-                                                       to_state=states.SUSPENDED,
-                                                       is_pipeline=True,
-                                                       appoint=True)
+        Status.objects.transit.assert_called_once_with(
+            id=self.pipeline_id, to_state=states.SUSPENDED, is_pipeline=True, appoint=True
+        )
 
         self.assertTrue(act_result.result)
 
@@ -166,8 +175,9 @@ class TestEngineAPI(TestCase):
 
             api._get_process_to_be_waked.assert_called_once_with(pipeline_model.process, [])
 
-            PipelineProcess.objects.batch_process_ready.assert_called_once_with(process_id_list=[],
-                                                                                pipeline_id=self.pipeline_id)
+            PipelineProcess.objects.batch_process_ready.assert_called_once_with(
+                process_id_list=[], pipeline_id=self.pipeline_id
+            )
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=False)))
@@ -192,8 +202,10 @@ class TestEngineAPI(TestCase):
         pipeline_model = MockPipelineModel()
 
         with patch(PIPELINE_PIPELINE_MODEL_GET, MagicMock(return_value=pipeline_model)):
-            with mock.patch(PIPELINE_PROCESS_SELECT_FOR_UPDATE,
-                            mock.MagicMock(return_value=MockQuerySet(get_return=pipeline_model.process))):
+            with mock.patch(
+                PIPELINE_PROCESS_SELECT_FOR_UPDATE,
+                mock.MagicMock(return_value=MockQuerySet(get_return=pipeline_model.process)),
+            ):
                 act_result = api.revoke_pipeline(self.pipeline_id)
 
                 self.assertTrue(act_result.result)
@@ -208,16 +220,15 @@ class TestEngineAPI(TestCase):
 
         self.assertTrue(act_result.result)
 
-        Status.objects.transit.assert_called_once_with(id=self.node_id,
-                                                       to_state=states.SUSPENDED,
-                                                       appoint=True)
+        Status.objects.transit.assert_called_once_with(id=self.node_id, to_state=states.SUSPENDED, appoint=True)
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_PROCESS_FILTER, MagicMock(return_value=MockQuerySet(exists_return=False)))
-    @patch(PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS,
-           MagicMock(return_value=MockQuerySet(exists_return=False)))
+    @patch(
+        PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS, MagicMock(return_value=MockQuerySet(exists_return=False))
+    )
     def test_resume_node_appointment__fail_with_invalid_node(self):
         act_result = api.resume_node_appointment(self.node_id)
 
@@ -231,9 +242,7 @@ class TestEngineAPI(TestCase):
     def test_resume_node_appointment__resume_not_subprocess_transit_fail(self):
         act_result = api.resume_node_appointment(self.node_id)
 
-        Status.objects.transit.assert_called_once_with(id=self.node_id,
-                                                       to_state=states.READY,
-                                                       appoint=True)
+        Status.objects.transit.assert_called_once_with(id=self.node_id, to_state=states.READY, appoint=True)
 
         self.assertFalse(act_result.result)
 
@@ -246,18 +255,18 @@ class TestEngineAPI(TestCase):
     def test_resume_node_appointment__resume_not_subprocess(self):
         process = MockPipelineProcess()
 
-        with patch(PIPELINE_PROCESS_FILTER,
-                   MagicMock(return_value=MockQuerySet(exists_return=True, first_return=process))):
+        with patch(
+            PIPELINE_PROCESS_FILTER, MagicMock(return_value=MockQuerySet(exists_return=True, first_return=process))
+        ):
             act_result = api.resume_node_appointment(self.node_id)
 
             self.assertTrue(act_result.result)
 
-            Status.objects.transit.assert_called_once_with(id=self.node_id,
-                                                           to_state=states.READY,
-                                                           appoint=True)
+            Status.objects.transit.assert_called_once_with(id=self.node_id, to_state=states.READY, appoint=True)
 
-            Status.objects.recover_from_block.assert_called_once_with(process.root_pipeline.id,
-                                                                      process.subprocess_stack)
+            Status.objects.recover_from_block.assert_called_once_with(
+                process.root_pipeline.id, process.subprocess_stack
+            )
 
             PipelineProcess.objects.process_ready.assert_called_once_with(process_id=process.id)
 
@@ -266,15 +275,15 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=False)))
     @patch(PIPELINE_PROCESS_FILTER, MagicMock(return_value=MockQuerySet(exists_return=False)))
-    @patch(PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS,
-           MagicMock(return_value=MockQuerySet(exists_return=True)))
+    @patch(
+        PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS, MagicMock(return_value=MockQuerySet(exists_return=True))
+    )
     def test_resume_node_appointment__resume_subprocess_transit_fail(self):
         act_result = api.resume_node_appointment(self.node_id)
 
-        Status.objects.transit.assert_called_once_with(id=self.node_id,
-                                                       to_state=states.RUNNING,
-                                                       is_pipeline=True,
-                                                       appoint=True)
+        Status.objects.transit.assert_called_once_with(
+            id=self.node_id, to_state=states.RUNNING, is_pipeline=True, appoint=True
+        )
 
         self.assertFalse(act_result.result)
 
@@ -294,32 +303,35 @@ class TestEngineAPI(TestCase):
         can_not_be_wake_process_1 = MockPipelineProcess(root_pipeline=root_pipeline)
         can_not_be_wake_process_2 = MockPipelineProcess(root_pipeline=root_pipeline)
 
-        exists_return = [can_be_wake_process_1,
-                         can_be_wake_process_2,
-                         can_be_wake_process_3,
-                         can_not_be_wake_process_1,
-                         can_not_be_wake_process_2]
+        exists_return = [
+            can_be_wake_process_1,
+            can_be_wake_process_2,
+            can_be_wake_process_3,
+            can_not_be_wake_process_1,
+            can_not_be_wake_process_2,
+        ]
 
-        subprocess_to_be_transit = {can_be_wake_process_1.id,
-                                    can_be_wake_process_2.id,
-                                    can_be_wake_process_3.id}
+        subprocess_to_be_transit = {can_be_wake_process_1.id, can_be_wake_process_2.id, can_be_wake_process_3.id}
 
-        can_be_waked_ids = [can_be_wake_process_1.id,
-                            can_be_wake_process_2.id,
-                            can_be_wake_process_3.id]
+        can_be_waked_ids = [can_be_wake_process_1.id, can_be_wake_process_2.id, can_be_wake_process_3.id]
 
-        with patch(PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS,
-                   MagicMock(return_value=MockQuerySet(exists_return=exists_return,
-                                                       first_return=can_be_wake_process_1,
-                                                       qs=exists_return))):
+        with patch(
+            PIPELINE_SUBPROCESS_RELATIONSHIP_GET_RELATE_PROCESS,
+            MagicMock(
+                return_value=MockQuerySet(
+                    exists_return=exists_return, first_return=can_be_wake_process_1, qs=exists_return
+                )
+            ),
+        ):
             act_result = api.resume_node_appointment(self.node_id)
 
             self.assertTrue(act_result.result)
 
             Status.objects.recover_from_block.assert_called_once_with(root_pipeline.id, subprocess_to_be_transit)
 
-            PipelineProcess.objects.batch_process_ready.assert_called_once_with(process_id_list=can_be_waked_ids,
-                                                                                pipeline_id=root_pipeline.id)
+            PipelineProcess.objects.batch_process_ready.assert_called_once_with(
+                process_id_list=can_be_waked_ids, pipeline_id=root_pipeline.id
+            )
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -347,9 +359,9 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     def test_retry_node__with_node_can_not_retry(self):
         # with service activity
-        top_pipeline = PipelineObject(nodes={self.node_id: ServiceActivity(id=self.node_id,
-                                                                           service=None,
-                                                                           retryable=False)})
+        top_pipeline = PipelineObject(
+            nodes={self.node_id: ServiceActivity(id=self.node_id, service=None, retryable=False)}
+        )
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
@@ -359,7 +371,7 @@ class TestEngineAPI(TestCase):
 
         # with parallel gateway
         pg = ParallelGateway(id=self.node_id, converge_gateway_id=uniqid())
-        setattr(pg, 'retryable', False)
+        setattr(pg, "retryable", False)
         top_pipeline = PipelineObject(nodes={self.node_id: pg})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
@@ -371,20 +383,16 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
-    @patch(PIPELINE_STATUS_RETRY, MagicMock(return_value=MockActionResult(result=False,
-                                                                          message='retry fail')))
+    @patch(PIPELINE_STATUS_RETRY, MagicMock(return_value=MockActionResult(result=False, message="retry fail")))
     def test_retry_node__with_retry_fail(self):
-        node = ServiceActivity(id=self.node_id,
-                               service=None)
+        node = ServiceActivity(id=self.node_id, service=None)
         top_pipeline = PipelineObject(nodes={self.node_id: node})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
             act_result = api.retry_node(self.node_id)
 
-            Status.objects.retry.assert_called_once_with(process,
-                                                         node,
-                                                         None)
+            Status.objects.retry.assert_called_once_with(process, node, None)
 
             self.assertFalse(act_result.result)
 
@@ -394,20 +402,17 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_RETRY, MagicMock(return_value=MockActionResult(result=True)))
     @patch(PIPELINE_PROCESS_PROCESS_READY, MagicMock())
     def test_retry_node__success(self):
-        node = ServiceActivity(id=self.node_id,
-                               service=None)
+        node = ServiceActivity(id=self.node_id, service=None)
         top_pipeline = PipelineObject(nodes={self.node_id: node})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
-        retry_inputs = {'id': self.node_id}
+        retry_inputs = {"id": self.node_id}
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
             act_result = api.retry_node(self.node_id, inputs=retry_inputs)
 
             self.assertTrue(act_result.result)
 
-            Status.objects.retry.assert_called_once_with(process,
-                                                         node,
-                                                         retry_inputs)
+            Status.objects.retry.assert_called_once_with(process, node, retry_inputs)
 
             PipelineProcess.objects.process_ready.assert_called_once_with(process_id=process.id)
 
@@ -436,9 +441,9 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
     def test_skip_node__fail_with_node_can_not_skip(self):
-        top_pipeline = PipelineObject(nodes={self.node_id: ServiceActivity(id=self.node_id,
-                                                                           service=None,
-                                                                           skippable=False)})
+        top_pipeline = PipelineObject(
+            nodes={self.node_id: ServiceActivity(id=self.node_id, service=None, skippable=False)}
+        )
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
@@ -449,19 +454,16 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
-    @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=False,
-                                                                         message='skip fail')))
+    @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=False, message="skip fail")))
     def test_skip_node__fail_with_skip_fail(self):
-        node = ServiceActivity(id=self.node_id,
-                               service=None)
+        node = ServiceActivity(id=self.node_id, service=None)
         top_pipeline = PipelineObject(nodes={self.node_id: node})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
             act_result = api.skip_node(self.node_id)
 
-            Status.objects.skip.assert_called_once_with(process,
-                                                        node)
+            Status.objects.skip.assert_called_once_with(process, node)
 
             self.assertFalse(act_result.result)
 
@@ -471,14 +473,13 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=True)))
     @patch(PIPELINE_PROCESS_PROCESS_READY, MagicMock())
     def test_skip_node__success(self):
-        node = ServiceActivity(id=self.node_id,
-                               service=None)
+        node = ServiceActivity(id=self.node_id, service=None)
         mock_next = IdentifyObject()
 
         def _next():
             return mock_next
 
-        setattr(node, 'next', _next)
+        setattr(node, "next", _next)
         top_pipeline = PipelineObject(nodes={self.node_id: node}, context=MockContext())
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
@@ -491,8 +492,7 @@ class TestEngineAPI(TestCase):
 
             process.save.assert_called_once()
 
-            PipelineProcess.objects.process_ready(process_id=process.id,
-                                                  current_node_id=mock_next.id)
+            PipelineProcess.objects.process_ready(process_id=process.id, current_node_id=mock_next.id)
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -518,12 +518,11 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
-    @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=False,
-                                                                         message='skip fail')))
+    @patch(PIPELINE_STATUS_SKIP, MagicMock(return_value=MockActionResult(result=False, message="skip fail")))
     def test_skip_exclusive_gateway__fail_with_skip_fail(self):
         eg = ExclusiveGateway(id=uniqid())
         next_node = IdentifyObject()
-        setattr(eg, 'target_for_sequence_flow', MagicMock(return_value=next_node))
+        setattr(eg, "target_for_sequence_flow", MagicMock(return_value=next_node))
         top_pipeline = PipelineObject(nodes={self.node_id: eg})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
@@ -542,7 +541,7 @@ class TestEngineAPI(TestCase):
     def test_skip_exclusive_gateway__success(self):
         eg = ExclusiveGateway(id=uniqid())
         next_node = IdentifyObject()
-        setattr(eg, 'target_for_sequence_flow', MagicMock(return_value=next_node))
+        setattr(eg, "target_for_sequence_flow", MagicMock(return_value=next_node))
         top_pipeline = PipelineObject(nodes={self.node_id: eg})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
@@ -553,44 +552,57 @@ class TestEngineAPI(TestCase):
 
             Status.objects.skip.assert_called_once_with(process, eg)
 
-            PipelineProcess.objects.process_ready.assert_called_once_with(process_id=process.id,
-                                                                          current_node_id=next_node.id)
+            PipelineProcess.objects.process_ready.assert_called_once_with(
+                process_id=process.id, current_node_id=next_node.id
+            )
 
     @patch(PIPELINE_NODE_RELATIONSHIP_FILTER, MagicMock(return_value=MockQuerySet(exists_return=False)))
     def test_status_tree__with_not_exist_node(self):
         self.assertRaises(exceptions.InvalidOperationException, api.get_status_tree, self.node_id)
 
     def test_status_tree(self):
-        s1 = Status.objects.create(id=uniqid(),
-                                   name='s1',
-                                   state=states.FINISHED,
-                                   started_time=timezone.now(),
-                                   archived_time=timezone.now() + timedelta(seconds=3))
-        s2 = Status.objects.create(id=uniqid(),
-                                   name='s2',
-                                   state=states.FINISHED,
-                                   started_time=timezone.now(),
-                                   archived_time=timezone.now() + timedelta(seconds=3))
-        s3 = Status.objects.create(id=uniqid(),
-                                   name='s3',
-                                   state=states.FINISHED,
-                                   started_time=timezone.now(),
-                                   archived_time=timezone.now() + timedelta(seconds=3))
-        s4 = Status.objects.create(id=uniqid(),
-                                   name='s4',
-                                   state=states.FINISHED,
-                                   started_time=timezone.now(),
-                                   archived_time=timezone.now() + timedelta(seconds=3))
-        s5 = Status.objects.create(id=uniqid(),
-                                   name='s5',
-                                   state=states.FINISHED,
-                                   started_time=timezone.now(),
-                                   archived_time=timezone.now() + timedelta(seconds=3))
-        s6 = Status.objects.create(id=uniqid(),
-                                   name='s6',
-                                   state=states.FINISHED,
-                                   started_time=timezone.now(),
-                                   archived_time=timezone.now() + timedelta(seconds=3))
+        s1 = Status.objects.create(
+            id=uniqid(),
+            name="s1",
+            state=states.FINISHED,
+            started_time=timezone.now(),
+            archived_time=timezone.now() + timedelta(seconds=3),
+        )
+        s2 = Status.objects.create(
+            id=uniqid(),
+            name="s2",
+            state=states.FINISHED,
+            started_time=timezone.now(),
+            archived_time=timezone.now() + timedelta(seconds=3),
+        )
+        s3 = Status.objects.create(
+            id=uniqid(),
+            name="s3",
+            state=states.FINISHED,
+            started_time=timezone.now(),
+            archived_time=timezone.now() + timedelta(seconds=3),
+        )
+        s4 = Status.objects.create(
+            id=uniqid(),
+            name="s4",
+            state=states.FINISHED,
+            started_time=timezone.now(),
+            archived_time=timezone.now() + timedelta(seconds=3),
+        )
+        s5 = Status.objects.create(
+            id=uniqid(),
+            name="s5",
+            state=states.FINISHED,
+            started_time=timezone.now(),
+            archived_time=timezone.now() + timedelta(seconds=3),
+        )
+        s6 = Status.objects.create(
+            id=uniqid(),
+            name="s6",
+            state=states.FINISHED,
+            started_time=timezone.now(),
+            archived_time=timezone.now() + timedelta(seconds=3),
+        )
 
         NodeRelationship.objects.build_relationship(s1.id, s1.id)
         NodeRelationship.objects.build_relationship(s2.id, s2.id)
@@ -615,44 +627,61 @@ class TestEngineAPI(TestCase):
 
         def get_status_dict_with_children(s, children):
             return {
-                'archived_time': s.archived_time,
-                'created_time': s.created_time,
-                'elapsed_time': calculate_elapsed_time(s.started_time, s.archived_time),
-                'error_ignorable': s.error_ignorable,
-                'id': s.id,
-                'loop': s.loop,
-                'name': s.name,
-                'retry': s.retry,
-                'skip': s.skip,
-                'started_time': s.started_time,
-                'state': s.state,
-                'version': s.version,
-                'children': children
+                "archived_time": s.archived_time,
+                "created_time": s.created_time,
+                "elapsed_time": calculate_elapsed_time(s.started_time, s.archived_time),
+                "error_ignorable": s.error_ignorable,
+                "id": s.id,
+                "loop": s.loop,
+                "name": s.name,
+                "retry": s.retry,
+                "skip": s.skip,
+                "started_time": s.started_time,
+                "state": s.state,
+                "version": s.version,
+                "children": children,
             }
 
-        tree_depth_1 = get_status_dict_with_children(s1,
-                                                     children={s2.id: get_status_dict_with_children(s2, children={}),
-                                                               s3.id: get_status_dict_with_children(s3, children={})})
+        tree_depth_1 = get_status_dict_with_children(
+            s1,
+            children={
+                s2.id: get_status_dict_with_children(s2, children={}),
+                s3.id: get_status_dict_with_children(s3, children={}),
+            },
+        )
 
         tree = api.get_status_tree(s1.id, 1)
         self.assertDictEqual(tree, tree_depth_1)
 
-        tree_depth_2 = get_status_dict_with_children(s1,
-                                                     children={s2.id: get_status_dict_with_children(
-                                                         s2,
-                                                         children={s4.id: get_status_dict_with_children(s4, {})}),
-                                                         s3.id: get_status_dict_with_children(s3, {})})
+        tree_depth_2 = get_status_dict_with_children(
+            s1,
+            children={
+                s2.id: get_status_dict_with_children(s2, children={s4.id: get_status_dict_with_children(s4, {})}),
+                s3.id: get_status_dict_with_children(s3, {}),
+            },
+        )
 
         tree = api.get_status_tree(s1.id, 2)
         self.assertDictEqual(tree, tree_depth_2)
 
-        tree_depth_3 = get_status_dict_with_children(s1,
-                                                     children={s2.id: get_status_dict_with_children(
-                                                         s2, children={s4.id: get_status_dict_with_children(
-                                                             s4, children={s5.id: get_status_dict_with_children(s5, {}),
-                                                                           s6.id: get_status_dict_with_children(s6,
-                                                                                                                {})})}),
-                                                         s3.id: get_status_dict_with_children(s3, children={})})  # noqa
+        tree_depth_3 = get_status_dict_with_children(
+            s1,
+            children={
+                s2.id: get_status_dict_with_children(
+                    s2,
+                    children={
+                        s4.id: get_status_dict_with_children(
+                            s4,
+                            children={
+                                s5.id: get_status_dict_with_children(s5, {}),
+                                s6.id: get_status_dict_with_children(s6, {}),
+                            },
+                        )
+                    },
+                ),
+                s3.id: get_status_dict_with_children(s3, children={}),
+            },
+        )  # noqa
 
         tree = api.get_status_tree(s1.id, 3)
         self.assertDictEqual(tree, tree_depth_3)
@@ -711,8 +740,9 @@ class TestEngineAPI(TestCase):
 
                 # schedule service get twice
                 service = MockScheduleService()
-                with patch(PIPELINE_SCHEDULE_SCHEDULE_FOR, MagicMock(side_effect=[ScheduleService.DoesNotExist,
-                                                                                  service])):
+                with patch(
+                    PIPELINE_SCHEDULE_SCHEDULE_FOR, MagicMock(side_effect=[ScheduleService.DoesNotExist, service])
+                ):
                     act_result = api.activity_callback(self.node_id, callback_data)
 
                     self.assertTrue(act_result.result)
@@ -731,8 +761,7 @@ class TestEngineAPI(TestCase):
         data = MockData(get_inputs_return=uniqid(), get_outputs_return=uniqid())
         with patch(PIPELINE_DATA_GET, MagicMock(return_value=data)):
             outputs = api.get_outputs(self.node_id)
-            self.assertEqual(outputs, {'outputs': data.outputs,
-                                       'ex_data': data.ex_data})
+            self.assertEqual(outputs, {"outputs": data.outputs, "ex_data": data.ex_data})
 
     def test_get_activity_histories(self):
         with patch(PIPELINE_HISTORY_GET_HISTORY, MagicMock(return_value=self.dummy_return)):
@@ -760,11 +789,9 @@ class TestEngineAPI(TestCase):
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
-    @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=False,
-                                                                            message='transit fail')))
+    @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=False, message="transit fail")))
     def test_forced_fail__fail_with_transit_fail(self):
-        top_pipeline = PipelineObject(nodes={self.node_id: ServiceActivity(id=self.node_id,
-                                                                           service=None)})
+        top_pipeline = PipelineObject(nodes={self.node_id: ServiceActivity(id=self.node_id, service=None)})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
@@ -779,14 +806,14 @@ class TestEngineAPI(TestCase):
     @patch(PIPELINE_DATA_FORCED_FAIL, MagicMock())
     def test_forced_fail__success(self):
         node = ServiceActivity(id=self.node_id, service=None)
-        setattr(node, 'failure_handler', MagicMock())
+        setattr(node, "failure_handler", MagicMock())
 
         top_pipeline = PipelineObject(nodes={self.node_id: node})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
         status = MockStatus()
         old_version = status.version
         kill = True
-        ex_data = 'ex_data'
+        ex_data = "ex_data"
 
         with patch(PIPELINE_STATUS_GET, MagicMock(return_value=status)):
             with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):

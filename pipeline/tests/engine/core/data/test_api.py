@@ -21,7 +21,6 @@ from pipeline.tests.mock_settings import *  # noqa
 
 
 class EngineDataAPITestCase(TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.settings_patch = patch(ENGINE_DATA_API_SETTINGS, MagicMock())
@@ -29,15 +28,15 @@ class EngineDataAPITestCase(TestCase):
         cls.settings_patch.start()
         cls.import_backend_patch.start()
 
-        cls.api = import_string('pipeline.engine.core.data.api')
-        cls.write_methods = ['set_object', 'del_object', 'expire_cache']
-        cls.read_methods = ['get_object', 'cache_for']
+        cls.api = import_string("pipeline.engine.core.data.api")
+        cls.write_methods = ["set_object", "del_object", "expire_cache"]
+        cls.read_methods = ["get_object", "cache_for"]
         cls.method_params = {
-            'set_object': ['key', 'obj'],
-            'del_object': ['key'],
-            'expire_cache': ['key', 'obj', 'expires'],
-            'cache_for': ['key'],
-            'get_object': ['key'],
+            "set_object": ["key", "obj"],
+            "del_object": ["key"],
+            "expire_cache": ["key", "obj", "expires"],
+            "cache_for": ["key"],
+            "get_object": ["key"],
         }
 
     @classmethod
@@ -58,7 +57,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_not_called()
 
-            sys.stdout.write('{} pass test_write__without_candidate test\n'.format(method))
+            sys.stdout.write("{} pass test_write__without_candidate test\n".format(method))
 
     def test_write__without_candiate_raise_err(self):
         for method in self.write_methods:
@@ -71,7 +70,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_not_called()
 
-            sys.stdout.write('{} pass test_write__without_candiate_raise_err test\n'.format(method))
+            sys.stdout.write("{} pass test_write__without_candiate_raise_err test\n".format(method))
 
     def test_write__with_candidate(self):
         for method in self.write_methods:
@@ -82,7 +81,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_write__with_candidate test\n'.format(method))
+            sys.stdout.write("{} pass test_write__with_candidate test\n".format(method))
 
     def test_write__with_candidate_main_raise_err(self):
         for method in self.write_methods:
@@ -95,7 +94,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_write__with_candidate_main_raise_err test\n'.format(method))
+            sys.stdout.write("{} pass test_write__with_candidate_main_raise_err test\n".format(method))
 
     def test_write__with_candidate_raise_err(self):
         for method in self.write_methods:
@@ -108,7 +107,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_write__with_candidate_raise_err test\n'.format(method))
+            sys.stdout.write("{} pass test_write__with_candidate_raise_err test\n".format(method))
 
     def test_write__with_candidate_both_raise_err(self):
         for method in self.write_methods:
@@ -122,7 +121,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_write__with_candidate_both_raise_err test\n'.format(method))
+            sys.stdout.write("{} pass test_write__with_candidate_both_raise_err test\n".format(method))
 
     def test_read__without_candidate(self):
         for method in self.read_methods:
@@ -134,7 +133,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_not_called()
 
-            sys.stdout.write('{} pass test_read__without_candidate test\n'.format(method))
+            sys.stdout.write("{} pass test_read__without_candidate test\n".format(method))
 
     def test_read__without_candidate_raise_err(self):
         for method in self.read_methods:
@@ -147,7 +146,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_not_called()
 
-            sys.stdout.write('{} pass test_read__without_candidate_raise_err test\n'.format(method))
+            sys.stdout.write("{} pass test_read__without_candidate_raise_err test\n".format(method))
 
     def test_read__with_candidate_not_use(self):
         for method in self.read_methods:
@@ -159,7 +158,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_not_called()
 
-            sys.stdout.write('{} pass test_read__with_candidate_not_use test\n'.format(method))
+            sys.stdout.write("{} pass test_read__with_candidate_not_use test\n".format(method))
 
     def test_read__with_candidate_use(self):
         for method in self.read_methods:
@@ -173,7 +172,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_read__with_candidate_use test\n'.format(method))
+            sys.stdout.write("{} pass test_read__with_candidate_use test\n".format(method))
 
     def test_read__with_candidate_err(self):
         for method in self.read_methods:
@@ -188,7 +187,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_read__with_candidate_err test\n'.format(method))
+            sys.stdout.write("{} pass test_read__with_candidate_err test\n".format(method))
 
     def test_read__with_candidate_main_raise_err(self):
         for method in self.read_methods:
@@ -202,7 +201,7 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_read__with_candidate_main_raise_err test\n'.format(method))
+            sys.stdout.write("{} pass test_read__with_candidate_main_raise_err test\n".format(method))
 
     def test_read__with_candidate_both_raise_err(self):
         for method in self.read_methods:
@@ -216,26 +215,26 @@ class EngineDataAPITestCase(TestCase):
                     getattr(self.backend, method).assert_called_once_with(*self.method_params[method])
                     getattr(self.candidate_backend, method).assert_called_once_with(*self.method_params[method])
 
-            sys.stdout.write('{} pass test_read__with_candidate_both_raise_err test\n'.format(method))
+            sys.stdout.write("{} pass test_read__with_candidate_both_raise_err test\n".format(method))
 
     def test_set_schedule_data(self):
         with patch(ENGINE_DATA_API_BACKEND, self.backend):
             with patch(ENGINE_DATA_API_CANDIDATE_BACKEND, self.candidate_backend):
-                self.api.set_schedule_data('key', 'data')
-                self.backend.set_object.assert_called_once_with('key_schedule_parent_data', 'data')
-                self.candidate_backend.set_object.assert_called_once_with('key_schedule_parent_data', 'data')
+                self.api.set_schedule_data("key", "data")
+                self.backend.set_object.assert_called_once_with("key_schedule_parent_data", "data")
+                self.candidate_backend.set_object.assert_called_once_with("key_schedule_parent_data", "data")
 
     def test_delete_parent_data(self):
         with patch(ENGINE_DATA_API_BACKEND, self.backend):
             with patch(ENGINE_DATA_API_CANDIDATE_BACKEND, self.candidate_backend):
-                self.api.delete_parent_data('key')
-                self.backend.del_object.assert_called_once_with('key_schedule_parent_data')
-                self.candidate_backend.del_object.assert_called_once_with('key_schedule_parent_data')
+                self.api.delete_parent_data("key")
+                self.backend.del_object.assert_called_once_with("key_schedule_parent_data")
+                self.candidate_backend.del_object.assert_called_once_with("key_schedule_parent_data")
 
     def test_get_schedule_parent_data(self):
         with patch(ENGINE_DATA_API_BACKEND, self.backend):
             with patch(ENGINE_DATA_API_CANDIDATE_BACKEND, self.candidate_backend):
-                data = self.api.get_schedule_parent_data('key')
+                data = self.api.get_schedule_parent_data("key")
                 self.assertIsNotNone(data)
-                self.backend.get_object.assert_called_once_with('key_schedule_parent_data')
+                self.backend.get_object.assert_called_once_with("key_schedule_parent_data")
                 self.candidate_backend.get_object.assert_not_called()

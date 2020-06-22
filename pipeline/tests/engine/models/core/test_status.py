@@ -50,11 +50,9 @@ class TestStatus(TestCase):
                                 result = Status.objects.transit(id=state_id, to_state=from_state, start=True)
                                 self.assertTrue(result.result)
                                 result = Status.objects.transit(
-                                    id=state_id,
-                                    is_pipeline=is_pipeline,
-                                    appoint=is_appoint,
-                                    to_state=to_state)
-                                self.assertTrue(result.result, 'valid: from %s to %s' % (from_state, to_state))
+                                    id=state_id, is_pipeline=is_pipeline, appoint=is_appoint, to_state=to_state
+                                )
+                                self.assertTrue(result.result, "valid: from {} to {}".format(from_state, to_state))
                                 state = Status.objects.get(id=state_id)
                                 self.assertEqual(state.state, to_state)
                                 if to_state in states.ARCHIVED_STATES:
@@ -68,12 +66,11 @@ class TestStatus(TestCase):
                                 state_id = uniqid()
                                 Status.objects.transit(id=state_id, to_state=from_state, start=True)
                                 result = Status.objects.transit(
-                                    id=state_id,
-                                    is_pipeline=is_pipeline,
-                                    appoint=is_appoint,
-                                    to_state=invalid_to_state)
-                                self.assertFalse(result.result,
-                                                 'invalid: from %s to %s' % (from_state, invalid_to_state))
+                                    id=state_id, is_pipeline=is_pipeline, appoint=is_appoint, to_state=invalid_to_state
+                                )
+                                self.assertFalse(
+                                    result.result, "invalid: from {} to {}".format(from_state, invalid_to_state)
+                                )
                                 state = Status.objects.get(id=state_id)
                                 self.assertEqual(state.state, from_state)
 
@@ -157,7 +154,7 @@ class TestStatus(TestCase):
         self.assertEqual(state.state, states.RUNNING)
 
     def test_batch_transit(self):
-        status_id_list = set([uniqid() for _ in range(5)])
+        status_id_list = {uniqid() for _ in range(5)}
         for sid in status_id_list:
             result = Status.objects.transit(id=sid, to_state=states.RUNNING, start=True)
             self.assertTrue(result.result)
@@ -200,14 +197,8 @@ class TestStatus(TestCase):
         self.assertEqual(Status.objects.state_for(status_id, version=version), states.RUNNING)
         self.assertIsNone(Status.objects.state_for(uniqid(), may_not_exist=True, version=version))
         self.assertIsNone(Status.objects.state_for(status_id, may_not_exist=True, version=uniqid()))
-        self.assertRaises(Status.DoesNotExist,
-                          Status.objects.state_for,
-                          id=uniqid(),
-                          version=version)
-        self.assertRaises(Status.DoesNotExist,
-                          Status.objects.state_for,
-                          id=uniqid(),
-                          version=uniqid())
+        self.assertRaises(Status.DoesNotExist, Status.objects.state_for, id=uniqid(), version=version)
+        self.assertRaises(Status.DoesNotExist, Status.objects.state_for, id=uniqid(), version=uniqid())
 
     def test_version_for(self):
         status_id = uniqid()
@@ -217,7 +208,7 @@ class TestStatus(TestCase):
         self.assertEqual(Status.objects.version_for(status_id), status.version)
 
     def test_states_for(self):
-        status_id_list = set([uniqid() for _ in range(5)])
+        status_id_list = {uniqid() for _ in range(5)}
         for sid in status_id_list:
             result = Status.objects.transit(id=sid, to_state=states.RUNNING, start=True)
             self.assertTrue(result.result)
@@ -257,9 +248,9 @@ class TestStatus(TestCase):
         node = IdentifyObject()
         result = Status.objects.transit(id=node.id, to_state=states.RUNNING, start=True)
         self.assertTrue(result.result)
-        result = Status.objects.fail(node, 'ex_data')
+        result = Status.objects.fail(node, "ex_data")
         self.assertTrue(result.result)
-        Data.objects.write_node_data.assert_called_with(node, 'ex_data')
+        Data.objects.write_node_data.assert_called_with(node, "ex_data")
         status = Status.objects.get(id=node.id)
         self.assertEqual(status.state, states.FAILED)
 
@@ -269,7 +260,7 @@ class TestStatus(TestCase):
         node = IdentifyObject()
         result = Status.objects.transit(id=node.id, to_state=states.BLOCKED, start=True)
         self.assertTrue(result.result)
-        result = Status.objects.fail(node, 'ex_data')
+        result = Status.objects.fail(node, "ex_data")
         self.assertFalse(result.result)
         Data.objects.write_node_data.assert_not_called()
         status = Status.objects.get(id=node.id)
@@ -281,9 +272,9 @@ class TestStatus(TestCase):
         node = IdentifyObject()
         result = Status.objects.transit(id=node.id, to_state=states.RUNNING, start=True)
         self.assertTrue(result.result)
-        result = Status.objects.raw_fail(node.id, 'ex_data')
+        result = Status.objects.raw_fail(node.id, "ex_data")
         self.assertTrue(result.result)
-        Data.objects.write_ex_data.assert_called_with(node.id, 'ex_data')
+        Data.objects.write_ex_data.assert_called_with(node.id, "ex_data")
         status = Status.objects.get(id=node.id)
         self.assertEqual(status.state, states.FAILED)
 
@@ -293,7 +284,7 @@ class TestStatus(TestCase):
         node = IdentifyObject()
         result = Status.objects.transit(id=node.id, to_state=states.BLOCKED, start=True)
         self.assertTrue(result.result)
-        result = Status.objects.raw_fail(node.id, 'ex_data')
+        result = Status.objects.raw_fail(node.id, "ex_data")
         self.assertFalse(result.result)
         Data.objects.write_ex_data.assert_not_called()
         status = Status.objects.get(id=node.id)
@@ -363,7 +354,7 @@ class TestStatus(TestCase):
         node.skip = MagicMock()
         process = Object()
         process.root_pipeline = IdentifyObject()
-        process.subprocess_stack = 'subprocess_stack'
+        process.subprocess_stack = "subprocess_stack"
         result = Status.objects.transit(id=node.id, to_state=states.FAILED, start=True)
         self.assertTrue(result.result)
 
@@ -423,7 +414,7 @@ class TestStatus(TestCase):
         node.next_exec_is_retry = MagicMock()
         process = Object()
         process.root_pipeline = IdentifyObject()
-        process.subprocess_stack = 'subprocess_stack'
+        process.subprocess_stack = "subprocess_stack"
         process.save = MagicMock()
         result = Status.objects.transit(id=node.id, to_state=states.FAILED, start=True)
         self.assertTrue(result.result)
@@ -453,7 +444,7 @@ class TestStatus(TestCase):
         Status.objects.recover_from_block.reset_mock()
         node_retry_ready.send.reset_mock()
         node.id = uniqid()
-        inputs = {'key': 'value'}
+        inputs = {"key": "value"}
         result = Status.objects.transit(id=node.id, to_state=states.FAILED, start=True)
         self.assertTrue(result.result)
 
@@ -503,10 +494,10 @@ class TestStatus(TestCase):
 
         # test retry node reach max run limit
         Status.objects.filter(id=node.id).update(loop=11)
-        with patch('pipeline.engine.models.core.RERUN_MAX_LIMIT', 10):
+        with patch("pipeline.engine.models.core.RERUN_MAX_LIMIT", 10):
             result = Status.objects.retry(process, node, inputs)
             self.assertFalse(result.result)
-            self.assertEqual(result.message, 'rerun times exceed max limit: 10, can not retry')
+            self.assertEqual(result.message, "rerun times exceed max limit: 10, can not retry")
 
     @patch(PIPELINE_STATUS_BATCH_TRANSIT, MagicMock())
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock())
@@ -516,10 +507,6 @@ class TestStatus(TestCase):
 
         Status.objects.recover_from_block(root_pipeline_id, [])
         Status.objects.batch_transit.assert_called_with(
-            id_list=subprocess_stack,
-            state=states.RUNNING,
-            from_state=states.BLOCKED)
-        Status.objects.transit.assert_called_with(
-            id=root_pipeline_id,
-            to_state=states.READY,
-            is_pipeline=True)
+            id_list=subprocess_stack, state=states.RUNNING, from_state=states.BLOCKED
+        )
+        Status.objects.transit.assert_called_with(id=root_pipeline_id, to_state=states.READY, is_pipeline=True)

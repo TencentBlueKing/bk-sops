@@ -45,7 +45,7 @@ def unfreeze():
 
 def workers():
     try:
-        worker_list = data.cache_for('__pipeline__workers__')
+        worker_list = data.cache_for("__pipeline__workers__")
     except ConnectionError as e:
         raise e
 
@@ -61,6 +61,6 @@ def workers():
             raise RabbitMQConnectionError(err)
 
         if worker_list:
-            data.expire_cache('__pipeline__workers__', worker_list, settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES)
+            data.expire_cache("__pipeline__workers__", worker_list, settings.PIPELINE_WORKER_STATUS_CACHE_EXPIRES)
 
     return worker_list

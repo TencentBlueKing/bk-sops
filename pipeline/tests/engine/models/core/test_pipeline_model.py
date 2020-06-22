@@ -25,14 +25,13 @@ valve.unload_valve_function()
 
 
 class TestPipelineModel(TestCase):
-
     def test_prepare_for_pipeline(self):
         pipeline = PipelineObject()
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
         priority = 5
-        pipeline_model = PipelineModel.objects.prepare_for_pipeline(pipeline=pipeline,
-                                                                    process=process,
-                                                                    priority=priority)
+        pipeline_model = PipelineModel.objects.prepare_for_pipeline(
+            pipeline=pipeline, process=process, priority=priority
+        )
         self.assertEqual(pipeline_model.process.id, process.id)
         self.assertEqual(pipeline_model.id, pipeline.id)
         self.assertEqual(pipeline_model.priority, priority)
@@ -41,18 +40,11 @@ class TestPipelineModel(TestCase):
         pipeline = PipelineObject()
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
         priority = 5
-        PipelineModel.objects.prepare_for_pipeline(pipeline=pipeline,
-                                                   process=process,
-                                                   priority=priority)
+        PipelineModel.objects.prepare_for_pipeline(pipeline=pipeline, process=process, priority=priority)
         self.assertEqual(PipelineModel.objects.priority_for_pipeline(pipeline_id=pipeline.id), priority)
 
-    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch("pipeline.django_signal_valve.valve.send", mock.MagicMock())
     def test_pipeline_ready(self):
         process_id = uniqid()
         PipelineModel.objects.pipeline_ready(process_id=process_id)
-        valve.send.assert_called_with(
-            signals,
-            'pipeline_ready',
-            sender=Pipeline,
-            process_id=process_id
-        )
+        valve.send.assert_called_with(signals, "pipeline_ready", sender=Pipeline, process_id=process_id)

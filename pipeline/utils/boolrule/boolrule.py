@@ -11,9 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pyparsing import CaselessLiteral, Word, delimitedList, Optional, \
-    Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, \
-    QuotedString, ZeroOrMore, Keyword, ParseResults, Suppress
+from pyparsing import (
+    CaselessLiteral,
+    Word,
+    delimitedList,
+    Optional,
+    Combine,
+    Group,
+    alphas,
+    nums,
+    alphanums,
+    ParseException,
+    Forward,
+    oneOf,
+    QuotedString,
+    ZeroOrMore,
+    Keyword,
+    ParseResults,
+    Suppress,
+)
 
 
 class SubstituteVal(object):
@@ -38,20 +54,18 @@ class SubstituteVal(object):
                 val = getattr(val, part) if hasattr(val, part) else val[part]
 
         except KeyError:
-            raise MissingVariableException(
-                'no value supplied for {}'.format(self._path)
-            )
+            raise MissingVariableException("no value supplied for {}".format(self._path))
 
         return val
 
     def __repr__(self):
-        return 'SubstituteVal(%s)' % self._path
+        return "SubstituteVal(%s)" % self._path
 
 
 # Grammar definition
-pathDelimiter = '.'
+pathDelimiter = "."
 # match gcloud's variable
-identifier = Combine(Optional('${') + Optional('_') + Word(alphas, alphanums + "_") + Optional('}'))
+identifier = Combine(Optional("${") + Optional("_") + Word(alphas, alphanums + "_") + Optional("}"))
 # identifier = Word(alphas, alphanums + "_")
 propertyPath = delimitedList(identifier, pathDelimiter, combine=True)
 
@@ -59,56 +73,45 @@ and_ = Keyword("and", caseless=True)
 or_ = Keyword("or", caseless=True)
 in_ = Keyword("in", caseless=True)
 
-lparen = Suppress('(')
-rparen = Suppress(')')
+lparen = Suppress("(")
+rparen = Suppress(")")
 
-binaryOp = oneOf(
-    "== != < > >= <= in notin issuperset notissuperset", caseless=True
-)('operator')
+binaryOp = oneOf("== != < > >= <= in notin issuperset notissuperset", caseless=True)("operator")
 
 E = CaselessLiteral("E")
 numberSign = Word("+-", exact=1)
 realNumber = Combine(
-    Optional(numberSign) + (
-        Word(nums) + "." + Optional(Word(nums))
-        | ("." + Word(nums))
-    ) + Optional(E + Optional(numberSign) + Word(nums))
+    Optional(numberSign)
+    + (Word(nums) + "." + Optional(Word(nums)) | ("." + Word(nums)))
+    + Optional(E + Optional(numberSign) + Word(nums))
 )
 
-integer = Combine(
-    Optional(numberSign) + Word(nums) + Optional(
-        E + Optional("+") + Word(nums)
-    )
-)
+integer = Combine(Optional(numberSign) + Word(nums) + Optional(E + Optional("+") + Word(nums)))
 
 # str_ = quotedString.addParseAction(removeQuotes)
 str_ = QuotedString('"') | QuotedString("'")
-bool_ = oneOf('true false', caseless=True)
+bool_ = oneOf("true false", caseless=True)
 
 simpleVals = (
     realNumber.setParseAction(lambda toks: float(toks[0]))
     | integer.setParseAction(lambda toks: int(toks[0]))
     | str_
-    | bool_.setParseAction(lambda toks: toks[0] == 'true')
+    | bool_.setParseAction(lambda toks: toks[0] == "true")
     | propertyPath.setParseAction(lambda toks: SubstituteVal(toks))
 )  # need to add support for alg expressions
 
-propertyVal = (
-    simpleVals
-    | (lparen + Group(delimitedList(simpleVals)) + rparen)
-)
+propertyVal = simpleVals | (lparen + Group(delimitedList(simpleVals)) + rparen)
 
 boolExpression = Forward()
 boolCondition = Group(
-    (Group(propertyVal)('lval') + binaryOp + Group(propertyVal)('rval'))
-    | (lparen + boolExpression + rparen)
+    (Group(propertyVal)("lval") + binaryOp + Group(propertyVal)("rval")) | (lparen + boolExpression + rparen)
 )
 boolExpression << boolCondition + ZeroOrMore((and_ | or_) + boolExpression)
 
 
 def double_equals_trans(lval, rval, operator):
     # double equals
-    if operator in ['in', 'notin']:
+    if operator in ["in", "notin"]:
         if isinstance(rval, list) and len(rval):
             transed_rval = []
             if isinstance(lval, int):
@@ -125,7 +128,7 @@ def double_equals_trans(lval, rval, operator):
                         pass
             rval += transed_rval
 
-    elif operator in ['issuperset', 'notissuperset']:
+    elif operator in ["issuperset", "notissuperset"]:
         # avoid convert set('abc') to {a, b, c}, but keep {'abc'}
         if isinstance(lval, str):
             lval = [lval]
@@ -159,6 +162,7 @@ class BoolRule(object):
                  instantiate a lot of rules and only end up evaluating a
                  small handful.
     """
+
     _compiled = False
     _tokens = None
     _query = None
@@ -184,7 +188,7 @@ class BoolRule(object):
         return self._test_tokens(self._tokens, context)
 
     def _is_match_all(self):
-        return True if self._query == '*' else False
+        return True if self._query == "*" else False
 
     def _compile(self):
         if not self._compiled:
@@ -219,9 +223,9 @@ class BoolRule(object):
         for token in tokens:
 
             if not isinstance(token, ParseResults):
-                if token == 'or' and passed:
+                if token == "or" and passed:
                     return True
-                elif token == 'and' and not passed:
+                elif token == "and" and not passed:
                     return False
                 continue
 
@@ -231,35 +235,33 @@ class BoolRule(object):
 
             items = token.asDict()
 
-            operator = items['operator']
-            lval = self._expand_val(items['lval'][0], context)
-            rval = self._expand_val(items['rval'][0], context)
+            operator = items["operator"]
+            lval = self._expand_val(items["lval"][0], context)
+            rval = self._expand_val(items["rval"][0], context)
             lval, rval = double_equals_trans(lval, rval, operator)
 
-            if operator in ('=', '==', 'eq'):
+            if operator in ("=", "==", "eq"):
                 passed = lval == rval
-            elif operator in ('!=', 'ne'):
+            elif operator in ("!=", "ne"):
                 passed = lval != rval
-            elif operator in ('>', 'gt'):
+            elif operator in (">", "gt"):
                 passed = lval > rval
-            elif operator in ('>=', 'ge'):
+            elif operator in (">=", "ge"):
                 passed = lval >= rval
-            elif operator in ('<', 'lt'):
+            elif operator in ("<", "lt"):
                 passed = lval < rval
-            elif operator in ('<=', 'le'):
+            elif operator in ("<=", "le"):
                 passed = lval <= rval
-            elif operator == 'in':
+            elif operator == "in":
                 passed = lval in rval
-            elif operator == 'notin':
+            elif operator == "notin":
                 passed = lval not in rval
-            elif operator == 'issuperset':
+            elif operator == "issuperset":
                 passed = set(lval).issuperset(set(rval))
-            elif operator == 'notissuperset':
+            elif operator == "notissuperset":
                 passed = not set(lval).issuperset(set(rval))
             else:
-                raise UnknownOperatorException(
-                    "Unknown operator '{}'".format(operator)
-                )
+                raise UnknownOperatorException("Unknown operator '{}'".format(operator))
 
         return passed
 
@@ -269,6 +271,7 @@ class MissingVariableException(Exception):
     Raised when an expression contains a property path that's not supplied in
     the context.
     """
+
     pass
 
 
@@ -280,4 +283,5 @@ class UnknownOperatorException(Exception):
     a token by pyparsing, but it's useful to have this hanging around for when
     additional operators are being added.
     """
+
     pass

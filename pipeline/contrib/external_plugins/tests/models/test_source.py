@@ -13,19 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.contrib.external_plugins.models.base import (
-    ExternalPackageSource,
-    GIT,
-    S3,
-    FILE_SYSTEM)
-from pipeline.contrib.external_plugins.models import (
-    GitRepoSource,
-    S3Source,
-    FileSystemSource)
+from pipeline.contrib.external_plugins.models.base import ExternalPackageSource, GIT, S3, FILE_SYSTEM
+from pipeline.contrib.external_plugins.models import GitRepoSource, S3Source, FileSystemSource
 
 
 class SourceTestCase(TestCase):
-
     def test_source_cls(self):
         self.assertTrue(issubclass(GitRepoSource, ExternalPackageSource))
         self.assertTrue(issubclass(S3Source, ExternalPackageSource))

@@ -22,24 +22,12 @@ from .activity import (  # noqa
     SquareIntervalGenerator,
     NullIntervalGenerator,
     LinearIntervalGenerator,
-    StaticIntervalGenerator
+    StaticIntervalGenerator,
 )
 
-from .event import (  # noqa
-    StartEvent,
-    EndEvent,
-    EmptyEndEvent,
-    EmptyStartEvent,
-    ExecutableEndEvent
-)
+from .event import StartEvent, EndEvent, EmptyEndEvent, EmptyStartEvent, ExecutableEndEvent  # noqa
 
-from .gateway import (  # noqa
-    ParallelGateway,
-    ConditionalParallelGateway,
-    ExclusiveGateway,
-    ConvergeGateway,
-    Condition
-)
+from .gateway import ParallelGateway, ConditionalParallelGateway, ExclusiveGateway, ConvergeGateway, Condition  # noqa
 
 from .signals import post_new_end_event_register
 
@@ -53,7 +41,7 @@ class FlowNodeClsFactory(object):
         ParallelGateway.__name__: ParallelGateway,
         ConditionalParallelGateway.__name__: ConditionalParallelGateway,
         ExclusiveGateway.__name__: ExclusiveGateway,
-        ConvergeGateway.__name__: ConvergeGateway
+        ConvergeGateway.__name__: ConvergeGateway,
     }
 
     @classmethod
@@ -72,7 +60,8 @@ class FlowNodeClsFactory(object):
     @classmethod
     def node_types_without_start_end_event(cls):
         return cls._nodes_types_filter(
-            cls_filter=lambda node_cls: issubclass(node_cls, EndEvent) or issubclass(node_cls, StartEvent))
+            cls_filter=lambda node_cls: issubclass(node_cls, EndEvent) or issubclass(node_cls, StartEvent)
+        )
 
     @classmethod
     def get_node_cls(cls, key):
@@ -81,8 +70,7 @@ class FlowNodeClsFactory(object):
     @classmethod
     def register_node(cls, key, node_cls):
         if key in cls.nodes_cls:
-            raise KeyError("node with key({key}) is already exist: {node}".format(key=key,
-                                                                                  node=cls.nodes_cls[key]))
+            raise KeyError("node with key({key}) is already exist: {node}".format(key=key, node=cls.nodes_cls[key]))
 
         cls.nodes_cls[key] = node_cls
 

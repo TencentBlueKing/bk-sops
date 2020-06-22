@@ -21,10 +21,7 @@ from pipeline.core.signals import pre_variable_register
 @receiver(pre_variable_register, sender=LazyVariable)
 def pre_variable_register_handler(sender, variable_cls, **kwargs):
     try:
-        obj, created = VariableModel.objects.get_or_create(code=variable_cls.code,
-                                                           defaults={
-                                                               'status': __debug__,
-                                                           })
+        obj, created = VariableModel.objects.get_or_create(code=variable_cls.code, defaults={"status": __debug__})
         if not created and not obj.status:
             obj.status = True
             obj.save()

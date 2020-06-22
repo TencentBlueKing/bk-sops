@@ -17,7 +17,6 @@ from .base import EndEventHandler
 
 
 class EmptyEndEventHandler(EndEventHandler):
-
     @staticmethod
     def element_cls():
         return EmptyEndEvent

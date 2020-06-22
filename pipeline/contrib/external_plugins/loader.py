@@ -18,7 +18,7 @@ import traceback
 from pipeline.contrib.external_plugins.models import source_cls_factory
 from pipeline.contrib.external_plugins.utils.importer import importer_context
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 def load_external_modules():
@@ -39,4 +39,4 @@ def _import_modules_in_source(source):
             for mod in source.modules:
                 importlib.import_module(mod)
     except Exception:
-        logger.error('An error occurred when loading {%s}: %s' % (source.name, traceback.format_exc()))
+        logger.error("An error occurred when loading {{{}}}: {}".format(source.name, traceback.format_exc()))

@@ -21,11 +21,10 @@ class Data(object):
         self.outputs = outputs or []
 
     def to_dict(self):
-        base = {'inputs': {},
-                'outputs': self.outputs}
+        base = {"inputs": {}, "outputs": self.outputs}
 
         for key, value in list(self.inputs.items()):
-            base['inputs'][key] = value.to_dict() if isinstance(value, Var) else value
+            base["inputs"][key] = value.to_dict() if isinstance(value, Var) else value
 
         return base
 
@@ -54,24 +53,20 @@ class Var(object):
         self.source_tag = source_tag
 
     def to_dict(self):
-        base = {
-            'type': self.type,
-            'value': self.value
-        }
+        base = {"type": self.type, "value": self.value}
         if self.type == self.LAZY:
-            base['source_tag'] = self.source_tag
+            base["source_tag"] = self.source_tag
 
         return base
 
 
 class DataInput(Var):
-
     def __init__(self, *args, **kwargs):
         super(DataInput, self).__init__(*args, **kwargs)
 
     def to_dict(self):
         base = super(DataInput, self).to_dict()
-        base['is_param'] = True
+        base["is_param"] = True
         return base
 
 
@@ -79,23 +74,23 @@ class NodeOutput(Var):
     def __init__(self, source_act, source_key, *args, **kwargs):
         self.source_act = source_act
         self.source_key = source_key
-        kwargs['value'] = None
+        kwargs["value"] = None
         super(NodeOutput, self).__init__(*args, **kwargs)
 
     def to_dict(self):
         base = super(NodeOutput, self).to_dict()
-        base['source_act'] = self.source_act
-        base['source_key'] = self.source_key
+        base["source_act"] = self.source_act
+        base["source_key"] = self.source_key
         return base
 
 
 class RewritableNodeOutput(Var):
     def __init__(self, source_act, *args, **kwargs):
         self.source_act = source_act
-        kwargs['value'] = None
+        kwargs["value"] = None
         super(RewritableNodeOutput, self).__init__(*args, **kwargs)
 
     def to_dict(self):
         base = super(RewritableNodeOutput, self).to_dict()
-        base['source_act'] = self.source_act
+        base["source_act"] = self.source_act
         return base

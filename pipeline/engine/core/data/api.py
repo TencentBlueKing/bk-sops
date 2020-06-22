@@ -20,7 +20,7 @@ from django.utils.module_loading import import_string
 from pipeline.conf import settings
 from pipeline.engine.exceptions import InvalidDataBackendError
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 _backend = None
 _candidate_backend = None
@@ -31,8 +31,11 @@ def _import_backend(backend_cls_path):
         backend_cls = import_string(backend_cls_path)
         return backend_cls()
     except ImportError:
-        raise InvalidDataBackendError('data backend({}) import error with exception: {}'.format(
-            settings.PIPELINE_DATA_BACKEND, traceback.format_exc()))
+        raise InvalidDataBackendError(
+            "data backend({}) import error with exception: {}".format(
+                settings.PIPELINE_DATA_BACKEND, traceback.format_exc()
+            )
+        )
 
 
 @contextlib.contextmanager
@@ -40,7 +43,7 @@ def _candidate_exc_ensure(propagate):
     try:
         yield
     except Exception:
-        logger.error('candidate data backend operate error: {}'.format(traceback.format_exc()))
+        logger.error("candidate data backend operate error: {}".format(traceback.format_exc()))
 
         if propagate:
             raise
@@ -59,7 +62,7 @@ def _write_operation(method, *args, **kwargs):
     try:
         getattr(_backend, method)(*args, **kwargs)
     except Exception:
-        logger.error('data backend operate error: {}'.format(traceback.format_exc()))
+        logger.error("data backend operate error: {}".format(traceback.format_exc()))
 
         if not _candidate_backend:
             raise
@@ -78,7 +81,7 @@ def _read_operation(method, *args, **kwargs):
     try:
         result = getattr(_backend, method)(*args, **kwargs)
     except Exception:
-        logger.error('data backend operate error: {}'.format(traceback.format_exc()))
+        logger.error("data backend operate error: {}".format(traceback.format_exc()))
 
         if not _candidate_backend:
             raise
@@ -93,32 +96,32 @@ def _read_operation(method, *args, **kwargs):
 
 
 def set_object(key, obj):
-    _write_operation('set_object', key, obj)
+    _write_operation("set_object", key, obj)
 
 
 def del_object(key):
-    _write_operation('del_object', key)
+    _write_operation("del_object", key)
 
 
 def expire_cache(key, obj, expires):
-    _write_operation('expire_cache', key, obj, expires)
+    _write_operation("expire_cache", key, obj, expires)
 
 
 def get_object(key):
-    return _read_operation('get_object', key)
+    return _read_operation("get_object", key)
 
 
 def cache_for(key):
-    return _read_operation('cache_for', key)
+    return _read_operation("cache_for", key)
 
 
 def set_schedule_data(schedule_id, parent_data):
-    return set_object('%s_schedule_parent_data' % schedule_id, parent_data)
+    return set_object("%s_schedule_parent_data" % schedule_id, parent_data)
 
 
 def get_schedule_parent_data(schedule_id):
-    return get_object('%s_schedule_parent_data' % schedule_id)
+    return get_object("%s_schedule_parent_data" % schedule_id)
 
 
 def delete_parent_data(schedule_id):
-    return del_object('%s_schedule_parent_data' % schedule_id)
+    return del_object("%s_schedule_parent_data" % schedule_id)

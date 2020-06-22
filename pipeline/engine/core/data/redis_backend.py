@@ -18,7 +18,6 @@ from pipeline.engine.core.data.base_backend import BaseDataBackend
 
 
 class RedisDataBackend(BaseDataBackend):
-
     def set_object(self, key, obj):
         return settings.redis_inst.set(key, pickle.dumps(obj))
 

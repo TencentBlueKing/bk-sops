@@ -22,14 +22,13 @@ from pipeline.contrib.external_plugins.utils.importer.base import NonstandardMod
 
 
 class DummyImporter(NonstandardModuleImporter):
-
     def __init__(self, **kwargs):
-        super(DummyImporter, self).__init__(modules=kwargs.get('modules', []))
-        self._is_package = kwargs.get('is_package')
-        self._get_code = kwargs.get('get_code')
-        self._get_source = kwargs.get('get_source')
-        self._get_file = kwargs.get('get_file')
-        self._get_path = kwargs.get('get_path')
+        super(DummyImporter, self).__init__(modules=kwargs.get("modules", []))
+        self._is_package = kwargs.get("is_package")
+        self._get_code = kwargs.get("get_code")
+        self._get_source = kwargs.get("get_source")
+        self._get_file = kwargs.get("get_file")
+        self._get_path = kwargs.get("get_path")
 
         self._accept_find_module_request_hook = MagicMock()
         self._pre_load_module_hook = MagicMock()
@@ -65,7 +64,6 @@ class DummyImporter(NonstandardModuleImporter):
 
 
 class NonstandardModuleImporterTestCase(TestCase):
-
     def setUp(self):
         self.imp_acquire_lock_patcher = patch(IMP_ACQUIRE_LOCK, MagicMock())
         self.imp_release_lock_patcher = patch(IMP_RELEASE_LOCK, MagicMock())
@@ -83,47 +81,47 @@ class NonstandardModuleImporterTestCase(TestCase):
     def test_find_module__module_not_in_self_modules(self):
         importer = DummyImporter()
 
-        self.assertIsNone(importer.find_module('django'))
+        self.assertIsNone(importer.find_module("django"))
         importer._accept_find_module_request_hook.assert_not_called()
 
-        self.assertIsNone(importer.find_module('django.test'))
+        self.assertIsNone(importer.find_module("django.test"))
         importer._accept_find_module_request_hook.assert_not_called()
 
-        self.assertIsNone(importer.find_module('django.test.utils'))
+        self.assertIsNone(importer.find_module("django.test.utils"))
         importer._accept_find_module_request_hook.assert_not_called()
 
     def test_find_module__module_in_built_in(self):
         importer = DummyImporter()
 
-        self.assertIsNone(importer.find_module('math'))
+        self.assertIsNone(importer.find_module("math"))
         importer._accept_find_module_request_hook.assert_not_called()
 
     def test_find_module__module_has_name_repetition(self):
-        importer = DummyImporter(modules=['magic_module'])
+        importer = DummyImporter(modules=["magic_module"])
 
-        self.assertIsNone(importer.find_module('magic_module.magic_sub_module.magic_module'))
+        self.assertIsNone(importer.find_module("magic_module.magic_sub_module.magic_module"))
         importer._accept_find_module_request_hook.assert_not_called()
 
     def test_find_module__accept(self):
-        importer = DummyImporter(modules=['magic_module'])
+        importer = DummyImporter(modules=["magic_module"])
 
-        fullname = 'magic_module'
+        fullname = "magic_module"
         self.assertIs(importer, importer.find_module(fullname))
         importer._accept_find_module_request_hook.assert_called_once_with(fullname=fullname, path=None)
         importer._accept_find_module_request_hook.reset_mock()
 
-        fullname = 'magic_module.magic_sub_module_1'
+        fullname = "magic_module.magic_sub_module_1"
         self.assertIs(importer, importer.find_module(fullname))
         importer._accept_find_module_request_hook.assert_called_once_with(fullname=fullname, path=None)
         importer._accept_find_module_request_hook.reset_mock()
 
-        fullname = 'magic_module.magic_sub_module_1.magic_sub_module_2'
+        fullname = "magic_module.magic_sub_module_1.magic_sub_module_2"
         self.assertIs(importer, importer.find_module(fullname))
         importer._accept_find_module_request_hook.assert_called_once_with(fullname=fullname, path=None)
         importer._accept_find_module_request_hook.reset_mock()
 
     def test_load_module__module_already_in_sys_modules(self):
-        fullname = 'exist_module'
+        fullname = "exist_module"
         mod = Object()
         importer = DummyImporter()
 
@@ -133,8 +131,8 @@ class NonstandardModuleImporterTestCase(TestCase):
             imp.release_lock.assert_called_once()
 
     def test_load_module__get_source_raise_import_error(self):
-        sub_module = 'sub_module'
-        fullname = 'exist_module.sub_module'
+        sub_module = "sub_module"
+        fullname = "exist_module.sub_module"
         mod = Object()
         importer = DummyImporter()
         importer.get_source = MagicMock(side_effect=ImportError)
@@ -145,10 +143,10 @@ class NonstandardModuleImporterTestCase(TestCase):
             imp.release_lock.assert_called_once()
 
     def test_load_module__is_package(self):
-        src_code = 'src_code'
-        fullname = 'magic_module'
-        _file = 'file'
-        path = 'path'
+        src_code = "src_code"
+        fullname = "magic_module"
+        _file = "file"
+        path = "path"
         importer = DummyImporter(is_package=True, get_source=src_code, get_file=_file, get_path=path)
 
         with patch(SYS_MODULES, {}):
@@ -167,9 +165,9 @@ class NonstandardModuleImporterTestCase(TestCase):
             imp.release_lock.assert_called_once()
 
     def test_load_module__is_not_package(self):
-        src_code = 'src_code'
-        fullname = 'magic_module.sub_module'
-        _file = 'file'
+        src_code = "src_code"
+        fullname = "magic_module.sub_module"
+        _file = "file"
         importer = DummyImporter(is_package=False, get_source=src_code, get_file=_file)
 
         with patch(SYS_MODULES, {}):
@@ -178,7 +176,7 @@ class NonstandardModuleImporterTestCase(TestCase):
             self.assertIs(sys.modules[fullname], mod)
             self.assertEqual(mod.__file__, _file)
             self.assertIs(mod.__loader__, importer)
-            self.assertEqual(mod.__package__, fullname.rpartition('.')[0])
+            self.assertEqual(mod.__package__, fullname.rpartition(".")[0])
 
             imp.acquire_lock.assert_called_once()
             importer._pre_load_module_hook.assert_called_once_with(fullname=fullname, module=mod)
@@ -187,7 +185,7 @@ class NonstandardModuleImporterTestCase(TestCase):
             imp.release_lock.assert_called_once()
 
     def test_load_module__raise_exception_before_add_module(self):
-        fullname = 'magic_module.sub_module'
+        fullname = "magic_module.sub_module"
         importer = DummyImporter(is_package=False)
         importer.get_source = MagicMock(side_effect=Exception())
         importer._import_error_hook = MagicMock(side_effect=Exception())
@@ -200,7 +198,7 @@ class NonstandardModuleImporterTestCase(TestCase):
             imp.release_lock.assert_called_once()
 
     def test_load_module__raise_exception_after_add_module(self):
-        fullname = 'magic_module.sub_module'
+        fullname = "magic_module.sub_module"
         importer = DummyImporter(is_package=False)
         importer.get_file = MagicMock(side_effect=Exception())
 

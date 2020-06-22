@@ -12,18 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import models, migrations
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('component_framework', '0001_initial'),
+        ("component_framework", "0001_initial"),
     ]
 
     operations = [
-        migrations.DeleteModel(
-            name='ComponentModel',
-        ),
+        migrations.DeleteModel(name="ComponentModel",),
     ]

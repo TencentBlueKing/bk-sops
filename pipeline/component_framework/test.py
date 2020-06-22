@@ -34,7 +34,6 @@ def patch_context(patchers):
 
 
 class ComponentTestMixin(object):
-
     def component_cls(self):
         raise NotImplementedError()
 
@@ -55,53 +54,47 @@ class ComponentTestMixin(object):
 
     @property
     def _failed_cases(self):
-        return getattr(self, '__failed_cases', None)
+        return getattr(self, "__failed_cases", None)
 
     def _format_failure_message(self, no, name, msg):
-        return '[{component_cls} case {no}] - [{name}] fail: {msg}'.format(
-            component_cls=self._component_cls_name,
-            no=no + 1,
-            name=name,
-            msg=msg)
+        return "[{component_cls} case {no}] - [{name}] fail: {msg}".format(
+            component_cls=self._component_cls_name, no=no + 1, name=name, msg=msg
+        )
 
-    def _do_case_assert(self,
-                        service,
-                        method,
-                        assertion,
-                        no,
-                        name,
-                        args=None,
-                        kwargs=None):
+    def _do_case_assert(self, service, method, assertion, no, name, args=None, kwargs=None):
 
         args = args or [service]
         kwargs = kwargs or {}
 
-        data = kwargs.get('data') or args[0]
+        data = kwargs.get("data") or args[0]
 
         result = getattr(service, method)(*args, **kwargs)
 
         assert_success = result in [None, True]  # return none will consider as success
         do_continue = not assert_success
 
-        assert_method = 'assertTrue' if assert_success else 'assertFalse'
+        assert_method = "assertTrue" if assert_success else "assertFalse"
 
-        getattr(self, assert_method)(assertion.success, msg=self._format_failure_message(
-            no=no,
-            name=name,
-            msg='{method} success assertion failed, {method} execute success'.format(
-                method=method
-            )
-        ))
+        getattr(self, assert_method)(
+            assertion.success,
+            msg=self._format_failure_message(
+                no=no,
+                name=name,
+                msg="{method} success assertion failed, {method} execute success".format(method=method),
+            ),
+        )
 
-        self.assertDictEqual(data.outputs, assertion.outputs, msg=self._format_failure_message(
-            no=no,
-            name=name,
-            msg='{method} outputs assertion failed,\nexcept: {e}\nactual: {a}'.format(
-                method=method,
-                e=assertion.outputs,
-                a=data.outputs
-            )
-        ))
+        self.assertDictEqual(
+            data.outputs,
+            assertion.outputs,
+            msg=self._format_failure_message(
+                no=no,
+                name=name,
+                msg="{method} outputs assertion failed,\nexcept: {e}\nactual: {a}".format(
+                    method=method, e=assertion.outputs, a=data.outputs
+                ),
+            ),
+        )
 
         return do_continue
 
@@ -109,34 +102,30 @@ class ComponentTestMixin(object):
         try:
             assertion.do_assert()
         except AssertionError as e:
-            self.assertTrue(False, msg=self._format_failure_message(
-                no=no,
-                name=name,
-                msg='{func} call assert failed: {e}'.format(
-                    func=assertion.func,
-                    e=e
-                )
-            ))
+            self.assertTrue(
+                False,
+                msg=self._format_failure_message(
+                    no=no, name=name, msg="{func} call assert failed: {e}".format(func=assertion.func, e=e)
+                ),
+            )
 
     def _case_pass(self, case):
-        sys.stdout.write("\n[√] <{component}> - [{case_name}]\n".format(
-            component=self._component_cls_name,
-            case_name=case.name,
-        ))
+        sys.stdout.write(
+            "\n[√] <{component}> - [{case_name}]\n".format(component=self._component_cls_name, case_name=case.name,)
+        )
 
     def _case_fail(self, case):
-        sys.stdout.write("\n[×] <{component}> - [{case_name}]\n".format(
-            component=self._component_cls_name,
-            case_name=case.name,
-        ))
+        sys.stdout.write(
+            "\n[×] <{component}> - [{case_name}]\n".format(component=self._component_cls_name, case_name=case.name,)
+        )
 
-        if not hasattr(self, '__failed_cases'):
-            setattr(self, '__failed_cases', [])
+        if not hasattr(self, "__failed_cases"):
+            setattr(self, "__failed_cases", [])
 
         self._failed_cases.append(case)
 
     def _test_fail(self):
-        raise AssertionError('{} cases fail'.format([case.name for case in self._failed_cases]))
+        raise AssertionError("{} cases fail".format([case.name for case in self._failed_cases]))
 
     def test_component(self):
         component = self._component_cls({})
@@ -150,24 +139,24 @@ class ComponentTestMixin(object):
 
                     bound_service = component.service()
 
-                    setattr(bound_service, 'id', case.service_id)
-                    setattr(bound_service, 'logger', MagicMock())
+                    setattr(bound_service, "id", case.service_id)
+                    setattr(bound_service, "logger", MagicMock())
 
                     data = DataObject(inputs=case.inputs)
                     parent_data = DataObject(inputs=case.parent_data)
 
                     # execute result check
-                    do_continue = self._do_case_assert(service=bound_service,
-                                                       method='execute',
-                                                       args=(data, parent_data),
-                                                       assertion=case.execute_assertion,
-                                                       no=no,
-                                                       name=case.name)
+                    do_continue = self._do_case_assert(
+                        service=bound_service,
+                        method="execute",
+                        args=(data, parent_data),
+                        assertion=case.execute_assertion,
+                        no=no,
+                        name=case.name,
+                    )
 
                     for call_assertion in case.execute_call_assertion:
-                        self._do_call_assertion(name=case.name,
-                                                no=no,
-                                                assertion=call_assertion)
+                        self._do_call_assertion(name=case.name, no=no, assertion=call_assertion)
 
                     if do_continue:
                         self._case_pass(case)
@@ -177,12 +166,14 @@ class ComponentTestMixin(object):
 
                         if bound_service.interval is None:
                             # callback case
-                            self._do_case_assert(service=bound_service,
-                                                 method='schedule',
-                                                 args=(data, parent_data, case.schedule_assertion.callback_data),
-                                                 assertion=case.schedule_assertion,
-                                                 no=no,
-                                                 name=case.name)
+                            self._do_case_assert(
+                                service=bound_service,
+                                method="schedule",
+                                args=(data, parent_data, case.schedule_assertion.callback_data),
+                                assertion=case.schedule_assertion,
+                                no=no,
+                                name=case.name,
+                            )
 
                         else:
                             # schedule case
@@ -190,52 +181,58 @@ class ComponentTestMixin(object):
                             assertions = assertions if isinstance(assertions, list) else [assertions]
 
                             for assertion in assertions:
-                                do_continue = self._do_case_assert(service=bound_service,
-                                                                   method='schedule',
-                                                                   args=(data, parent_data),
-                                                                   assertion=assertion,
-                                                                   no=no,
-                                                                   name=case.name)
+                                do_continue = self._do_case_assert(
+                                    service=bound_service,
+                                    method="schedule",
+                                    args=(data, parent_data),
+                                    assertion=assertion,
+                                    no=no,
+                                    name=case.name,
+                                )
 
-                                self.assertEqual(assertion.schedule_finished,
-                                                 bound_service.is_schedule_finished(),
-                                                 msg=self._format_failure_message(
-                                                     no=no,
-                                                     name=case.name,
-                                                     msg='schedule_finished assertion failed:'
-                                                         '\nexpected: {expected}\nactual: {actual}'.format(
-                                                         expected=assertion.schedule_finished,  # noqa
-                                                         actual=bound_service.is_schedule_finished())))  # noqa
+                                self.assertEqual(
+                                    assertion.schedule_finished,
+                                    bound_service.is_schedule_finished(),
+                                    msg=self._format_failure_message(
+                                        no=no,
+                                        name=case.name,
+                                        msg="schedule_finished assertion failed:"
+                                        "\nexpected: {expected}\nactual: {actual}".format(
+                                            expected=assertion.schedule_finished,  # noqa
+                                            actual=bound_service.is_schedule_finished(),
+                                        ),
+                                    ),
+                                )  # noqa
 
                                 if do_continue:
                                     break
 
                         for call_assertion in case.schedule_call_assertion:
-                            self._do_call_assertion(name=case.name,
-                                                    no=no,
-                                                    assertion=call_assertion)
+                            self._do_call_assertion(name=case.name, no=no, assertion=call_assertion)
 
                     self._case_pass(case)
 
             except Exception:
                 self._case_fail(case)
-                sys.stdout.write('{}\n'.format(traceback.format_exc()))
+                sys.stdout.write("{}\n".format(traceback.format_exc()))
 
         if self._failed_cases:
             self._test_fail()
 
 
 class ComponentTestCase(object):
-    def __init__(self,
-                 inputs,
-                 parent_data,
-                 execute_assertion,
-                 schedule_assertion,
-                 name='',
-                 patchers=None,
-                 execute_call_assertion=None,
-                 schedule_call_assertion=None,
-                 service_id=None):
+    def __init__(
+        self,
+        inputs,
+        parent_data,
+        execute_assertion,
+        schedule_assertion,
+        name="",
+        patchers=None,
+        execute_call_assertion=None,
+        schedule_call_assertion=None,
+        service_id=None,
+    ):
         self.inputs = inputs
         self.parent_data = parent_data
         self.execute_assertion = execute_assertion
@@ -255,7 +252,7 @@ class CallAssertion(object):
 
     def do_assert(self):
         if not callable(self.func):
-            module_and_func = self.func.rsplit('.', 1)
+            module_and_func = self.func.rsplit(".", 1)
             mod_path = module_and_func[0]
             func_name = module_and_func[1]
             mod = importlib.import_module(mod_path)
@@ -266,9 +263,10 @@ class CallAssertion(object):
         if not self.calls:
             func.assert_not_called()
         else:
-            assert func.call_count == len(self.calls), "Expected 'mock' have been called {expect} times. " \
-                                                       "Called {actual} times".format(expect=len(self.calls),
-                                                                                      actual=func.call_count)
+            assert func.call_count == len(self.calls), (
+                "Expected 'mock' have been called {expect} times. "
+                "Called {actual} times".format(expect=len(self.calls), actual=func.call_count)
+            )
             func.assert_has_calls(calls=self.calls, any_order=self.any_order)
 
         func.reset_mock()

@@ -19,16 +19,15 @@ from pipeline.contrib.external_plugins.models import base
 
 
 class BaseModuleTestCase(TestCase):
-
     def test_package_source(self):
-        source_type = 'source_type'
+        source_type = "source_type"
 
         cls_factory = {}
 
         with patch(MODELS_BASE_SOURCE_CLS_FACTORY, cls_factory):
+
             @base.package_source
             class APackageSource(object):
-
                 @staticmethod
                 def type():
                     return source_type

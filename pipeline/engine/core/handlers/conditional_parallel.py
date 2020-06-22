@@ -25,13 +25,12 @@ from pipeline.engine.models import (
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['ConditionalParallelGatewayHandler']
+__all__ = ["ConditionalParallelGatewayHandler"]
 
 
 class ConditionalParallelGatewayHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return ConditionalParallelGateway
@@ -52,9 +51,9 @@ class ConditionalParallelGatewayHandler(FlowElementHandler):
 
         for target in targets:
             try:
-                child = PipelineProcess.objects.fork_child(parent=process,
-                                                           current_node_id=target.id,
-                                                           destination_id=element.converge_gateway_id)
+                child = PipelineProcess.objects.fork_child(
+                    parent=process, current_node_id=target.id, destination_id=element.converge_gateway_id
+                )
             except PipelineException as e:
                 logger.error(traceback.format_exc())
                 Status.objects.fail(element, ex_data=str(e))

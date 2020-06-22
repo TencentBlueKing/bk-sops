@@ -25,10 +25,7 @@ def pipeline_ready_handler(sender, process_id, **kwargs):
     ProcessCeleryTask.objects.start_task(
         process_id=process_id,
         start_func=tasks.start.apply_async,
-        kwargs={
-            'args': [process_id],
-            'priority': PipelineProcess.objects.priority_for_process(process_id)
-        }
+        kwargs={"args": [process_id], "priority": PipelineProcess.objects.priority_for_process(process_id)},
     )
 
 
@@ -40,10 +37,7 @@ def child_process_ready_handler(sender, child_id, **kwargs):
     ProcessCeleryTask.objects.start_task(
         process_id=child_id,
         start_func=tasks.dispatch.apply_async,
-        kwargs={
-            'args': [child_id],
-            'priority': PipelineProcess.objects.priority_for_process(child_id)
-        }
+        kwargs={"args": [child_id], "priority": PipelineProcess.objects.priority_for_process(child_id)},
     )
 
 
@@ -52,15 +46,16 @@ def process_ready_handler(sender, process_id, current_node_id=None, call_from_ch
         process_id=process_id,
         start_func=tasks.process_wake_up.apply_async,
         kwargs={
-            'args': [process_id, current_node_id, call_from_child],
-            'priority': PipelineProcess.objects.priority_for_process(process_id)
-        }
+            "args": [process_id, current_node_id, call_from_child],
+            "priority": PipelineProcess.objects.priority_for_process(process_id),
+        },
     )
 
 
 def batch_process_ready_handler(sender, process_id_list, pipeline_id, **kwargs):
-    tasks.batch_wake_up.apply_async(args=[process_id_list, pipeline_id],
-                                    priority=PipelineModel.objects.priority_for_pipeline(pipeline_id))
+    tasks.batch_wake_up.apply_async(
+        args=[process_id_list, pipeline_id], priority=PipelineModel.objects.priority_for_pipeline(pipeline_id)
+    )
 
 
 def wake_from_schedule_handler(sender, process_id, activity_id, **kwargs):
@@ -68,9 +63,9 @@ def wake_from_schedule_handler(sender, process_id, activity_id, **kwargs):
         process_id=process_id,
         start_func=tasks.wake_from_schedule.apply_async,
         kwargs={
-            'args': [process_id, activity_id],
-            'priority': PipelineProcess.objects.priority_for_process(process_id)
-        }
+            "args": [process_id, activity_id],
+            "priority": PipelineProcess.objects.priority_for_process(process_id),
+        },
     )
 
 
@@ -78,10 +73,7 @@ def process_unfreeze_handler(sender, process_id, **kwargs):
     ProcessCeleryTask.objects.start_task(
         process_id=process_id,
         start_func=tasks.process_unfreeze.apply_async,
-        kwargs={
-            'args': [process_id],
-            'priority': PipelineProcess.objects.priority_for_process(process_id)
-        }
+        kwargs={"args": [process_id], "priority": PipelineProcess.objects.priority_for_process(process_id)},
     )
 
 
@@ -90,10 +82,10 @@ def schedule_ready_handler(sender, process_id, schedule_id, countdown, **kwargs)
         schedule_id=schedule_id,
         start_func=tasks.service_schedule.apply_async,
         kwargs={
-            'args': [process_id, schedule_id],
-            'countdown': countdown,
-            'priority': PipelineProcess.objects.priority_for_process(process_id)
-        }
+            "args": [process_id, schedule_id],
+            "countdown": countdown,
+            "priority": PipelineProcess.objects.priority_for_process(process_id),
+        },
     )
 
 
@@ -102,10 +94,10 @@ def service_activity_timeout_monitor_start_handler(sender, node_id, version, roo
         node_id=node_id,
         start_func=tasks.node_timeout_check.apply_async,
         kwargs={
-            'args': [node_id, version, root_pipeline_id],
-            'countdown': countdown,
-            'priority': PipelineModel.objects.priority_for_pipeline(root_pipeline_id)
-        }
+            "args": [node_id, version, root_pipeline_id],
+            "countdown": countdown,
+            "priority": PipelineModel.objects.priority_for_pipeline(root_pipeline_id),
+        },
     )
 
 

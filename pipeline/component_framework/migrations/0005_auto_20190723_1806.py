@@ -19,18 +19,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('component_framework', '0004_auto_20180413_1800'),
+        ("component_framework", "0004_auto_20180413_1800"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='componentmodel',
-            name='version',
-            field=models.CharField(default=b'legacy', max_length=64, verbose_name='\u7ec4\u4ef6\u7248\u672c'),
+            model_name="componentmodel",
+            name="version",
+            field=models.CharField(default=b"legacy", max_length=64, verbose_name="\u7ec4\u4ef6\u7248\u672c"),
         ),
         migrations.AlterField(
-            model_name='componentmodel',
-            name='code',
-            field=models.CharField(max_length=255, verbose_name='\u7ec4\u4ef6\u7f16\u7801'),
+            model_name="componentmodel",
+            name="code",
+            field=models.CharField(max_length=255, verbose_name="\u7ec4\u4ef6\u7f16\u7801"),
         ),
     ]

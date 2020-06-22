@@ -24,39 +24,42 @@ handlers.executable_end_event_handler = handlers.ExecutableEndEventHandler()
 
 
 class ExecutableEndEventHandlerTestCase(TestCase):
-
     def test_element_cls(self):
         self.assertEqual(handlers.ExecutableEndEventHandler.element_cls(), ExecutableEndEvent)
 
-    @patch(ENGINE_HANDLERS_END_EVENT_HANDLE, MagicMock(return_value='token_1'))
+    @patch(ENGINE_HANDLERS_END_EVENT_HANDLE, MagicMock(return_value="token_1"))
     def test_handle__success(self):
         end_event = ExecutableEndEventObject()
-        process = MockPipelineProcess(in_subprocess_return=True,
-                                      root_pipeline=IdentifyObject(),
-                                      top_pipeline=IdentifyObject())
+        process = MockPipelineProcess(
+            in_subprocess_return=True, root_pipeline=IdentifyObject(), top_pipeline=IdentifyObject()
+        )
         status = MockStatus()
 
         hdl_result = handlers.executable_end_event_handler(process, end_event, status)
 
-        self.assertEqual(hdl_result, 'token_1')
+        self.assertEqual(hdl_result, "token_1")
 
-        end_event.execute.assert_called_once_with(in_subprocess=process.in_subprocess,
-                                                  root_pipeline_id=process.root_pipeline.id,
-                                                  current_pipeline_id=process.top_pipeline.id)
+        end_event.execute.assert_called_once_with(
+            in_subprocess=process.in_subprocess,
+            root_pipeline_id=process.root_pipeline.id,
+            current_pipeline_id=process.top_pipeline.id,
+        )
 
         super_handle = super(handlers.ExecutableEndEventHandler, handlers.executable_end_event_handler).handle
         super_handle.assert_called_once_with(process, end_event, status)
 
     @patch(ENGINE_HANDLERS_END_EVENT_HANDLE, MagicMock())
     @patch(PIPELINE_STATUS_FAIL, MagicMock())
-    @patch('pipeline.engine.core.handlers.endevent.executable_end_event.traceback.format_exc',
-           MagicMock(return_value='token_2'))
+    @patch(
+        "pipeline.engine.core.handlers.endevent.executable_end_event.traceback.format_exc",
+        MagicMock(return_value="token_2"),
+    )
     def test_handle__raise_exception(self):
         end_event = ExecutableEndEventObject()
         end_event.execute = MagicMock(side_effect=Exception)
-        process = MockPipelineProcess(in_subprocess_return=True,
-                                      root_pipeline=IdentifyObject(),
-                                      top_pipeline=IdentifyObject())
+        process = MockPipelineProcess(
+            in_subprocess_return=True, root_pipeline=IdentifyObject(), top_pipeline=IdentifyObject()
+        )
         status = MockStatus()
 
         hdl_result = handlers.executable_end_event_handler(process, end_event, status)
@@ -65,13 +68,15 @@ class ExecutableEndEventHandlerTestCase(TestCase):
         self.assertFalse(hdl_result.should_return)
         self.assertTrue(hdl_result.should_sleep)
 
-        end_event.execute.assert_called_once_with(in_subprocess=process.in_subprocess,
-                                                  root_pipeline_id=process.root_pipeline.id,
-                                                  current_pipeline_id=process.top_pipeline.id)
+        end_event.execute.assert_called_once_with(
+            in_subprocess=process.in_subprocess,
+            root_pipeline_id=process.root_pipeline.id,
+            current_pipeline_id=process.top_pipeline.id,
+        )
 
-        self.assertEqual(end_event.data.outputs.ex_data, 'token_2')
+        self.assertEqual(end_event.data.outputs.ex_data, "token_2")
 
-        Status.objects.fail.assert_called_once_with(end_event, 'token_2')
+        Status.objects.fail.assert_called_once_with(end_event, "token_2")
 
         super_handle = super(handlers.ExecutableEndEventHandler, handlers.executable_end_event_handler).handle
         super_handle.assert_not_called()

@@ -17,11 +17,7 @@ import ujson as json
 
 from pipeline.core.flow.base import FlowNode
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
-from pipeline.exceptions import (
-    InvalidOperationException,
-    ConditionExhaustedException,
-    EvaluationException
-)
+from pipeline.exceptions import InvalidOperationException, ConditionExhaustedException, EvaluationException
 from pipeline.utils.boolrule import BoolRule
 
 
@@ -43,8 +39,9 @@ class ExclusiveGateway(Gateway):
 
         if not next_flow:  # determine fail
             if not default_flow:  # try to use default flow
-                raise ConditionExhaustedException('all conditions of branches are False '
-                                                  'while default flow is not appointed')
+                raise ConditionExhaustedException(
+                    "all conditions of branches are False " "while default flow is not appointed"
+                )
             return default_flow.target
 
         return next_flow.target
@@ -52,7 +49,7 @@ class ExclusiveGateway(Gateway):
     def target_for_sequence_flow(self, flow_id):
         flow_to_target = {c.sequence_flow.id: c.sequence_flow.target for c in self.conditions}
         if flow_id not in flow_to_target:
-            raise InvalidOperationException('sequence flow(%s) does not exist.' % flow_id)
+            raise InvalidOperationException("sequence flow(%s) does not exist." % flow_id)
         return flow_to_target[flow_id]
 
     def _determine_next_flow_with_boolrule(self, data):
@@ -68,11 +65,8 @@ class ExclusiveGateway(Gateway):
                 result = BoolRule(resolved_evaluate).test(data)
             except Exception as e:
                 raise EvaluationException(
-                    'evaluate[%s] fail with data[%s] message: %s' % (
-                        condition.evaluate,
-                        json.dumps(deformatted_data),
-                        e
-                    )
+                    "evaluate[%s] fail with data[%s] message: %s"
+                    % (condition.evaluate, json.dumps(deformatted_data), e)
                 )
             if result:
                 return condition.sequence_flow
@@ -89,7 +83,7 @@ class ParallelGateway(Gateway):
         self.converge_gateway_id = converge_gateway_id
 
     def next(self):
-        raise InvalidOperationException('can not determine next node for parallel gateway.')
+        raise InvalidOperationException("can not determine next node for parallel gateway.")
 
 
 class ConditionalParallelGateway(Gateway):
@@ -112,25 +106,22 @@ class ConditionalParallelGateway(Gateway):
                 result = BoolRule(resolved_evaluate).test(data)
             except Exception as e:
                 raise EvaluationException(
-                    'evaluate[%s] fail with data[%s] message: %s' % (
-                        condition.evaluate,
-                        json.dumps(deformatted_data),
-                        e
-                    )
+                    "evaluate[%s] fail with data[%s] message: %s"
+                    % (condition.evaluate, json.dumps(deformatted_data), e)
                 )
             if result:
                 targets.append(condition.sequence_flow.target)
 
         if not targets:
-            raise ConditionExhaustedException('all conditions of branches are False')
+            raise ConditionExhaustedException("all conditions of branches are False")
 
         return targets
 
     def next(self):
-        raise InvalidOperationException('can not determine next node for conditional parallel gateway.')
+        raise InvalidOperationException("can not determine next node for conditional parallel gateway.")
 
     def skip(self):
-        raise InvalidOperationException('can not skip conditional parallel gateway.')
+        raise InvalidOperationException("can not skip conditional parallel gateway.")
 
 
 class ConvergeGateway(Gateway):
@@ -138,7 +129,7 @@ class ConvergeGateway(Gateway):
         return self.outgoing.unique_one().target
 
     def skip(self):
-        raise InvalidOperationException('can not skip conditional converge gateway.')
+        raise InvalidOperationException("can not skip conditional converge gateway.")
 
 
 class Condition(object):

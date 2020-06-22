@@ -70,7 +70,7 @@ def convert_bytes_to_str(obj):
             for attr, value in obj.items():
 
                 if isinstance(attr, bytes):
-                    attr = attr.decode('utf-8')
+                    attr = attr.decode("utf-8")
 
                 value = _convert(value, converted)
 
@@ -89,11 +89,11 @@ def convert_bytes_to_str(obj):
         elif isinstance(obj, bytes):
 
             try:
-                obj = obj.decode('utf-8')
+                obj = obj.decode("utf-8")
             except Exception:
                 pass
 
-        elif hasattr(obj, '__dict__'):
+        elif hasattr(obj, "__dict__"):
 
             if id(obj) in converted:
                 return obj
@@ -105,7 +105,7 @@ def convert_bytes_to_str(obj):
             for attr, value in obj.__dict__.items():
 
                 if isinstance(attr, bytes):
-                    attr = attr.decode('utf-8')
+                    attr = attr.decode("utf-8")
 
                 new__dict__[attr] = _convert(value, converted)
 

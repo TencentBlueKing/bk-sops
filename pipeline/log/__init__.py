@@ -34,4 +34,4 @@ def setup(level=None):
         logging._releaseLock()
 
 
-default_app_config = 'pipeline.log.apps.LogConfig'
+default_app_config = "pipeline.log.apps.LogConfig"
