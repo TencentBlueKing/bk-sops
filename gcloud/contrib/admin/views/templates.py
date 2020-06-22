@@ -66,6 +66,16 @@ def _refresh_template_notify_type(template, notify_trans_map):
 
         after = notify_type
 
+        if before == after:
+            return {
+                "type": "task template",
+                "id": template.id,
+                "name": template.name,
+                "before": before,
+                "after": after,
+                "err": err,
+            }
+
         template.notify_type = json.dumps(notify_type)
         template.save()
     except Exception:
