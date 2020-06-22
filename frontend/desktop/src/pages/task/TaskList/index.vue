@@ -14,6 +14,7 @@
         <div class="list-wrapper">
             <div class="operation-area">
                 <advance-search-form
+                    id="taskList"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -191,7 +192,7 @@
             key: 'executeTime',
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('执行开始'),
-            value: []
+            value: ['', '']
         },
         {
             type: 'select',
@@ -199,7 +200,8 @@
             key: 'category',
             loading: false,
             placeholder: i18n.t('请选择分类'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'select',
@@ -207,7 +209,8 @@
             key: 'createMethod',
             loading: false,
             placeholder: i18n.t('请选择创建方式'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'input',
@@ -233,7 +236,8 @@
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
                 { 'value': 'runing', 'name': i18n.t('未完成') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
-            ]
+            ],
+            value: ''
         }
     ]
     export default {

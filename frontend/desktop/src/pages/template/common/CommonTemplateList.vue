@@ -20,6 +20,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     ref="advanceSearch"
+                    id="commonTplList"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
@@ -236,7 +237,8 @@
             key: 'category',
             loading: false,
             placeholder: i18n.t('请选择分类'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'dateRange',
@@ -254,7 +256,8 @@
                 { 'value': 1, name: i18n.t('是') },
                 { 'value': -1, name: i18n.t('否') },
                 { 'value': 0, name: i18n.t('无子流程') }
-            ]
+            ],
+            value: ''
         },
         {
             type: 'input',
