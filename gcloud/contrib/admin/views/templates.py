@@ -85,14 +85,14 @@ def _refresh_template_notify_type(template, notify_trans_map):
 def refresh_template_notify_type(request):
 
     try:
-        notify_trans_map = json.loads(request.GET.notify_trans_map)
+        notify_trans_map = json.loads(request.GET["notify_trans_map"])
     except Exception:
         return JsonResponse({"result": False, "message": "notify_trans_map is not a valid JSON"})
 
     replace_results = []
 
-    task_templates = TaskTemplate.objects.all()
-    common_templates = CommonTemplate.objects.all()
+    task_templates = TaskTemplate.objects.filter(is_deleted=False)
+    common_templates = CommonTemplate.objects.filter(is_deleted=False)
     with transaction.atomic():
         for template in task_templates:
             replace_results.append(_refresh_template_notify_type(template, notify_trans_map))
