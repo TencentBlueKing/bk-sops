@@ -59,3 +59,10 @@ class OP(object):
         "numberic": [EQ, NOT_EQ, IN, NOT_IN, LT, LTE, GT, GTE],
         "boolean": [EQ, NOT_EQ, IN, NOT_IN],
     }
+
+
+# iam keywords
+
+KEYWORD_BK_IAM_PATH = "_bk_iam_path_"
+
+KEYWORD_BK_IAM_PATH_FIELD_SUFFIX = ".%s" % KEYWORD_BK_IAM_PATH

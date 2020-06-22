@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import six
 
 from iam import OP
+from iam.eval.expression import field_value_convert
 from .base import Converter
 
 
@@ -156,6 +157,10 @@ class SQLConverter(Converter):
 
         value = data["value"]
         field = data["field"]
+
+        # 权限中心保留字预处理
+        field, value = field_value_convert(op, field, value)
+
         if self.key_mapping and field in self.key_mapping:
             field = self.key_mapping.get(field)
 
