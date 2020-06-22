@@ -32,12 +32,6 @@ def get_ip_by_regex(ip_str):
         ret.append(match.group())
     return ret
 
-    """
-    @summary: IP 格式化，如果是多 IP 的主机，只取第一个 IP 作为代表
-    @param ip:
-    @return:
-    """
-
 
 def format_sundry_ip(ip):
     """返回逗号分隔多 IP 的第一个 IP
