@@ -26,7 +26,6 @@ class MockPipelineTemplate(object):
 
 
 class PipelineSignalHandlerTestCase(TestCase):
-
     def test_template_pre_save_handler(self):
         template_to_be_delete = MockPipelineTemplate(is_deleted=True)
         handlers.pipeline_template_pre_save_handler(sender=PipelineTemplate, instance=template_to_be_delete)

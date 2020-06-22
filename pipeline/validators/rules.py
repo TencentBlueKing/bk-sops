@@ -19,28 +19,16 @@ FLOW_NODES_WITHOUT_STARTEVENT = FlowNodeClsFactory.node_types_without_start_even
 
 FLOW_NODES_WITHOUT_START_AND_END = FlowNodeClsFactory.node_types_without_start_end_event()
 
-SOURCE_RULE = {
-    "min_in": 0,
-    "max_in": 0,
-    "min_out": 1,
-    "max_out": 1,
-    "allowed_out": FLOW_NODES_WITHOUT_START_AND_END
-}
+SOURCE_RULE = {"min_in": 0, "max_in": 0, "min_out": 1, "max_out": 1, "allowed_out": FLOW_NODES_WITHOUT_START_AND_END}
 
-SINK_RULE = {
-    "min_in": 1,
-    "max_in": MAX_IN,
-    "min_out": 0,
-    "max_out": 0,
-    "allowed_out": []
-}
+SINK_RULE = {"min_in": 1, "max_in": MAX_IN, "min_out": 0, "max_out": 0, "allowed_out": []}
 
 ACTIVITY_RULE = {
     "min_in": 1,
     "max_in": MAX_IN,
     "min_out": 1,
     "max_out": 1,
-    "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
+    "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT,
 }
 
 EMIT_RULE = {
@@ -48,7 +36,7 @@ EMIT_RULE = {
     "max_in": MAX_IN,
     "min_out": 1,
     "max_out": MAX_OUT,
-    "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
+    "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT,
 }
 
 CONVERGE_RULE = {
@@ -56,7 +44,7 @@ CONVERGE_RULE = {
     "max_in": MAX_IN,
     "min_out": 1,
     "max_out": 1,
-    "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
+    "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT,
 }
 
 # rules of activity graph
@@ -68,5 +56,5 @@ NODE_RULES = {
     "ParallelGateway": EMIT_RULE,
     "ConditionalParallelGateway": EMIT_RULE,
     "ConvergeGateway": CONVERGE_RULE,
-    "SubProcess": ACTIVITY_RULE
+    "SubProcess": ACTIVITY_RULE,
 }

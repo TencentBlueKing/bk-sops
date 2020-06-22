@@ -12,20 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('log', '0004_auto_20180814_1555'),
+        ("log", "0004_auto_20180814_1555"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='logentry',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="logentry",
+            name="id",
+            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name="ID"),
         ),
     ]

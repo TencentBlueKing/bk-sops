@@ -21,14 +21,14 @@ class LogEntryManager(models.Manager):
         self.filter(node_id=node_id, history_id=-1).update(history_id=history_id)
 
     def plain_log_for_node(self, node_id, history_id):
-        entries = self.order_by('id').filter(node_id=node_id, history_id=history_id)
+        entries = self.order_by("id").filter(node_id=node_id, history_id=history_id)
         plain_entries = []
         for entry in entries:
-            plain_entries.append('[%s %s] %s, exception: %s' % (entry.logged_at.strftime('%Y-%m-%d %H:%M:%S'),
-                                                                entry.level_name,
-                                                                entry.message,
-                                                                entry.exception))
-        return '\n'.join(plain_entries)
+            plain_entries.append(
+                "[%s %s] %s, exception: %s"
+                % (entry.logged_at.strftime("%Y-%m-%d %H:%M:%S"), entry.level_name, entry.message, entry.exception)
+            )
+        return "\n".join(plain_entries)
 
     def delete_expired_log(self, interval):
         expired_date = timezone.now() + timezone.timedelta(days=(-interval))

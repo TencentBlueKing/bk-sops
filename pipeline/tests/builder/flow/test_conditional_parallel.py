@@ -29,32 +29,24 @@ class ConditionalParallelGatewayTestCase(TestCase):
         self.assertEqual(e.outgoing, [])
         self.assertEqual(e.conditions, {})
 
-        e = ConditionalParallelGateway(id='123', name='test_eg', outgoing=[1, 2, 3], conditions={0: '123'})
-        self.assertEqual(e.id, '123')
-        self.assertEqual(e.name, 'test_eg')
+        e = ConditionalParallelGateway(id="123", name="test_eg", outgoing=[1, 2, 3], conditions={0: "123"})
+        self.assertEqual(e.id, "123")
+        self.assertEqual(e.name, "test_eg")
         self.assertEqual(e.outgoing, [1, 2, 3])
-        self.assertEqual(e.conditions, {0: '123'})
+        self.assertEqual(e.conditions, {0: "123"})
 
     def test_add_condition(self):
-        e = ConditionalParallelGateway(id='123', name='test_eg', outgoing=[1, 2, 3], conditions={0: '123'})
-        e.add_condition(1, '456')
-        self.assertEqual(e.conditions, {0: '123', 1: '456'})
+        e = ConditionalParallelGateway(id="123", name="test_eg", outgoing=[1, 2, 3], conditions={0: "123"})
+        e.add_condition(1, "456")
+        self.assertEqual(e.conditions, {0: "123", 1: "456"})
 
     def test_link_conditions_with(self):
         e = ConditionalParallelGateway(
-            id='123',
-            name='test_eg',
-            outgoing=[1, 2, 3],
-            conditions={
-                0: '123',
-                1: '456',
-                2: '789'
-            })
+            id="123", name="test_eg", outgoing=[1, 2, 3], conditions={0: "123", 1: "456", 2: "789"}
+        )
 
-        outgoing = ['abc', 'def', 'ghi']
+        outgoing = ["abc", "def", "ghi"]
         conditions = e.link_conditions_with(outgoing)
-        self.assertEqual(conditions, {
-            'abc': {'evaluate': '123'},
-            'def': {'evaluate': '456'},
-            'ghi': {'evaluate': '789'}
-        })
+        self.assertEqual(
+            conditions, {"abc": {"evaluate": "123"}, "def": {"evaluate": "456"}, "ghi": {"evaluate": "789"}}
+        )

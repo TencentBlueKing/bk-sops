@@ -21,7 +21,7 @@
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
                         <div
-                            class="group-text choose-plugin-btn"
+                            class="operate-btn"
                             @click="$emit('openSelectorPanel')">
                             {{ formData.plugin ? $t('重选') : $t('选择') }}
                         </div>
@@ -114,7 +114,13 @@
             <bk-form-item :label="$t('流程模板')" :required="true" property="tpl">
                 <bk-input :value="formData.name" readonly>
                     <template slot="append">
-                        <div class="group-text choose-plugin-btn" @click="$emit('openSelectorPanel')">
+                        <div
+                            v-if="basicInfo.tpl"
+                            class="view-subflow"
+                            @click="$emit('viewSubflow', basicInfo.tpl)">
+                            <i class="bk-icon common-icon-box-top-right-corner"></i>
+                        </div>
+                        <div class="operate-btn" @click="$emit('openSelectorPanel')">
                             {{ formData.tpl ? $t('重选') : $t('选择') }}
                         </div>
                     </template>
@@ -412,9 +418,11 @@
             color: #63656e;
         }
         .bk-form-control .group-box.group-append {
+            display: flex;
             margin-left: -1px;
+            background: #e1ecff;
+            border: none;
             z-index: 11;
-            border: 1px solid #3a84ff;
         }
         .form-item-tips {
             position: absolute;
@@ -425,14 +433,30 @@
                 color: #f4aa1a;
             }
         }
-        .choose-plugin-btn {
-            padding: 0;
-            width: 68px;
-            height: 30px;
-            line-height: 30px;
+        .view-subflow {
+            display: flex;
+            padding: 0 10px;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: #63656e;
+            background: #fafbfd;
+            border-top: 1px solid #dcdee5;
+            border-bottom: 1px solid #dcdee5;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
+        }
+        .operate-btn {
+            display: inline-block;
+            width: 58px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
             color: #3a84ff;
-            background: #e1ecff;
             text-align: center;
+            border: 1px solid #3a84ff;
             cursor: pointer;
         }
         .choose-plugin-input {

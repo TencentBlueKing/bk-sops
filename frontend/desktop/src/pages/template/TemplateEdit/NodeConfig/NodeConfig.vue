@@ -42,6 +42,7 @@
                             :input-loading="inputLoading"
                             @openSelectorPanel="isSelectorPanelShow = true"
                             @versionChange="versionChange"
+                            @viewSubflow="onViewSubflow"
                             @updateSubflowVersion="updateSubflowVersion"
                             @update="updateBasicInfo">
                         </basic-info>
@@ -91,6 +92,7 @@
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
                     @back="isSelectorPanelShow = false"
+                    @viewSubflow="onViewSubflow"
                     @select="onPluginOrTplChange">
                 </selector-panel>
             </template>
@@ -120,6 +122,7 @@
             NoData
         },
         props: {
+            project_id: [String, Number],
             nodeId: String,
             settingActiveTab: String,
             atomList: Array,
@@ -669,6 +672,35 @@
                         }
                     }
                 }
+            },
+            // 查看子流程模板
+            onViewSubflow (id) {
+                let pathData = {}
+                if (this.common) {
+                    pathData = {
+                        name: 'commonTemplatePanel',
+                        params: {
+                            type: 'edit'
+                        },
+                        query: {
+                            template_id: id,
+                            common: '1'
+                        }
+                    }
+                } else {
+                    pathData = {
+                        name: 'templatePanel',
+                        params: {
+                            type: 'edit',
+                            project_id: this.project_id
+                        },
+                        query: {
+                            template_id: id
+                        }
+                    }
+                }
+                const { href } = this.$router.resolve(pathData)
+                window.open(href, '_blank')
             },
             // 节点配置面板表单校验，基础信息和输入参数
             validate () {

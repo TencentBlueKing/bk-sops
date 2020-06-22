@@ -19,5 +19,5 @@ except ImportError:
 
 def install(requirements):
     for r in requirements:
-        if pipmain(['install', r]) != 0:
-            raise RuntimeError('can not install requirement %s' % r)
+        if pipmain(["install", r]) != 0:
+            raise RuntimeError("can not install requirement %s" % r)

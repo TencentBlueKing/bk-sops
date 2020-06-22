@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
@@ -20,20 +19,16 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='VariableModel',
+            name="VariableModel",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=255, unique=True, verbose_name='\u53d8\u91cf\u7f16\u7801')),
-                ('status', models.BooleanField(default=True, verbose_name='\u53d8\u91cf\u662f\u5426\u53ef\u7528')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("code", models.CharField(max_length=255, unique=True, verbose_name="\u53d8\u91cf\u7f16\u7801")),
+                ("status", models.BooleanField(default=True, verbose_name="\u53d8\u91cf\u662f\u5426\u53ef\u7528")),
             ],
-            options={
-                'verbose_name': 'Variable\u53d8\u91cf',
-                'verbose_name_plural': 'Variable\u53d8\u91cf',
-            },
+            options={"verbose_name": "Variable\u53d8\u91cf", "verbose_name_plural": "Variable\u53d8\u91cf"},
         ),
     ]

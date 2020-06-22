@@ -19,13 +19,13 @@ from importlib import import_module
 
 from django.utils._os import npath, upath
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 def find_all_modules(module_dir, sub_dir=None):
     modules = []
     for _, name, is_pkg in pkgutil.iter_modules([npath(module_dir)]):
-        if name.startswith('_'):
+        if name.startswith("_"):
             continue
         module = name if sub_dir is None else "{}.{}".format(sub_dir, name)
         if is_pkg:
@@ -48,7 +48,7 @@ def autodiscover_items(module):
         try:
             __import__(module_path)
         except Exception as e:
-            logger.error(f'[!] module({module_path}) import failed with err: {e}')
+            logger.error(f"[!] module({module_path}) import failed with err: {e}")
 
 
 def autodiscover_collections(path):
@@ -63,9 +63,8 @@ def autodiscover_collections(path):
         # Attempt to import the app's module.
         try:
 
-            _module = import_module('%s.%s' %
-                                    (app_config.name, path))
+            _module = import_module("%s.%s" % (app_config.name, path))
             autodiscover_items(_module)
         except ImportError as e:
-            if not str(e) == 'No module named %s' % path:
+            if not str(e) == "No module named %s" % path:
                 pass

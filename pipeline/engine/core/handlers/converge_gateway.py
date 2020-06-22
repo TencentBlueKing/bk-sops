@@ -20,13 +20,12 @@ from pipeline.engine.models import Status
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['ConvergeGatewayHandler']
+__all__ = ["ConvergeGatewayHandler"]
 
 
 class ConvergeGatewayHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return ConvergeGateway
@@ -40,8 +39,7 @@ class ConvergeGatewayHandler(FlowElementHandler):
                 logger.error(traceback.format_exc())
                 # clean children and update current_node to prevent re execute child process
                 process.clean_children()
-                Status.objects.fail(element,
-                                    ex_data='Sync branch context error, check data backend status please.')
+                Status.objects.fail(element, ex_data="Sync branch context error, check data backend status please.")
                 return self.HandleResult(next_node=None, should_return=True, should_sleep=True)
 
         Status.objects.finish(element)

@@ -18,7 +18,6 @@ from pipeline.builder.flow import ParallelGateway
 
 
 class ParallelGatewayTestCase(TestCase):
-
     def test_type(self):
         e = ParallelGateway()
         self.assertEqual(e.type(), PE.ParallelGateway)

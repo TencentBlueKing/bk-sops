@@ -13,4 +13,4 @@ specific language governing permissions and limitations under the License.
 
 from django.dispatch import Signal
 
-post_new_end_event_register = Signal(providing_args=['node_type', 'node_cls'])
+post_new_end_event_register = Signal(providing_args=["node_type", "node_cls"])

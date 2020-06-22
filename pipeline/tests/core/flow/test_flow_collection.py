@@ -22,23 +22,19 @@ class Obj(object):
 
 class TestFlowCollection(TestCase):
     def test_sequence_flow_collection(self):
-        flow1 = SequenceFlow('1', Obj(), Obj())
-        flow2 = SequenceFlow('4', Obj(), Obj())
-        flow3 = SequenceFlow('7', Obj(), Obj())
+        flow1 = SequenceFlow("1", Obj(), Obj())
+        flow2 = SequenceFlow("4", Obj(), Obj())
+        flow3 = SequenceFlow("7", Obj(), Obj())
         flows = [flow1, flow2, flow3]
-        flow_dict = {
-            flow1.id: flow1,
-            flow2.id: flow2,
-            flow3.id: flow3
-        }
+        flow_dict = {flow1.id: flow1, flow2.id: flow2, flow3.id: flow3}
         collection = SequenceFlowCollection(*flows)
         self.assertEqual(flows, collection.flows)
         self.assertEqual(flow_dict, collection.flow_dict)
 
     def test_get_flow(self):
-        flow1 = SequenceFlow('1', Obj(), Obj())
-        flow2 = SequenceFlow('4', Obj(), Obj())
-        flow3 = SequenceFlow('7', Obj(), Obj())
+        flow1 = SequenceFlow("1", Obj(), Obj())
+        flow2 = SequenceFlow("4", Obj(), Obj())
+        flow3 = SequenceFlow("7", Obj(), Obj())
         flows = [flow1, flow2, flow3]
         collection = SequenceFlowCollection(*flows)
         self.assertEqual(flow1, collection.get_flow(flow1.id))
@@ -46,9 +42,9 @@ class TestFlowCollection(TestCase):
         self.assertEqual(flow3, collection.get_flow(flow3.id))
 
     def test_unique_one(self):
-        flow1 = SequenceFlow('1', Obj(), Obj())
-        flow2 = SequenceFlow('4', Obj(), Obj())
-        flow3 = SequenceFlow('7', Obj(), Obj())
+        flow1 = SequenceFlow("1", Obj(), Obj())
+        flow2 = SequenceFlow("4", Obj(), Obj())
+        flow3 = SequenceFlow("7", Obj(), Obj())
         flows = [flow1, flow2, flow3]
         not_unique_collection = SequenceFlowCollection(*flows)
         unique_collection = SequenceFlowCollection(flow1)
@@ -56,9 +52,9 @@ class TestFlowCollection(TestCase):
         self.assertRaises(InvalidOperationException, not_unique_collection.unique_one)
 
     def test_is_empty(self):
-        flow1 = SequenceFlow('1', Obj(), Obj())
-        flow2 = SequenceFlow('4', Obj(), Obj())
-        flow3 = SequenceFlow('7', Obj(), Obj())
+        flow1 = SequenceFlow("1", Obj(), Obj())
+        flow2 = SequenceFlow("4", Obj(), Obj())
+        flow3 = SequenceFlow("7", Obj(), Obj())
         flows = [flow1, flow2, flow3]
         not_empty_collection = SequenceFlowCollection(*flows)
         empty_collection = SequenceFlowCollection()
@@ -66,18 +62,13 @@ class TestFlowCollection(TestCase):
         self.assertFalse(not_empty_collection.is_empty())
 
     def test_add_flow(self):
-        flow1 = SequenceFlow('1', Obj(), Obj())
-        flow2 = SequenceFlow('4', Obj(), Obj())
-        flow3 = SequenceFlow('7', Obj(), Obj())
-        flow4 = SequenceFlow('10', Obj(), Obj())
+        flow1 = SequenceFlow("1", Obj(), Obj())
+        flow2 = SequenceFlow("4", Obj(), Obj())
+        flow3 = SequenceFlow("7", Obj(), Obj())
+        flow4 = SequenceFlow("10", Obj(), Obj())
         flows = [flow1, flow2, flow3]
         flows_after_added = [flow1, flow2, flow3, flow4]
-        flow_dict_after_added = {
-            flow1.id: flow1,
-            flow2.id: flow2,
-            flow3.id: flow3,
-            flow4.id: flow4
-        }
+        flow_dict_after_added = {flow1.id: flow1, flow2.id: flow2, flow3.id: flow3, flow4.id: flow4}
         collection = SequenceFlowCollection(*flows)
         collection.add_flow(flow4)
         self.assertEqual(flows_after_added, collection.flows)
@@ -85,18 +76,18 @@ class TestFlowCollection(TestCase):
 
     def test_all_target(self):
         targets = [Obj(), Obj(), Obj()]
-        flow1 = SequenceFlow('1', Obj(), targets[0])
-        flow2 = SequenceFlow('4', Obj(), targets[1])
-        flow3 = SequenceFlow('7', Obj(), targets[2])
+        flow1 = SequenceFlow("1", Obj(), targets[0])
+        flow2 = SequenceFlow("4", Obj(), targets[1])
+        flow3 = SequenceFlow("7", Obj(), targets[2])
         flows = [flow1, flow2, flow3]
         collection = SequenceFlowCollection(*flows)
         self.assertEqual(targets, collection.all_target_node())
 
     def test_all_source(self):
         sources = [Obj(), Obj(), Obj()]
-        flow1 = SequenceFlow('1', sources[0], Obj())
-        flow2 = SequenceFlow('4', sources[1], Obj())
-        flow3 = SequenceFlow('7', sources[2], Obj())
+        flow1 = SequenceFlow("1", sources[0], Obj())
+        flow2 = SequenceFlow("4", sources[1], Obj())
+        flow3 = SequenceFlow("7", sources[2], Obj())
         flows = [flow1, flow2, flow3]
         collection = SequenceFlowCollection(*flows)
         self.assertEqual(sources, collection.all_source_node())

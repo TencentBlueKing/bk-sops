@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-__author__ = 'Steve Webster'
-__email__ = 'spjwebster@gmail.com'
-__version__ = '0.2.1'
+__author__ = "Steve Webster"
+__email__ = "spjwebster@gmail.com"
+__version__ = "0.2.1"
 
 from .boolrule import BoolRule, MissingVariableException, UnknownOperatorException  # noqa

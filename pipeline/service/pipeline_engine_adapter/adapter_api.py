@@ -16,14 +16,14 @@ from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.log.models import LogEntry
 
 STATE_MAP = {
-    'CREATED': 'RUNNING',
-    'READY': 'RUNNING',
-    'RUNNING': 'RUNNING',
-    'BLOCKED': 'BLOCKED',
-    'SUSPENDED': 'SUSPENDED',
-    'FINISHED': 'FINISHED',
-    'FAILED': 'FAILED',
-    'REVOKED': 'REVOKED'
+    "CREATED": "RUNNING",
+    "READY": "RUNNING",
+    "RUNNING": "RUNNING",
+    "BLOCKED": "BLOCKED",
+    "SUSPENDED": "SUSPENDED",
+    "FINISHED": "FINISHED",
+    "FAILED": "FAILED",
+    "REVOKED": "REVOKED",
 }
 
 
@@ -82,8 +82,8 @@ def get_outputs(act_id):
 def get_activity_histories(act_id):
     histories = api.get_activity_histories(act_id)
     for item in histories:
-        item['started_time'] = _better_time_or_none(item['started_time'])
-        item['finished_time'] = _better_time_or_none(item.pop('archived_time'))
+        item["started_time"] = _better_time_or_none(item["started_time"])
+        item["finished_time"] = _better_time_or_none(item.pop("archived_time"))
     return histories
 
 
@@ -99,7 +99,7 @@ def get_state(node_id):
     # collect all atom
     descendants = {}
     _collect_descendants(tree, descendants)
-    res['children'] = descendants
+    res["children"] = descendants
 
     # return
     return res
@@ -109,15 +109,15 @@ def _get_node_state(tree):
     status = []
 
     # return state when meet leaf
-    if not tree.get('children', []):
-        return STATE_MAP[tree['state']]
+    if not tree.get("children", []):
+        return STATE_MAP[tree["state"]]
 
     # iterate children and get child state recursively
-    for identifier_code, child_tree in list(tree['children'].items()):
+    for identifier_code, child_tree in list(tree["children"].items()):
         status.append(_get_node_state(child_tree))
 
     # summary parent state
-    return STATE_MAP[_get_parent_state_from_children_state(tree['state'], status)]
+    return STATE_MAP[_get_parent_state_from_children_state(tree["state"], status)]
 
 
 def _get_parent_state_from_children_state(parent_state, children_state_list):
@@ -128,39 +128,39 @@ def _get_parent_state_from_children_state(parent_state, children_state_list):
     @return:
     """
     children_state_set = set(children_state_list)
-    if parent_state == 'BLOCKED':
-        if 'RUNNING' in children_state_set:
-            parent_state = 'RUNNING'
-        if 'FAILED' in children_state_set:
-            parent_state = 'FAILED'
+    if parent_state == "BLOCKED":
+        if "RUNNING" in children_state_set:
+            parent_state = "RUNNING"
+        if "FAILED" in children_state_set:
+            parent_state = "FAILED"
     return parent_state
 
 
 def _collect_descendants(tree, descendants):
     # iterate children for tree
-    for identifier_code, child_tree in list(tree['children'].items()):
+    for identifier_code, child_tree in list(tree["children"].items()):
         child_status = _map(child_tree)
         descendants[identifier_code] = child_status
 
         # collect children
-        if child_tree['children']:
+        if child_tree["children"]:
             _collect_descendants(child_tree, descendants)
 
 
 def _better_time_or_none(time):
-    return time.strftime('%Y-%m-%d %H:%M:%S') if time else time
+    return time.strftime("%Y-%m-%d %H:%M:%S") if time else time
 
 
 def _map(tree):
-    tree.setdefault('children', {})
+    tree.setdefault("children", {})
     return {
-        'id': tree['id'],
-        'state': _get_node_state(tree),
-        'start_time': _better_time_or_none(tree['started_time']),
-        'finish_time': _better_time_or_none(tree['archived_time']),
-        'loop': tree['loop'],
-        'retry': tree['retry'],
-        'skip': tree['skip']
+        "id": tree["id"],
+        "state": _get_node_state(tree),
+        "start_time": _better_time_or_none(tree["started_time"]),
+        "finish_time": _better_time_or_none(tree["archived_time"]),
+        "loop": tree["loop"],
+        "retry": tree["retry"],
+        "skip": tree["skip"],
     }
 
 

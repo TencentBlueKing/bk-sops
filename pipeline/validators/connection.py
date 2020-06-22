@@ -26,30 +26,25 @@ def validate_graph_connection(data):
     """
     nodes = get_nodes_dict(data)
 
-    result = {
-        "result": True,
-        "message": {},
-        "failed_nodes": []
-    }
+    result = {"result": True, "message": {}, "failed_nodes": []}
 
     for i in nodes:
         node_type = nodes[i][PE.type]
         rule = NODE_RULES[node_type]
         message = ""
         for j in nodes[i][PE.target]:
-            if nodes[j][PE.type] not in rule['allowed_out']:
+            if nodes[j][PE.type] not in rule["allowed_out"]:
                 message += _("不能连接%s类型节点\n") % nodes[i][PE.type]
-            if rule["min_in"] > len(nodes[i][PE.source]) or len(nodes[i][PE.source]) > rule['max_in']:
-                message += _("节点的入度最大为%s，最小为%s\n") % (rule['max_in'], rule['min_in'])
-            if rule["min_out"] > len(nodes[i][PE.target]) or len(nodes[i][PE.target]) > rule['max_out']:
-                message += _("节点的出度最大为%s，最小为%s\n") % (rule['max_out'], rule['min_out'])
+            if rule["min_in"] > len(nodes[i][PE.source]) or len(nodes[i][PE.source]) > rule["max_in"]:
+                message += _("节点的入度最大为%s，最小为%s\n") % (rule["max_in"], rule["min_in"])
+            if rule["min_out"] > len(nodes[i][PE.target]) or len(nodes[i][PE.target]) > rule["max_out"]:
+                message += _("节点的出度最大为%s，最小为%s\n") % (rule["max_out"], rule["min_out"])
         if message:
-            result['failed_nodes'].append(i)
+            result["failed_nodes"].append(i)
             result["message"][i] = message
 
-        if result['failed_nodes']:
-            raise ConnectionValidateError(failed_nodes=result['failed_nodes'],
-                                          detail=result['message'])
+        if result["failed_nodes"]:
+            raise ConnectionValidateError(failed_nodes=result["failed_nodes"], detail=result["message"])
 
 
 def validate_graph_without_circle(data):
@@ -68,9 +63,5 @@ def validate_graph_without_circle(data):
     flows = [[flow[PE.source], flow[PE.target]] for _, flow in list(data[PE.flows].items())]
     cycle = Graph(nodes, flows).get_cycle()
     if cycle:
-        return {
-            'result': False,
-            'message': 'pipeline graph has circle',
-            'error_data': cycle
-        }
-    return {'result': True, 'data': []}
+        return {"result": False, "message": "pipeline graph has circle", "error_data": cycle}
+    return {"result": True, "data": []}

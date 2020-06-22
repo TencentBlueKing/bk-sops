@@ -112,6 +112,7 @@ class IsolateNodeError(DataException):
 # component exception
 #
 
+
 class ComponentException(PipelineException):
     pass
 
@@ -131,6 +132,7 @@ class ComponentDataLackException(ComponentDataFormatException):
 #
 # tag exception
 #
+
 
 class PipelineError(Exception):
     pass

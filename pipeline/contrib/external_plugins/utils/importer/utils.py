@@ -15,7 +15,7 @@ import sys
 import logging
 from contextlib import contextmanager
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 @contextmanager
@@ -30,13 +30,13 @@ def importer_context(importer):
 
 
 def _setup_importer(importer):
-    logger.info('========== setup importer: %s' % importer)
+    logger.info("========== setup importer: %s" % importer)
     sys.meta_path.insert(0, importer)
 
 
 def _remove_importer(importer):
     for hooked_importer in sys.meta_path:
         if hooked_importer is importer:
-            logger.info('========== remove importer: %s' % importer)
+            logger.info("========== remove importer: %s" % importer)
             sys.meta_path.remove(hooked_importer)
             return

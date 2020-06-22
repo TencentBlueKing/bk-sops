@@ -21,12 +21,16 @@ from pipeline.core.constants import PE
 from pipeline.core.data.base import DataObject
 from pipeline.core.data.context import Context
 from pipeline.core.data.converter import get_variable
-from pipeline.core.data.hydration import (hydrate_node_data,
-                                          hydrate_subprocess_context)
-from pipeline.core.flow import (Condition, ConditionalParallelGateway,
-                                ConvergeGateway, ExclusiveGateway,
-                                FlowNodeClsFactory, ParallelGateway,
-                                SequenceFlow)
+from pipeline.core.data.hydration import hydrate_node_data, hydrate_subprocess_context
+from pipeline.core.flow import (
+    Condition,
+    ConditionalParallelGateway,
+    ConvergeGateway,
+    ExclusiveGateway,
+    FlowNodeClsFactory,
+    ParallelGateway,
+    SequenceFlow,
+)
 from pipeline.core.pipeline import Pipeline, PipelineSpec
 from pipeline.validators.base import validate_pipeline_tree
 
@@ -62,16 +66,11 @@ def classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params
             continue
 
         scope_info.update({key: info})
-    result = {
-        'act_outputs': act_outputs,
-        'scope_info': scope_info,
-        'subprocess_params': subprocess_params
-    }
+    result = {"act_outputs": act_outputs, "scope_info": scope_info, "subprocess_params": subprocess_params}
     return result
 
 
 class PipelineParser(object):
-
     def __init__(self, pipeline_tree, cycle_tolerate=False):
         validate_pipeline_tree(pipeline_tree, cycle_tolerate=cycle_tolerate)
         self.pipeline_tree = deepcopy(pipeline_tree)
@@ -87,8 +86,9 @@ class PipelineParser(object):
         """
         return self._parse(root_pipeline_data, root_pipeline_context)
 
-    def _parse(self, root_pipeline_data=None, root_pipeline_params=None, params=None,
-               is_subprocess=False, parent_context=None):
+    def _parse(
+        self, root_pipeline_data=None, root_pipeline_params=None, params=None, is_subprocess=False, parent_context=None
+    ):
         """
         @summary: parse pipeline and subprocess recursively
         @param root_pipeline_data: root data from root pipeline parsing, witch will be passed to subprocess recursively
@@ -109,16 +109,16 @@ class PipelineParser(object):
         classification = classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params)
 
         output_keys = self.pipeline_tree[PE.data][PE.outputs]
-        context = Context(classification['act_outputs'], output_keys)
-        for key, info in list(classification['scope_info'].items()):
+        context = Context(classification["act_outputs"], output_keys)
+        for key, info in list(classification["scope_info"].items()):
             var = get_variable(key, info, context, root_pipeline_data)
             context.set_global_var(key, var)
 
         pipeline_data = deepcopy(root_pipeline_data)
         if is_subprocess:
             if parent_context is None:
-                raise exceptions.DataTypeErrorException('parent context of subprocess cannot be none')
-            for key, info in list(classification['subprocess_params'].items()):
+                raise exceptions.DataTypeErrorException("parent context of subprocess cannot be none")
+            for key, info in list(classification["subprocess_params"].items()):
                 var = get_variable(key, info, parent_context, pipeline_data)
                 pipeline_data.update({key: var})
 
@@ -128,9 +128,7 @@ class PipelineParser(object):
 
         end = self.pipeline_tree[PE.end_event]
         end_cls = FlowNodeClsFactory.get_node_cls(end[PE.type])
-        end_event = end_cls(id=end[PE.id],
-                            name=end[PE.name],
-                            data=DataObject({}))
+        end_event = end_cls(id=end[PE.id], name=end[PE.name], data=DataObject({}))
 
         acts = self.pipeline_tree[PE.activities]
         act_objs = []
@@ -140,36 +138,44 @@ class PipelineParser(object):
                 component = ComponentLibrary.get_component(
                     component_code=act[PE.component][PE.code],
                     data_dict=act[PE.component][PE.inputs],
-                    version=act[PE.component].get(PE.version)
+                    version=act[PE.component].get(PE.version),
                 )
                 service = component.service()
                 data = component.data_for_execution(context, pipeline_data)
-                handler_path = act.get('failure_handler')
+                handler_path = act.get("failure_handler")
                 failure_handler = import_string(handler_path) if handler_path else None
-                act_objs.append(act_cls(id=act[PE.id],
-                                        service=service,
-                                        name=act[PE.name],
-                                        data=data,
-                                        error_ignorable=act.get(PE.error_ignorable, False),
-                                        skippable=act.get(PE.skippable) or act.get(PE.skippable_old, True),
-                                        retryable=act.get(PE.retryable) or act.get(PE.retryable_old, True),
-                                        timeout=act.get(PE.timeout),
-                                        failure_handler=failure_handler))
+                act_objs.append(
+                    act_cls(
+                        id=act[PE.id],
+                        service=service,
+                        name=act[PE.name],
+                        data=data,
+                        error_ignorable=act.get(PE.error_ignorable, False),
+                        skippable=act.get(PE.skippable) or act.get(PE.skippable_old, True),
+                        retryable=act.get(PE.retryable) or act.get(PE.retryable_old, True),
+                        timeout=act.get(PE.timeout),
+                        failure_handler=failure_handler,
+                    )
+                )
             elif act[PE.type] == PE.SubProcess:
                 sub_tree = act[PE.pipeline]
                 params = act[PE.params]
                 sub_parser = PipelineParser(pipeline_tree=sub_tree, cycle_tolerate=self.cycle_tolerate)
-                act_objs.append(act_cls(id=act[PE.id],
-                                        pipeline=sub_parser._parse(
-                                            root_pipeline_data=root_pipeline_data,
-                                            root_pipeline_params=root_pipeline_params,
-                                            params=params,
-                                            is_subprocess=True,
-                                            parent_context=context),
-                                        name=act[PE.name]))
+                act_objs.append(
+                    act_cls(
+                        id=act[PE.id],
+                        pipeline=sub_parser._parse(
+                            root_pipeline_data=root_pipeline_data,
+                            root_pipeline_params=root_pipeline_params,
+                            params=params,
+                            is_subprocess=True,
+                            parent_context=context,
+                        ),
+                        name=act[PE.name],
+                    )
+                )
             else:
-                raise exceptions.FlowTypeError("Unknown Activity type: %s" %
-                                               act[PE.type])
+                raise exceptions.FlowTypeError("Unknown Activity type: %s" % act[PE.type])
 
         gateways = self.pipeline_tree[PE.gateways]
         flows = self.pipeline_tree[PE.flows]
@@ -177,15 +183,13 @@ class PipelineParser(object):
         for gw in list(gateways.values()):
             gw_cls = FlowNodeClsFactory.get_node_cls(gw[PE.type])
             if gw[PE.type] in {PE.ParallelGateway, PE.ConditionalParallelGateway}:
-                gateway_objs.append(gw_cls(id=gw[PE.id],
-                                           converge_gateway_id=gw[PE.converge_gateway_id],
-                                           name=gw[PE.name]))
+                gateway_objs.append(
+                    gw_cls(id=gw[PE.id], converge_gateway_id=gw[PE.converge_gateway_id], name=gw[PE.name])
+                )
             elif gw[PE.type] in {PE.ExclusiveGateway, PE.ConvergeGateway}:
-                gateway_objs.append(gw_cls(id=gw[PE.id],
-                                           name=gw[PE.name]))
+                gateway_objs.append(gw_cls(id=gw[PE.id], name=gw[PE.name]))
             else:
-                raise exceptions.FlowTypeError("Unknown Gateway type: %s" %
-                                               gw[PE.type])
+                raise exceptions.FlowTypeError("Unknown Gateway type: %s" % gw[PE.type])
 
         flow_objs_dict = {}
         for fl in list(flows.values()):
@@ -198,9 +202,7 @@ class PipelineParser(object):
                 target = end_event
             else:
                 target = [x for x in flow_nodes if x.id == fl[PE.target]][0]
-            flow_objs_dict[fl[PE.id]] = SequenceFlow(fl[PE.id],
-                                                     source,
-                                                     target)
+            flow_objs_dict[fl[PE.id]] = SequenceFlow(fl[PE.id], source, target)
         flow_objs = list(flow_objs_dict.values())
 
         # add incoming and outgoing flow to acts
@@ -227,8 +229,7 @@ class PipelineParser(object):
         for gw in gateway_objs:
             if isinstance(gw, ExclusiveGateway) or isinstance(gw, ConditionalParallelGateway):
                 for flow_id, con in list(gateways[gw.id][PE.conditions].items()):
-                    con_obj = Condition(con[PE.evaluate],
-                                        flow_objs_dict[flow_id])
+                    con_obj = Condition(con[PE.evaluate], flow_objs_dict[flow_id])
                     gw.add_condition(con_obj)
 
                 if isinstance(gateways[gw.id][PE.incoming], list):
@@ -256,14 +257,11 @@ class PipelineParser(object):
                 gw.outgoing.add_flow(flow_objs_dict[gateways[gw.id][PE.outgoing]])
 
             else:
-                raise exceptions.FlowTypeError("Unknown Gateway type: %s" %
-                                               type(gw))
+                raise exceptions.FlowTypeError("Unknown Gateway type: %s" % type(gw))
 
         context.duplicate_variables()
         pipeline_data = DataObject(pipeline_data)
-        pipeline_spec = PipelineSpec(start_event, end_event, flow_objs,
-                                     act_objs, gateway_objs, pipeline_data,
-                                     context)
+        pipeline_spec = PipelineSpec(start_event, end_event, flow_objs, act_objs, gateway_objs, pipeline_data, context)
         return Pipeline(self.pipeline_tree[PE.id], pipeline_spec)
 
     def get_act(self, act_id, subprocess_stack=None, root_pipeline_data=None, root_pipeline_context=None):

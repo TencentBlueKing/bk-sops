@@ -31,12 +31,10 @@ class HandlersFactory(object):
         ParallelGatewayHandler.element_cls(): ParallelGatewayHandler(),
         ConditionalParallelGatewayHandler.element_cls(): ConditionalParallelGatewayHandler(),
         ConvergeGatewayHandler.element_cls(): ConvergeGatewayHandler(),
-        ExecutableEndEventHandler.element_cls(): ExecutableEndEventHandler()
+        ExecutableEndEventHandler.element_cls(): ExecutableEndEventHandler(),
     }
 
-    _cluster_roots = [
-        ExecutableEndEventHandler.element_cls()
-    ]
+    _cluster_roots = [ExecutableEndEventHandler.element_cls()]
 
     @classmethod
     def find_cluster_root_cls(cls, element):
@@ -50,6 +48,6 @@ class HandlersFactory(object):
     def handlers_for(cls, element):
         handler = cls._handlers.get(cls.find_cluster_root_cls(element))
         if not handler:
-            raise KeyError('handler for element({element}) not found.'.format(element=element))
+            raise KeyError("handler for element({element}) not found.".format(element=element))
 
         return handler

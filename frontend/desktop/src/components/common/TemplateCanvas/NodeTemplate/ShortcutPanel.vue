@@ -16,23 +16,7 @@
         :style="{ top: shortcutPanelTop }"
         class="shortcut-panel"
         @mouseover.stop>
-        <ul class="shortcut-wrap">
-            <li
-                v-if="isShowConfigIcon"
-                v-bk-tooltips="{
-                    content: $t('节点配置'),
-                    delay: 500
-                }"
-                class="shortcut-item common-icon-gear"
-                @click.stop="onConfigBtnClick"></li>
-            <li
-                v-if="isShowConfigIcon"
-                v-bk-tooltips="{
-                    content: $t('复制节点'),
-                    delay: 500
-                }"
-                class="shortcut-item common-icon-double-paper-2"
-                @click.stop="onCopyBtnClick"></li>
+        <ul class="nodes-wrap">
             <li
                 v-for="(item, index) in nodeTypeList"
                 :key="index"
@@ -40,8 +24,29 @@
                     content: item.tips,
                     delay: 500
                 }"
-                :class="['shortcut-item', `common-icon-node-${item.key}-shortcut`]"
-                @click.stop="onAppendNode(item.key)"></li>
+                :class="['nodes-item', `common-icon-node-${item.key}-shortcut`]"
+                @click.stop="onAppendNode(item.key)">
+            </li>
+        </ul>
+        <ul class="operate-btns">
+            <li
+                v-if="isShowConfigIcon"
+                v-bk-tooltips="{
+                    content: $t('节点配置'),
+                    delay: 500
+                }"
+                class="btn-item common-icon-bkflow-setting"
+                @click.stop="onConfigBtnClick">
+            </li>
+            <li
+                v-if="isShowConfigIcon"
+                v-bk-tooltips="{
+                    content: $t('复制节点'),
+                    delay: 500
+                }"
+                class="btn-item common-icon-bkflow-copy"
+                @click.stop="onCopyBtnClick">
+            </li>
         </ul>
     </div>
 </template>
@@ -228,9 +233,10 @@
     left: 50%;
     top: 56px;
     width: 120px;
+    background: rgba(255, 255, 255, .9);
     transform: translateX(-50%);
     cursor: default;
-    .shortcut-wrap {
+    .nodes-wrap {
         display: flex;
         align-items: center;
         justify-content: left;
@@ -239,8 +245,7 @@
         width: 120px;
         overflow: hidden;
         border-radius: 4px;
-        background: rgba(255, 255, 255, .9);
-        .shortcut-item {
+        .nodes-item {
             margin-bottom: 11px;
             width: 24px;
             height: 24px;
@@ -252,6 +257,22 @@
             &:not(:nth-child(3n)) {
                 margin-right: 11px;
             }
+            &:hover {
+                color: #3a84ff;
+            }
+        }
+    }
+    .operate-btns {
+        padding: 4px 12px;
+        border-top: 1px solid #e0e5ef;
+        text-align: right;
+        .btn-item {
+            display: inline-block;
+            margin-left: 4px;
+            padding: 2px;
+            color: #52699d;
+            font-size: 14px;
+            cursor: pointer;
             &:hover {
                 color: #3a84ff;
             }

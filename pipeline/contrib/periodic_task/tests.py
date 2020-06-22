@@ -20,21 +20,16 @@ from pipeline.exceptions import InvalidOperationException
 
 
 class PeriodicTestCase(TestCase):
-
     def setUp(self):
-        self.name = 'test'
-        self.creator = 'tester'
-        self.extra_info = {'extra_info': 'val'}
-        self.data = {'constants': {
-            'key_1': {
-                'value': 'val_1',
-                'show_type': 'show',
-            },
-            'key_2': {
-                'value': 'val_2',
-                'show_type': 'hide',
+        self.name = "test"
+        self.creator = "tester"
+        self.extra_info = {"extra_info": "val"}
+        self.data = {
+            "constants": {
+                "key_1": {"value": "val_1", "show_type": "show"},
+                "key_2": {"value": "val_2", "show_type": "hide"},
             }
-        }}
+        }
         self.task = self.create_a_task()
 
     def tearDown(self):
@@ -43,12 +38,7 @@ class PeriodicTestCase(TestCase):
 
     def create_a_task(self):
         return PeriodicTask.objects.create_task(
-            name=self.name,
-            template=None,
-            cron={},
-            data=self.data,
-            creator=self.creator,
-            extra_info=self.extra_info
+            name=self.name, template=None, cron={}, data=self.data, creator=self.creator, extra_info=self.extra_info
         )
 
     def test_create_task(self):
@@ -87,19 +77,19 @@ class PeriodicTestCase(TestCase):
         self.task.set_enabled(True)
         self.assertRaises(InvalidOperationException, self.task.modify_cron, {})
         self.task.set_enabled(False)
-        self.task.modify_cron({'minite': '*/1'})
+        self.task.modify_cron({"minite": "*/1"})
         self.assertEqual(self.task.cron, self.task.celery_task.crontab.__str__())
 
     def test_modify_constants(self):
-        expect_constants = copy.deepcopy(self.task.execution_data['constants'])
-        expect_constants['key_1']['value'] = 'val_3'
-        new_constants = self.task.modify_constants({'key_1': 'val_3'})
-        self.assertEqual(self.task.execution_data['constants'], expect_constants)
+        expect_constants = copy.deepcopy(self.task.execution_data["constants"])
+        expect_constants["key_1"]["value"] = "val_3"
+        new_constants = self.task.modify_constants({"key_1": "val_3"})
+        self.assertEqual(self.task.execution_data["constants"], expect_constants)
         self.assertEqual(new_constants, expect_constants)
 
         self.task.set_enabled(True)
         self.assertRaises(InvalidOperationException, self.task.modify_constants, {})
 
     def test_form(self):
-        expect_form = {k: v for k, v in list(self.data['constants'].items()) if v['show_type'] == 'show'}
+        expect_form = {k: v for k, v in list(self.data["constants"].items()) if v["show_type"] == "show"}
         self.assertEqual(self.task.form, expect_form)

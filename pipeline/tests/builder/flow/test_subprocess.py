@@ -19,19 +19,16 @@ from pipeline.builder.flow import SubProcess
 
 class SubProcessTestCase(TestCase):
     def test_init(self):
-        subproc = SubProcess('template_id')
-        self.assertEqual(subproc.start, 'template_id')
+        subproc = SubProcess("template_id")
+        self.assertEqual(subproc.start, "template_id")
         self.assertEqual(subproc.params, {})
         self.assertIsNone(subproc.data)
 
-        subproc = SubProcess(
-            start='template_id',
-            data={'data_key': 'data_val'},
-            params={'1': '2'})
-        self.assertEqual(subproc.start, 'template_id')
-        self.assertEqual(subproc.data, {'data_key': 'data_val'})
-        self.assertEqual(subproc.params, {'1': '2'})
+        subproc = SubProcess(start="template_id", data={"data_key": "data_val"}, params={"1": "2"})
+        self.assertEqual(subproc.start, "template_id")
+        self.assertEqual(subproc.data, {"data_key": "data_val"})
+        self.assertEqual(subproc.params, {"1": "2"})
 
     def test_type(self):
-        subproc = SubProcess('template_id')
+        subproc = SubProcess("template_id")
         self.assertEqual(subproc.type(), PE.SubProcess)

@@ -19,12 +19,11 @@ from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.core.flow.activity import Service
 
-__group_name__ = 'gn'
-__group_icon__ = 'gi'
+__group_name__ = "gn"
+__group_icon__ = "gi"
 
 
 class TestModels(TestCase):
-
     @classmethod
     def setUpClass(cls):
         ComponentModel.objects.all().delete()  # env clean
@@ -40,25 +39,25 @@ class TestModels(TestCase):
 
             def outputs(self):
                 return [
-                    self.OutputItem(name='key_1', key='key_1', type='int'),
-                    self.OutputItem(name='key_2', key='key_2', type='str')
+                    self.OutputItem(name="key_1", key="key_1", type="int"),
+                    self.OutputItem(name="key_2", key="key_2", type="str"),
                 ]
 
             def outputs_format(self):
                 pass
 
         class CCUpdateHostModuleComponent(Component):
-            name = '1234'
+            name = "1234"
             bound_service = CCUpdateHostModuleService
-            code = 'cc_update_module'
-            form = 'form path'
+            code = "cc_update_module"
+            form = "form path"
 
         class CCUpdateHostModuleComponentV2(Component):
-            name = '1234'
+            name = "1234"
             bound_service = CCUpdateHostModuleService
-            code = 'cc_update_module'
-            form = 'form path'
-            version = '2.0'
+            code = "cc_update_module"
+            form = "form path"
+            version = "2.0"
 
         self.service = CCUpdateHostModuleService
         self.component = CCUpdateHostModuleComponent
@@ -78,9 +77,9 @@ class TestModels(TestCase):
 
     def test_version(self):
         component = ComponentModel.objects.get(code=self.component.code, version=LEGACY_PLUGINS_VERSION)
-        component_v2 = ComponentModel.objects.get(code=self.component.code, version='2.0')
+        component_v2 = ComponentModel.objects.get(code=self.component.code, version="2.0")
         self.assertEqual(component.version, LEGACY_PLUGINS_VERSION)
-        self.assertEqual(component_v2.version, '2.0')
+        self.assertEqual(component_v2.version, "2.0")
 
     def test_group_icon(self):
         component = ComponentModel.objects.get(code=self.component.code, version=LEGACY_PLUGINS_VERSION)
@@ -88,6 +87,4 @@ class TestModels(TestCase):
 
     def test_get_component_dict(self):
         d = ComponentModel.objects.get_component_dict()
-        self.assertEqual(d, {
-            'cc_update_module': 'gn-1234'
-        })
+        self.assertEqual(d, {"cc_update_module": "gn-1234"})

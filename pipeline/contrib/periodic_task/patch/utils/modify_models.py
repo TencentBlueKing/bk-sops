@@ -89,33 +89,32 @@ class ModifiedModelMetaclass(type):
     def __new__(cls, name, bases, attrs):
         new_class = super(ModifiedModelMetaclass, cls).__new__(cls, name, bases, attrs)
 
-        if name == 'ModifiedModel' and bases[0] == object:
+        if name == "ModifiedModel" and bases[0] == object:
             return new_class
 
         try:
-            meta = attrs['Meta']()
+            meta = attrs["Meta"]()
         except KeyError:
             raise ImproperlyConfigured("Helper class %s hasn't a Meta subclass!" % name)
 
         # Find model class for this helper
-        if isinstance(getattr(meta, 'model', None), str):
-            model_class = get_model(*meta.model.split('.'))
-        elif issubclass(getattr(meta, 'model', None), models.Model):
+        if isinstance(getattr(meta, "model", None), str):
+            model_class = get_model(*meta.model.split("."))
+        elif issubclass(getattr(meta, "model", None), models.Model):
             model_class = meta.model
         else:
             raise ImproperlyConfigured("Model informed by Meta subclass of %s is improperly!" % name)
 
         def remove_field(f_name):
             # Removes the field form local fields list
-            model_class._meta.local_fields = [f for f in model_class._meta.local_fields
-                                              if f.name != f_name]
+            model_class._meta.local_fields = [f for f in model_class._meta.local_fields if f.name != f_name]
 
             # Removes the field setter if exists
             if hasattr(model_class, f_name):
                 delattr(model_class, f_name)
 
         # Removes fields setted in attribute 'exclude'
-        if isinstance(getattr(meta, 'exclude', None), (list, tuple)):
+        if isinstance(getattr(meta, "exclude", None), (list, tuple)):
             for f_name in meta.exclude:
                 remove_field(f_name)
 

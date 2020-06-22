@@ -19,9 +19,9 @@ from pipeline.core.flow.activity import ServiceActivity
 
 class TestSequenceFlow(TestCase):
     def test_sequence_flow(self):
-        flow_id = '1'
-        source = ServiceActivity(id='1', service=None, data=DataObject({}))
-        target = ServiceActivity(id='2', service=None, data=DataObject({}))
+        flow_id = "1"
+        source = ServiceActivity(id="1", service=None, data=DataObject({}))
+        target = ServiceActivity(id="2", service=None, data=DataObject({}))
         flow = SequenceFlow(flow_id, source, target)
         self.assertTrue(isinstance(flow, FlowElement))
         self.assertEqual(flow_id, flow.id)

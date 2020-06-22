@@ -18,6 +18,6 @@ from pipeline.variable_framework import models
 
 @admin.register(models.VariableModel)
 class VariableModelAdmin(admin.ModelAdmin):
-    list_display = ['id', 'code', 'status']
-    search_fields = ['code']
-    list_filter = ['status']
+    list_display = ["id", "code", "status"]
+    search_fields = ["code"]
+    list_filter = ["status"]

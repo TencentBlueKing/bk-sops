@@ -18,9 +18,7 @@ from django.test import TestCase
 from pipeline.django_signal_valve import valve
 from pipeline.engine import exceptions, signals, states
 from pipeline.engine.models import Status
-from pipeline.engine.models.core import (PipelineModel, PipelineProcess,
-                                         ProcessSnapshot,
-                                         SubProcessRelationship)
+from pipeline.engine.models.core import PipelineModel, PipelineProcess, ProcessSnapshot, SubProcessRelationship
 from pipeline.engine.utils import Stack
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -30,7 +28,6 @@ valve.unload_valve_function()
 
 
 class TestPipelineProcess(TestCase):
-
     def test_prepare_for_pipeline(self):
         pipeline = PipelineObject()
 
@@ -50,9 +47,7 @@ class TestPipelineProcess(TestCase):
 
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
         child = PipelineProcess.objects.fork_child(
-            parent=process,
-            current_node_id=current_node_id,
-            destination_id=destination_id
+            parent=process, current_node_id=current_node_id, destination_id=destination_id
         )
         self.assertEqual(len(child.id), 32)
         self.assertEqual(process.root_pipeline_id, child.root_pipeline_id)
@@ -70,73 +65,74 @@ class TestPipelineProcess(TestCase):
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_process_ready(self):
         from pipeline.django_signal_valve.valve import send
+
         process_id = uniqid()
         current_node_id = uniqid()
 
         PipelineProcess.objects.process_ready(process_id)
         send.assert_called_with(
             signals,
-            'process_ready',
+            "process_ready",
             sender=PipelineProcess,
             process_id=process_id,
             current_node_id=None,
-            call_from_child=False)
+            call_from_child=False,
+        )
         PipelineProcess.objects.process_ready(process_id, current_node_id, False)
         send.assert_called_with(
             signals,
-            'process_ready',
+            "process_ready",
             sender=PipelineProcess,
             process_id=process_id,
             current_node_id=current_node_id,
-            call_from_child=False)
+            call_from_child=False,
+        )
         PipelineProcess.objects.process_ready(process_id, current_node_id, True)
         send.assert_called_with(
             signals,
-            'process_ready',
+            "process_ready",
             sender=PipelineProcess,
             process_id=process_id,
             current_node_id=current_node_id,
-            call_from_child=True)
+            call_from_child=True,
+        )
 
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_batch_process_ready(self):
         from pipeline.django_signal_valve.valve import send
+
         process_id_list = [uniqid(), uniqid(), uniqid()]
         pipeline_id = uniqid()
 
         PipelineProcess.objects.batch_process_ready(process_id_list, pipeline_id)
         send.assert_called_with(
             signals,
-            'batch_process_ready',
+            "batch_process_ready",
             sender=PipelineProcess,
             process_id_list=process_id_list,
-            pipeline_id=pipeline_id
+            pipeline_id=pipeline_id,
         )
 
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_child_process_ready(self):
         from pipeline.django_signal_valve.valve import send
+
         child_id = uniqid()
 
         PipelineProcess.objects.child_process_ready(child_id)
-        send.assert_called_with(
-            signals,
-            'child_process_ready',
-            sender=PipelineProcess,
-            child_id=child_id
-        )
+        send.assert_called_with(signals, "child_process_ready", sender=PipelineProcess, child_id=child_id)
 
     def test_properties(self):
         process = PipelineProcess.objects.create()
-        pipeline_stack = Stack(['pipeline1', 'pipeline2'])
-        subprocess_stack = Stack(['subprocess1', 'subprocess2'])
-        children = ['child1', 'child2']
-        root_pipeline = 'root_pipeline'
+        pipeline_stack = Stack(["pipeline1", "pipeline2"])
+        subprocess_stack = Stack(["subprocess1", "subprocess2"])
+        children = ["child1", "child2"]
+        root_pipeline = "root_pipeline"
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
             pipeline_stack=pipeline_stack,
             children=children,
             root_pipeline=root_pipeline,
-            subprocess_stack=subprocess_stack
+            subprocess_stack=subprocess_stack,
         )
         process.snapshot = mock_snapshot
         self.assertEqual(process.pipeline_stack, pipeline_stack)
@@ -146,18 +142,18 @@ class TestPipelineProcess(TestCase):
         self.assertEqual(process.subprocess_stack, subprocess_stack)
 
     def test_push_pipeline(self):
-        pipeline = 'pipeline_%s' % uniqid()
+        pipeline = "pipeline_%s" % uniqid()
         subproc_pipeline = PipelineObject()
         process = PipelineProcess.objects.create()
-        pipeline_stack = Stack(['pipeline1', 'pipeline2'])
-        subprocess_stack = Stack(['subprocess1', 'subprocess2'])
-        children = ['child1', 'child2']
-        root_pipeline = 'root_pipeline'
+        pipeline_stack = Stack(["pipeline1", "pipeline2"])
+        subprocess_stack = Stack(["subprocess1", "subprocess2"])
+        children = ["child1", "child2"]
+        root_pipeline = "root_pipeline"
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
             pipeline_stack=pipeline_stack,
             children=children,
             root_pipeline=root_pipeline,
-            subprocess_stack=subprocess_stack
+            subprocess_stack=subprocess_stack,
         )
         process.snapshot = mock_snapshot
         process.id = uniqid()
@@ -168,20 +164,21 @@ class TestPipelineProcess(TestCase):
         process.push_pipeline(subproc_pipeline, is_subprocess=True)
         self.assertEqual(process.top_pipeline, subproc_pipeline)
         self.assertTrue(
-            SubProcessRelationship.objects.filter(subprocess_id=subproc_pipeline.id, process_id=process.id).exists())
+            SubProcessRelationship.objects.filter(subprocess_id=subproc_pipeline.id, process_id=process.id).exists()
+        )
 
     def test_pop_pipeline(self):
         subproc_pipeline = PipelineObject()
         process = PipelineProcess.objects.create()
-        pipeline_stack = Stack(['pipeline1', 'pipeline2'])
-        subprocess_stack = Stack(['subprocess1', 'subprocess2'])
-        children = ['child1', 'child2']
-        root_pipeline = 'root_pipeline'
+        pipeline_stack = Stack(["pipeline1", "pipeline2"])
+        subprocess_stack = Stack(["subprocess1", "subprocess2"])
+        children = ["child1", "child2"]
+        root_pipeline = "root_pipeline"
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
             pipeline_stack=pipeline_stack,
             children=children,
             root_pipeline=root_pipeline,
-            subprocess_stack=subprocess_stack
+            subprocess_stack=subprocess_stack,
         )
         process.snapshot = mock_snapshot
         process.id = uniqid()
@@ -189,7 +186,8 @@ class TestPipelineProcess(TestCase):
         process.push_pipeline(subproc_pipeline, is_subprocess=True)
         self.assertEqual(process.top_pipeline, subproc_pipeline)
         self.assertTrue(
-            SubProcessRelationship.objects.filter(subprocess_id=subproc_pipeline.id, process_id=process.id).exists())
+            SubProcessRelationship.objects.filter(subprocess_id=subproc_pipeline.id, process_id=process.id).exists()
+        )
 
         pop_pipeline = process.pop_pipeline()
         self.assertEqual(pop_pipeline.id, subproc_pipeline.id)
@@ -198,18 +196,15 @@ class TestPipelineProcess(TestCase):
         )
 
         pop_pipeline = process.pop_pipeline()
-        self.assertEqual(pop_pipeline, 'pipeline2')
+        self.assertEqual(pop_pipeline, "pipeline2")
 
         pop_pipeline = process.pop_pipeline()
-        self.assertEqual(pop_pipeline, 'pipeline1')
+        self.assertEqual(pop_pipeline, "pipeline1")
 
     def test_join(self):
         children = [IdentifyObject(), IdentifyObject(), IdentifyObject()]
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
-            pipeline_stack=Stack(),
-            children=[],
-            root_pipeline='root_pipeline',
-            subprocess_stack=Stack()
+            pipeline_stack=Stack(), children=[], root_pipeline="root_pipeline", subprocess_stack=Stack()
         )
         process = PipelineProcess.objects.create()
         process.snapshot = mock_snapshot
@@ -234,10 +229,7 @@ class TestPipelineProcess(TestCase):
         another_status.side_effect = status
 
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
-            pipeline_stack=Stack(),
-            children=[],
-            root_pipeline=IdentifyObject(),
-            subprocess_stack=Stack()
+            pipeline_stack=Stack(), children=[], root_pipeline=IdentifyObject(), subprocess_stack=Stack()
         )
         process = PipelineProcess.objects.create()
         process.snapshot = mock_snapshot
@@ -250,7 +242,7 @@ class TestPipelineProcess(TestCase):
 
         with mock.patch(PIPELINE_STATUS_STATE_FOR, return_blocked):
             self.assertEqual(process.root_sleep_check(), (True, states.BLOCKED))
-            process.parent_id = 'parent_id'
+            process.parent_id = "parent_id"
             self.assertEqual(process.root_sleep_check(), (False, states.BLOCKED))
 
         with mock.patch(PIPELINE_STATUS_STATE_FOR, another_status):
@@ -259,10 +251,7 @@ class TestPipelineProcess(TestCase):
 
     def test_subproc_sleep_check(self):
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
-            pipeline_stack=Stack(),
-            children=[],
-            root_pipeline=IdentifyObject(),
-            subprocess_stack=Stack([1, 2, 3, 4])
+            pipeline_stack=Stack(), children=[], root_pipeline=IdentifyObject(), subprocess_stack=Stack([1, 2, 3, 4])
         )
         process = PipelineProcess.objects.create()
         process.snapshot = mock_snapshot
@@ -272,7 +261,7 @@ class TestPipelineProcess(TestCase):
                 StatusObject(id=1, state=states.RUNNING),
                 StatusObject(id=2, state=states.RUNNING),
                 StatusObject(id=3, state=states.RUNNING),
-                StatusObject(id=4, state=states.RUNNING)
+                StatusObject(id=4, state=states.RUNNING),
             ]
 
         def return_one_suspended(*args, **kwargs):
@@ -280,7 +269,7 @@ class TestPipelineProcess(TestCase):
                 StatusObject(id=1, state=states.RUNNING),
                 StatusObject(id=2, state=states.SUSPENDED),
                 StatusObject(id=3, state=states.RUNNING),
-                StatusObject(id=4, state=states.RUNNING)
+                StatusObject(id=4, state=states.RUNNING),
             ]
 
         def return_first_suspended(*args, **kwargs):
@@ -288,7 +277,7 @@ class TestPipelineProcess(TestCase):
                 StatusObject(id=1, state=states.SUSPENDED),
                 StatusObject(id=2, state=states.RUNNING),
                 StatusObject(id=3, state=states.RUNNING),
-                StatusObject(id=4, state=states.RUNNING)
+                StatusObject(id=4, state=states.RUNNING),
             ]
 
         def return_last_suspended(*args, **kwargs):
@@ -296,7 +285,7 @@ class TestPipelineProcess(TestCase):
                 StatusObject(id=1, state=states.RUNNING),
                 StatusObject(id=2, state=states.RUNNING),
                 StatusObject(id=3, state=states.RUNNING),
-                StatusObject(id=4, state=states.SUSPENDED)
+                StatusObject(id=4, state=states.SUSPENDED),
             ]
 
         with mock.patch(PIPELINE_STATUS_FILTER, return_all_running):
@@ -314,6 +303,7 @@ class TestPipelineProcess(TestCase):
     @patch(PIPELINE_CELERYTASK_UNBIND, MagicMock())
     def test_freeze(self):
         from pipeline.engine.models import ProcessCeleryTask
+
         pipeline = PipelineObject()
 
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
@@ -329,6 +319,7 @@ class TestPipelineProcess(TestCase):
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_unfreeze(self):
         from pipeline.django_signal_valve.valve import send
+
         pipeline = PipelineObject()
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
 
@@ -338,17 +329,13 @@ class TestPipelineProcess(TestCase):
         process.refresh_from_db()
         self.assertFalse(process.is_frozen)
 
-        send.assert_called_with(
-            signals,
-            'process_unfreeze',
-            sender=PipelineProcess,
-            process_id=process.id
-        )
+        send.assert_called_with(signals, "process_unfreeze", sender=PipelineProcess, process_id=process.id)
 
     @patch(PIPELINE_PROCESS_ADJUST_STATUS, MagicMock())
     @patch(PIPELINE_CELERYTASK_UNBIND, MagicMock())
     def test_sleep(self):
         from pipeline.engine.models import ProcessCeleryTask
+
         pipeline = PipelineObject()
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
 
@@ -373,16 +360,13 @@ class TestPipelineProcess(TestCase):
                 pipeline_stack=Stack(),
                 children=[1, 2, 3, 4],
                 root_pipeline=IdentifyObject(),
-                subprocess_stack=Stack([])
+                subprocess_stack=Stack([]),
             )
             process.snapshot = mock_snapshot
             process.sleep(do_not_save=False, adjust_status=False)
-            PipelineProcess.objects.child_process_ready.assert_has_calls([
-                mock.call(1),
-                mock.call(2),
-                mock.call(3),
-                mock.call(4)
-            ])
+            PipelineProcess.objects.child_process_ready.assert_has_calls(
+                [mock.call(1), mock.call(2), mock.call(3), mock.call(4)]
+            )
 
     @patch(PIPELINE_STATUS_BATCH_TRANSIT, MagicMock())
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock())
@@ -391,22 +375,22 @@ class TestPipelineProcess(TestCase):
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
             pipeline_stack=Stack(),
             children=[],
-            root_pipeline=IdentifyObject(id='root_pipeline_id'),
-            subprocess_stack=Stack([1, 2, 3, 4])
+            root_pipeline=IdentifyObject(id="root_pipeline_id"),
+            subprocess_stack=Stack([1, 2, 3, 4]),
         )
         process.snapshot = mock_snapshot
-        process.current_node_id = 'current_node_id'
+        process.current_node_id = "current_node_id"
 
         def return_suspended_for_node(id, may_not_exist=False):
-            if id == 'current_node_id':
+            if id == "current_node_id":
                 return states.SUSPENDED
 
         def return_failed_for_node(id, may_not_exist=False):
-            if id == 'current_node_id':
+            if id == "current_node_id":
                 return states.FAILED
 
         def return_suspended_for_root_pipeline(id, may_not_exist=False):
-            if id == 'root_pipeline_id':
+            if id == "root_pipeline_id":
                 return states.SUSPENDED
 
         def return_none_for_node(*args, **kwargs):
@@ -431,14 +415,10 @@ class TestPipelineProcess(TestCase):
                 with mock.patch(PIPELINE_STATUS_STATE_FOR, case):
                     process.adjust_status()
                     Status.objects.batch_transit.assert_called_with(
-                        id_list=[1, 2, 3, 4],
-                        state=states.BLOCKED,
-                        from_state=states.RUNNING
+                        id_list=[1, 2, 3, 4], state=states.BLOCKED, from_state=states.RUNNING
                     )
                     Status.objects.transit.assert_called_with(
-                        'root_pipeline_id',
-                        to_state=states.BLOCKED,
-                        is_pipeline=True
+                        "root_pipeline_id", to_state=states.BLOCKED, is_pipeline=True
                     )
                     Status.objects.batch_transit.reset_mock()
                     Status.objects.transit.reset_mock()
@@ -446,9 +426,7 @@ class TestPipelineProcess(TestCase):
             with mock.patch(PIPELINE_STATUS_STATE_FOR, return_suspended_for_root_pipeline):
                 process.adjust_status()
                 Status.objects.batch_transit.assert_called_with(
-                    id_list=[1, 2, 3, 4],
-                    state=states.SUSPENDED,
-                    from_state=states.RUNNING
+                    id_list=[1, 2, 3, 4], state=states.SUSPENDED, from_state=states.RUNNING
                 )
                 Status.objects.batch_transit.reset_mock()
 
@@ -460,18 +438,14 @@ class TestPipelineProcess(TestCase):
             with mock.patch(PIPELINE_STATUS_STATES_FOR, return_last_suspended_for_subproc):
                 process.adjust_status(adjust_scope=[1, 2, 3])
                 Status.objects.batch_transit.assert_called_with(
-                    id_list=[1, 2, 3],
-                    state=states.BLOCKED,
-                    from_state=states.RUNNING
+                    id_list=[1, 2, 3], state=states.BLOCKED, from_state=states.RUNNING
                 )
                 Status.objects.batch_transit.reset_mock()
 
             with mock.patch(PIPELINE_STATUS_STATES_FOR, return_one_suspended_for_subproc):
                 process.adjust_status(adjust_scope=[1])
                 Status.objects.batch_transit.assert_called_with(
-                    id_list=[1],
-                    state=states.BLOCKED,
-                    from_state=states.RUNNING
+                    id_list=[1], state=states.BLOCKED, from_state=states.RUNNING
                 )
                 Status.objects.batch_transit.reset_mock()
 
@@ -490,20 +464,17 @@ class TestPipelineProcess(TestCase):
 
         process = PipelineProcess.objects.create()
         process.id = uniqid()
-        process.current_node_id = 'current_node_id'
+        process.current_node_id = "current_node_id"
 
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
-            pipeline_stack=Stack(),
-            children=[1, 2, 3, 4],
-            root_pipeline=IdentifyObject(),
-            subprocess_stack=Stack([])
+            pipeline_stack=Stack(), children=[1, 2, 3, 4], root_pipeline=IdentifyObject(), subprocess_stack=Stack([])
         )
         mock_snapshot.delete = MagicMock()
         process.snapshot = mock_snapshot
 
         process.destroy()
         self.assertFalse(process.is_alive)
-        self.assertEqual(process.current_node_id, '')
+        self.assertEqual(process.current_node_id, "")
         self.assertIsNone(process.snapshot)
         mock_snapshot.delete.assert_called()
         ProcessCeleryTask.objects.destroy.assert_called_with(process.id)
@@ -511,10 +482,7 @@ class TestPipelineProcess(TestCase):
     def test_save(self):
         process = PipelineProcess.objects.create()
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
-            pipeline_stack=Stack(),
-            children=[1, 2, 3, 4],
-            root_pipeline=IdentifyObject(),
-            subprocess_stack=Stack([])
+            pipeline_stack=Stack(), children=[1, 2, 3, 4], root_pipeline=IdentifyObject(), subprocess_stack=Stack([])
         )
         mock_snapshot.save = MagicMock()
         process.snapshot = mock_snapshot
@@ -530,10 +498,7 @@ class TestPipelineProcess(TestCase):
     def test_blocked_by_failure_or_suspended(self):
         process = PipelineProcess.objects.create()
         mock_snapshot = ProcessSnapshot.objects.create_snapshot(
-            pipeline_stack=Stack(),
-            children=[],
-            root_pipeline=IdentifyObject(),
-            subprocess_stack=Stack([])
+            pipeline_stack=Stack(), children=[], root_pipeline=IdentifyObject(), subprocess_stack=Stack([])
         )
         process.snapshot = mock_snapshot
 
@@ -582,10 +547,7 @@ class TestPipelineProcess(TestCase):
             self.assertFalse(process.blocked_by_failure_or_suspended())
 
             mock_snapshot = ProcessSnapshot.objects.create_snapshot(
-                pipeline_stack=Stack(),
-                children=[1, 2, 3],
-                root_pipeline=IdentifyObject(),
-                subprocess_stack=Stack([])
+                pipeline_stack=Stack(), children=[1, 2, 3], root_pipeline=IdentifyObject(), subprocess_stack=Stack([])
             )
             process.snapshot = mock_snapshot
 
@@ -605,8 +567,8 @@ class TestPipelineProcess(TestCase):
                 self.assertTrue(process.blocked_by_failure_or_suspended())
 
     def test_sync_with_children(self):
-        outputs = {'output_key': 'output_value'}
-        variables = {'variable_key': 'varaiable_value'}
+        outputs = {"output_key": "output_value"}
+        variables = {"variable_key": "varaiable_value"}
 
         process = PipelineProcess.objects.create()
         context = Object()
@@ -618,10 +580,10 @@ class TestPipelineProcess(TestCase):
 
         mock_snapshot = ProcessSnapshot(
             data={
-                '_pipeline_stack': Stack([PipelineObject(context=context, data=data)]),
-                '_children': [1, 2, 3, 4],
-                '_root_pipeline': IdentifyObject(),
-                '_subprocess_stack': Stack([])
+                "_pipeline_stack": Stack([PipelineObject(context=context, data=data)]),
+                "_children": [1, 2, 3, 4],
+                "_root_pipeline": IdentifyObject(),
+                "_subprocess_stack": Stack([]),
             }
         )
         process.snapshot = mock_snapshot
@@ -631,9 +593,9 @@ class TestPipelineProcess(TestCase):
             return None
 
         def return_mock(id):
-            if id.endswith('data'):
+            if id.endswith("data"):
                 return DataObject(outputs=outputs)
-            if id.endswith('context'):
+            if id.endswith("context"):
                 return ContextObject(variables=variables)
 
         with mock.patch(PIPELINE_ENGINE_CORE_DATA_GET_OBJECT, return_none):
@@ -659,7 +621,7 @@ class TestPipelineProcess(TestCase):
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
         children = []
         for i in range(3):
-            children.append(process.__class__.objects.fork_child(process, 'current_node_id', 'destination_id'))
+            children.append(process.__class__.objects.fork_child(process, "current_node_id", "destination_id"))
         process.join(children)
 
         # def worker(child):
@@ -685,14 +647,14 @@ class TestPipelineProcess(TestCase):
     def test__context_key(self):
         process = PipelineProcess.objects.create()
         process.id = uniqid()
-        self.assertEqual(process._context_key(), '{}_context'.format(process.id))
-        self.assertEqual(process._context_key(process_id='another_id'), '{}_context'.format('another_id'))
+        self.assertEqual(process._context_key(), "{}_context".format(process.id))
+        self.assertEqual(process._context_key(process_id="another_id"), "{}_context".format("another_id"))
 
     def test__data_key(self):
         process = PipelineProcess.objects.create()
         process.id = uniqid()
-        self.assertEqual(process._data_key(), '{}_data'.format(process.id))
-        self.assertEqual(process._data_key(process_id='another_id'), '{}_data'.format('another_id'))
+        self.assertEqual(process._data_key(), "{}_data".format(process.id))
+        self.assertEqual(process._data_key(process_id="another_id"), "{}_data".format("another_id"))
 
     def test_can_be_waked(self):
         process = PipelineProcess.objects.create()
@@ -725,10 +687,10 @@ class TestPipelineProcess(TestCase):
 
         mock_snapshot = ProcessSnapshot(
             data={
-                '_pipeline_stack': Stack(),
-                '_children': ['1', '2', '3'],
-                '_root_pipeline': IdentifyObject(),
-                '_subprocess_stack': Stack([])
+                "_pipeline_stack": Stack(),
+                "_children": ["1", "2", "3"],
+                "_root_pipeline": IdentifyObject(),
+                "_subprocess_stack": Stack([]),
             }
         )
         mock_snapshot.clean_children = MagicMock()
@@ -738,14 +700,16 @@ class TestPipelineProcess(TestCase):
         process.snapshot = mock_snapshot
 
         process.clean_children()
-        del_object.assert_has_calls([
-            mock.call(process._context_key('1')),
-            mock.call(process._data_key('1')),
-            mock.call(process._context_key('2')),
-            mock.call(process._data_key('2')),
-            mock.call(process._context_key('3')),
-            mock.call(process._data_key('3')),
-        ])
+        del_object.assert_has_calls(
+            [
+                mock.call(process._context_key("1")),
+                mock.call(process._data_key("1")),
+                mock.call(process._context_key("2")),
+                mock.call(process._data_key("2")),
+                mock.call(process._context_key("3")),
+                mock.call(process._data_key("3")),
+            ]
+        )
         mock_snapshot.clean_children.assert_called()
         mock_snapshot.save.assert_called()
 
@@ -754,17 +718,17 @@ class TestPipelineProcess(TestCase):
     def test_exit_gracefully(self):
         mock_snapshot = ProcessSnapshot(
             data={
-                '_pipeline_stack': Stack(),
-                '_children': ['1', '2', '3'],
-                '_root_pipeline': PipelineObject(),
-                '_subprocess_stack': Stack([])
+                "_pipeline_stack": Stack(),
+                "_children": ["1", "2", "3"],
+                "_root_pipeline": PipelineObject(),
+                "_subprocess_stack": Stack([]),
             }
         )
 
         process = PipelineProcess.objects.create()
         process.snapshot = mock_snapshot
         process.sleep = MagicMock()
-        e = Exception('test')
+        e = Exception("test")
 
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
@@ -776,7 +740,7 @@ class TestPipelineProcess(TestCase):
         process.sleep.reset_mock()
 
         # when stack is not empty
-        mock_snapshot.data['_pipeline_stack'] = Stack([PipelineObject()])
+        mock_snapshot.data["_pipeline_stack"] = Stack([PipelineObject()])
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
         Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc())
@@ -789,7 +753,7 @@ class TestPipelineProcess(TestCase):
         # when current_node is none
         top_pipeline = PipelineObject()
         top_pipeline.node = MagicMock(return_value=None)
-        mock_snapshot.data['_pipeline_stack'] = Stack([top_pipeline])
+        mock_snapshot.data["_pipeline_stack"] = Stack([top_pipeline])
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
         Status.objects.fail.assert_not_called()
@@ -807,10 +771,10 @@ class TestPipelineProcess(TestCase):
     def test_revoke_subprocess(self):
         mock_snapshot = ProcessSnapshot(
             data={
-                '_pipeline_stack': Stack(),
-                '_children': [],
-                '_root_pipeline': PipelineObject(),
-                '_subprocess_stack': Stack([1, 2, 3, 4])
+                "_pipeline_stack": Stack(),
+                "_children": [],
+                "_root_pipeline": PipelineObject(),
+                "_subprocess_stack": Stack([1, 2, 3, 4]),
             }
         )
 
@@ -829,13 +793,9 @@ class TestPipelineProcess(TestCase):
         child_3.revoke_subprocess = MagicMock()
 
         def get_child(id):
-            return {
-                1: child_1,
-                2: child_2,
-                3: child_3
-            }[id]
+            return {1: child_1, 2: child_2, 3: child_3}[id]
 
-        mock_snapshot.data['_children'] = [1, 2, 3]
+        mock_snapshot.data["_children"] = [1, 2, 3]
 
         with mock.patch(PIPELINE_PROCESS_GET, get_child):
             process.revoke_subprocess()
@@ -854,10 +814,10 @@ class TestPipelineProcess(TestCase):
     def test_destroy_all(self):
         mock_snapshot = ProcessSnapshot(
             data={
-                '_pipeline_stack': Stack(),
-                '_children': [],
-                '_root_pipeline': PipelineObject(),
-                '_subprocess_stack': Stack([])
+                "_pipeline_stack": Stack(),
+                "_children": [],
+                "_root_pipeline": PipelineObject(),
+                "_subprocess_stack": Stack([]),
             }
         )
         process = PipelineProcess.objects.create()
@@ -871,7 +831,7 @@ class TestPipelineProcess(TestCase):
         process.destroy.assert_called()
         process.destroy.reset_mock()
 
-        mock_snapshot.data['_children'] = [1, 2, 3]
+        mock_snapshot.data["_children"] = [1, 2, 3]
 
         child_1 = Object()
         child_1.children = []
@@ -887,11 +847,7 @@ class TestPipelineProcess(TestCase):
         child_3.is_alive = True
 
         def get_child(id):
-            return {
-                1: child_1,
-                2: child_2,
-                3: child_3
-            }[id]
+            return {1: child_1, 2: child_2, 3: child_3}[id]
 
         with mock.patch(PIPELINE_PROCESS_GET, get_child):
             process.destroy_all()
@@ -901,22 +857,14 @@ class TestPipelineProcess(TestCase):
             self.assertEqual(child_1.destroy.call_count, 2)
 
     def test_in_subprocess__true(self):
-        snapshot = ProcessSnapshot(
-            data={
-                '_pipeline_stack': Stack([1, 2]),
-            }
-        )
+        snapshot = ProcessSnapshot(data={"_pipeline_stack": Stack([1, 2])})
         process = PipelineProcess()
         process.snapshot = snapshot
 
         self.assertTrue(process.in_subprocess)
 
     def test_in_subprocess__false(self):
-        snapshot = ProcessSnapshot(
-            data={
-                '_pipeline_stack': Stack([1]),
-            }
-        )
+        snapshot = ProcessSnapshot(data={"_pipeline_stack": Stack([1])})
         process = PipelineProcess()
         process.snapshot = snapshot
 
@@ -926,8 +874,6 @@ class TestPipelineProcess(TestCase):
         pipeline = PipelineObject()
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
         priority = 5
-        PipelineModel.objects.prepare_for_pipeline(pipeline=pipeline,
-                                                   process=process,
-                                                   priority=priority)
+        PipelineModel.objects.prepare_for_pipeline(pipeline=pipeline, process=process, priority=priority)
 
         self.assertEqual(PipelineProcess.objects.priority_for_process(process.id), priority)

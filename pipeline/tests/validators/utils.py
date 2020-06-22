@@ -10,21 +10,21 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-start_event_id = 'start_event_id'
-end_event_id = 'end_event_id'
+start_event_id = "start_event_id"
+end_event_id = "end_event_id"
 
 
 def exclusive_gw_id(num):
-    return 'eg_%s' % num
+    return "eg_%s" % num
 
 
 def converge_gw_id(num):
-    return 'cg_%s' % num
+    return "cg_%s" % num
 
 
 def parallel_gw_id(num):
-    return 'pg_%s' % num
+    return "pg_%s" % num
 
 
 def act_id(num):
-    return 'act_%s' % num
+    return "act_%s" % num

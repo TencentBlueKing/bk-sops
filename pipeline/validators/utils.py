@@ -31,10 +31,10 @@ def format_to_list(notype):
 
 def format_node_io_to_list(node, i=True, o=True):
     if i:
-        node['incoming'] = format_to_list(node['incoming'])
+        node["incoming"] = format_to_list(node["incoming"])
 
     if o:
-        node['outgoing'] = format_to_list(node['outgoing'])
+        node["outgoing"] = format_to_list(node["outgoing"])
 
 
 def format_pipeline_tree_io_to_list(pipeline_tree):
@@ -64,7 +64,7 @@ def get_node_for_sequence(sid, tree, node_type):
     elif target_id == tree[PE.start_event][PE.id]:
         return tree[PE.start_event]
 
-    raise exceptions.InvalidOperationException('node(%s) not in data' % target_id)
+    raise exceptions.InvalidOperationException("node(%s) not in data" % target_id)
 
 
 def get_nodes_dict(data):
@@ -75,10 +75,7 @@ def get_nodes_dict(data):
     start = data[PE.start_event][PE.id]
     end = data[PE.end_event][PE.id]
 
-    nodes = {
-        start: data[PE.start_event],
-        end: data[PE.end_event]
-    }
+    nodes = {start: data[PE.start_event], end: data[PE.end_event]}
 
     nodes.update(data[PE.activities])
     nodes.update(data[PE.gateways])

@@ -17,7 +17,6 @@ from pipeline.builder.flow import Params, Var
 
 
 class DataTestCase(TestCase):
-
     def test_init(self):
         params = Params()
         self.assertEqual(params.params, {})
@@ -25,10 +24,15 @@ class DataTestCase(TestCase):
     def test_to_dict(self):
         params = Params()
 
-        params.params['${constant_1}'] = Var(type=Var.PLAIN, value='value_1')
-        params.params['${constant_2}'] = {'type': 'plain', 'value': 'value_2'}
+        params.params["${constant_1}"] = Var(type=Var.PLAIN, value="value_1")
+        params.params["${constant_2}"] = {"type": "plain", "value": "value_2"}
 
         d = params.to_dict()
 
-        self.assertEqual(d, {'${constant_1}': {'type': 'plain', 'value': 'value_1'},
-                             '${constant_2}': {'type': 'plain', 'value': 'value_2'}})
+        self.assertEqual(
+            d,
+            {
+                "${constant_1}": {"type": "plain", "value": "value_1"},
+                "${constant_2}": {"type": "plain", "value": "value_2"},
+            },
+        )

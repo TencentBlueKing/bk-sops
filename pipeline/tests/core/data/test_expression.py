@@ -22,84 +22,84 @@ class TestConstantTemplate(TestCase):
         pass
 
     def test_format_constant_key(self):
-        self.assertEqual(format_constant_key('a'), '${a}')
+        self.assertEqual(format_constant_key("a"), "${a}")
 
     def test_deformat_constant_key(self):
-        self.assertEqual(deformat_constant_key('${a}'), 'a')
+        self.assertEqual(deformat_constant_key("${a}"), "a")
 
     def test_get_reference(self):
-        all_in_cons_template = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])
-        self.assertEqual(set(all_in_cons_template.get_reference()), {'a', 'b', 'int'})
+        all_in_cons_template = expression.ConstantTemplate(["${a}", ["${a}", "${a+int(b)}"]])
+        self.assertEqual(set(all_in_cons_template.get_reference()), {"a", "b", "int"})
 
-        comma_exclude_template = expression.ConstantTemplate(['${a["c"]}', ['${"%s" % a}', '${a+int(b)}']])
-        self.assertEqual(set(comma_exclude_template.get_reference()), {'a', 'b', 'int'})
+        comma_exclude_template = expression.ConstantTemplate(['${a["c"]}', ['${"%s" % a}', "${a+int(b)}"]])
+        self.assertEqual(set(comma_exclude_template.get_reference()), {"a", "b", "int"})
 
     def test_get_templates(self):
-        cons_tmpl = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])
-        self.assertEqual(set(cons_tmpl.get_templates()), {'${a+int(b)}', '${a}'})
+        cons_tmpl = expression.ConstantTemplate(["${a}", ["${a}", "${a+int(b)}"]])
+        self.assertEqual(set(cons_tmpl.get_templates()), {"${a+int(b)}", "${a}"})
 
     def test_resolve_data(self):
-        list_template = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])
-        self.assertEqual(list_template.resolve_data({'a': 2, 'b': '3'}), [2, [2, '5']])
+        list_template = expression.ConstantTemplate(["${a}", ["${a}", "${a+int(b)}"]])
+        self.assertEqual(list_template.resolve_data({"a": 2, "b": "3"}), [2, [2, "5"]])
 
-        tuple_template = expression.ConstantTemplate(('${a}', ('${a}', '${a+int(b)}')))
-        self.assertEqual(tuple_template.resolve_data({'a': 2, 'b': '3'}), (2, (2, '5')))
+        tuple_template = expression.ConstantTemplate(("${a}", ("${a}", "${a+int(b)}")))
+        self.assertEqual(tuple_template.resolve_data({"a": 2, "b": "3"}), (2, (2, "5")))
 
-        dict_template = expression.ConstantTemplate({'aaaa': {'a': '${a}', 'b': '${a+int(b)}'}})
-        self.assertEqual(dict_template.resolve_data({'a': 2, 'b': '3'}), {'aaaa': {'a': 2, 'b': '5'}})
+        dict_template = expression.ConstantTemplate({"aaaa": {"a": "${a}", "b": "${a+int(b)}"}})
+        self.assertEqual(dict_template.resolve_data({"a": 2, "b": "3"}), {"aaaa": {"a": 2, "b": "5"}})
 
     def test_get_string_templates(self):
-        cons_tmpl = expression.ConstantTemplate('')
-        self.assertEqual(cons_tmpl.get_string_templates('${a}'), ['${a}'])
+        cons_tmpl = expression.ConstantTemplate("")
+        self.assertEqual(cons_tmpl.get_string_templates("${a}"), ["${a}"])
 
     def test_resolve_string(self):
-        cons_tmpl = expression.ConstantTemplate('')
-        one_template = '${a}'
-        self.assertEqual(cons_tmpl.resolve_string(one_template, {'a': '1'}), '1')
+        cons_tmpl = expression.ConstantTemplate("")
+        one_template = "${a}"
+        self.assertEqual(cons_tmpl.resolve_string(one_template, {"a": "1"}), "1")
 
     def test_get_template_reference(self):
-        cons_tmpl = expression.ConstantTemplate('')
-        self.assertEqual(cons_tmpl.get_template_reference('${a}'), ['a'])
+        cons_tmpl = expression.ConstantTemplate("")
+        self.assertEqual(cons_tmpl.get_template_reference("${a}"), ["a"])
 
     def test_resolve_template(self):
-        cons_tmpl = expression.ConstantTemplate('')
-        simple = '${a}'
-        self.assertEqual(cons_tmpl.resolve_template(simple, {'a': '1'}), '1')
+        cons_tmpl = expression.ConstantTemplate("")
+        simple = "${a}"
+        self.assertEqual(cons_tmpl.resolve_template(simple, {"a": "1"}), "1")
 
-        calculate = '${a+int(b)}'
-        self.assertEqual(cons_tmpl.resolve_template(calculate, {'a': 2, 'b': '3'}), '5')
+        calculate = "${a+int(b)}"
+        self.assertEqual(cons_tmpl.resolve_template(calculate, {"a": 2, "b": "3"}), "5")
 
-        split = '${a[0]}'
-        self.assertEqual(cons_tmpl.resolve_template(split, {'a': [1, 2]}), '1')
+        split = "${a[0]}"
+        self.assertEqual(cons_tmpl.resolve_template(split, {"a": [1, 2]}), "1")
 
         dict_item = '${a["b"]}'
-        self.assertEqual(cons_tmpl.resolve_template(dict_item, {'a': {'b': 1}}), '1')
+        self.assertEqual(cons_tmpl.resolve_template(dict_item, {"a": {"b": 1}}), "1")
 
-        not_exists = '{a}'
+        not_exists = "{a}"
         self.assertEqual(cons_tmpl.resolve_template(not_exists, {}), not_exists)
 
-        resolve_syntax_error = '${a.b}'
+        resolve_syntax_error = "${a.b}"
         self.assertEqual(cons_tmpl.resolve_template(resolve_syntax_error, {}), resolve_syntax_error)
 
-        template_syntax_error = '${a:b}'
+        template_syntax_error = "${a:b}"
         self.assertEqual(cons_tmpl.resolve_template(template_syntax_error, {}), template_syntax_error)
 
     def test_resolve(self):
-        list_template = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])
-        self.assertEqual(list_template.resolve_data({'a': 2, 'b': '3'}), [2, [2, '5']])
+        list_template = expression.ConstantTemplate(["${a}", ["${a}", "${a+int(b)}"]])
+        self.assertEqual(list_template.resolve_data({"a": 2, "b": "3"}), [2, [2, "5"]])
 
-        tuple_template = expression.ConstantTemplate(('${a}', ('${a}', '${a+int(b)}')))
-        self.assertEqual(tuple_template.resolve_data({'a': 2, 'b': '3'}), (2, (2, '5')))
+        tuple_template = expression.ConstantTemplate(("${a}", ("${a}", "${a+int(b)}")))
+        self.assertEqual(tuple_template.resolve_data({"a": 2, "b": "3"}), (2, (2, "5")))
 
-        dict_template = expression.ConstantTemplate({'aaaa': {'a': '${a}', 'b': '${a+int(b)}'}})
-        self.assertEqual(dict_template.resolve_data({'a': 2, 'b': '3'}), {'aaaa': {'a': 2, 'b': '5'}})
+        dict_template = expression.ConstantTemplate({"aaaa": {"a": "${a}", "b": "${a+int(b)}"}})
+        self.assertEqual(dict_template.resolve_data({"a": 2, "b": "3"}), {"aaaa": {"a": 2, "b": "5"}})
 
     def test_get_reference_complex(self):
-        all_in_cons_template = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])
-        self.assertEqual(set(all_in_cons_template.get_reference()), set(['a', 'b', 'int']))
+        all_in_cons_template = expression.ConstantTemplate(["${a}", ["${a}", "${a+int(b)}"]])
+        self.assertEqual(set(all_in_cons_template.get_reference()), set(["a", "b", "int"]))
 
-        comma_exclude_template = expression.ConstantTemplate(['${a["c"]}', ['${"%s" % a}', '${a+int(b)}']])
-        self.assertEqual(set(comma_exclude_template.get_reference()), set(['a', 'b', 'int']))
+        comma_exclude_template = expression.ConstantTemplate(['${a["c"]}', ['${"%s" % a}', "${a+int(b)}"]])
+        self.assertEqual(set(comma_exclude_template.get_reference()), set(["a", "b", "int"]))
 
     def test_built_in_functions__without_args(self):
         int_template = expression.ConstantTemplate("${int}")

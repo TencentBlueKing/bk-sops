@@ -20,15 +20,15 @@ from django.db.utils import InternalError, OperationalError, ProgrammingError
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
-DJANGO_MANAGE_CMD = 'manage.py'
-INIT_PASS_TRIGGER = {'migrate'}
+DJANGO_MANAGE_CMD = "manage.py"
+INIT_PASS_TRIGGER = {"migrate"}
 
 
 class ComponentFrameworkConfig(AppConfig):
-    name = 'pipeline.component_framework'
-    verbose_name = 'PipelineComponentFramework'
+    name = "pipeline.component_framework"
+    verbose_name = "PipelineComponentFramework"
 
     def ready(self):
         """
@@ -45,11 +45,13 @@ class ComponentFrameworkConfig(AppConfig):
 
         from pipeline.component_framework.models import ComponentModel
         from pipeline.component_framework.library import ComponentLibrary
+
         try:
             ComponentModel.objects.all().update(status=False)
             for code in ComponentLibrary.codes():
-                ComponentModel.objects.filter(code=code,
-                                              version__in=ComponentLibrary.versions(code)).update(status=True)
+                ComponentModel.objects.filter(code=code, version__in=ComponentLibrary.versions(code)).update(
+                    status=True
+                )
         except InternalError as e:
             # version field migration
             logger.exception(e)

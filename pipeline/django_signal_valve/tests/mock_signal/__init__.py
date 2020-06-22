@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 class MockSignal(object):
-
     def __init__(self):
         self.history = []
 

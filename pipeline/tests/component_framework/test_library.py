@@ -27,10 +27,10 @@ class TestRegistry(TestCase):
             pass
 
         class NewTestComponent(Component):
-            name = 'name'
-            code = 'new_test_component'
+            name = "name"
+            code = "new_test_component"
             bound_service = NewTestService
-            form = 'form path'
+            form = "form path"
 
         self.component = NewTestComponent
 
@@ -43,22 +43,22 @@ class TestRegistry(TestCase):
             pass
 
         class TestComponent(Component):
-            name = 'name'
-            code = 'code'
+            name = "name"
+            code = "code"
             bound_service = TestService
-            form = 'form path'
+            form = "form path"
 
-        self.assertEqual(ComponentLibrary.components['code'][LEGACY_PLUGINS_VERSION], TestComponent)
+        self.assertEqual(ComponentLibrary.components["code"][LEGACY_PLUGINS_VERSION], TestComponent)
 
     def test_get_component_class(self):
         class TestService(Service):
             pass
 
         class TestComponent(Component):
-            name = 'name'
-            code = 'code'
+            name = "name"
+            code = "code"
             bound_service = TestService
-            form = 'form path'
+            form = "form path"
 
             def clean_execute_data(self, context):
                 pass
@@ -67,11 +67,11 @@ class TestRegistry(TestCase):
                 pass
 
         class TestComponent2(Component):
-            name = 'name'
-            code = 'code_2'
+            name = "name"
+            code = "code_2"
             bound_service = TestService
-            form = 'form path'
-            version = '1.0'
+            form = "form path"
+            version = "1.0"
 
             def clean_execute_data(self, context):
                 pass
@@ -79,13 +79,13 @@ class TestRegistry(TestCase):
             def outputs_format(self):
                 pass
 
-        self.assertEqual(ComponentLibrary.get_component_class('code'), TestComponent)
-        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, 'code', '1.0')
-        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, 'code2')
-        self.assertEqual(ComponentLibrary.get_component_class('code_2', '1.0'), TestComponent2)
+        self.assertEqual(ComponentLibrary.get_component_class("code"), TestComponent)
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, "code", "1.0")
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, "code2")
+        self.assertEqual(ComponentLibrary.get_component_class("code_2", "1.0"), TestComponent2)
 
     def test_get_component__raise(self):
-        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component, 'c_not_exist', {})
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component, "c_not_exist", {})
 
     def test_args_new(self):
         component = ComponentLibrary(self.component.code)
@@ -96,10 +96,10 @@ class TestRegistry(TestCase):
             pass
 
         class TestComponent(Component):
-            name = 'name'
-            code = 'code'
+            name = "name"
+            code = "code"
             bound_service = TestService
-            form = 'form path'
+            form = "form path"
 
             def clean_execute_data(self, context):
                 pass
@@ -107,31 +107,31 @@ class TestRegistry(TestCase):
             def outputs_format(self):
                 pass
 
-        self.assertEqual(ComponentLibrary.get_component('code', {}).__class__, TestComponent)
+        self.assertEqual(ComponentLibrary.get_component("code", {}).__class__, TestComponent)
 
     def test_register_component(self):
-        component_cls = 'component_token'
-        ComponentLibrary.register_component(component_code='code_1', version='1', component_cls=component_cls)
-        ComponentLibrary.register_component(component_code='code_1', version='2', component_cls=component_cls)
-        self.assertEqual(ComponentLibrary.components, {
-            'new_test_component': {
-                LEGACY_PLUGINS_VERSION: ComponentLibrary.get_component_class('new_test_component')
+        component_cls = "component_token"
+        ComponentLibrary.register_component(component_code="code_1", version="1", component_cls=component_cls)
+        ComponentLibrary.register_component(component_code="code_1", version="2", component_cls=component_cls)
+        self.assertEqual(
+            ComponentLibrary.components,
+            {
+                "new_test_component": {
+                    LEGACY_PLUGINS_VERSION: ComponentLibrary.get_component_class("new_test_component")
+                },
+                "code_1": {"1": component_cls, "2": component_cls},
             },
-            'code_1': {
-                '1': component_cls,
-                '2': component_cls
-            }
-        })
+        )
 
     def test_component_list(self):
         class TestService(Service):
             pass
 
         class TestComponent(Component):
-            name = 'name'
-            code = 'code'
+            name = "name"
+            code = "code"
             bound_service = TestService
-            form = 'form path'
+            form = "form path"
 
             def clean_execute_data(self, context):
                 pass
@@ -140,11 +140,11 @@ class TestRegistry(TestCase):
                 pass
 
         class TestComponent2(Component):
-            name = 'name'
-            code = 'code_2'
+            name = "name"
+            code = "code_2"
             bound_service = TestService
-            form = 'form path'
-            version = '1.0'
+            form = "form path"
+            version = "1.0"
 
             def clean_execute_data(self, context):
                 pass

@@ -19,7 +19,7 @@ from pipeline.core.flow.base import FlowNode
 from pipeline.engine.signals import pipeline_end
 from pipeline.core.pipeline import Pipeline
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 
 class Event(FlowNode, metaclass=ABCMeta):

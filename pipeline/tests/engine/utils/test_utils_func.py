@@ -20,15 +20,14 @@ from pipeline.engine.utils import calculate_elapsed_time
 
 
 class EngineUtilsFuncTestCase(TestCase):
-
     def test_calculate_elapsed_time(self):
         self.assertEqual(calculate_elapsed_time(None, None), 0)
 
         self.assertEqual(calculate_elapsed_time(started_time=None, archived_time=timezone.now()), 0)
 
-        self.assertNotEqual(calculate_elapsed_time(started_time=timezone.now() - datetime.timedelta(seconds=1),
-                                                   archived_time=None),
-                            0)
+        self.assertNotEqual(
+            calculate_elapsed_time(started_time=timezone.now() - datetime.timedelta(seconds=1), archived_time=None), 0
+        )
 
         # seconds
         start = timezone.now()

@@ -23,7 +23,6 @@ from .data import (
 
 
 class TestPipelineParser(unittest.TestCase):
-
     def setUp(self):
         from pipeline.component_framework.component import Component
         from pipeline.core.flow.activity import Service
@@ -36,10 +35,10 @@ class TestPipelineParser(unittest.TestCase):
                 return []
 
         class TestComponent(Component):
-            name = 'test'
-            code = 'test'
+            name = "test"
+            code = "test"
             bound_service = TestService
-            form = 'test.js'
+            form = "test.js"
 
     def test_pipeline_parser(self):
         parser_obj = PipelineParser(PIPELINE_DATA)

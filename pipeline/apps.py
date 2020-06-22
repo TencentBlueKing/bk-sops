@@ -20,73 +20,69 @@ from django.conf import settings
 from redis.sentinel import Sentinel
 from rediscluster import StrictRedisCluster
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 def get_client_through_sentinel():
     kwargs = {}
-    if 'password' in settings.REDIS:
-        kwargs['password'] = settings.REDIS['password']
-    host = settings.REDIS['host']
-    port = settings.REDIS['port']
-    sentinels = list(zip([h.strip() for h in host.split(',')], [p.strip() for p in str(port).split(',')]))
+    if "password" in settings.REDIS:
+        kwargs["password"] = settings.REDIS["password"]
+    host = settings.REDIS["host"]
+    port = settings.REDIS["port"]
+    sentinels = list(zip([h.strip() for h in host.split(",")], [p.strip() for p in str(port).split(",")]))
     rs = Sentinel(sentinels, **kwargs)
     # avoid None value in settings.REDIS
-    r = rs.master_for(settings.REDIS.get('service_name') or 'mymaster')
+    r = rs.master_for(settings.REDIS.get("service_name") or "mymaster")
     # try to connect master
-    r.echo('Hello Redis')
+    r.echo("Hello Redis")
     return r
 
 
 def get_cluster_client():
-    kwargs = {
-        'startup_nodes': [{"host": settings.REDIS['host'], "port": settings.REDIS['port']}]
-    }
-    if 'password' in settings.REDIS:
-        kwargs['password'] = settings.REDIS['password']
+    kwargs = {"startup_nodes": [{"host": settings.REDIS["host"], "port": settings.REDIS["port"]}]}
+    if "password" in settings.REDIS:
+        kwargs["password"] = settings.REDIS["password"]
 
     r = StrictRedisCluster(**kwargs)
-    r.echo('Hello Redis')
+    r.echo("Hello Redis")
     return r
 
 
 def get_single_client():
     kwargs = {
-        'host': settings.REDIS['host'],
-        'port': settings.REDIS['port'],
+        "host": settings.REDIS["host"],
+        "port": settings.REDIS["port"],
     }
-    if 'password' in settings.REDIS:
-        kwargs['password'] = settings.REDIS['password']
-    if 'db' in settings.REDIS:
-        kwargs['db'] = settings.REDIS['db']
+    if "password" in settings.REDIS:
+        kwargs["password"] = settings.REDIS["password"]
+    if "db" in settings.REDIS:
+        kwargs["db"] = settings.REDIS["db"]
 
     pool = redis.ConnectionPool(**kwargs)
     return redis.StrictRedis(connection_pool=pool)
 
 
-CLIENT_GETTER = {
-    'replication': get_client_through_sentinel,
-    'cluster': get_cluster_client,
-    'single': get_single_client
-}
+CLIENT_GETTER = {"replication": get_client_through_sentinel, "cluster": get_cluster_client, "single": get_single_client}
 
 
 class PipelineConfig(AppConfig):
-    name = 'pipeline'
-    verbose_name = 'Pipeline'
+    name = "pipeline"
+    verbose_name = "Pipeline"
 
     def ready(self):
         from pipeline.signals.handlers import pipeline_template_post_save_handler  # noqa
         from pipeline.validators.handlers import post_new_end_event_register_handler  # noqa
+
         # init redis pool
-        if hasattr(settings, 'REDIS'):
-            mode = settings.REDIS.get('mode') or 'single'
+        if hasattr(settings, "REDIS"):
+            mode = settings.REDIS.get("mode") or "single"
             try:
                 settings.redis_inst = CLIENT_GETTER[mode]()
             except Exception:
                 # fall back to single node mode
                 logger.error("redis client init error: %s" % traceback.format_exc())
-        elif getattr(settings,
-                     'PIPELINE_DATA_BACKEND',
-                     None) == 'pipeline.engine.core.data.redis_backend.RedisDataBackend':
+        elif (
+            getattr(settings, "PIPELINE_DATA_BACKEND", None)
+            == "pipeline.engine.core.data.redis_backend.RedisDataBackend"
+        ):
             logger.error("can not find REDIS in settings!")

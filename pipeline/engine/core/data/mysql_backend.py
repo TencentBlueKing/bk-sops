@@ -18,7 +18,6 @@ from pipeline.engine.models.data import DataSnapshot
 
 
 class MySQLDataBackend(BaseDataBackend):
-
     def set_object(self, key, obj):
         return DataSnapshot.objects.set_object(key, obj)
 

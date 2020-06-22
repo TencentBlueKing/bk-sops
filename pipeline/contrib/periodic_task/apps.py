@@ -15,9 +15,10 @@ from django.apps import AppConfig
 
 
 class PeriodicTaskConfig(AppConfig):
-    name = 'pipeline.contrib.periodic_task'
-    verbose_name = 'PipelinePeriodicTask'
+    name = "pipeline.contrib.periodic_task"
+    verbose_name = "PipelinePeriodicTask"
 
     def ready(self):
         from pipeline.contrib.periodic_task.patch.djcelery.djcelery_patch import patch
+
         patch()

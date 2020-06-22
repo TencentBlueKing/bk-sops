@@ -37,9 +37,13 @@
         </div>
         <div class="list-wrapper">
             <template v-if="listInPanel.length > 0">
-                <!-- 全部插件类表 -->
+                <!-- 全部插件/子流程 -->
                 <template v-if="searchStr === '' && selectedGroup === 'all'">
-                    <bk-collapse ext-cls="group-collapse" v-for="group in listInPanel" :key="group.type">
+                    <bk-collapse
+                        v-for="group in listInPanel"
+                        ext-cls="group-collapse"
+                        :key="group.type"
+                        :value="defaultActiveGroup">
                         <bk-collapse-item :name="group.group_name">
                             <div class="group-header">
                                 <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
@@ -58,7 +62,7 @@
                                         :key="index"
                                         @click="onSelect(item)">
                                         <span class="node-name">{{ item.name }}</span>
-                                        <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                        <span v-if="isSubflow" class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
                                             <i class="common-icon-box-top-right-corner"></i>
                                         </span>
                                     </li>
@@ -141,7 +145,8 @@
             return {
                 selectedGroup: 'all', // 标准插件/子流程搜索分组
                 searchStr: '',
-                searchResult: []
+                searchResult: [],
+                defaultActiveGroup: this.getDefaultActiveGroup()
             }
         },
         computed: {
@@ -170,9 +175,29 @@
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            // 获取默认展开的分组，没有选择展开第一组，已选择展开选中的那组
+            getDefaultActiveGroup () {
+                let activeGroup = ''
+                const data = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
+                const propertyName = this.isSubflow ? 'id' : 'code'
+                const id = this.isSubflow ? 'tpl' : 'plugin'
+                if (this.basicInfo[id]) {
+                    data.some(group => {
+                        if (group.list.find(item => String(item[propertyName]) === this.basicInfo[id])) {
+                            activeGroup = group.group_name
+                            return true
+                        }
+                    })
+                } else {
+                    if (data.length > 0) {
+                        activeGroup = data[0].group_name
+                    }
+                }
+                return activeGroup
+            },
             getIconCls (type) {
                 const systemType = SYSTEM_GROUP_ICON.find(item => new RegExp(item).test(type))
-                if (this.activeNodeListType === 'subflow') {
+                if (this.isSubflow) {
                     return 'common-icon-subflow-mark'
                 }
                 if (systemType) {
@@ -230,20 +255,6 @@
                     return item.id === this.basicInfo.tpl
                 }
                 return item.code === this.basicInfo.plugin
-            },
-            // 查看子流程
-            onViewSubflow (tpl) {
-                const { href } = this.$router.resolve({
-                    name: 'templatePanel',
-                    params: {
-                        type: 'edit',
-                        project_id: tpl.project.id
-                    },
-                    query: {
-                        template_id: tpl.id
-                    }
-                })
-                window.open(href, '_blank')
             },
             onApplyPermission (tpl) {
                 const { tplOperations, tplResource } = this.atomTypeList.subflow

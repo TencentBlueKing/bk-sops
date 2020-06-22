@@ -16,7 +16,7 @@ import logging
 import ujson as module_json
 import requests
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 def http_post_request(url, data=None, json=None, **kwargs):
@@ -26,12 +26,12 @@ def http_post_request(url, data=None, json=None, **kwargs):
             content_dict = module_json.loads(response.content)
             return content_dict
         except Exception as e:
-            message = 'the format of HTTP request result is valid: %s' % e
+            message = "the format of HTTP request result is valid: %s" % e
             logger.exception(message)
-            return {'result': False, 'code': 1, 'message': message}
+            return {"result": False, "code": 1, "message": message}
     message = "HTTP request failed，Http status code is：%s" % response.status_code
     logger.error(message)
-    return {'result': False, 'code': response.status_code, 'message': message}
+    return {"result": False, "code": response.status_code, "message": message}
 
 
 def http_get_request(url, params=None, **kwargs):
@@ -41,9 +41,9 @@ def http_get_request(url, params=None, **kwargs):
             content_dict = module_json.loads(response.content)
             return content_dict
         except Exception as e:
-            message = 'the format of HTTP request result is valid: %s' % e
+            message = "the format of HTTP request result is valid: %s" % e
             logger.exception(message)
-            return {'result': False, 'code': 1, 'message': message}
+            return {"result": False, "code": 1, "message": message}
     message = "HTTP request failed，Http status code is：%s" % response.status_code
     logger.error(message)
-    return {'result': False, 'code': response.status_code, 'message': message}
+    return {"result": False, "code": response.status_code, "message": message}
