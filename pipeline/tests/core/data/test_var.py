@@ -12,7 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from pipeline.core.data import var, context, base
+
+from pipeline.core.data import base, context, var
 
 
 class TestPlainVariable(TestCase):

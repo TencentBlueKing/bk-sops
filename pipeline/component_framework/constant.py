@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import copy
 
-from pipeline.exceptions import ConstantNotExistException, ConstantReferenceException
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
+from pipeline.exceptions import ConstantNotExistException, ConstantReferenceException
 from pipeline.utils.graph import Graph
 
 

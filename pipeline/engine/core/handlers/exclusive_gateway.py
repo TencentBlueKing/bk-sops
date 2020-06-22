@@ -14,11 +14,10 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from pipeline.exceptions import PipelineException
-from pipeline.core.flow.gateway import ExclusiveGateway
 from pipeline.core.data.hydration import hydrate_data
-
+from pipeline.core.flow.gateway import ExclusiveGateway
 from pipeline.engine.models import Status
+from pipeline.exceptions import PipelineException
 
 from .base import FlowElementHandler
 

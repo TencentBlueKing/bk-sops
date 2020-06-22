@@ -14,19 +14,18 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 from mock import MagicMock
 
-from pipeline.core.flow.event import EmptyStartEvent, EmptyEndEvent, ExecutableEndEvent
 from pipeline.core.flow.activity import ServiceActivity, SubProcess
-from pipeline.core.flow.gateway import ExclusiveGateway, ParallelGateway, ConditionalParallelGateway, ConvergeGateway
-
+from pipeline.core.flow.event import EmptyEndEvent, EmptyStartEvent, ExecutableEndEvent
+from pipeline.core.flow.gateway import ConditionalParallelGateway, ConvergeGateway, ExclusiveGateway, ParallelGateway
 from pipeline.engine.core.handlers import HandlersFactory
-from pipeline.engine.core.handlers.service_activity import ServiceActivityHandler
-from pipeline.engine.core.handlers.endevent import EmptyEndEventHandler, ExecutableEndEventHandler
-from pipeline.engine.core.handlers.empty_start_event import EmptyStartEventHandler
-from pipeline.engine.core.handlers.subprocess import SubprocessHandler
-from pipeline.engine.core.handlers.exclusive_gateway import ExclusiveGatewayHandler
-from pipeline.engine.core.handlers.parallel_gateway import ParallelGatewayHandler
 from pipeline.engine.core.handlers.conditional_parallel import ConditionalParallelGatewayHandler
 from pipeline.engine.core.handlers.converge_gateway import ConvergeGatewayHandler
+from pipeline.engine.core.handlers.empty_start_event import EmptyStartEventHandler
+from pipeline.engine.core.handlers.endevent import EmptyEndEventHandler, ExecutableEndEventHandler
+from pipeline.engine.core.handlers.exclusive_gateway import ExclusiveGatewayHandler
+from pipeline.engine.core.handlers.parallel_gateway import ParallelGatewayHandler
+from pipeline.engine.core.handlers.service_activity import ServiceActivityHandler
+from pipeline.engine.core.handlers.subprocess import SubprocessHandler
 
 
 class CustomEndEventOne(ExecutableEndEvent):

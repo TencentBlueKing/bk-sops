@@ -16,9 +16,9 @@ import itertools
 from django.test import TestCase
 
 from pipeline.core.pipeline import Pipeline
-from pipeline.engine import tasks, states, api, signals
+from pipeline.engine import api, signals, states, tasks
 from pipeline.engine.core import runtime, schedule
-from pipeline.engine.models import Status, NodeRelationship, ProcessCeleryTask, NodeCeleryTask
+from pipeline.engine.models import NodeCeleryTask, NodeRelationship, ProcessCeleryTask, Status
 from pipeline.tests.engine.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -318,8 +318,9 @@ class EngineTaskTestCase(TestCase):
     def test_service_schedule(self):
         process_id = uniqid()
         schedule_id = uniqid()
-        tasks.service_schedule(process_id, schedule_id)
-        schedule.schedule.assert_called_with(process_id, schedule_id)
+        data_id = None
+        tasks.service_schedule(process_id, schedule_id, data_id)
+        schedule.schedule.assert_called_with(process_id, schedule_id, data_id)
 
     @mock.patch(PIPELINE_NODE_CELERYTASK_DESTROY, mock.MagicMock())
     @mock.patch(ENGINE_API_FORCED_FAIL, mock.MagicMock())

@@ -13,13 +13,13 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.tests.mock import *  # noqa
-from pipeline.tests.mock_settings import *  # noqa
 from pipeline.engine import states
-from pipeline.service import task_service
+from pipeline.engine.models import NodeRelationship, Status
 from pipeline.engine.utils import ActionResult
 from pipeline.models import PipelineInstance, PipelineTemplate
-from pipeline.engine.models import Status, NodeRelationship
+from pipeline.service import task_service
+from pipeline.tests.mock import *  # noqa
+from pipeline.tests.mock_settings import *  # noqa
 
 
 class TestPipelineInstance(TestCase):
@@ -90,13 +90,13 @@ class TestPipelineInstance(TestCase):
         }
         self.creator = "start"
         self.template = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id="1")
-        self.instance, _ = PipelineInstance.objects.create_instance(
+        self.instance, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator, instance_id="1"
         )
-        self.instance_2, _ = PipelineInstance.objects.create_instance(
+        self.instance_2, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator, instance_id="2"
         )
-        self.instance_3, _ = PipelineInstance.objects.create_instance(
+        self.instance_3, no_use = PipelineInstance.objects.create_instance(
             self.template, exec_data=self.data, creator=self.creator, instance_id="3"
         )
 
@@ -127,7 +127,7 @@ class TestPipelineInstance(TestCase):
         PipelineTemplate.objects.unfold_subprocess.assert_not_called()
 
     def test_create_instance__without_template(self):
-        self.instance_4, _ = PipelineInstance.objects.create_instance(
+        self.instance_4, no_use = PipelineInstance.objects.create_instance(
             template=None, exec_data=self.data, creator=self.creator, instance_id="4"
         )
         self.assertIsNone(self.instance_4.template)
@@ -176,7 +176,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__success(self):
-        instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(self.template,
+                                                                    exec_data=self.data,
+                                                                    creator=self.creator)
         executor = "token_1"
         instance.start(executor)
 
@@ -192,7 +194,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     def test_start__already_started(self):
-        instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(self.template,
+                                                                    exec_data=self.data,
+                                                                    creator=self.creator)
         instance.is_started = True
         instance.save()
         executor = "token_1"
@@ -206,7 +210,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(side_effect=ImportError()))
     def test_start__parser_cls_error(self):
-        instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(self.template,
+                                                                    exec_data=self.data,
+                                                                    creator=self.creator)
         executor = "token_1"
 
         instance.start(executor)
@@ -224,7 +230,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
     @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__task_service_call_fail(self):
-        instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(self.template,
+                                                                    exec_data=self.data,
+                                                                    creator=self.creator)
         executor = "token_1"
         instance.start(executor)
 
@@ -240,7 +248,9 @@ class TestPipelineInstance(TestCase):
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message="")))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock(side_effect=Exception()))
     def test_start__error_occurred_before_task_service_call(self):
-        instance, _ = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
+        instance, no_use = PipelineInstance.objects.create_instance(self.template,
+                                                                    exec_data=self.data,
+                                                                    creator=self.creator)
         executor = "token_1"
 
         try:

@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
 import importlib
+import logging
 import traceback
 
 from pipeline.contrib.external_plugins.models import source_cls_factory

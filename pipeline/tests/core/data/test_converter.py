@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline import exceptions
 from pipeline.core.data.context import Context
 from pipeline.core.data.converter import get_variable
-from pipeline import exceptions
 
 
 class TestConverter(TestCase):

@@ -13,13 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import unittest
 
-from pipeline.parser.pipeline_parser import PipelineParser
 from pipeline.core.pipeline import Pipeline
-from .data import (
-    PIPELINE_DATA,
-    PIPELINE_WITH_SUB_PROCESS,
-    CONDITIONAL_PARALLEL,
-)
+from pipeline.parser.pipeline_parser import PipelineParser
+
+from .data import CONDITIONAL_PARALLEL, PIPELINE_DATA, PIPELINE_WITH_SUB_PROCESS
 
 
 class TestPipelineParser(unittest.TestCase):

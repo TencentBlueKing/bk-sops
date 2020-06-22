@@ -15,6 +15,7 @@ from django.test import TestCase
 
 from pipeline.core.data.base import DataObject
 from pipeline.engine.models import Data
+
 from ..mock import IdentifyObject
 
 

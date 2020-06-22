@@ -69,6 +69,10 @@ class ServiceActivityHandler(FlowElementHandler):
             )
             monitoring = True
 
+        element.setup_runtime_attrs(
+            id=element.id, root_pipeline_id=root_pipeline.id,
+        )
+
         # execute service
         try:
             success = element.execute(root_pipeline.data)

@@ -12,12 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 
 import imp
-import sys
 import logging
+import sys
 import traceback
-
-from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod
+from contextlib import contextmanager
 
 from pipeline.contrib.external_plugins.utils import requirement
 

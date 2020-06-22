@@ -19,6 +19,7 @@ SANDBOX = {}
 
 
 class MockStrMeta(type):
+
     def __new__(cls, name, bases, attrs):
         new_cls = super(MockStrMeta, cls).__new__(cls, name, bases, attrs)
         SANDBOX.update({new_cls.str_return: new_cls})
@@ -35,6 +36,6 @@ for func_name in dir(builtins):
     """
     @summary: generate mock class of built-in functions like id,int
     """
-    if func_name.lower() == func_name and not func_name.startswith("_"):
+    if func_name.lower() == func_name and not func_name.startswith('_'):
         new_func_name = "Mock{}".format(func_name.capitalize())
-        MockStrMeta(new_func_name, (object,), {"call": getattr(builtins, func_name), "str_return": func_name})
+        MockStrMeta(new_func_name, (object, ), {"call": getattr(builtins, func_name), "str_return": func_name})

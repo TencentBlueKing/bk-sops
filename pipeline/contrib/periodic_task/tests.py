@@ -15,7 +15,7 @@ import copy
 
 from django.test import TestCase
 
-from pipeline.contrib.periodic_task.models import PeriodicTask, DjCeleryPeriodicTask
+from pipeline.contrib.periodic_task.models import DjCeleryPeriodicTask, PeriodicTask
 from pipeline.exceptions import InvalidOperationException
 
 

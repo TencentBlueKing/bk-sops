@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
 from pipeline.core.data.base import DataObject
 from pipeline.core.flow.activity import *  # noqa
 
@@ -24,12 +25,21 @@ class TestActivity(TestCase):
         self.assertEqual(act_id, base_act.id)
 
     def test_service_activity(self):
+        class TestService(Service):
+            def execute(self, data, parent_data):
+                return True
+
         act_id = "1"
-        service = "a_service"
+        service = TestService()
         inputs = {"args": [1, 2, 3], "kwargs": {"1": 1, "2": 2}}
         service_act = ServiceActivity(id=act_id, service=service, data=DataObject(inputs))
         self.assertTrue(isinstance(service_act, Activity))
         self.assertEqual(service, service_act.service)
+
+        service_act.setup_runtime_attrs(id="123", root_pipeline_id="456")
+        self.assertEqual(service_act.service._runtime_attrs, {"id": "123", "root_pipeline_id": "456"})
+        self.assertEqual(service_act.service.id, "123")
+        self.assertEqual(service_act.service.root_pipeline_id, "456")
 
     def test_subprocess(self):
         act_id = "1"

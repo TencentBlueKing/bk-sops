@@ -11,21 +11,38 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from pipeline.celery.settings import QueueResolver
 from pipeline.engine import tasks
-from pipeline.engine.models import (
-    ProcessCeleryTask,
-    ScheduleCeleryTask,
-    NodeCeleryTask,
-    PipelineProcess,
-    PipelineModel,
-)
+from pipeline.engine.models import NodeCeleryTask, PipelineModel, PipelineProcess, ProcessCeleryTask, ScheduleCeleryTask
+
+
+class CeleryTaskArgsResolver(object):
+    def __init__(self, process_id):
+        self.process_id = process_id
+
+    def resolve_args(self, task):
+        args = {}
+        task_args = PipelineProcess.objects.task_args_for_process(self.process_id)
+
+        queue = task_args["queue"]
+        priority = task_args["priority"]
+
+        args["priority"] = priority
+
+        if queue:
+            args["routing_key"] = QueueResolver(queue).resolve_task_routing_key(task)
+
+        return args
 
 
 def pipeline_ready_handler(sender, process_id, **kwargs):
+    task = tasks.start
+    args_resolver = CeleryTaskArgsResolver(process_id)
+
     ProcessCeleryTask.objects.start_task(
         process_id=process_id,
-        start_func=tasks.start.apply_async,
-        kwargs={"args": [process_id], "priority": PipelineProcess.objects.priority_for_process(process_id)},
+        start_func=task.apply_async,
+        kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
     )
 
 
@@ -34,58 +51,70 @@ def pipeline_end_handler(sender, root_pipeline_id, **kwargs):
 
 
 def child_process_ready_handler(sender, child_id, **kwargs):
+    task = tasks.dispatch
+    args_resolver = CeleryTaskArgsResolver(child_id)
+
     ProcessCeleryTask.objects.start_task(
         process_id=child_id,
-        start_func=tasks.dispatch.apply_async,
-        kwargs={"args": [child_id], "priority": PipelineProcess.objects.priority_for_process(child_id)},
+        start_func=task.apply_async,
+        kwargs={"args": [child_id], **args_resolver.resolve_args(task)},
     )
 
 
 def process_ready_handler(sender, process_id, current_node_id=None, call_from_child=False, **kwargs):
+
+    task = tasks.process_wake_up
+    args_resolver = CeleryTaskArgsResolver(process_id)
+
     ProcessCeleryTask.objects.start_task(
         process_id=process_id,
-        start_func=tasks.process_wake_up.apply_async,
-        kwargs={
-            "args": [process_id, current_node_id, call_from_child],
-            "priority": PipelineProcess.objects.priority_for_process(process_id),
-        },
+        start_func=task.apply_async,
+        kwargs={"args": [process_id, current_node_id, call_from_child], **args_resolver.resolve_args(task)},
     )
 
 
 def batch_process_ready_handler(sender, process_id_list, pipeline_id, **kwargs):
-    tasks.batch_wake_up.apply_async(
-        args=[process_id_list, pipeline_id], priority=PipelineModel.objects.priority_for_pipeline(pipeline_id)
-    )
+
+    task = tasks.batch_wake_up
+    task_args = PipelineModel.objects.task_args_for_pipeline(pipeline_id)
+    priority = task_args["priority"]
+    queue = task_args["queue"]
+    routing_key = QueueResolver(queue).resolve_task_routing_key(task)
+
+    task.apply_async(args=[process_id_list, pipeline_id], priority=priority, routing_key=routing_key)
 
 
 def wake_from_schedule_handler(sender, process_id, activity_id, **kwargs):
+
+    task = tasks.wake_from_schedule
+    args_resolver = CeleryTaskArgsResolver(process_id)
+
     ProcessCeleryTask.objects.start_task(
         process_id=process_id,
-        start_func=tasks.wake_from_schedule.apply_async,
-        kwargs={
-            "args": [process_id, activity_id],
-            "priority": PipelineProcess.objects.priority_for_process(process_id),
-        },
+        start_func=task.apply_async,
+        kwargs={"args": [process_id, activity_id], **args_resolver.resolve_args(task)},
     )
 
 
 def process_unfreeze_handler(sender, process_id, **kwargs):
+    task = tasks.process_unfreeze
+    args_resolver = CeleryTaskArgsResolver(process_id)
+
     ProcessCeleryTask.objects.start_task(
         process_id=process_id,
-        start_func=tasks.process_unfreeze.apply_async,
-        kwargs={"args": [process_id], "priority": PipelineProcess.objects.priority_for_process(process_id)},
+        start_func=task.apply_async,
+        kwargs={"args": [process_id], **args_resolver.resolve_args(task)},
     )
 
 
-def schedule_ready_handler(sender, process_id, schedule_id, countdown, **kwargs):
+def schedule_ready_handler(sender, process_id, schedule_id, countdown, data_id=None, **kwargs):
+    task = tasks.service_schedule
+    args_resolver = CeleryTaskArgsResolver(process_id)
+
     ScheduleCeleryTask.objects.start_task(
         schedule_id=schedule_id,
-        start_func=tasks.service_schedule.apply_async,
-        kwargs={
-            "args": [process_id, schedule_id],
-            "countdown": countdown,
-            "priority": PipelineProcess.objects.priority_for_process(process_id),
-        },
+        start_func=task.apply_async,
+        kwargs={"args": [process_id, schedule_id, data_id], "countdown": countdown, **args_resolver.resolve_args(task)},
     )
 
 

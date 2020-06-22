@@ -21,9 +21,9 @@ class DataInputTestCase(TestCase):
         input = DataInput(type=DataInput.PLAIN, value="val")
         self.assertEqual(input.type, DataInput.PLAIN)
         self.assertEqual(input.value, "val")
-        self.assertEqual(input.source_tag, None)
+        self.assertEqual(input.custom_type, None)
 
     def test_to_dict(self):
-        input = DataInput(type=DataInput.PLAIN, value="val", source_tag="source_tag")
+        input = DataInput(type=DataInput.PLAIN, value="val", custom_type="source_tag")
         d = input.to_dict()
         self.assertEqual(d, {"type": "plain", "value": "val", "is_param": True})

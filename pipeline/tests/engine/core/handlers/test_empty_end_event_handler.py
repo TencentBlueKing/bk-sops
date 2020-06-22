@@ -13,13 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.engine.models import Status, Data
-from pipeline.engine import states
-from pipeline.engine.core import handlers
+from pipeline.core.data.base import DataObject as RealDataObject
 from pipeline.core.flow.activity import SubProcess
 from pipeline.core.flow.event import EmptyEndEvent
-from pipeline.core.data.base import DataObject as RealDataObject
-
+from pipeline.engine import states
+from pipeline.engine.core import handlers
+from pipeline.engine.models import Data, Status
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 

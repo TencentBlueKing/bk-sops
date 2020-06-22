@@ -12,7 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from pipeline.core.flow.base import FlowNode, FlowElement, SequenceFlowCollection
+
+from pipeline.core.flow.base import FlowElement, FlowNode, SequenceFlowCollection
 
 
 class MockNode(FlowNode):

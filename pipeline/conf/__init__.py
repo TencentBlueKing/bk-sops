@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf import settings as django_settings
+
 from pipeline.conf import default_settings
 
 

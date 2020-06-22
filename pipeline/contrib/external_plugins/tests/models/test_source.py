@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.contrib.external_plugins.models.base import ExternalPackageSource, GIT, S3, FILE_SYSTEM
-from pipeline.contrib.external_plugins.models import GitRepoSource, S3Source, FileSystemSource
+from pipeline.contrib.external_plugins.models import FileSystemSource, GitRepoSource, S3Source
+from pipeline.contrib.external_plugins.models.base import FILE_SYSTEM, GIT, S3, ExternalPackageSource
 
 
 class SourceTestCase(TestCase):

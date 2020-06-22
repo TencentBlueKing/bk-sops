@@ -12,13 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import pytz
-
-from celery import schedules
-from celery.utils.timeutils import make_aware, is_naive
-
 from collections import namedtuple
 from datetime import datetime
+
+import pytz
+from celery import schedules
+from celery.utils.timeutils import is_naive, make_aware
 
 schedstate = namedtuple("schedstate", ("is_due", "next"))
 logger = logging.getLogger("celery")

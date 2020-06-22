@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline.contrib.external_plugins.models import base
 from pipeline.contrib.external_plugins.tests.mock import *  # noqa
 from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
-from pipeline.contrib.external_plugins.models import base
 
 
 class BaseModuleTestCase(TestCase):

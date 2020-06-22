@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
 from pipeline.builder.flow import ExclusiveGateway
+from pipeline.core.constants import PE
 
 
 class ExclusiveGatewayTestCase(TestCase):

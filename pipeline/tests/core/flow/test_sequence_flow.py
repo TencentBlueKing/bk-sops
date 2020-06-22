@@ -12,9 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+
 from pipeline.core.data.base import DataObject
-from pipeline.core.flow.base import SequenceFlow, FlowElement
 from pipeline.core.flow.activity import ServiceActivity
+from pipeline.core.flow.base import FlowElement, SequenceFlow
 
 
 class TestSequenceFlow(TestCase):

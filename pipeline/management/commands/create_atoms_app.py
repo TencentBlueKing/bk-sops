@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import os
 import sys
 
-from django.core.management import call_command, base
+from django.core.management import base, call_command
 from django.template.loader import render_to_string
 
 PY_COPYRIGHT = '''# -*- coding: utf-8 -*-

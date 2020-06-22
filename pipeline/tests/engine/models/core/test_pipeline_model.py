@@ -12,13 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import mock
-
 from django.test import TestCase
 
+from pipeline.core.pipeline import Pipeline
 from pipeline.django_signal_valve import valve
 from pipeline.engine import signals
-from pipeline.core.pipeline import Pipeline
 from pipeline.engine.models import PipelineModel, PipelineProcess
+
 from ..mock import *  # noqa
 
 valve.unload_valve_function()

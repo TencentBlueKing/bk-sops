@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.engine import api
 from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
+from pipeline.engine import api
 from pipeline.log.models import LogEntry
 
 STATE_MAP = {
@@ -27,8 +27,8 @@ STATE_MAP = {
 }
 
 
-def run_pipeline(pipeline_instance, instance_id=None, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
-    return api.start_pipeline(pipeline_instance, check_workers=check_workers, priority=priority)
+def run_pipeline(pipeline_instance, instance_id=None, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY, queue=""):
+    return api.start_pipeline(pipeline_instance, check_workers=check_workers, priority=priority, queue=queue)
 
 
 def pause_pipeline(pipeline_id):
@@ -67,8 +67,8 @@ def skip_exclusive_gateway(gateway_id, flow_id):
     return api.skip_exclusive_gateway(gateway_id, flow_id)
 
 
-def forced_fail(node_id):
-    return api.forced_fail(node_id)
+def forced_fail(node_id, ex_data=""):
+    return api.forced_fail(node_id, ex_data=ex_data)
 
 
 def get_inputs(act_id):

@@ -12,10 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import mock
-
 from django.test import TestCase
 
 from pipeline.engine.models import ScheduleCeleryTask
+
 from ..mock import *  # noqa
 
 

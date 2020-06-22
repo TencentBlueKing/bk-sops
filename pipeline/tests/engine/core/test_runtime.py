@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.engine.core import runtime
-from pipeline.engine.models import NodeRelationship, FunctionSwitch, Status
 from pipeline.engine import states
-
+from pipeline.engine.core import runtime
+from pipeline.engine.models import FunctionSwitch, NodeRelationship, Status
 from pipeline.tests.engine.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
