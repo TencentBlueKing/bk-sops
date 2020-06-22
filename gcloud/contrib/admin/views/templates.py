@@ -99,3 +99,5 @@ def refresh_template_notify_type(request):
 
         for template in common_templates:
             replace_results.append(_refresh_template_notify_type(template, notify_trans_map))
+
+    return JsonResponse({"result": True, "data": replace_results})
