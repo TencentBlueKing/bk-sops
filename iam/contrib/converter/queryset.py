@@ -17,6 +17,8 @@ from six.moves import reduce
 from django.db.models import Q
 
 from iam import OP
+from iam.eval.expression import field_value_convert
+from iam.eval.constants import KEYWORD_BK_IAM_PATH_FIELD_SUFFIX
 from .base import Converter
 
 """
@@ -147,8 +149,13 @@ class DjangoQuerySetConverter(Converter):
         if op_func is None:
             raise ValueError("invalid op %s" % op)
 
+        # 权限中心保留字预处理
+        field, value = field_value_convert(op, field, value)
+
+        # key mapping
         if self.key_mapping and field in self.key_mapping:
             field = self.key_mapping.get(field)
+        # value hooks
         if (field in self.value_hooks) and callable(self.value_hooks[field]):
             value = self.value_hooks[field](value)
 
@@ -157,5 +164,5 @@ class DjangoQuerySetConverter(Converter):
 
 class PathEqDjangoQuerySetConverter(DjangoQuerySetConverter):
     def operator_map(self, operator, field, value):
-        if field.endswith("._iam_path_") and operator == OP.STARTS_WITH:
+        if field.endswith(KEYWORD_BK_IAM_PATH_FIELD_SUFFIX) and operator == OP.STARTS_WITH:
             return self._eq

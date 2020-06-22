@@ -136,7 +136,7 @@ class TaskResourceProvider(ResourceProvider):
         key_mapping = {
             "task.id": "id",
             "task.owner": "pipeline_instance__creator",  # TODO 优化
-            "task._iam_path_": "project__id",
+            "task._bk_iam_path_": "project__id",
             "task.type": "flow_type",
         }
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": task_path_value_hook})
