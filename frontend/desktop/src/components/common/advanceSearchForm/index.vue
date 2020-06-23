@@ -69,7 +69,7 @@
                                 :searchable="true"
                                 v-model="formData[item.key]"
                                 @clear="onClearFormItem(item.key)"
-                                @change="onChangeFormItem($event, item.key)">
+                                @change="onChangeFormItem($event, item.key, item.type)">
                                 <bk-option
                                     v-for="option in item.list"
                                     :key="option.value"
@@ -80,11 +80,11 @@
                         </template>
                         <template v-if="item.type === 'dateRange'">
                             <bk-date-picker
-                                v-model="formData[item.key]"
+                                :value="formData[item.key]"
                                 type="daterange"
                                 format="yyyy-MM-dd"
                                 :placeholder="item.placeholder"
-                                @change="onChangeFormItem($event, item.key)">
+                                @change="onChangeFormItem($event, item.key, item.type)">
                             </bk-date-picker>
                         </template>
                         <template v-if="item.type === 'input'">
@@ -107,6 +107,7 @@
 </template>
 <script>
     import { mapState } from 'vuex'
+    import moment from 'moment'
     import i18n from '@/config/i18n/index.js'
     import { random4 } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
@@ -287,7 +288,12 @@
             onClearFormItem (key) {
                 this.formData[key] = ''
             },
-            onChangeFormItem (val, key) {
+            onChangeFormItem (val, key, type) {
+                if (type === 'dateRange') {
+                    val = val.map(item => {
+                        return item instanceof Date ? moment(item).format('yyyy-MM-dd') : item
+                    })
+                }
                 this.formData[key] = val
             },
             submit () {
@@ -332,6 +338,7 @@
             padding: 10px 0;
         }
         .record-item {
+            display: block;
             margin-bottom: 22px;
             &:last-child {
                 margin-bottom: 0;
