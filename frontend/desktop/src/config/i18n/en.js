@@ -443,6 +443,7 @@ const en = {
     '修改轻应用': 'Update Mini-APP',
     '使用权限': 'Permissions',
     '新建轻应用': 'New Mini-APP',
+    '编辑轻应用': 'Edit Mini-APP',
     '应用名称': 'App Name',
     '执行方案': 'Execution Scheme',
     '当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。': 'You can add schemes when creating a task if the flow contains optional nodes.After selecting a scheme, you can only create tasks according to the fixed execution scheme with this Mini-APP.',
