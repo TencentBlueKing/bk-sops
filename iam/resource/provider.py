@@ -5,8 +5,12 @@ import abc
 
 
 class ListResult(object):
-    def __init__(self, results):
-        self.count = len(results)
+    def __init__(self, results, count):
+        """
+        :param results: 返回的结果
+        :param count: 总记录数
+        """
+        self.count = count
         self.results = results
 
     def to_dict(self):

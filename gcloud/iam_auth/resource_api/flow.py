@@ -29,13 +29,13 @@ class FlowResourceProvider(ResourceProvider):
         """
         flow 资源没有属性，返回空
         """
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_attr_value(self, filter, page, **options):
         """
         flow 资源没有属性，返回空
         """
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_instance(self, filter, page, **options):
         """
@@ -50,6 +50,8 @@ class FlowResourceProvider(ResourceProvider):
             parent_id = filter.parent["id"]
             if parent_id:
                 queryset = TaskTemplate.objects.filter(project_id=str(parent_id))
+            else:
+                queryset = TaskTemplate.objects.all()
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -69,6 +71,7 @@ class FlowResourceProvider(ResourceProvider):
             project_ids = Project.objects.filter(project_filter).values_list("id", flat=True)
             queryset = TaskTemplate.objects.filter(project_id__in=list(project_ids)).filter(flow_filter)
 
+        count = queryset.count()
         results = [
             {"id": str(flow.id), "display_name": flow.name} for flow in queryset[page.slice_from : page.slice_to]
         ]
@@ -83,7 +86,7 @@ class FlowResourceProvider(ResourceProvider):
                 for flow in queryset[page.slice_from : page.slice_to]
             ]
 
-        return ListResult(results=results)
+        return ListResult(results=results, count=count)
 
     def fetch_instance_info(self, filter, page, **options):
         """
@@ -93,8 +96,11 @@ class FlowResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        results = [{"id": str(flow.id), "display_name": flow.name} for flow in TaskTemplate.objects.filter(id__in=ids)]
-        return ListResult(results=results)
+        queryset = TaskTemplate.objects.filter(id__in=ids)
+        count = queryset.count()
+
+        results = [{"id": str(flow.id), "display_name": flow.name} for flow in queryset]
+        return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):
         """
@@ -103,7 +109,7 @@ class FlowResourceProvider(ResourceProvider):
 
         expression = filter.expression
         if not expression:
-            return ListResult(results=[])
+            return ListResult(results=[], count=0)
 
         key_mapping = {
             "flow.id": "id",
@@ -112,10 +118,11 @@ class FlowResourceProvider(ResourceProvider):
         }
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": flow_path_value_hook})
         filters = converter.convert(expression)
+        queryset = TaskTemplate.objects.filter(filters)
+        count = queryset.count()
 
         results = [
-            {"id": str(flow.id), "display_name": flow.name}
-            for flow in TaskTemplate.objects.filter(filters)[page.slice_from : page.slice_to]
+            {"id": str(flow.id), "display_name": flow.name} for flow in queryset[page.slice_from : page.slice_to]
         ]
 
-        return ListResult(results=results)
+        return ListResult(results=results, count=count)

@@ -22,23 +22,24 @@ class ProjectResourceProvider(ResourceProvider):
         """
         project 资源没有属性，返回空
         """
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_attr_value(self, filter, page, **options):
         """
         project 资源没有属性，返回空
         """
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_instance(self, filter, page, **options):
         """
         project 没有上层资源，不需要处理 filter 中的字段
         """
-        results = [
-            {"id": str(p.id), "display_name": p.name} for p in Project.objects.all()[page.slice_from : page.slice_to]
-        ]
+        queryset = Project.objects.all()
 
-        return ListResult(results=results)
+        count = queryset.count()
+        results = [{"id": str(p.id), "display_name": p.name} for p in queryset[page.slice_from : page.slice_to]]
+
+        return ListResult(results=results, count=count)
 
     def fetch_instance_info(self, filter, page, **options):
         """
@@ -48,8 +49,11 @@ class ProjectResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        results = [{"id": str(p.id), "display_name": p.name} for p in Project.objects.filter(id__in=ids)]
-        return ListResult(results=results)
+        queryset = Project.objects.filter(id__in=ids)
+
+        count = queryset.count()
+        results = [{"id": str(p.id), "display_name": p.name} for p in queryset]
+        return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):
         """
@@ -58,12 +62,14 @@ class ProjectResourceProvider(ResourceProvider):
 
         expression = filter.expression
         if not expression:
-            return ListResult(results=[])
+            return ListResult(results=[], count=0)
 
         key_mapping = {"project.id": "id"}
         converter = DjangoQuerySetConverter(key_mapping)
         filters = converter.convert(expression)
 
-        results = [{"id": str(p.id), "display_name": p.name} for p in Project.objects.filter(filters)]
+        queryset = Project.objects.filter(filters)
+        count = queryset.count()
+        results = [{"id": str(p.id), "display_name": p.name} for p in queryset]
 
-        return ListResult(results=results)
+        return ListResult(results=results, count=count)
