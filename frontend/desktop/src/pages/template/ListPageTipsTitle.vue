@@ -2,19 +2,22 @@
     <base-title>
         <div class="title-area">
             <span class="title">{{ title }}</span>
-            <span
-                v-if="num > 0"
-                :class="['number', { 'active': showDetail }]"
-                @click="toggleDetail">
-                {{ num }}
-            </span>
             <notify-info
+                v-if="num > 0"
                 class="tpl-update-message"
                 :show.sync="showDetail"
+                theme="warning"
                 :content="content">
-                <template class="buttons" v-slot:buttons>
-                    <bk-button :text="true" size="small" @click="onViewClick">{{ $t('查看需要更新的流程') }}</bk-button>
-                    <bk-button :text="true" size="small" @click="showDetail = false">{{ $t('收起') }}</bk-button>
+                {{ content }}
+                <span class="view-btn" @click="onViewClick">{{$t('立即查看')}}</span>
+                <template name="buttons" v-slot:buttons>
+                    <bk-button
+                        :text="true"
+                        size="small"
+                        ext-cls="close-notify-btn"
+                        @click="showDetail = false">
+                        <i class="common-icon common-icon-close"></i>
+                    </bk-button>
                 </template>
             </notify-info>
         </div>
@@ -43,18 +46,15 @@
         },
         data () {
             return {
-                showDetail: false
+                showDetail: true
             }
         },
         computed: {
             content () {
-                return i18n.t('建议及时处理子流程更新，') + i18n.t('涉及') + this.num + i18n.t('条流程')
+                return this.num + i18n.t(' 个流程涉及到子流程的更新，请及时处理。')
             }
         },
         methods: {
-            toggleDetail () {
-                this.showDetail = !this.showDetail
-            },
             onViewClick () {
                 this.$emit('viewClick')
             }
@@ -79,25 +79,17 @@
             border-left: 2px solid #a3c5fd;
         }
     }
-    .number {
-        display: inline-block;
-        padding: 0 1px;
-        min-width: 18px;
-        height: 18px;
-        line-height: 18px;
-        font-size: 12px;
-        border-radius: 9px;
-        text-align: center;
-        vertical-align: middle;
-        color: #ffffff;
-        background: #ea3636;
-        cursor: pointer;
-        transition: background-color .5s;
-        &.active {
-            background: #979ba5;
-        }
-    }
     .tpl-update-message {
         margin-bottom: 10px;
+        .view-btn {
+            color: #3a84ff;
+            cursor: pointer;
+        }
+    }
+    .close-notify-btn {
+        color: #ffd89b;
+        &:hover {
+            color: #ff9c01;
+        }
     }
 </style>

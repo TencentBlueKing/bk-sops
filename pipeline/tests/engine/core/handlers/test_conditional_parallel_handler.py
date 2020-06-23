@@ -13,33 +13,29 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline.core.flow.gateway import ConditionalParallelGateway
+from pipeline.engine.core import handlers
+from pipeline.engine.core.handlers import conditional_parallel
+from pipeline.engine.models import PipelineProcess, Status
+from pipeline.exceptions import ConditionExhaustedException, PipelineException
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
-from pipeline.engine.core import handlers
-from pipeline.engine.models import Status, PipelineProcess
-from pipeline.engine.core.handlers import conditional_parallel
-from pipeline.core.flow.gateway import ConditionalParallelGateway
-from pipeline.exceptions import ConditionExhaustedException, PipelineException
-
 handlers.conditional_parallel_handler = handlers.ConditionalParallelGatewayHandler()
 
-hydrate_context = 'hydrate_context'
-targets = [IdentifyObject(),
-           IdentifyObject(),
-           IdentifyObject()]
+hydrate_context = "hydrate_context"
+targets = [IdentifyObject(), IdentifyObject(), IdentifyObject()]
 
 
 class ConditionalParallelGatewayHandlerTestCase(TestCase):
-
     def test_element_cls(self):
         self.assertEqual(handlers.ConditionalParallelGatewayHandler.element_cls(), ConditionalParallelGateway)
 
     @patch(CPG_HYDRATE_DATA, MagicMock(return_value=hydrate_context))
     @patch(PIPELINE_STATUS_FAIL, MagicMock())
     def test_handle__get_targets_raise(self):
-        e_message = 'e_message'
-        context_variables = 'variables'
+        e_message = "e_message"
+        context_variables = "variables"
 
         cpg = MagicMock()
         cpg.targets_meet_condition = MagicMock(side_effect=ConditionExhaustedException(e_message))
@@ -62,9 +58,9 @@ class ConditionalParallelGatewayHandlerTestCase(TestCase):
     @patch(CPG_HYDRATE_DATA, MagicMock(return_value=hydrate_context))
     @patch(PIPELINE_STATUS_FAIL, MagicMock())
     def test_handle__fork_child_raise(self):
-        e_message = 'e_message'
-        context_variables = 'variables'
-        converge_gateway_id = 'converge_gateway_id'
+        e_message = "e_message"
+        context_variables = "variables"
+        converge_gateway_id = "converge_gateway_id"
 
         cpg = MagicMock()
         cpg.targets_meet_condition = MagicMock(return_value=targets)
@@ -89,8 +85,8 @@ class ConditionalParallelGatewayHandlerTestCase(TestCase):
     @patch(CPG_HYDRATE_DATA, MagicMock(return_value=hydrate_context))
     @patch(PIPELINE_STATUS_FINISH, MagicMock())
     def test_handle__normal(self):
-        context_variables = 'variables'
-        converge_gateway_id = 'converge_gateway_id'
+        context_variables = "variables"
+        converge_gateway_id = "converge_gateway_id"
         children = [1, 2, 3]
 
         for loop in [0, 1, 2, 3]:
@@ -113,11 +109,19 @@ class ConditionalParallelGatewayHandlerTestCase(TestCase):
 
                 cpg.targets_meet_condition.assert_called_once_with(hydrate_context)
 
-                PipelineProcess.objects.fork_child.assert_has_calls([
-                    mock.call(parent=process, current_node_id=targets[0].id, destination_id=cpg.converge_gateway_id),
-                    mock.call(parent=process, current_node_id=targets[1].id, destination_id=cpg.converge_gateway_id),
-                    mock.call(parent=process, current_node_id=targets[2].id, destination_id=cpg.converge_gateway_id)
-                ])
+                PipelineProcess.objects.fork_child.assert_has_calls(
+                    [
+                        mock.call(
+                            parent=process, current_node_id=targets[0].id, destination_id=cpg.converge_gateway_id
+                        ),
+                        mock.call(
+                            parent=process, current_node_id=targets[1].id, destination_id=cpg.converge_gateway_id
+                        ),
+                        mock.call(
+                            parent=process, current_node_id=targets[2].id, destination_id=cpg.converge_gateway_id
+                        ),
+                    ]
+                )
 
                 process.join.assert_called_once_with(children)
 

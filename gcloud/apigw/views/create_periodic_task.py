@@ -100,7 +100,7 @@ def create_periodic_task(request, template_id, project_id):
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception("[API] create_periodic_task preview tree error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code})
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
 
     for key, val in list(params["constants"].items()):
         if key in pipeline_tree["constants"]:
@@ -113,7 +113,7 @@ def create_periodic_task(request, template_id, project_id):
         replace_template_id(TaskTemplate, pipeline_tree)
     except Exception as e:
         logger.exception("[API] create_periodic_task replace id error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code})
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
 
     try:
         task = PeriodicTask.objects.create(
@@ -127,7 +127,7 @@ def create_periodic_task(request, template_id, project_id):
         )
     except Exception as e:
         logger.exception("[API] create_periodic_task create error: {}".format(e))
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code})
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
 
     data = info_data_from_period_task(task)
     return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code})

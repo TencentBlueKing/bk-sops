@@ -28,6 +28,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
     import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
@@ -83,7 +84,11 @@
         },
         created () {
             bus.$on('showLoginModal', args => {
-                this.$refs.userLogin.show(args)
+                const { has_plain, login_url, width, height, method } = args
+                if (has_plain) {
+                    const topWindow = isCrossOriginIFrame() ? window : window.top
+                    topWindow.BLUEKING.corefunc.open_login_dialog(login_url, width, height, method)
+                }
             })
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)

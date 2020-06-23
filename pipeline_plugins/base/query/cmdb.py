@@ -22,7 +22,7 @@ from gcloud.conf import settings
 from pipeline_plugins.base.utils.adapter import cc_format_module_hosts
 from pipeline_plugins.base.utils.inject import supplier_account_inject
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
@@ -34,19 +34,21 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
     :param biz_cc_id:
     :return:
     """
-    select_module_id = json.loads(request.GET.get('query', '[]'))
-    host_fields = json.loads(request.GET.get('host_fields', '[]'))
+    select_module_id = json.loads(request.GET.get("query", "[]"))
+    host_fields = json.loads(request.GET.get("host_fields", "[]")) or [
+        "bk_host_id",
+        "bk_host_name",
+        "bk_cloud_id",
+        "bk_host_innerip",
+    ]
     select_modules = [int(x) for x in select_module_id]
-    data_format = request.GET.get('format', 'tree')
-    # 查询module对应的主机
-    module_hosts = cc_format_module_hosts(request.user.username,
-                                          biz_cc_id,
-                                          select_modules,
-                                          supplier_account,
-                                          data_format,
-                                          host_fields)
+    data_format = request.GET.get("format", "tree")
+    # 查询 module 对应的主机
+    module_hosts = cc_format_module_hosts(
+        request.user.username, biz_cc_id, select_modules, supplier_account, data_format, host_fields
+    )
 
-    return JsonResponse({'result': True, 'data': module_hosts, 'message': ''})
+    return JsonResponse({"result": True, "data": module_hosts, "message": ""})
 
 
 @supplier_account_inject
@@ -58,20 +60,21 @@ def cc_search_module(request, biz_cc_id, supplier_account):
     :return:
     """
     try:
-        bk_set_id = int(request.GET.get('bk_set_id'))
-        module_fields = json.loads(request.GET.get('module_fields', '[]'))
+        bk_set_id = int(request.GET.get("bk_set_id"))
+        module_fields = json.loads(request.GET.get("module_fields", "[]"))
     except ValueError as e:
-        return JsonResponse({'result': False, 'data': {}, 'message': _('请求参数格式错误: %s') % e})
+        return JsonResponse({"result": False, "data": {}, "message": _("请求参数格式错误: %s") % e})
     client = get_client_by_user(request.user.username)
     cc_kwargs = {
-        'bk_biz_id': biz_cc_id,
-        'bk_supplier_account': supplier_account,
-        'bk_set_id': bk_set_id,
-        'fields': module_fields
+        "bk_biz_id": biz_cc_id,
+        "bk_supplier_account": supplier_account,
+        "bk_set_id": bk_set_id,
+        "fields": module_fields,
     }
     cc_result = client.cc.search_module(cc_kwargs)
-    if not cc_result['result']:
-        logger.warning("client.cc.search_module ERROR###biz_cc_id=%s"
-                       "###cc_result=%s" % (biz_cc_id, json.dumps(cc_result)))
-        return JsonResponse({'result': False, 'data': {}, 'message': cc_result['message']})
-    return JsonResponse({'result': True, 'data': cc_result['data'], 'message': ''})
+    if not cc_result["result"]:
+        logger.warning(
+            "client.cc.search_module ERROR###biz_cc_id=%s" "###cc_result=%s" % (biz_cc_id, json.dumps(cc_result))
+        )
+        return JsonResponse({"result": False, "data": {}, "message": cc_result["message"]})
+    return JsonResponse({"result": True, "data": cc_result["data"], "message": ""})

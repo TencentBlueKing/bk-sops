@@ -12,26 +12,24 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='LogEntry',
+            name="LogEntry",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('logger_name', models.SlugField(max_length=128)),
-                ('level_name', models.SlugField(max_length=32)),
-                ('message', models.TextField()),
-                ('exception', models.TextField()),
-                ('logged_at', models.DateTimeField(auto_now_add=True)),
-                ('node_id', models.CharField(max_length=32, db_index=True)),
+                ("id", models.AutoField(verbose_name="ID", serialize=False, auto_created=True, primary_key=True)),
+                ("logger_name", models.SlugField(max_length=128)),
+                ("level_name", models.SlugField(max_length=32)),
+                ("message", models.TextField()),
+                ("exception", models.TextField()),
+                ("logged_at", models.DateTimeField(auto_now_add=True)),
+                ("node_id", models.CharField(max_length=32, db_index=True)),
             ],
         ),
     ]

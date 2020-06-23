@@ -13,21 +13,21 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.engine.utils import Stack
 from pipeline.engine.models.core import ProcessSnapshot
+from pipeline.engine.utils import Stack
 
 
 class TestProcessSnapshot(TestCase):
     def setUp(self):
-        self.pipeline_stack = Stack(['pipeline1', 'pipeline2'])
-        self.subprocess_stack = Stack(['subprocess1', 'subprocess2'])
-        self.children = ['child1', 'child2']
-        self.root_pipeline = 'root_pipeline'
+        self.pipeline_stack = Stack(["pipeline1", "pipeline2"])
+        self.subprocess_stack = Stack(["subprocess1", "subprocess2"])
+        self.children = ["child1", "child2"]
+        self.root_pipeline = "root_pipeline"
         self.snapshot = ProcessSnapshot.objects.create_snapshot(
             pipeline_stack=self.pipeline_stack,
             children=self.children,
             root_pipeline=self.root_pipeline,
-            subprocess_stack=self.subprocess_stack
+            subprocess_stack=self.subprocess_stack,
         )
 
     def test_properties(self):

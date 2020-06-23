@@ -13,21 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from pipeline.builder.flow.base import *  # noqa
 
-__all__ = [
-    'EmptyEndEvent',
-    'EmptyStartEvent',
-    'ExecutableEndEvent'
-]
+__all__ = ["EmptyEndEvent", "EmptyStartEvent", "ExecutableEndEvent"]
 
 
 class EmptyStartEvent(Element):
-
     def type(self):
         return PE.EmptyStartEvent
 
 
 class EmptyEndEvent(Element):
-
     def type(self):
         return PE.EmptyEndEvent
 

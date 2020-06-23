@@ -20,66 +20,50 @@ from pipeline.models import PipelineTemplate, Snapshot
 class TestPipelineTemplate(TestCase):
     def setUp(self):
         self.data = {
-            'activities': {
-                'act_1': {
-                    'outgoing': 'line_2',
-                    'incoming': 'line_1',
-                    'name': 'loop',
-                    'error_ignorable': False,
-                    'component': {
-                        'global_outputs': {},
-                        'inputs': {
-                            'i': {'type': 'splice',
-                                  'value': '${loop_i}'}
-                        },
-                        'code': 'loop_test_comp'},
-                    'optional': False,
-                    'type': 'ServiceActivity',
-                    'loop_times': 4,
-                    'id': 'act_1',
-                    'loop': {}
+            "activities": {
+                "act_1": {
+                    "outgoing": "line_2",
+                    "incoming": "line_1",
+                    "name": "loop",
+                    "error_ignorable": False,
+                    "component": {
+                        "global_outputs": {},
+                        "inputs": {"i": {"type": "splice", "value": "${loop_i}"}},
+                        "code": "loop_test_comp",
+                    },
+                    "optional": False,
+                    "type": "ServiceActivity",
+                    "loop_times": 4,
+                    "id": "act_1",
+                    "loop": {},
                 }
             },
-            'end_event': {
-                'incoming': 'line_2',
-                'outgoing': '',
-                'type': 'EmptyEndEvent',
-                'id': 'end_event_id',
-                'name': ''
+            "end_event": {
+                "incoming": "line_2",
+                "outgoing": "",
+                "type": "EmptyEndEvent",
+                "id": "end_event_id",
+                "name": "",
             },
-            'flows': {
-                'line_1': {
-                    'is_default': False,
-                    'source': 'start_event_id',
-                    'id': 'line_1',
-                    'target': 'act_1'
-                },
-                'line_2': {
-                    'is_default': False,
-                    'source': 'act_1',
-                    'id': 'line_2',
-                    'target': 'end_event_id'
-                }
+            "flows": {
+                "line_1": {"is_default": False, "source": "start_event_id", "id": "line_1", "target": "act_1"},
+                "line_2": {"is_default": False, "source": "act_1", "id": "line_2", "target": "end_event_id"},
             },
-            'id': 'pipeline_0',
-            'gateways': {},
-            'data': {
-                'inputs': {
-                    '${loop_i}': {'type': 'plain', 'value': 1},
-                },
-                'outputs': {}
+            "id": "pipeline_0",
+            "gateways": {},
+            "data": {"inputs": {"${loop_i}": {"type": "plain", "value": 1}}, "outputs": {}},
+            "start_event": {
+                "incoming": "",
+                "outgoing": "line_1",
+                "type": "EmptyStartEvent",
+                "id": "start_event_id",
+                "name": "",
             },
-            'start_event': {
-                'incoming': '',
-                'outgoing': 'line_1',
-                'type': 'EmptyStartEvent',
-                'id': 'start_event_id',
-                'name': ''}
         }
-        self.creator = 'start'
-        self.template = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id='1')
-        self.template_2 = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id='2')
-        self.template_3 = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id='3')
+        self.creator = "start"
+        self.template = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id="1")
+        self.template_2 = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id="2")
+        self.template_3 = PipelineTemplate.objects.create_model(self.data, creator=self.creator, template_id="3")
 
     def test_create_template(self):
         template = self.template
@@ -101,23 +85,32 @@ class TestPipelineTemplate(TestCase):
         self.assertTrue(t3.is_deleted)
 
     def test_set_has_subprocess_bit(self):
-        template_do_not_has_subprocess = PipelineTemplate(snapshot=Snapshot(
-            data={PE.activities: {'1': {'type': PE.ServiceActivity},
-                                  '2': {'type': PE.ServiceActivity}}}))
+        template_do_not_has_subprocess = PipelineTemplate(
+            snapshot=Snapshot(
+                data={PE.activities: {"1": {"type": PE.ServiceActivity}, "2": {"type": PE.ServiceActivity}}}
+            )
+        )
 
         template_do_not_has_subprocess.set_has_subprocess_bit()
         self.assertFalse(template_do_not_has_subprocess.has_subprocess)
 
-        template_has_1_subprocess = PipelineTemplate(snapshot=Snapshot(
-            data={PE.activities: {'1': {'type': PE.SubProcess},
-                                  '2': {'type': PE.ServiceActivity}}}))
+        template_has_1_subprocess = PipelineTemplate(
+            snapshot=Snapshot(data={PE.activities: {"1": {"type": PE.SubProcess}, "2": {"type": PE.ServiceActivity}}})
+        )
         template_has_1_subprocess.set_has_subprocess_bit()
         self.assertTrue(template_has_1_subprocess.has_subprocess)
 
-        template_has_3_subprocess = PipelineTemplate(snapshot=Snapshot(
-            data={PE.activities: {'1': {'type': PE.SubProcess},
-                                  '2': {'type': PE.SubProcess},
-                                  '3': {'type': PE.SubProcess},
-                                  '4': {'type': PE.ServiceActivity}}}))
+        template_has_3_subprocess = PipelineTemplate(
+            snapshot=Snapshot(
+                data={
+                    PE.activities: {
+                        "1": {"type": PE.SubProcess},
+                        "2": {"type": PE.SubProcess},
+                        "3": {"type": PE.SubProcess},
+                        "4": {"type": PE.ServiceActivity},
+                    }
+                }
+            )
+        )
         template_has_3_subprocess.set_has_subprocess_bit()
         self.assertTrue(template_has_3_subprocess.has_subprocess)

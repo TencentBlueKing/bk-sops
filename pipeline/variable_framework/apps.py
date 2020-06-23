@@ -14,17 +14,17 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.apps import AppConfig
-from django.db.utils import ProgrammingError, OperationalError
+from django.db.utils import OperationalError, ProgrammingError
 
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 class VariableFrameworkConfig(AppConfig):
-    name = 'pipeline.variable_framework'
-    verbose_name = 'PipelineVariableFramework'
+    name = "pipeline.variable_framework"
+    verbose_name = "PipelineVariableFramework"
 
     def ready(self):
         """
@@ -32,11 +32,13 @@ class VariableFrameworkConfig(AppConfig):
         @return:
         """
         from pipeline.variable_framework.signals.handlers import pre_variable_register_handler  # noqa
+
         for path in settings.VARIABLE_AUTO_DISCOVER_PATH:
             autodiscover_collections(path)
 
         from pipeline.variable_framework.models import VariableModel
         from pipeline.core.data.library import VariableLibrary
+
         try:
             VariableModel.objects.exclude(code__in=list(VariableLibrary.variables.keys())).update(status=False)
         except (ProgrammingError, OperationalError) as e:

@@ -12,5 +12,4 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from pipeline.tests.mock import *  # noqa

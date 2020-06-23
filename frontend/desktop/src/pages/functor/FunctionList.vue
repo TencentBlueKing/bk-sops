@@ -15,7 +15,7 @@
             <base-title :title="$t('职能化中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
-                    :search-config="{ placeholder: $t('请输入ID或流程名称') }"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
@@ -195,8 +195,8 @@
                                 v-for="(group, index) in template.list"
                                 :name="group.name"
                                 :key="index">
-                                <bk-option v-for="(childOption, childIndex) in group.children"
-                                    :key="childIndex"
+                                <bk-option v-for="childOption in group.children"
+                                    :key="childOption.id"
                                     :id="childOption.id"
                                     :name="childOption.name">
                                 </bk-option>

@@ -13,13 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.engine.models import Status, Data
-from pipeline.engine import states
-from pipeline.engine.core import handlers
+from pipeline.core.data.base import DataObject as RealDataObject
 from pipeline.core.flow.activity import SubProcess
 from pipeline.core.flow.event import EmptyEndEvent
-from pipeline.core.data.base import DataObject as RealDataObject
-
+from pipeline.engine import states
+from pipeline.engine.core import handlers
+from pipeline.engine.models import Data, Status
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -27,7 +26,6 @@ handlers.empty_end_event_handler = handlers.EmptyEndEventHandler()
 
 
 class EmptyEndEventHandlerTestCase(TestCase):
-
     def test_element_cls(self):
         self.assertEqual(handlers.EmptyEndEventHandler.element_cls(), EmptyEndEvent)
 
@@ -36,18 +34,17 @@ class EmptyEndEventHandlerTestCase(TestCase):
         end_event = EndEventObject()
         context = MockContext()
         sub_pipeline = PipelineObject(context=MockContext())
-        process = MockPipelineProcess(top_pipeline=PipelineObject(context=context,
-                                                                  node=MockSubprocessActivity()),
-                                      pipeline_stack=['root_pipeline',
-                                                      sub_pipeline])
+        process = MockPipelineProcess(
+            top_pipeline=PipelineObject(context=context, node=MockSubprocessActivity()),
+            pipeline_stack=["root_pipeline", sub_pipeline],
+        )
 
         hdl_result = handlers.empty_end_event_handler(process, end_event, MockStatus())
 
         sub_pipeline.context.write_output.assert_called_once_with(sub_pipeline)
 
         sub_process_node = process.top_pipeline.node(sub_pipeline.id)
-        Status.objects.finish.assert_has_calls([mock.call(end_event),
-                                                mock.call(sub_process_node)])
+        Status.objects.finish.assert_has_calls([mock.call(end_event), mock.call(sub_process_node)])
 
         process.top_pipeline.context.extract_output.assert_called_once_with(sub_process_node)
 
@@ -61,13 +58,10 @@ class EmptyEndEventHandlerTestCase(TestCase):
     @patch(PIPELINE_DATA_WRITE_NODE_DATA, MagicMock())
     def test_handle__is_not_subprocess(self):
         context = MockContext()
-        subproc_1 = SubProcess(id=uniqid(), pipeline=PipelineObject(context=MockContext(),
-                                                                    data=RealDataObject({})))
-        subproc_2 = SubProcess(id=uniqid(), pipeline=PipelineObject(context=MockContext(),
-                                                                    data=RealDataObject({})))
+        subproc_1 = SubProcess(id=uniqid(), pipeline=PipelineObject(context=MockContext(), data=RealDataObject({})))
+        subproc_2 = SubProcess(id=uniqid(), pipeline=PipelineObject(context=MockContext(), data=RealDataObject({})))
         spec = PipelineSpecObject(activities=[ServiceActObject(), subproc_1, subproc_2])
-        process = MockPipelineProcess(top_pipeline_context=context,
-                                      top_pipeline_spec=spec)
+        process = MockPipelineProcess(top_pipeline_context=context, top_pipeline_spec=spec)
         top_pipeline = process.top_pipeline
         end_event = EndEventObject()
 
@@ -79,9 +73,7 @@ class EmptyEndEventHandlerTestCase(TestCase):
 
         Status.objects.finish.assert_called_once_with(end_event)
 
-        Status.objects.transit.assert_called_once_with(top_pipeline.id,
-                                                       to_state=states.FINISHED,
-                                                       is_pipeline=True)
+        Status.objects.transit.assert_called_once_with(top_pipeline.id, to_state=states.FINISHED, is_pipeline=True)
 
         end_event.pipeline_finish.assert_called_once_with(process.root_pipeline.id)
 

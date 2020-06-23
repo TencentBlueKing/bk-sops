@@ -23,13 +23,12 @@ from pipeline.engine.models import Data, ScheduleService, Status
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['ServiceActivityHandler']
+__all__ = ["ServiceActivityHandler"]
 
 
 class ServiceActivityHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return ServiceActivity
@@ -60,13 +59,19 @@ class ServiceActivityHandler(FlowElementHandler):
         hydrate_node_data(element)
 
         if element.timeout:
-            logger.info('node {} {} start timeout monitor, timeout: {}'.format(element.id, version, element.timeout))
-            signals.service_activity_timeout_monitor_start.send(sender=element.__class__,
-                                                                node_id=element.id,
-                                                                version=version,
-                                                                root_pipeline_id=root_pipeline.id,
-                                                                countdown=element.timeout)
+            logger.info("node {} {} start timeout monitor, timeout: {}".format(element.id, version, element.timeout))
+            signals.service_activity_timeout_monitor_start.send(
+                sender=element.__class__,
+                node_id=element.id,
+                version=version,
+                root_pipeline_id=root_pipeline.id,
+                countdown=element.timeout,
+            )
             monitoring = True
+
+        element.setup_runtime_attrs(
+            id=element.id, root_pipeline_id=root_pipeline.id,
+        )
 
         # execute service
         try:
@@ -83,24 +88,28 @@ class ServiceActivityHandler(FlowElementHandler):
 
         # process result
         if success is False:
-            ex_data = element.data.get_one_of_outputs('ex_data')
+            ex_data = element.data.get_one_of_outputs("ex_data")
             Status.objects.fail(element, ex_data)
             try:
                 element.failure_handler(root_pipeline.data)
             except Exception:
-                logger.error('failure_handler({}) failed: {}'.format(element.id, traceback.format_exc()))
+                logger.error("failure_handler({}) failed: {}".format(element.id, traceback.format_exc()))
 
             if monitoring:
-                signals.service_activity_timeout_monitor_end.send(sender=element.__class__,
-                                                                  node_id=element.id,
-                                                                  version=version)
-                logger.info('node {} {} timeout monitor revoke'.format(element.id, version))
+                signals.service_activity_timeout_monitor_end.send(
+                    sender=element.__class__, node_id=element.id, version=version
+                )
+                logger.info("node {} {} timeout monitor revoke".format(element.id, version))
 
             # send activity error signal
-            valve.send(signals, 'activity_failed', sender=root_pipeline,
-                       pipeline_id=root_pipeline.id,
-                       pipeline_activity_id=element.id,
-                       subprocess_id_stack=process.subprocess_stack)
+            valve.send(
+                signals,
+                "activity_failed",
+                sender=root_pipeline,
+                pipeline_id=root_pipeline.id,
+                pipeline_activity_id=element.id,
+                subprocess_id_stack=process.subprocess_stack,
+            )
 
             return self.HandleResult(next_node=None, should_return=False, should_sleep=True)
         else:
@@ -109,21 +118,23 @@ class ServiceActivityHandler(FlowElementHandler):
                 # write data before schedule
                 Data.objects.write_node_data(element)
                 # set schedule
-                ScheduleService.objects.set_schedule(element.id,
-                                                     service_act=element.shell(),
-                                                     process_id=process.id,
-                                                     version=version,
-                                                     parent_data=process.top_pipeline.data)
+                ScheduleService.objects.set_schedule(
+                    element.id,
+                    service_act=element.shell(),
+                    process_id=process.id,
+                    version=version,
+                    parent_data=process.top_pipeline.data,
+                )
                 return self.HandleResult(next_node=None, should_return=True, should_sleep=True)
 
             process.top_pipeline.context.extract_output(element)
             error_ignorable = not element.get_result_bit()
 
             if monitoring:
-                signals.service_activity_timeout_monitor_end.send(sender=element.__class__,
-                                                                  node_id=element.id,
-                                                                  version=version)
-                logger.info('node {} {} timeout monitor revoke'.format(element.id, version))
+                signals.service_activity_timeout_monitor_end.send(
+                    sender=element.__class__, node_id=element.id, version=version
+                )
+                logger.info("node {} {} timeout monitor revoke".format(element.id, version))
 
             if not Status.objects.finish(element, error_ignorable):
                 # has been forced failed

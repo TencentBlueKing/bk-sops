@@ -10,7 +10,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import logging
 import traceback
 
@@ -96,11 +95,120 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
                 "type": "input",
                 "attrs": {"name": item["bk_property_name"], "editable": "true"},
             }
-            if item["bk_property_id"] in ["bk_set_name"]:
+            # 集群/模块名称设置为必填项
+            if item["bk_property_id"] in ["bk_set_name", "bk_module_name"]:
                 prop_dict["attrs"]["validation"] = [{"type": "required"}]
             obj_property.append(prop_dict)
 
     return JsonResponse({"result": True, "data": obj_property})
+
+
+@supplier_account_inject
+def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account):
+    """
+    查询指定节点bk_parent_id的所有子服务分类
+    url: /pipeline/cc_list_service_category/biz_cc_id/bk_parent_id/
+    :param request:
+    :param biz_cc_id:
+    :param bk_parent_id: 父服务分类id, 根id = 0
+    :param supplier_account:
+    :return:
+        - 请求成功 {"result": True, "data": service_categories, "message": "success"}
+            - service_categories: [{"value" : 服务分类id, "label": 服务分类名称}, ...]
+        - 请求失败 {"result": False, "data": [], "message": message}
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    list_service_category_return = client.cc.list_service_category(kwargs)
+    if not list_service_category_return["result"]:
+        message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
+        logger.error(message)
+        return JsonResponse({"result": False, "data": [], "message": message})
+
+    service_categories_untreated = list_service_category_return["data"]["info"]
+    service_categories = []
+    for category_untreated in service_categories_untreated:
+        if category_untreated["bk_parent_id"] != int(bk_parent_id):
+            continue
+        category = {"value": category_untreated["id"], "label": category_untreated["name"]}
+        service_categories.append(category)
+    return JsonResponse({"result": True, "data": service_categories, "message": "success"})
+
+
+@supplier_account_inject
+def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
+    """
+    获取指定biz_cc_id模板类型拓扑
+    :param request:
+    :param biz_cc_id:
+    :param supplier_account:
+    :return:
+        - 请求成功
+        {
+            "result": True,
+            "message": "success",
+            "data": [
+                {
+                    "value": "1-1",
+                    "label": "1-1",
+                    children: [{"value": "2-1", "label": "2-1"},]
+                },
+                ...
+            ]
+        }
+        - 请求失败  {"result": False, "data": [], "message": message}
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    list_service_category_return = client.cc.list_service_category(kwargs)
+    if not list_service_category_return["result"]:
+        message = handle_api_error("cc", "cc.list_service_category", kwargs, list_service_category_return)
+        logger.error(message)
+        return JsonResponse({"result": False, "data": [], "message": message})
+    service_categories = list_service_category_return["data"]["info"]
+    topo_merged_by_id = {
+        sc["id"]: {"value": sc["id"], "label": sc["name"], "children": []}
+        for sc in service_categories
+        if sc["bk_parent_id"] == 0
+    }
+    for sc in service_categories:
+        if sc["bk_parent_id"] not in topo_merged_by_id:
+            continue
+        topo_merged_by_id[sc["bk_parent_id"]]["children"].append({"value": sc["id"], "label": sc["name"]})
+    # 筛选两层结构的拓扑
+    service_category_topo = [topo for topo in topo_merged_by_id.values() if topo["children"]]
+    return JsonResponse({"result": True, "data": service_category_topo, "message": "success"})
+
+
+@supplier_account_inject
+def cc_list_service_template(request, biz_cc_id, supplier_account):
+    """
+    获取服务模板
+    url: /pipeline/cc_list_service_template/biz_cc_id/
+    :param request:
+    :param biz_cc_id:
+    :param supplier_account:
+    :return:
+        - 请求成功 {"result": True, "data": service_templates, "message": "success"}
+            - service_templates： [{"value" : 模板名_模板id, "text": 模板名}, ...]
+        - 请求失败 {"result": False, "data": [], "message": message}
+    """
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+    list_service_template_return = client.cc.list_service_template(kwargs)
+    if not list_service_template_return["result"]:
+        message = handle_api_error("cc", "cc.list_service_template", kwargs, list_service_template_return)
+        logger.error(message)
+        return JsonResponse({"result": False, "data": [], "message": message})
+    service_templates = []
+    service_templates_untreated = list_service_template_return["data"]["info"]
+    for template_untreated in service_templates_untreated:
+        template = {
+            "value": "{name}_{id}".format(name=template_untreated["name"], id=template_untreated["id"]),
+            "text": template_untreated["name"],
+        }
+        service_templates.append(template)
+    return JsonResponse({"result": True, "data": service_templates, "message": "success"})
 
 
 def cc_format_topo_data(data, obj_id, category):
@@ -377,10 +485,47 @@ def apply_upload_ticket(request):
     return JsonResponse({"result": True, "data": {"ticket": ticket.code}})
 
 
+def nodeman_get_cloud_area(request):
+    client = get_client_by_user(request.user.username)
+    cloud_area_result = client.nodeman.get_cloud()
+    if not cloud_area_result["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.get_cloud", {}, cloud_area_result)
+        logger.error(message)
+        return JsonResponse(
+            {"result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message}
+        )
+
+    data = cloud_area_result["data"]
+
+    result = [{"text": cloud["bk_cloud_name"], "value": cloud["bk_cloud_id"]} for cloud in data]
+
+    cloud_area_result["data"] = result
+    return JsonResponse(cloud_area_result)
+
+
+def nodeman_get_ap_list(request):
+    client = get_client_by_user(request.user.username)
+    ap_list = client.nodeman.ap_list()
+    if not ap_list["result"]:
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.ap_list", {}, ap_list)
+        logger.error(message)
+        return JsonResponse({"result": ap_list["result"], "code": ap_list.get("code", "-1"), "message": message})
+
+    data = ap_list["data"]
+
+    result = [{"text": ap["name"], "value": ap["id"]} for ap in data]
+
+    ap_list["data"] = result
+    return JsonResponse(ap_list)
+
+
 urlpatterns = [
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
     url(r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_create_object_attribute,),
     url(r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_topo,),
+    url(r"^cc_list_service_category/(?P<biz_cc_id>\w+)/(?P<bk_parent_id>\w+)/$", cc_list_service_category,),
+    url(r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$", cc_list_service_template,),
+    url(r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$", cc_get_service_category_topo,),
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
     url(r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$", job_get_own_db_account_list,),
     url(r"^file_upload/$", file_upload),
@@ -392,4 +537,6 @@ urlpatterns = [
     url(r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$", cc_get_mainline_object_topo,),
     url(r"^cc_get_business_list/$", cc_get_business),
     url(r"^apply_upload_ticket/$", apply_upload_ticket),
+    url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
+    url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
 ]

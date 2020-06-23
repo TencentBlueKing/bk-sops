@@ -17,17 +17,25 @@ import time
 from django.db import transaction
 from redis.exceptions import ConnectionError as RedisConnectionError
 
-from pipeline.constants import (PIPELINE_DEFAULT_PRIORITY,
-                                PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY)
+from pipeline.celery.queues import ScalableQueues
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY, PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.gateway import ExclusiveGateway, ParallelGateway
 from pipeline.engine import exceptions, states
 from pipeline.engine.core.api import workers
-from pipeline.engine.models import (Data, FunctionSwitch, History,
-                                    NodeRelationship, Pipeline, PipelineModel,
-                                    PipelineProcess, ProcessCeleryTask,
-                                    ScheduleService, Status,
-                                    SubProcessRelationship)
+from pipeline.engine.models import (
+    Data,
+    FunctionSwitch,
+    History,
+    NodeRelationship,
+    Pipeline,
+    PipelineModel,
+    PipelineProcess,
+    ProcessCeleryTask,
+    ScheduleService,
+    Status,
+    SubProcessRelationship,
+)
 from pipeline.engine.signals import pipeline_revoke
 from pipeline.engine.utils import ActionResult, calculate_elapsed_time
 from pipeline.utils import uniqid
@@ -36,12 +44,12 @@ from pipeline.utils import uniqid
 def _node_existence_check(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        id_from_kwargs = kwargs.get('node_id')
+        id_from_kwargs = kwargs.get("node_id")
         node_id = id_from_kwargs if id_from_kwargs else args[0]
         try:
             Status.objects.get(id=node_id)
         except Status.DoesNotExist:
-            return ActionResult(result=False, message='node not exists or not be executed yet')
+            return ActionResult(result=False, message="node not exists or not be executed yet")
         return func(*args, **kwargs)
 
     return wrapper
@@ -51,7 +59,7 @@ def _frozen_check(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if FunctionSwitch.objects.is_frozen():
-            return ActionResult(result=False, message='engine is frozen, can not perform operation')
+            return ActionResult(result=False, message="engine is frozen, can not perform operation")
 
         return func(*args, **kwargs)
 
@@ -61,15 +69,17 @@ def _frozen_check(func):
 def _worker_check(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        if kwargs.get('check_workers', True):
+        if kwargs.get("check_workers", True):
             try:
                 if not workers():
-                    return ActionResult(result=False, message='can not find celery workers, please check worker status')
+                    return ActionResult(result=False, message="can not find celery workers, please check worker status")
             except exceptions.RabbitMQConnectionError as e:
-                return ActionResult(result=False, message='celery worker status check failed with message: %s, '
-                                                          'check rabbitmq status please' % e)
+                return ActionResult(
+                    result=False,
+                    message="celery worker status check failed with message: %s, " "check rabbitmq status please" % e,
+                )
             except RedisConnectionError:
-                return ActionResult(result=False, message='redis connection error, check redis status please')
+                return ActionResult(result=False, message="redis connection error, check redis status please")
 
         return func(*args, **kwargs)
 
@@ -78,7 +88,7 @@ def _worker_check(func):
 
 @_worker_check
 @_frozen_check
-def start_pipeline(pipeline_instance, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
+def start_pipeline(pipeline_instance, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY, queue=""):
     """
     start a pipeline
     :param pipeline_instance:
@@ -87,17 +97,20 @@ def start_pipeline(pipeline_instance, check_workers=True, priority=PIPELINE_DEFA
     """
 
     if priority > PIPELINE_MAX_PRIORITY or priority < PIPELINE_MIN_PRIORITY:
-        raise exceptions.InvalidOperationException('pipeline priority must between [{min}, {max}]'.format(
-            min=PIPELINE_MIN_PRIORITY, max=PIPELINE_MAX_PRIORITY
-        ))
+        raise exceptions.InvalidOperationException(
+            "pipeline priority must between [{min}, {max}]".format(min=PIPELINE_MIN_PRIORITY, max=PIPELINE_MAX_PRIORITY)
+        )
+
+    if queue and not ScalableQueues.has_queue(queue):
+        return ActionResult(result=False, message="can't not find queue({}) in any config queues.".format(queue))
 
     Status.objects.prepare_for_pipeline(pipeline_instance)
     process = PipelineProcess.objects.prepare_for_pipeline(pipeline_instance)
-    PipelineModel.objects.prepare_for_pipeline(pipeline_instance, process, priority)
+    PipelineModel.objects.prepare_for_pipeline(pipeline_instance, process, priority, queue=queue)
 
     PipelineModel.objects.pipeline_ready(process_id=process.id)
 
-    return ActionResult(result=True, message='success')
+    return ActionResult(result=True, message="success")
 
 
 @_frozen_check
@@ -143,7 +156,7 @@ def revoke_pipeline(pipeline_id):
     try:
         pipeline_model = PipelineModel.objects.get(id=pipeline_id)
     except PipelineModel.DoesNotExist:
-        return ActionResult(result=False, message='pipeline to be revoked does not exist.')
+        return ActionResult(result=False, message="pipeline to be revoked does not exist.")
 
     action_result = Status.objects.transit(id=pipeline_id, to_state=states.REVOKED, is_pipeline=True, appoint=True)
     if not action_result.result:
@@ -152,7 +165,7 @@ def revoke_pipeline(pipeline_id):
     process = pipeline_model.process
 
     if not process:
-        return ActionResult(result=False, message='relate process is none, this pipeline may be revoked.')
+        return ActionResult(result=False, message="relate process is none, this pipeline may be revoked.")
 
     with transaction.atomic():
         PipelineProcess.objects.select_for_update().get(id=process.id)
@@ -195,7 +208,7 @@ def resume_node_appointment(node_id):
         process = qs.first()
         Status.objects.recover_from_block(process.root_pipeline.id, process.subprocess_stack)
         PipelineProcess.objects.process_ready(process_id=process.id)
-        return ActionResult(result=True, message='success')
+        return ActionResult(result=True, message="success")
 
     processing_sleep = SubProcessRelationship.objects.get_relate_process(subprocess_id=node_id)
     if processing_sleep.exists():
@@ -216,11 +229,10 @@ def resume_node_appointment(node_id):
                 subprocess_to_be_transit.add(subproc)
 
         Status.objects.recover_from_block(root_pipeline_id, subprocess_to_be_transit)
-        PipelineProcess.objects.batch_process_ready(process_id_list=can_be_waked_ids,
-                                                    pipeline_id=root_pipeline_id)
-        return ActionResult(result=True, message='success')
+        PipelineProcess.objects.batch_process_ready(process_id_list=can_be_waked_ids, pipeline_id=root_pipeline_id)
+        return ActionResult(result=True, message="success")
 
-    return ActionResult(result=False, message='node not exists or not be executed yet')
+    return ActionResult(result=False, message="node not exists or not be executed yet")
 
 
 @_worker_check
@@ -237,17 +249,17 @@ def retry_node(node_id, inputs=None):
     try:
         PipelineProcess.objects.get(current_node_id=node_id)
     except PipelineProcess.DoesNotExist:  # can not retry subprocess
-        return ActionResult(result=False, message='can\'t not retry a subprocess or this process has been revoked')
+        return ActionResult(result=False, message="can't not retry a subprocess or this process has been revoked")
 
     process = PipelineProcess.objects.get(current_node_id=node_id)
 
     # try to get next
     node = process.top_pipeline.node(node_id)
     if not (isinstance(node, ServiceActivity) or isinstance(node, ParallelGateway)):
-        return ActionResult(result=False, message='can\'t retry this type of node')
+        return ActionResult(result=False, message="can't retry this type of node")
 
-    if hasattr(node, 'retryable') and not node.retryable:
-        return ActionResult(result=False, message='the node is set to not be retryable, try skip it please.')
+    if hasattr(node, "retryable") and not node.retryable:
+        return ActionResult(result=False, message="the node is set to not be retryable, try skip it please.")
 
     action_result = Status.objects.retry(process, node, inputs)
     if not action_result.result:
@@ -272,15 +284,15 @@ def skip_node(node_id):
     try:
         process = PipelineProcess.objects.get(current_node_id=node_id)
     except PipelineProcess.DoesNotExist:  # can not skip subprocess
-        return ActionResult(result=False, message='can\'t not skip a subprocess or this process has been revoked')
+        return ActionResult(result=False, message="can't not skip a subprocess or this process has been revoked")
 
     # try to get next
     node = process.top_pipeline.node(node_id)
     if not isinstance(node, ServiceActivity):
-        return ActionResult(result=False, message='can\'t skip this type of node')
+        return ActionResult(result=False, message="can't skip this type of node")
 
-    if hasattr(node, 'skippable') and not node.skippable:
-        return ActionResult(result=False, message='this node is set to not be skippable, try retry it please.')
+    if hasattr(node, "skippable") and not node.skippable:
+        return ActionResult(result=False, message="this node is set to not be skippable, try retry it please.")
 
     # skip and write result bit
     action_result = Status.objects.skip(process, node)
@@ -311,13 +323,14 @@ def skip_exclusive_gateway(node_id, flow_id):
     try:
         process = PipelineProcess.objects.get(current_node_id=node_id)
     except PipelineProcess.DoesNotExist:
-        return ActionResult(result=False,
-                            message='invalid operation, this gateway is finished or pipeline have been revoked')
+        return ActionResult(
+            result=False, message="invalid operation, this gateway is finished or pipeline have been revoked"
+        )
 
     exclusive_gateway = process.top_pipeline.node(node_id)
 
     if not isinstance(exclusive_gateway, ExclusiveGateway):
-        return ActionResult(result=False, message='invalid operation, this node is not a exclusive gateway')
+        return ActionResult(result=False, message="invalid operation, this node is not a exclusive gateway")
 
     next_node_id = exclusive_gateway.target_for_sequence_flow(flow_id).id
 
@@ -340,7 +353,7 @@ def get_status_tree(node_id, max_depth=1):
     """
     rel_qs = NodeRelationship.objects.filter(ancestor_id=node_id, distance__lte=max_depth)
     if not rel_qs.exists():
-        raise exceptions.InvalidOperationException('node(%s) does not exist, may have not by executed' % node_id)
+        raise exceptions.InvalidOperationException("node(%s) does not exist, may have not by executed" % node_id)
     descendants = [rel.descendant_id for rel in rel_qs]
     # remove root node
     descendants.remove(node_id)
@@ -349,12 +362,12 @@ def get_status_tree(node_id, max_depth=1):
     targets = [rel.descendant_id for rel in rel_qs]
 
     root_status = Status.objects.filter(id=node_id).values().first()
-    root_status['elapsed_time'] = calculate_elapsed_time(root_status['started_time'], root_status['archived_time'])
+    root_status["elapsed_time"] = calculate_elapsed_time(root_status["started_time"], root_status["archived_time"])
     status_map = {node_id: root_status}
     status_qs = Status.objects.filter(id__in=targets).values()
     for status in status_qs:
-        status['elapsed_time'] = calculate_elapsed_time(status['started_time'], status['archived_time'])
-        status_map[status['id']] = status
+        status["elapsed_time"] = calculate_elapsed_time(status["started_time"], status["archived_time"])
+        status_map[status["id"]] = status
 
     relationships = [(s.ancestor_id, s.descendant_id) for s in rel_qs]
     for (parent_id, child_id) in relationships:
@@ -363,9 +376,9 @@ def get_status_tree(node_id, max_depth=1):
 
         parent_status = status_map[parent_id]
         child_status = status_map[child_id]
-        child_status.setdefault('children', {})
+        child_status.setdefault("children", {})
 
-        parent_status.setdefault('children', {}).setdefault(child_id, child_status)
+        parent_status.setdefault("children", {}).setdefault(child_id, child_status)
 
     return status_map[node_id]
 
@@ -397,13 +410,14 @@ def activity_callback(activity_id, callback_data):
     try:
         process_id = PipelineProcess.objects.get(current_node_id=activity_id).id
     except PipelineProcess.DoesNotExist:
-        return ActionResult(result=False,
-                            message='invalid operation, this node is finished or pipeline have been revoked')
+        return ActionResult(
+            result=False, message="invalid operation, this node is finished or pipeline have been revoked"
+        )
 
     if service.is_finished:
-        raise exceptions.InvalidOperationException('activity(%s) callback already finished' % activity_id)
+        raise exceptions.InvalidOperationException("activity(%s) callback already finished" % activity_id)
     service.callback(callback_data, process_id)
-    return ActionResult(result=True, message='success')
+    return ActionResult(result=True, message="success")
 
 
 def get_inputs(node_id):
@@ -422,10 +436,7 @@ def get_outputs(node_id):
     :return:
     """
     data = Data.objects.get(id=node_id)
-    return {
-        'outputs': data.outputs,
-        'ex_data': data.ex_data
-    }
+    return {"outputs": data.outputs, "ex_data": data.ex_data}
 
 
 def get_activity_histories(node_id, loop=None):
@@ -440,7 +451,7 @@ def get_activity_histories(node_id, loop=None):
 
 @_frozen_check
 @_node_existence_check
-def forced_fail(node_id, kill=False, ex_data=''):
+def forced_fail(node_id, kill=False, ex_data=""):
     """
     forced fail a node
     :param node_id:
@@ -452,12 +463,13 @@ def forced_fail(node_id, kill=False, ex_data=''):
     try:
         process = PipelineProcess.objects.get(current_node_id=node_id)
     except PipelineProcess.DoesNotExist:
-        return ActionResult(result=False,
-                            message='invalid operation, this node is finished or pipeline have been revoked')
+        return ActionResult(
+            result=False, message="invalid operation, this node is finished or pipeline have been revoked"
+        )
 
     node = process.top_pipeline.node(node_id)
     if not isinstance(node, ServiceActivity):
-        return ActionResult(result=False, message='can\'t not forced fail this type of node')
+        return ActionResult(result=False, message="can't not forced fail this type of node")
 
     action_result = Status.objects.transit(node_id, to_state=states.FAILED)
     if not action_result.result:
@@ -473,11 +485,13 @@ def forced_fail(node_id, kill=False, ex_data=''):
         ScheduleService.objects.delete_schedule(s.id, s.version)
         Data.objects.forced_fail(node_id, ex_data)
         ProcessCeleryTask.objects.revoke(process.id, kill)
-        process.sleep(adjust_status=True)
+        process.adjust_status()
+        process.is_sleep = True
+        process.save()
         s.version = uniqid.uniqid()
         s.save()
 
-    return ActionResult(result=True, message='success')
+    return ActionResult(result=True, message="success")
 
 
 def _get_process_to_be_waked(process, to_be_waked):

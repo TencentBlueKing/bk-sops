@@ -11,57 +11,64 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import patch, MagicMock
-
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from pipeline.core import flow
-from pipeline.core.flow import FlowNodeClsFactory, EndEvent
+from pipeline.core.flow import EndEvent, FlowNodeClsFactory
 
 
 class FlowNodeClsFactoryTestCase(TestCase):
     def test_node_types_without_start_event(self):
-        self.assertEqual(set(FlowNodeClsFactory.node_types_without_start_event()),
-                         {"ServiceActivity",
-                          "SubProcess",
-                          "ExclusiveGateway",
-                          "ParallelGateway",
-                          "ConditionalParallelGateway",
-                          "ConvergeGateway",
-                          "EmptyEndEvent"})
+        self.assertEqual(
+            set(FlowNodeClsFactory.node_types_without_start_event()),
+            {
+                "ServiceActivity",
+                "SubProcess",
+                "ExclusiveGateway",
+                "ParallelGateway",
+                "ConditionalParallelGateway",
+                "ConvergeGateway",
+                "EmptyEndEvent",
+            },
+        )
 
     def test_node_types_without_start_and_end_event(self):
-        self.assertEqual(set(FlowNodeClsFactory.node_types_without_start_end_event()),
-                         {"ServiceActivity",
-                          "SubProcess",
-                          "ExclusiveGateway",
-                          "ParallelGateway",
-                          "ConditionalParallelGateway",
-                          "ConvergeGateway"})
+        self.assertEqual(
+            set(FlowNodeClsFactory.node_types_without_start_end_event()),
+            {
+                "ServiceActivity",
+                "SubProcess",
+                "ExclusiveGateway",
+                "ParallelGateway",
+                "ConditionalParallelGateway",
+                "ConvergeGateway",
+            },
+        )
 
-    @patch('pipeline.core.flow.post_new_end_event_register', MagicMock())
+    @patch("pipeline.core.flow.post_new_end_event_register", MagicMock())
     def test_register_node__is_not_end_event(self):
         node_cls = MagicMock()
 
-        FlowNodeClsFactory.register_node('key', node_cls)
+        FlowNodeClsFactory.register_node("key", node_cls)
 
-        self.assertEqual(FlowNodeClsFactory.get_node_cls('key'), node_cls)
+        self.assertEqual(FlowNodeClsFactory.get_node_cls("key"), node_cls)
         flow.post_new_end_event_register.send.assert_not_called()
 
-        FlowNodeClsFactory.nodes_cls.pop('key')
+        FlowNodeClsFactory.nodes_cls.pop("key")
 
-    @patch('pipeline.core.flow.post_new_end_event_register', MagicMock())
+    @patch("pipeline.core.flow.post_new_end_event_register", MagicMock())
     def test_register_node__with_end_event(self):
         class TestEnd(EndEvent):
             pass
 
-        FlowNodeClsFactory.register_node('key', TestEnd)
-        self.assertEqual(FlowNodeClsFactory.get_node_cls('key'), TestEnd)
-        flow.post_new_end_event_register.send.assert_called_once_with(sender=EndEvent,
-                                                                      node_type='key',
-                                                                      node_cls=TestEnd)
+        FlowNodeClsFactory.register_node("key", TestEnd)
+        self.assertEqual(FlowNodeClsFactory.get_node_cls("key"), TestEnd)
+        flow.post_new_end_event_register.send.assert_called_once_with(
+            sender=EndEvent, node_type="key", node_cls=TestEnd
+        )
 
-        FlowNodeClsFactory.nodes_cls.pop('key')
+        FlowNodeClsFactory.nodes_cls.pop("key")
 
     def test_register_node__with_exist_type(self):
-        self.assertRaises(KeyError, FlowNodeClsFactory.register_node, 'ServiceActivity', MagicMock())
+        self.assertRaises(KeyError, FlowNodeClsFactory.register_node, "ServiceActivity", MagicMock())

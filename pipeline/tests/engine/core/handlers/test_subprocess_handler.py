@@ -30,9 +30,8 @@ class SubprocessHandlerTestCase(TestCase):
 
     @patch(SUBPROCESS_HYDRATE_NODE_DATA, MagicMock())
     def test_handle(self):
-        for data_inputs, loop in itertools.product(({}, {'k1': 'v1', 'k2': 'v2'}),
-                                                   (1, 2, 3)):
-            hydrate_data_return = 'hydate_data_return'
+        for data_inputs, loop in itertools.product(({}, {"k1": "v1", "k2": "v2"}), (1, 2, 3)):
+            hydrate_data_return = "hydate_data_return"
             top_context = MockContext()
             process = MockPipelineProcess(top_pipeline_context=top_context)
             data = MockData(get_inputs_return=data_inputs)
@@ -65,6 +64,8 @@ class SubprocessHandlerTestCase(TestCase):
                 context.update_global_var.assert_called_once_with(hydrate_data_return)
 
                 process.push_pipeline.assert_called_once_with(subprocess_act.pipeline, is_subprocess=True)
+
+                process.take_snapshot.assert_called_once()
 
                 self.assertEqual(hdl_result.next_node, subprocess_act.pipeline.start_event)
                 self.assertFalse(hdl_result.should_return)

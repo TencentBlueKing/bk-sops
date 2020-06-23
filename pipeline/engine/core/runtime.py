@@ -19,10 +19,9 @@ from pipeline.conf import settings as pipeline_settings
 from pipeline.core.flow.activity import SubProcess
 from pipeline.engine import states
 from pipeline.engine.core.handlers import HandlersFactory
-from pipeline.engine.models import (NAME_MAX_LENGTH, FunctionSwitch,
-                                    NodeRelationship, Status)
+from pipeline.engine.models import NAME_MAX_LENGTH, FunctionSwitch, NodeRelationship, Status
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 RERUN_MAX_LIMIT = pipeline_settings.PIPELINE_RERUN_MAX_TIMES
 
@@ -52,26 +51,26 @@ def run_loop(process):
                     process.destroy_and_wake_up_parent(current_node.id)
                 except Exception:
                     logger.error(traceback.format_exc())
-                logger.info('child process(%s) finish.' % process.id)
+                logger.info("child process(%s) finish." % process.id)
                 return
 
             # check root pipeline status
             need_sleep, pipeline_state = process.root_sleep_check()
             if need_sleep:
-                logger.info('pipeline(%s) turn to sleep.' % process.root_pipeline.id)
+                logger.info("pipeline(%s) turn to sleep." % process.root_pipeline.id)
                 process.sleep(do_not_save=(pipeline_state == states.REVOKED))
                 return
 
             # check subprocess status
             need_sleep, subproc_above = process.subproc_sleep_check()
             if need_sleep:
-                logger.info('process(%s) turn to sleep.' % process.root_pipeline.id)
+                logger.info("process(%s) turn to sleep." % process.root_pipeline.id)
                 process.sleep(adjust_status=True, adjust_scope=subproc_above)
                 return
 
             # check engine status
             if FunctionSwitch.objects.is_frozen():
-                logger.info('pipeline(%s) have been frozen.' % process.id)
+                logger.info("pipeline(%s) have been frozen." % process.id)
                 process.freeze()
                 return
 
@@ -80,28 +79,37 @@ def run_loop(process):
             action = Status.objects.transit(id=current_node.id, to_state=states.RUNNING, start=True, name=name)
 
             # check rerun limit
-            if not isinstance(current_node, SubProcess) and RERUN_MAX_LIMIT != 0 and \
-                    action.extra.loop > RERUN_MAX_LIMIT:
-                logger.info('node({nid}) rerun times exceed max limit: {limit}'.format(
-                    nid=current_node.id,
-                    limit=RERUN_MAX_LIMIT
-                ))
+            if (
+                not isinstance(current_node, SubProcess)
+                and RERUN_MAX_LIMIT != 0
+                and action.extra.loop > RERUN_MAX_LIMIT
+            ):
+                logger.info(
+                    "node({nid}) rerun times exceed max limit: {limit}".format(
+                        nid=current_node.id, limit=RERUN_MAX_LIMIT
+                    )
+                )
 
                 # fail
-                action = Status.objects.fail(current_node, 'rerun times exceed max limit: {limit}'.format(
-                    limit=RERUN_MAX_LIMIT
-                ))
+                action = Status.objects.fail(
+                    current_node, "rerun times exceed max limit: {limit}".format(limit=RERUN_MAX_LIMIT)
+                )
 
                 if not action.result:
-                    logger.warning('can not transit node({}) to running, pipeline({}) turn to sleep. '
-                                   'message: {}'.format(current_node.id, process.root_pipeline.id, action.message))
+                    logger.warning(
+                        "can not transit node({}) to running, pipeline({}) turn to sleep. "
+                        "message: {}".format(current_node.id, process.root_pipeline.id, action.message)
+                    )
 
                 process.sleep(adjust_status=True)
                 return
 
             if not action.result:
-                logger.warning('can not transit node({}) to running, pipeline({}) turn to sleep. message: {}'.format(
-                    current_node.id, process.root_pipeline.id, action.message))
+                logger.warning(
+                    "can not transit node({}) to running, pipeline({}) turn to sleep. message: {}".format(
+                        current_node.id, process.root_pipeline.id, action.message
+                    )
+                )
                 process.sleep(adjust_status=True)
                 return
 

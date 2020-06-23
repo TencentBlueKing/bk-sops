@@ -13,12 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
 from pipeline.builder.flow import ParallelGateway
+from pipeline.core.constants import PE
 
 
 class ParallelGatewayTestCase(TestCase):
-
     def test_type(self):
         e = ParallelGateway()
         self.assertEqual(e.type(), PE.ParallelGateway)

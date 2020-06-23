@@ -72,7 +72,7 @@ def export_templates(request):
             json.dumps(CommonTemplate.objects.export_templates(template_id_list), sort_keys=True)
         )
     except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code, "data": None})
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code, "data": None})
 
     data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
@@ -107,7 +107,7 @@ def import_templates(request):
             {
                 "result": False,
                 "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOW_ERROR.code,
+                "code": err_code.UNKNOWN_ERROR.code,
                 "data": None,
             }
         )

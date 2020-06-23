@@ -15,18 +15,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.conf import settings
-from pipeline.contrib.external_plugins.utils.importer import (
-    GitRepoModuleImporter,
-    S3ModuleImporter,
-    FSModuleImporter
-)
-from pipeline.contrib.external_plugins.models.base import (
-    GIT,
-    S3,
-    FILE_SYSTEM,
-    package_source,
-    ExternalPackageSource
-)
+from pipeline.contrib.external_plugins.models.base import FILE_SYSTEM, GIT, S3, ExternalPackageSource, package_source
+from pipeline.contrib.external_plugins.utils.importer import FSModuleImporter, GitRepoModuleImporter, S3ModuleImporter
 
 
 @package_source
@@ -39,18 +29,17 @@ class GitRepoSource(ExternalPackageSource):
         return GIT
 
     def importer(self):
-        return GitRepoModuleImporter(name=self.name,
-                                     repo_raw_url=self.repo_raw_address,
-                                     branch=self.branch,
-                                     modules=list(self.packages.keys()),
-                                     proxy=settings.EXTERNAL_PLUGINS_SOURCE_PROXY,
-                                     secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT)
+        return GitRepoModuleImporter(
+            name=self.name,
+            repo_raw_url=self.repo_raw_address,
+            branch=self.branch,
+            modules=list(self.packages.keys()),
+            proxy=settings.EXTERNAL_PLUGINS_SOURCE_PROXY,
+            secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT,
+        )
 
     def details(self):
-        return {
-            'repo_raw_address': self.repo_raw_address,
-            'branch': self.branch
-        }
+        return {"repo_raw_address": self.repo_raw_address, "branch": self.branch}
 
 
 @package_source
@@ -65,20 +54,22 @@ class S3Source(ExternalPackageSource):
         return S3
 
     def importer(self):
-        return S3ModuleImporter(name=self.name,
-                                modules=list(self.packages.keys()),
-                                service_address=self.service_address,
-                                bucket=self.bucket,
-                                access_key=self.access_key,
-                                secret_key=self.secret_key,
-                                secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT)
+        return S3ModuleImporter(
+            name=self.name,
+            modules=list(self.packages.keys()),
+            service_address=self.service_address,
+            bucket=self.bucket,
+            access_key=self.access_key,
+            secret_key=self.secret_key,
+            secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT,
+        )
 
     def details(self):
         return {
-            'service_address': self.service_address,
-            'bucket': self.bucket,
-            'access_key': self.access_key,
-            'secret_key': self.secret_key
+            "service_address": self.service_address,
+            "bucket": self.bucket,
+            "access_key": self.access_key,
+            "secret_key": self.secret_key,
         }
 
 
@@ -91,11 +82,7 @@ class FileSystemSource(ExternalPackageSource):
         return FILE_SYSTEM
 
     def importer(self):
-        return FSModuleImporter(name=self.name,
-                                modules=list(self.packages.keys()),
-                                path=self.path)
+        return FSModuleImporter(name=self.name, modules=list(self.packages.keys()), path=self.path)
 
     def details(self):
-        return {
-            'path': self.path
-        }
+        return {"path": self.path}

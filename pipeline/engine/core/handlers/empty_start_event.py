@@ -18,13 +18,12 @@ from pipeline.engine.models import Status
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['EmptyStartEventHandler']
+__all__ = ["EmptyStartEventHandler"]
 
 
 class EmptyStartEventHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return EmptyStartEvent

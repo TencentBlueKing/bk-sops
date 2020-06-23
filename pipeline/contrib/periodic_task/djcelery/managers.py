@@ -12,32 +12,30 @@ specific language governing permissions and limitations under the License.
 """
 
 import warnings
-
-from django.db import connection
 from functools import wraps
 from itertools import count
+
+from django.conf import settings
+from django.db import connection, models
+from django.db.models.query import QuerySet
+
+from pipeline.contrib.periodic_task.djcelery.db import commit_on_success, get_queryset, rollback_unless_managed
+from pipeline.contrib.periodic_task.djcelery.utils import now
 
 try:
     from django.db import connections, router
 except ImportError:  # pre-Django 1.2
     connections = router = None  # noqa
 
-from django.db import models
-from django.db.models.query import QuerySet
-from django.conf import settings
 
 try:
     from celery.utils.timeutils import maybe_timedelta
 except ImportError:
     from celery.utils.time import maybe_timedelta
 
-from pipeline.contrib.periodic_task.djcelery.db import get_queryset, commit_on_success, rollback_unless_managed
-from pipeline.contrib.periodic_task.djcelery.utils import now
-
 
 def update_model_with_dict(obj, fields):
-    [setattr(obj, attr_name, attr_value)
-     for attr_name, attr_value in list(fields.items())]
+    [setattr(obj, attr_name, attr_value) for attr_name, attr_value in list(fields.items())]
     obj.save()
     return obj
 
@@ -55,10 +53,9 @@ def transaction_retry(max_retries=1):
     """
 
     def _outer(fun):
-
         @wraps(fun)
         def _inner(*args, **kwargs):
-            _max_retries = kwargs.pop('exception_retry_count', max_retries)
+            _max_retries = kwargs.pop("exception_retry_count", max_retries)
             for retries in count(0):
                 try:
                     return fun(*args, **kwargs)
@@ -81,12 +78,11 @@ def transaction_retry(max_retries=1):
 
 
 class ExtendedQuerySet(QuerySet):
-
     def update_or_create(self, **kwargs):
         obj, created = self.get_or_create(**kwargs)
 
         if not created:
-            fields = dict(kwargs.pop('defaults', {}))
+            fields = dict(kwargs.pop("defaults", {}))
             fields.update(kwargs)
             update_model_with_dict(obj, fields)
 
@@ -94,7 +90,6 @@ class ExtendedQuerySet(QuerySet):
 
 
 class ExtendedManager(models.Manager):
-
     def get_queryset(self):
         return ExtendedQuerySet(self.model)
 
@@ -115,13 +110,12 @@ class ExtendedManager(models.Manager):
 
     def current_engine(self):
         try:
-            return settings.DATABASES[self.db]['ENGINE']
+            return settings.DATABASES[self.db]["ENGINE"]
         except AttributeError:
             return settings.DATABASE_ENGINE
 
 
 class ResultManager(ExtendedManager):
-
     def get_all_expired(self, expires):
         """Get all expired task results."""
         return self.filter(date_done__lt=now() - maybe_timedelta(expires))
@@ -133,19 +127,18 @@ class ResultManager(ExtendedManager):
             self.get_all_expired(expires).update(hidden=True)
             cursor = self.connection_for_write().cursor()
             cursor.execute(
-                'DELETE FROM {0.db_table} WHERE hidden=%s'.format(meta),
-                (True,),
+                "DELETE FROM {0.db_table} WHERE hidden=%s".format(meta), (True,),
             )
 
 
 class PeriodicTaskManager(ExtendedManager):
-
     def enabled(self):
         return self.filter(enabled=True)
 
 
 class TaskManager(ResultManager):
     """Manager for :class:`celery.models.Task` models."""
+
     _last_id = None
 
     def get_task(self, task_id):
@@ -166,8 +159,7 @@ class TaskManager(ResultManager):
             return self.model(task_id=task_id)
 
     @transaction_retry(max_retries=2)
-    def store_result(self, task_id, result, status,
-                     traceback=None, children=None):
+    def store_result(self, task_id, result, status, traceback=None, children=None):
         """Store the result and status of a task.
 
         :param task_id: task id
@@ -191,20 +183,22 @@ class TaskManager(ResultManager):
             create the same task. The default is to retry twice.
 
         """
-        return self.update_or_create(task_id=task_id,
-                                     defaults={'status': status,
-                                               'result': result,
-                                               'traceback': traceback,
-                                               'meta': {'children': children}})
+        return self.update_or_create(
+            task_id=task_id,
+            defaults={"status": status, "result": result, "traceback": traceback, "meta": {"children": children}},
+        )
 
     def warn_if_repeatable_read(self):
-        if 'mysql' in self.current_engine().lower():
+        if "mysql" in self.current_engine().lower():
             cursor = self.connection_for_read().cursor()
-            if cursor.execute('SELECT @@tx_isolation'):
+            if cursor.execute("SELECT @@tx_isolation"):
                 isolation = cursor.fetchone()[0]
-                if isolation == 'REPEATABLE-READ':
-                    warnings.warn(TxIsolationWarning(
-                        'Polling results with transaction isolation level '
-                        'repeatable-read within the same transaction '
-                        'may give outdated results. Be sure to commit the '
-                        'transaction for each poll iteration.'))
+                if isolation == "REPEATABLE-READ":
+                    warnings.warn(
+                        TxIsolationWarning(
+                            "Polling results with transaction isolation level "
+                            "repeatable-read within the same transaction "
+                            "may give outdated results. Be sure to commit the "
+                            "transaction for each poll iteration."
+                        )
+                    )

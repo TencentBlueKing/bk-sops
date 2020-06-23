@@ -16,6 +16,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     :search-form="searchForm"
+                    :search-config="{ placeholder: $t('请输入任务名称') }"
                     @onSearchInput="onSearchInput"
                     @submit="onSearchFormSubmit">
                 </advance-search-form>

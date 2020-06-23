@@ -20,10 +20,10 @@ from pipeline.core.constants import PE
 from pipeline.engine.utils import Stack
 from pipeline.validators.utils import get_node_for_sequence, get_nodes_dict
 
-STREAM = 'stream'
-P_STREAM = 'p_stream'
-P = 'p'
-MAIN_STREAM = 'main'
+STREAM = "stream"
+P_STREAM = "p_stream"
+P = "p"
+MAIN_STREAM = "main"
 
 PARALLEL_GATEWAYS = {PE.ParallelGateway, PE.ConditionalParallelGateway}
 
@@ -64,16 +64,18 @@ def matched_in_prev_blocks(gid, current_start, block_nodes):
     return gid in prev_nodes
 
 
-def match_converge(converges,
-                   gateways,
-                   cur_index,
-                   end_event_id,
-                   block_start,
-                   block_nodes,
-                   converged,
-                   dist_from_start,
-                   converge_in_len,
-                   stack=None):
+def match_converge(
+    converges,
+    gateways,
+    cur_index,
+    end_event_id,
+    block_start,
+    block_nodes,
+    converged,
+    dist_from_start,
+    converge_in_len,
+    stack=None,
+):
     """
     find converge for parallel and exclusive in blocks, and check sanity of gateway
     :param converges:
@@ -96,8 +98,8 @@ def match_converge(converges,
         return None, False
 
     # return if this node is already matched
-    if gateways[cur_index]['match']:
-        return gateways[cur_index]['match'], gateways[cur_index]['share_converge']
+    if gateways[cur_index]["match"]:
+        return gateways[cur_index]["match"], gateways[cur_index]["share_converge"]
 
     current_gateway = gateways[cur_index]
     target = gateways[cur_index][PE.target]
@@ -127,16 +129,18 @@ def match_converge(converges,
                 else:
                     raise exceptions.ConvergeMatchError(cur_index, _("并行网关中的分支网关必须将所有分支汇聚到一个汇聚网关"))
 
-            converge_id, shared = match_converge(converges=converges,
-                                                 gateways=gateways,
-                                                 cur_index=target[i],
-                                                 end_event_id=end_event_id,
-                                                 block_start=block_start,
-                                                 block_nodes=block_nodes,
-                                                 stack=stack,
-                                                 converged=converged,
-                                                 dist_from_start=dist_from_start,
-                                                 converge_in_len=converge_in_len)
+            converge_id, shared = match_converge(
+                converges=converges,
+                gateways=gateways,
+                cur_index=target[i],
+                end_event_id=end_event_id,
+                block_start=block_start,
+                block_nodes=block_nodes,
+                stack=stack,
+                converged=converged,
+                dist_from_start=dist_from_start,
+                converge_in_len=converge_in_len,
+            )
             if converge_id:
                 target[i] = converge_id
 
@@ -220,9 +224,9 @@ def match_converge(converges,
         elif converge_incoming < gateway_outgoing:
             raise exceptions.ConvergeMatchError(converge_id, _("汇聚网关没有汇聚其对应的并行网关的所有分支"))
 
-    current_gateway['match'] = converge_id
-    current_gateway['share_converge'] = shared
-    current_gateway['converge_end'] = converge_end
+    current_gateway["match"] = converge_id
+    current_gateway["share_converge"] = shared
+    current_gateway["converge_end"] = converge_end
 
     converged.setdefault(converge_id, []).append(current_gateway[PE.id])
     block_nodes[block_start].add(current_gateway[PE.id])
@@ -260,12 +264,7 @@ def distance_from(origin, node, tree, marked, visited=None):
         prev_node = get_node_for_sequence(incoming, tree, PE.source)
 
         # get incoming node's distance recursively
-        dist = distance_from(
-            origin=origin,
-            node=prev_node,
-            tree=tree,
-            marked=marked,
-            visited=visited)
+        dist = distance_from(origin=origin, node=prev_node, tree=tree, marked=marked, visited=visited)
 
         # if this incoming do not trace back to current node
         if dist is not None:
@@ -302,7 +301,7 @@ def validate_gateways(tree):
             PE.target: [],
             PE.source: [],
             PE.id: item[PE.id],
-            'match': None,
+            "match": None,
         }
 
         # find all first reach nodes(ConvergeGateway, ExclusiveGateway, ParallelGateway, EndEvent)
@@ -316,11 +315,7 @@ def validate_gateways(tree):
             node[PE.target].append(index)
 
         # get current node's distance from start event
-        if not distance_from(
-                node=node,
-                origin=tree[PE.start_event],
-                tree=tree,
-                marked=distances):
+        if not distance_from(node=node, origin=tree[PE.start_event], tree=tree, marked=distances):
             raise exceptions.ConvergeMatchError(node[PE.id], _("无法获取该网关距离开始节点的距离"))
 
         if item[PE.type] == PE.ConvergeGateway:
@@ -344,19 +339,19 @@ def validate_gateways(tree):
     if process_order:
         start = process_order[0]
         end_event_id = tree[PE.end_event][PE.id]
-        block_nodes = {
-            start: set()
-        }
+        block_nodes = {start: set()}
 
-        converge_id, __ = match_converge(converges=converges,
-                                         gateways=gateways,
-                                         cur_index=start,
-                                         end_event_id=end_event_id,
-                                         converged=converged,
-                                         block_start=start,
-                                         block_nodes=block_nodes,
-                                         dist_from_start=distances,
-                                         converge_in_len=converge_positive_in)
+        converge_id, __ = match_converge(
+            converges=converges,
+            gateways=gateways,
+            cur_index=start,
+            end_event_id=end_event_id,
+            converged=converged,
+            block_start=start,
+            block_nodes=block_nodes,
+            dist_from_start=distances,
+            converge_in_len=converge_positive_in,
+        )
 
         if converge_id:
             next_node_of_converge = converges[converge_id][PE.target][0]
@@ -364,15 +359,17 @@ def validate_gateways(tree):
             while next_node_of_converge != end_event_id:
                 start = converges[converge_id][PE.target][0]
                 block_nodes[start] = set()
-                converge_id, __ = match_converge(converges=converges,
-                                                 gateways=gateways,
-                                                 cur_index=start,
-                                                 end_event_id=end_event_id,
-                                                 converged=converged,
-                                                 block_start=start,
-                                                 block_nodes=block_nodes,
-                                                 dist_from_start=distances,
-                                                 converge_in_len=converge_positive_in)
+                converge_id, __ = match_converge(
+                    converges=converges,
+                    gateways=gateways,
+                    cur_index=start,
+                    end_event_id=end_event_id,
+                    converged=converged,
+                    block_start=start,
+                    block_nodes=block_nodes,
+                    dist_from_start=distances,
+                    converge_in_len=converge_positive_in,
+                )
                 if converge_id is None:
                     break
 
@@ -380,8 +377,8 @@ def validate_gateways(tree):
 
         # set converge gateway
         for i in gateways:
-            if gateways[i]['match']:
-                tree[PE.gateways][i][PE.converge_gateway_id] = gateways[i]['match']
+            if gateways[i]["match"]:
+                tree[PE.gateways][i][PE.converge_gateway_id] = gateways[i]["match"]
 
     return converged
 
@@ -406,7 +403,7 @@ def blend(source, target, custom_stream=None):
         return
 
     if len(source[STREAM]) == 0:
-        raise exceptions.InvalidOperationException('stream validation error, node(%s) stream is empty' % source[PE.id])
+        raise exceptions.InvalidOperationException("stream validation error, node(%s) stream is empty" % source[PE.id])
 
     # blend
     for s in source[STREAM]:
@@ -416,7 +413,7 @@ def blend(source, target, custom_stream=None):
 def streams_for_parallel(p):
     streams = set()
     for i, target_id in enumerate(p[PE.target]):
-        streams.add('{}_{}'.format(p[PE.id], i))
+        streams.add("{}_{}".format(p[PE.id], i))
 
     return streams
 
@@ -435,9 +432,7 @@ def flowing(where, to, parallel_converges):
     if is_parallel:
         # add parallel's stream to its converge
         parallel_converge = to[where[PE.converge_gateway_id]]
-        blend(source=where,
-              target=parallel_converge,
-              custom_stream=stream)
+        blend(source=where, target=parallel_converge, custom_stream=stream)
 
         if len(parallel_converge[STREAM]) > 1:
             raise exceptions.StreamValidateError(node_id=parallel_converge)
@@ -449,7 +444,7 @@ def flowing(where, to, parallel_converges):
 
         # generate different stream
         if is_parallel:
-            stream = '{}_{}'.format(where[PE.id], i)
+            stream = "{}_{}".format(where[PE.id], i)
 
         if target_id in parallel_converges:
 
@@ -461,9 +456,7 @@ def flowing(where, to, parallel_converges):
                 fake = True
 
         if not fake:
-            blend(source=where,
-                  target=target,
-                  custom_stream=stream)
+            blend(source=where, target=target, custom_stream=stream)
 
         # sanity check
         if len(target[STREAM]) != 1:
@@ -490,10 +483,7 @@ def validate_stream(tree):
 
         # set allow streams for parallel's converge
         if node[PE.type] in PARALLEL_GATEWAYS:
-            parallel_converges[node[PE.converge_gateway_id]] = {
-                P_STREAM: streams_for_parallel(node),
-                P: nid
-            }
+            parallel_converges[node[PE.converge_gateway_id]] = {P_STREAM: streams_for_parallel(node), P: nid}
 
     # build stream from start
     node_queue = queue.Queue()

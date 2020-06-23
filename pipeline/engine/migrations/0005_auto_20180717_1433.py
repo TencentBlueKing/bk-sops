@@ -12,20 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0004_auto_20180717_1411'),
+        ("engine", "0004_auto_20180717_1411"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='functionswitch',
-            name='name',
-            field=models.CharField(unique=True, max_length=32, verbose_name='\u529f\u80fd\u540d\u79f0'),
+            model_name="functionswitch",
+            name="name",
+            field=models.CharField(unique=True, max_length=32, verbose_name="\u529f\u80fd\u540d\u79f0"),
         ),
     ]

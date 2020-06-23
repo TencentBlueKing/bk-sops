@@ -13,12 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
-FREEZE_ENGINE = 'FREEZE_ENGINE'
+FREEZE_ENGINE = "FREEZE_ENGINE"
 
 switch_list = [
-    {
-        'name': FREEZE_ENGINE,
-        'description': _("用于冻结引擎, 冻结期间会屏蔽所有内部信号及暂停所有进程，同时拒绝所有流程控制请求"),
-        'is_active': False
-    }
+    {"name": FREEZE_ENGINE, "description": _("用于冻结引擎, 冻结期间会屏蔽所有内部信号及暂停所有进程，同时拒绝所有流程控制请求"), "is_active": False}
 ]

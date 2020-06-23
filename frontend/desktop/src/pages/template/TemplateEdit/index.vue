@@ -65,6 +65,7 @@
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
                     :common="common"
+                    :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
                     :is-setting-panel-show="isSettingPanelShow"
                     :setting-active-tab="settingActiveTab"
@@ -100,6 +101,7 @@
                     @onDeleteDraft="onDeleteDraft"
                     @onReplaceTemplate="onReplaceTemplate"
                     @onNewDraft="onNewDraft"
+                    @updateDraft="updateDraft"
                     @onCitedNodeClick="onCitedNodeClick"
                     @updateLocalTemplateData="updateLocalTemplateData"
                     @modifyTemplateData="modifyTemplateData"
@@ -874,7 +876,7 @@
                             this.$refs.templateCanvas.onResetPosition()
                             this.variableDataChanged()
                             this.$bkMessage({
-                                message: i18n.t('排版完成，原内容在本地缓存中'),
+                                message: i18n.t('排版完成，原内容在本地快照中'),
                                 theme: 'success'
                             })
                         })
@@ -1077,16 +1079,14 @@
             },
             // 模板替换
             onReplaceTemplate (data) {
-                const { templateData, type } = data
+                const { templateData, type, index } = data
                 if (type === 'replace') {
-                    const nowTemplateSerializable = JSON.stringify(this.getLocalTemplateData())
-                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID()))
-                    const lastTemplate = lastDraft['template']
-                    const lastTemplateSerializable = JSON.stringify(lastTemplate)
-                    // 替换之前进行保存
-                    if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.t('替换流程自动保存'))
-                    }
+                    draft.addDraft(
+                        this.username,
+                        this.projectOrCommon,
+                        this.getTemplateIdOrTemplateUUID(),
+                        this.getLocalTemplateData(),
+                        i18n.t('最近快照已保存，并恢复至序号') + index + i18n.t('号的快照'))
                     this.$bkMessage({
                         'message': i18n.t('替换流程成功'),
                         'theme': 'success'
@@ -1119,10 +1119,15 @@
                 }
                 if (isMessage) {
                     this.$bkMessage({
-                        'message': i18n.t('新增流程本地缓存成功'),
+                        'message': i18n.t('新增流程本地快照成功'),
                         'theme': 'success'
                     })
                 }
+            },
+            // 更新某次快照信息
+            updateDraft (key, data) {
+                draft.updateDraft(key, data)
+                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
             },
             // 修改line和location
             onReplaceLineAndLocation (data) {

@@ -11,14 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .service_activity import ServiceActivityHandler
-from .subprocess import SubprocessHandler
+from .conditional_parallel import ConditionalParallelGatewayHandler
+from .converge_gateway import ConvergeGatewayHandler
 from .empty_start_event import EmptyStartEventHandler
 from .endevent import EmptyEndEventHandler, ExecutableEndEventHandler
 from .exclusive_gateway import ExclusiveGatewayHandler
 from .parallel_gateway import ParallelGatewayHandler
-from .conditional_parallel import ConditionalParallelGatewayHandler
-from .converge_gateway import ConvergeGatewayHandler
+from .service_activity import ServiceActivityHandler
+from .subprocess import SubprocessHandler
 
 
 class HandlersFactory(object):
@@ -31,12 +31,10 @@ class HandlersFactory(object):
         ParallelGatewayHandler.element_cls(): ParallelGatewayHandler(),
         ConditionalParallelGatewayHandler.element_cls(): ConditionalParallelGatewayHandler(),
         ConvergeGatewayHandler.element_cls(): ConvergeGatewayHandler(),
-        ExecutableEndEventHandler.element_cls(): ExecutableEndEventHandler()
+        ExecutableEndEventHandler.element_cls(): ExecutableEndEventHandler(),
     }
 
-    _cluster_roots = [
-        ExecutableEndEventHandler.element_cls()
-    ]
+    _cluster_roots = [ExecutableEndEventHandler.element_cls()]
 
     @classmethod
     def find_cluster_root_cls(cls, element):
@@ -50,6 +48,6 @@ class HandlersFactory(object):
     def handlers_for(cls, element):
         handler = cls._handlers.get(cls.find_cluster_root_cls(element))
         if not handler:
-            raise KeyError('handler for element({element}) not found.'.format(element=element))
+            raise KeyError("handler for element({element}) not found.".format(element=element))
 
         return handler

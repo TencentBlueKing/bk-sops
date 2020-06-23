@@ -23,9 +23,9 @@ class TestElement(TestCase):
         self.assertIsNone(e1.name)
         self.assertListEqual(e1.outgoing, [])
 
-        e2 = Element(id='id', name='name', outgoing=[1])
-        self.assertEqual(e2.id, 'id')
-        self.assertEqual(e2.name, 'name')
+        e2 = Element(id="id", name="name", outgoing=[1])
+        self.assertEqual(e2.id, "id")
+        self.assertEqual(e2.name, "name")
         self.assertEqual(e2.outgoing, [1])
 
     def test_extend(self):
@@ -83,8 +83,7 @@ class TestElement(TestCase):
         e9 = Element()
         e10 = Element()
 
-        ret = e6.extend(e7).extend(e8).to(e6) \
-            .extend(e9).to(e6).converge(e10)
+        ret = e6.extend(e7).extend(e8).to(e6).extend(e9).to(e6).converge(e10)
 
         self.assertEqual(ret, e10)
         self.assertEqual(e6.outgoing, [e7, e9])

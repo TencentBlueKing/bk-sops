@@ -23,7 +23,6 @@ __register_ignore__ = True
 
 
 class TestBaseIgnoreComponent(TestCase):
-
     def tearDown(self):
         ComponentModel.objects.all().delete()
         ComponentLibrary.components = {}
@@ -34,18 +33,15 @@ class TestBaseIgnoreComponent(TestCase):
                 pass
 
         class IgnoreComponent(Component):
-            name = 'ignore_service'
+            name = "ignore_service"
             bound_service = IgnoreService
-            code = 'ignore_component'
-            form = 'form path'
+            code = "ignore_component"
+            form = "form path"
 
             def outputs_format(self):
-                return {
-                    'result': bool,
-                    'message': str
-                }
+                return {"result": bool, "message": str}
 
             def clean_execute_data(self, context):
                 return {}
 
-        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, 'ignore_component')
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, "ignore_component")

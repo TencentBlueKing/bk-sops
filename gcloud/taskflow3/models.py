@@ -769,7 +769,7 @@ class TaskFlowInstance(models.Model):
             except Exception as e:
                 message = "task[id=%s] action failed:%s" % (self.id, e)
                 logger.exception(traceback.format_exc())
-                code = err_code.UNKNOW_ERROR.code
+                code = err_code.UNKNOWN_ERROR.code
 
             return {"result": False, "message": message, "code": code}
 
@@ -786,7 +786,7 @@ class TaskFlowInstance(models.Model):
         except Exception as e:
             message = "task[id=%s] action failed:%s" % (self.id, e)
             logger.exception(traceback.format_exc())
-            return {"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code}
+            return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
     def nodes_action(self, action, node_id, username, **kwargs):
         if not self.has_node(node_id):

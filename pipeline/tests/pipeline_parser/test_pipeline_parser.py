@@ -13,17 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import unittest
 
-from pipeline.parser.pipeline_parser import PipelineParser
 from pipeline.core.pipeline import Pipeline
-from .data import (
-    PIPELINE_DATA,
-    PIPELINE_WITH_SUB_PROCESS,
-    CONDITIONAL_PARALLEL,
-)
+from pipeline.parser.pipeline_parser import PipelineParser
+
+from .data import CONDITIONAL_PARALLEL, PIPELINE_DATA, PIPELINE_WITH_SUB_PROCESS
 
 
 class TestPipelineParser(unittest.TestCase):
-
     def setUp(self):
         from pipeline.component_framework.component import Component
         from pipeline.core.flow.activity import Service
@@ -36,10 +32,10 @@ class TestPipelineParser(unittest.TestCase):
                 return []
 
         class TestComponent(Component):
-            name = 'test'
-            code = 'test'
+            name = "test"
+            code = "test"
             bound_service = TestService
-            form = 'test.js'
+            form = "test.js"
 
     def test_pipeline_parser(self):
         parser_obj = PipelineParser(PIPELINE_DATA)

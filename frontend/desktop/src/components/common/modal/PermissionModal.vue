@@ -70,6 +70,7 @@
 <script>
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
         name: 'permissionModal',
@@ -134,11 +135,7 @@
                     return
                 }
 
-                if (self === top) {
-                    window.open(this.url, '__blank')
-                } else {
-                    window.PAAS_API.open_other_app('bk_iam_app', this.url)
-                }
+                openOtherApp('bk_iam_app', this.url)
             },
             onCloseDialog () {
                 this.isModalShow = false

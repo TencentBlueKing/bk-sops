@@ -14,27 +14,27 @@ specific language governing permissions and limitations under the License.
 from pipeline.builder.flow.base import *  # noqa
 from pipeline.utils.collections import FancyDict
 
-__all__ = [
-    'ServiceActivity',
-    'SubProcess'
-]
+__all__ = ["ServiceActivity", "SubProcess"]
 
 
 class ServiceActivity(Element):
-    def __init__(self,
-                 component_code=None,
-                 failure_handler=None,
-                 error_ignorable=False,
-                 timeout=None,
-                 skippable=True,
-                 retryable=True,
-                 *args, **kwargs):
-        self.component = FancyDict({
-            'code': component_code,
-            'inputs': FancyDict({})
-        })
-        self.failure_handler = '{module}.{name}'.format(module=failure_handler.__module__,
-                                                        name=failure_handler.__name__) if failure_handler else None
+    def __init__(
+        self,
+        component_code=None,
+        failure_handler=None,
+        error_ignorable=False,
+        timeout=None,
+        skippable=True,
+        retryable=True,
+        *args,
+        **kwargs
+    ):
+        self.component = FancyDict({"code": component_code, "inputs": FancyDict({})})
+        self.failure_handler = (
+            "{module}.{name}".format(module=failure_handler.__module__, name=failure_handler.__name__)
+            if failure_handler
+            else None
+        )
         self.error_ignorable = error_ignorable
         self.timeout = timeout
         self.skippable = skippable
@@ -46,22 +46,23 @@ class ServiceActivity(Element):
 
     def component_dict(self):
         return {
-            'code': self.component.code,
-            'inputs': {key: var.to_dict() for key, var in list(self.component.inputs.items())}
+            "code": self.component.code,
+            "inputs": {key: var.to_dict() for key, var in list(self.component.inputs.items())},
         }
 
 
 class SubProcess(Element):
-
-    def __init__(self,
-                 start=None,
-                 data=None,
-                 params=None,
-                 global_outputs=None,
-                 replace_id=False,
-                 template_id=None,
-                 *args,
-                 **kwargs):
+    def __init__(
+        self,
+        start=None,
+        data=None,
+        params=None,
+        global_outputs=None,
+        replace_id=False,
+        template_id=None,
+        *args,
+        **kwargs
+    ):
         self.start = start
         self.data = data
         self.params = params or {}

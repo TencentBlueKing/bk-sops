@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import sys
 import logging
+import sys
 
 from django.apps import AppConfig
 from django.db.utils import InternalError, OperationalError, ProgrammingError
@@ -20,15 +20,15 @@ from django.db.utils import InternalError, OperationalError, ProgrammingError
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
-DJANGO_MANAGE_CMD = 'manage.py'
-INIT_PASS_TRIGGER = {'migrate'}
+DJANGO_MANAGE_CMD = "manage.py"
+INIT_PASS_TRIGGER = {"migrate"}
 
 
 class ComponentFrameworkConfig(AppConfig):
-    name = 'pipeline.component_framework'
-    verbose_name = 'PipelineComponentFramework'
+    name = "pipeline.component_framework"
+    verbose_name = "PipelineComponentFramework"
 
     def ready(self):
         """
@@ -36,20 +36,28 @@ class ComponentFrameworkConfig(AppConfig):
         @return:
         """
 
-        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD and sys.argv[1] in INIT_PASS_TRIGGER:
-            logger.info("ignore components init for command: {}".format(sys.argv))
-            return
+        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD:
+            try:
+                command = sys.argv[1]
+            except IndexError:
+                return
+            else:
+                if command in INIT_PASS_TRIGGER:
+                    logger.info("ignore components init for command: {}".format(sys.argv))
+                    return
 
         for path in settings.COMPONENT_AUTO_DISCOVER_PATH:
             autodiscover_collections(path)
 
         from pipeline.component_framework.models import ComponentModel
         from pipeline.component_framework.library import ComponentLibrary
+
         try:
             ComponentModel.objects.all().update(status=False)
             for code in ComponentLibrary.codes():
-                ComponentModel.objects.filter(code=code,
-                                              version__in=ComponentLibrary.versions(code)).update(status=True)
+                ComponentModel.objects.filter(code=code, version__in=ComponentLibrary.versions(code)).update(
+                    status=True
+                )
         except InternalError as e:
             # version field migration
             logger.exception(e)

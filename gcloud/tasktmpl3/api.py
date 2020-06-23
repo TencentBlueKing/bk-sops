@@ -82,7 +82,7 @@ def export_templates(request, project_id):
             json.dumps(TaskTemplate.objects.export_templates(template_id_list, project_id), sort_keys=True)
         )
     except FlowExportError as e:
-        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code, "data": None})
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code, "data": None})
 
     data_string = (json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).encode("utf-8")
     digest = hashlib.md5(data_string).hexdigest()
@@ -121,7 +121,7 @@ def import_templates(request, project_id):
             {
                 "result": False,
                 "message": "invalid flow data or error occur, please contact administrator",
-                "code": err_code.UNKNOW_ERROR.code,
+                "code": err_code.UNKNOWN_ERROR.code,
                 "data": None,
             }
         )
@@ -175,7 +175,7 @@ def get_template_count(request, project_id):
     filters = {"is_deleted": False, "project_id": project_id}
     success, content = task_template.dispatch(result_dict["group_by"], filters)
     if not success:
-        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOW_ERROR.code, "data": None})
+        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOWN_ERROR.code, "data": None})
     return JsonResponse({"result": True, "data": content, "code": err_code.SUCCESS.code, "message": ""})
 
 
@@ -201,7 +201,7 @@ def draw_pipeline(request):
     except Exception as e:
         message = "draw pipeline_tree error: %s" % e
         logger.exception(e)
-        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code, "data": None})
+        return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code, "data": None})
 
     return JsonResponse(
         {"result": True, "data": {"pipeline_tree": pipeline_tree}, "code": err_code.SUCCESS.code, "message": ""}

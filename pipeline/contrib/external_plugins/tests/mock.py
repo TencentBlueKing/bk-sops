@@ -12,12 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 
 
-
-from mock import MagicMock, patch, call  # noqa
+from mock import MagicMock, call, patch  # noqa
 
 
 def mock_s3_resource(resource, **kwargs):
-    ret = {'resource': resource}
+    ret = {"resource": resource}
     ret.update(kwargs)
     return ret
 
@@ -28,22 +27,22 @@ class Object(object):
 
 class MockResponse(object):
     def __init__(self, **kwargs):
-        self.content = kwargs.get('content')
-        self.ok = kwargs.get('ok', True)
+        self.content = kwargs.get("content")
+        self.ok = kwargs.get("ok", True)
 
 
 class MockPackageSourceManager(object):
     def __init__(self, **kwargs):
-        self.all = MagicMock(return_value=kwargs.get('all'))
+        self.all = MagicMock(return_value=kwargs.get("all"))
 
 
 class MockPackageSourceClass(object):
     def __init__(self, **kwargs):
-        self.objects = MockPackageSourceManager(all=kwargs.get('all'))
+        self.objects = MockPackageSourceManager(all=kwargs.get("all"))
 
 
 class MockPackageSource(object):
     def __init__(self, **kwargs):
-        self.type = MagicMock(return_value=kwargs.get('type'))
-        self.importer = MagicMock(return_value=kwargs.get('importer'))
-        self.modules = kwargs.get('modules', [])
+        self.type = MagicMock(return_value=kwargs.get("type"))
+        self.importer = MagicMock(return_value=kwargs.get("importer"))
+        self.modules = kwargs.get("modules", [])

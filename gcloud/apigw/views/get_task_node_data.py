@@ -64,6 +64,6 @@ def get_task_node_data(request, task_id, project_id):
             "result": data["result"],
             "data": data["data"],
             "message": data["message"],
-            "code": err_code.SUCCESS.code if data["result"] else err_code.UNKNOW_ERROR.code,
+            "code": err_code.SUCCESS.code if data["result"] else err_code.UNKNOWN_ERROR.code,
         }
     )

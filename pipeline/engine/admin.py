@@ -15,25 +15,35 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.engine import models
-from pipeline.service import task_service
+from pipeline.engine.conf.function_switch import FREEZE_ENGINE
 from pipeline.engine.core import api
-from pipeline.engine.conf.function_switch import (FREEZE_ENGINE)
+from pipeline.service import task_service
 
 
 @admin.register(models.PipelineModel)
 class PipelineModelAdmin(admin.ModelAdmin):
-    list_display = ['id', 'process']
-    search_fields = ['id', 'process__id']
-    raw_id_fields = ['process']
+    list_display = ["id", "process"]
+    search_fields = ["id", "process__id"]
+    raw_id_fields = ["process"]
 
 
 @admin.register(models.PipelineProcess)
 class PipelineProcessAdmin(admin.ModelAdmin):
-    list_display = ['id', 'root_pipeline_id', 'current_node_id', 'destination_id',
-                    'parent_id', 'need_ack', 'ack_num', 'is_alive', 'is_sleep', 'is_frozen']
-    search_fields = ['id', 'root_pipeline_id', 'current_node_id']
-    list_filter = ['is_alive', 'is_sleep']
-    raw_id_fields = ['snapshot']
+    list_display = [
+        "id",
+        "root_pipeline_id",
+        "current_node_id",
+        "destination_id",
+        "parent_id",
+        "need_ack",
+        "ack_num",
+        "is_alive",
+        "is_sleep",
+        "is_frozen",
+    ]
+    search_fields = ["id", "root_pipeline_id", "current_node_id"]
+    list_filter = ["is_alive", "is_sleep"]
+    raw_id_fields = ["snapshot"]
 
 
 def force_fail_node(modeladmin, request, queryset):
@@ -43,67 +53,60 @@ def force_fail_node(modeladmin, request, queryset):
 
 @admin.register(models.Status)
 class StatusAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'state', 'retry', 'skip', 'loop',
-                    'created_time', 'started_time', 'archived_time']
-    search_fields = ['id']
-    list_filter = ['state', 'skip']
+    list_display = ["id", "name", "state", "retry", "skip", "loop", "created_time", "started_time", "archived_time"]
+    search_fields = ["id"]
+    list_filter = ["state", "skip"]
     actions = [force_fail_node]
 
 
 @admin.register(models.ScheduleService)
 class ScheduleServiceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'activity_id', 'process_id', 'schedule_times',
-                    'wait_callback', 'is_finished']
-    search_fields = ['id']
-    list_filter = ['wait_callback', 'is_finished']
+    list_display = ["id", "activity_id", "process_id", "schedule_times", "wait_callback", "is_finished"]
+    search_fields = ["id"]
+    list_filter = ["wait_callback", "is_finished"]
 
 
 @admin.register(models.ProcessCeleryTask)
 class ProcessCeleryTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'process_id', 'celery_task_id']
-    search_fields = ['id', 'process_id']
+    list_display = ["id", "process_id", "celery_task_id"]
+    search_fields = ["id", "process_id"]
 
 
 @admin.register(models.Data)
 class DataAdmin(admin.ModelAdmin):
-    list_display = ['id', 'inputs', 'outputs', 'ex_data']
-    search_fields = ['id']
+    list_display = ["id", "inputs", "outputs", "ex_data"]
+    search_fields = ["id"]
 
 
 @admin.register(models.HistoryData)
 class HistoryDataAdmin(admin.ModelAdmin):
-    list_display = ['id', 'inputs', 'outputs', 'ex_data']
-    search_fields = ['id']
+    list_display = ["id", "inputs", "outputs", "ex_data"]
+    search_fields = ["id"]
 
 
 @admin.register(models.History)
 class HistoryAdmin(admin.ModelAdmin):
-    list_display = ['identifier', 'started_time', 'archived_time']
-    search_fields = ['identifier']
-    raw_id_fields = ['data']
+    list_display = ["identifier", "started_time", "archived_time"]
+    search_fields = ["identifier"]
+    raw_id_fields = ["data"]
 
 
 @admin.register(models.ScheduleCeleryTask)
 class ScheduleCeleryTaskAdmin(admin.ModelAdmin):
-    list_display = ['schedule_id', 'celery_task_id']
-    search_fields = ['schedule_id']
+    list_display = ["schedule_id", "celery_task_id"]
+    search_fields = ["schedule_id"]
 
 
 @admin.register(models.NodeCeleryTask)
 class NodeCeleryTaskAdmin(admin.ModelAdmin):
-    list_display = ['node_id', 'celery_task_id']
-    search_fields = ['node_id']
+    list_display = ["node_id", "celery_task_id"]
+    search_fields = ["node_id"]
 
 
 on = True
 off = False
 
-switch_hook = {
-    FREEZE_ENGINE: {
-        on: api.freeze,
-        off: api.unfreeze
-    }
-}
+switch_hook = {FREEZE_ENGINE: {on: api.freeze, off: api.unfreeze}}
 
 
 def turn_on_function(modeladmin, request, queryset):
@@ -124,8 +127,8 @@ turn_off_function.short_description = _("关闭所选的功能")
 
 @admin.register(models.FunctionSwitch)
 class FunctionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'is_active']
-    search_fields = ['name', 'description']
+    list_display = ["name", "description", "is_active"]
+    search_fields = ["name", "description"]
     actions = [turn_on_function, turn_off_function]
 
     def has_delete_permission(self, request, obj=None):
@@ -133,12 +136,12 @@ class FunctionAdmin(admin.ModelAdmin):
 
     def get_actions(self, request):
         actions = super(FunctionAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
         return actions
 
     def get_readonly_fields(self, request, obj=None):
         if obj:  # obj is not None, so this is an edit
-            return ['name', 'is_active']  # Return a list or tuple of readonly fields' names
+            return ["name", "is_active"]  # Return a list or tuple of readonly fields' names
         else:  # This is an addition
             return []

@@ -299,7 +299,7 @@
             async getTemplateList () {
                 this.templateLoading = true
                 try {
-                    const templateListData = await this.loadTemplateList()
+                    const templateListData = await this.loadTemplateList({ project__id: this.project_id })
                     this.templateList = templateListData.objects
                 } catch (e) {
                     errorHandler(e, this)

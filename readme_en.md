@@ -55,10 +55,11 @@ If you want to know more about the above features, please refer to the
 
 ## Usage
 - [API Documents](docs/apidoc/readme.md)
-- [Standard Plugin Remote Importing](docs/features/remote_plugins.md)
-- [Variables Engine](docs/features/variables_engine.md)
-- [Tag Usage And Develop](docs/develop/tag_usage_dev.md)
-- [Mobile Documents](docs/features/mobile.md)
+- [Standard Plugin Documents (In Chinese)](docs/features/plugin_usage.md)
+- [Standard Plugin Remote Importing (In Chinese)](docs/features/remote_plugins.md)
+- [Variables Engine (In Chinese)](docs/features/variables_engine.md)
+- [Tag Usage And Develop (In Chinese)](docs/develop/tag_usage_dev.md)
+- [Mobile Documents (In Chinese)](docs/features/mobile.md)
 
 
 ## Version plan

@@ -42,16 +42,22 @@ class JobFastExecuteScriptComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, fast_execute_script_return=None, get_job_instance_global_var_value_return=None):
+    def __init__(
+        self,
+        fast_execute_script_return=None,
+        get_job_instance_global_var_value_return=None,
+        get_job_instance_log_return=None,
+    ):
         self.job = MagicMock()
         self.job.fast_execute_script = MagicMock(return_value=fast_execute_script_return)
         self.job.get_job_instance_global_var_value = MagicMock(return_value=get_job_instance_global_var_value_return)
+        self.job.get_job_instance_log = MagicMock(return_value=get_job_instance_log_return)
 
 
 # mock path
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.cc_get_ips_info_by_str"
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.get_client_by_user"
 GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.job.get_node_callback_url"
+CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.cc_get_ips_info_by_str"
 JOB_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.job.job_handle_api_error"
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.get_job_instance_url"
 
@@ -73,6 +79,42 @@ FAIL_RESULT = {
     "data": None,
 }
 
+EXECUTE_SUCCESS_GET_LOG_RETURN = {
+    "code": 0,
+    "result": True,
+    "message": "success",
+    "data": [
+        {
+            "status": 3,
+            "step_results": [
+                {
+                    "tag": "",
+                    "ip_logs": [
+                        {"ip": "1.1.1.1", "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"},
+                        {"ip": "1.1.1.2", "log_content": ""},
+                    ],
+                    "ip_status": 9,
+                }
+            ],
+        },
+        {
+            "status": 3,
+            "step_results": [
+                {
+                    "tag": "",
+                    "ip_logs": [
+                        {
+                            "ip": "1.1.1.1",
+                            "log_content": "<SOPS_VAR>key2:value2</SOPS_VAR>\ngsectl<SOPS_VAR>key3:value3</SOPS_VAR>",
+                        },
+                    ],
+                    "ip_status": 9,
+                }
+            ],
+        },
+    ],
+}
+
 
 # mock clients
 FAST_EXECUTE_SCRIPT_FAIL_CLIENT = MockClient(
@@ -90,6 +132,7 @@ FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT = MockClient(
         },
         "result": True,
     },
+    get_job_instance_log_return=EXECUTE_SUCCESS_GET_LOG_RETURN,
 )
 
 # mock GET_NODE_CALLBACK_URL
@@ -140,6 +183,7 @@ MANUAL_SUCCESS_OUTPUTS = {
     "job_inst_url": "instance_url_token",
     "client": FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT,
 }
+
 # 异步回调函数参数错误返回
 SCHEDULE_CALLBACK_DATA_ERROR_OUTPUTS = {"ex_data": "invalid callback_data, job_instance_id: None, status: None"}
 # 异步回调函数成功输出
@@ -162,6 +206,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -176,7 +221,11 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs=MANUAL_SUCCESS_OUTPUTS),
     schedule_assertion=ScheduleAssertion(
         success=True,
-        outputs=dict(list(MANUAL_SUCCESS_OUTPUTS.items()) + list(SCHEDULE_SUCCESS_OUTPUTS.items())),
+        outputs=dict(
+            list(MANUAL_SUCCESS_OUTPUTS.items())
+            + list(SCHEDULE_SUCCESS_OUTPUTS.items())
+            + [("log_outputs", {"key1": "value1", "key2": "value2", "key3": "value3"})]
+        ),
         callback_data={"job_instance_id": 10000, "status": 3},
     ),
     execute_call_assertion=[
@@ -184,6 +233,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
@@ -202,6 +252,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_NODE_CALLBACK_URL, return_value=GET_NODE_CALLBACK_URL_MOCK()),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),

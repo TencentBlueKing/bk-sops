@@ -19,13 +19,12 @@ from pipeline.core.flow.activity import SubProcess
 
 from .base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
-__all__ = ['SubprocessHandler']
+__all__ = ["SubprocessHandler"]
 
 
 class SubprocessHandler(FlowElementHandler):
-
     @staticmethod
     def element_cls():
         return SubProcess
@@ -57,4 +56,5 @@ class SubprocessHandler(FlowElementHandler):
 
         sub_pipeline = element.pipeline
         process.push_pipeline(sub_pipeline, is_subprocess=True)
+        process.take_snapshot()
         return self.HandleResult(next_node=sub_pipeline.start_event, should_return=False, should_sleep=False)

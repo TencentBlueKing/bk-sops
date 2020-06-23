@@ -73,7 +73,7 @@
                 const model = this.monacoInstance.getModel()
                 model.onDidChangeContent(event => {
                     const value = this.monacoInstance.getValue()
-                    this.$emit('changeContent', value)
+                    this.$emit('input', value)
                 })
                 this.monacoInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
                     const value = this.monacoInstance.getValue()

@@ -11,32 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock
-
 from django.test import TestCase
+from mock import MagicMock
 
 from pipeline.core.flow.io import OutputItem
 
 
 class OutputItemTestCase(TestCase):
-
     def setUp(self):
-        self.name = 'input item'
-        self.key = 'input_key'
-        self.type = 'string'
+        self.name = "input item"
+        self.key = "input_key"
+        self.type = "string"
         self.required = False
         schema = MagicMock()
-        schema.as_dict = MagicMock(return_value='schema dict')
+        schema.as_dict = MagicMock(return_value="schema dict")
         self.schema = schema
 
     def test_as_dict(self):
-        input_item = OutputItem(name=self.name,
-                                key=self.key,
-                                type=self.type,
-                                schema=self.schema)
+        input_item = OutputItem(name=self.name, key=self.key, type=self.type, schema=self.schema)
         item_dict = input_item.as_dict()
 
-        self.assertEqual(item_dict, {'name': self.name,
-                                     'key': self.key,
-                                     'type': self.type,
-                                     'schema': self.schema.as_dict()})
+        self.assertEqual(
+            item_dict, {"name": self.name, "key": self.key, "type": self.type, "schema": self.schema.as_dict()}
+        )

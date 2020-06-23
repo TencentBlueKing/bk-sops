@@ -215,7 +215,7 @@
             async getBusinessData () {
                 this.taskListPending = true
                 try {
-                    const respData = await this.loadTemplateList()
+                    const respData = await this.loadTemplateList({ project__id: this.project_id })
                     const businessList = respData.objects
                     this.tplOperations = respData.meta.auth_operations
                     this.tplResource = respData.meta.auth_resource

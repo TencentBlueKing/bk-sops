@@ -12,15 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 import time
+
 from django.test import TestCase
+
 from pipeline.engine.core.data.mysql_backend import MySQLDataBackend
 
 
 class MySQLBackendTestCase(TestCase):
     def setUp(self):
         self.backend = MySQLDataBackend()
-        self.key = 'test_key'
-        self.obj = {'a': 'a', 1: '1', 2: '2', 'list': [4, 5, 6]}
+        self.key = "test_key"
+        self.obj = {"a": "a", 1: "1", 2: "2", "list": [4, 5, 6]}
         self.expire = 5
 
     def test_set_object(self):

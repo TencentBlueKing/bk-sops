@@ -99,6 +99,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import { mapActions } from 'vuex'
+    import openOtherApp from '@/utils/openOtherApp.js'
 
     export default {
         name: 'AppCard',
@@ -170,11 +171,7 @@
                     this.onAppMakerPermissonCheck(['mini_app_view'])
                     return
                 }
-                if (self === top) {
-                    window.open(this.appData.link, '_blank')
-                } else {
-                    window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
-                }
+                openOtherApp(this.appData.code, this.appData.link)
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {
@@ -198,6 +195,8 @@
                     if (!this.isCollected(data.id)) { // add
                         const res = await this.addToCollectList([{
                             extra_info: {
+                                app_id: data.id,
+                                project_id: data.project.id,
                                 template_id: data.template_id,
                                 name: data.name,
                                 id: data.id

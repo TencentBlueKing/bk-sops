@@ -11,31 +11,30 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import mock
 import datetime
 
-from django.utils import timezone
+import mock
 from django.test import TestCase
+from django.utils import timezone
 
-from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.engine.models import History, HistoryData
+from pipeline.engine.utils import calculate_elapsed_time
+from pipeline.tests.mock_settings import *  # noqa
 
 from ..mock import *  # noqa
-from pipeline.tests.mock_settings import *  # noqa
 
 
 class HistoryTestCase(TestCase):
-
     def test_record(self):
         def data_get(*args, **kwargs):
             data = Object()
-            data.inputs = {'input': 'value'}
-            data.outputs = {'outputs': 'value'}
-            data.ex_data = 'ex_data'
+            data.inputs = {"input": "value"}
+            data.outputs = {"outputs": "value"}
+            data.ex_data = "ex_data"
             return data
 
         status = MockStatus(skip=True)
-        status.name = 'name'
+        status.name = "name"
         status.started_time = timezone.now()
         status.archived_time = timezone.now()
         with mock.patch(PIPELINE_DATA_GET, data_get):
@@ -54,31 +53,35 @@ class HistoryTestCase(TestCase):
     def test_get_histories(self):
         def data_get(*args, **kwargs):
             data = Object()
-            data.inputs = {'input': 'value'}
-            data.outputs = {'outputs': 'value'}
-            data.ex_data = 'ex_data'
+            data.inputs = {"input": "value"}
+            data.outputs = {"outputs": "value"}
+            data.ex_data = "ex_data"
             return data
 
         started = timezone.now()
         archived = timezone.now()
         status = MockStatus(skip=False)
-        status.name = 'name'
+        status.name = "name"
 
         # no need microseconds
-        status.started_time = datetime.datetime(year=started.year,
-                                                month=started.month,
-                                                day=started.day,
-                                                hour=started.hour,
-                                                minute=started.minute,
-                                                second=started.second,
-                                                tzinfo=started.tzinfo)
-        status.archived_time = datetime.datetime(year=archived.year,
-                                                 month=archived.month,
-                                                 day=archived.day,
-                                                 hour=archived.hour,
-                                                 minute=archived.minute,
-                                                 second=archived.second,
-                                                 tzinfo=archived.tzinfo)
+        status.started_time = datetime.datetime(
+            year=started.year,
+            month=started.month,
+            day=started.day,
+            hour=started.hour,
+            minute=started.minute,
+            second=started.second,
+            tzinfo=started.tzinfo,
+        )
+        status.archived_time = datetime.datetime(
+            year=archived.year,
+            month=archived.month,
+            day=archived.day,
+            hour=archived.hour,
+            minute=archived.minute,
+            second=archived.second,
+            tzinfo=archived.tzinfo,
+        )
         with mock.patch(PIPELINE_DATA_GET, data_get):
             for i in range(3):
                 History.objects.record(status)
@@ -86,16 +89,14 @@ class HistoryTestCase(TestCase):
             history_list = History.objects.get_histories(status.id)
             self.assertEqual(len(history_list), 3)
             for history in history_list:
-                self.assertEqual(history['started_time'], status.started_time)
-                self.assertEqual(history['archived_time'], status.archived_time)
+                self.assertEqual(history["started_time"], status.started_time)
+                self.assertEqual(history["archived_time"], status.archived_time)
                 self.assertEqual(
-                    history['elapsed_time'],
-                    calculate_elapsed_time(
-                        status.started_time,
-                        status.archived_time))
-                self.assertEqual(history['inputs'], data_get().inputs)
-                self.assertEqual(history['outputs'], data_get().outputs)
-                self.assertEqual(history['ex_data'], data_get().ex_data)
-                self.assertEqual(history['loop'], status.loop)
-                self.assertEqual(history['skip'], status.skip)
-                self.assertTrue('history_id' in history)
+                    history["elapsed_time"], calculate_elapsed_time(status.started_time, status.archived_time)
+                )
+                self.assertEqual(history["inputs"], data_get().inputs)
+                self.assertEqual(history["outputs"], data_get().outputs)
+                self.assertEqual(history["ex_data"], data_get().ex_data)
+                self.assertEqual(history["loop"], status.loop)
+                self.assertEqual(history["skip"], status.skip)
+                self.assertTrue("history_id" in history)

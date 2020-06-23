@@ -27,10 +27,12 @@ def load_data(apps, schema_editor):
         template_id = template.template_id
         try:
             result = statistics_total(template.data)
-            data = TemplateInPipeline(template_id=template_id,
-                                      atom_total=result["atom_total"],
-                                      subprocess_total=result["subprocess_total"],
-                                      gateways_total=result["gateways_total"])
+            data = TemplateInPipeline(
+                template_id=template_id,
+                atom_total=result["atom_total"],
+                subprocess_total=result["subprocess_total"],
+                gateways_total=result["gateways_total"],
+            )
             template_data.append(data)
         except Exception:
             pass
@@ -42,10 +44,12 @@ def load_data(apps, schema_editor):
         instance_id = instance.instance_id
         try:
             result = statistics_total(instance.execution_data)
-            data = InstanceInPipeline(instance_id=instance_id,
-                                      atom_total=result["atom_total"],
-                                      subprocess_total=result["subprocess_total"],
-                                      gateways_total=result["gateways_total"])
+            data = InstanceInPipeline(
+                instance_id=instance_id,
+                atom_total=result["atom_total"],
+                subprocess_total=result["subprocess_total"],
+                gateways_total=result["gateways_total"],
+            )
             instance_data.append(data)
         except Exception:
             pass
@@ -70,9 +74,5 @@ def statistics_total(pipeline_tree):
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ('statistics', '0006_auto_20181115_1208')
-    ]
-    operations = [
-        migrations.RunPython(load_data)
-    ]
+    dependencies = [("statistics", "0006_auto_20181115_1208")]
+    operations = [migrations.RunPython(load_data)]

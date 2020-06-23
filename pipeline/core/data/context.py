@@ -14,8 +14,7 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 from pprint import pformat
 
-from pipeline.exceptions import (InvalidOperationException,
-                                 ReferenceNotExistError)
+from pipeline.exceptions import InvalidOperationException, ReferenceNotExistError
 
 
 class Context(object):
@@ -81,7 +80,7 @@ class Context(object):
 
     def recover_variable(self):
         if self.raw_variables is None:
-            raise InvalidOperationException('make sure duplicate_variables() is called before do recover')
+            raise InvalidOperationException("make sure duplicate_variables() is called before do recover")
 
         # collect all act output key
         act_outputs_keys = set()
@@ -95,7 +94,7 @@ class Context(object):
                 self.variables[key] = deepcopy(var)
 
     def clear_change_keys(self):
-        if hasattr(self, '_change_keys'):
+        if hasattr(self, "_change_keys"):
             self.change_keys.clear()
 
     def sync_change(self, context):
@@ -103,10 +102,8 @@ class Context(object):
             self.set_global_var(k, context.get(k))
 
     def __repr__(self):
-        return 'variables:{}\nact_outputs:{}\n_output_key:{}'.format(
-            pformat(self.variables),
-            pformat(self.act_outputs),
-            pformat(self._output_key)
+        return "variables:{}\nact_outputs:{}\n_output_key:{}".format(
+            pformat(self.variables), pformat(self.act_outputs), pformat(self._output_key)
         )
 
     def __str__(self):
@@ -117,14 +114,14 @@ class Context(object):
 
     @property
     def change_keys(self):
-        if not hasattr(self, '_change_keys'):
+        if not hasattr(self, "_change_keys"):
             self._change_keys = set()
 
         return self._change_keys
 
     @property
     def raw_variables(self):
-        if not hasattr(self, '_raw_variables'):
+        if not hasattr(self, "_raw_variables"):
             self._raw_variables = None
 
         return self._raw_variables

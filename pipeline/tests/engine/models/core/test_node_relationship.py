@@ -17,14 +17,13 @@ from pipeline.engine.models import NodeRelationship
 
 
 class TestNodeRelationship(TestCase):
-
     def test_build_relationship(self):
-        NodeRelationship.objects.build_relationship('1', '1')
-        NodeRelationship.objects.build_relationship('1', '2')
-        NodeRelationship.objects.build_relationship('1', '3')
-        NodeRelationship.objects.build_relationship('2', '4')
-        NodeRelationship.objects.build_relationship('2', '5')
-        NodeRelationship.objects.build_relationship('3', '6')
+        NodeRelationship.objects.build_relationship("1", "1")
+        NodeRelationship.objects.build_relationship("1", "2")
+        NodeRelationship.objects.build_relationship("1", "3")
+        NodeRelationship.objects.build_relationship("2", "4")
+        NodeRelationship.objects.build_relationship("2", "5")
+        NodeRelationship.objects.build_relationship("3", "6")
 
         def count(ancestor_id, descendant_id):
             return NodeRelationship.objects.filter(ancestor_id=ancestor_id, descendant_id=descendant_id).count()
@@ -36,31 +35,31 @@ class TestNodeRelationship(TestCase):
             return NodeRelationship.objects.get(ancestor_id=ancestor_id, descendant_id=descendant_id)
 
         # rebuild check
-        NodeRelationship.objects.build_relationship('1', '2')
-        self.assertEqual(count('1', '1'), 1)
-        self.assertEqual(count('1', '2'), 1)
-        self.assertEqual(count('1', '3'), 1)
-        self.assertEqual(count('2', '4'), 1)
-        self.assertEqual(count('2', '5'), 1)
-        self.assertEqual(count('3', '6'), 1)
+        NodeRelationship.objects.build_relationship("1", "2")
+        self.assertEqual(count("1", "1"), 1)
+        self.assertEqual(count("1", "2"), 1)
+        self.assertEqual(count("1", "3"), 1)
+        self.assertEqual(count("2", "4"), 1)
+        self.assertEqual(count("2", "5"), 1)
+        self.assertEqual(count("3", "6"), 1)
 
         # distance check
-        self.assertEqual(distance('1', '1'), 0)
-        self.assertEqual(distance('2', '2'), 0)
-        self.assertEqual(distance('3', '3'), 0)
-        self.assertEqual(distance('4', '4'), 0)
-        self.assertEqual(distance('5', '5'), 0)
-        self.assertEqual(distance('6', '6'), 0)
-        self.assertEqual(distance('1', '2'), 1)
-        self.assertEqual(distance('1', '3'), 1)
-        self.assertEqual(distance('1', '4'), 2)
-        self.assertEqual(distance('1', '5'), 2)
-        self.assertEqual(distance('1', '6'), 2)
-        self.assertEqual(distance('2', '4'), 1)
-        self.assertEqual(distance('2', '5'), 1)
-        self.assertEqual(distance('3', '6'), 1)
+        self.assertEqual(distance("1", "1"), 0)
+        self.assertEqual(distance("2", "2"), 0)
+        self.assertEqual(distance("3", "3"), 0)
+        self.assertEqual(distance("4", "4"), 0)
+        self.assertEqual(distance("5", "5"), 0)
+        self.assertEqual(distance("6", "6"), 0)
+        self.assertEqual(distance("1", "2"), 1)
+        self.assertEqual(distance("1", "3"), 1)
+        self.assertEqual(distance("1", "4"), 2)
+        self.assertEqual(distance("1", "5"), 2)
+        self.assertEqual(distance("1", "6"), 2)
+        self.assertEqual(distance("2", "4"), 1)
+        self.assertEqual(distance("2", "5"), 1)
+        self.assertEqual(distance("3", "6"), 1)
 
         # invalid descendant check
-        self.assertRaises(NodeRelationship.DoesNotExist, get, '2', '6')
-        self.assertRaises(NodeRelationship.DoesNotExist, get, '3', '4')
-        self.assertRaises(NodeRelationship.DoesNotExist, get, '3', '5')
+        self.assertRaises(NodeRelationship.DoesNotExist, get, "2", "6")
+        self.assertRaises(NodeRelationship.DoesNotExist, get, "3", "4")
+        self.assertRaises(NodeRelationship.DoesNotExist, get, "3", "5")

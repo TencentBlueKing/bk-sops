@@ -16,15 +16,14 @@ import itertools
 from django.test import TestCase
 
 from pipeline.core.pipeline import Pipeline
-from pipeline.engine import tasks, states, api, signals
+from pipeline.engine import api, signals, states, tasks
 from pipeline.engine.core import runtime, schedule
-from pipeline.engine.models import Status, NodeRelationship, ProcessCeleryTask, NodeCeleryTask
+from pipeline.engine.models import NodeCeleryTask, NodeRelationship, ProcessCeleryTask, Status
 from pipeline.tests.engine.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
 
 class EngineTaskTestCase(TestCase):
-
     def setUp(self):
         self.alive_process = MockPipelineProcess(top_pipeline=PipelineObject(node=ServiceActObject(interval=None)))
         self.not_alive_process = MockPipelineProcess(is_alive=False)
@@ -32,12 +31,12 @@ class EngineTaskTestCase(TestCase):
         self.get_not_alive_process = mock.MagicMock(return_value=self.not_alive_process)
         self.transit_success = mock.MagicMock(return_value=MockActionResult(result=True))
         self.transit_fail = mock.MagicMock(return_value=MockActionResult(result=False))
-        self.transit_fail_and_return_suspended = mock.MagicMock(return_value=MockActionResult(
-            result=False,
-            extra=FancyDict({'state': states.SUSPENDED})))
-        self.transit_fail_and_return_blocked = MagicMock(return_value=MockActionResult(
-            result=False,
-            extra=FancyDict({'state': states.BLOCKED})))
+        self.transit_fail_and_return_suspended = mock.MagicMock(
+            return_value=MockActionResult(result=False, extra=FancyDict({"state": states.SUSPENDED}))
+        )
+        self.transit_fail_and_return_blocked = MagicMock(
+            return_value=MockActionResult(result=False, extra=FancyDict({"state": states.BLOCKED}))
+        )
 
     @mock.patch(ENGINE_RUN_LOOP, mock.MagicMock())
     def test_process_unfreeze(self):
@@ -84,15 +83,11 @@ class EngineTaskTestCase(TestCase):
                 self.get_alive_process.assert_called_with(id=self.alive_process.id)
 
                 self.transit_success.assert_called_with(
-                    self.alive_process.root_pipeline.id,
-                    states.RUNNING,
-                    is_pipeline=True,
-                    start=True
+                    self.alive_process.root_pipeline.id, states.RUNNING, is_pipeline=True, start=True
                 )
 
                 NodeRelationship.objects.build_relationship.assert_called_with(
-                    self.alive_process.root_pipeline.id,
-                    self.alive_process.root_pipeline.id
+                    self.alive_process.root_pipeline.id, self.alive_process.root_pipeline.id
                 )
 
                 runtime.run_loop.assert_called_with(self.alive_process)
@@ -109,10 +104,7 @@ class EngineTaskTestCase(TestCase):
                 self.get_alive_process.assert_called_with(id=self.alive_process.id)
 
                 self.transit_fail.assert_called_with(
-                    self.alive_process.root_pipeline.id,
-                    states.RUNNING,
-                    is_pipeline=True,
-                    start=True
+                    self.alive_process.root_pipeline.id, states.RUNNING, is_pipeline=True, start=True
                 )
 
                 NodeRelationship.objects.build_relationship.assert_not_called()
@@ -147,9 +139,9 @@ class EngineTaskTestCase(TestCase):
         with mock.patch(PIPELINE_PROCESS_GET, self.get_not_alive_process):
             for current_node_id, call_from_child in itertools.product((uniqid(), None), (True, False)):
                 self.get_not_alive_process.reset_mock()
-                tasks.process_wake_up(self.not_alive_process.id,
-                                      current_node_id=current_node_id,
-                                      call_from_child=call_from_child)
+                tasks.process_wake_up(
+                    self.not_alive_process.id, current_node_id=current_node_id, call_from_child=call_from_child
+                )
 
                 self.get_not_alive_process.assert_called_with(id=self.not_alive_process.id)
 
@@ -162,9 +154,7 @@ class EngineTaskTestCase(TestCase):
         # alive process
         with mock.patch(PIPELINE_PROCESS_GET, self.get_alive_process):
             # call from child
-            tasks.process_wake_up(self.alive_process.id,
-                                  current_node_id=None,
-                                  call_from_child=True)
+            tasks.process_wake_up(self.alive_process.id, current_node_id=None, call_from_child=True)
 
             self.get_alive_process.assert_called_with(id=self.alive_process.id)
 
@@ -182,9 +172,7 @@ class EngineTaskTestCase(TestCase):
 
             # has current_node_id
             current_node_id = uniqid()
-            tasks.process_wake_up(self.alive_process.id,
-                                  current_node_id=current_node_id,
-                                  call_from_child=True)
+            tasks.process_wake_up(self.alive_process.id, current_node_id=current_node_id, call_from_child=True)
 
             self.get_alive_process.assert_called_with(id=self.alive_process.id)
 
@@ -205,16 +193,13 @@ class EngineTaskTestCase(TestCase):
 
             with mock.patch(PIPELINE_STATUS_TRANSIT, self.transit_success):
                 # transit success
-                tasks.process_wake_up(self.alive_process.id,
-                                      current_node_id=None,
-                                      call_from_child=False)
+                tasks.process_wake_up(self.alive_process.id, current_node_id=None, call_from_child=False)
 
                 self.get_alive_process.assert_called_with(id=self.alive_process.id)
 
-                self.transit_success.assert_called_with(self.alive_process.root_pipeline.id,
-                                                        to_state=states.RUNNING,
-                                                        is_pipeline=True,
-                                                        unchanged_pass=True)
+                self.transit_success.assert_called_with(
+                    self.alive_process.root_pipeline.id, to_state=states.RUNNING, is_pipeline=True, unchanged_pass=True
+                )
 
                 self.alive_process.wake_up.assert_called()
 
@@ -228,16 +213,13 @@ class EngineTaskTestCase(TestCase):
 
             with mock.patch(PIPELINE_STATUS_TRANSIT, self.transit_fail_and_return_suspended):
                 # transit failed
-                tasks.process_wake_up(self.alive_process.id,
-                                      current_node_id=None,
-                                      call_from_child=False)
+                tasks.process_wake_up(self.alive_process.id, current_node_id=None, call_from_child=False)
 
                 self.get_alive_process.assert_called_with(id=self.alive_process.id)
 
-                self.transit_fail_and_return_suspended.assert_called_with(self.alive_process.root_pipeline.id,
-                                                                          to_state=states.RUNNING,
-                                                                          is_pipeline=True,
-                                                                          unchanged_pass=True)
+                self.transit_fail_and_return_suspended.assert_called_with(
+                    self.alive_process.root_pipeline.id, to_state=states.RUNNING, is_pipeline=True, unchanged_pass=True
+                )
 
                 self.alive_process.wake_up.assert_not_called()
 
@@ -247,16 +229,13 @@ class EngineTaskTestCase(TestCase):
 
             with mock.patch(PIPELINE_STATUS_TRANSIT, self.transit_fail_and_return_blocked):
                 # transit failed but in blocked state
-                tasks.process_wake_up(self.alive_process.id,
-                                      current_node_id=None,
-                                      call_from_child=False)
+                tasks.process_wake_up(self.alive_process.id, current_node_id=None, call_from_child=False)
 
                 self.get_alive_process.assert_called_with(id=self.alive_process.id)
 
-                self.transit_fail_and_return_blocked.assert_called_with(self.alive_process.root_pipeline.id,
-                                                                        to_state=states.RUNNING,
-                                                                        is_pipeline=True,
-                                                                        unchanged_pass=True)
+                self.transit_fail_and_return_blocked.assert_called_with(
+                    self.alive_process.root_pipeline.id, to_state=states.RUNNING, is_pipeline=True, unchanged_pass=True
+                )
 
                 self.alive_process.wake_up.assert_called()
 
@@ -290,7 +269,7 @@ class EngineTaskTestCase(TestCase):
 
             runtime.run_loop.assert_not_called()
 
-    @mock.patch(ENGINE_TASKS_WAKE_UP_APPLY, mock.MagicMock(return_value=IdentifyObject(id='task_id')))
+    @mock.patch(ENGINE_TASKS_WAKE_UP_APPLY, mock.MagicMock(return_value=IdentifyObject(id="task_id")))
     @mock.patch(PIPELINE_CELERYTASK_BIND, mock.MagicMock())
     def test_batch_wake_up(self):
         process_id_list = [uniqid() for _ in range(5)]
@@ -299,17 +278,13 @@ class EngineTaskTestCase(TestCase):
         with mock.patch(PIPELINE_STATUS_TRANSIT, self.transit_success):
             tasks.batch_wake_up(process_id_list, self.alive_process.root_pipeline.id)
 
-            self.transit_success.assert_called_with(self.alive_process.root_pipeline.id,
-                                                    to_state=states.RUNNING,
-                                                    is_pipeline=True)
+            self.transit_success.assert_called_with(
+                self.alive_process.root_pipeline.id, to_state=states.RUNNING, is_pipeline=True
+            )
 
-            tasks.wake_up.apply_async.assert_has_calls([
-                mock.call(args=[pid]) for pid in process_id_list
-            ])
+            tasks.wake_up.apply_async.assert_has_calls([mock.call(args=[pid]) for pid in process_id_list])
 
-            ProcessCeleryTask.objects.bind.assert_has_calls([
-                mock.call(pid, 'task_id') for pid in process_id_list
-            ])
+            ProcessCeleryTask.objects.bind.assert_has_calls([mock.call(pid, "task_id") for pid in process_id_list])
 
         tasks.wake_up.apply_async.reset_mock()
         ProcessCeleryTask.objects.bind.reset_mock()
@@ -318,9 +293,9 @@ class EngineTaskTestCase(TestCase):
         with mock.patch(PIPELINE_STATUS_TRANSIT, self.transit_fail):
             tasks.batch_wake_up(process_id_list, self.alive_process.root_pipeline.id)
 
-            self.transit_fail.assert_called_with(self.alive_process.root_pipeline.id,
-                                                 to_state=states.RUNNING,
-                                                 is_pipeline=True)
+            self.transit_fail.assert_called_with(
+                self.alive_process.root_pipeline.id, to_state=states.RUNNING, is_pipeline=True
+            )
 
             tasks.wake_up.apply_async.assert_not_called()
 
@@ -335,8 +310,7 @@ class EngineTaskTestCase(TestCase):
 
             self.alive_process.wake_up.assert_called()
 
-            self.assertEqual(self.alive_process.current_node_id,
-                             self.alive_process.top_pipeline.node(None).next().id)
+            self.assertEqual(self.alive_process.current_node_id, self.alive_process.top_pipeline.node(None).next().id)
 
             runtime.run_loop.assert_called_with(self.alive_process)
 
@@ -344,8 +318,9 @@ class EngineTaskTestCase(TestCase):
     def test_service_schedule(self):
         process_id = uniqid()
         schedule_id = uniqid()
-        tasks.service_schedule(process_id, schedule_id)
-        schedule.schedule.assert_called_with(process_id, schedule_id)
+        data_id = None
+        tasks.service_schedule(process_id, schedule_id, data_id)
+        schedule.schedule.assert_called_with(process_id, schedule_id, data_id)
 
     @mock.patch(PIPELINE_NODE_CELERYTASK_DESTROY, mock.MagicMock())
     @mock.patch(ENGINE_API_FORCED_FAIL, mock.MagicMock())
@@ -397,11 +372,11 @@ class EngineTaskTestCase(TestCase):
 
                 Status.objects.state_for.assert_called_with(node_id, version=version, may_not_exist=True)
 
-                api.forced_fail.assert_called_with(node_id, kill=True, ex_data='node execution timeout')
+                api.forced_fail.assert_called_with(node_id, kill=True, ex_data="node execution timeout")
 
-                signals.activity_failed.send.assert_called_with(sender=Pipeline,
-                                                                pipeline_id=root_pipeline_id,
-                                                                pipeline_activity_id=node_id)
+                signals.activity_failed.send.assert_called_with(
+                    sender=Pipeline, pipeline_id=root_pipeline_id, pipeline_activity_id=node_id
+                )
 
             NodeCeleryTask.objects.destroy.reset_mock()
             Status.objects.state_for.reset_mock()
@@ -419,6 +394,6 @@ class EngineTaskTestCase(TestCase):
 
                 Status.objects.state_for.assert_called_with(node_id, version=version, may_not_exist=True)
 
-                api.forced_fail.assert_called_with(node_id, kill=True, ex_data='node execution timeout')
+                api.forced_fail.assert_called_with(node_id, kill=True, ex_data="node execution timeout")
 
                 signals.activity_failed.send.assert_not_called()

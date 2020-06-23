@@ -446,7 +446,7 @@ class CreateTaskAPITest(APITest):
 
             self.assertFalse(data["result"])
             self.assertTrue("message" in data)
-            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+            self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
             create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
             create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
@@ -478,7 +478,7 @@ class CreateTaskAPITest(APITest):
 
             self.assertFalse(data["result"])
             self.assertTrue("message" in data)
-            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+            self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
             create_task.pipeline_node_name_handle.assert_called_once_with(TEST_PIPELINE_TREE)
             create_task.validate_web_pipeline_tree.assert_called_once_with(TEST_PIPELINE_TREE)
@@ -522,7 +522,7 @@ class CreateTaskAPITest(APITest):
 
             self.assertFalse(data["result"])
             self.assertTrue("message" in data)
-            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+            self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
                 template=tmpl, name="name", creator="", description="", pipeline_tree=TEST_PIPELINE_TREE,
@@ -554,7 +554,7 @@ class CreateTaskAPITest(APITest):
 
             self.assertFalse(data["result"])
             self.assertTrue("message" in data)
-            self.assertEqual(data["code"], err_code.UNKNOW_ERROR.code)
+            self.assertEqual(data["code"], err_code.UNKNOWN_ERROR.code)
 
             TaskFlowInstance.objects.create_pipeline_instance.assert_called_once_with(
                 template=tmpl, name="name", creator="", description="", pipeline_tree=TEST_PIPELINE_TREE,

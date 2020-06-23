@@ -21,22 +21,18 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('component_framework', '0002_delete_componentmodel'),
+        ("component_framework", "0002_delete_componentmodel"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ComponentModel',
+            name="ComponentModel",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=255, unique=True, verbose_name='\u7ec4\u4ef6\u7f16\u7801')),
-                ('name', models.CharField(max_length=255, verbose_name='\u7ec4\u4ef6\u540d\u79f0')),
-                ('status', models.BooleanField(default=True, verbose_name='\u7ec4\u4ef6\u662f\u5426\u53ef\u7528')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("code", models.CharField(max_length=255, unique=True, verbose_name="\u7ec4\u4ef6\u7f16\u7801")),
+                ("name", models.CharField(max_length=255, verbose_name="\u7ec4\u4ef6\u540d\u79f0")),
+                ("status", models.BooleanField(default=True, verbose_name="\u7ec4\u4ef6\u662f\u5426\u53ef\u7528")),
             ],
-            options={
-                'ordering': ['-id'],
-                'verbose_name': '\u7ec4\u4ef6',
-                'verbose_name_plural': '\u7ec4\u4ef6',
-            },
+            options={"ordering": ["-id"], "verbose_name": "\u7ec4\u4ef6", "verbose_name_plural": "\u7ec4\u4ef6"},
         ),
     ]

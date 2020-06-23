@@ -17,17 +17,14 @@ from pipeline.conf import settings
 
 
 def uniqid():
-    return uuid.uuid3(
-        uuid.uuid1(),
-        uuid.uuid4().hex
-    ).hex
+    return uuid.uuid3(uuid.uuid1(), uuid.uuid4().hex).hex
 
 
 def node_uniqid():
     uid = uniqid()
-    return 'n%s' % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid
+    return "n%s" % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid
 
 
 def line_uniqid():
     uid = uniqid()
-    return 'l%s' % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid
+    return "l%s" % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid

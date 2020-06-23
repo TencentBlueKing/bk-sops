@@ -26,40 +26,46 @@ from django.conf import settings
 #                 context.update({'template': '1'})
 #             return context
 
-PIPELINE_TEMPLATE_CONTEXT = getattr(settings, 'PIPELINE_TEMPLATE_CONTEXT', '')
-PIPELINE_INSTANCE_CONTEXT = getattr(settings, 'PIPELINE_INSTANCE_CONTEXT', '')
-PIPELINE_ENGINE_ADAPTER_API = getattr(settings, 'PIPELINE_ENGINE_ADAPTER_API',
-                                      'pipeline.service.pipeline_engine_adapter.adapter_api')
-PIPELINE_DATA_BACKEND = getattr(settings, 'PIPELINE_DATA_BACKEND',
-                                'pipeline.engine.core.data.mysql_backend.MySQLDataBackend')
-PIPELINE_DATA_CANDIDATE_BACKEND = getattr(settings, 'PIPELINE_DATA_BACKEND', None)
-PIPELINE_END_HANDLER = getattr(settings, 'PIPELINE_END_HANDLER',
-                               'pipeline.engine.signals.handlers.pipeline_end_handler')
-PIPELINE_WORKER_STATUS_CACHE_EXPIRES = getattr(settings, 'PIPELINE_WORKER_STATUS_CACHE_EXPIRES',
-                                               30)
-PIPELINE_RERUN_MAX_TIMES = getattr(settings, 'PIPELINE_RERUN_MAX_TIMES', 0)
-PIPELINE_RERUN_INDEX_OFFSET = getattr(settings, 'PIPELINE_RERUN_INDEX_OFFSET', -1)
+PIPELINE_TEMPLATE_CONTEXT = getattr(settings, "PIPELINE_TEMPLATE_CONTEXT", "")
+PIPELINE_INSTANCE_CONTEXT = getattr(settings, "PIPELINE_INSTANCE_CONTEXT", "")
+PIPELINE_ENGINE_ADAPTER_API = getattr(
+    settings, "PIPELINE_ENGINE_ADAPTER_API", "pipeline.service.pipeline_engine_adapter.adapter_api"
+)
+PIPELINE_DATA_BACKEND = getattr(
+    settings, "PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
+)
+PIPELINE_DATA_CANDIDATE_BACKEND = getattr(settings, "PIPELINE_DATA_CANDIDATE_BACKEND", None)
+PIPELINE_END_HANDLER = getattr(
+    settings, "PIPELINE_END_HANDLER", "pipeline.engine.signals.handlers.pipeline_end_handler"
+)
+PIPELINE_WORKER_STATUS_CACHE_EXPIRES = getattr(settings, "PIPELINE_WORKER_STATUS_CACHE_EXPIRES", 30)
+PIPELINE_RERUN_MAX_TIMES = getattr(settings, "PIPELINE_RERUN_MAX_TIMES", 0)
+PIPELINE_RERUN_INDEX_OFFSET = getattr(settings, "PIPELINE_RERUN_INDEX_OFFSET", -1)
 
 COMPONENT_AUTO_DISCOVER_PATH = [
-    'components.collections',
+    "components.collections",
 ]
 
-COMPONENT_AUTO_DISCOVER_PATH += getattr(settings, 'COMPONENT_PATH', [])
+COMPONENT_AUTO_DISCOVER_PATH += getattr(settings, "COMPONENT_PATH", [])
 
 VARIABLE_AUTO_DISCOVER_PATH = [
-    'variables.collections',
+    "variables.collections",
 ]
 
-VARIABLE_AUTO_DISCOVER_PATH += getattr(settings, 'VARIABLE_PATH', [])
+VARIABLE_AUTO_DISCOVER_PATH += getattr(settings, "VARIABLE_PATH", [])
 
-PIPELINE_PARSER_CLASS = getattr(settings, 'PIPELINE_PARSER_CLASS', 'pipeline.parser.pipeline_parser.PipelineParser')
+PIPELINE_PARSER_CLASS = getattr(settings, "PIPELINE_PARSER_CLASS", "pipeline.parser.pipeline_parser.PipelineParser")
 
-ENABLE_EXAMPLE_COMPONENTS = getattr(settings, 'ENABLE_EXAMPLE_COMPONENTS', True)
+ENABLE_EXAMPLE_COMPONENTS = getattr(settings, "ENABLE_EXAMPLE_COMPONENTS", True)
 
-UUID_DIGIT_STARTS_SENSITIVE = getattr(settings, 'UUID_DIGIT_STARTS_SENSITIVE', False)
+UUID_DIGIT_STARTS_SENSITIVE = getattr(settings, "UUID_DIGIT_STARTS_SENSITIVE", False)
 
-PIPELINE_LOG_LEVEL = getattr(settings, 'PIPELINE_LOG_LEVEL', 'INFO')
+PIPELINE_LOG_LEVEL = getattr(settings, "PIPELINE_LOG_LEVEL", "INFO")
 
 # 远程插件包源默认配置
-EXTERNAL_PLUGINS_SOURCE_PROXY = getattr(settings, 'EXTERNAL_PLUGINS_SOURCE_PROXY', None)
-EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = getattr(settings, 'EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT', True)
+EXTERNAL_PLUGINS_SOURCE_PROXY = getattr(settings, "EXTERNAL_PLUGINS_SOURCE_PROXY", None)
+EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = getattr(settings, "EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT", True)
+
+# 僵尸进程扫描配置
+ENGINE_ZOMBIE_PROCESS_DOCTORS = getattr(settings, "ENGINE_ZOMBIE_PROCESS_DOCTORS", None)
+ENGINE_ZOMBIE_PROCESS_HEAL_CRON = getattr(settings, "ENGINE_ZOMBIE_PROCESS_HEAL_CRON", {"minute": "*/10"})

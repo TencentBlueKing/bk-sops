@@ -19,24 +19,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pipeline', '0001_initial'),
+        ("pipeline", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='creator',
-            field=models.CharField(blank=True, max_length=32, verbose_name='\u521b\u5efa\u8005'),
+            model_name="pipelineinstance",
+            name="creator",
+            field=models.CharField(blank=True, max_length=32, verbose_name="\u521b\u5efa\u8005"),
         ),
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='description',
-            field=models.TextField(blank=True, default='', verbose_name='\u63cf\u8ff0'),
+            model_name="pipelineinstance",
+            name="description",
+            field=models.TextField(blank=True, default="", verbose_name="\u63cf\u8ff0"),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='pipelineinstance',
-            name='executor',
-            field=models.CharField(blank=True, max_length=32, verbose_name='\u6267\u884c\u8005'),
+            model_name="pipelineinstance",
+            name="executor",
+            field=models.CharField(blank=True, max_length=32, verbose_name="\u6267\u884c\u8005"),
         ),
     ]

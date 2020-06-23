@@ -19,23 +19,25 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
-from pipeline.contrib.statistics.models import (ComponentExecuteData,
-                                                ComponentInTemplate,
-                                                InstanceInPipeline,
-                                                TemplateInPipeline)
+from pipeline.contrib.statistics.models import (
+    ComponentExecuteData,
+    ComponentInTemplate,
+    InstanceInPipeline,
+    TemplateInPipeline,
+)
 from pipeline.core.constants import PE
 from pipeline.engine import states
 from pipeline.engine.api import get_activity_histories, get_status_tree
 from pipeline.models import PipelineInstance, PipelineTemplate
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
 
 def count_pipeline_tree_nodes(pipeline_tree):
     gateways_total = len(pipeline_tree["gateways"])
     activities = pipeline_tree["activities"]
-    atom_total = len([act for act in activities.values() if act['type'] == PE.ServiceActivity])
-    subprocess_total = len([act for act in activities.values() if act['type'] == PE.SubProcess])
+    atom_total = len([act for act in activities.values() if act["type"] == PE.ServiceActivity])
+    subprocess_total = len([act for act in activities.values() if act["type"] == PE.SubProcess])
     return atom_total, subprocess_total, gateways_total
 
 
@@ -58,44 +60,41 @@ def template_post_save_handler(sender, instance, created, **kwargs):
     # 任务节点引用标准插件统计（包含间接通过子流程引用）
     for act_id, act in data[PE.activities].items():
         # 标准插件节点直接引用
-        if act['type'] == PE.ServiceActivity:
+        if act["type"] == PE.ServiceActivity:
             component = ComponentInTemplate(
-                component_code=act['component']['code'],
+                component_code=act["component"]["code"],
                 template_id=template_id,
                 node_id=act_id,
-                version=act['component'].get('version', LEGACY_PLUGINS_VERSION)
+                version=act["component"].get("version", LEGACY_PLUGINS_VERSION),
             )
             component_list.append(component)
         # 子流程节点间接引用
         else:
-            components = ComponentInTemplate.objects.filter(template_id=act['template_id']).values('subprocess_stack',
-                                                                                                   'component_code',
-                                                                                                   'node_id',
-                                                                                                   'version')
+            components = ComponentInTemplate.objects.filter(template_id=act["template_id"]).values(
+                "subprocess_stack", "component_code", "node_id", "version"
+            )
             for component_sub in components:
                 # 子流程的执行堆栈（子流程的执行过程）
-                stack = json.loads(component_sub['subprocess_stack'])
+                stack = json.loads(component_sub["subprocess_stack"])
                 # 添加节点id
                 stack.insert(0, act_id)
                 component = ComponentInTemplate(
-                    component_code=component_sub['component_code'],
+                    component_code=component_sub["component_code"],
                     template_id=template_id,
-                    node_id=component_sub['node_id'],
+                    node_id=component_sub["node_id"],
                     is_sub=True,
                     subprocess_stack=json.dumps(stack),
-                    version=component_sub['version']
+                    version=component_sub["version"],
                 )
                 component_list.append(component)
     ComponentInTemplate.objects.bulk_create(component_list)
 
     # 统计流程标准插件个数，子流程个数，网关个数
     atom_total, subprocess_total, gateways_total = count_pipeline_tree_nodes(template.data)
-    TemplateInPipeline.objects.update_or_create(template_id=template_id,
-                                                defaults={
-                                                    'atom_total': atom_total,
-                                                    'subprocess_total': subprocess_total,
-                                                    'gateways_total': gateways_total
-                                                })
+    TemplateInPipeline.objects.update_or_create(
+        template_id=template_id,
+        defaults={"atom_total": atom_total, "subprocess_total": subprocess_total, "gateways_total": gateways_total},
+    )
 
 
 def recursive_collect_components(activities, status_tree, instance_id, stack=None):
@@ -118,34 +117,36 @@ def recursive_collect_components(activities, status_tree, instance_id, stack=Non
             exec_act = status_tree[act_id]
             # 属于标准插件节点
             if act[PE.type] == PE.ServiceActivity:
-                if exec_act['state'] in states.ARCHIVED_STATES:
+                if exec_act["state"] in states.ARCHIVED_STATES:
                     create_kwargs = {
-                        'component_code': act['component']['code'],
-                        'instance_id': instance_id,
-                        'is_sub': is_sub,
-                        'node_id': act_id,
-                        'subprocess_stack': json.dumps(stack),
-                        'started_time': exec_act['started_time'],
-                        'archived_time': exec_act['archived_time'],
-                        'elapsed_time': exec_act['elapsed_time'],
-                        'is_skip': exec_act["skip"],
-                        'is_retry': False,
-                        'status': exec_act['state'] == 'FINISHED',
-                        'version': act['component'].get('version', LEGACY_PLUGINS_VERSION)
+                        "component_code": act["component"]["code"],
+                        "instance_id": instance_id,
+                        "is_sub": is_sub,
+                        "node_id": act_id,
+                        "subprocess_stack": json.dumps(stack),
+                        "started_time": exec_act["started_time"],
+                        "archived_time": exec_act["archived_time"],
+                        "elapsed_time": exec_act["elapsed_time"],
+                        "is_skip": exec_act["skip"],
+                        "is_retry": False,
+                        "status": exec_act["state"] == "FINISHED",
+                        "version": act["component"].get("version", LEGACY_PLUGINS_VERSION),
                     }
                     component_list.append(ComponentExecuteData(**create_kwargs))
-                    if exec_act['retry'] > 0:
+                    if exec_act["retry"] > 0:
                         # 需要通过执行历史获得
                         history_list = get_activity_histories(act_id)
                         for history in history_list:
-                            create_kwargs.update({
-                                'started_time': history['started_time'],
-                                'archived_time': history['archived_time'],
-                                'elapsed_time': history['elapsed_time'],
-                                'is_retry': True,
-                                'is_skip': False,
-                                'status': False,
-                            })
+                            create_kwargs.update(
+                                {
+                                    "started_time": history["started_time"],
+                                    "archived_time": history["archived_time"],
+                                    "elapsed_time": history["elapsed_time"],
+                                    "is_retry": True,
+                                    "is_skip": False,
+                                    "status": False,
+                                }
+                            )
                             component_list.append(ComponentExecuteData(**create_kwargs))
             # 子流程的执行堆栈（子流程的执行过程）
             elif act[PE.type] == PE.SubProcess:
@@ -154,10 +155,9 @@ def recursive_collect_components(activities, status_tree, instance_id, stack=Non
                 # 防止stack共用
                 copied_stack = deepcopy(stack)
                 copied_stack.insert(0, act_id)
-                component_list += recursive_collect_components(sub_activities,
-                                                               exec_act['children'],
-                                                               instance_id,
-                                                               copied_stack)
+                component_list += recursive_collect_components(
+                    sub_activities, exec_act["children"], instance_id, copied_stack
+                )
     return component_list
 
 
@@ -173,21 +173,26 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
         # 获得任务实例的执行数据
         data = instance.execution_data
         try:
-            component_list = recursive_collect_components(data[PE.activities], status_tree['children'], instance_id)
+            component_list = recursive_collect_components(data[PE.activities], status_tree["children"], instance_id)
             ComponentExecuteData.objects.bulk_create(component_list)
         except Exception as e:
-            logger.error(('pipeline_post_save_handler save ComponentExecuteData[instance_id={instance_id}] '
-                          'raise error: {error}').format(instance_id=instance_id, error=e))
+            logger.error(
+                (
+                    "pipeline_post_save_handler save ComponentExecuteData[instance_id={instance_id}] "
+                    "raise error: {error}"
+                ).format(instance_id=instance_id, error=e)
+            )
 
     # 统计流程标准插件个数，子流程个数，网关个数
     try:
         atom_total, subprocess_total, gateways_total = count_pipeline_tree_nodes(instance.execution_data)
-        InstanceInPipeline.objects.update_or_create(instance_id=instance_id,
-                                                    defaults={
-                                                        'atom_total': atom_total,
-                                                        'subprocess_total': subprocess_total,
-                                                        'gateways_total': gateways_total
-                                                    })
+        InstanceInPipeline.objects.update_or_create(
+            instance_id=instance_id,
+            defaults={"atom_total": atom_total, "subprocess_total": subprocess_total, "gateways_total": gateways_total},
+        )
     except Exception as e:
-        logger.error(('pipeline_post_save_handler save InstanceInPipeline[instance_id={instance_id}] '
-                      'raise error: {error}').format(instance_id=instance_id, error=e))
+        logger.error(
+            (
+                "pipeline_post_save_handler save InstanceInPipeline[instance_id={instance_id}] " "raise error: {error}"
+            ).format(instance_id=instance_id, error=e)
+        )

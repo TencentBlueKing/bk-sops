@@ -96,7 +96,7 @@ def status(request, project_id):
         except Exception as e:
             message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
             logger.exception(message)
-            ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOW_ERROR.code}
+            ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOWN_ERROR.code}
             return JsonResponse(ctx)
 
     # 请求子流程的状态，直接通过pipeline api查询
@@ -110,7 +110,7 @@ def status(request, project_id):
     except Exception as e:
         message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
         logger.exception(message)
-        ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOW_ERROR.code}
+        ctx = {"result": False, "message": message, "data": None, "code": err_code.UNKNOWN_ERROR.code}
 
     return JsonResponse(ctx)
 
@@ -330,7 +330,7 @@ def query_task_count(request, project_id):
     success, content = task_flow_instance.dispatch(group_by, filters)
 
     if not success:
-        return JsonResponse({"result": False, "message": content, "data": None, "code": err_code.UNKNOW_ERROR.code})
+        return JsonResponse({"result": False, "message": content, "data": None, "code": err_code.UNKNOWN_ERROR.code})
 
     return JsonResponse({"result": True, "data": content, "message": "", "code": err_code.SUCCESS.code})
 

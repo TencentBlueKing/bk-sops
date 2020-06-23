@@ -15,7 +15,7 @@
             <code-editor
                 :value="value"
                 :options="options"
-                @changeContent="contentUpdate">
+                @input="contentUpdate">
             </code-editor>
             <div class="disable-mask" v-if="readOnly"></div>
         </div>

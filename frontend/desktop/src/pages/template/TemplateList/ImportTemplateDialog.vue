@@ -256,7 +256,7 @@
                     this.templateFileErrorExt = false
                     return
                 }
-                if (!this.templateFileErrorExt && !this.templateFileEmpty && !this.templateFileError) {
+                if (!this.templateFileErrorExt && !this.templateFileEmpty) {
                     this.importTemplate(isOverride)
                 }
             },

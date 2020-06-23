@@ -68,5 +68,5 @@ def query_task_count(request, project_id):
     filters.update(conditions)
     success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
-        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOW_ERROR.code})
+        return JsonResponse({"result": False, "message": content, "code": err_code.UNKNOWN_ERROR.code})
     return JsonResponse({"result": True, "data": content, "code": err_code.SUCCESS.code})

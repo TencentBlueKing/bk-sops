@@ -20,7 +20,7 @@ from pipeline.utils.uniqid import uniqid
 
 def get_console_logger():
     # create logger
-    logger = logging.getLogger('simple_example')
+    logger = logging.getLogger("simple_example")
     logger.setLevel(logging.DEBUG)
 
     # create console handler and set level to debug
@@ -28,7 +28,7 @@ def get_console_logger():
     ch.setLevel(logging.DEBUG)
 
     # create formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
     # add formatter to ch
     ch.setFormatter(formatter)
@@ -43,7 +43,6 @@ logger = get_console_logger()
 
 
 class ComponentRunner:
-
     def __init__(self, component_cls):
         self.component_cls = component_cls
 
@@ -51,39 +50,37 @@ class ComponentRunner:
 
         service = self.component_cls.bound_service()
 
-        setattr(service, 'id', uniqid())
-        setattr(service, 'logger', logger)
+        setattr(service, "id", uniqid())
+        setattr(service, "logger", logger)
 
         data_object = DataObject(inputs=data)
         parent_data_object = DataObject(inputs=parent_data)
 
-        logger.info('Start to run component [{}] with data: {}, parent_data: {}'.format(
-            self.component_cls.code, data_object, parent_data_object
-        ))
+        logger.info(
+            "Start to run component [{}] with data: {}, parent_data: {}".format(
+                self.component_cls.code, data_object, parent_data_object
+            )
+        )
 
         result = service.execute(data_object, parent_data_object)
 
         if result is False:
-            logger.info('Execute return [{}], stop running.'.format(result))
+            logger.info("Execute return [{}], stop running.".format(result))
             return
 
         if not service.need_schedule():
-            logger.info('Execute return [{}], and component do not need schedule, finish running'.format(
-                result
-            ))
+            logger.info("Execute return [{}], and component do not need schedule, finish running".format(result))
             return
 
         if service.interval is None:
-            logger.info('Start to callback component with callbackdata: {}'.format(
-                callback_data
-            ))
+            logger.info("Start to callback component with callbackdata: {}".format(callback_data))
             result = service.schedule(data_object, parent_data_object, callback_data)
 
             if result is False:
-                logger.info('Schedule return [{}], stop running.'.format(result))
+                logger.info("Schedule return [{}], stop running.".format(result))
                 return
             else:
-                logger.info('Schedule return [{}], finish running'.format(result))
+                logger.info("Schedule return [{}], finish running".format(result))
         else:
 
             schedue_times = 0
@@ -92,20 +89,18 @@ class ComponentRunner:
 
                 schedue_times += 1
 
-                logger.info('Schedule {} with data: {}, parent_data: {}'.format(
-                    schedue_times, data_object, parent_data_object
-                ))
+                logger.info(
+                    "Schedule {} with data: {}, parent_data: {}".format(schedue_times, data_object, parent_data_object)
+                )
 
                 result = service.schedule(data_object, parent_data_object, None)
 
                 if result is False:
-                    logger.info('Schedule return [{}], stop running.'.format(result))
+                    logger.info("Schedule return [{}], stop running.".format(result))
                     return
 
                 interval = service.interval.next()
-                logger.info('Schedule return [{}], wait for next schedule in {}s'.format(
-                    result, interval
-                ))
+                logger.info("Schedule return [{}], wait for next schedule in {}s".format(result, interval))
                 time.sleep(interval)
 
-            logger.info('Schedule finished')
+            logger.info("Schedule finished")

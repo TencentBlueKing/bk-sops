@@ -13,12 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
 from pipeline.builder.flow import EmptyEndEvent
+from pipeline.core.constants import PE
 
 
 class EmptyEndEventTestCase(TestCase):
-
     def test_type(self):
         e = EmptyEndEvent()
         self.assertEqual(e.type(), PE.EmptyEndEvent)

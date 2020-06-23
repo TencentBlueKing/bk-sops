@@ -133,12 +133,17 @@
                 try {
                     if (this.memberlist && this.memberlist.length === 0 && !this.isLoading) {
                         this.isLoading = true
-                        const result = await this.loadMemberList()
-                        this.isLoading = false
-                        this.setMemberList(result.data)
+                        const res = await this.loadMemberList()
+                        if (res.result) {
+                            this.setMemberList(res.data)
+                        } else {
+                            errorHandler(res, this)
+                        }
                     }
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.isLoading = false
                 }
             },
             // 暂未支持邮件组

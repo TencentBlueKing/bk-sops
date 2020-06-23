@@ -125,7 +125,7 @@ def create_task(request, template_id, project_id):
         except Exception as e:
             message = "[API] create_task get invalid pipeline_tree: %s" % str(e)
             logger.exception(message)
-            return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code})
+            return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
 
         pipeline_instance_kwargs["pipeline_tree"] = pipeline_tree
 
@@ -134,16 +134,16 @@ def create_task(request, template_id, project_id):
         except PipelineException as e:
             message = "[API] create_task create pipeline error: %s" % str(e)
             logger.exception(message)
-            return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOW_ERROR.code})
+            return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
     else:
         try:
             (result, data,) = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 tmpl, pipeline_instance_kwargs, params["constants"], params["exclude_task_nodes_id"],
             )
         except PipelineException as e:
-            return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOW_ERROR.code})
+            return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
         if not result:
-            return JsonResponse({"result": False, "message": data, "code": err_code.UNKNOW_ERROR.code})
+            return JsonResponse({"result": False, "message": data, "code": err_code.UNKNOWN_ERROR.code})
 
     task = TaskFlowInstance.objects.create(
         project=project,

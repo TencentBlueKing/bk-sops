@@ -14,13 +14,15 @@ specific language governing permissions and limitations under the License.
 import logging
 from enum import Enum
 from functools import partial
+from collections import Counter
 
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.utils import cmdb
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
@@ -37,62 +39,75 @@ class BkObjType(Enum):
     HOST        主机
     HOST(0) -> MODULE(1) -> SET(2) -> LAST_CUSTOM(3)
     """
+
     LAST_CUSTOM = 3
     SET = 2
     MODULE = 1
     HOST = 0
 
 
+class SelectMethod(Enum):
+    """
+    选择父实例的方法
+    TOPO    拓扑树选择节点
+    TEXT    手动输入
+    """
+
+    TOPO = "topo"
+    TEXT = "text"
+
+
+class ModuleCreateMethod(Enum):
+    """
+    创建模块的方法
+    TEMPLATE    按模板创建
+    CATEGORY    直接创建（按服务分类创建）
+    """
+
+    TEMPLATE = "template"
+    CATEGORY = "category"
+
+
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
+    """根据主机内网 IP 获取主机 ID
+
+    :param executor: API 请求用户身份
+    :type executor: string
+    :param bk_biz_id: 业务 CC ID
+    :type bk_biz_id: int
+    :param ip_list: 主机内网 IP 列表
+    :type ip_list: list
+    :param supplier_account: 开发商账号
+    :type supplier_account: int
+    :return: 主机 id 列表
+    :rtype: list
+    ["1", "2", "3", ...]
     """
-    获取主机ID
-    :param executor:
-    :param bk_biz_id:
-    :param ip_list:
-    :return: [1, 2, 3] id列表
-    """
-    cc_kwargs = {
-        'bk_biz_id': bk_biz_id,
-        'bk_supplier_account': supplier_account,
-        'ip': {
-            'data': ip_list,
-            'exact': 1,
-            'flag': 'bk_host_innerip'
-        },
-        'condition': [
-            {
-                'bk_obj_id': 'host',
-                'fields': ['bk_host_id', 'bk_host_innerip']
-            }
-        ],
-    }
 
-    client = get_client_by_user(executor)
-    cc_result = client.cc.search_host(cc_kwargs)
+    host_list = cmdb.get_business_host(
+        executor, bk_biz_id, supplier_account, ["bk_host_id", "bk_host_innerip"], ip_list,
+    )
 
-    if not cc_result['result']:
-        message = cc_handle_api_error('cc.search_host', cc_kwargs, cc_result)
-        return {'result': False, 'message': message}
+    if not host_list:
+        return {"result": False, "message": "list_biz_hosts query failed, return empty list"}
 
-    # change bk_host_id to str to use str.join() function
-    ip_to_id = {item['host']['bk_host_innerip']: str(item['host']['bk_host_id']) for item in cc_result['data']['info']}
-    host_id_list = []
-    invalid_ip_list = []
-    for ip in ip_list:
-        if ip in ip_to_id:
-            host_id_list.append(ip_to_id[ip])
-        else:
-            invalid_ip_list.append(ip)
+    if len(host_list) > len(ip_list):
+        # find repeat innerip host
+        host_counter = Counter([host["bk_host_innerip"] for host in host_list])
+        mutiple_innerip_hosts = [innerip for innerip, count in host_counter.items() if count > 1]
 
-    if invalid_ip_list:
-        result = {
-            'result': False,
-            'message': _("查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}").format(
-                ip=','.join(invalid_ip_list)
-            )
+        return {
+            "result": False,
+            "message": "mutiple same innerip host found: {}".format(", ".join(mutiple_innerip_hosts)),
         }
-        return result
-    return {'result': True, 'data': host_id_list}
+
+    if len(host_list) < len(ip_list):
+        return_innerip_set = {host["bk_host_innerip"] for host in host_list}
+        absent_innerip = set(ip_list).difference(return_innerip_set)
+
+        return {"result": False, "message": "ip not found in business: {}".format(", ".join(absent_innerip))}
+
+    return {"result": True, "data": [str(host["bk_host_id"]) for host in host_list]}
 
 
 def get_module_set_id(topo_data, module_id):
@@ -103,42 +118,36 @@ def get_module_set_id(topo_data, module_id):
     :return:
     """
     for item in topo_data:
-        if item['bk_obj_id'] == "set" and item.get('child'):
-            set_id = item['bk_inst_id']
-            for mod in item['child']:
-                if mod['bk_inst_id'] == module_id:
+        if item["bk_obj_id"] == "set" and item.get("child"):
+            set_id = item["bk_inst_id"]
+            for mod in item["child"]:
+                if mod["bk_inst_id"] == module_id:
                     return set_id
 
-        if item.get('child'):
-            set_id = get_module_set_id(item['child'], module_id)
+        if item.get("child"):
+            set_id = get_module_set_id(item["child"], module_id)
             if set_id:
                 return set_id
 
 
 def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account):
-    ret = {
-        "result": True,
-        "data": {}
-    }
+    ret = {"result": True, "data": {}}
     client = get_client_by_user(executor)
     if language:
-        setattr(client, 'language', language)
-    cc_kwargs = {
-        "bk_obj_id": obj_id,
-        "bk_supplier_account": supplier_account
-    }
+        setattr(client, "language", language)
+    cc_kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
 
     cc_result = client.cc.search_object_attribute(cc_kwargs)
-    if not cc_result['result']:
-        message = cc_handle_api_error('cc.search_object_attribute', cc_kwargs, cc_result)
-        ret['result'] = False
-        ret['message'] = message
+    if not cc_result["result"]:
+        message = cc_handle_api_error("cc.search_object_attribute", cc_kwargs, cc_result)
+        ret["result"] = False
+        ret["message"] = message
         return ret
 
-    for prop in cc_result['data']:
-        if prop['bk_property_id'] == prop_id:
-            for item in prop['option']:
-                ret['data'][item['name'].strip()] = item['id']
+    for prop in cc_result["data"]:
+        if prop["bk_property_id"] == prop_id:
+            for item in prop["option"]:
+                ret["data"][item["name"].strip()] = item["id"]
             else:
                 break
     return ret
@@ -147,7 +156,23 @@ def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account):
 def cc_format_tree_mode_id(front_id_list):
     if front_id_list is None:
         return []
-    return [int(str(x).split('_')[1]) if len(str(x).split('_')) == 2 else int(x) for x in front_id_list]
+    return [int(str(x).split("_")[1]) if len(str(x).split("_")) == 2 else int(x) for x in front_id_list]
+
+
+def cc_get_name_id_from_combine_value(combine_value):
+    """
+    组合value中获取id
+    :param combine_value: name_id
+    :return name -> str, id -> int
+        错误返回 None, None
+    """
+    name_id_combine = str(combine_value).split("_")
+    if len(name_id_combine) != 2:
+        return None, None
+    try:
+        return name_id_combine[0], int(name_id_combine[1])
+    except KeyError:
+        return None, None
 
 
 def cc_parse_path_text(path_text):
@@ -306,9 +331,7 @@ def cc_list_select_node_inst_id(executor, biz_cc_id, supplier_account, bk_obj_ty
         return {"result": False, "message": cc_batch_validated_business_level_return["message"]}
 
     # 获取选中节点bk_inst_id列表
-    cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(
-        executor, biz_cc_id, supplier_account, path_list
-    )
+    cc_list_match_node_inst_id_return = cc_list_match_node_inst_id(executor, biz_cc_id, supplier_account, path_list)
     if not cc_list_match_node_inst_id_return["result"]:
         return {"result": False, "message": cc_list_match_node_inst_id_return["message"]}
     return {"result": True, "data": cc_list_match_node_inst_id_return["data"]}

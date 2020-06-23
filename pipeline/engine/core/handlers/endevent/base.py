@@ -15,14 +15,11 @@ import logging
 
 from pipeline.core.flow import activity
 from pipeline.engine import states
-from pipeline.engine.models import (
-    Status,
-    Data,
-)
+from pipeline.engine.models import Data, Status
 
 from ..base import FlowElementHandler
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 
 class EndEventHandler(FlowElementHandler):

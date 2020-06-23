@@ -13,12 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.exceptions import PipelineException
-from pipeline.engine.models import Status
-from pipeline.engine.core import handlers
 from pipeline.core.flow.gateway import ExclusiveGateway
+from pipeline.engine.core import handlers
 from pipeline.engine.core.handlers import exclusive_gateway as exg_h
-
+from pipeline.engine.models import Status
+from pipeline.exceptions import PipelineException
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -32,7 +31,7 @@ class ExclusiveGatewayHandlerTestCase(TestCase):
     @patch(PIPELINE_STATUS_FINISH, MagicMock())
     def test_handle__normal(self):
         for loop in (1, 2, 3):
-            hydrate_data_return = 'hydrate_data_return'
+            hydrate_data_return = "hydrate_data_return"
             exclusive_gateway = MockExclusiveGateway()
             context = MockContext()
             process = MockPipelineProcess(top_pipeline_context=context)
@@ -60,8 +59,8 @@ class ExclusiveGatewayHandlerTestCase(TestCase):
     @patch(PIPELINE_STATUS_FINISH, MagicMock())
     @patch(PIPELINE_STATUS_FAIL, MagicMock())
     def test_handle__next_raise_exception(self):
-        hydrate_data_return = 'hydrate_data_return'
-        e = PipelineException('ex_data')
+        hydrate_data_return = "hydrate_data_return"
+        e = PipelineException("ex_data")
         exclusive_gateway = MockExclusiveGateway(next_exception=e)
         context = MockContext()
         process = MockPipelineProcess(top_pipeline_context=context)

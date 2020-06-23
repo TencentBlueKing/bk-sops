@@ -22,11 +22,13 @@ class ComponentLibrary(object):
         if args:
             component_code = args[0]
         else:
-            component_code = kwargs.get('component_code', None)
-        version = kwargs.get('version', None)
+            component_code = kwargs.get("component_code", None)
+        version = kwargs.get("version", None)
         if not component_code:
-            raise ValueError('please pass a component_code in args or kwargs: '
-                             'ComponentLibrary(\'code\') or ComponentLibrary(component_code=\'code\')')
+            raise ValueError(
+                "please pass a component_code in args or kwargs: "
+                "ComponentLibrary('code') or ComponentLibrary(component_code='code')"
+            )
         return cls.get_component_class(component_code=component_code, version=version)
 
     @classmethod
@@ -42,7 +44,7 @@ class ComponentLibrary(object):
         version = version or LEGACY_PLUGINS_VERSION
         component_cls = cls.components.get(component_code, {}).get(version)
         if component_cls is None:
-            raise ComponentNotExistException('component %s does not exist.' % component_code)
+            raise ComponentNotExistException("component %s does not exist." % component_code)
         return component_cls
 
     @classmethod

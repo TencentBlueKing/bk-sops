@@ -31,12 +31,12 @@ class SubProcess(Activity):
     def __setstate__(self, state):
         for attr, obj in list(state.items()):
             if isinstance(attr, bytes):
-                attr = attr.decode('utf-8')
+                attr = attr.decode("utf-8")
                 obj = convert_bytes_to_str(obj)
             setattr(self, attr, obj)
 
-        if '_prepared_inputs' not in state:
+        if "_prepared_inputs" not in state:
             self._prepared_inputs = self.pipeline.data.inputs_copy()
 
-        if '_prepared_outputs' not in state:
+        if "_prepared_outputs" not in state:
             self._prepared_outputs = self.pipeline.data.outputs_copy()

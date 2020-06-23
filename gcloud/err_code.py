@@ -34,4 +34,4 @@ VALIDATION_ERROR = ErrorCode(code="46100", description="validation error")
 
 ENV_ERROR = ErrorCode(code="55000", description="environment error")
 
-UNKNOW_ERROR = ErrorCode(code="99999", description="unknow error")
+UNKNOWN_ERROR = ErrorCode(code="99999", description="unknow error")

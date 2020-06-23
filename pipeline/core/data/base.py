@@ -23,12 +23,12 @@ from pipeline.utils.utils import convert_bytes_to_str
 class DataObject(object):
     def __init__(self, inputs, outputs=None):
         if not isinstance(inputs, dict):
-            raise exceptions.DataTypeErrorException('inputs is not dict')
+            raise exceptions.DataTypeErrorException("inputs is not dict")
         self.inputs = FancyDict(inputs)
         if outputs is None:
             outputs = {}
         if not isinstance(outputs, dict):
-            raise exceptions.DataTypeErrorException('outputs is not dict')
+            raise exceptions.DataTypeErrorException("outputs is not dict")
         self.outputs = FancyDict(outputs)
 
     def get_inputs(self):
@@ -49,7 +49,7 @@ class DataObject(object):
 
     def reset_outputs(self, outputs):
         if not isinstance(outputs, dict):
-            raise exceptions.DataTypeErrorException('outputs is not dict')
+            raise exceptions.DataTypeErrorException("outputs is not dict")
         self.outputs = FancyDict(outputs)
         return True
 
@@ -73,22 +73,16 @@ class DataObject(object):
         self.outputs = outputs
 
     def serializer(self):
-        result = {
-            'inputs': self.inputs,
-            'outputs': self.outputs
-        }
+        result = {"inputs": self.inputs, "outputs": self.outputs}
         return json.dumps(result)
 
     def __setstate__(self, state):
-        # py2 compatible
-        input_key = b'inputs' if b'inputs' in state else 'inputs'
-        outputs_key = b'outputs' if b'outputs' in state else 'outputs'
+        # py2 pickle dumps data compatible
+        input_key = b"inputs" if b"inputs" in state else "inputs"
+        outputs_key = b"outputs" if b"outputs" in state else "outputs"
 
         self.inputs = FancyDict(convert_bytes_to_str(state[input_key]))
         self.outputs = FancyDict(convert_bytes_to_str(state[outputs_key]))
 
     def __str__(self):
-        return '<inputs: {} | outputs: {}>'.format(
-            self.inputs,
-            self.outputs
-        )
+        return "<inputs: {} | outputs: {}>".format(self.inputs, self.outputs)

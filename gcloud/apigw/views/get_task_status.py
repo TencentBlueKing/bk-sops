@@ -55,7 +55,7 @@ def get_task_status(request, task_id, project_id):
             result = {
                 "result": False,
                 "message": message,
-                "code": err_code.UNKNOW_ERROR.code,
+                "code": err_code.UNKNOWN_ERROR.code,
             }
             return JsonResponse(result)
 
@@ -80,7 +80,7 @@ def get_task_status(request, task_id, project_id):
         result = {
             "result": False,
             "message": message,
-            "code": err_code.UNKNOW_ERROR.code,
+            "code": err_code.UNKNOWN_ERROR.code,
         }
         return JsonResponse(result)
     result = {"result": True, "data": task_status, "code": err_code.SUCCESS.code}

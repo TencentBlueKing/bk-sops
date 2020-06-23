@@ -301,30 +301,19 @@ STATIC_VER = {"DEVELOP": "dev", "PRODUCT": "prod", "STAGING": "stag"}
 PIPELINE_TEMPLATE_CONTEXT = "gcloud.tasktmpl3.utils.get_template_context"
 PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 
-COMPONENT_PATH = [
-    "components.collections.http",
-    "components.collections.sites.%s" % RUN_VER,
-    "components.collections.sites.%s.cc.create_set" % RUN_VER,
-    "components.collections.sites.%s.cc.batch_delete_set" % RUN_VER,
-    "components.collections.sites.%s.cc.empty_set_hosts" % RUN_VER,
-    "components.collections.sites.%s.cc.transfer_host_module" % RUN_VER,
-    "components.collections.sites.%s.cc.update_module" % RUN_VER,
-    "components.collections.sites.%s.cc.update_set" % RUN_VER,
-    "components.collections.sites.%s.cc.update_set_service_status" % RUN_VER,
-]
-VARIABLE_PATH = ["variables.collections.sites.%s" % RUN_VER]
-
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
-PIPELINE_RERUN_MAX_TIMES = 50
+PIPELINE_RERUN_MAX_TIMES = int(os.getenv("BKAPP_PIPELINE_RERUN_MAX_TIMES", 50))
 
 PIPELINE_RERUN_INDEX_OFFSET = 0
 
-EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY", None)
 # 是否只允许加载远程 https 仓库的插件
 EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE", "1") == "0"
 
-PIPELINE_DATA_BACKEND = "pipeline.engine.core.data.redis_backend.RedisDataBackend"
+PIPELINE_DATA_BACKEND = os.getenv(
+    "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
+)
+PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
 
 ENABLE_EXAMPLE_COMPONENTS = False
 

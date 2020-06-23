@@ -9,6 +9,8 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import isCrossOriginIFrame from '@/utils/isCrossOriginIFrame.js'
+
 const isCrossOrigin = isCrossOriginIFrame()
 const topWindow = isCrossOrigin ? window : window.top
 const topDocument = topWindow.document
@@ -24,13 +26,7 @@ try {
         }
     }
 }
-function isCrossOriginIFrame () {
-    try {
-        return !window.top.location.hostname
-    } catch (e) {
-        return true
-    }
-}
+
 function openLoginDialog (src, width = 460, height = 490, method = 'get') {
     if (!src) return
     const isWraperExit = topDocument.querySelector('#bk-gloabal-login-iframe')

@@ -16,7 +16,7 @@ from collections import namedtuple
 
 
 class FlowElementHandler(object):
-    HandleResult = namedtuple('HandleResult', 'next_node should_return should_sleep')
+    HandleResult = namedtuple("HandleResult", "next_node should_return should_sleep")
 
     @staticmethod
     @abstractmethod

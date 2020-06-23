@@ -13,22 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from pipeline.builder.flow.base import *  # noqa
 
-__all__ = [
-    'ParallelGateway',
-    'ExclusiveGateway',
-    'ConvergeGateway',
-    'ConditionalParallelGateway'
-]
+__all__ = ["ParallelGateway", "ExclusiveGateway", "ConvergeGateway", "ConditionalParallelGateway"]
 
 
 class ParallelGateway(Element):
-
     def type(self):
         return PE.ParallelGateway
 
 
 class ConditionGateway(Element):
-
     def __init__(self, conditions=None, *args, **kwargs):
         self.conditions = conditions or {}
         super(ConditionGateway, self).__init__(*args, **kwargs)
@@ -45,18 +38,15 @@ class ConditionGateway(Element):
 
 
 class ConditionalParallelGateway(ConditionGateway):
-
     def type(self):
         return PE.ConditionalParallelGateway
 
 
 class ExclusiveGateway(ConditionGateway):
-
     def type(self):
         return PE.ExclusiveGateway
 
 
 class ConvergeGateway(Element):
-
     def type(self):
         return PE.ConvergeGateway

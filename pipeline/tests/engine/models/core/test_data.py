@@ -15,13 +15,14 @@ from django.test import TestCase
 
 from pipeline.core.data.base import DataObject
 from pipeline.engine.models import Data
+
 from ..mock import IdentifyObject
 
 
 class DataTestCase(TestCase):
     def test_write_node_data(self):
         node = IdentifyObject()
-        data_obj = DataObject({'input_key': 'value'}, outputs={'output_key': 'value'})
+        data_obj = DataObject({"input_key": "value"}, outputs={"output_key": "value"})
         node.data = data_obj
 
         Data.objects.write_node_data(node)
@@ -30,41 +31,41 @@ class DataTestCase(TestCase):
         self.assertEqual(data.outputs, data_obj.outputs)
         self.assertIsNone(data.ex_data)
 
-        data_obj.inputs = {'new_inputs': 'new_value'}
-        Data.objects.write_node_data(node, ex_data='ex_data')
+        data_obj.inputs = {"new_inputs": "new_value"}
+        Data.objects.write_node_data(node, ex_data="ex_data")
         data = Data.objects.get(id=node.id)
         self.assertEqual(data.inputs, data_obj.inputs)
         self.assertEqual(data.outputs, data_obj.outputs)
-        self.assertEqual(data.ex_data, 'ex_data')
+        self.assertEqual(data.ex_data, "ex_data")
 
-        data_obj.outputs.ex_data = 'new_ex_data'
-        Data.objects.write_node_data(node, ex_data='ex_data')
+        data_obj.outputs.ex_data = "new_ex_data"
+        Data.objects.write_node_data(node, ex_data="ex_data")
         data = Data.objects.get(id=node.id)
         self.assertEqual(data.inputs, data_obj.inputs)
         self.assertEqual(data.outputs, data_obj.outputs)
-        self.assertEqual(data.ex_data, 'new_ex_data')
+        self.assertEqual(data.ex_data, "new_ex_data")
 
     def test_forced_fail(self):
         node = IdentifyObject()
-        Data.objects.forced_fail(node.id, ex_data='')
+        Data.objects.forced_fail(node.id, ex_data="")
         data = Data.objects.get(id=node.id)
-        self.assertEqual(data.outputs, {'_forced_failed': True})
-        self.assertEqual(data.ex_data, '')
+        self.assertEqual(data.outputs, {"_forced_failed": True})
+        self.assertEqual(data.ex_data, "")
 
-        Data.objects.forced_fail(node.id, ex_data='ex_data')
+        Data.objects.forced_fail(node.id, ex_data="ex_data")
         data = Data.objects.get(id=node.id)
-        self.assertEqual(data.outputs, {'_forced_failed': True})
-        self.assertEqual(data.ex_data, 'ex_data')
+        self.assertEqual(data.outputs, {"_forced_failed": True})
+        self.assertEqual(data.ex_data, "ex_data")
 
     def test_write_ex_data(self):
         node = IdentifyObject()
-        outoput = {'k': 'v'}
-        ex_data = 'ex_data'
-        new_ex_data = 'new_ex_data'
+        outoput = {"k": "v"}
+        ex_data = "ex_data"
+        new_ex_data = "new_ex_data"
 
         Data.objects.write_ex_data(node.id, ex_data=ex_data)
         data = Data.objects.get(id=node.id)
-        self.assertEqual(data.ex_data, 'ex_data')
+        self.assertEqual(data.ex_data, "ex_data")
 
         data.outputs = outoput
         data.save()

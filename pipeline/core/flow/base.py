@@ -22,9 +22,9 @@ from pipeline.exceptions import InvalidOperationException
 def extra_inject(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if 'extra' not in kwargs:
-            kwargs['extra'] = {}
-        kwargs['extra']['_id'] = args[0].id
+        if "extra" not in kwargs:
+            kwargs["extra"] = {}
+        kwargs["extra"]["_id"] = args[0].id
         return func(*args, **kwargs)
 
     return wrapper
@@ -37,7 +37,7 @@ class FlowElement(object, metaclass=ABCMeta):
 
 
 class FlowNode(FlowElement, metaclass=ABCMeta):
-    ON_RETRY = '_on_retry'
+    ON_RETRY = "_on_retry"
 
     def __init__(self, id, name=None, data=None):
         super(FlowNode, self).__init__(id, name)
@@ -65,7 +65,7 @@ class FlowNode(FlowElement, metaclass=ABCMeta):
     class FlowNodeLogger:
         def __init__(self, id):
             self.id = id
-            self._logger = logging.getLogger('pipeline.logging')
+            self._logger = logging.getLogger("pipeline.logging")
 
         @extra_inject
         def info(self, *args, **kwargs):
@@ -85,15 +85,15 @@ class FlowNode(FlowElement, metaclass=ABCMeta):
 
     @property
     def logger(self):
-        _logger = getattr(self, '_logger', None)
+        _logger = getattr(self, "_logger", None)
         if not _logger:
             _logger = self.FlowNodeLogger(self.id)
-            setattr(self, '_logger', _logger)
+            setattr(self, "_logger", _logger)
         return _logger
 
     def __getstate__(self):
-        if '_logger' in self.__dict__:
-            del self.__dict__['_logger']
+        if "_logger" in self.__dict__:
+            del self.__dict__["_logger"]
         return self.__dict__
 
 
@@ -109,7 +109,7 @@ class NodeWeakRef(object):
 
     def __set__(self, instance, value):
         if not __debug__ and not issubclass(value.__class__, FlowNode):
-            raise TypeError('source and target must be a subclass of FlowNode.')
+            raise TypeError("source and target must be a subclass of FlowNode.")
         self._nodes[instance] = weakref.ref(value)
 
 
@@ -146,7 +146,7 @@ class SequenceFlowCollection(object):
         :return:
         """
         if len(self.flows) != 1:
-            raise InvalidOperationException('this collection contains multiple flow, can not get unique one.')
+            raise InvalidOperationException("this collection contains multiple flow, can not get unique one.")
         return self.flows[0]
 
     def is_empty(self):

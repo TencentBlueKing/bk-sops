@@ -13,47 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import re
-import os
 
-from django.conf import settings
+logger = logging.getLogger("root")
 
-logger = logging.getLogger('root')
-
-ip_re = r'((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)'
+ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
 ip_pattern = re.compile(ip_re)
-
-
-def get_ip_by_regex(ip_str):
-    ret = []
-    for match in ip_pattern.finditer(ip_str):
-        ret.append(match.group())
-    return ret
-
-
-def get_s3_file_path_of_time(biz_cc_id, time_str):
-    """
-    @summary: 根据业务、时间戳生成实际 S3 中的文件路径
-    @param biz_cc_id：
-    @param time_str：上传时间
-    @return:
-    """
-    return os.path.join(settings.APP_CODE,
-                        settings.RUN_MODE,
-                        'bkupload',
-                        str(biz_cc_id),
-                        time_str)
-
-
-def format_sundry_ip(ip):
-    """
-    @summary: IP 格式化，如果是多 IP 的主机，只取第一个 IP 作为代表
-    @param ip:
-    @return:
-    """
-    if ',' in ip:
-        logger.info('HOST[%s] has multiple ip' % ip)
-        return ip.split(',')[0]
-    return ip
 
 
 def loose_strip(data):

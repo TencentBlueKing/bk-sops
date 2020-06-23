@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.engine.models import Status
-from pipeline.engine.core import handlers
 from pipeline.core.flow.event import EmptyStartEvent
-
+from pipeline.engine.core import handlers
+from pipeline.engine.models import Status
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 
@@ -24,7 +23,6 @@ handlers.empty_start_event_handler = handlers.EmptyStartEventHandler()
 
 
 class EmptyStartEventHandlerTestCase(TestCase):
-
     def test_element_cls(self):
         self.assertEqual(handlers.EmptyStartEventHandler.element_cls(), EmptyStartEvent)
 

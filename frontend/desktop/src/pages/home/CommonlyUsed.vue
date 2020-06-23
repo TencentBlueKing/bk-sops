@@ -36,9 +36,9 @@
         </div>
         <panel-nodata v-else>
             <span>{{ $t('项目，项目集的权限请前往') }}</span>
-            <span class="link-text" @click="openOtherApp('bk_iam_app')">{{ $t('权限中心') }}</span>
+            <span class="link-text" @click="jumpToOther('bk_iam_app')">{{ $t('权限中心') }}</span>
             <span>{{ $t('进行申请；如需新建项目，项目集请前往') }}</span>
-            <span class="link-text" @click="openOtherApp('bk_cmdb')">{{ $t('配置平台') }}</span>
+            <span class="link-text" @click="jumpToOther('bk_cmdb')">{{ $t('配置平台') }}</span>
         </panel-nodata>
         <span
             v-if="viewIndex > 0"
@@ -57,6 +57,8 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { mapActions, mapMutations } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
+    import openOtherApp from '@/utils/openOtherApp.js'
+
     export default {
         name: 'CommonlyUsed',
         components: {
@@ -114,16 +116,12 @@
                 return document.body.clientWidth > 1920 ? 6 : 4
             },
             // 这里统一直接用后端提供的 host 跳转
-            openOtherApp (name) {
+            jumpToOther (name) {
                 const HOST_MAP = {
                     'bk_iam_app': window.BK_IAM_SAAS_HOST,
                     'bk_cmdb': window.BK_CC_HOST
                 }
-                if (self === top) {
-                    window.open(HOST_MAP[name], '__blank')
-                } else {
-                    window.PAAS_API.open_other_app(name, HOST_MAP[name])
-                }
+                openOtherApp(name, HOST_MAP[name])
             },
             onSwitchBusiness (id) {
                 this.setProjectId(id)
