@@ -164,7 +164,7 @@
                 })
                 const list = this.records.map(recordItem => {
                     const id = recordItem.id
-                    const data = Object.keys(recordItem.form).map(key => {
+                    let data = Object.keys(recordItem.form).map(key => {
                         const form = searchObj[key]
                         if (!form) {
                             return
@@ -189,10 +189,10 @@
                         return { label, value, type }
                     })
 
-                    const datetimeIndex = data.findIndex(i => i.type === 'datetime')
+                    const datetimeIndex = data.findIndex(i => i.type === 'dateRange')
                     if (datetimeIndex > -1) {
                         const datetimeForm = data.splice(datetimeIndex, 1)
-                        data.push(datetimeForm)
+                        data = data.concat(datetimeForm)
                     }
 
                     return { id, data }
@@ -338,7 +338,8 @@
             padding: 10px 0;
         }
         .record-item {
-            display: block;
+            display: flex;
+            align-items: center;
             margin-bottom: 22px;
             &:last-child {
                 margin-bottom: 0;
@@ -356,6 +357,12 @@
         text-overflow: ellipsis;
         &.daterange {
             width: 224px;
+        }
+        &.en {
+            width: 184px;
+            &.daterange {
+                width: 272px;
+            }
         }
         .label {
             color: #c4c6cc;
