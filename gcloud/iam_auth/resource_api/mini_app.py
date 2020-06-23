@@ -29,14 +29,14 @@ class MiniAppResourceProvider(ResourceProvider):
         """
         mini_app 不包含属性
         """
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_attr_value(self, filter, page, **options):
         """
         mini_app 不包含属性
         """
 
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_instance(self, filter, page, **options):
         """
@@ -51,6 +51,8 @@ class MiniAppResourceProvider(ResourceProvider):
             parent_id = filter.parent["id"]
             if parent_id:
                 queryset = AppMaker.objects.filter(project_id=str(parent_id))
+            else:
+                queryset = AppMaker.objects.all()
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -70,6 +72,7 @@ class MiniAppResourceProvider(ResourceProvider):
             project_ids = Project.objects.filter(project_filter).values_list("id", flat=True)
             queryset = AppMaker.objects.filter(project_id__in=list(project_ids)).filter(mini_app_filter)
 
+        count = queryset.count()
         results = [
             {"id": str(mini_app.id), "display_name": mini_app.name}
             for mini_app in queryset[page.slice_from : page.slice_to]
@@ -87,7 +90,7 @@ class MiniAppResourceProvider(ResourceProvider):
                 for mini_app in queryset[page.slice_from : page.slice_to]
             ]
 
-        return ListResult(results=results)
+        return ListResult(results=results, count=count)
 
     def fetch_instance_info(self, filter, page, **options):
         """
@@ -97,10 +100,10 @@ class MiniAppResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        results = [
-            {"id": str(mini_app.id), "display_name": mini_app.name} for mini_app in AppMaker.objects.filter(id__in=ids)
-        ]
-        return ListResult(results=results)
+        queryset = AppMaker.objects.filter(id__in=ids)
+        count = queryset.count()
+        results = [{"id": str(mini_app.id), "display_name": mini_app.name} for mini_app in queryset]
+        return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):
         """
@@ -109,7 +112,7 @@ class MiniAppResourceProvider(ResourceProvider):
 
         expression = filter.expression
         if not expression:
-            return ListResult(results=[])
+            return ListResult(results=[], count=0)
 
         key_mapping = {
             "mini_app.id": "id",
@@ -118,10 +121,12 @@ class MiniAppResourceProvider(ResourceProvider):
         }  # TODO 优化
         converter = PathEqDjangoQuerySetConverter(key_mapping, {"project__id": mini_app_path_value_hook})
         filters = converter.convert(expression)
+        queryset = AppMaker.objects.filter(filters)
+        count = queryset.count()
 
         results = [
             {"id": str(mini_app.id), "display_name": mini_app.name}
-            for mini_app in AppMaker.objects.filter(filters)[page.slice_from : page.slice_to]
+            for mini_app in queryset[page.slice_from : page.slice_to]
         ]
 
-        return ListResult(results=results)
+        return ListResult(results=results, count=count)

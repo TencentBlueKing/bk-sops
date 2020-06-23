@@ -23,13 +23,13 @@ class CommonFlowResourceProvider(ResourceProvider):
         """
         common_flow 资源没有属性，返回空
         """
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_attr_value(self, filter, page, **options):
         """
         common_flow 资源没有属性，返回空
         """
-        return ListResult(results=[])
+        return ListResult(results=[], count=0)
 
     def list_instance(self, filter, page, **options):
         """
@@ -53,6 +53,7 @@ class CommonFlowResourceProvider(ResourceProvider):
 
             queryset = CommonTemplate.objects.filter(common_flow_filter)
 
+        count = queryset.count()
         results = [
             {"id": str(common_flow.id), "display_name": common_flow.name}
             for common_flow in queryset[page.slice_from : page.slice_to]
@@ -64,7 +65,7 @@ class CommonFlowResourceProvider(ResourceProvider):
                 for common_flow in queryset[page.slice_from : page.slice_to]
             ]
 
-        return ListResult(results=results)
+        return ListResult(results=results, count=count)
 
     def fetch_instance_info(self, filter, page, **options):
         """
@@ -74,11 +75,11 @@ class CommonFlowResourceProvider(ResourceProvider):
         if filter.ids:
             ids = [int(i) for i in filter.ids]
 
-        results = [
-            {"id": str(common_flow.id), "display_name": common_flow.name}
-            for common_flow in CommonTemplate.objects.filter(id__in=ids)
-        ]
-        return ListResult(results=results)
+        queryset = CommonTemplate.objects.filter(id__in=ids)
+        count = queryset.count()
+
+        results = [{"id": str(common_flow.id), "display_name": common_flow.name} for common_flow in queryset]
+        return ListResult(results=results, count=count)
 
     def list_instance_by_policy(self, filter, page, **options):
         """
@@ -87,7 +88,7 @@ class CommonFlowResourceProvider(ResourceProvider):
 
         expression = filter.expression
         if not expression:
-            return ListResult(results=[])
+            return ListResult(results=[], count=0)
 
         key_mapping = {
             "common_flow.id": "id",
@@ -95,10 +96,12 @@ class CommonFlowResourceProvider(ResourceProvider):
         }
         converter = DjangoQuerySetConverter(key_mapping)
         filters = converter.convert(expression)
+        queryset = CommonTemplate.objects.filter(filters)
+        count = queryset.count()
 
         results = [
             {"id": str(common_flow.id), "display_name": common_flow.name}
-            for common_flow in CommonTemplate.objects.filter(filters)[page.slice_from : page.slice_to]
+            for common_flow in queryset[page.slice_from : page.slice_to]
         ]
 
-        return ListResult(results=results)
+        return ListResult(results=results, count=count)
