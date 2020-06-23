@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import copy
 import traceback
 import ujson as json
 
@@ -57,14 +56,14 @@ def _refresh_template_notify_type(template, notify_trans_map):
     after = None
 
     try:
-        notify_type = json.loads(template.notify_type)
-        before = copy.deepcopy(notify_type)
+        before = json.loads(template.notify_type)
+        after = []
 
-        for old_type, new_type in notify_trans_map.items():
-            if old_type in notify_type:
-                notify_type[old_type] = new_type
-
-        after = notify_type
+        for notify_type in before:
+            if notify_type in notify_trans_map:
+                after.append(notify_trans_map[notify_type])
+            else:
+                after.append(notify_type)
 
         if before == after:
             return {
@@ -76,7 +75,7 @@ def _refresh_template_notify_type(template, notify_trans_map):
                 "err": err,
             }
 
-        template.notify_type = json.dumps(notify_type)
+        template.notify_type = json.dumps(after)
         template.save()
     except Exception:
         err = traceback.format_exc()
