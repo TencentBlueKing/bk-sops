@@ -281,7 +281,7 @@
                 requestData: {
                     executeTime: [],
                     category: '',
-                    createMethod: '',
+                    createMethod: this.create_method || '',
                     creator: '',
                     executor: '',
                     statusSync: '',
@@ -309,6 +309,7 @@
                 value[1].loading = this.taskBasicInfoLoading
                 // 创建方式
                 value[2].list = this.taskCreateMethodList
+                value[2].value = this.create_method || ''
                 value[5].loading = this.taskBasicInfoLoading
                 return searchForm
             }
