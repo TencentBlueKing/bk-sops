@@ -80,7 +80,7 @@ class PeriodicTaskManager(models.Manager):
             "template_num_id": template.id,
         }
 
-        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
         PipelineTemplate.objects.replace_id(pipeline_tree)
 
         return PipelinePeriodicTask.objects.create_task(
