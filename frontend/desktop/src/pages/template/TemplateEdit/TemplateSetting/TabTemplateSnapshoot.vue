@@ -67,10 +67,10 @@
                                             class="draft-name-input"
                                             :name="'draftName' + draft.key"
                                             :placeholder="$t('名称')"
-                                            @blur="saveDraftnName(draft)"
-                                            @enter="saveDraftnName(draft)" />
+                                            @blur="onSaveDraftName(draft)"
+                                            @enter="onSaveDraftName(draft)" />
                                         <span v-else>{{draft.data.description.message}}</span>
-                                        <i class="common-icon-edit" @click.stop="onEditDraftnName(draft)"></i>
+                                        <i class="common-icon-edit" @click.stop="onEditDraftName(draft)"></i>
                                         <span
                                             v-if="errors.first('draftName' + draft.key)"
                                             class="common-icon-info error-msg"
@@ -83,7 +83,7 @@
                                 </td>
                                 <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
                                 <td class="col-operation-group">
-                                    <span class="operation-item" @click="onReplaceTemplate(draft.data.template, draftArray.length - index)">{{$t('还原')}}</span>
+                                    <span class="operation-item" @click="onUseDraft(draft.data.template, draftArray.length - index)">{{$t('还原')}}</span>
                                 </td>
                             </tr>
                             <tr v-if="!draftArray.length" class="empty-draft-tip">
@@ -104,16 +104,16 @@
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
-        name: 'TabLocalDraft',
+        name: 'TabTemplateSnapshoot',
         components: {
             NoData
         },
         props: {
-            draftArray: Array,
             isShow: Boolean
         },
         data () {
             return {
+                draftArray: [],
                 editingDraf: {
                     key: null,
                     name: ''
@@ -134,29 +134,16 @@
                 this.$emit('onNewDraft', i18n.t('新建快照'))
             },
             // 还原快照
-            onReplaceTemplate (templateData, index) {
-                if (!this.isClickDraft) {
-                    this.$emit('updateLocalTemplateData')
-                }
-                const data = {
-                    templateData: templateData,
-                    type: 'replace',
-                    index: index
-                }
-                this.$emit('onReplaceTemplate', data)
+            onUseDraft (templateData, index) {
                 this.$emit('hideConfigPanel')
             },
-            // 删除快照
-            onDeleteDraft (key) {
-                this.$emit('onDeleteDraft', key)
-            },
-            // 点击编辑快照
-            onEditDraftnName (draft) {
+            // 点击编辑快照名称
+            onEditDraftName (draft) {
                 this.editingDraf.key = draft.key
                 this.editingDraf.name = draft.data.description.message
             },
-            // 保存编辑后的快照
-            saveDraftnName (draft) {
+            // 保存编辑中的快照名称
+            onSaveDraftName (draft) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) {
                         return
