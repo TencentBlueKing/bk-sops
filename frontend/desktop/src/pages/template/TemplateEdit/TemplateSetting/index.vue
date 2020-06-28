@@ -49,18 +49,12 @@
                     @onSelectCategory="onSelectCategory"
                     @onColseTab="onColseTab">
                 </TabTemplateConfig>
-                <TabLocalDraft
+                <TabTemplateSnapshoot
                     :class="['panel-item', { 'active-tab': activeTab === 'localDraftTab' }]"
                     :is-show="activeTab === 'localDraftTab'"
-                    :draft-array="draftArray"
                     @onColseTab="onColseTab"
-                    @onDeleteDraft="onDeleteDraft"
-                    @onReplaceTemplate="onReplaceTemplate"
-                    @onNewDraft="onNewDraft"
-                    @updateDraft="updateDraft"
-                    @hideConfigPanel="hideConfigPanel"
-                    @updateLocalTemplateData="updateLocalTemplateData">
-                </TabLocalDraft>
+                    @hideConfigPanel="hideConfigPanel">
+                </TabTemplateSnapshoot>
                 <TabPipelineTreeEdit
                     :class="['panel-item', { 'active-tab': activeTab === 'templateDataEditTab' }]"
                     :is-show="activeTab === 'templateDataEditTab'"
@@ -76,7 +70,7 @@
     import { mapState, mapMutations } from 'vuex'
     import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
-    import TabLocalDraft from './TabLocalDraft.vue'
+    import TabTemplateSnapshoot from './TabTemplateSnapshoot.vue'
     import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
 
     const SETTING_TABS = [
@@ -107,7 +101,7 @@
         components: {
             TabGlobalVariables,
             TabTemplateConfig,
-            TabLocalDraft,
+            TabTemplateSnapshoot,
             TabPipelineTreeEdit
         },
         props: [
@@ -117,9 +111,7 @@
             'isTemplateConfigValid',
             'isNodeConfigPanelShow',
             'isSettingPanelShow',
-            'draftArray',
             'variableTypeList',
-            'isClickDraft',
             'isFixedVarMenu'
         ],
         data () {
@@ -209,23 +201,8 @@
             onSelectCategory (value) {
                 this.$emit('onSelectCategory', value)
             },
-            onDeleteDraft (key) {
-                this.$emit('onDeleteDraft', key)
-            },
-            onReplaceTemplate (data) {
-                this.$emit('onReplaceTemplate', data)
-            },
-            onNewDraft (name) {
-                this.$emit('onNewDraft', name)
-            },
-            updateDraft (key, data) {
-                this.$emit('updateDraft', key, data)
-            },
             hideConfigPanel () {
                 this.$emit('hideConfigPanel')
-            },
-            updateLocalTemplateData () {
-                this.$emit('updateLocalTemplateData')
             },
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)

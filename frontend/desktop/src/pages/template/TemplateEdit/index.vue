@@ -25,7 +25,6 @@
                 :tpl-actions="tplActions"
                 :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
-                @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <SubflowUpdateTips
@@ -85,27 +84,19 @@
                 </condition-edit>
                 <template-setting
                     ref="templateSetting"
-                    :draft-array="draftArray"
                     :is-global-variable-update="isGlobalVariableUpdate"
                     :project-info-loading="projectInfoLoading"
                     :is-template-config-valid="isTemplateConfigValid"
                     :is-setting-panel-show="isSettingPanelShow"
                     :is-node-config-panel-show="isNodeConfigPanelShow"
                     :variable-type-list="variableTypeList"
-                    :local-template-data="localTemplateData"
-                    :is-click-draft="isClickDraft"
                     :is-fixed-var-menu="isFixedVarMenu"
                     @toggleSettingPanel="toggleSettingPanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @variableDataChanged="variableDataChanged"
                     @fixedVarMenuChange="fixedVarMenuChange"
                     @onSelectCategory="onSelectCategory"
-                    @onDeleteDraft="onDeleteDraft"
-                    @onReplaceTemplate="onReplaceTemplate"
-                    @onNewDraft="onNewDraft"
-                    @updateDraft="updateDraft"
                     @onCitedNodeClick="onCitedNodeClick"
-                    @updateLocalTemplateData="updateLocalTemplateData"
                     @modifyTemplateData="modifyTemplateData"
                     @hideConfigPanel="hideConfigPanel">
                 </template-setting>
@@ -130,7 +121,7 @@
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     // moment用于时区使用
     import moment from 'moment-timezone'
-    import { uuid } from '@/utils/uuid.js'
+    // import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -141,7 +132,7 @@
     import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
-    import draft from '@/utils/draft.js'
+    // import draft from '@/utils/draft.js'
     import Guide from '@/utils/guide.js'
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
@@ -190,12 +181,6 @@
                     tasknode: [],
                     subflow: []
                 },
-                draftArray: [],
-                intervalSaveTemplate: null,
-                intervalGetDraftArray: null,
-                templateUUID: uuid(),
-                localTemplateData: null,
-                isClickDraft: false,
                 tplOperations: [],
                 tplActions: [],
                 tplResource: {},
@@ -242,9 +227,6 @@
                 'timeZone': state => state.timezone,
                 'project_id': state => state.project_id
             }),
-            projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
-                return this.common ? 'common' : this.project_id
-            },
             canvasData () {
                 const branchConditions = {}
                 for (const gKey in this.gateways) {
@@ -286,10 +268,6 @@
                     branchConditions
                 }
             },
-            // draftProjectId
-            draftProjectId () {
-                return this.common ? 'common' : this.project_id
-            },
             subflowShouldUpdated () {
                 if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
                     return this.subprocess_info.details
@@ -310,26 +288,6 @@
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
-
-            // 复制并替换本地缓存的内容
-            if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.projectOrCommon, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
-            } else {
-                // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            }
-            // 五分钟进行存储本地缓存
-            const fiveMinutes = 1000 * 60 * 5
-            this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
-            }, fiveMinutes)
-
-            // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
-            const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
-            this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
             this.getSingleAtomList()
@@ -379,7 +337,6 @@
                 'setEndpoint',
                 'setBranchCondition',
                 'setInternalVariable',
-                'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree'
             ]),
@@ -387,7 +344,6 @@
                 'clearAtomForm'
             ]),
             ...mapGetters('template/', [
-                'getLocalTemplateData',
                 'getPipelineTree'
             ]),
             async getSingleAtomList () {
@@ -567,10 +523,6 @@
                     this.tplActions = data.auth_actions
                     this.tplOperations = data.auth_operations
                     this.tplResource = data.auth_resource
-                    if (template_id === undefined) {
-                        // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
-                    }
                     this.$bkMessage({
                         message: i18n.t('保存成功'),
                         theme: 'success'
@@ -880,7 +832,6 @@
                         start: START_POSITION
                     })
                     if (res.result) {
-                        this.onNewDraft(undefined, false)
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
@@ -1073,86 +1024,9 @@
                 this.leaveToPath = ''
                 this.isLeaveDialogShow = false
             },
-            // 删除本地缓存
-            onDeleteDraft (key) {
-                if (draft.deleteDraft(key)) {
-                    this.$bkMessage({
-                        'message': i18n.t('删除本地缓存成功'),
-                        'theme': 'success'
-                    })
-                } else {
-                    this.$bkMessage({
-                        'message': i18n.t('该本地缓存不存在，删除失败'),
-                        'theme': 'error'
-                    })
-                }
-                // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            },
-            // 模板替换
-            onReplaceTemplate (data) {
-                const { templateData, type, index } = data
-                if (type === 'replace') {
-                    draft.addDraft(
-                        this.username,
-                        this.projectOrCommon,
-                        this.getTemplateIdOrTemplateUUID(),
-                        this.getLocalTemplateData(),
-                        i18n.t('最近快照已保存，并恢复至序号') + index + i18n.t('号的快照'))
-                    this.$bkMessage({
-                        'message': i18n.t('替换流程成功'),
-                        'theme': 'success'
-                    })
-                }
-                this.templateDataLoading = true
-                this.replaceTemplate(templateData)
-                // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-                this.$nextTick(() => {
-                    this.templateDataLoading = false
-                    this.$nextTick(() => {
-                        this.isClickDraft = type === 'replace'
-                        this.$refs.templateSetting.onTemplateSettingShow('localDraftTab')
-                        this.upDataAllNodeInfo()
-                    })
-                })
-            },
-            // 新增本地缓存
-            onNewDraft (message, isMessage = true) {
-                // 创建本地缓存
-                if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.projectOrCommon, this.templateUUID, this.getLocalTemplateData(), message)
-                    // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
-                } else {
-                    draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
-                    // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-                }
-                if (isMessage) {
-                    this.$bkMessage({
-                        'message': i18n.t('新增流程本地快照成功'),
-                        'theme': 'success'
-                    })
-                }
-            },
-            // 更新某次快照信息
-            updateDraft (key, data) {
-                draft.updateDraft(key, data)
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            },
             // 修改line和location
             onReplaceLineAndLocation (data) {
                 this.replaceLineAndLocation(data)
-            },
-            getTemplateIdOrTemplateUUID () {
-                if (this.template_id === undefined || this.template_id === '') {
-                    return this.templateUUID
-                }
-                return this.template_id
-            },
-            updateLocalTemplateData () {
-                this.localTemplateData = this.getLocalTemplateData()
             },
             // 重新获得缓存后，更新 dom data[raw]上绑定的数据
             upDataAllNodeInfo () {
@@ -1331,13 +1205,6 @@
         beforeRouteLeave (to, from, next) { // leave or reload page
             if (this.allowLeave || !this.isTemplateDataChanged) {
                 // 退出时需要关闭定时器
-                clearInterval(this.intervalSaveTemplate)
-                clearInterval(this.intervalGetDraftArray)
-                const template_id = this.getTemplateIdOrTemplateUUID()
-                // 如果是 uuid 或者克隆的模板会进行删除
-                if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.projectOrCommon, this.templateUUID)
-                }
                 this.clearAtomForm()
                 next()
             } else {
