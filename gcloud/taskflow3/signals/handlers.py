@@ -17,7 +17,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.signals import taskflow_finished
+from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from gcloud.taskflow3.tasks import send_taskflow_message
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
 from pipeline.models import PipelineInstance
@@ -27,16 +27,25 @@ logger = logging.getLogger('celery')
 
 @receiver(post_save, sender=PipelineInstance)
 def pipeline_post_save_handler(sender, instance, created, **kwargs):
-    if not created and instance.is_finished:
+    if not created:
         try:
             taskflow = TaskFlowInstance.objects.get(pipeline_instance=instance)
         except TaskFlowInstance.DoesNotExist:
             logger.error("pipeline finished handler get taskflow error, pipeline_instance_id=%s" % instance.id)
             return
-        if taskflow.current_flow != 'finished':
+
+        if taskflow.current_flow == 'finished':
+            return
+
+        if instance.is_finished:
             taskflow.current_flow = 'finished'
             taskflow.save()
             taskflow_finished.send(sender=taskflow, username=taskflow.pipeline_instance.executor)
+
+        if instance.is_revoked:
+            taskflow.current_flow = 'finished'
+            taskflow.save()
+            taskflow_revoked.send(sender=taskflow, username=taskflow.pipeline_instance.executor)
 
 
 def taskflow_node_failed_handler(sender, pipeline_id, pipeline_activity_id, **kwargs):
