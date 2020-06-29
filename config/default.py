@@ -75,6 +75,7 @@ INSTALLED_APPS += (
     "pipeline_plugins.variables",
     "pipeline_web.core",
     "pipeline_web.label",
+    "pipeline_web.plugin_management",
     "data_migration",
     "weixin.core",
     "weixin",

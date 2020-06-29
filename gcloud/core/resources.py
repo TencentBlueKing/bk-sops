@@ -28,6 +28,7 @@ from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
 from pipeline_web.label.models import LabelGroup, Label
+from pipeline_web.plugin_management.utils import DeprecatedPlugin
 
 from gcloud.core.models import Business, Project, ProjectCounter
 from gcloud.commons.tastypie import GCloudModelResource
@@ -148,6 +149,9 @@ class ComponentModelResource(GCloudModelResource):
         return super(ComponentModelResource, self).get_detail(request, **kwargs)
 
     def alter_list_data_to_serialize(self, request, data):
+
+        component_phase_dict = DeprecatedPlugin.objects.get_components_phase_dict()
+
         for bundle in data["objects"]:
             component = ComponentLibrary.get_component_class(bundle.data["code"], bundle.data["version"])
             bundle.data["output"] = component.outputs_format()
@@ -158,6 +162,9 @@ class ComponentModelResource(GCloudModelResource):
             name = bundle.data["name"].split("-")
             bundle.data["group_name"] = _(name[0])
             bundle.data["name"] = _(name[1])
+            bundle.data["phase"] = component_phase_dict.get(bundle.data["code"], {}).get(
+                bundle.data["version"], DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
+            )
 
         return data
 
@@ -190,6 +197,17 @@ class VariableModelResource(GCloudModelResource):
         excludes = ["status", "id"]
         detail_uri_name = "code"
         authorization = ReadOnlyAuthorization()
+
+    def alter_list_data_to_serialize(self, request, data):
+
+        variable_phase_dict = DeprecatedPlugin.objects.get_variables_phase_dict()
+
+        for bundle in data["objects"]:
+            bundle.data["phase"] = variable_phase_dict.get(bundle.data["code"], {}).get(
+                LEGACY_PLUGINS_VERSION, DeprecatedPlugin.PLUGIN_PHASE_AVAILABLE
+            )
+
+        return data
 
 
 class CommonProjectResource(GCloudModelResource):
