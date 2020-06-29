@@ -734,6 +734,14 @@ const template = {
                 })
             }
         },
+        // 修改state中的模板数据
+        replaceTemplate (state, template) {
+            if (template !== undefined) {
+                for (const prop in template) {
+                    state[prop] = template[prop]
+                }
+            }
+        },
         // 修改lines和locations
         replaceLineAndLocation (state, payload) {
             //  需要做一次深层拷贝

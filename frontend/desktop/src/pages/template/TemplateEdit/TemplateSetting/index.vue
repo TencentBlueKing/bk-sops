@@ -50,10 +50,13 @@
                     @onColseTab="onColseTab">
                 </TabTemplateConfig>
                 <TabTemplateSnapshoot
-                    :class="['panel-item', { 'active-tab': activeTab === 'localDraftTab' }]"
-                    :is-show="activeTab === 'localDraftTab'"
-                    @onColseTab="onColseTab"
-                    @hideConfigPanel="hideConfigPanel">
+                    :class="['panel-item', { 'active-tab': activeTab === 'tplSnapshootTab' }]"
+                    :is-show="activeTab === 'tplSnapshootTab'"
+                    :snapshoots="snapshoots"
+                    @createSnapshoot="$emit('createSnapshoot')"
+                    @useSnapshoot="$emit('useSnapshoot', arguments)"
+                    @updateSnapshoot="$emit('updateSnapshoot', $event)"
+                    @onColseTab="onColseTab">
                 </TabTemplateSnapshoot>
                 <TabPipelineTreeEdit
                     :class="['panel-item', { 'active-tab': activeTab === 'templateDataEditTab' }]"
@@ -85,7 +88,7 @@
             title: i18n.t('基础信息')
         },
         {
-            id: 'localDraftTab',
+            id: 'tplSnapshootTab',
             icon: 'common-icon-clock-reload',
             title: i18n.t('本地快照')
         },
@@ -104,16 +107,17 @@
             TabTemplateSnapshoot,
             TabPipelineTreeEdit
         },
-        props: [
-            'projectInfoLoading',
-            'businessInfoLoading',
-            'isGlobalVariableUpdate',
-            'isTemplateConfigValid',
-            'isNodeConfigPanelShow',
-            'isSettingPanelShow',
-            'variableTypeList',
-            'isFixedVarMenu'
-        ],
+        props: {
+            projectInfoLoading: Boolean,
+            businessInfoLoading: Boolean,
+            isGlobalVariableUpdate: Boolean,
+            isTemplateConfigValid: Boolean,
+            isNodeConfigPanelShow: Boolean,
+            isSettingPanelShow: Boolean,
+            variableTypeList: Array,
+            isFixedVarMenu: Boolean,
+            snapshoots: Array
+        },
         data () {
             return {
                 showPanel: true,
@@ -200,9 +204,6 @@
             },
             onSelectCategory (value) {
                 this.$emit('onSelectCategory', value)
-            },
-            hideConfigPanel () {
-                this.$emit('hideConfigPanel')
             },
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)

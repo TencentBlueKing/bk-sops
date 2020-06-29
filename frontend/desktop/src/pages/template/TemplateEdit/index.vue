@@ -89,6 +89,7 @@
                     :is-node-config-panel-show="isNodeConfigPanelShow"
                     :variable-type-list="variableTypeList"
                     :is-fixed-var-menu="isFixedVarMenu"
+                    :snapshoots="snapshoots"
                     @toggleSettingPanel="toggleSettingPanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @variableDataChanged="variableDataChanged"
@@ -96,7 +97,9 @@
                     @onSelectCategory="onSelectCategory"
                     @onCitedNodeClick="onCitedNodeClick"
                     @modifyTemplateData="modifyTemplateData"
-                    @hideConfigPanel="hideConfigPanel">
+                    @createSnapshoot="onCreateSnapshoot"
+                    @useSnapshoot="onUseSnapshoot"
+                    @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
             <bk-dialog
@@ -119,7 +122,7 @@
     import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
     // moment用于时区使用
     import moment from 'moment-timezone'
-    // import { uuid } from '@/utils/uuid.js'
+    import { uuid } from '@/utils/uuid.js'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -130,7 +133,7 @@
     import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
-    // import draft from '@/utils/draft.js'
+    import tplSnapshoot from '@/utils/tplSnapshoot.js'
     import Guide from '@/utils/guide.js'
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
@@ -179,6 +182,9 @@
                     tasknode: [],
                     subflow: []
                 },
+                snapshoots: [],
+                snapshootTimer: null,
+                tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
                 nodeGuideConfig: {
@@ -275,6 +281,7 @@
             this.initTemplateData()
             // 获取流程内置变量
             this.templateDataLoading = true
+            this.snapshoots = this.getTplSnapshoots()
             const result = await this.loadInternalVariable()
             this.setInternalVariable(result.data || [])
             if (this.type === 'edit' || this.type === 'clone') {
@@ -289,6 +296,7 @@
             this.getSingleAtomList()
             this.getProjectBaseInfo()
             this.getCustomVarCollection()
+            this.openSnapshootTimer()
             window.onbeforeunload = function () {
                 return i18n.t('系统不会保存您所做的更改，确认离开？')
             }
@@ -333,6 +341,7 @@
                 'setEndpoint',
                 'setBranchCondition',
                 'setInternalVariable',
+                'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree'
             ]),
@@ -340,6 +349,7 @@
                 'clearAtomForm'
             ]),
             ...mapGetters('template/', [
+                'getLocalTemplateData',
                 'getPipelineTree'
             ]),
             async getSingleAtomList () {
@@ -521,6 +531,7 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
+                        this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
                         const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
                         if (this.common) {
@@ -820,6 +831,7 @@
                         start: START_POSITION
                     })
                     if (res.result) {
+                        this.onCreateSnapshoot()
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
@@ -1017,7 +1029,7 @@
                 this.replaceLineAndLocation(data)
             },
             // 重新获得缓存后，更新 dom data[raw]上绑定的数据
-            upDataAllNodeInfo () {
+            updateAllNodeInfo () {
                 const nodes = this.activities
                 Object.keys(nodes).forEach((node, index) => {
                     this.onUpdateNodeInfo(node, {
@@ -1188,12 +1200,89 @@
             },
             fixedVarMenuChange (val) {
                 this.isFixedVarMenu = val
+            },
+            // 本地快照面板新增快照
+            onCreateSnapshoot (message = i18n.t('新增流程本地快照成功')) {
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                this.setTplSnapshoot()
+                this.$bkMessage({
+                    message,
+                    theme: 'success'
+                })
+                this.snapshoots = this.getTplSnapshoots()
+                this.openSnapshootTimer()
+            },
+            // 使用快照还原流程模板
+            onUseSnapshoot (args) {
+                const [template, index] = args
+                const name = i18n.t('最近快照已保存，并恢复至原序号为') + index + i18n.t('的快照')
+                this.setTplSnapshoot(name)
+                this.replaceTemplate(template)
+                this.templateDataLoading = true
+                this.$nextTick(() => {
+                    this.templateDataLoading = false
+                    this.snapshoots = this.getTplSnapshoots()
+                    this.$bkMessage({
+                        'message': i18n.t('替换流程成功'),
+                        'theme': 'success'
+                    })
+                    // 更新画布节点状态，需要画布数据更新到 DOM 后再执行
+                    this.$nextTick(() => {
+                        this.updateAllNodeInfo()
+                    })
+                })
+            },
+            // 更新快照名称
+            onUpdateSnapshoot (data) {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                tplSnapshoot.update(this.username, id, tpl, data)
+                this.snapshoots = this.getTplSnapshoots()
+            },
+            // 设置快照定时器
+            openSnapshootTimer () {
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                this.snapshootTimer = setTimeout(() => {
+                    this.setTplSnapshoot()
+                    this.snapshoots = this.getTplSnapshoots()
+                    this.openSnapshootTimer()
+                }, 5 * 60 * 1000)
+            },
+            // 添加快照
+            setTplSnapshoot (name = i18n.t('自动保存')) {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                const data = {
+                    name,
+                    timestamp: new Date().getTime(),
+                    template: this.getLocalTemplateData()
+                }
+                tplSnapshoot.create(this.username, id, tpl, data)
+            },
+            // 获取快照列表
+            getTplSnapshoots () {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                return tplSnapshoot.getTplSnapshoots(this.username, id, tpl).slice().reverse()
+            },
+            // 清除临时快照
+            clearTempSnapshoot () {
+                const id = this.common ? 'common' : this.project_id
+                tplSnapshoot.deleteTplSnapshoots(this.username, id, this.tplUUID)
+            },
+            // 保存临时快照为改流程模板快照
+            saveTempSnapshoot (templateId) {
+                const id = this.common ? 'common' : this.project_id
+                tplSnapshoot.replaceSnapshootTplKey(this.username, id, this.tplUUID, templateId)
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
             if (this.allowLeave || !this.isTemplateDataChanged) {
-                // 退出时需要关闭定时器
                 this.clearAtomForm()
+                // 清除快照定时器
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                // 流程模板为克隆和新建状态且为保存时，退出需要清除快照
+                this.type !== 'edit' && this.clearTempSnapshoot()
                 next()
             } else {
                 this.leaveToPath = to.fullPath
