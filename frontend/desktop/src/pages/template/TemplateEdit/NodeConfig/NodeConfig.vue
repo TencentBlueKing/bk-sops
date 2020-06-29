@@ -180,7 +180,7 @@
                         case 'templateConfigTab':
                             base += ' position-right-basic-info'
                             break
-                        case 'localDraftTab':
+                        case 'tplSnapshootTab':
                             base += ' position-right-cache'
                             break
                         case 'templateDataEditTab':
