@@ -30,6 +30,7 @@ def _gen_header():
 def _http_request(
     method, url, headers=None, data=None, verify=False, cert=None, timeout=None, cookies=None,
 ):
+    resp = requests.Response()
     try:
         if method == "GET":
             resp = requests.get(
@@ -72,7 +73,10 @@ def _http_request(
         logger.info(message_format % (method, url, str(data), resp.status_code, request_id, content))
         return True, resp.json()
     finally:
-        if logger.isEnabledFor(logging.DEBUG) and resp is not None:
+        if resp.request is None:
+            resp.request = requests.Request(method, url, headers=headers, data=data, cookies=cookies).prepare()
+
+        if logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 "the request_id: `%s`. curl: `%s`",
                 resp.headers.get("X-Request-Id", ""),

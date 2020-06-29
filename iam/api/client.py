@@ -227,11 +227,6 @@ class Client(object):
         ok, message, data = self._call_iam_api(http_post, path, data)
         return ok, message, data
 
-    def policy_query_subjects(self, data):
-        path = "/api/v1/policy/subjects"
-        ok, message, data = self._call_iam_api(http_post, path, data)
-        return ok, message, data
-
     def get_token(self, system_id):
         path = "/api/v1/model/systems/{system_id}/token".format(system_id=system_id)
         ok, message, _data = self._call_iam_api(http_get, path, {})
