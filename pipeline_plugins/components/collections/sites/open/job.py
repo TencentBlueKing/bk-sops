@@ -69,7 +69,9 @@ JOB_VAR_TYPE_IP = 2
 LOG_VAR_SEPARATOR = ":"
 
 # 全局变量标签正则，用于提取key{separator}value
-LOG_VAR_LABEL_RE = r"<SOPS_VAR>([\S]+{separator}[\S]+)</SOPS_VAR>".format(separator=LOG_VAR_SEPARATOR)
+LOG_VAR_LABEL_RE = r"(?:&lt;|<)SOPS_VAR(?:&gt;|>)([\S]+{separator}[\S]+)(?:&lt;|<)/SOPS_VAR(?:&gt;|>)".format(
+    separator=LOG_VAR_SEPARATOR
+)
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -100,12 +102,13 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     return sops_var_dict
 
 
-def get_job_sops_var_dict(client, service_logger, job_instance_id):
+def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id):
     """
     解析作业日志：默认取每个步骤/节点的第一个ip_logs
     :param client:
     :param service_logger: 组件日志对象
     :param job_instance_id: 作业实例id
+    :param bk_biz_id 业务ID
     获取到的job_logs实例
     [
         {
@@ -138,7 +141,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id):
     - success { "result": True, "data": {"key1": "value1"}}
     - fail { "result": False, "message": message}
     """
-    get_job_instance_log_kwargs = {"job_instance_id": job_instance_id}
+    get_job_instance_log_kwargs = {"job_instance_id": job_instance_id, "bk_biz_id": bk_biz_id}
     get_job_instance_log_return = client.job.get_job_instance_log(get_job_instance_log_kwargs)
     if not get_job_instance_log_return["result"]:
         message = handle_api_error(
@@ -211,7 +214,11 @@ class JobService(Service):
                 self.finish_schedule()
                 return True
 
-            get_job_sops_var_dict_return = get_job_sops_var_dict(data.outputs.client, self.logger, job_instance_id)
+            get_job_sops_var_dict_return = get_job_sops_var_dict(
+                data.outputs.client,
+                self.logger, job_instance_id,
+                data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+            )
             if not get_job_sops_var_dict_return["result"]:
                 self.logger.warning(
                     _("{group}.{job_service_name}: 提取日志失败，{message}").format(
@@ -591,7 +598,6 @@ class JobFastExecuteScriptService(JobService):
                     ),
                 }
             )
-
         job_result = client.job.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
