@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from copy import deepcopy
 
 import requests
 from django.conf import settings
@@ -113,6 +114,12 @@ class HttpRequestService(Service):
         data.set_outputs("status_code", response.status_code)
         self.finish_schedule()
         return True
+
+    def __getstate__(self):
+        if self.interval is None:
+            self.interval = deepcopy(self.__class__.interval)
+
+        return super().__getstate__()
 
 
 class HttpComponent(Component):

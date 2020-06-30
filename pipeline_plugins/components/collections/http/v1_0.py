@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import
 import logging
 import traceback
+from copy import deepcopy
 
 from requests import request
 from django.utils import translation
@@ -166,6 +167,12 @@ class HttpRequestService(Service):
 
         self.finish_schedule()
         return True
+
+    def __getstate__(self):
+        if self.interval is None:
+            self.interval = deepcopy(self.__class__.interval)
+
+        return super().__getstate__()
 
 
 class HttpComponent(Component):
