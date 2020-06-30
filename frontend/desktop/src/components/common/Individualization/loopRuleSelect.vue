@@ -66,7 +66,7 @@
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
-                            {{ item.key !== 'week' ? item.title : $tc('天') }}{{ autoWay.loop.end }}
+                            {{ item.key !== 'week' ? item.title : $tc('天', 0) }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
                             <i v-if="item.key === 'week'" v-bk-tooltips="$t('0 表示星期天，6 表示星期六')" class="common-icon-info month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
@@ -117,7 +117,7 @@
     const autoRuleList = [
         {
             key: 'min',
-            title: i18n.tc('分钟'),
+            title: i18n.tc('分钟', 0),
             radio: 0,
             long: 60,
             max: 59,
@@ -132,7 +132,7 @@
         },
         {
             key: 'hour',
-            title: i18n.tc('小时'),
+            title: i18n.tc('小时', 0),
             radio: 0,
             long: 24,
             max: 23,
