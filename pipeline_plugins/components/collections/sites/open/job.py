@@ -68,8 +68,13 @@ JOB_VAR_TYPE_IP = 2
 # 全局变量标签中key-value分隔符
 LOG_VAR_SEPARATOR = ":"
 
-# 全局变量标签正则，用于提取key{separator}value
-LOG_VAR_LABEL_RE = r"(?:&lt;|<)SOPS_VAR(?:&gt;|>)([\S]+{separator}[\S]+)(?:&lt;|<)/SOPS_VAR(?:&gt;|>)".format(
+# 全局变量标签匹配正则（<>字符已转义），用于提取key{separator}value
+LOG_VAR_LABEL_ESCAPE_RE = r"&lt;SOPS_VAR&gt;([\S]+{separator}[\S]+)&lt;/SOPS_VAR&gt;".format(
+    separator=LOG_VAR_SEPARATOR
+)
+
+# 全局变量标签匹配正则，用于提取key{separator}value
+LOG_VAR_LABEL_RE = r"<SOPS_VAR>([\S]+{separator}[\S]+)</SOPS_VAR>".format(
     separator=LOG_VAR_SEPARATOR
 )
 
@@ -86,6 +91,8 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     :param service_logger:
     :param log_text: 日志文本，如下：
     "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1 root<SOPS_VAR>key2:value2</SOPS_VAR>\n"
+    或者已转义的日志文本
+    &lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;
     :return:
     {"key1": "value1", "key2": "value2"}
     """
@@ -93,6 +100,7 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
     # 逐行匹配以便打印全局变量所在行
     for index, log_line in enumerate(log_text.splitlines(), 1):
         sops_key_val_list = re.findall(LOG_VAR_LABEL_RE, log_line)
+        sops_key_val_list.extend(re.findall(LOG_VAR_LABEL_ESCAPE_RE, log_line))
         if len(sops_key_val_list) == 0:
             continue
         sops_var_dict.update(dict([sops_key_val.split(LOG_VAR_SEPARATOR) for sops_key_val in sops_key_val_list]))
