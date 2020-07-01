@@ -36,7 +36,7 @@
                     v-for="(option, i) in group.children"
                     :key="i"
                     :id="option.id"
-                    :name="`[${option.id}]  ${option.name}`">
+                    :name="`[${option.id}] ${option.name}`">
                 </bk-option>
             </bk-option-group>
         </bk-select>
