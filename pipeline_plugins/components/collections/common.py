@@ -86,7 +86,7 @@ class HttpRequestService(Service):
         self.logger.info("send %s request to %s" % (method, url))
 
         try:
-            response = requests.request(method=method, url=url, verify=False, timeout=10, **other)
+            response = requests.request(method=method, url=url, verify=False, timeout=30, **other)
         except Exception as e:
             self.logger.error("request error: %s" % str(e))
             data.set_outputs("ex_data", _("请求异常，详细信息: %s") % str(e))
