@@ -52,39 +52,35 @@
                     }
                 ]
             },
-            events: [
-                {
-                    source: "bk_notify_type",
-                    type: "init",
-                    action: function () {
-                        let self = this;
-                        let url = $.context.get('site_url') + 'core/api/get_msg_types/';
-                        $.ajax({
-                            url: url,
-                            type: 'GET',
-                            dataType: 'json',
-                            success: function (resp) {
-                                if (!resp.result) {
-                                    show_msg(resp.message, 'error');
-                                } else {
-                                    let data = resp.data.filter(function (item) {
-                                        return item.is_active
-                                    });
-                                    let items = data.map(function (item) {
-                                        return {"name": item.label, "value": item.type}
-                                    });
-                                    if (items.length > 0) {
-                                        self.items = items;
-                                    }
-                                }
-                            },
-                            error: function (resp) {
+            methods: {
+                _tag_init: function () {
+                    let self = this;
+                    let url = $.context.get('site_url') + 'core/api/get_msg_types/';
+                    $.ajax({
+                        url: url,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (resp) {
+                            if (!resp.result) {
                                 show_msg(resp.message, 'error');
+                            } else {
+                                let data = resp.data.filter(function (item) {
+                                    return item.is_active
+                                });
+                                let items = data.map(function (item) {
+                                    return {"name": item.label, "value": item.type}
+                                });
+                                if (items.length > 0) {
+                                    self.items = items;
+                                }
                             }
-                        })
-                    }
-                },
-            ]
+                        },
+                        error: function (resp) {
+                            show_msg(resp.message, 'error');
+                        }
+                    })
+                }
+            }
         },
         {
             tag_code: "bk_receiver_info",
