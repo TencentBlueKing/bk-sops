@@ -1219,6 +1219,7 @@
                 this.setTplSnapshoot(name)
                 this.replaceTemplate(template)
                 this.templateDataLoading = true
+                this.hideConfigPanel()
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                     this.snapshoots = this.getTplSnapshoots()
@@ -1228,6 +1229,7 @@
                     })
                     // 更新画布节点状态，需要画布数据更新到 DOM 后再执行
                     this.$nextTick(() => {
+                        this.isSettingPanelShow = false
                         this.updateAllNodeInfo()
                     })
                 })

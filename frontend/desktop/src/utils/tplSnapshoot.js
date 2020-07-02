@@ -102,7 +102,7 @@ const tplSnapshoot = {
              && snapshootStorage[username][id]
              && snapshootStorage[username][id][tpl]
         ) {
-            const index = snapshootStorage[username][id][tpl].findIndex(item => item.timeStamp === data.timeStamp)
+            const index = snapshootStorage[username][id][tpl].findIndex(item => item.timestamp === data.timestamp)
             if (index > -1) {
                 snapshootStorage[username][id][tpl].splice(index, 1, data)
                 this.setSnapshootStorage(snapshootStorage, { username, id, tpl })
