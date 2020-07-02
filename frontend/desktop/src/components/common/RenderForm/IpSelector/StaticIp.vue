@@ -13,19 +13,20 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button theme="default" :disabled="!editable" @click="onAddPanelShow">{{i18n.add}}</bk-button>
+                <bk-button theme="default" :disabled="!editable" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</bk-button>
+                <bk-button theme="default" :disabled="!editable" style="margin-left: 4px;" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</bk-button>
                 <bk-dropdown-menu
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
                     @hide="onDropdownHide">
                     <bk-button theme="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
-                        <span>{{i18n.moreOperations}}</span>
+                        <span>{{i18n.batchOperations}}</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </bk-button>
                     <div slot="dropdown-content">
                         <div
-                            v-for="operation in moreOperations"
+                            v-for="operation in operations"
                             :key="operation.type"
                             class="operation-btn"
                             @click="onOperationClick(operation.type)">
@@ -34,12 +35,6 @@
                     </div>
                 </bk-dropdown-menu>
                 <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch" :editable="editable"></ip-search-input>
-            </div>
-            <div v-if="isShowQuantity" class="selected-num">{{i18n.selected}}
-                <span class="total-ip">{{staticIps.length}}</span>
-                {{i18n.staticIpNum}}
-                <span class="total-not-installed">{{failedAgentLength}}</span>
-                {{i18n.num}}
             </div>
             <div class="selected-ip-table-wrap">
                 <table :class="['ip-table', { 'disabled': !editable }]">
@@ -53,7 +48,7 @@
                                     <i :class="['sort-icon', { 'active': ipSortActive === 'down' }]" @click="onIpSort('down')"></i>
                                 </span>
                             </th>
-                            <th width="160">{{i18n.status + i18n.error}}</th>
+                            <th width="160">Agent {{i18n.status}}</th>
                             <th width="50">{{i18n.operation}}</th>
                         </tr>
                     </thead>
@@ -84,17 +79,27 @@
                         <tr v-else>
                             <td class="static-ip-empty" colspan="4">
                                 <span v-if="!isSearchMode && editable">
-                                    {{i18n.noDataClick}}
-                                    <span class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</span>
-                                    {{i18n.server}}
+                                    {{i18n.noDataCan}}
+                                    <span class="add-ip-btn" @click="onAddPanelShow('select')">{{i18n.selectAdd}}</span>
+                                    {{i18n.or}}
+                                    <span class="add-ip-btn" @click="onAddPanelShow('manual')">{{i18n.manualAdd}}</span>
                                 </span>
                                 <span v-else>{{i18n.noData}}</span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+                <div v-if="isShowQuantity" class="selected-num">{{i18n.total}}
+                    <span class="total-ip">{{staticIps.length}}</span>
+                    {{i18n.staticIpNum}}
+                    {{i18n.among}}
+                    <span class="total-not-installed">{{failedAgentLength}}</span>
+                    {{i18n.num}}{{i18n.error}}
+                </div>
                 <div class="table-pagination" v-if="isPaginationShow">
                     <bk-pagination
+                        size="small"
+                        align="right"
                         :current="currentPage"
                         :count="totalCount"
                         :limit="listCountPerPage"
@@ -110,6 +115,7 @@
             v-if="isIpAddingPanelShow"
             :static-ip-list="staticIpList"
             :static-ips="staticIps"
+            :type="addingType"
             @onAddIpConfirm="onAddIpConfirm"
             @onAddIpCancel="onAddIpCancel">
         </static-ip-adding-panel>
@@ -126,21 +132,24 @@
         copyAgentIp: gettext('复制Agent异常IP'),
         clearIp: gettext('清空IP'),
         clearFailedAgentIp: gettext('清空Agent异常IP'),
-        add: gettext('添加'),
-        moreOperations: gettext('更多操作'),
-        selected: gettext('已选择'),
-        staticIpNum: gettext('个静态IP(未安装agent'),
-        num: gettext('个)'),
+        selectAdd: gettext('选择添加'),
+        manualAdd: gettext('手动添加'),
+        batchOperations: gettext('批量操作'),
+        total: gettext('共'),
+        staticIpNum: gettext('个静态IP，'),
+        among: gettext('其中'),
+        num: gettext('个'),
         cloudArea: gettext('云区域'),
         status: gettext('状态'),
         error: gettext('异常'),
         operation: gettext('操作'),
         remove: gettext('移除'),
         normal: gettext('正常'),
-        noDataClick: gettext('无数据，点击'),
         server: gettext('服务器'),
         noData: gettext('无数据'),
-        notEmpty: gettext('必填项')
+        noDataCan: gettext('无数据，可'),
+        notEmpty: gettext('必填项'),
+        or: gettext('或者')
     }
 
     export default {
@@ -149,13 +158,18 @@
             StaticIpAddingPanel,
             IpSearchInput
         },
-        props: ['editable', 'staticIpList', 'staticIps'],
+        props: {
+            editable: Boolean,
+            staticIpList: Array,
+            staticIps: Array
+        },
         data () {
             const listCountPerPage = 5
             const totalPage = Math.ceil(this.staticIps.length / listCountPerPage)
             return {
                 isDropdownShow: false,
                 isIpAddingPanelShow: false,
+                addingType: '',
                 isSearchMode: false,
                 copyText: '',
                 ipSortActive: '', // ip 排序方式
@@ -167,7 +181,7 @@
                 listCountPerPage: listCountPerPage,
                 listInPage: this.staticIps.slice(0, listCountPerPage),
                 dataError: false,
-                moreOperations: [
+                operations: [
                     {
                         type: 'copyIp',
                         name: i18n.copyIp
@@ -226,10 +240,11 @@
                 this.totalCount = list.length
                 this.currentPage = 1
             },
-            onAddPanelShow () {
+            onAddPanelShow (type) {
                 if (!this.editable) {
                     return
                 }
+                this.addingType = type
                 this.isIpAddingPanelShow = true
             },
             handleIpCopy (ipStr) {
@@ -347,7 +362,10 @@
     .bk-button {
         font-size: 12px;
     }
-    .bk-dropdown-menu, .trigger-btn {
+    .bk-dropdown-menu {
+        float: right;
+    }
+    .trigger-btn {
         width: 162px;
         padding: 0px;
         font-size: 12px;
@@ -362,19 +380,9 @@
         background: #ebf4ff;
     }
 }
-.selected-num {
-    margin-bottom: 20px;
-    font-size: 14px;
-    .total-ip {
-        color: #3a84ff;
-    }
-    .total-not-installed {
-        color: #ea3636;
-    }
-}
 .ip-search-wrap {
     position: absolute;
-    top: 0;
+    top: -56px;
     right: 0;
     width: 50%;
 }
@@ -452,7 +460,18 @@
         white-space:nowrap;
     }
 }
+.selected-num {
+    float: left;
+    margin-top: 17px;
+    font-size: 12px;
+    .total-ip {
+        color: #3a84ff;
+    }
+    .total-not-installed {
+        color: #ea3636;
+    }
+}
 .table-pagination {
-    margin-top: 20px;
+    margin-top: 10px;
 }
 </style>

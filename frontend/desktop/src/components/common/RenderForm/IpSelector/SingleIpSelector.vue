@@ -15,7 +15,7 @@
             <div
                 v-for="(selector) in selectorTabs"
                 :key="selector.type"
-                :class="['ip-tab-radio', { 'disabled': !editable }, { 'ip-tab-select': activeSelector === selector.id }]"
+                :class="['ip-tab-radio', { 'disabled': !editable }]"
                 @click="onChooseSelector(selector.id)">
                 <span :class="['radio', { 'checked': activeSelector === selector.id }]"></span>
                 <span class="radio-text">{{selector.name}}</span>
@@ -51,7 +51,15 @@
             StaticIp,
             DynamicIp
         },
-        props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'staticIps', 'dynamicIps'],
+        props: {
+            editable: Boolean,
+            selectorTabs: Array,
+            selectors: Array,
+            staticIpList: Array,
+            dynamicIpList: Array,
+            staticIps: Array,
+            dynamicIps: Array
+        },
         data () {
             return {
                 activeSelector: this.selectors[0]
@@ -85,9 +93,6 @@
 </script>
 <style lang="scss" scoped>
 .selector-choose-wrap {
-    display: flex;
-    justify-content: space-between;
-    border-right: 1px solid #dcdee5;
     &.disabled {
         .ip-tab-radio {
             background: #f0f1f5;
@@ -98,10 +103,7 @@
     display: inline-block;
     font-size: 14px;
     height: 42px;
-    width: 100%;
-    background: #f7f7f7;
-    border: 1px solid #dcdee5;
-    border-right: 0;
+    width: 120px;
     cursor: pointer;
     .radio-box {
         display: flex;
@@ -111,19 +113,22 @@
         position: relative;
         width: 16px;
         height: 16px;
-        margin: 12px 5px 12px 20px;
+        margin: 12px 5px 12px 10px;
         border: 1px solid #c4c6cc;
         border-radius: 50%;
         vertical-align: middle;
-        &.checked:before {
-            content: '';
-            position: absolute;
-            top: 3px;
-            right: 3px;
-            width: 8px;
-            height: 8px;
-            background: #3a84ff;
-            border-radius: 50%;
+        &.checked {
+            border-color: #3a84ff;
+            &:before {
+                content: '';
+                position: absolute;
+                top: 3px;
+                right: 3px;
+                width: 8px;
+                height: 8px;
+                background: #3a84ff;
+                border-radius: 50%;
+            }
         }
     }
     &.disabled {
@@ -137,9 +142,5 @@
             }
         }
     }
-}
-.ip-tab-select {
-    background: #fff;
-    border-bottom: 0;
 }
 </style>
