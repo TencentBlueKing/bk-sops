@@ -89,24 +89,26 @@
                         </tr>
                     </tbody>
                 </table>
-                <div v-if="isShowQuantity" class="selected-num">{{i18n.total}}
-                    <span class="total-ip">{{staticIps.length}}</span>
-                    {{i18n.staticIpNum}}
-                    {{i18n.among}}
-                    <span class="total-not-installed">{{failedAgentLength}}</span>
-                    {{i18n.num}}{{i18n.error}}
-                </div>
-                <div class="table-pagination" v-if="isPaginationShow">
-                    <bk-pagination
-                        size="small"
-                        align="right"
-                        :current="currentPage"
-                        :count="totalCount"
-                        :limit="listCountPerPage"
-                        :limit-list="[listCountPerPage]"
-                        :show-limit="false"
-                        @change="onPageChange">
-                    </bk-pagination>
+                <div class="table-footer">
+                    <div v-if="isShowQuantity" class="selected-num">{{i18n.total}}
+                        <span class="total-ip">{{staticIps.length}}</span>
+                        {{i18n.staticIpNum}}
+                        {{i18n.among}}
+                        <span class="total-not-installed">{{failedAgentLength}}</span>
+                        {{i18n.num}}{{i18n.error}}
+                    </div>
+                    <div class="table-pagination" v-if="isPaginationShow">
+                        <bk-pagination
+                            size="small"
+                            align="right"
+                            :current="currentPage"
+                            :count="totalCount"
+                            :limit="listCountPerPage"
+                            :limit-list="[listCountPerPage]"
+                            :show-limit="false"
+                            @change="onPageChange">
+                        </bk-pagination>
+                    </div>
                 </div>
                 <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
             </div>
@@ -460,18 +462,19 @@
         white-space:nowrap;
     }
 }
-.selected-num {
-    float: left;
-    margin-top: 17px;
-    font-size: 12px;
-    .total-ip {
-        color: #3a84ff;
-    }
-    .total-not-installed {
-        color: #ea3636;
-    }
-}
-.table-pagination {
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-top: 10px;
+    .selected-num {
+        font-size: 12px;
+        .total-ip {
+            color: #3a84ff;
+        }
+        .total-not-installed {
+            color: #ea3636;
+        }
+    }
 }
 </style>

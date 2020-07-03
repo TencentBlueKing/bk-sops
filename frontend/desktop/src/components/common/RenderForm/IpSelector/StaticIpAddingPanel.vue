@@ -93,7 +93,7 @@
                 </div>
             </template>
         </div>
-        <div class="error-ips-content" v-if="isErrorIpsShow">
+        <div id="error-ips-content">
             <div v-for="(item, index) in errorIpList" :key="index" class="error-ip">{{ item }}</div>
         </div>
         <div class="adding-footer">
@@ -105,8 +105,7 @@
                 <span v-if="type === 'select'">{{i18n.selected}} {{selectedIp.length}} {{i18n.number}}</span>
                 <span v-if="type === 'manual' && errorIpList.length > 0">
                     <span style="color: red;">{{ errorIpList.length }}</span>{{ errorStr }}
-                    <span v-if="isErrorIpsShow" class="hide-error-ip-btn" @click="isErrorIpsShow = false">{{ i18n.hideDetail }}<i class="common-icon-double-arrow"></i></span>
-                    <span v-else class="view-error-ip-btn" @click="isErrorIpsShow = true">{{ i18n.viewDetail }}<i class="common-icon-double-arrow"></i></span>
+                    <span class="view-error-ip-btn" v-bk-tooltips="tooltipConfig">{{ i18n.viewDetail }}</span>
                 </span>
             </div>
         </div>
@@ -130,8 +129,7 @@
         manualPlaceholder: gettext('请输入IP，多个以逗号隔开'),
         ipInvalid: gettext('IP地址不合法，'),
         ipNotExist: gettext('IP地址不存在，'),
-        viewDetail: gettext('查看详情'),
-        hideDetail: gettext('隐藏详情')
+        viewDetail: gettext('查看详情')
     }
 
     export default {
@@ -164,7 +162,13 @@
                 list: this.staticIpList,
                 errorStr: '',
                 errorIpList: [],
-                isErrorIpsShow: false,
+                tooltipConfig: {
+                    allowHtml: true,
+                    width: 300,
+                    theme: 'light',
+                    content: '#error-ips-content',
+                    placement: 'top'
+                },
                 i18n
             }
         },
@@ -440,17 +444,6 @@
         z-index: 1;
     }
 }
-.error-ips-content {
-    margin: 10px 0;
-    padding: 9px 13px;
-    max-height: 260px;
-    background: #ffffff;
-    border: 1px solid #dcdee5;
-    border-radius: 2px;
-    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.09);
-    word-break: break-all;
-    overflow-y: auto;
-}
 .adding-footer {
     position: relative;
     margin: 10px 0;
@@ -467,26 +460,16 @@
         font-size: 12px;
         color: #313238;
     }
-    .view-error-ip-btn,
-    .hide-error-ip-btn {
+    .view-error-ip-btn {
         color: #3a84ff;
         cursor: pointer;
-        .common-icon-double-arrow {
-            display: inline-block;
-            font-size: 12px;
-        }
-    }
-    .view-error-ip-btn {
-        .common-icon-double-arrow {
-            margin-left: 2px;
-            transform: rotate(90deg) scale(0.8);
-        }
-    }
-    .hide-error-ip-btn {
-        .common-icon-double-arrow {
-            margin-left: 2px;
-            transform: rotate(-90deg) scale(0.8);
-        }
     }
 }
+</style>
+<style lang="scss">
+    #error-ips-content {
+        max-height: 260px;
+        word-break: break-all;
+        overflow-y: auto;
+    }
 </style>

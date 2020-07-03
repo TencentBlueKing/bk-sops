@@ -11,30 +11,43 @@
 */
 <template>
     <div class="dynamic-ip">
-        <div class="dynamic-ip-num">{{i18n.selected}}
-            <span>{{dynamicIps.length}}</span>
-            {{i18n.dynamicNum}}
-        </div>
         <div class="dynamic-ip-select">
-            <ip-search-input
-                class="ip-search-wrap"
-                :placeholder="i18n.searchNode"
-                @search="onTopoSearch">
-            </ip-search-input>
-            <div class="ip-selector-tree-wrap">
-                <el-tree
-                    v-if="topoList.length"
-                    ref="topoTree"
-                    default-expand-all
-                    show-checkbox
-                    check-strictly
-                    node-key="uniqueId"
-                    :data="topoList"
-                    :default-checked-keys="selectedIps"
-                    :filter-node-method="filterNode"
-                    @check="onNodeCheckClick">
-                </el-tree>
-                <div v-else class="dynamic-ip-empty">{{i18n.noData}}</div>
+            <div class="topo-tree">
+                <ip-search-input
+                    class="ip-search-wrap"
+                    :placeholder="i18n.searchNode"
+                    @search="onTopoSearch">
+                </ip-search-input>
+                <div class="tree-wrap">
+                    <el-tree
+                        v-if="topoList.length"
+                        ref="topoTree"
+                        default-expand-all
+                        show-checkbox
+                        check-strictly
+                        node-key="uniqueId"
+                        :data="topoList"
+                        :default-checked-keys="selectedIps"
+                        :filter-node-method="filterNode"
+                        @check="onNodeCheckClick">
+                    </el-tree>
+                    <div v-else class="dynamic-ip-empty">{{i18n.noData}}</div>
+                </div>
+            </div>
+            <div class="selected-ips">
+                <div class="ip-num">{{i18n.selected}}
+                    <span>{{dynamicIps.length}}</span>
+                    {{i18n.dynamicNum}}
+                </div>
+                <div class="ip-list">
+                    <div
+                        class="ip-item"
+                        v-for="item in selectedIpsPath"
+                        :key="item.key">
+                        {{ item.namePath }}
+                        <i class="common-icon-dark-circle-close" @click="onDeleteSelected(item.key)"></i>
+                    </div>
+                </div>
             </div>
         </div>
         <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
@@ -65,6 +78,7 @@
                 searchWord: '',
                 selectedList: this.dynamicIps.slice(0),
                 selectedIps: this.dynamicIps.map(item => `${item.bk_inst_id}_${item.bk_obj_id}`),
+                selectedIpsPath: [],
                 dataError: false,
                 i18n
             }
@@ -72,11 +86,13 @@
         watch: {
             dynamicIpList (val) {
                 this.topoList = this.transPrimaryToTree(val)
+                this.setSelectedIpsPath()
             },
             dynamicIps (val) {
                 this.selectedList = val.slice(0)
                 this.selectedIps = val.map(item => `${item.bk_inst_id}_${item.bk_obj_id}`)
                 this.topoList = this.transPrimaryToTree(this.dynamicIpList)
+                this.setSelectedIpsPath()
                 if (val.length !== 0) {
                     this.dataError = false
                 }
@@ -95,7 +111,6 @@
                         label: d.bk_inst_name,
                         bk_inst_id: d.bk_inst_id,
                         uniqueId: `${d.bk_inst_id}_${d.bk_obj_id}`,
-                        title: d.bk_in_name,
                         bk_obj_id: d.bk_obj_id,
                         disabled
                     }
@@ -105,6 +120,27 @@
                     list.push(item)
                 })
                 return list
+            },
+            getNodeNamePath (node, name = '') {
+                const label = node.data.label
+                if (node.parent) {
+                    const nameStr = name ? `/${name}` : name
+                    return this.getNodeNamePath(node.parent, label) + nameStr
+                }
+                return name
+            },
+            setSelectedIpsPath () {
+                if (this.dynamicIpList.length > 0) {
+                    this.$nextTick(() => {
+                        const selectedIpsPath = []
+                        this.selectedIps.forEach(key => {
+                            const selectedNode = this.$refs.topoTree.getNode(key)
+                            const namePath = this.getNodeNamePath(selectedNode)
+                            selectedIpsPath.push({ key, namePath })
+                        })
+                        this.selectedIpsPath = selectedIpsPath
+                    })
+                }
             },
             onTopoSearch (keyword) {
                 this.$refs.topoTree.filter(keyword)
@@ -126,6 +162,7 @@
                         bk_obj_id: node.bk_obj_id
                     }
                 })
+
                 this.$emit('change', selectedList)
                 this.validate()
             },
@@ -141,6 +178,13 @@
                     }
                 })
             },
+            onDeleteSelected (key) {
+                const selectedList = this.selectedList.filter(item => {
+                    return `${item.bk_inst_id}_${item.bk_obj_id}` !== key
+                })
+                this.$emit('change', selectedList)
+                this.validate()
+            },
             validate () {
                 if (this.dynamicIps.length) {
                     this.dataError = false
@@ -154,29 +198,58 @@
     }
 </script>
 <style lang="scss" scoped>
-.dynamic-ip-num {
-    padding: 20px 0;
-    font-size: 12px;
-    color: #313238;
-    & > span {
-        color: #3a84ff;
-    }
-}
 .dynamic-ip-select {
-    padding: 20px 20px 0;
     border: 1px solid #ddebe4;
+    overflow: hidden;
+}
+.topo-tree {
+    float: left;
+    padding: 8px;
+    width: 50%;
+    border-right: 1px solid #c4c6cc;
+}
+.selected-ips {
+    float: left;
+    padding: 8px 0;
+    width: 50%;
+    .ip-num {
+        margin: 8px 0 12px;
+        padding: 0 8px;
+        font-size: 12px;
+        color: #313238;
+        & > span {
+            color: #3a84ff;
+        }
+    }
+    .ip-item {
+        position: relative;
+        padding: 0 28px 0 8px;
+        line-height: 32px;
+    }
+    .common-icon-dark-circle-close {
+        position: absolute;
+        right: 12px;
+        top: 10px;
+        font-size: 12px;
+        color: #dcdee6;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+        }
+    }
 }
 .ip-search-wrap {
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     width: 100%;
     /deep/ .search-input {
         width: 100%;
     }
 }
-.ip-selector-tree-wrap {
+.tree-wrap,
+.ip-list {
     height: 360px;
-    overflow-y: auto;
+    overflow: auto;
     &::-webkit-scrollbar {
         width: 4px;
         height: 4px;
