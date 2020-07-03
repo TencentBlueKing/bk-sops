@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_tree_mode_id, \
     cc_list_select_node_inst_id, BkObjType, cc_format_prop_data
