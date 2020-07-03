@@ -206,7 +206,7 @@
                     },
                     {
                         el: '.entry-item[data-type=parallelgateway]',
-                        url: require('@/assets/images/left-parallelgateway-guide.gif'),
+                        url: require('@/assets/images/new-left-subflow-guide.gif'),
                         text: [
                             {
                                 type: 'name',
@@ -220,7 +220,7 @@
                     },
                     {
                         el: '.entry-item[data-type=branchgateway]',
-                        url: require('@/assets/images/left-branchgateway-guide.gif'),
+                        url: require('@/assets/images/new-left-branchgateway-guide.gif'),
                         text: [
                             {
                                 type: 'name',
@@ -234,7 +234,7 @@
                     },
                     {
                         el: '.entry-item[data-type=convergegateway]',
-                        url: require('@/assets/images/left-convergegateway-guide.gif'),
+                        url: require('@/assets/images/new-left-convergegateway-guide.gif'),
                         text: [
                             {
                                 type: 'name',
