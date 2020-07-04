@@ -17,10 +17,18 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema
+from pipeline.core.flow.io import (
+    StringItemSchema,
+    ArrayItemSchema,
+    IntItemSchema
+)
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_format_tree_mode_id, \
-    cc_list_select_node_inst_id, BkObjType, cc_format_prop_data
+from pipeline_plugins.components.collections.sites.open.cc.base import (
+    cc_format_tree_mode_id,
+    cc_list_select_node_inst_id,
+    BkObjType,
+    cc_format_prop_data
+)
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -28,7 +36,7 @@ from gcloud.utils.handlers import handle_api_error
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _("配置平台(CMDB)")
-
+VERSION = 'v1.0'
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
@@ -145,6 +153,7 @@ class CCCreateSetBySetTemplateService(Service):
 
 class CCCreateSetBySetTemplateComponent(Component):
     name = _("根据模板创建集群")
+    version = VERSION
     code = "cc_create_set_by_template"
     bound_service = CCCreateSetBySetTemplateService
     form = '{static_url}components/atoms/cc/create_set_by_template/legacy.js'.format(static_url=settings.STATIC_URL)
