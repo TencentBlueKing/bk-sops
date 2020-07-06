@@ -36,7 +36,7 @@
                     v-for="(option, i) in group.children"
                     :key="i"
                     :id="option.id"
-                    :name="`[${option.id}] ${option.name}`">
+                    :name="options.from_cmdb ? `[${option.bk_biz_id}] ${option.name}` : `[${option.id}] ${option.name}`">
                 </bk-option>
             </bk-option-group>
         </bk-select>
