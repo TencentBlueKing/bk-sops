@@ -28,86 +28,53 @@ from gcloud.periodictask.models import PeriodicTask, PipelinePeriodicTask
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
-WRAPPER_UNFOLD = 'pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess'
+WRAPPER_UNFOLD = "pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess"
 
 
 class PeriodicTaskTestCase(TestCase):
-
     @patch(WRAPPER_UNFOLD, MagicMock())
     def create_a_task(self):
         return PeriodicTask.objects.create(
-            name='test',
+            name="test",
             template=self.template,
             cron={},
             pipeline_tree=self.pipeline_tree,
             creator=self.creator,
-            project=self.project
+            project=self.project,
         )
 
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):
-        self.name = 'test'
-        self.task_template_name = 'task_template_name'
-        self.creator = 'tester'
-        self.extra_info = {'extra_info': 'val'}
+        self.name = "test"
+        self.task_template_name = "task_template_name"
+        self.creator = "tester"
+        self.extra_info = {"extra_info": "val"}
         self.pipeline_tree = {
-            'constants': {
-                'key_1': {
-                    'value': 'val_1',
-                    'show_type': 'show',
-                },
-                'key_2': {
-                    'value': 'val_2',
-                    'show_type': 'hide',
-                }
+            "constants": {
+                "key_1": {"value": "val_1", "show_type": "show"},
+                "key_2": {"value": "val_2", "show_type": "hide"},
             },
-            'activities': {},
-            'start_event': {
-                'id': 'id1',
-                'name': '',
-                'type': 'EmptyStartEvent',
-                'incoming': None,
-                'outgoing': 'flow_id1'
+            "activities": {},
+            "start_event": {
+                "id": "id1",
+                "name": "",
+                "type": "EmptyStartEvent",
+                "incoming": None,
+                "outgoing": "flow_id1",
             },
-            'end_event': {
-                'id': 'id2',
-                'name': '',
-                'type': 'EmptyEndEvent',
-                'incoming': 'flow_id1',
-                'outgoing': None
-            },
-            'gateways': {},
-            'flows': {
-                'flow_id1': {
-                    'id': 'flow_id1',
-                    'source': 'id1',
-                    'target': 'id2'
-                }
-            }
+            "end_event": {"id": "id2", "name": "", "type": "EmptyEndEvent", "incoming": "flow_id1", "outgoing": None},
+            "gateways": {},
+            "flows": {"flow_id1": {"id": "flow_id1", "source": "id1", "target": "id2"}},
         }
-        self.project = Project.objects.create(
-            name='test_project',
-            time_zone='Asia/Shanghai',
-            creator='test',
-            desc=''
-        )
+        self.project = Project.objects.create(name="test_project", time_zone="Asia/Shanghai", creator="test", desc="")
         self.invalid_project = Project.objects.create(
-            name='invalid_project',
-            time_zone='Asia/Shanghai',
-            creator='test',
-            desc=''
+            name="invalid_project", time_zone="Asia/Shanghai", creator="test", desc=""
         )
         self.snapshot, _ = Snapshot.objects.create_or_get_snapshot({})
         self.pipeline_template = PipelineTemplate.objects.create(
-            template_id=uniqid(),
-            name=self.task_template_name,
-            creator=self.creator,
-            snapshot=self.snapshot
+            template_id=uniqid(), name=self.task_template_name, creator=self.creator, snapshot=self.snapshot
         )
-        task_template = TaskTemplate(
-            project=self.project,
-            pipeline_template=self.pipeline_template,
-        )
+        task_template = TaskTemplate(project=self.project, pipeline_template=self.pipeline_template,)
         task_template.save()
         self.template = task_template
         self.task = self.create_a_task()
@@ -131,14 +98,16 @@ class PeriodicTaskTestCase(TestCase):
     @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
     def test_create_pipeline_task(self):
         pipeline_tree = self.pipeline_tree
-        PeriodicTask.objects.create_pipeline_task(project=self.project,
-                                                  template=self.template,
-                                                  name=self.name,
-                                                  cron={},
-                                                  pipeline_tree=pipeline_tree,
-                                                  creator=self.creator)
+        PeriodicTask.objects.create_pipeline_task(
+            project=self.project,
+            template=self.template,
+            name=self.name,
+            cron={},
+            pipeline_tree=pipeline_tree,
+            creator=self.creator,
+        )
 
-        PipelineTemplateWebWrapper.unfold_subprocess.assert_called_once_with(pipeline_tree)
+        PipelineTemplateWebWrapper.unfold_subprocess.assert_called_once_with(pipeline_tree, self.template.__class__)
 
         PipelinePeriodicTask.objects.create_task.assert_called_once_with(
             name=self.name,
@@ -148,25 +117,28 @@ class PeriodicTaskTestCase(TestCase):
             creator=self.creator,
             timezone=self.project.time_zone,
             extra_info={
-                'project_id': self.project.id,
-                'category': self.template.category,
-                'template_id': self.template.pipeline_template.template_id,
-                'template_source': 'project',
-                'template_num_id': self.template.id
+                "project_id": self.project.id,
+                "category": self.template.category,
+                "template_id": self.template.pipeline_template.template_id,
+                "template_source": "project",
+                "template_num_id": self.template.id,
             },
-            spread=True
+            spread=True,
         )
 
     @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
     @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
     def test_create_pipeline_task__raise_invalid_operation(self):
-        self.assertRaises(InvalidOperationException, PeriodicTask.objects.create_pipeline_task,
-                          project=self.invalid_project,
-                          template=self.template,
-                          name=self.name,
-                          cron={},
-                          pipeline_tree=self.pipeline_tree,
-                          creator=self.creator)
+        self.assertRaises(
+            InvalidOperationException,
+            PeriodicTask.objects.create_pipeline_task,
+            project=self.invalid_project,
+            template=self.template,
+            name=self.name,
+            cron={},
+            pipeline_tree=self.pipeline_tree,
+            creator=self.creator,
+        )
 
         PipelineTemplateWebWrapper.unfold_subprocess.assert_not_called()
 
@@ -201,7 +173,7 @@ class PeriodicTaskTestCase(TestCase):
 
     @patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist))
     def test_task_template_name__task_does_not_exist(self):
-        self.assertEqual(self.task.task_template_name, '')
+        self.assertEqual(self.task.task_template_name, "")
 
     def test_set_enabled(self):
         self.task.set_enabled(True)
@@ -216,13 +188,12 @@ class PeriodicTaskTestCase(TestCase):
         pipeline_periodic_task_id = self.task.task.id
         self.task = self.task.delete()
         self.assertRaises(
-            PipelinePeriodicTask.DoesNotExist,
-            PipelinePeriodicTask.objects.get,
-            id=pipeline_periodic_task_id)
+            PipelinePeriodicTask.DoesNotExist, PipelinePeriodicTask.objects.get, id=pipeline_periodic_task_id
+        )
 
     def test_modify_constants(self):
-        expect_constants = copy.deepcopy(self.task.task.execution_data['constants'])
-        expect_constants['key_1']['value'] = 'val_3'
-        new_constants = self.task.modify_constants({'key_1': 'val_3'})
-        self.assertEqual(self.task.task.execution_data['constants'], expect_constants)
+        expect_constants = copy.deepcopy(self.task.task.execution_data["constants"])
+        expect_constants["key_1"]["value"] = "val_3"
+        new_constants = self.task.modify_constants({"key_1": "val_3"})
+        self.assertEqual(self.task.task.execution_data["constants"], expect_constants)
         self.assertEqual(new_constants, expect_constants)
