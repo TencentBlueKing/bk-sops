@@ -46,6 +46,7 @@ class MockClient(object):
         self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
         self.cc.create_set = MagicMock(return_value=create_set_return)
 
+
 GET_CLIENT_BY_USER = \
     "pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0.get_client_by_user"
 CC_GET_CLIENT_BY_USER = \
