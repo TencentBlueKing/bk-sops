@@ -86,7 +86,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             "creator": kwargs["creator"],
             "description": kwargs.get("description", ""),
         }
-        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
 
         pipeline_web_cleaner = PipelineWebTreeCleaner(pipeline_tree)
         nodes_attr = pipeline_web_cleaner.clean(with_subprocess=True)
@@ -676,6 +676,7 @@ class TaskFlowInstance(models.Model):
         if loop is None or int(loop) >= detail["loop"]:
             loop = detail["loop"]
             detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
+        # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
         else:
             histories = pipeline_api.get_activity_histories(node_id, loop)
             # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
@@ -693,7 +694,7 @@ class TaskFlowInstance(models.Model):
                     "state": current_loop["state"],
                 }
             )
-            # index非-1表示当前loop的重试记录
+            # index 非 -1 表示当前 loop 的重试记录
             detail["histories"] = histories[1:]
 
         for his in detail["histories"]:

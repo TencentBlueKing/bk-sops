@@ -129,9 +129,6 @@ class RelatedResourceType(object):
         self.instances = instances
 
     def validate(self):
-        if not self.instances:
-            raise ValueError("RelatedResourceType.instances invalid: should contain at least 1 ResourceInstance")
-
         if not isinstance(self.instances, list):
             raise TypeError("ResourceInstance.instances should be a list of iam.apply.models.ResourceInstance")
 

@@ -18,13 +18,13 @@ class Page(object):
 
     @property
     def slice_from(self):
-        return self.limit * self.offset
+        return self.offset
 
     @property
     def slice_to(self):
         if self.limit == 0:
             return None
-        return (self.offset + 1) * self.limit
+        return self.offset + self.limit
 
 
 def get_page_obj(page_data):

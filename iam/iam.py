@@ -268,7 +268,7 @@ class IAM(object):
 
         # 4. 一个策略是一个表达式, 计算一次
         for action_policy in action_policies:
-            action = action_policy["action_id"]
+            action = action_policy["action"]["id"]
             policies = action_policy["condition"]
             actions_allowed[action] = self._eval_policy(policies, obj_set)
 
@@ -316,7 +316,7 @@ class IAM(object):
 
             # 一个策略是一个表达式, 计算一次
             for action_policy in action_policies:
-                action = action_policy["action_id"]
+                action = action_policy["action"]["id"]
                 policies = action_policy["condition"]
 
                 resources_actions_perms.setdefault(resource_id, {})[action] = False
@@ -348,29 +348,6 @@ class IAM(object):
         converted_filters = c.convert(policies)
         logger.debug("the converted filters: %s", converted_filters)
         return converted_filters
-
-    def query_subjects(self, request):
-        logger.debug("calling IAM.query_subjects(request)......")
-
-        # 1. validate
-        if not isinstance(request, Request):
-            raise AuthInvalidRequest("request should be instance of iam.auth.models.Request")
-
-        request.validate()
-
-        # 2. _client.policy_query
-        data = request.to_dict()
-        logger.debug("the request: %s", data)
-
-        ok, message, subjects = self._client.policy_query_subjects(data)
-        if not ok:
-            raise AuthAPIError(message)
-
-        logger.debug("the return subjects: %s", subjects)
-        if not subjects:
-            return []
-
-        return subjects
 
     # TODO: add the register model apis
     def get_token(self, system):
