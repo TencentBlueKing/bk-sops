@@ -218,34 +218,34 @@
                             }
                         ]
                         },
-                        {
-                            el: '.entry-item[data-type=branchgateway]',
-                            url: require('@/assets/images/left-branchgateway-guide.gif'),
-                            text: [
-                                {
-                                    type: 'name',
-                                    val: i18n.t('分支网关：')
-                                },
-                                {
-                                    type: 'text',
-                                    val: i18n.t('执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。')
-                                }
-                            ]
-                        },
-                        {
-                            el: '.entry-item[data-type=convergegateway]',
-                            url: require('@/assets/images/left-convergegateway-guide.gif'),
-                            text: [
-                                {
-                                    type: 'name',
-                                    val: i18n.t('汇聚网关：')
-                                },
-                                {
-                                    type: 'text',
-                                    val: i18n.t('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
-                                }
-                            ]
-                        }
+                    {
+                        el: '.entry-item[data-type=branchgateway]',
+                        url: require('@/assets/images/left-branchgateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: i18n.t('分支网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: i18n.t('执行符合条件的流出分支。多个条件符合时，将只会执行第一个符合条件的分支。')
+                            }
+                        ]
+                    },
+                    {
+                        el: '.entry-item[data-type=convergegateway]',
+                        url: require('@/assets/images/left-convergegateway-guide.gif'),
+                        text: [
+                            {
+                                type: 'name',
+                                val: i18n.t('汇聚网关：')
+                            },
+                            {
+                                type: 'text',
+                                val: i18n.t('所有进入顺序流的分支都到达以后，流程才会通过汇聚网关。')
+                            }
+                        ]
+                    }
                 ]
                 const baseConfig = {
                     el: '',
