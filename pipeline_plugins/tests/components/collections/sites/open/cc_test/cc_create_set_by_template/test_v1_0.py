@@ -46,25 +46,10 @@ class MockClient(object):
         self.cc.search_biz_inst_topo = MagicMock(return_value=search_biz_inst_topo_return)
         self.cc.create_set = MagicMock(return_value=create_set_return)
 
-
-CC_FORMAT_PROP_DATA_SET_ENV = {"result": True, "data": {"测试": "1", "体验": "2", "正式": "3"}}
-CC_FORMAT_PROP_DATA_SERVICE_STATUS = {"result": True, "data": {"开放": "1", "关闭": "2"}}
-
 GET_CLIENT_BY_USER = \
     "pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0.get_client_by_user"
 CC_GET_CLIENT_BY_USER = \
     'pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user'
-CC_FORMAT_PROP_DATA = \
-    "pipeline_plugins.components.collections.sites.open.cc.create_set_by_template.v1_0.cc_format_prop_data"
-
-
-# 根据prop_id确定CC_FORMAT_PROP_DATA接口的返回值
-def cc_format_prop_data_return(executor, obj_id, prop_id, language, supplier_account):
-    if prop_id == "bk_set_env":
-        return CC_FORMAT_PROP_DATA_SET_ENV
-    else:
-        return CC_FORMAT_PROP_DATA_SERVICE_STATUS
-
 
 # 通用client
 COMMON_CLIENT = MockClient(
@@ -203,8 +188,7 @@ SELECT_BY_TEXT_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
     ],
 )
 
@@ -226,8 +210,7 @@ SELECT_BY_TEXT_ERROR_LEVEL_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
     ],
 )
 
@@ -248,8 +231,7 @@ SELECT_BY_TEXT_ERROR_PATH_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
     ],
 )
 
@@ -273,7 +255,6 @@ SELECT_BY_TOPO_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT),
-        Patcher(target=CC_FORMAT_PROP_DATA, side_effect=cc_format_prop_data_return),
+        Patcher(target=CC_GET_CLIENT_BY_USER, return_value=COMMON_CLIENT)
     ],
 )
