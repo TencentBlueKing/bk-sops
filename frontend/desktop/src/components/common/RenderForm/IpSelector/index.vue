@@ -46,19 +46,12 @@
                 :conditions="conditions"
                 @change="updateValue('conditions', $event)">
             </select-condition>
-            <!-- <select-condition
-                ref="excludeConditions"
-                :label="i18n.exclude"
-                :editable="editable"
-                :condition-fields="conditionFields"
-                :conditions="excludes"
-                @change="updateValue('excludes', $event)">
-            </select-condition> -->
             <div class="cloud-area-form">
-                <label>{{ i18n.showCloudArea }}</label>
+                <label :class="[editable ? '' : 'disabled']">{{ i18n.showCloudArea }}</label>
                 <bk-switcher
                     size="min"
                     theme="primary"
+                    :disabled="!editable"
                     v-model="with_cloud_id"
                     @change="updateValue('with_cloud_id', $event)">
                 </bk-switcher>
@@ -269,6 +262,9 @@
         font-size: 12px;
         color: #313238;
         line-height: 20px;
+        &.disabled {
+            color: #cccccc;
+        }
     }
 }
 </style>
