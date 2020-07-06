@@ -62,5 +62,8 @@
 <style lang="scss" scoped>
 .search-input {
     font-size: 14px;
+    /deep/ .bk-form-input {
+        height: 26px;
+    }
 }
 </style>

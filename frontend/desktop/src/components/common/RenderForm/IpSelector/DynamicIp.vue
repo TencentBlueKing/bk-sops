@@ -206,7 +206,7 @@
     float: left;
     padding: 8px;
     width: 50%;
-    border-right: 1px solid #c4c6cc;
+    border-right: 1px solid #ddebe4;
 }
 .selected-ips {
     float: left;

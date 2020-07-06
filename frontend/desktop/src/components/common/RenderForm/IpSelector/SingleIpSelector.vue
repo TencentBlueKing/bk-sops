@@ -92,13 +92,6 @@
     }
 </script>
 <style lang="scss" scoped>
-.selector-choose-wrap {
-    &.disabled {
-        .ip-tab-radio {
-            background: #f0f1f5;
-        }
-    }
-}
 .ip-tab-radio {
     display: inline-block;
     font-size: 14px;

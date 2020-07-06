@@ -98,8 +98,8 @@
         </div>
         <div class="adding-footer">
             <div class="ip-list-btns">
-                <bk-button theme="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
-                <bk-button theme="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
+                <bk-button theme="primary" size="small" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
+                <bk-button theme="default" size="small" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
             </div>
             <div class="message-wrap">
                 <span v-if="type === 'select'">{{i18n.selected}} {{selectedIp.length}} {{i18n.number}}</span>
@@ -329,7 +329,7 @@
 }
 .ip-search-wrap {
     position: absolute;
-    top: -40px;
+    top: -36px;
     right: 0;
     width: 50%;
 }
@@ -446,15 +446,10 @@
 }
 .adding-footer {
     position: relative;
-    margin: 10px 0;
-    .bk-button {
-        font-size: 12px;
-        height: 32px;
-        line-height: 32px;
-    }
+    margin: 13px 0;
     .message-wrap {
         position: absolute;
-        top: 10px;
+        top: 8px;
         left: 160px;
         line-height: 1;
         font-size: 12px;
