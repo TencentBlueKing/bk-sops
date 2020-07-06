@@ -217,7 +217,7 @@
                                 val: i18n.t('有多个流出分支，并且多个流出分支都默认执行。')
                             }
                         ]
-                        },
+                    },
                     {
                         el: '.entry-item[data-type=branchgateway]',
                         url: require('@/assets/images/left-branchgateway-guide.gif'),
