@@ -89,4 +89,4 @@ class PipelineConfig(AppConfig):
             logger.error("can not find REDIS in settings!")
 
         # avoid big flow pickle raise maximum recursion depth exceeded error
-        sys.setrecursionlimit(50000)
+        sys.setrecursionlimit(10000)
