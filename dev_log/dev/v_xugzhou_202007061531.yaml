@@ -1,4 +1,0 @@
-improvement: 
-  - "项目选择下拉 name 修改为 [id] + name"
-  - "返回的项目如果 from_cmdb 的值为 true，展示的时候名字前的 id 取 project.bk_biz_id"
-  - "返回的项目如果 from_cmdb 的值为 false，展示的时候名字前的 id 取 project.id"
