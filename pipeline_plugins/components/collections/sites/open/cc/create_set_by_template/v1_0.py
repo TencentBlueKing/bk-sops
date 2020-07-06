@@ -113,21 +113,6 @@ class CCCreateSetBySetTemplateService(Service):
             data.set_outputs("ex_data", _("请选择填参方式"))
             return False
 
-        bk_set_env = cc_format_prop_data(
-            executor, "set", "bk_set_env", parent_data.get_one_of_inputs("language"), supplier_account
-        )
-
-        if not bk_set_env["result"]:
-            data.set_outputs("ex_data", bk_set_env["message"])
-            return False
-
-        bk_service_status = cc_format_prop_data(
-            executor, "set", "bk_service_status", parent_data.get_one_of_inputs("language"), supplier_account
-        )
-        if not bk_service_status["result"]:
-            data.set_outputs("ex_data", bk_service_status["message"])
-            return False
-
         cc_set_name = data.get_one_of_inputs("cc_set_name")
         cc_set_template = data.get_one_of_inputs("cc_set_template")
 
