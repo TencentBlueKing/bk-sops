@@ -26,8 +26,7 @@ from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     cc_format_tree_mode_id,
     cc_list_select_node_inst_id,
-    BkObjType,
-    cc_format_prop_data
+    BkObjType
 )
 
 from gcloud.conf import settings
