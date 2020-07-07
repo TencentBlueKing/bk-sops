@@ -44,3 +44,8 @@ class InvalidDataBackendError(PipelineEngineException):
 
 class InvalidPipelineEndHandleError(PipelineEngineException):
     pass
+
+
+class CeleryFailedTaskCatchException(PipelineEngineException):
+    def __init__(self, task_name):
+        self.task_name = task_name
