@@ -12,8 +12,11 @@ specific language governing permissions and limitations under the License.
 """
 
 import functools
+import logging
+import sys
 import time
 
+from celery import current_app
 from django.db import transaction
 from redis.exceptions import ConnectionError as RedisConnectionError
 
@@ -39,6 +42,8 @@ from pipeline.engine.models import (
 from pipeline.engine.signals import pipeline_revoke
 from pipeline.engine.utils import ActionResult, calculate_elapsed_time
 from pipeline.utils import uniqid
+
+logger = logging.getLogger("celery")
 
 
 def _node_existence_check(func):
@@ -69,10 +74,21 @@ def _frozen_check(func):
 def _worker_check(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        def on_connection_error(exc, interval):
+            logger.warning("Connection Error: {!r}. Retry in {}s.".format(exc, interval), file=sys.stderr)
+
         if kwargs.get("check_workers", True):
             try:
-                if not workers():
-                    return ActionResult(result=False, message="can not find celery workers, please check worker status")
+                with current_app.connection() as conn:
+                    try:
+                        conn.ensure_connection(on_connection_error, current_app.conf.BROKER_CONNECTION_MAX_RETRIES)
+                        print(dir(conn))
+                    except conn.connection_errors + conn.channel_errors as exc:
+                        logger.warning("Connection lost: {!r}".format(exc), file=sys.stderr)
+                    if not workers(conn):
+                        return ActionResult(
+                            result=False, message="can not find celery workers, please check worker status"
+                        )
             except exceptions.RabbitMQConnectionError as e:
                 return ActionResult(
                     result=False,
