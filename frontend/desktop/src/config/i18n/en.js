@@ -990,8 +990,8 @@ const en = {
     '快照名称': 'Snapshot name',
     '新建快照': 'New snapshot',
     '可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。': 'It can automatically save the last 50 snapshots, every 5 minutes. Store only in local browser.',
-    '最近快照已保存，并恢复至序号': 'The most recent snapshot has been saved and restored to the serial number',
-    '号的快照': 'Snapshot'
+    '最近快照已保存，并恢复至原序号为': 'The most recent snapshot has been saved and restored to the original number',
+    '的快照': 'snapshot'
 }
 
 export default en

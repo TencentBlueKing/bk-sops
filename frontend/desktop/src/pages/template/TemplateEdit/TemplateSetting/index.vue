@@ -49,18 +49,15 @@
                     @onSelectCategory="onSelectCategory"
                     @onColseTab="onColseTab">
                 </TabTemplateConfig>
-                <TabLocalDraft
-                    :class="['panel-item', { 'active-tab': activeTab === 'localDraftTab' }]"
-                    :is-show="activeTab === 'localDraftTab'"
-                    :draft-array="draftArray"
-                    @onColseTab="onColseTab"
-                    @onDeleteDraft="onDeleteDraft"
-                    @onReplaceTemplate="onReplaceTemplate"
-                    @onNewDraft="onNewDraft"
-                    @updateDraft="updateDraft"
-                    @hideConfigPanel="hideConfigPanel"
-                    @updateLocalTemplateData="updateLocalTemplateData">
-                </TabLocalDraft>
+                <TabTemplateSnapshoot
+                    :class="['panel-item', { 'active-tab': activeTab === 'tplSnapshootTab' }]"
+                    :is-show="activeTab === 'tplSnapshootTab'"
+                    :snapshoots="snapshoots"
+                    @createSnapshoot="$emit('createSnapshoot')"
+                    @useSnapshoot="$emit('useSnapshoot', arguments)"
+                    @updateSnapshoot="$emit('updateSnapshoot', $event)"
+                    @onColseTab="onColseTab">
+                </TabTemplateSnapshoot>
                 <TabPipelineTreeEdit
                     :class="['panel-item', { 'active-tab': activeTab === 'templateDataEditTab' }]"
                     :is-show="activeTab === 'templateDataEditTab'"
@@ -76,7 +73,7 @@
     import { mapState, mapMutations } from 'vuex'
     import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
-    import TabLocalDraft from './TabLocalDraft.vue'
+    import TabTemplateSnapshoot from './TabTemplateSnapshoot.vue'
     import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
 
     const SETTING_TABS = [
@@ -91,7 +88,7 @@
             title: i18n.t('基础信息')
         },
         {
-            id: 'localDraftTab',
+            id: 'tplSnapshootTab',
             icon: 'common-icon-clock-reload',
             title: i18n.t('本地快照')
         },
@@ -107,21 +104,20 @@
         components: {
             TabGlobalVariables,
             TabTemplateConfig,
-            TabLocalDraft,
+            TabTemplateSnapshoot,
             TabPipelineTreeEdit
         },
-        props: [
-            'projectInfoLoading',
-            'businessInfoLoading',
-            'isGlobalVariableUpdate',
-            'isTemplateConfigValid',
-            'isNodeConfigPanelShow',
-            'isSettingPanelShow',
-            'draftArray',
-            'variableTypeList',
-            'isClickDraft',
-            'isFixedVarMenu'
-        ],
+        props: {
+            projectInfoLoading: Boolean,
+            businessInfoLoading: Boolean,
+            isGlobalVariableUpdate: Boolean,
+            isTemplateConfigValid: Boolean,
+            isNodeConfigPanelShow: Boolean,
+            isSettingPanelShow: Boolean,
+            variableTypeList: Array,
+            isFixedVarMenu: Boolean,
+            snapshoots: Array
+        },
         data () {
             return {
                 showPanel: true,
@@ -208,24 +204,6 @@
             },
             onSelectCategory (value) {
                 this.$emit('onSelectCategory', value)
-            },
-            onDeleteDraft (key) {
-                this.$emit('onDeleteDraft', key)
-            },
-            onReplaceTemplate (data) {
-                this.$emit('onReplaceTemplate', data)
-            },
-            onNewDraft (name) {
-                this.$emit('onNewDraft', name)
-            },
-            updateDraft (key, data) {
-                this.$emit('updateDraft', key, data)
-            },
-            hideConfigPanel () {
-                this.$emit('hideConfigPanel')
-            },
-            updateLocalTemplateData () {
-                this.$emit('updateLocalTemplateData')
             },
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
