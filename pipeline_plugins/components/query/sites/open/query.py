@@ -487,9 +487,9 @@ def apply_upload_ticket(request):
 
 def nodeman_get_cloud_area(request):
     client = get_client_by_user(request.user.username)
-    cloud_area_result = client.nodeman.get_cloud()
+    cloud_area_result = client.nodeman.cloud_list()
     if not cloud_area_result["result"]:
-        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.get_cloud", {}, cloud_area_result)
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
         logger.error(message)
         return JsonResponse(
             {"result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message}
