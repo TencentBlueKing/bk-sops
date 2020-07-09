@@ -26,10 +26,10 @@
                 </div>
             </template>
         </div>
-        <div class="setting-panel">
-            <div class="panel-content">
+        <bk-sideslider :is-show="activeTab !== ''" :width="800" ext-cls="setting-slider">
+            <div class="setting-panel" slot="content">
                 <TabGlobalVariables
-                    :is-show="activeTab === 'globalVariableTab'"
+                    v-if="activeTab === 'globalVariableTab'"
                     ref="globalVariable"
                     :class="['panel-item', { 'active-tab': activeTab === 'globalVariableTab' }]"
                     :is-fixed-var-menu.sync="isFixedVarMenu"
@@ -42,14 +42,15 @@
                     @onColseTab="onColseTab">
                 </TabGlobalVariables>
                 <TabTemplateConfig
+                    v-if="activeTab === 'templateConfigTab'"
                     :class="['panel-item', { 'active-tab': activeTab === 'templateConfigTab' }]"
-                    :is-show="activeTab === 'templateConfigTab'"
                     :is-template-config-valid="isTemplateConfigValid"
                     :project-info-loading="projectInfoLoading"
                     @onSelectCategory="onSelectCategory"
                     @onColseTab="onColseTab">
                 </TabTemplateConfig>
                 <TabTemplateSnapshoot
+                    v-if="activeTab === 'tplSnapshootTab'"
                     :class="['panel-item', { 'active-tab': activeTab === 'tplSnapshootTab' }]"
                     :is-show="activeTab === 'tplSnapshootTab'"
                     :snapshoots="snapshoots"
@@ -59,13 +60,13 @@
                     @onColseTab="onColseTab">
                 </TabTemplateSnapshoot>
                 <TabPipelineTreeEdit
+                    v-if="activeTab === 'templateDataEditTab'"
                     :class="['panel-item', { 'active-tab': activeTab === 'templateDataEditTab' }]"
-                    :is-show="activeTab === 'templateDataEditTab'"
                     @confirm="onDataModify"
                     @onColseTab="onColseTab">
                 </TabPipelineTreeEdit>
             </div>
-        </div>
+        </bk-sideslider>
     </div>
 </template>
 <script>
@@ -254,6 +255,15 @@
     border-left: 1px solid $commonBorderColor;
     border-bottom: 1px solid $commonBorderColor;
     z-index: 2551;
+    .setting-panel {
+        position: absolute;
+        top: 0px;
+        right: 56px;
+        width: auto;
+        height: 100%;
+        background: $whiteDefault;
+        border-left: 1px solid $commonBorderColor;
+    }
     .setting-panel-tab {
         padding: 15px 11px;
         color: #546a9e;
@@ -285,14 +295,11 @@
         }
     }
 }
-.setting-panel {
-    position: absolute;
-    top: 0px;
-    right: 56px;
-    width: auto;
-    height: 100%;
-    background: $whiteDefault;
-    border-left: 1px solid $commonBorderColor;
+.setting-slider {
+    top: 50px;
+    /deep/ .bk-sideslider-wrapper {
+        right: 56px;
+    }
 }
 .panel-content {
     height: 100%;
@@ -302,3 +309,7 @@
     height: 100%;
 }
 </style>
+技术解决
+项目管理
+共同协作
+学习和创新能力

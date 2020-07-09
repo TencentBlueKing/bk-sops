@@ -62,7 +62,7 @@
             <span class="col-item col-output">
                 <div @click.stop>
                     <bk-switcher
-                        size="min"
+                        size="small"
                         theme="primary"
                         :value="outputed"
                         @change="onChangeVariableOutput(constant.key, $event)">

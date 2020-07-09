@@ -104,7 +104,7 @@
                                 <bk-switcher
                                     v-model="formData.modules[moduleIndex].isReuse"
                                     theme="primary"
-                                    size="min"
+                                    size="small"
                                     @change="onChangeReuse($event, formData.modules[moduleIndex])">
                                 </bk-switcher>
                             </bk-form-item>

@@ -11,30 +11,30 @@
 */
 <template>
     <div class="pipeline-tree-wrap">
-        <bk-sideslider
+        <!-- <bk-sideslider
             ext-cls="common-template-setting-sideslider pipeline-tree-edit"
             :width="840"
             :is-show="isShow"
             :before-close="onBeforeClose"
-            :quick-close="true">
-            <div slot="header">
-                <span>{{$t('流程模板数据')}}</span>
+            :quick-close="true"> -->
+        <!-- <div slot="header">
+            <span>{{$t('流程模板数据')}}</span>
+        </div> -->
+        <!-- <div style="height: 100%" slot="content"> -->
+        <div class="code-wrapper">
+            <code-editor
+                :value="template"
+                :options="{ readOnly: !hasAdminPerm, language: 'json' }"
+                @input="onDataChange">
+            </code-editor>
+            <div class="error-tips" v-if="errorMessage" :title="errorMessage">
+                <i class="common-icon-info"></i>
+                <div class="message">{{ errorMessage }}</div>
             </div>
-            <div style="height: 100%" slot="content">
-                <div class="code-wrapper">
-                    <code-editor
-                        :value="template"
-                        :options="{ readOnly: !hasAdminPerm, language: 'json' }"
-                        @input="onDataChange">
-                    </code-editor>
-                    <div class="error-tips" v-if="errorMessage" :title="errorMessage">
-                        <i class="common-icon-info"></i>
-                        <div class="message">{{ errorMessage }}</div>
-                    </div>
-                    <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
-                </div>
-            </div>
-        </bk-sideslider>
+            <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+        </div>
+        <!-- </div> -->
+        <!-- </bk-sideslider> -->
     </div>
 </template>
 
