@@ -154,22 +154,25 @@ class Client(object):
     operation_funcs = {
         "add_system": "add_system",
         "update_system": "update_system",
+        "upsert_system": "upsert_system",
         "add_resource_type": "add_resource_type",
         "update_resource_type": "update_resource_type",
         "delete_resource_type": "delete_resource_type",
+        "upsert_resource_type": "upsert_resource_type",
         "add_instance_selection": "add_instance_selection",
         "update_instance_selection": "update_instance_selection",
         "delete_instance_selection": "delete_instance_selection",
+        "upsert_instance_selection": "upsert_instance_selection",
         "add_action": "add_action",
         "update_action": "update_action",
         "delete_action": "delete_action",
+        "upsert_action": "upsert_action",
         "add_create_action_topology": "add_create_action_topology",
         "update_create_action_topology": "update_create_action_topology",
         "upsert_create_action_topology": "update_create_action_topology",
-        "upsert_system": "upsert_system",
-        "upsert_resource_type": "upsert_resource_type",
-        "upsert_instance_selection": "upsert_instance_selection",
-        "upsert_action": "upsert_action",
+        "add_action_groups": "add_action_groups",
+        "update_action_groups": "update_action_groups",
+        "upsert_action_groups": "update_action_groups",
     }
 
     """
@@ -277,6 +280,17 @@ class Client(object):
         )
         ok, message, data = self._call_iam_api(http_put, path, data)
         # if alreay exists, return true
+        return ok, message
+
+    # ---------- action_groups
+    def api_add_action_groups(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/action_groups".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_post, path, data)
+        return ok, message
+
+    def api_update_action_groups(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/action_groups".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
     # ---------- query
@@ -389,6 +403,12 @@ class Client(object):
     def update_create_action_topology(self, system_id, data):
         action_type = "create"
         return self.api_update_action_topology(system_id, action_type, data)
+
+    def add_action_groups(self, system_id, data):
+        return self.api_add_action_groups(system_id, data)
+
+    def update_action_groups(self, system_id, data):
+        return self.api_update_action_groups(system_id, data)
 
     def upsert_system(self, system_id, data):
         if system_id not in self.system_id_set:
