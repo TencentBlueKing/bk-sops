@@ -13,10 +13,8 @@
     <div class="node-config-wrapper">
         <bk-sideslider
             ref="nodeConfigPanel"
-            :ext-cls="getSliderCls"
             :width="710"
-            :is-show="true"
-            :quick-close="true"
+            :is-show="isShow"
             :before-close="beforeClose">
             <div slot="header">
                 <span
@@ -35,65 +33,73 @@
                 </span>
             </div>
             <template slot="content">
-                <div v-show="!isSelectorPanelShow" class="node-config-content">
-                    <!-- 基础信息 -->
-                    <section class="config-section">
-                        <h3>{{$t('基础信息')}}</h3>
-                        <basic-info
-                            ref="basicInfo"
-                            :basic-info="basicInfo"
-                            :node-config="nodeConfig"
-                            :version-list="versionList"
-                            :is-subflow="isSubflow"
-                            :input-loading="inputLoading"
-                            @openSelectorPanel="isSelectorPanelShow = true"
-                            @versionChange="versionChange"
-                            @viewSubflow="onViewSubflow"
-                            @updateSubflowVersion="updateSubflowVersion"
-                            @update="updateBasicInfo">
-                        </basic-info>
-                    </section>
-                    <!-- 输入参数 -->
-                    <section class="config-section">
-                        <h3>{{$t('输入参数')}}</h3>
-                        <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
-                            <template v-if="!inputLoading">
-                                <input-params
-                                    v-if="inputs.length > 0"
-                                    ref="inputParams"
-                                    :node-id="nodeId"
-                                    :scheme="inputs"
-                                    :plugin="basicInfo.plugin"
-                                    :version="basicInfo.version"
-                                    :subflow-forms="subflowForms"
-                                    :value="inputsParamValue"
+                <template v-if="!isSelectorPanelShow">
+                    <div class="node-config">
+                        <div class="config-form">
+                            <!-- 基础信息 -->
+                            <section class="config-section">
+                                <h3>{{$t('基础信息')}}</h3>
+                                <basic-info
+                                    ref="basicInfo"
+                                    :basic-info="basicInfo"
+                                    :node-config="nodeConfig"
+                                    :version-list="versionList"
                                     :is-subflow="isSubflow"
-                                    @globalVariableUpdate="$emit('globalVariableUpdate', true)"
-                                    @update="updateInputsValue">
-                                </input-params>
-                                <no-data v-else></no-data>
-                            </template>
+                                    :input-loading="inputLoading"
+                                    @openSelectorPanel="isSelectorPanelShow = true"
+                                    @versionChange="versionChange"
+                                    @viewSubflow="onViewSubflow"
+                                    @updateSubflowVersion="updateSubflowVersion"
+                                    @update="updateBasicInfo">
+                                </basic-info>
+                            </section>
+                            <!-- 输入参数 -->
+                            <section class="config-section">
+                                <h3>{{$t('输入参数')}}</h3>
+                                <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
+                                    <template v-if="!inputLoading">
+                                        <input-params
+                                            v-if="inputs.length > 0"
+                                            ref="inputParams"
+                                            :node-id="nodeId"
+                                            :scheme="inputs"
+                                            :plugin="basicInfo.plugin"
+                                            :version="basicInfo.version"
+                                            :subflow-forms="subflowForms"
+                                            :value="inputsParamValue"
+                                            :is-subflow="isSubflow"
+                                            @globalVariableUpdate="$emit('globalVariableUpdate', true)"
+                                            @update="updateInputsValue">
+                                        </input-params>
+                                        <no-data v-else></no-data>
+                                    </template>
+                                </div>
+                            </section>
+                            <!-- 输出参数 -->
+                            <section class="config-section">
+                                <h3>{{$t('输出参数')}}</h3>
+                                <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
+                                    <template v-if="!outputLoading">
+                                        <output-params
+                                            v-if="outputs.length"
+                                            :params="outputs"
+                                            :version="basicInfo.version"
+                                            :node-id="nodeId"
+                                            @globalVariableUpdate="$emit('globalVariableUpdate', true)">
+                                        </output-params>
+                                        <no-data v-else></no-data>
+                                    </template>
+                                </div>
+                            </section>
                         </div>
-                    </section>
-                    <!-- 输出参数 -->
-                    <section class="config-section">
-                        <h3>{{$t('输出参数')}}</h3>
-                        <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
-                            <template v-if="!outputLoading">
-                                <output-params
-                                    v-if="outputs.length"
-                                    :params="outputs"
-                                    :version="basicInfo.version"
-                                    :node-id="nodeId"
-                                    @globalVariableUpdate="$emit('globalVariableUpdate', true)">
-                                </output-params>
-                                <no-data v-else></no-data>
-                            </template>
+                        <div class="btn-footer">
+                            <bk-button theme="primary" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                            <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
                         </div>
-                    </section>
-                </div>
+                    </div>
+                </template>
                 <selector-panel
-                    v-if="isSelectorPanelShow"
+                    v-else
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
@@ -130,7 +136,7 @@
         props: {
             project_id: [String, Number],
             nodeId: String,
-            settingActiveTab: String,
+            isShow: Boolean,
             atomList: Array,
             subflowList: Array,
             atomTypeList: Object,
@@ -178,28 +184,6 @@
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
-            },
-            getSliderCls () { // 动态设置面板的 class
-                let base = 'node-config-base'
-                if (this.isSettingPanelShow) {
-                    switch (this.settingActiveTab) {
-                        case 'globalVariableTab':
-                            base += ' position-right-var'
-                            break
-                        case 'templateConfigTab':
-                            base += ' position-right-basic-info'
-                            break
-                        case 'tplSnapshootTab':
-                            base += ' position-right-cache'
-                            break
-                        case 'templateDataEditTab':
-                            base += ' position-right-template-data'
-                    }
-                }
-                if (this.isSelectorPanelShow) {
-                    base += ' position-right-choose-plugin'
-                }
-                return base
             }
         },
         created () {
@@ -790,8 +774,10 @@
                 return this.basicInfo
             },
             beforeClose () {
-                this.$emit('hide')
-            }
+                this.$emit('update:isShow', false)
+                return true
+            },
+            onSaveConfig () {}
         }
     }
 </script>
@@ -804,46 +790,21 @@
             color: #3a84ff;
             cursor: pointer;
         }
-        .node-config-content {
-            padding: 30px 20px;
-            height: 100%;
-            overflow-y: auto;
-            @include scrollbar;
-        }
-        .node-config-base {
-            position: absolute !important;
-            background: none !important;
-            /deep/ .bk-sideslider-content {
-                max-height: none !important;
-                height: calc(100vh - 168px);
-                overflow: initial;
+        .node-config {
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            .config-form {
+                padding: 20px 30px 0 30px;
+                max-height: calc(100% - 49px);
+                overflow-y: auto;
+                @include scrollbar;
             }
-            /deep/ .bk-sideslider-wrapper {
-                transition: right .3s ease-in-out;
-                right: 56px;
-            }
-            &.position-right-var {
-                /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
-                    border-right: 1px solid #dcdee5;
-                }
-            }
-            &.position-right-basic-info{
-                /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
-                    border-right: 1px solid #dcdee5;
-                }
-            }
-            &.position-right-cache {
-                /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
-                    border-right: 1px solid #dcdee5;
-                }
-            }
-            &.position-right-template-data {
-                /deep/ .bk-sideslider-wrapper {
-                    right: 896px;
-                    border-right: 1px solid #dcdee5;
+            .btn-footer {
+                padding: 8px 30px;
+                border-top: 1px solid #cacedb;
+                .bk-button {
+                    margin-right: 10px;
+                    padding: 0 25px;
                 }
             }
         }
@@ -863,5 +824,8 @@
         .outputs-wrapper {
             min-height: 80px;
         }
+    }
+    /deep/ .bk-sideslider-content {
+        overflow: initial;
     }
 </style>

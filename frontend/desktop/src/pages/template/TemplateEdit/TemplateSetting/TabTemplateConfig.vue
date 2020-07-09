@@ -11,16 +11,6 @@
 */
 <template>
     <div class="config-wrapper">
-        <!-- <bk-sideslider
-            ext-cls="common-template-setting-sideslider"
-            :width="800"
-            :is-show="isShow"
-            :before-close="onBeforeClose"
-            :quick-close="true"> -->
-        <!-- <div slot="header">
-            <span>{{$t('基础信息')}}</span>
-        </div>
-        <div slot="content" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }"> -->
         <div class="common-form-item">
             <label class="required">{{ $t('分类') }}</label>
             <div class="common-form-content">
@@ -54,12 +44,6 @@
                 </bk-checkbox-group>
             </div>
         </div>
-        <div class="common-form-item hide">
-            <label>{{ $t('超时时间(分钟)') }}</label>
-            <div class="common-form-content">
-                <bk-input :value="timeout" @input="onChangeTimeout" />
-            </div>
-        </div>
         <div class="common-form-item">
             <label>{{ $t('通知分组') }}</label>
             <div class="common-form-content">
@@ -73,8 +57,6 @@
                 </bk-checkbox-group>
             </div>
         </div>
-        <!-- </div> -->
-        <!-- </bk-sideslider> -->
     </div>
 </template>
 
@@ -179,9 +161,6 @@
             },
             onChangeTaskCategories (id) {
                 this.selectedTaskCategory = id
-            },
-            onBeforeClose () {
-                this.$emit('onColseTab', 'templateConfigTab')
             }
         }
     }
@@ -228,9 +207,6 @@
     .notify-icon {
         margin-right: 4px;
         width: 18px;
-    }
-    .hide {
-        display: none;
     }
 }
 </style>
