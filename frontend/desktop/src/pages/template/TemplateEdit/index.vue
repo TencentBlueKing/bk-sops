@@ -1332,7 +1332,6 @@
         top: 59px;
         right: 0px;
         height: calc(100% - 58px);
-        z-index: 5;
     }
     .leave-tips {
         padding: 30px;

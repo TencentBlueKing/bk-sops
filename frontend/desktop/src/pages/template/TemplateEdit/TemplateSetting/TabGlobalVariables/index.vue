@@ -11,136 +11,136 @@
 */
 <template>
     <div class="global-variable-panel">
-        <bk-sideslider
+        <!-- <bk-sideslider
             ext-cls="common-template-setting-sideslider"
             :width="800"
             :is-show="isShow"
             :before-close="onBeforeClose"
-            :quick-close="true">
-            <div slot="header">
-                <span class="close-panel-icon"></span>
-                <span class="global-variable-text">{{$t('全局变量')}}</span>
-                <i
-                    class="common-icon-info global-variable-tootip"
-                    v-bk-tooltips="{
-                        allowHtml: true,
-                        content: '#var-desc',
-                        placement: 'bottom-end',
-                        duration: 0,
-                        width: 400
-                    }">
-                </i>
-                <div id="var-desc">
-                    <div class="tips-item">
-                        <h4>{{ $t('属性：') }}</h4>
-                        <p>
-                            {{ $t('"来源/是否显示"格式，来源是输入类型') }}
-                            <i class="common-icon-show-left" style="color: #219f42"></i>
-                            {{ $t('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型') }}
-                            <i class="common-icon-hide-right" style="color: #de9524"></i>
-                            {{ $t('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，') }}
-                            <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
-                            {{ $t('表示显示，') }}
-                            <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
-                            {{ $t('表示隐藏，输出类型的变量一定是隐藏的。') }}
-                        </p>
-                    </div>
-                    <div class="tips-item">
-                        <h4>{{ $t('输出：') }}</h4>
-                        <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
-                    </div>
+            :quick-close="true"> -->
+        <!-- <div slot="header">
+            <span class="close-panel-icon"></span>
+            <span class="global-variable-text">{{$t('全局变量')}}</span>
+            <i
+                class="common-icon-info global-variable-tootip"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    content: '#var-desc',
+                    placement: 'bottom-end',
+                    duration: 0,
+                    width: 400
+                }">
+            </i>
+            <div id="var-desc">
+                <div class="tips-item">
+                    <h4>{{ $t('属性：') }}</h4>
+                    <p>
+                        {{ $t('"来源/是否显示"格式，来源是输入类型') }}
+                        <i class="common-icon-show-left" style="color: #219f42"></i>
+                        {{ $t('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型') }}
+                        <i class="common-icon-hide-right" style="color: #de9524"></i>
+                        {{ $t('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，') }}
+                        <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
+                        {{ $t('表示显示，') }}
+                        <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
+                        {{ $t('表示隐藏，输出类型的变量一定是隐藏的。') }}
+                    </p>
                 </div>
-                <div :class="['panel-fixed-pin', { 'actived': isFixedVarMenu }]" @click.stop="onClickVarPin">
-                    <i class="common-icon-pin"></i>
+                <div class="tips-item">
+                    <h4>{{ $t('输出：') }}</h4>
+                    <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
                 </div>
             </div>
-            <template slot="content">
-                <div class="add-variable">
-                    <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
-                    <div class="toggle-system-var">
-                        <bk-checkbox v-model="isHideSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
-                    </div>
-                </div>
-                <div class="global-variable-content">
-                    <div class="variable-header clearfix">
-                        <span class="col-name t-head">{{ $t('名称') }}</span>
-                        <span class="col-key t-head">KEY</span>
-                        <span class="col-attributes t-head">{{ $t('属性') }}</span>
-                        <span class="col-output t-head">{{ $t('输出') }}</span>
-                        <span class="col-quote t-head">
-                            {{ $t('引用') }}
-                            <i
-                                class="common-icon-info global-variable-tootip quote-info"
-                                v-bk-tooltips="{
-                                    allowHtml: true,
-                                    content: $t('直接引用全局变量的节点数量，点击数字查看引用详情'),
-                                    placement: 'bottom-end',
-                                    duration: 0,
-                                    width: 200
-                                }">
-                            </i>
-                        </span>
-                        <span class="col-operation t-head">{{ $t('操作') }}</span>
-                        <span class="col-delete t-head"></span>
-                    </div>
-                    <div v-if="isVarTipsShow" class="variable-operating-tips">{{ varOperatingTips }}</div>
-                    <ul class="variable-list" ref="variableList">
-                        <draggable class="variable-drag" :list="variableList" handle=".col-item-drag" @end="onDragEnd($event)">
-                            <VariableItem
-                                v-for="constant in variableList"
-                                :ref="`variableKey_${constant.key}`"
-                                :key="constant.key"
-                                :outputed="outputs.indexOf(constant.key) > -1"
-                                :is-variable-editing="isVariableEditing"
-                                :constant="constant"
-                                :variable-data="variableData"
-                                :variable-type-list="variableTypeList"
-                                :the-key-of-editing="theKeyOfEditing"
-                                :the-key-of-view-cited="theKeyOfViewCited"
-                                :is-hide-system-var="isHideSystemVar"
-                                :system-constants="systemConstants"
-                                :var-operating-tips="varOperatingTips"
-                                @onChangeEdit="onChangeEdit"
-                                @onCitedNodeClick="onCitedNodeClick"
-                                @onEditVariable="onEditVariable"
-                                @onViewCitedList="onViewCitedList"
-                                @onChangeVariableOutput="onChangeVariableOutput"
-                                @onDeleteVariable="onDeleteVariable" />
-                        </draggable>
-                        <!-- 新建变量 -->
-                        <li v-if="isVariableEditing && theKeyOfEditing === ''">
-                            <VariableEdit
-                                ref="addVariablePanel"
-                                :system-constants="systemConstants"
-                                :variable-data="variableData"
-                                :variable-type-list="variableTypeList"
-                                :is-new-variable="true"
-                                :var-operating-tips="varOperatingTips"
-                                @scrollPanelToView="scrollPanelToView"
-                                @onChangeEdit="onChangeEdit">
-                            </VariableEdit>
-                        </li>
-                        <li v-if="isShowNodata" class="empty-variable-tip">
-                            <NoData>
-                                <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
-                            </NoData>
-                        </li>
-                    </ul>
-                </div>
-                <bk-dialog
-                    width="400"
-                    ext-cls="common-dialog delete-variable-dialog"
-                    :theme="'primary'"
-                    :mask-close="false"
-                    :header-position="'left'"
-                    :title="$t('删除变量')"
-                    :value="deleteConfirmDialogShow"
-                    @confirm="onConfirm"
-                    @cancel="onCancel">
-                    <div>{{ $t('确认删除该变量？') }}</div>
-                </bk-dialog>
-            </template>
-        </bk-sideslider>
+            <div :class="['panel-fixed-pin', { 'actived': isFixedVarMenu }]" @click.stop="onClickVarPin">
+                <i class="common-icon-pin"></i>
+            </div>
+        </div> -->
+        <!-- <template slot="content"> -->
+        <div class="add-variable">
+            <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
+            <div class="toggle-system-var">
+                <bk-checkbox v-model="isHideSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
+            </div>
+        </div>
+        <div class="global-variable-content">
+            <div class="variable-header clearfix">
+                <span class="col-name t-head">{{ $t('名称') }}</span>
+                <span class="col-key t-head">KEY</span>
+                <span class="col-attributes t-head">{{ $t('属性') }}</span>
+                <span class="col-output t-head">{{ $t('输出') }}</span>
+                <span class="col-quote t-head">
+                    {{ $t('引用') }}
+                    <i
+                        class="common-icon-info global-variable-tootip quote-info"
+                        v-bk-tooltips="{
+                            allowHtml: true,
+                            content: $t('直接引用全局变量的节点数量，点击数字查看引用详情'),
+                            placement: 'bottom-end',
+                            duration: 0,
+                            width: 200
+                        }">
+                    </i>
+                </span>
+                <span class="col-operation t-head">{{ $t('操作') }}</span>
+                <span class="col-delete t-head"></span>
+            </div>
+            <div v-if="isVarTipsShow" class="variable-operating-tips">{{ varOperatingTips }}</div>
+            <ul class="variable-list" ref="variableList">
+                <draggable class="variable-drag" :list="variableList" handle=".col-item-drag" @end="onDragEnd($event)">
+                    <VariableItem
+                        v-for="constant in variableList"
+                        :ref="`variableKey_${constant.key}`"
+                        :key="constant.key"
+                        :outputed="outputs.indexOf(constant.key) > -1"
+                        :is-variable-editing="isVariableEditing"
+                        :constant="constant"
+                        :variable-data="variableData"
+                        :variable-type-list="variableTypeList"
+                        :the-key-of-editing="theKeyOfEditing"
+                        :the-key-of-view-cited="theKeyOfViewCited"
+                        :is-hide-system-var="isHideSystemVar"
+                        :system-constants="systemConstants"
+                        :var-operating-tips="varOperatingTips"
+                        @onChangeEdit="onChangeEdit"
+                        @onCitedNodeClick="onCitedNodeClick"
+                        @onEditVariable="onEditVariable"
+                        @onViewCitedList="onViewCitedList"
+                        @onChangeVariableOutput="onChangeVariableOutput"
+                        @onDeleteVariable="onDeleteVariable" />
+                </draggable>
+                <!-- 新建变量 -->
+                <li v-if="isVariableEditing && theKeyOfEditing === ''">
+                    <VariableEdit
+                        ref="addVariablePanel"
+                        :system-constants="systemConstants"
+                        :variable-data="variableData"
+                        :variable-type-list="variableTypeList"
+                        :is-new-variable="true"
+                        :var-operating-tips="varOperatingTips"
+                        @scrollPanelToView="scrollPanelToView"
+                        @onChangeEdit="onChangeEdit">
+                    </VariableEdit>
+                </li>
+                <li v-if="isShowNodata" class="empty-variable-tip">
+                    <NoData>
+                        <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
+                    </NoData>
+                </li>
+            </ul>
+        </div>
+        <bk-dialog
+            width="400"
+            ext-cls="common-dialog delete-variable-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="$t('删除变量')"
+            :value="deleteConfirmDialogShow"
+            @confirm="onConfirm"
+            @cancel="onCancel">
+            <div>{{ $t('确认删除该变量？') }}</div>
+        </bk-dialog>
+        <!-- </template> -->
+        <!-- </bk-sideslider> -->
     </div>
 </template>
 
