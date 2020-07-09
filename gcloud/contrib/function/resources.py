@@ -41,6 +41,20 @@ class FunctionTaskResourceInspect(ResourceInspect):
         return bundle.obj.task
 
 
+class FunctionTaskAuthorization(BkSaaSLooseReadOnlyAuthorization):
+    def create_detail(self, object_list, bundle):
+        return True
+
+    def read_detail(self, object_list, bundle):
+        return self.is_allow(bundle, [self.read_action_id], instance=bundle.obj.task)
+
+    def update_detail(self, object_list, bundle):
+        return False
+
+    def delete_detail(self, object_list, bundle):
+        return False
+
+
 class FunctionTaskResource(GCloudModelResource):
     task = fields.ForeignKey(TaskFlowInstanceResource, "task", full=True)
     creator_name = fields.CharField(attribute="creator_name", readonly=True, null=True)
@@ -51,7 +65,7 @@ class FunctionTaskResource(GCloudModelResource):
         queryset = FunctionTask.objects.filter(task__is_deleted=False)
         resource_name = "function_task"
         auth_resource = taskflow_resource
-        authorization = BkSaaSLooseReadOnlyAuthorization(
+        authorization = FunctionTaskAuthorization(
             auth_resource=auth_resource, read_action_id="view", update_action_id="edit", resource_f="task"
         )
         inspect = FunctionTaskResourceInspect()
