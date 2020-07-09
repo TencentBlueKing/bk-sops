@@ -10,34 +10,26 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <ul :class="['node-tree', 'tree-level-' + level]">
-        <li v-for="(item, key) in data" :key="key" class="tree-item">
-            <h4
-                :class="{
-                    'node-name': true,
-                    'actived': getNodeActivedState(item.id)
-                }"
-                @click.stop="onSelectNode(item, true)">
-                <span class="node-icon">
-                    <i :class="item.children ? 'common-icon-node-subflow' : 'common-icon-node-tasknode'"></i>
-                </span>
-                <span class="name" :title="item.name">{{item.name}}</span>
-            </h4>
-            <NodeTree
-                v-if="item.children"
-                class="sub-tree"
-                :data="item.children"
-                :selected-flow-path="selectedFlowPath"
-                :heirarchy="heirarchy ? `${heirarchy}.${item.id}` : String(item.id)"
-                :level="level + 1"
-                @onSelectNode="onSelectNode">
-            </NodeTree>
-        </li>
-    </ul>
+    <div class="nodeBkTree">
+        <bk-tree
+            class="node-tree"
+            ref="tree1"
+            :data="treeData"
+            :show-icon="showIcon"
+            :node-key="'id'"
+            :has-border="true"
+            @on-click="onSelectNode">
+        </bk-tree>
+    </div>
 </template>
 <script>
+    import { bkTree } from 'bk-magic-vue'
+    import tools from '@/utils/tools.js'
     export default {
         name: 'NodeTree',
+        components: {
+            bkTree
+        },
         props: {
             data: {
                 type: Array,
@@ -60,6 +52,21 @@
                 default: 1
             }
         },
+        data () {
+            return {
+                treeData: [],
+                showIcon: false
+            }
+        },
+        watch: {
+            data: {
+                handler () {
+                    this.treeData = tools.deepClone(this.data)
+                },
+                deep: true,
+                immediate: true
+            }
+        },
         methods: {
             getNodeActivedState (id) {
                 const len = this.selectedFlowPath.length
@@ -69,12 +76,19 @@
                 return false
             },
             onSelectNode (node, isClick, type) {
-                let nodeHeirarchy = node
                 const nodeType = node.children ? 'subflow' : 'tasknode'
-                if (isClick) {
-                    nodeHeirarchy = this.heirarchy ? `${this.heirarchy}.${node.id}` : String(node.id)
+                let rootNode = node
+                let nodeHeirarchy = ''
+                while (rootNode.parent) {
+                    if (nodeHeirarchy) {
+                        nodeHeirarchy += '.' + rootNode.parent.id
+                    } else {
+                        nodeHeirarchy += rootNode.parent.id
+                    }
+                    rootNode = rootNode.parent
                 }
-                this.$emit('onSelectNode', nodeHeirarchy, false, nodeType)
+                const selectNodeId = node.id
+                this.$emit('onSelectNode', nodeHeirarchy, selectNodeId, nodeType)
             }
         }
     }
@@ -82,73 +96,22 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-.node-tree {
+.nodeBkTree{
     display: inline-block;
-    width: 100%;
-    &.tree-level-1 {
-        overflow-x: auto;
-        @include scrollbar;
+    width: 229px;
+    min-width: 229px;
+    padding: 24px 8px 0;
+}
+.node-tree {
+    height: 100%;
+    white-space: nowrap;
+    overflow-x: auto;
+    @include scrollbar;
+    /deep/.tree-drag-node {
+        padding-bottom: 17px;
     }
-    &.sub-tree {
-        .tree-item {
-            position: relative;
-            margin-left: 20px;
-            &:last-child:before {
-                height: 22px;
-            }
-            &:before {
-                content: '';
-                position: absolute;
-                left: 8px;
-                top: -6px;
-                height: 100%;
-                border-left: 1px dashed $commonBorderColor;
-            }
-            &:after {
-                content: '';
-                position: absolute;
-                left: 12px;
-                top: 16px;
-                width: 8px;
-                border-bottom: 1px dashed $commonBorderColor;
-            }
-        }
-    }
-    .node-name {
-        display: inline-block;
-        margin: 0;
-        padding-left: 20px;
-        width: 140px;
-        height: 30px;
-        line-height: 30px;
-        font-size: 12px;
-        font-weight: normal;
-        color: $greyDefault;
-        white-space: nowrap;
-        cursor: pointer;
-        &.actived {
-            color: $blueDefault;
-        }
-        &:hover {
-            color: $blueDefault;
-        }
-        .node-icon {
-            float: left;
-            font-size: 16px;
-            font-weight: bold;
-            .common-icon-node-subflow,.common-icon-node-tasknode{
-                font-weight: bold;
-            }
-        }
-        .name {
-            float: left;
-            margin-left: 4px;
-            max-width: 90px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            vertical-align: -10px;
-        }
+    /deep/.bk-icon {
+            margin-right: 8px;
     }
 }
 </style>
