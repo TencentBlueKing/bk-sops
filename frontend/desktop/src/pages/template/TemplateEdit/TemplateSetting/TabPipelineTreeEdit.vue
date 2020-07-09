@@ -11,16 +11,6 @@
 */
 <template>
     <div class="pipeline-tree-wrap">
-        <!-- <bk-sideslider
-            ext-cls="common-template-setting-sideslider pipeline-tree-edit"
-            :width="840"
-            :is-show="isShow"
-            :before-close="onBeforeClose"
-            :quick-close="true"> -->
-        <!-- <div slot="header">
-            <span>{{$t('流程模板数据')}}</span>
-        </div> -->
-        <!-- <div style="height: 100%" slot="content"> -->
         <div class="code-wrapper">
             <code-editor
                 :value="template"
@@ -31,10 +21,11 @@
                 <i class="common-icon-info"></i>
                 <div class="message">{{ errorMessage }}</div>
             </div>
-            <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
         </div>
-        <!-- </div> -->
-        <!-- </bk-sideslider> -->
+        <div class="btn-wrap">
+            <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+            <bk-button theme="default" @click="$emit('close')">{{ $t('取消') }}</bk-button>
+        </div>
     </div>
 </template>
 
@@ -50,7 +41,7 @@
         props: ['isShow'],
         data () {
             return {
-                template: '',
+                template: this.transPipelineTreeStr(),
                 errorMessage: ''
             }
         },
@@ -58,13 +49,6 @@
             ...mapState({
                 hasAdminPerm: state => state.hasAdminPerm
             })
-        },
-        watch: {
-            isShow (val) {
-                if (val) {
-                    this.template = this.transPipelineTreeStr()
-                }
-            }
         },
         methods: {
             ...mapGetters('template/', [
@@ -95,22 +79,21 @@
                     }
                     this.$emit('confirm', pipelineData)
                 }
-            },
-            onBeforeClose () {
-                this.$emit('onColseTab', 'templateDataEditTab')
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-@import '@/scss/mixins/scrollbar.scss';
-.pipeline-tree-edit {
+    @import '@/scss/config.scss';
+    @import '@/scss/mixins/scrollbar.scss';
+    .pipeline-tree-wrap {
+        height: 100%;
+    }
     .code-wrapper {
         position: relative;
-        margin: 20px 20px;
-        height: calc(100% - 94px);
+        padding: 20px;
+        height: calc(100% - 49px);
     }
     .error-tips {
         display: flex;
@@ -135,10 +118,8 @@
             -webkit-box-orient: vertical;
         }
     }
-    .save-btn {
-        position: absolute;
-        left: 0;
-        bottom: -44px;
+    .btn-wrap {
+        padding: 8px 20px;
+        border-top: 1px solid #cacedb;
     }
-}
 </style>

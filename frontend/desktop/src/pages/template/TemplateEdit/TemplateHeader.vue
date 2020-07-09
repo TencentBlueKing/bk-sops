@@ -33,6 +33,17 @@
             <span class="name-error common-error-tip error-msg">{{ errors.first('templateName') }}</span>
         </div>
         <div class="button-area">
+            <div class="setting-tab-wrap">
+                <span
+                    v-for="tab in settingTabs"
+                    :key="tab.id"
+                    :class="['setting-item', {
+                        'active': activeTab === tab.id
+                    }]"
+                    @click="$emit('update:activeTab', tab.id)">
+                    <i :class="tab.icon" :title="tab.title"></i>
+                </span>
+            </div>
             <bk-button
                 theme="primary"
                 :class="[
@@ -75,6 +86,8 @@
     import permission from '@/mixins/permission.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import SelectProjectModal from '@/components/common/modal/SelectProjectModal.vue'
+    import SETTING_TABS from './SettingTabs.js'
+
     export default {
         name: 'TemplateHeader',
         components: {
@@ -83,34 +96,14 @@
         },
         mixins: [permission],
         props: {
-            type: {
-                type: String,
-                default: 'edit'
-            },
-            name: {
-                type: String,
-                default: ''
-            },
-            template_id: {
-                type: [String, Number],
-                default: ''
-            },
-            project_id: {
-                type: [String, Number],
-                default: ''
-            },
-            common: {
-                type: String,
-                default: ''
-            },
-            templateSaving: {
-                type: Boolean,
-                default: false
-            },
-            createTaskSaving: {
-                type: Boolean,
-                default: false
-            },
+            type: String,
+            name: String,
+            template_id: [String, Number],
+            project_id: [String, Number],
+            common: String,
+            templateSaving: Boolean,
+            createTaskSaving: Boolean,
+            activeTab: String,
             isTemplateDataChanged: {
                 type: Boolean,
                 default: false
@@ -143,7 +136,8 @@
         },
         computed: {
             ...mapState({
-                'permissionMeta': state => state.permissionMeta
+                'permissionMeta': state => state.permissionMeta,
+                'hasAdminPerm': state => state.hasAdminPerm
             }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
@@ -151,6 +145,9 @@
             }),
             title () {
                 return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
+            },
+            settingTabs () {
+                return this.hasAdminPerm ? SETTING_TABS.slice(0) : SETTING_TABS.slice(0, -1)
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
@@ -437,7 +434,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 430px;
+            width: 354px;
             text-align: center;
         }
         .name-show-mode {
@@ -473,6 +470,26 @@
             top: 6px;
             font-size: 12px;
             white-space: nowrap;
+        }
+        .setting-tab-wrap {
+            display: inline-block;
+            margin-right: 20px;
+            padding-right: 24px;
+            height: 32px;
+            line-height: 32px;
+            border-right: 1px solid #dcdee5;
+            .setting-item {
+                margin-right: 20px;
+                font-size: 16px;
+                color: #546a9e;
+                cursor: pointer;
+                &:hover {
+                    color: #3a84ff;
+                }
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
         }
         .task-btn {
             margin-right: 5px;

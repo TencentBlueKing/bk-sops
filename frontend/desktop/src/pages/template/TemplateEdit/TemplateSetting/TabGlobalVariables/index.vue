@@ -11,7 +11,7 @@
 */
 <template>
     <div class="global-variable-panel">
-        <!-- <bk-sideslider
+        <!-- <bk-sideslidercloseConditionEdit
             ext-cls="common-template-setting-sideslider"
             :width="800"
             :is-show="isShow"
@@ -450,14 +450,6 @@
 $localBorderColor: #dcdee5;
 /deep/ .common-dialog .bk-dialog-body{
     padding: 20px;
-}
-.tips-item {
-    & > h4 {
-        margin: 0;
-    }
-    &:not(:last-child) {
-        margin-bottom: 10px;
-    }
 }
 .global-variable-panel {
     height: 100%;

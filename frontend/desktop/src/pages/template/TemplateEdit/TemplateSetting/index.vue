@@ -10,95 +10,95 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="setting-area-wrap">
-        <div class="setting-tab-wrap">
-            <template v-for="tab in settingTabs">
-                <div
-                    :key="tab.id"
-                    class="setting-panel-tab"
-                    @click="onTemplateSettingShow(tab.id)">
-                    <div :class="['setting-menu-icon', {
-                        'active-tab': activeTab === tab.id,
-                        'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
-                    }]">
-                        <i :class="tab.icon" :title="tab.ti"></i>
+    <bk-sideslider
+        :is-show="activeTab !== ''"
+        :width="800"
+        ext-cls="setting-slider"
+        :before-close="beforeClose">
+        <div class="setting-header" slot="header">
+            <span>{{ tabDetail.title }}</span>
+            <template v-if="tabDetail.id === 'globalVariableTab'">
+                <i
+                    class="common-icon-info"
+                    v-bk-tooltips="{
+                        allowHtml: true,
+                        content: '#var-desc',
+                        placement: 'bottom-end',
+                        duration: 0,
+                        width: 400
+                    }">
+                </i>
+                <div id="var-desc">
+                    <div class="tips-item">
+                        <h4>{{ $t('属性：') }}</h4>
+                        <p>
+                            {{ $t('"来源/是否显示"格式，来源是输入类型') }}
+                            <i class="common-icon-show-left" style="color: #219f42"></i>
+                            {{ $t('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型') }}
+                            <i class="common-icon-hide-right" style="color: #de9524"></i>
+                            {{ $t('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，') }}
+                            <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
+                            {{ $t('表示显示，') }}
+                            <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
+                            {{ $t('表示隐藏，输出类型的变量一定是隐藏的。') }}
+                        </p>
+                    </div>
+                    <div class="tips-item">
+                        <h4>{{ $t('输出：') }}</h4>
+                        <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
                     </div>
                 </div>
             </template>
+            <i
+                v-if="tabDetail.id === 'tplSnapshootTab'"
+                class="common-icon-info"
+                v-bk-tooltips="{
+                    content: tabDetail.desc,
+                    placement: 'bottom-end',
+                    duration: 0,
+                    width: 400
+                }">
+            </i>
         </div>
-        <bk-sideslider :is-show="activeTab !== ''" :width="800" ext-cls="setting-slider">
-            <div class="setting-panel" slot="content">
-                <TabGlobalVariables
-                    v-if="activeTab === 'globalVariableTab'"
-                    ref="globalVariable"
-                    :class="['panel-item', { 'active-tab': activeTab === 'globalVariableTab' }]"
-                    :is-fixed-var-menu.sync="isFixedVarMenu"
-                    :is-variable-editing="isVariableEditing"
-                    :variable-type-list="variableTypeList"
-                    @changeVariableEditing="onVariableEditingChange"
-                    @variableDataChanged="onVariableDataChange"
-                    @onCitedNodeClick="onCitedNodeClick"
-                    @onClickVarPin="onClickVarPin"
-                    @onColseTab="onColseTab">
-                </TabGlobalVariables>
-                <TabTemplateConfig
-                    v-if="activeTab === 'templateConfigTab'"
-                    :class="['panel-item', { 'active-tab': activeTab === 'templateConfigTab' }]"
-                    :is-template-config-valid="isTemplateConfigValid"
-                    :project-info-loading="projectInfoLoading"
-                    @onSelectCategory="onSelectCategory"
-                    @onColseTab="onColseTab">
-                </TabTemplateConfig>
-                <TabTemplateSnapshoot
-                    v-if="activeTab === 'tplSnapshootTab'"
-                    :class="['panel-item', { 'active-tab': activeTab === 'tplSnapshootTab' }]"
-                    :is-show="activeTab === 'tplSnapshootTab'"
-                    :snapshoots="snapshoots"
-                    @createSnapshoot="$emit('createSnapshoot')"
-                    @useSnapshoot="$emit('useSnapshoot', arguments)"
-                    @updateSnapshoot="$emit('updateSnapshoot', $event)"
-                    @onColseTab="onColseTab">
-                </TabTemplateSnapshoot>
-                <TabPipelineTreeEdit
-                    v-if="activeTab === 'templateDataEditTab'"
-                    :class="['panel-item', { 'active-tab': activeTab === 'templateDataEditTab' }]"
-                    @confirm="onDataModify"
-                    @onColseTab="onColseTab">
-                </TabPipelineTreeEdit>
-            </div>
-        </bk-sideslider>
-    </div>
+        <div class="setting-panel" slot="content">
+            <TabGlobalVariables
+                v-if="activeTab === 'globalVariableTab'"
+                :is-fixed-var-menu.sync="isFixedVarMenu"
+                :is-variable-editing="isVariableEditing"
+                :variable-type-list="variableTypeList"
+                @changeVariableEditing="onVariableEditingChange"
+                @variableDataChanged="onVariableDataChange"
+                @onCitedNodeClick="onCitedNodeClick">
+            </TabGlobalVariables>
+            <TabTemplateConfig
+                v-if="activeTab === 'templateConfigTab'"
+                :is-template-config-valid="isTemplateConfigValid"
+                :project-info-loading="projectInfoLoading"
+                @onSelectCategory="onSelectCategory">
+            </TabTemplateConfig>
+            <TabTemplateSnapshoot
+                v-if="activeTab === 'tplSnapshootTab'"
+                :is-show="activeTab === 'tplSnapshootTab'"
+                :snapshoots="snapshoots"
+                @createSnapshoot="$emit('createSnapshoot')"
+                @useSnapshoot="$emit('useSnapshoot', arguments)"
+                @updateSnapshoot="$emit('updateSnapshoot', $event)">
+            </TabTemplateSnapshoot>
+            <TabPipelineTreeEdit
+                v-if="activeTab === 'templateDataEditTab'"
+                @confirm="onDataModify"
+                @close="closeTab">
+            </TabPipelineTreeEdit>
+        </div>
+    </bk-sideslider>
 </template>
 <script>
-    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations } from 'vuex'
     import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabTemplateSnapshoot from './TabTemplateSnapshoot.vue'
     import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
-
-    const SETTING_TABS = [
-        {
-            id: 'globalVariableTab',
-            icon: 'common-icon-square-code',
-            title: i18n.t('全局变量')
-        },
-        {
-            id: 'templateConfigTab',
-            icon: 'common-icon-square-attribute',
-            title: i18n.t('基础信息')
-        },
-        {
-            id: 'tplSnapshootTab',
-            icon: 'common-icon-clock-reload',
-            title: i18n.t('本地快照')
-        },
-        {
-            id: 'templateDataEditTab',
-            icon: 'common-icon-paper',
-            title: i18n.t('模板数据')
-        }
-    ]
+    import SETTING_TABS from '../SettingTabs.js'
 
     export default {
         name: 'TemplateSetting',
@@ -114,9 +114,9 @@
             isGlobalVariableUpdate: Boolean,
             isTemplateConfigValid: Boolean,
             isNodeConfigPanelShow: Boolean,
-            isSettingPanelShow: Boolean,
             variableTypeList: Array,
             isFixedVarMenu: Boolean,
+            activeTab: String,
             snapshoots: Array
         },
         data () {
@@ -124,7 +124,7 @@
                 showPanel: true,
                 isVariableEditing: false,
                 isPipelineTreeDialogShow: false,
-                activeTab: 'globalVariableTab'
+                settingTabs: SETTING_TABS
             }
         },
         computed: {
@@ -132,9 +132,14 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
-                'timeout': state => state.template.time_out,
-                'hasAdminPerm': state => state.hasAdminPerm
+                'timeout': state => state.template.time_out
             }),
+            tabDetail () {
+                if (this.activeTab) {
+                    return SETTING_TABS.find(item => item.id === this.activeTab)
+                }
+                return {}
+            },
             variableData () {
                 if (this.theKeyOfEditing) {
                     return this.constants[this.theKeyOfEditing]
@@ -153,26 +158,7 @@
                         value: ''
                     }
                 }
-            },
-            settingTabs () {
-                return this.hasAdminPerm ? SETTING_TABS.slice(0) : SETTING_TABS.slice(0, -1)
             }
-        },
-        watch: {
-            isSettingPanelShow (val) {
-                if (val) {
-                    document.body.addEventListener('click', this.handleSettingPanelShow, false)
-                } else {
-                    this.activeTab = undefined
-                    document.body.removeEventListener('click', this.handleSettingPanelShow, false)
-                }
-            }
-        },
-        mounted () {
-            document.body.addEventListener('click', this.handleSettingPanelShow, false)
-        },
-        beforeDestroy () {
-            document.body.removeEventListener('click', this.handleSettingPanelShow, false)
         },
         methods: {
             ...mapMutations('template/', [
@@ -184,22 +170,6 @@
                 'setOvertime',
                 'setCategory'
             ]),
-            togglePanel (val) {
-                this.$emit('toggleSettingPanel', val, this.activeTab)
-            },
-            // 变量编辑是否展开
-            isEditPanelOpen () {
-                return this.isVariableEditing
-            },
-            // 变量保存
-            saveVariable () {
-                return this.$refs.globalVariable.saveVariable()
-            },
-            // 激活表单不合法的tab项
-            setErrorTab (tab) {
-                this.activeTab = tab
-                this.togglePanel(true)
-            },
             onVariableDataChange () {
                 this.$emit('variableDataChanged')
             },
@@ -209,107 +179,49 @@
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
             },
-            onClickVarPin (val) {
-                this.$emit('fixedVarMenuChange', val)
-            },
             onVariableEditingChange (val) {
                 this.isVariableEditing = val
-            },
-            onTemplateSettingShow (val) {
-                if (this.activeTab === val) {
-                    this.togglePanel(false)
-                } else {
-                    this.activeTab = val
-                    this.togglePanel(true)
-                }
-                this.$emit('fixedVarMenuChange', false)
-                this.$emit('globalVariableUpdate', false)
             },
             onDataModify (data) {
                 this.isPipelineTreeDialogShow = false
                 this.$emit('modifyTemplateData', data)
+                this.closeTab()
+            },
+            beforeClose () {
+                this.closeTab()
+                return true
             },
             // 关闭面板
-            onColseTab (tabName) {
-                this.activeTab = undefined
-                this.togglePanel(false)
+            closeTab () {
+                this.$emit('update:activeTab', '')
             }
         }
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-@import '@/scss/mixins/scrollbar.scss';
-.setting-area-wrap {
-    float: right;
-    height: 100%;
-}
-.setting-tab-wrap {
-    position: absolute;
-    right: 0;
-    top: 0;
-    padding: 15px 0;
-    width: 56px;
-    height: 100%;
-    background: $whiteDefault;
-    border-left: 1px solid $commonBorderColor;
-    border-bottom: 1px solid $commonBorderColor;
-    z-index: 2551;
+    .setting-header {
+        display: flex;
+        align-items: center;
+        .common-icon-info {
+            margin-left: 10px;
+            font-size: 16px;
+            color: #c4c6cc;
+            &:hover {
+                color: #f4aa1a;
+            }
+        }
+    }
+    #var-desc {
+        .tips-item {
+            & > h4 {
+                margin: 0;
+            }
+            &:not(:last-child) {
+                margin-bottom: 10px;
+            }
+        }
+    }
     .setting-panel {
-        position: absolute;
-        top: 0px;
-        right: 56px;
-        width: auto;
-        height: 100%;
-        background: $whiteDefault;
-        border-left: 1px solid $commonBorderColor;
+        height: calc(100vh - 60px);
     }
-    .setting-panel-tab {
-        padding: 15px 11px;
-        color: #546a9e;
-        cursor: pointer;
-        &:hover {
-            color: #3480ff;
-        }
-        .setting-menu-icon {
-            position: relative;
-            width: 32px;
-            height: 32px;
-            line-height: 32px;
-            text-align: center;
-            border-radius: 2px;
-            &.active-tab {
-                background: #525f77;
-                color: #ffffff;
-            }
-            &.update:after {
-                content: '';
-                position: absolute;
-                top: -6px;
-                right: -6px;
-                height: 8px;
-                width: 8px;
-                border-radius: 50%;
-                background: #ff5757;
-            }
-        }
-    }
-}
-.setting-slider {
-    top: 50px;
-    /deep/ .bk-sideslider-wrapper {
-        right: 56px;
-    }
-}
-.panel-content {
-    height: 100%;
-    border: none;
-}
-.panel-item {
-    height: 100%;
-}
 </style>
-技术解决
-项目管理
-共同协作
-学习和创新能力

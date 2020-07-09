@@ -28,69 +28,67 @@
                 </i>
             </div>
             <div class="content-wrap" slot="content"> -->
-        <div class="local-snapshoot-content">
-            <table class="snapshoot-table">
-                <thead>
-                    <tr>
-                        <th class="col-number">{{ $t('序号') }}</th>
-                        <th class="col-name">{{ $t('名称') }}</th>
-                        <th class="col-time">{{ $t('保存时间') }}</th>
-                        <th class="col-operation-group">{{ $t('操作') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="background: #f0f1f5">
-                        <td class="col-number">--</td>
-                        <td class="col-name">--</td>
-                        <td class="col-time">--</td>
-                        <td class="col-operation-group">
-                            <bk-button size="small" theme="default" @click="onCreateSnapshoot">{{ $t('新建') }}</bk-button>
-                        </td>
-                    </tr>
-                    <tr
-                        v-for="(item, index) in snapshoots"
-                        :key="item.timestamp">
-                        <td class="col-number">
-                            <div class="content">{{ snapshoots.length - index }}</div>
-                        </td>
-                        <td
-                            class="col-name"
-                            :title="item.name">
-                            <div class="content">
-                                <bk-input
-                                    v-if="editingData.key === item.timestamp"
-                                    v-model="editingData.name"
-                                    v-focus
-                                    v-validate="nameRule"
-                                    data-vv-validate-on=" "
-                                    class="snapshoot-name-input"
-                                    :name="'snapshootName' + item.timestamp"
-                                    :placeholder="$t('名称')"
-                                    @blur="onSaveName(item)"
-                                    @enter="onSaveName(item)" />
-                                <span v-else>{{item.name}}</span>
-                                <i class="common-icon-edit" @click.stop="onEditName(item)"></i>
-                                <span
-                                    v-if="errors.first('snapshootName' + item.timestamp)"
-                                    class="common-icon-info error-msg"
-                                    v-bk-tooltips="{
-                                        content: errors.first('snapshootName' + item.timestamp),
-                                        placements: ['top-end']
-                                    }">
-                                </span>
-                            </div>
-                        </td>
-                        <td class="col-time"><div class="content">{{item.timestamp | timestampToDatetime}}</div></td>
-                        <td class="col-operation-group">
-                            <span class="operation-item" @click="onUseSnapshoot(item, snapshoots.length - index)">{{$t('还原')}}</span>
-                        </td>
-                    </tr>
-                    <tr v-if="!snapshoots.length" class="empty-snapshoot-tip">
-                        <td><NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <table class="snapshoot-table">
+            <thead>
+                <tr>
+                    <th class="col-number">{{ $t('序号') }}</th>
+                    <th class="col-name">{{ $t('名称') }}</th>
+                    <th class="col-time">{{ $t('保存时间') }}</th>
+                    <th class="col-operation-group">{{ $t('操作') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background: #f0f1f5">
+                    <td class="col-number">--</td>
+                    <td class="col-name">--</td>
+                    <td class="col-time">--</td>
+                    <td class="col-operation-group">
+                        <bk-button size="small" theme="default" @click="onCreateSnapshoot">{{ $t('新建') }}</bk-button>
+                    </td>
+                </tr>
+                <tr
+                    v-for="(item, index) in snapshoots"
+                    :key="item.timestamp">
+                    <td class="col-number">
+                        <div class="content">{{ snapshoots.length - index }}</div>
+                    </td>
+                    <td
+                        class="col-name"
+                        :title="item.name">
+                        <div class="content">
+                            <bk-input
+                                v-if="editingData.key === item.timestamp"
+                                v-model="editingData.name"
+                                v-focus
+                                v-validate="nameRule"
+                                data-vv-validate-on=" "
+                                class="snapshoot-name-input"
+                                :name="'snapshootName' + item.timestamp"
+                                :placeholder="$t('名称')"
+                                @blur="onSaveName(item)"
+                                @enter="onSaveName(item)" />
+                            <span v-else>{{item.name}}</span>
+                            <i class="common-icon-edit" @click.stop="onEditName(item)"></i>
+                            <span
+                                v-if="errors.first('snapshootName' + item.timestamp)"
+                                class="common-icon-info error-msg"
+                                v-bk-tooltips="{
+                                    content: errors.first('snapshootName' + item.timestamp),
+                                    placements: ['top-end']
+                                }">
+                            </span>
+                        </div>
+                    </td>
+                    <td class="col-time"><div class="content">{{item.timestamp | timestampToDatetime}}</div></td>
+                    <td class="col-operation-group">
+                        <span class="operation-item" @click="onUseSnapshoot(item, snapshoots.length - index)">{{$t('还原')}}</span>
+                    </td>
+                </tr>
+                <tr v-if="!snapshoots.length" class="empty-snapshoot-tip">
+                    <td><NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData></td>
+                </tr>
+            </tbody>
+        </table>
         <!-- </div> -->
         <!-- </bk-sideslider> -->
     </div>
@@ -167,9 +165,9 @@
 
 .template-snapshoot-panel {
     height: 100%;
-    .content-wrap {
-        height: 100%;
-    }
+    padding: 20px 30px;
+    background: #ffffff;
+    overflow: hidden;
     .snapshoot-tooltip {
         display: inline-block;
         vertical-align: middle;
@@ -180,14 +178,8 @@
             color: #f4aa1a;
         }
     }
-    .local-snapshoot-content {
-        padding: 26px 28px;
-        padding-bottom: 0;
-        height: 100%;
-    }
     .snapshoot-table {
         width: 100%;
-        height: 100%;
         color: #313238;
         border-collapse: collapse;
         table-layout: fixed;
@@ -218,10 +210,15 @@
         }
         tbody {
             display: block;
-            height: 100%;
+            height: calc(100% - 62px);
             color: #63656e;
             overflow: auto;
             @include scrollbar;
+            tr:last-child {
+                td {
+                    border-bottom: none;
+                }
+            }
             tr:not(.empty-snapshoot-tip):hover {
                 background: $blueStatus;
                 .col-name .common-icon-edit {

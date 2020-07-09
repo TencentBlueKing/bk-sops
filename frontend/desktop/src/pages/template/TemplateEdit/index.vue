@@ -22,6 +22,7 @@
                 :is-template-data-changed="isTemplateDataChanged"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
+                :active-tab.sync="activeSettingTab"
                 :tpl-actions="tplActions"
                 @onChangeName="onChangeName"
                 @onSaveTemplate="onSaveTemplate">
@@ -50,35 +51,29 @@
                 @onConditionClick="onOpenConditionEdit"
                 @variableDataChanged="variableDataChanged"
                 @onNodeMousedown="onNodeMousedown"
-                @onShowNodeConfig="onShowNodeConfig"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
                 @onFormatPosition="onFormatPosition"
-                @onReplaceLineAndLocation="onReplaceLineAndLocation">
+                @onReplaceLineAndLocation="onReplaceLineAndLocation"
+                @onShowNodeConfig="onShowNodeConfig">
             </TemplateCanvas>
             <div class="side-content">
                 <node-config
                     ref="nodeConfig"
                     v-if="isNodeConfigPanelShow"
-                    :is-show="isNodeConfigPanelShow"
+                    :is-show.sync="isNodeConfigPanelShow"
                     :atom-list="atomList"
                     :atom-type-list="atomTypeList"
                     :common="common"
                     :project_id="project_id"
                     :node-id="idOfNodeInConfigPanel"
-                    :is-setting-panel-show="isSettingPanelShow"
-                    :setting-active-tab="settingActiveTab"
-                    @globalVariableUpdate="globalVariableUpdate"
-                    @hide="hideConfigPanel">
+                    @globalVariableUpdate="globalVariableUpdate">
                 </node-config>
                 <condition-edit
                     ref="conditionEdit"
-                    :is-show="isShowConditionEdit"
+                    :is-show.sync="isShowConditionEdit"
                     :condition-data="conditionData"
-                    :is-setting-panel-show="isSettingPanelShow"
-                    :setting-active-tab="settingActiveTab"
-                    :is-show-condition-edit="isShowConditionEdit"
                     @onCloseConditionEdit="onCloseConditionEdit">
                 </condition-edit>
                 <template-setting
@@ -86,15 +81,11 @@
                     :is-global-variable-update="isGlobalVariableUpdate"
                     :project-info-loading="projectInfoLoading"
                     :is-template-config-valid="isTemplateConfigValid"
-                    :is-setting-panel-show="isSettingPanelShow"
-                    :is-node-config-panel-show="isNodeConfigPanelShow"
                     :variable-type-list="variableTypeList"
-                    :is-fixed-var-menu="isFixedVarMenu"
+                    :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
-                    @toggleSettingPanel="toggleSettingPanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @variableDataChanged="variableDataChanged"
-                    @fixedVarMenuChange="fixedVarMenuChange"
                     @onSelectCategory="onSelectCategory"
                     @onCitedNodeClick="onCitedNodeClick"
                     @modifyTemplateData="modifyTemplateData"
@@ -165,16 +156,15 @@
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
-                isSettingPanelShow: true,
                 isShowConditionEdit: false,
                 isNodeConfigPanelShow: false,
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
-                isFixedVarMenu: false, // 全局变量面板铆钉
+                activeSettingTab: '',
+                // isFixedVarMenu: false, // 全局变量面板铆钉
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
-                settingActiveTab: 'globalVariableTab',
                 lastOpenPanelName: '', // 最近一次打开的面板名
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
@@ -297,20 +287,20 @@
         mounted () {
             this.getSingleAtomList()
             this.getProjectBaseInfo()
-            this.getCustomVarCollection()
+            // this.getCustomVarCollection()
             this.openSnapshootTimer()
             window.onbeforeunload = function () {
                 return i18n.t('系统不会保存您所做的更改，确认离开？')
             }
-            window.addEventListener('click', this.handleSidesPanelShow, false)
-            window.addEventListener('resize', this.onWindowResize, false)
+            // window.addEventListener('click', this.handleSidesPanelShow, false)
+            // window.addEventListener('resize', this.onWindowResize, false)
         },
         beforeDestroy () {
             window.onbeforeunload = null
             this.resetTemplateData()
             this.hideGuideTips()
-            window.removeEventListener('click', this.handleSidesPanelShow, false)
-            window.removeEventListener('resize', this.onWindowResize, false)
+            // window.removeEventListener('click', this.handleSidesPanelShow, false)
+            // window.removeEventListener('resize', this.onWindowResize, false)
         },
         methods: {
             ...mapActions('template/', [
@@ -412,34 +402,34 @@
                     this.subAtomListLoading = false
                 }
             },
-            async getCustomVarCollection () {
-                this.customVarCollectionLoading = true
-                try {
-                    const customVarCollection = await this.loadCustomVarCollection()
-                    const listData = [
-                        {
-                            name: i18n.t('普通变量'),
-                            children: []
-                        },
-                        {
-                            name: i18n.t('元变量'),
-                            children: []
-                        }
-                    ]
-                    customVarCollection.forEach(item => {
-                        if (item.type === 'general') {
-                            listData[0].children.push(item)
-                        } else {
-                            listData[1].children.push(item)
-                        }
-                    })
-                    this.variableTypeList = listData
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.customVarCollectionLoading = false
-                }
-            },
+            // async getCustomVarCollection () {
+            //     this.customVarCollectionLoading = true
+            //     try {
+            //         const customVarCollection = await this.loadCustomVarCollection()
+            //         const listData = [
+            //             {
+            //                 name: i18n.t('普通变量'),
+            //                 children: []
+            //             },
+            //             {
+            //                 name: i18n.t('元变量'),
+            //                 children: []
+            //             }
+            //         ]
+            //         customVarCollection.forEach(item => {
+            //             if (item.type === 'general') {
+            //                 listData[0].children.push(item)
+            //             } else {
+            //                 listData[1].children.push(item)
+            //             }
+            //         })
+            //         this.variableTypeList = listData
+            //     } catch (e) {
+            //         errorHandler(e, this)
+            //     } finally {
+            //         this.customVarCollectionLoading = false
+            //     }
+            // },
             // 获取模板详情
             async getTemplateData () {
                 try {
@@ -609,44 +599,44 @@
 
                 this.atomTypeList.subflow = { groups }
             },
-            toggleSettingPanel (isSettingPanelShow, activeTab) {
-                const clientX = document.body.clientWidth
-                // 分辨率 1920 以下，显示 setting 面板时需隐藏节点配置面板
-                if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
-                    this.hideConfigPanel()
-                }
-                if (isSettingPanelShow && this.isShowConditionEdit && clientX < 1920) {
-                    this.onCloseConditionEdit()
-                }
-                if (isSettingPanelShow) {
-                    this.lastOpenPanelName = 'settingPanel'
-                }
-                this.isSettingPanelShow = isSettingPanelShow
-                this.settingActiveTab = activeTab
-            },
+            // toggleSettingPanel (isSettingPanelShow, activeTab) {
+            //     const clientX = document.body.clientWidth
+            //     // 分辨率 1920 以下，显示 setting 面板时需隐藏节点配置面板
+            //     if (isSettingPanelShow && this.isNodeConfigPanelShow && clientX < 1920) {
+            //         this.hideConfigPanel()
+            //     }
+            //     if (isSettingPanelShow && this.isShowConditionEdit && clientX < 1920) {
+            //         this.onCloseConditionEdit()
+            //     }
+            //     if (isSettingPanelShow) {
+            //         this.lastOpenPanelName = 'settingPanel'
+            //     }
+            //     this.isSettingPanelShow = isSettingPanelShow
+            //     this.activeSettingTab = activeTab
+            // },
             showConfigPanel (id) {
                 this.variableDataChanged()
                 this.isNodeConfigPanelShow = true
                 this.idOfNodeInConfigPanel = id
-                this.lastOpenPanelName = 'nodeConfigPanel'
+                // this.lastOpenPanelName = 'nodeConfigPanel'
             },
             // 关闭配置面板
-            hideConfigPanel (asyncData = true) {
-                if (this.isNodeConfigPanelShow) {
-                    if (asyncData) {
-                        this.syncAndValidateNodeConfig().then(result => {
-                            this.isNodeConfigPanelShow = false
-                            this.idOfNodeInConfigPanel = ''
-                        }).catch(e => {
-                            this.isNodeConfigPanelShow = false
-                            this.idOfNodeInConfigPanel = ''
-                        })
-                    } else {
-                        this.isNodeConfigPanelShow = false
-                        this.idOfNodeInConfigPanel = ''
-                    }
-                }
-            },
+            // hideConfigPanel (asyncData = true) {
+            //     if (this.isNodeConfigPanelShow) {
+            //         if (asyncData) {
+            //             this.syncAndValidateNodeConfig().then(result => {
+            //                 this.isNodeConfigPanelShow = false
+            //                 this.idOfNodeInConfigPanel = ''
+            //             }).catch(e => {
+            //                 this.isNodeConfigPanelShow = false
+            //                 this.idOfNodeInConfigPanel = ''
+            //             })
+            //         } else {
+            //             this.isNodeConfigPanelShow = false
+            //             this.idOfNodeInConfigPanel = ''
+            //         }
+            //     }
+            // },
             syncAndValidateNodeConfig () {
                 const { skippable, retryable, selectable } = this.$refs.nodeConfig.getBasicInfo()
                 const config = {
@@ -668,25 +658,25 @@
              * 1920 分辨率一下，在全局变量面板 isFixedVarMenu = true 的情况下:
              * 切换到节点配置面板(会自动关闭变量面板)，保留状态，待节点配置面板关闭后重新打开
              */
-            reopenGlobalVarPanel () {
-                if (this.isFixedVarMenu && document.body.clientWidth < 1920) {
-                    this.$refs.templateSetting.setErrorTab('globalVariableTab')
-                }
-            },
-            onWindowResize () {
-                const clientX = document.body.clientWidth
-                // 在配置面板和setting面板双开时，屏幕突然改变保留最近打开的面板
-                if (clientX < 1920
-                    && this.isNodeConfigPanelShow
-                    && this.isSettingPanelShow
-                    && ['templateDataEditTab', 'globalVariableTab'].includes(this.settingActiveTab)) {
-                    if (this.lastOpenPanelName === 'settingPanel') {
-                        this.hideConfigPanel()
-                    } else {
-                        this.toggleSettingPanel(false)
-                    }
-                }
-            },
+            // reopenGlobalVarPanel () {
+            //     if (this.isFixedVarMenu && document.body.clientWidth < 1920) {
+            //         this.$refs.templateSetting.setErrorTab('globalVariableTab')
+            //     }
+            // },
+            // onWindowResize () {
+            //     const clientX = document.body.clientWidth
+            //     // 在配置面板和setting面板双开时，屏幕突然改变保留最近打开的面板
+            //     if (clientX < 1920
+            //         && this.isNodeConfigPanelShow
+            //         && this.isSettingPanelShow
+            //         && ['templateDataEditTab', 'globalVariableTab'].includes(this.activeSettingTab)) {
+            //         if (this.lastOpenPanelName === 'settingPanel') {
+            //             this.hideConfigPanel()
+            //         } else {
+            //             this.toggleSettingPanel(false)
+            //         }
+            //     }
+            // },
             /**
              * 标识模板是否被编辑
              */
@@ -794,18 +784,18 @@
              * 节点 Mousedown 回调
              */
             onNodeMousedown (id) {
-                this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+                this.$refs.conditionEdit && this.$refs.conditionEdit.confirm()
             },
             /**
              * 打开节点配置面板
              */
             onShowNodeConfig (id, hideSettingPanel = true) {
-                if (this.isShowConditionEdit) {
-                    this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
-                }
-                if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
-                    this.toggleSettingPanel(false)
-                }
+                // if (this.isShowConditionEdit) {
+                //     this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
+                // }
+                // if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
+                // this.toggleSettingPanel(false)
+                // }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
                     this.showConfigPanel(id)
@@ -882,7 +872,7 @@
                             if (this.idOfNodeInConfigPanel === location.id) {
                                 this.idOfNodeInConfigPanel = ''
                             }
-                            this.hideConfigPanel()
+                            // this.hideConfigPanel()
                         }
                         this.setActivities({ type: changeType, location })
                         break
@@ -945,22 +935,7 @@
                 }
                 this.saveAndCreate = saveAndCreate
                 this.pid = pid
-                this.checkVariable() // 全局变量是否合法
-            },
-            // 校验全局变量
-            checkVariable () {
-                const templateSetting = this.$refs.templateSetting
-                if (templateSetting.isEditPanelOpen()) {
-                    templateSetting.saveVariable().then(result => {
-                        if (!result) {
-                            templateSetting.setErrorTab('globalVariableTab')
-                            return
-                        }
-                        this.checkBasicProperty() // 基础属性是否合法
-                    })
-                } else {
-                    this.checkBasicProperty() // 基础属性是否合法
-                }
+                this.checkBasicProperty() // 基础属性是否合法
             },
             // 校验基础属性
             checkBasicProperty () {
@@ -1054,8 +1029,6 @@
             },
             // 打开分支条件编辑
             onOpenConditionEdit (data) {
-                this.toggleSettingPanel(false)
-                this.hideConfigPanel()
                 this.isShowConditionEdit = true
                 this.$refs.conditionEdit.updateConditionData(data)
             },
@@ -1130,38 +1103,38 @@
                 this.handlerGuideTips()
             },
             // 所有侧滑面板以外点击事件处理
-            handleSidesPanelShow (e) {
-                if (
-                    !this.isNodeConfigPanelShow
-                    && !this.isSettingPanelShow
-                    && !this.isShowConditionEdit
-                ) {
-                    return
-                }
-                let panel
-                if (this.isSettingPanelShow) {
-                    panel = document.querySelector('.setting-area-wrap .panel-item.active-tab .bk-sideslider-wrapper')
-                }
-                if (this.isShowConditionEdit) {
-                    panel = document.querySelector('.condition-edit .bk-sideslider-wrapper')
-                }
-                if (this.isNodeConfigPanelShow) {
-                    panel = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
-                }
-                if (panel) {
-                    const { left, top } = panel.getBoundingClientRect()
-                    const pageX = left + document.documentElement.scrollLeft
-                    const pageY = top + document.documentElement.scrollTop
-                    if (
-                        (e.pageX > 0 && e.pageY > 0) // 上传组件点击时，触发区域隐藏在页面左上角
-                        && (e.pageX < pageX || e.pageY < pageY)
-                    ) {
-                        this.isNodeConfigPanelShow && this.hideConfigPanel(true)
-                        !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
-                        this.isShowConditionEdit && this.onCloseConditionEdit()
-                    }
-                }
-            },
+            // handleSidesPanelShow (e) {
+            //     if (
+            //         !this.isNodeConfigPanelShow
+            //         && !this.isSettingPanelShow
+            //         && !this.isShowConditionEdit
+            //     ) {
+            //         return
+            //     }
+            //     let panel
+            //     if (this.isSettingPanelShow) {
+            //         panel = document.querySelector('.setting-area-wrap .panel-item.active-tab .bk-sideslider-wrapper')
+            //     }
+            //     if (this.isShowConditionEdit) {
+            //         panel = document.querySelector('.condition-edit .bk-sideslider-wrapper')
+            //     }
+            //     if (this.isNodeConfigPanelShow) {
+            //         panel = document.querySelector('.node-config-wrapper .bk-sideslider-wrapper')
+            //     }
+            //     if (panel) {
+            //         const { left, top } = panel.getBoundingClientRect()
+            //         const pageX = left + document.documentElement.scrollLeft
+            //         const pageY = top + document.documentElement.scrollTop
+            //         if (
+            //             (e.pageX > 0 && e.pageY > 0) // 上传组件点击时，触发区域隐藏在页面左上角
+            //             && (e.pageX < pageX || e.pageY < pageY)
+            //         ) {
+            //             this.isNodeConfigPanelShow && this.hideConfigPanel(true)
+            //             !this.isFixedVarMenu && this.isSettingPanelShow && this.toggleSettingPanel(false)
+            //             this.isShowConditionEdit && this.onCloseConditionEdit()
+            //         }
+            //     }
+            // },
             // 查看需要更新的子流程
             viewUpdatedNode (id) {
                 this.moveNodeToView(id)
@@ -1207,9 +1180,9 @@
                     item.classList.remove('show-animation')
                 })
             },
-            fixedVarMenuChange (val) {
-                this.isFixedVarMenu = val
-            },
+            // fixedVarMenuChange (val) {
+            //     this.isFixedVarMenu = val
+            // },
             // 本地快照面板新增快照
             onCreateSnapshoot (message = i18n.t('新增流程本地快照成功')) {
                 this.snapshootTimer && clearTimeout(this.snapshootTimer)
@@ -1228,7 +1201,7 @@
                 this.setTplSnapshoot(name)
                 this.replaceTemplate(template)
                 this.templateDataLoading = true
-                this.hideConfigPanel()
+                // this.hideConfigPanel()
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                     this.snapshoots = this.getTplSnapshoots()
@@ -1238,7 +1211,6 @@
                     })
                     // 更新画布节点状态，需要画布数据更新到 DOM 后再执行
                     this.$nextTick(() => {
-                        this.isSettingPanelShow = false
                         this.updateAllNodeInfo()
                     })
                 })
