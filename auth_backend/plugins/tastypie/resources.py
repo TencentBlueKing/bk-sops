@@ -28,6 +28,7 @@ class BkSaaSLabeledDataResourceMixin(object):
         if auth_resource is None:
             return data
         inspect = getattr(self._meta, "inspect", None)
+        get_instance = inspect.instance if inspect else lambda bundle: bundle.obj
 
         # set meta info
         data["meta"]["auth_operations"] = auth_resource.operations
@@ -35,7 +36,7 @@ class BkSaaSLabeledDataResourceMixin(object):
 
         # assemble batch-verify params
         action_ids = [act.id for act in auth_resource.actions]
-        instances = [bundle.obj for bundle in data["objects"]]
+        instances = [get_instance(bundle) for bundle in data["objects"]]
         verify_result = backend.batch_verify_perms(auth_resource, "user", request.user.username, action_ids, instances)
 
         if not verify_result["result"]:
@@ -89,6 +90,7 @@ class BkSaaSLabeledDataResourceMixin(object):
         inspect = getattr(self._meta, "inspect", None)
         if not resource_info["scope_id"]:
             resource_info["scope_id"] = inspect.scope_id(data) if inspect else None
+        get_instance = inspect.instance if inspect else lambda bundle: bundle.obj
 
         # set meta
         data.data["auth_operations"] = auth_resource.operations
@@ -96,7 +98,7 @@ class BkSaaSLabeledDataResourceMixin(object):
 
         # assemble batch-verify params
         action_ids = [act.id for act in auth_resource.actions]
-        instances = [bundle.obj]
+        instances = [get_instance(bundle)]
         verify_result = backend.batch_verify_perms(auth_resource, "user", request.user.username, action_ids, instances)
 
         if not verify_result["result"]:
