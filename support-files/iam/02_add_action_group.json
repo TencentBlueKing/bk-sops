@@ -1,0 +1,177 @@
+{
+    "system_id": "bk_sops",
+    "operations": [
+        {
+            "operation": "upsert_action_groups",
+            "data": [
+                {
+                    "name": "项目",
+                    "name_en": "Project",
+                    "actions": [
+                        {
+                            "id": "project_create"
+                        },
+                        {
+                            "id": "project_view"
+                        },
+                        {
+                            "id": "project_edit"
+                        },
+                        {
+                            "id": "project_fast_create_task"
+                        }
+                    ],
+                    "sub_groups": [
+                        {
+                            "name": "流程模板",
+                            "name_en": "Flow",
+                            "actions": [
+                                {
+                                    "id": "flow_create"
+                                },
+                                {
+                                    "id": "flow_view"
+                                },
+                                {
+                                    "id": "flow_edit"
+                                },
+                                {
+                                    "id": "flow_delete"
+                                },
+                                {
+                                    "id": "flow_create_task"
+                                },
+                                {
+                                    "id": "flow_create_mini_app"
+                                },
+                                {
+                                    "id": "flow_create_periodic_task"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "任务实例",
+                            "name_en": "Task",
+                            "actions": [
+                                {
+                                    "id": "task_view"
+                                },
+                                {
+                                    "id": "task_operate"
+                                },
+                                {
+                                    "id": "task_edit"
+                                },
+                                {
+                                    "id": "task_claim"
+                                },
+                                {
+                                    "id": "task_delete"
+                                },
+                                {
+                                    "id": "task_clone"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "轻应用",
+                            "name_en": "Mini App",
+                            "actions": [
+                                {
+                                    "id": "mini_app_view"
+                                },
+                                {
+                                    "id": "mini_app_edit"
+                                },
+                                {
+                                    "id": "mini_app_delete"
+                                },
+                                {
+                                    "id": "mini_app_create_task"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "周期任务",
+                            "name_en": "Periodic Task",
+                            "actions": [
+                                {
+                                    "id": "periodic_task_view"
+                                },
+                                {
+                                    "id": "periodic_task_edit"
+                                },
+                                {
+                                    "id": "periodic_task_delete"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "common_flow",
+                    "name_en": "公共流程",
+                    "actions": [
+                        {
+                            "id": "common_flow_create"
+                        },
+                        {
+                            "id": "common_flow_view"
+                        },
+                        {
+                            "id": "common_flow_edit"
+                        },
+                        {
+                            "id": "common_flow_delete"
+                        },
+                        {
+                            "id": "common_flow_create_task"
+                        },
+                        {
+                            "id": "common_flow_create_periodic_task"
+                        }
+                    ]
+                },
+                {
+                    "name": "管理员",
+                    "name_en": "Admin",
+                    "actions": [
+                        {
+                            "id": "admin_view"
+                        },
+                        {
+                            "id": "admin_edit"
+                        }
+                    ]
+                },
+                {
+                    "name": "审计",
+                    "name_en": "Audit",
+                    "actions": [
+                        {
+                            "id": "audit_view"
+                        }
+                    ]
+                },
+                {
+                    "name": "职能化",
+                    "name_en": "function",
+                    "actions": [
+                        {
+                            "id": "function_view"
+                        }
+                    ]
+                },
+                {
+                    "name": "数据统计",
+                    "name_en": "Statistics",
+                    "actions": [
+                        {
+                            "id": "statistics_view"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
