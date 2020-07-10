@@ -18,6 +18,7 @@ from functools import cmp_to_key
 
 import ujson as json
 
+
 from pipeline.utils.uniqid import uniqid
 from pipeline.parser.utils import replace_all_id
 from pipeline.models import PipelineTemplate, Snapshot
@@ -90,6 +91,9 @@ class PipelineTemplateWebWrapper(object):
                             info.pop("form")
                         subproc_data["constants"][key] = info
 
+                from gcloud.commons.template.models import replace_template_id
+
+                replace_template_id(template_model, subproc_data)
                 cls.unfold_subprocess(subproc_data, template_model)
 
                 subproc_data["id"] = act_id
