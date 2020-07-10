@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import sys
 import logging
 import traceback
 
@@ -86,3 +87,6 @@ class PipelineConfig(AppConfig):
             == "pipeline.engine.core.data.redis_backend.RedisDataBackend"
         ):
             logger.error("can not find REDIS in settings!")
+
+        # avoid big flow pickle raise maximum recursion depth exceeded error
+        sys.setrecursionlimit(10000)

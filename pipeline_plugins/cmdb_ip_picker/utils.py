@@ -105,10 +105,16 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 def filter_hosts(filters, biz_topo_tree, hosts, comp_key):
     filters_dct = format_condition_dict(filters)
     filter_host = set(filters_dct.pop("host", []))
-    # 把拓扑筛选条件转换成 modules 筛选条件
-    filter_modules = get_modules_by_condition(biz_topo_tree, filters_dct, comp_key)
-    filter_modules_id = get_modules_id(filter_modules)
-    data = [host for host in hosts if set(host["host_modules_id"]) & set(filter_modules_id)]
+
+    if filters_dct:
+        # 把拓扑筛选条件转换成 modules 筛选条件
+        filter_modules = get_modules_by_condition(biz_topo_tree, filters_dct, comp_key)
+        filter_modules_id = get_modules_id(filter_modules)
+        data = [host for host in hosts if set(host["host_modules_id"]) & set(filter_modules_id)]
+    else:
+        # 如果没有拓扑筛选条件，则不进行拓扑筛选操作，直接在 hosts 上再次进行 host ip 过滤
+        data = hosts
+
     if filter_host:
         data = [host for host in data if host["bk_host_innerip"] in filter_host]
     return data

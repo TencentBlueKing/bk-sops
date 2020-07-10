@@ -135,8 +135,9 @@
                 Object.keys(this.constants).forEach(keyItem => {
                     const constant = this.constants[keyItem]
                     const sourceTag = constant.source_tag
+                    const consVersion = constant.version || 'legacy' // 旧数据全局变量不存在 version 字段需要做兼容
                     // 变量的版本需要和勾选表单一致，判断 sourceTag 是否存在是为了兼容旧数据自定义全局变量 source_tag 为空
-                    if (constant.version === version && sourceTag) {
+                    if (consVersion === version && sourceTag) {
                         const tagCode = sourceTag.split('.')[1]
                         if (tagCode === formCode) {
                             reuseList.push({

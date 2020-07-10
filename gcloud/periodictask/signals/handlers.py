@@ -25,21 +25,21 @@ from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as Pipelin
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.signals import pre_periodic_task_start, periodic_task_start_failed
 
-logger = logging.getLogger('celery')
+logger = logging.getLogger("celery")
 
 
 @receiver(pre_periodic_task_start, sender=PipelinePeriodicTask)
 def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **kwargs):
     TaskFlowInstance.objects.create(
-        project_id=periodic_task.extra_info['project_id'],
+        project_id=periodic_task.extra_info["project_id"],
         pipeline_instance=pipeline_instance,
-        category=periodic_task.extra_info['category'],
-        template_id=periodic_task.extra_info['template_num_id'],
-        template_source=periodic_task.extra_info.get('template_source', PROJECT),
-        create_method='periodic',
-        create_info='',
-        flow_type='common',
-        current_flow='execute_task'
+        category=periodic_task.extra_info["category"],
+        template_id=periodic_task.extra_info["template_num_id"],
+        template_source=periodic_task.extra_info.get("template_source", PROJECT),
+        create_method="periodic",
+        create_info=periodic_task.id,
+        flow_type="common",
+        current_flow="execute_task",
     )
 
 
@@ -55,6 +55,6 @@ def periodic_task_start_failed_handler(sender, periodic_task, history, **kwargs)
         send_periodic_task_message(periodic_task, history)
     except Exception:
         logger.error(
-            'periodic_task_start_failed_handler[template_id=%s] send message error: %s' %
-            (periodic_task.extra_info['template_num_id'], traceback.format_exc())
+            "periodic_task_start_failed_handler[template_id=%s] send message error: %s"
+            % (periodic_task.extra_info["template_num_id"], traceback.format_exc())
         )
