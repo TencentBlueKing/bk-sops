@@ -11,26 +11,34 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import mock
 from django.test import TestCase
 
-from pipeline.engine.models import ProcessCeleryTask
+from pipeline.engine.models import ProcessCeleryTask, SendFailedCeleryTask
 
 from ..mock import *  # noqa
 
 
 class TestProcessCeleryTask(TestCase):
+    def tearDown(self):
+        ProcessCeleryTask.objects.all().delete()
+
     def test_bind(self):
         process_id = uniqid()
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
 
-        ProcessCeleryTask.objects.bind(process_id=process_id, celery_task_id=celery_task_id)
-        task = ProcessCeleryTask.objects.get(process_id=process_id, celery_task_id=celery_task_id)
+        ProcessCeleryTask.objects.bind(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
+        task = ProcessCeleryTask.objects.get(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
         self.assertEqual(task.process_id, process_id)
         self.assertEqual(task.celery_task_id, celery_task_id)
 
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
-        ProcessCeleryTask.objects.bind(process_id=process_id, celery_task_id=celery_task_id)
+        ProcessCeleryTask.objects.bind(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
         task.refresh_from_db()
         self.assertEqual(task.process_id, process_id)
         self.assertEqual(task.celery_task_id, celery_task_id)
@@ -39,8 +47,12 @@ class TestProcessCeleryTask(TestCase):
         process_id = uniqid()
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
 
-        ProcessCeleryTask.objects.bind(process_id=process_id, celery_task_id=celery_task_id)
-        task = ProcessCeleryTask.objects.get(process_id=process_id, celery_task_id=celery_task_id)
+        ProcessCeleryTask.objects.bind(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
+        task = ProcessCeleryTask.objects.get(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
         ProcessCeleryTask.objects.unbind(process_id)
         task.refresh_from_db()
         self.assertEqual(task.celery_task_id, "")
@@ -49,30 +61,79 @@ class TestProcessCeleryTask(TestCase):
         process_id = uniqid()
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
 
-        ProcessCeleryTask.objects.bind(process_id=process_id, celery_task_id=celery_task_id)
+        ProcessCeleryTask.objects.bind(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
         ProcessCeleryTask.objects.destroy(process_id)
-        self.assertRaises(ProcessCeleryTask.DoesNotExist, ProcessCeleryTask.objects.get, process_id=process_id)
-
-    def test_start_task(self):
-        start_func = mock.MagicMock()
-        celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
-        start_func.return_value = celery_task_id
-        process_id = uniqid()
-        kwargs = {"a": "1", "b": 2}
-        ProcessCeleryTask.objects.start_task(process_id, start_func=start_func, kwargs=kwargs)
-        start_func.assert_called_with(a="1", b=2)
-        self.assertEqual(
-            ProcessCeleryTask.objects.filter(process_id=process_id, celery_task_id=start_func.return_value).count(), 1
+        self.assertRaises(
+            ProcessCeleryTask.DoesNotExist,
+            ProcessCeleryTask.objects.get,
+            process_id=process_id,
         )
 
-    @mock.patch("pipeline.engine.models.core.revoke", mock.MagicMock())
+    def test_start_task__record_error(self):
+        task = MagicMock()
+        celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
+        task.apply_async = MagicMock(return_value=celery_task_id)
+        task.name = "name_token"
+        process_id = uniqid()
+        kwargs = {"a": "1", "b": 2}
+        mock_watch = MagicMock()
+
+        with patch(
+            "pipeline.engine.models.core.SendFailedCeleryTask.watch", mock_watch
+        ):
+            ProcessCeleryTask.objects.start_task(process_id, task=task, kwargs=kwargs)
+
+        mock_watch.assert_called_once_with(
+            name=task.name,
+            kwargs=kwargs,
+            type=SendFailedCeleryTask.TASK_TYPE_PROCESS,
+            extra_kwargs={"process_id": process_id},
+        )
+        task.apply_async.assert_called_with(a="1", b=2)
+        self.assertEqual(
+            ProcessCeleryTask.objects.filter(
+                process_id=process_id, celery_task_id=task.apply_async.return_value
+            ).count(),
+            1,
+        )
+
+    def test_start_task__no_record_error(self):
+        task = MagicMock()
+        celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
+        task.apply_async = MagicMock(return_value=celery_task_id)
+        task.name = "name_token"
+        process_id = uniqid()
+        kwargs = {"a": "1", "b": 2}
+        mock_watch = MagicMock()
+
+        with patch(
+            "pipeline.engine.models.core.SendFailedCeleryTask.watch", mock_watch
+        ):
+            ProcessCeleryTask.objects.start_task(
+                process_id, task=task, kwargs=kwargs, record_error=False
+            )
+
+        mock_watch.assert_not_called()
+        task.apply_async.assert_called_with(a="1", b=2)
+        self.assertEqual(
+            ProcessCeleryTask.objects.filter(
+                process_id=process_id, celery_task_id=task.apply_async.return_value
+            ).count(),
+            1,
+        )
+
+    @patch("pipeline.engine.models.core.revoke", MagicMock())
     def test_revoke(self):
         from pipeline.engine.models.core import revoke
 
         process_id = uniqid()
         celery_task_id = "{}{}".format(uniqid(), uniqid())[:40]
 
-        ProcessCeleryTask.objects.bind(process_id=process_id, celery_task_id=celery_task_id)
+        ProcessCeleryTask.objects.bind(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
         ProcessCeleryTask.objects.revoke(process_id)
         revoke.assert_called_with(celery_task_id, terminate=True)
         self.assertRaises(
@@ -84,7 +145,9 @@ class TestProcessCeleryTask(TestCase):
 
         revoke.reset_mock()
 
-        ProcessCeleryTask.objects.bind(process_id=process_id, celery_task_id=celery_task_id)
+        ProcessCeleryTask.objects.bind(
+            process_id=process_id, celery_task_id=celery_task_id
+        )
         ProcessCeleryTask.objects.revoke(process_id, kill=True)
         revoke.assert_called_with(celery_task_id, terminate=True, signal="SIGKILL")
         self.assertRaises(
