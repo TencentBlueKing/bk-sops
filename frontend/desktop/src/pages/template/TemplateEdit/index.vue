@@ -23,7 +23,6 @@
                 :create-task-saving="createTaskSaving"
                 :tpl-actions="tplActions"
                 @onChangeName="onChangeName"
-                @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <SubflowUpdateTips
@@ -83,29 +82,24 @@
                 </condition-edit>
                 <template-setting
                     ref="templateSetting"
-                    :draft-array="draftArray"
                     :is-global-variable-update="isGlobalVariableUpdate"
                     :project-info-loading="projectInfoLoading"
                     :is-template-config-valid="isTemplateConfigValid"
                     :is-setting-panel-show="isSettingPanelShow"
                     :is-node-config-panel-show="isNodeConfigPanelShow"
                     :variable-type-list="variableTypeList"
-                    :local-template-data="localTemplateData"
-                    :is-click-draft="isClickDraft"
                     :is-fixed-var-menu="isFixedVarMenu"
+                    :snapshoots="snapshoots"
                     @toggleSettingPanel="toggleSettingPanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @variableDataChanged="variableDataChanged"
                     @fixedVarMenuChange="fixedVarMenuChange"
                     @onSelectCategory="onSelectCategory"
-                    @onDeleteDraft="onDeleteDraft"
-                    @onReplaceTemplate="onReplaceTemplate"
-                    @onNewDraft="onNewDraft"
-                    @updateDraft="updateDraft"
                     @onCitedNodeClick="onCitedNodeClick"
-                    @updateLocalTemplateData="updateLocalTemplateData"
                     @modifyTemplateData="modifyTemplateData"
-                    @hideConfigPanel="hideConfigPanel">
+                    @createSnapshoot="onCreateSnapshoot"
+                    @useSnapshoot="onUseSnapshoot"
+                    @updateSnapshoot="onUpdateSnapshoot">
                 </template-setting>
             </div>
             <bk-dialog
@@ -139,7 +133,7 @@
     import NodeConfig from './NodeConfig/NodeConfig.vue'
     import ConditionEdit from './ConditionEdit.vue'
     import SubflowUpdateTips from './SubflowUpdateTips.vue'
-    import draft from '@/utils/draft.js'
+    import tplSnapshoot from '@/utils/tplSnapshoot.js'
     import Guide from '@/utils/guide.js'
     import permission from '@/mixins/permission.js'
     import { STRING_LENGTH } from '@/constants/index.js'
@@ -188,12 +182,9 @@
                     tasknode: [],
                     subflow: []
                 },
-                draftArray: [],
-                intervalSaveTemplate: null,
-                intervalGetDraftArray: null,
-                templateUUID: uuid(),
-                localTemplateData: null,
-                isClickDraft: false,
+                snapshoots: [],
+                snapshootTimer: null,
+                tplUUID: uuid(),
                 tplActions: [],
                 conditionData: {},
                 nodeGuideConfig: {
@@ -238,9 +229,6 @@
                 'timeZone': state => state.timezone,
                 'project_id': state => state.project_id
             }),
-            projectOrCommon () { // 画布数据缓存参数之一，公共流程没有 project_id，取 'common'
-                return this.common ? 'common' : this.project_id
-            },
             canvasData () {
                 const branchConditions = {}
                 for (const gKey in this.gateways) {
@@ -282,10 +270,6 @@
                     branchConditions
                 }
             },
-            // draftProjectId
-            draftProjectId () {
-                return this.common ? 'common' : this.project_id
-            },
             subflowShouldUpdated () {
                 if (this.subprocess_info && this.subprocess_info.subproc_has_update) {
                     return this.subprocess_info.details
@@ -297,6 +281,7 @@
             this.initTemplateData()
             // 获取流程内置变量
             this.templateDataLoading = true
+            this.snapshoots = this.getTplSnapshoots()
             const result = await this.loadInternalVariable()
             this.setInternalVariable(result.data || [])
             if (this.type === 'edit' || this.type === 'clone') {
@@ -306,31 +291,12 @@
                 this.setTemplateName(name)
                 this.templateDataLoading = false
             }
-
-            // 复制并替换本地缓存的内容
-            if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.projectOrCommon, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
-            } else {
-                // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            }
-            // 五分钟进行存储本地缓存
-            const fiveMinutes = 1000 * 60 * 5
-            this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
-            }, fiveMinutes)
-
-            // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
-            const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
-            this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
             this.getSingleAtomList()
             this.getProjectBaseInfo()
             this.getCustomVarCollection()
+            this.openSnapshootTimer()
             window.onbeforeunload = function () {
                 return i18n.t('系统不会保存您所做的更改，确认离开？')
             }
@@ -559,16 +525,13 @@
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     this.tplActions = data.auth_actions
-                    if (template_id === undefined) {
-                        // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.projectOrCommon, data.template_id, this.templateUUID)
-                    }
                     this.$bkMessage({
                         message: i18n.t('保存成功'),
                         theme: 'success'
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
+                        this.saveTempSnapshoot(data.template_id)
                         this.allowLeave = true
                         const url = { name: 'templatePanel', params: { type: 'edit' }, query: { 'template_id': data.template_id, 'common': this.common } }
                         if (this.common) {
@@ -868,7 +831,7 @@
                         start: START_POSITION
                     })
                     if (res.result) {
-                        this.onNewDraft(undefined, false)
+                        this.onCreateSnapshoot()
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
@@ -1061,89 +1024,12 @@
                 this.leaveToPath = ''
                 this.isLeaveDialogShow = false
             },
-            // 删除本地缓存
-            onDeleteDraft (key) {
-                if (draft.deleteDraft(key)) {
-                    this.$bkMessage({
-                        'message': i18n.t('删除本地缓存成功'),
-                        'theme': 'success'
-                    })
-                } else {
-                    this.$bkMessage({
-                        'message': i18n.t('该本地缓存不存在，删除失败'),
-                        'theme': 'error'
-                    })
-                }
-                // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            },
-            // 模板替换
-            onReplaceTemplate (data) {
-                const { templateData, type, index } = data
-                if (type === 'replace') {
-                    draft.addDraft(
-                        this.username,
-                        this.projectOrCommon,
-                        this.getTemplateIdOrTemplateUUID(),
-                        this.getLocalTemplateData(),
-                        i18n.t('最近快照已保存，并恢复至序号') + index + i18n.t('号的快照'))
-                    this.$bkMessage({
-                        'message': i18n.t('替换流程成功'),
-                        'theme': 'success'
-                    })
-                }
-                this.templateDataLoading = true
-                this.replaceTemplate(templateData)
-                // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-                this.$nextTick(() => {
-                    this.templateDataLoading = false
-                    this.$nextTick(() => {
-                        this.isClickDraft = type === 'replace'
-                        this.$refs.templateSetting.onTemplateSettingShow('localDraftTab')
-                        this.upDataAllNodeInfo()
-                    })
-                })
-            },
-            // 新增本地缓存
-            onNewDraft (message, isMessage = true) {
-                // 创建本地缓存
-                if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.projectOrCommon, this.templateUUID, this.getLocalTemplateData(), message)
-                    // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.templateUUID)
-                } else {
-                    draft.addDraft(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
-                    // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-                }
-                if (isMessage) {
-                    this.$bkMessage({
-                        'message': i18n.t('新增流程本地快照成功'),
-                        'theme': 'success'
-                    })
-                }
-            },
-            // 更新某次快照信息
-            updateDraft (key, data) {
-                draft.updateDraft(key, data)
-                this.draftArray = draft.getDraftArray(this.username, this.projectOrCommon, this.getTemplateIdOrTemplateUUID())
-            },
             // 修改line和location
             onReplaceLineAndLocation (data) {
                 this.replaceLineAndLocation(data)
             },
-            getTemplateIdOrTemplateUUID () {
-                if (this.template_id === undefined || this.template_id === '') {
-                    return this.templateUUID
-                }
-                return this.template_id
-            },
-            updateLocalTemplateData () {
-                this.localTemplateData = this.getLocalTemplateData()
-            },
             // 重新获得缓存后，更新 dom data[raw]上绑定的数据
-            upDataAllNodeInfo () {
+            updateAllNodeInfo () {
                 const nodes = this.activities
                 Object.keys(nodes).forEach((node, index) => {
                     this.onUpdateNodeInfo(node, {
@@ -1314,19 +1200,91 @@
             },
             fixedVarMenuChange (val) {
                 this.isFixedVarMenu = val
+            },
+            // 本地快照面板新增快照
+            onCreateSnapshoot (message = i18n.t('新增流程本地快照成功')) {
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                this.setTplSnapshoot()
+                this.$bkMessage({
+                    message,
+                    theme: 'success'
+                })
+                this.snapshoots = this.getTplSnapshoots()
+                this.openSnapshootTimer()
+            },
+            // 使用快照还原流程模板
+            onUseSnapshoot (args) {
+                const [template, index] = args
+                const name = i18n.t('最近快照已保存，并恢复至原序号为') + index + i18n.t('的快照')
+                this.setTplSnapshoot(name)
+                this.replaceTemplate(template)
+                this.templateDataLoading = true
+                this.hideConfigPanel()
+                this.$nextTick(() => {
+                    this.templateDataLoading = false
+                    this.snapshoots = this.getTplSnapshoots()
+                    this.$bkMessage({
+                        'message': i18n.t('替换流程成功'),
+                        'theme': 'success'
+                    })
+                    // 更新画布节点状态，需要画布数据更新到 DOM 后再执行
+                    this.$nextTick(() => {
+                        this.isSettingPanelShow = false
+                        this.updateAllNodeInfo()
+                    })
+                })
+            },
+            // 更新快照名称
+            onUpdateSnapshoot (data) {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                tplSnapshoot.update(this.username, id, tpl, data)
+                this.snapshoots = this.getTplSnapshoots()
+            },
+            // 设置快照定时器
+            openSnapshootTimer () {
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                this.snapshootTimer = setTimeout(() => {
+                    this.setTplSnapshoot()
+                    this.snapshoots = this.getTplSnapshoots()
+                    this.openSnapshootTimer()
+                }, 5 * 60 * 1000)
+            },
+            // 添加快照
+            setTplSnapshoot (name = i18n.t('自动保存')) {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                const data = {
+                    name,
+                    timestamp: new Date().getTime(),
+                    template: this.getLocalTemplateData()
+                }
+                tplSnapshoot.create(this.username, id, tpl, data)
+            },
+            // 获取快照列表
+            getTplSnapshoots () {
+                const id = this.common ? 'common' : this.project_id
+                const tpl = this.type === 'edit' ? this.template_id : this.tplUUID
+                return tplSnapshoot.getTplSnapshoots(this.username, id, tpl).slice().reverse()
+            },
+            // 清除临时快照
+            clearTempSnapshoot () {
+                const id = this.common ? 'common' : this.project_id
+                tplSnapshoot.deleteTplSnapshoots(this.username, id, this.tplUUID)
+            },
+            // 保存临时快照为改流程模板快照
+            saveTempSnapshoot (templateId) {
+                const id = this.common ? 'common' : this.project_id
+                tplSnapshoot.replaceSnapshootTplKey(this.username, id, this.tplUUID, templateId)
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
             if (this.allowLeave || !this.isTemplateDataChanged) {
-                // 退出时需要关闭定时器
-                clearInterval(this.intervalSaveTemplate)
-                clearInterval(this.intervalGetDraftArray)
-                const template_id = this.getTemplateIdOrTemplateUUID()
-                // 如果是 uuid 或者克隆的模板会进行删除
-                if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.projectOrCommon, this.templateUUID)
-                }
                 this.clearAtomForm()
+                // 清除快照定时器
+                this.snapshootTimer && clearTimeout(this.snapshootTimer)
+                // 流程模板为克隆和新建状态且为保存时，退出需要清除快照
+                this.type !== 'edit' && this.clearTempSnapshoot()
                 next()
             } else {
                 this.leaveToPath = to.fullPath
