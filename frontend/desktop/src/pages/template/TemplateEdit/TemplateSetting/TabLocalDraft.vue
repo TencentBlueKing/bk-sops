@@ -21,7 +21,6 @@
                 <span> {{$t('本地快照')}} </span>
                 <i class="common-icon-info draft-tooltip"
                     v-bk-tooltips="{
-                        allowHtml: true,
                         content: $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。'),
                         placement: 'bottom-end',
                         duration: 0,
