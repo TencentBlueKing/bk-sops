@@ -102,6 +102,7 @@
                 hookable: true,
                 placeholder: gettext("请求超时时间"),
                 min: 0,
+                max: 10,
                 default: 0
             }
         },

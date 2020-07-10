@@ -86,7 +86,8 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                     "ip_logs": [
                         {
                             "ip": "1.1.1.1",
-                            "log_content": "<SOPS_VAR>key2:value2</SOPS_VAR>\ngsectl<SOPS_VAR>key3:value3</SOPS_VAR>",
+                            "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
+                                           "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
                         },
                     ],
                     "ip_status": 9,
