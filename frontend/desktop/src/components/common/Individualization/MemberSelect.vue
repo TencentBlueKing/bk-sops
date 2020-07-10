@@ -72,7 +72,7 @@
         data () {
             return {
                 fixedHeight: false,
-                api: `${window.location.origin}/api/c/compapi/v2/usermanage/fs_list_users/`
+                api: `/api/c/compapi/v2/usermanage/fs_list_users/`
             }
         },
         computed: {
