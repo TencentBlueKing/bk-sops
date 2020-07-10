@@ -19,14 +19,20 @@
             :quick-close="true"
             :before-close="beforeClose">
             <div slot="header">
-                <span>{{ basicInfo.name }}</span>
+                <span
+                    :class="['go-back', {
+                        'active': isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)
+                    }]"
+                    @click="goBackToConfig">
+                    {{ $t('节点配置') }}
+                </span>
                 <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
-                <div
+                <span
                     v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
-                    class="go-back"
-                    @click="isSelectorPanelShow = false">
-                    <i class="common-icon-arrow-left"></i>
-                </div>
+                    class="go-back">
+                    <i class="common-icon-angle-right"></i>
+                    {{ selectorTitle }}
+                </span>
             </div>
             <template slot="content">
                 <div v-show="!isSelectorPanelShow" class="node-config-content">
@@ -170,8 +176,11 @@
             outputLoading () {
                 return this.pluginLoading || this.subflowLoading
             },
+            selectorTitle () {
+                return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
+            },
             getSliderCls () { // 动态设置面板的 class
-                let base = 'common-template-setting-sideslider node-config-base'
+                let base = 'node-config-base'
                 if (this.isSettingPanelShow) {
                     switch (this.settingActiveTab) {
                         case 'globalVariableTab':
@@ -502,6 +511,12 @@
                     return sourceInfo && sourceInfo.includes(form.tag_code)
                 })
             },
+            // 由标准插件(子流程)选择面板返回配置面板
+            goBackToConfig () {
+                if (this.isSelectorPanelShow && (this.basicInfo.plugin || this.basicInfo.tpl)) {
+                    this.isSelectorPanelShow = false
+                }
+            },
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
@@ -785,15 +800,9 @@
     .node-config-wrapper {
         height: 100%;
         background: #ffffff;
-        .go-back {
-            position: absolute;
-            top: 0;
-            right: 20px;
-            font-size: 16px;
+        .go-back.active {
+            color: #3a84ff;
             cursor: pointer;
-            &:hover {
-                color: #3a84ff;
-            }
         }
         .node-config-content {
             padding: 30px 20px;
@@ -802,6 +811,13 @@
             @include scrollbar;
         }
         .node-config-base {
+            position: absolute !important;
+            background: none !important;
+            /deep/ .bk-sideslider-content {
+                max-height: none !important;
+                height: calc(100vh - 168px);
+                overflow: initial;
+            }
             /deep/ .bk-sideslider-wrapper {
                 transition: right .3s ease-in-out;
                 right: 56px;

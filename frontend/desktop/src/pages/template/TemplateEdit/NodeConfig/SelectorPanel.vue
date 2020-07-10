@@ -11,88 +11,42 @@
 */
 <template>
     <div class="selector-panel">
-        <div class="search-area">
-            <bk-select
-                class="select-group"
-                v-model="selectedGroup"
-                :clearable="false"
-                searchable
-                @selected="onSelectGroup">
-                <bk-option
-                    v-for="item in groupList"
-                    :key="item.type"
-                    :id="item.type"
-                    :name="item.group_name">
-                </bk-option>
-            </bk-select>
-            <bk-input
-                class="search-input"
-                v-model.trim="searchStr"
-                right-icon="bk-icon icon-search"
-                :placeholder="$t('请输入名称')"
-                :clearable="true"
-                @input="onSearchInput"
-                @clear="onClearSearch">
-            </bk-input>
-        </div>
+        <bk-input
+            class="search-input"
+            v-model.trim="searchStr"
+            right-icon="bk-icon icon-search"
+            :placeholder="$t('请输入名称')"
+            :clearable="true"
+            @input="onSearchInput"
+            @clear="onClearSearch">
+        </bk-input>
         <div class="list-wrapper">
             <template v-if="listInPanel.length > 0">
-                <!-- 全部插件/子流程 -->
-                <template v-if="searchStr === '' && selectedGroup === 'all'">
-                    <bk-collapse
+                <div class="group-area">
+                    <div
+                        :class="['group-item', {
+                            active: group.type === activeGroup
+                        }]"
                         v-for="group in listInPanel"
-                        ext-cls="group-collapse"
                         :key="group.type"
-                        :value="defaultActiveGroup">
-                        <bk-collapse-item :name="group.group_name">
-                            <div class="group-header">
-                                <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
-                                <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
-                                <span class="header-title">{{group.group_name}}
-                                    <span class="header-atom">
-                                        ({{group.list.length}})
-                                    </span>
-                                </span>
-                            </div>
-                            <ul slot="content" class="list-item-wrap">
-                                <template v-for="(item, index) in group.list">
-                                    <li
-                                        v-if="!isSubflow || item.hasPermission"
-                                        :class="['list-item', { selected: getSelectedStatus(item) }]"
-                                        :key="index"
-                                        @click="onSelect(item)">
-                                        <span class="node-name">{{ item.name }}</span>
-                                        <span v-if="isSubflow" class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
-                                            <i class="common-icon-box-top-right-corner"></i>
-                                        </span>
-                                    </li>
-                                    <li
-                                        v-else
-                                        class="list-item text-permission-disable"
-                                        :key="item.id"
-                                        v-cursor
-                                        @click="onApplyPermission(item)">
-                                        {{ item.name }}
-                                    </li>
-                                </template>
-                                <div class="node-empty" v-if="group.list.length === 0">
-                                    <no-data></no-data>
-                                </div>
-                            </ul>
-                        </bk-collapse-item>
-                    </bk-collapse>
-                </template>
-                <!-- 搜索结果插件列表 -->
-                <template v-else>
-                    <ul slot="content" class="list-item-wrap">
-                        <template v-for="(item, index) in searchResult">
+                        @click="onSelectGroup(group.type)">
+                        <img v-if="group.group_icon" class="group-icon-img" :src="group.group_icon" />
+                        <i v-else :class="['group-icon-font', getIconCls(group.type)]"></i>
+                        <span>{{ group.group_name }}</span>
+                        <span>{{ `(${group.list.length})` }}</span>
+                    </div>
+                </div>
+                <div class="selector-area" ref="selectorArea">
+                    <template v-if="activeList.length > 0">
+                        <template v-for="(item, index) in activeList">
                             <li
                                 v-if="!isSubflow || item.hasPermission"
-                                :class="['list-item', { selected: getSelectedStatus(item) }]"
+                                :class="['list-item', { active: getSelectedStatus(item) }]"
                                 :key="index"
+                                :title="item.name"
                                 @click="onSelect(item)">
-                                <span class="node-name">{{ item.name }}</span>
-                                <span v-if="isSubflow" class="view-tpl" @click.stop="onViewSubflow(item)">
+                                <span class="node-name" v-html="item.name"></span>
+                                <span v-if="isSubflow" class="view-tpl" @click.stop="$emit('viewSubflow', item.id)">
                                     <i class="common-icon-box-top-right-corner"></i>
                                 </span>
                             </li>
@@ -100,16 +54,15 @@
                                 v-else
                                 class="list-item text-permission-disable"
                                 :key="item.id"
+                                :title="item.name"
                                 v-cursor
+                                v-html="item.name"
                                 @click="onApplyPermission(item)">
-                                {{ item.name }}
                             </li>
                         </template>
-                        <div class="node-empty" v-if="searchResult.length === 0">
-                            <no-data></no-data>
-                        </div>
-                    </ul>
-                </template>
+                    </template>
+                    <no-data v-else></no-data>
+                </div>
             </template>
             <no-data v-else></no-data>
         </div>
@@ -117,7 +70,6 @@
 </template>
 
 <script>
-    import i18n from '@/config/i18n/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import toolsUtils from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
@@ -130,45 +82,24 @@
         },
         mixins: [permission],
         props: {
-            atomTypeList: {
-                type: Object
-            },
-            isSubflow: {
-                type: Boolean,
-                default: false
-            },
-            basicInfo: {
-                type: Object
-            }
+            atomTypeList: Object,
+            isSubflow: Boolean,
+            basicInfo: Object
         },
         data () {
+            const listData = this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
             return {
-                selectedGroup: 'all', // 标准插件/子流程搜索分组
+                listData,
+                listInPanel: listData,
                 searchStr: '',
                 searchResult: [],
-                defaultActiveGroup: this.getDefaultActiveGroup()
+                activeGroup: this.getDefaultActiveGroup()
             }
         },
         computed: {
-            listData () {
-                return this.isSubflow ? this.atomTypeList.subflow.groups : this.atomTypeList.tasknode
-            },
-            listInPanel () {
-                return (this.searchStr === '' && this.selectedGroup === 'all') ? this.listData : this.searchResult
-            },
-            groupList () {
-                const list = []
-                list.push({
-                    type: 'all',
-                    group_name: this.isSubflow ? i18n.t('所有分类') : i18n.t('所有分组')
-                })
-                this.listData.forEach(item => {
-                    list.push({
-                        type: item.type,
-                        group_name: item.group_name
-                    })
-                })
-                return list
+            activeList () {
+                const group = this.listInPanel.find(item => item.type === this.activeGroup)
+                return group ? group.list : []
             }
         },
         created () {
@@ -183,14 +114,14 @@
                 const id = this.isSubflow ? 'tpl' : 'plugin'
                 if (this.basicInfo[id]) {
                     data.some(group => {
-                        if (group.list.find(item => String(item[propertyName]) === this.basicInfo[id])) {
-                            activeGroup = group.group_name
+                        if (group.list.find(item => String(item[propertyName]) === String(this.basicInfo[id]))) {
+                            activeGroup = group.type
                             return true
                         }
                     })
                 } else {
                     if (data.length > 0) {
-                        activeGroup = data[0].group_name
+                        activeGroup = data[0].type
                     }
                 }
                 return activeGroup
@@ -206,40 +137,45 @@
                 return 'common-icon-sys-default'
             },
             onSelectGroup (val) {
-                this.selectedGroup = val
-                this.searchInputhandler()
+                this.activeGroup = val
+                this.$refs.selectorArea.scrollTop = 0
             },
             onClearSearch () {
                 this.searchInputhandler()
             },
             searchInputhandler () {
-                let listData = this.listData
-                const result = []
-                if (this.selectedGroup !== 'all') {
-                    const list = listData.find(item => item.type === this.selectedGroup)
-                    listData = [list]
-                }
-                if (this.searchStr !== '') {
-                    const reg = new RegExp(this.searchStr)
-                    listData.forEach(group => {
+                let result = []
+                if (this.searchStr === '') {
+                    result = this.listData.slice(0)
+                    this.activeGroup = this.getDefaultActiveGroup()
+                } else {
+                    const reg = new RegExp(this.searchStr, 'i')
+                    this.listData.forEach(group => {
+                        const list = []
                         if (group.list.length > 0) {
-                            group.list.forEach(node => {
-                                if (reg.test(node.name)) {
-                                    result.push(node)
+                            group.list.forEach(item => {
+                                if (reg.test(item.name)) {
+                                    const node = { ...item }
+                                    node.name = item.name.replace(reg, `<span style="color: #ff5757;">${this.searchStr}</span>`)
+                                    list.push(node)
                                 }
                             })
+                            if (list.length > 0) {
+                                const { group_icon, group_name, type } = group
+                                result.push({
+                                    group_icon,
+                                    group_name,
+                                    type,
+                                    list
+                                })
+                            }
                         }
                     })
-                } else {
-                    listData.forEach(group => {
-                        if (group.list.length > 0) {
-                            group.list.forEach(node => {
-                                result.push(node)
-                            })
-                        }
-                    })
+                    if (result.length > 0) {
+                        this.activeGroup = result[0].type
+                    }
                 }
-                this.searchResult = result
+                this.listInPanel = result
             },
             /**
              * 选择插件/子流程
@@ -252,7 +188,7 @@
              */
             getSelectedStatus (item) {
                 if (this.isSubflow) {
-                    return item.id === this.basicInfo.tpl
+                    return String(item.id) === String(this.basicInfo.tpl)
                 }
                 return item.code === this.basicInfo.plugin
             },
@@ -275,101 +211,76 @@
 .selector-panel {
     position: relative;
 }
-.search-area {
-    float: right;
-    margin: 16px;
-    .select-group {
-        float: left;
-        width: 220px;
-    }
-    .search-input {
-        float: left;
-        margin-left: 10px;
-        width: 260px;
-    }
+.search-input {
+    position: absolute;
+    top: -45px;
+    right: 20px;
+    width: 300px;
 }
 .list-wrapper {
-    height: calc(100vh - 234px);
-    border-top: 1px solid #e2e4ed;
+    height: calc(100vh - 170px);
+}
+.group-area {
+    float: left;
+    width: 270px;
+    height: 100%;
+    background-image: linear-gradient(to right, transparent 269px,#e2e4ed 0);
+    background-color: #fafbfd;
     overflow: auto;
-    clear: both;
     @include scrollbar;
-    .group-collapse {
-        .bk-collapse-item {
-            border-bottom: 1px solid #e2e4ed;
-            /deep/ {
-                .bk-collapse-item-header {
-                    width: 100%;
-                    background: #fafbfd;
-                }
-                .bk-collapse-item-content {
-                    padding: 0;
-                }
-            }
-            &.bk-collapse-item-active {
-                /deep/ .bk-collapse-item-header {
-                    border-bottom: 1px solid #e2e4ed;
-                }
-            }
-        }
-    }
-}
-.group-header {
-    height: 42px;
-    overflow: hidden;
-    .group-icon-font {
-        float: left;
-        margin-top: 13px;
-        font-size: 16px;
-        color: #52699d;
-        &.common-icon-subflow-mark {
-            font-size: 18px;
-        }
-    }
-    .group-icon-img {
-        float: left;
-        margin-top: 13px;
-        width: 16px;
-        height: 16px;
-    }
-    .header-title {
-        display: inline-block;
-        margin-left: 10px;
-        width: 210px;
+    .group-item {
+        position: relative;
+        padding: 0 18px;
         font-size: 14px;
-        overflow: hidden;
-        .header-atom {
-            color: #a9b2bd;
-            font-size: 12px;
-        }
-    }
-}
-.list-item-wrap {
-    .list-item {
-        padding-left: 38px;
-        height: 40px;
-        line-height: 40px;
         color: #63656e;
-        font-size: 12px;
+        height: 42px;
+        line-height: 42px;
         border-bottom: 1px solid #e2e4ed;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
         cursor: pointer;
-        &:last-child {
-            border-bottom: none;
-        }
-        &.selected .node-name {
-            color: #3a84ff;
-        }
         &:hover {
             color: #3a84ff;
-            background: #e1ecff;
         }
-        .view-tpl {
-            float: right;
-            margin-right: 34px;
+        &.active {
+            color: #3a84ff;
+            background: #ffffff;
+            border-right: 1px solid #ffffff;
         }
     }
-    .node-empty {
-        padding: 20px 0;
+}
+.selector-area {
+    margin-left: 270px;
+    height: 100%;
+    font-size: 12px;
+    color: #63656e;
+    overflow: auto;
+    @include scrollbar;
+    .list-item {
+        position: relative;
+        padding: 0 40px 0 20px;
+        height: 42px;
+        line-height: 42px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        cursor: pointer;
+        &:hover {
+            background: #e1ecff;
+            color: #3a84ff;
+        }
+        &.active {
+            background: #e1ecff;
+            & > .node-name {
+                color: #3a84ff;
+            }
+        }
+    }
+    .common-icon-box-top-right-corner {
+        position: absolute;
+        right: 20px;
+        top: 14px;
     }
 }
 </style>
