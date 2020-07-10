@@ -66,7 +66,7 @@ class FunctionTaskResource(GCloudModelResource):
         resource_name = "function_task"
         auth_resource = taskflow_resource
         authorization = FunctionTaskAuthorization(
-            auth_resource=auth_resource, read_action_id="view", update_action_id="edit", resource_f="task"
+            auth_resource=auth_resource, read_action_id="view", update_action_id="edit"
         )
         inspect = FunctionTaskResourceInspect()
 
