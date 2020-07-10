@@ -1,7 +1,7 @@
 <!-- TOC -->
 
-- [Celery Worker 配置](#celery-worker-%e9%85%8d%e7%bd%ae)
-- [任务队列隔离](#%e4%bb%bb%e5%8a%a1%e9%98%9f%e5%88%97%e9%9a%94%e7%a6%bb)
+- [Celery Worker 配置](#celery-worker-配置)
+- [任务队列隔离](#任务队列隔离)
 
 <!-- /TOC -->
 

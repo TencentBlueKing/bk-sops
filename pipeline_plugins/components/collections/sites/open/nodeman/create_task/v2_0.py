@@ -52,11 +52,11 @@ def get_host_id_by_inner_ip(client, logger, bk_cloud_id: int, bk_biz_id: int, ip
         "bk_biz_id": [bk_biz_id],
         "conditions": [{"key": "inner_ip", "value": ip_list}, {"key": "bk_cloud_id", "value": [bk_cloud_id]}],
     }
-    result = client.nodeman.search(kwargs)
+    result = client.nodeman.search_host_plugin(kwargs)
 
     bk_host_id = []
     if not result["result"]:
-        error = handle_api_error(__group_name__, "nodeman.search", kwargs, result)
+        error = handle_api_error(__group_name__, "nodeman.search_host_plugin", kwargs, result)
         logger.error(error)
         return bk_host_id
 
