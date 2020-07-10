@@ -18,7 +18,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import get_ip_by_regex
 from pipeline.utils.crypt import rsa_decrypt_password
 from pipeline.core.flow.io import (
     IntItemSchema,
@@ -28,6 +27,7 @@ from pipeline.core.flow.io import (
 )
 
 from gcloud.conf import settings
+from gcloud.utils.ip import get_ip_by_regex
 
 __group_name__ = _("节点管理(Nodeman)")
 
@@ -45,9 +45,7 @@ def nodeman_rsa_encrypt(message):
     RSA加密
     """
     message = message if isinstance(message, bytes) else message.encode("utf-8")
-    return base64.b64encode(
-        rsa.encrypt(message, rsa.PublicKey.load_pkcs1_openssl_pem(PUBLIC_KEY))
-    )
+    return base64.b64encode(rsa.encrypt(message, rsa.PublicKey.load_pkcs1_openssl_pem(PUBLIC_KEY)))
 
 
 class NodemanCreateTaskService(Service):
@@ -142,9 +140,7 @@ class NodemanCreateTaskService(Service):
         job_result = client.nodeman.get_task_info(job_kwargs)
 
         self.logger.info(
-            "nodeman get task info result: {result}, api_kwargs: {kwargs}".format(
-                result=job_result, kwargs=job_kwargs
-            )
+            "nodeman get task info result: {result}, api_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs)
         )
 
         # 任务执行失败
@@ -167,12 +163,7 @@ class NodemanCreateTaskService(Service):
         for host in result_data["hosts"]:
             # 安装失败
             if host["status"] == "FAILED":
-                fail_infos.append(
-                    {
-                        "host_id": host["host"]["id"],
-                        "inner_ip": host["host"]["inner_ip"],
-                    }
-                )
+                fail_infos.append({"host_id": host["host"]["id"], "inner_ip": host["host"]["inner_ip"]})
 
         if success_num + fail_num == host_count:
             data.set_outputs("success_num", success_num)
@@ -204,32 +195,20 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"),
-                key="job_id",
-                type="int",
-                schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"),
-                key="success_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"),
-                key="fail_num",
-                type="int",
-                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"),
-                key="biz_cc_id",
-                type="int",
-                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"), key="biz_cc_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("云区域 ID"),
@@ -242,10 +221,7 @@ class NodemanCreateTaskService(Service):
                 key="nodeman_node_type",
                 type="string",
                 schema=StringItemSchema(
-                    description=_(
-                        "节点类型，可以是 AGENT（表示直连区域安装 Agent）、 "
-                        "PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）"
-                    )
+                    description=_("节点类型，可以是 AGENT（表示直连区域安装 Agent）、 " "PROXY（表示安装 Proxy） 或 PAGENT（表示直连区域安装 Agent）")
                 ),
             ),
             self.InputItem(
@@ -254,8 +230,7 @@ class NodemanCreateTaskService(Service):
                 type="string",
                 schema=StringItemSchema(
                     description=_(
-                        "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、"
-                        " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
+                        "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
                     )
                 ),
             ),
@@ -269,32 +244,17 @@ class NodemanCreateTaskService(Service):
                         description=_("主机相关信息"),
                         property_schemas={
                             "conn_ips": StringItemSchema(description=_("主机通信 IP")),
-                            "login_ip": StringItemSchema(
-                                description=_("主机登录 IP，可以为空，适配复杂网络时填写")
-                            ),
-                            "data_ip": StringItemSchema(
-                                description=_("主机数据 IP，可以为空，适配复杂网络时填写")
-                            ),
-                            "cascade_ip": StringItemSchema(
-                                description=_("级联 IP, 可以为空，安装 PROXY 时必填")
-                            ),
-                            "os_type": StringItemSchema(
-                                description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")
-                            ),
+                            "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
+                            "data_ip": StringItemSchema(description=_("主机数据 IP，可以为空，适配复杂网络时填写")),
+                            "cascade_ip": StringItemSchema(description=_("级联 IP, 可以为空，安装 PROXY 时必填")),
+                            "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
                             "has_cygwin": StringItemSchema(
-                                description=_(
-                                    "是否安装了 cygwin，True：表示已安装，"
-                                    "False：表示未安装, windows 操作系统时选填"
-                                )
+                                description=_("是否安装了 cygwin，True：表示已安装，" "False：表示未安装, windows 操作系统时选填")
                             ),
                             "port": StringItemSchema(description=_("端口号")),
                             "account": StringItemSchema(description=_("登录帐号")),
-                            "auth_type": StringItemSchema(
-                                description=_("认证方式，可以是 PASSWORD 或 KEY")
-                            ),
-                            "auth_key": StringItemSchema(
-                                description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
-                            ),
+                            "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
+                            "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
                         },
                     ),
                 ),

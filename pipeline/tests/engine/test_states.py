@@ -15,8 +15,8 @@ import itertools
 
 from django.test import TestCase
 
-from pipeline.engine.states import *  # noqa
 from pipeline.engine import states
+from pipeline.engine.states import *  # noqa
 
 
 class StatesTestCase(TestCase):

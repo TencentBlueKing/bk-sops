@@ -15,15 +15,15 @@ from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from pipeline.core.pipeline import Pipeline
 from pipeline.core.constants import PE
+from pipeline.core.pipeline import Pipeline
 from pipeline.engine.signals import pipeline_end, pipeline_revoke
 from pipeline.models import (
+    PipelineInstance,
     PipelineTemplate,
+    TemplateCurrentVersion,
     TemplateRelationship,
     TemplateVersion,
-    TemplateCurrentVersion,
-    PipelineInstance,
 )
 
 

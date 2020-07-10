@@ -14,20 +14,21 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
-from django.db import connection
-from celery import schedules
+from anyjson import dumps, loads
+from celery import current_app, schedules
 from celery.utils.log import get_logger
-from celery import current_app
-from djcelery.schedulers import ModelEntry, DatabaseScheduler
+from django.db import connection
+from djcelery.schedulers import DatabaseScheduler, ModelEntry
 from djcelery.utils import make_aware
-from anyjson import loads, dumps
 
 from pipeline.contrib.periodic_task.models import (
+    CrontabSchedule,
     DjCeleryPeriodicTask,
     DjCeleryPeriodicTasks,
-    CrontabSchedule,
     IntervalSchedule,
 )
+
+logger = logging.getLogger("root")
 
 
 def djcelry_upgrade():
@@ -39,25 +40,29 @@ def djcelry_upgrade():
     # djcelery upgrate compatible
     # if djcelery version > 3.1.x
     if int(djcelery.__version__.split(".")[1]) >= 2:
-        with connection.cursor() as cursor:
-            cursor.execute("show tables;")
-            tables = {item[0] for item in cursor.fetchall()}
-            is_first_migrate = "django_migrations" not in tables
-            if is_first_migrate:
-                return
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("show tables;")
+                tables = {item[0] for item in cursor.fetchall()}
+                is_first_migrate = "django_migrations" not in tables
+                if is_first_migrate:
+                    return
 
-            using_djcelery = "djcelery_taskstate" in tables
-            if not using_djcelery:
-                return
+                using_djcelery = "djcelery_taskstate" in tables
+                if not using_djcelery:
+                    return
 
-            # insert djcelery migration record
-            cursor.execute("select * from `django_migrations` where app='djcelery' and name='0001_initial';")
-            row = cursor.fetchall()
-            if not row:
-                cursor.execute(
-                    "insert into `django_migrations` (app, name, applied) "
-                    "values ('djcelery', '0001_initial', '%s');" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                )
+                # insert djcelery migration record
+                cursor.execute("select * from `django_migrations` where app='djcelery' and name='0001_initial';")
+                row = cursor.fetchall()
+                if not row:
+                    cursor.execute(
+                        "insert into `django_migrations` (app, name, applied) "
+                        "values ('djcelery', '0001_initial', '%s');"
+                        % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    )
+        except Exception:
+            logger.exception("djcelery compatible upgrade failed.")
 
 
 class TzAwareModelEntry(ModelEntry):

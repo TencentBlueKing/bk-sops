@@ -16,7 +16,7 @@ from copy import deepcopy
 from django.test import TestCase
 
 from pipeline.contrib.external_plugins import exceptions
-from pipeline.contrib.external_plugins.models import source_cls_factory, GitRepoSource, ExternalPackageSource
+from pipeline.contrib.external_plugins.models import ExternalPackageSource, GitRepoSource, source_cls_factory
 from pipeline.contrib.external_plugins.tests.mock import *  # noqa
 from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
 

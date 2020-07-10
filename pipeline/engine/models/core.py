@@ -11,10 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import ujson as json
 import contextlib
 import logging
 import traceback
 
+from celery import current_app
 from celery.task.control import revoke
 from django.db import models, transaction
 from django.utils import timezone
@@ -39,7 +41,9 @@ NAME_MAX_LENGTH = 64
 
 
 class ProcessSnapshotManager(models.Manager):
-    def create_snapshot(self, pipeline_stack, children, root_pipeline, subprocess_stack):
+    def create_snapshot(
+        self, pipeline_stack, children, root_pipeline, subprocess_stack
+    ):
         data = {
             "_pipeline_stack": pipeline_stack,
             "_subprocess_stack": subprocess_stack,
@@ -87,10 +91,16 @@ class ProcessManager(models.Manager):
         """
         # init runtime info
         snapshot = ProcessSnapshot.objects.create_snapshot(
-            pipeline_stack=utils.Stack(), children=[], root_pipeline=pipeline, subprocess_stack=utils.Stack()
+            pipeline_stack=utils.Stack(),
+            children=[],
+            root_pipeline=pipeline,
+            subprocess_stack=utils.Stack(),
         )
         process = self.create(
-            id=node_uniqid(), root_pipeline_id=pipeline.id, current_node_id=pipeline.start_event.id, snapshot=snapshot
+            id=node_uniqid(),
+            root_pipeline_id=pipeline.id,
+            current_node_id=pipeline.start_event.id,
+            snapshot=snapshot,
         )
         process.push_pipeline(pipeline)
         process.save()
@@ -173,7 +183,9 @@ class ProcessManager(models.Manager):
         :param child_id: 子进程 ID
         :return:
         """
-        valve.send(signals, "child_process_ready", sender=PipelineProcess, child_id=child_id)
+        valve.send(
+            signals, "child_process_ready", sender=PipelineProcess, child_id=child_id
+        )
 
     def priority_for_process(self, process_id):
         """
@@ -181,7 +193,26 @@ class ProcessManager(models.Manager):
         :param process_id: 进程 ID
         :return:
         """
-        return PipelineModel.objects.get(id=self.get(id=process_id).root_pipeline_id).priority
+        return PipelineModel.objects.get(
+            id=self.get(id=process_id).root_pipeline_id
+        ).priority
+
+    def queue_for_process(self, process_id):
+        """
+        查询进程对应的 pipeline 所使用的队列
+        :param process_id: 进程 ID
+        :return:
+        """
+        return PipelineModel.objects.get(
+            id=self.get(id=process_id).root_pipeline_id
+        ).queue
+
+    def task_args_for_process(self, process_id):
+        pipeline_model = PipelineModel.objects.get(
+            id=self.get(id=process_id).root_pipeline_id
+        )
+
+        return {"priority": pipeline_model.priority, "queue": pipeline_model.queue}
 
 
 class PipelineProcess(models.Model):
@@ -193,15 +224,19 @@ class PipelineProcess(models.Model):
     """
 
     id = models.CharField(_("Process ID"), unique=True, primary_key=True, max_length=32)
-    root_pipeline_id = models.CharField(_("根 pipeline 的 ID"), max_length=32)
-    current_node_id = models.CharField(_("当前推进到的节点的 ID"), max_length=32, default="", db_index=True)
+    root_pipeline_id = models.CharField(
+        _("根 pipeline 的 ID"), max_length=32, db_index=True
+    )
+    current_node_id = models.CharField(
+        _("当前推进到的节点的 ID"), max_length=32, default="", db_index=True
+    )
     destination_id = models.CharField(_("遇到该 ID 的节点就停止推进"), max_length=32, default="")
     parent_id = models.CharField(_("父 process 的 ID"), max_length=32, default="")
     ack_num = models.IntegerField(_("收到子节点 ACK 的数量"), default=0)
     need_ack = models.IntegerField(_("需要收到的子节点 ACK 的数量"), default=-1)
-    is_alive = models.BooleanField(_("该 process 是否还有效"), default=True)
-    is_sleep = models.BooleanField(_("该 process 是否正在休眠"), default=False)
-    is_frozen = models.BooleanField(_("该 process 是否被冻结"), default=False)
+    is_alive = models.BooleanField(_("该 process 是否还有效"), default=True, db_index=True)
+    is_sleep = models.BooleanField(_("该 process 是否正在休眠"), default=False, db_index=True)
+    is_frozen = models.BooleanField(_("该 process 是否被冻结"), default=False, db_index=True)
     snapshot = models.ForeignKey(ProcessSnapshot, null=True, on_delete=models.SET_NULL)
 
     objects = ProcessManager()
@@ -313,7 +348,9 @@ class PipelineProcess(models.Model):
             self.__class__.objects.select_for_update().get(id=self.id)
             self.is_frozen = False
             self.save(save_snapshot=False)
-            valve.send(signals, "process_unfreeze", sender=PipelineProcess, process_id=self.id)
+            valve.send(
+                signals, "process_unfreeze", sender=PipelineProcess, process_id=self.id
+            )
 
     def sleep(self, do_not_save=False, adjust_status=False, adjust_scope=None):
         """
@@ -343,20 +380,36 @@ class PipelineProcess(models.Model):
         :return:
         """
         node_state = Status.objects.state_for(self.current_node_id, may_not_exist=True)
-        pipeline_state = Status.objects.state_for(self.root_pipeline.id, may_not_exist=True)
+        pipeline_state = Status.objects.state_for(
+            self.root_pipeline.id, may_not_exist=True
+        )
         subproc_states = Status.objects.states_for(self.subprocess_stack)
 
         if node_state in {states.FAILED, states.SUSPENDED}:
             # if current node failed or suspended
-            Status.objects.batch_transit(id_list=self.subprocess_stack, state=states.BLOCKED, from_state=states.RUNNING)
-            Status.objects.transit(self.root_pipeline.id, to_state=states.BLOCKED, is_pipeline=True)
+            Status.objects.batch_transit(
+                id_list=self.subprocess_stack,
+                state=states.BLOCKED,
+                from_state=states.RUNNING,
+            )
+            Status.objects.transit(
+                self.root_pipeline.id, to_state=states.BLOCKED, is_pipeline=True
+            )
         elif states.SUSPENDED in set(subproc_states):
             # if any subprocess suspended
-            Status.objects.batch_transit(id_list=adjust_scope, state=states.BLOCKED, from_state=states.RUNNING)
-            Status.objects.transit(self.root_pipeline.id, to_state=states.BLOCKED, is_pipeline=True)
+            Status.objects.batch_transit(
+                id_list=adjust_scope, state=states.BLOCKED, from_state=states.RUNNING
+            )
+            Status.objects.transit(
+                self.root_pipeline.id, to_state=states.BLOCKED, is_pipeline=True
+            )
         elif pipeline_state == states.SUSPENDED:
             # if root pipeline suspended
-            Status.objects.batch_transit(id_list=self.subprocess_stack, state=pipeline_state, from_state=states.RUNNING)
+            Status.objects.batch_transit(
+                id_list=self.subprocess_stack,
+                state=pipeline_state,
+                from_state=states.RUNNING,
+            )
 
     def wake_up(self):
         """
@@ -401,7 +454,10 @@ class PipelineProcess(models.Model):
         """
         if not self.is_sleep:
             return False
-        if Status.objects.state_for(self.current_node_id, may_not_exist=True) in {states.FAILED, states.SUSPENDED}:
+        if Status.objects.state_for(self.current_node_id, may_not_exist=True) in {
+            states.FAILED,
+            states.SUSPENDED,
+        }:
             return True
         if not self.children:
             return False
@@ -440,7 +496,9 @@ class PipelineProcess(models.Model):
         data_service.set_object(self._context_key(), self.top_pipeline.context)
         data_service.set_object(self._data_key(), self.top_pipeline.data)
 
-        self.__class__.objects.filter(id=self.parent_id).update(ack_num=models.F("ack_num") + 1)
+        self.__class__.objects.filter(id=self.parent_id).update(
+            ack_num=models.F("ack_num") + 1
+        )
         can_wake_up = False
 
         with transaction.atomic():
@@ -455,14 +513,22 @@ class PipelineProcess(models.Model):
                 else:
                     if parent.blocked_by_failure_or_suspended():
                         Status.objects.batch_transit(
-                            id_list=self.subprocess_stack, state=states.BLOCKED, from_state=states.RUNNING
+                            id_list=self.subprocess_stack,
+                            state=states.BLOCKED,
+                            from_state=states.RUNNING,
                         )
-                        Status.objects.transit(id=self.root_pipeline.id, to_state=states.BLOCKED, is_pipeline=True)
+                        Status.objects.transit(
+                            id=self.root_pipeline.id,
+                            to_state=states.BLOCKED,
+                            is_pipeline=True,
+                        )
 
             parent.save(save_snapshot=False)
 
         if can_wake_up:
-            self.__class__.objects.process_ready(parent.id, current_node_id=destination_id, call_from_child=True)
+            self.__class__.objects.process_ready(
+                parent.id, current_node_id=destination_id, call_from_child=True
+            )
 
         SubProcessRelationship.objects.delete_relation(None, self.id)
         self.destroy()
@@ -518,7 +584,8 @@ class PipelineProcess(models.Model):
         if not result.result:
             logger.error(
                 "process({process_id}) exit_gracefully status transit failed, current_node :{node_id}".format(
-                    process_id=self.id, node_id=current_node.id if current_node else self.current_node_id
+                    process_id=self.id,
+                    node_id=current_node.id if current_node else self.current_node_id,
                 )
             )
         self.sleep(adjust_status=True)
@@ -529,15 +596,26 @@ class PipelineProcess(models.Model):
         :param current_node_id:
         :return:
         """
-        self.__class__.objects.filter(id=self.id).update(current_node_id=current_node_id)
+        self.__class__.objects.filter(id=self.id).update(
+            current_node_id=current_node_id
+        )
 
     def revoke_subprocess(self):
         if self.subprocess_stack:
-            Status.objects.batch_transit(id_list=list(self.subprocess_stack), state=states.REVOKED)
+            Status.objects.batch_transit(
+                id_list=list(self.subprocess_stack), state=states.REVOKED
+            )
 
         if self.children:
             for child_id in self.children:
                 PipelineProcess.objects.get(id=child_id).revoke_subprocess()
+
+    def take_snapshot(self):
+        """
+        保存当前进程的快照对象
+        :return:
+        """
+        self.snapshot.save()
 
 
 def _destroy_recursively(process):
@@ -553,8 +631,10 @@ def _destroy_recursively(process):
 
 
 class PipelineModelManager(models.Manager):
-    def prepare_for_pipeline(self, pipeline, process, priority):
-        return self.create(id=pipeline.id, process=process, priority=priority)
+    def prepare_for_pipeline(self, pipeline, process, priority, queue=""):
+        return self.create(
+            id=pipeline.id, process=process, priority=priority, queue=queue
+        )
 
     def pipeline_ready(self, process_id):
         valve.send(signals, "pipeline_ready", sender=Pipeline, process_id=process_id)
@@ -562,11 +642,17 @@ class PipelineModelManager(models.Manager):
     def priority_for_pipeline(self, pipeline_id):
         return self.get(id=pipeline_id).priority
 
+    def task_args_for_pipeline(self, pipeline_id):
+        model = self.get(id=pipeline_id)
+
+        return {"priority": model.priority, "queue": model.queue}
+
 
 class PipelineModel(models.Model):
     id = models.CharField("pipeline ID", unique=True, primary_key=True, max_length=32)
     process = models.ForeignKey(PipelineProcess, null=True, on_delete=models.SET_NULL)
     priority = models.IntegerField(_("流程优先级"), default=PIPELINE_DEFAULT_PRIORITY)
+    queue = models.CharField(_("流程使用的队列名"), max_length=512, default="")
 
     objects = PipelineModelManager()
 
@@ -577,10 +663,16 @@ class RelationshipManager(models.Manager):
             # already build
             return
         ancestors = self.filter(descendant_id=ancestor_id)
-        relationships = [NodeRelationship(ancestor_id=descendant_id, descendant_id=descendant_id, distance=0)]
+        relationships = [
+            NodeRelationship(
+                ancestor_id=descendant_id, descendant_id=descendant_id, distance=0
+            )
+        ]
         for ancestor in ancestors:
             rel = NodeRelationship(
-                ancestor_id=ancestor.ancestor_id, descendant_id=descendant_id, distance=ancestor.distance + 1
+                ancestor_id=ancestor.ancestor_id,
+                descendant_id=descendant_id,
+                distance=ancestor.distance + 1,
             )
             relationships.append(rel)
         self.bulk_create(relationships)
@@ -590,17 +682,29 @@ class NodeRelationship(models.Model):
     id = models.BigAutoField(_("ID"), primary_key=True)
     ancestor_id = models.CharField(_("祖先 ID"), max_length=32, db_index=True)
     descendant_id = models.CharField(_("后代 ID"), max_length=32, db_index=True)
-    distance = models.IntegerField(_("距离"))
+    distance = models.IntegerField(_("距离"), db_index=True)
 
     objects = RelationshipManager()
 
     def __unicode__(self):
-        return str("#{} -({})-> #{}".format(self.ancestor_id, self.distance, self.descendant_id,))
+        return str(
+            "#{} -({})-> #{}".format(
+                self.ancestor_id, self.distance, self.descendant_id,
+            )
+        )
 
 
 class StatusManager(models.Manager):
     def transit(
-        self, id, to_state, is_pipeline=False, appoint=False, start=False, name="", version=None, unchanged_pass=False
+        self,
+        id,
+        to_state,
+        is_pipeline=False,
+        appoint=False,
+        start=False,
+        name="",
+        version=None,
+        unchanged_pass=False,
     ):
         """
         尝试改变某个节点的状态
@@ -614,9 +718,15 @@ class StatusManager(models.Manager):
         :param unchanged_pass: 当 to_state 与当前节点状态相同时则视为操作成功
         :return:
         """
-        defaults = {"name": name, "state": to_state, "version": uniqid()}
+        defaults = {
+            "name": name,
+            "state": to_state,
+            "version": uniqid(),
+        }
         if start:
-            defaults["started_time"] = timezone.now()
+            now = timezone.now()
+            defaults["started_time"] = now
+            defaults["state_refresh_at"] = now
         status, created = self.get_or_create(id=id, defaults=defaults)
 
         # reservation or first creation
@@ -632,24 +742,41 @@ class StatusManager(models.Manager):
                 status = self.select_for_update().get(**kwargs)
 
             except Status.DoesNotExist:
-                return ActionResult(result=False, message="node not exists or not be executed yet")
+                return ActionResult(
+                    result=False, message="node not exists or not be executed yet"
+                )
 
             if unchanged_pass and status.state == to_state:
                 return ActionResult(result=True, message="success", extra=status)
 
-            if states.can_transit(from_state=status.state, to_state=to_state, is_pipeline=is_pipeline, appoint=appoint):
+            if states.can_transit(
+                from_state=status.state,
+                to_state=to_state,
+                is_pipeline=is_pipeline,
+                appoint=appoint,
+            ):
 
                 # 在冻结状态下不能改变 pipeline 的状态
                 if is_pipeline:
-                    subprocess_rel = SubProcessRelationship.objects.filter(subprocess_id=id)
+                    subprocess_rel = SubProcessRelationship.objects.filter(
+                        subprocess_id=id
+                    )
                     if subprocess_rel:
-                        process = PipelineProcess.objects.get(id=subprocess_rel[0].process_id)
+                        process = PipelineProcess.objects.get(
+                            id=subprocess_rel[0].process_id
+                        )
                         if process.is_frozen:
-                            return ActionResult(result=False, message="engine is frozen, can not perform operation")
+                            return ActionResult(
+                                result=False,
+                                message="engine is frozen, can not perform operation",
+                            )
 
                     processes = PipelineProcess.objects.filter(root_pipeline_id=id)
                     if processes and processes[0].is_frozen:
-                        return ActionResult(result=False, message="engine is frozen, can not perform operation")
+                        return ActionResult(
+                            result=False,
+                            message="engine is frozen, can not perform operation",
+                        )
 
                 if name:
                     status.name = name
@@ -660,7 +787,9 @@ class StatusManager(models.Manager):
                 if states.is_rerunning(from_state=status.state, to_state=to_state):
                     history = History.objects.record(status, is_rerunning=True)
                     if history:
-                        LogEntry.objects.link_history(node_id=status.id, history_id=history.id)
+                        LogEntry.objects.link_history(
+                            node_id=status.id, history_id=history.id
+                        )
                     status.loop += 1
                     status.skip = False
                     status.version = uniqid()
@@ -669,12 +798,15 @@ class StatusManager(models.Manager):
                 if start:
                     status.started_time = timezone.now()
                 status.state = to_state
+                status.state_refresh_at = timezone.now()
                 status.save()
                 return ActionResult(result=True, message="success", extra=status)
             else:
                 return ActionResult(
                     result=False,
-                    message="can't transit state({}) from {} to {}".format(id, status.state, to_state),
+                    message="can't transit state({}) from {} to {}".format(
+                        id, status.state, to_state
+                    ),
                     extra=status,
                 )
 
@@ -727,7 +859,11 @@ class StatusManager(models.Manager):
     def prepare_for_pipeline(self, pipeline):
         cls_str = str(pipeline.__class__)
         cls_name = pipeline.__class__.__name__[:NAME_MAX_LENGTH]
-        self.create(id=pipeline.id, state=states.READY, name=cls_str if len(cls_str) <= NAME_MAX_LENGTH else cls_name)
+        self.create(
+            id=pipeline.id,
+            state=states.READY,
+            name=cls_str if len(cls_str) <= NAME_MAX_LENGTH else cls_name,
+        )
 
     def fail(self, node, ex_data):
         action_res = self.transit(node.id, states.FAILED)
@@ -766,7 +902,9 @@ class StatusManager(models.Manager):
         if RERUN_MAX_LIMIT != 0 and s.loop > RERUN_MAX_LIMIT:
             return ActionResult(
                 result=False,
-                message="rerun times exceed max limit: {limit}, can not skip".format(limit=RERUN_MAX_LIMIT),
+                message="rerun times exceed max limit: {limit}, can not skip".format(
+                    limit=RERUN_MAX_LIMIT
+                ),
             )
 
         action_res = self.transit(id=node.id, to_state=states.FINISHED, appoint=True)
@@ -795,7 +933,9 @@ class StatusManager(models.Manager):
         if RERUN_MAX_LIMIT != 0 and self.get(id=node.id).loop > RERUN_MAX_LIMIT:
             return ActionResult(
                 result=False,
-                message="rerun times exceed max limit: {limit}, can not retry".format(limit=RERUN_MAX_LIMIT),
+                message="rerun times exceed max limit: {limit}, can not retry".format(
+                    limit=RERUN_MAX_LIMIT
+                ),
             )
 
         action_res = self.transit(id=node.id, to_state=states.READY, appoint=True)
@@ -830,8 +970,12 @@ class StatusManager(models.Manager):
         return action_res
 
     def recover_from_block(self, root_pipeline_id, subprocess_stack):
-        Status.objects.batch_transit(id_list=subprocess_stack, state=states.RUNNING, from_state=states.BLOCKED)
-        Status.objects.transit(id=root_pipeline_id, to_state=states.READY, is_pipeline=True)
+        Status.objects.batch_transit(
+            id_list=subprocess_stack, state=states.RUNNING, from_state=states.BLOCKED
+        )
+        Status.objects.transit(
+            id=root_pipeline_id, to_state=states.READY, is_pipeline=True
+        )
 
     @contextlib.contextmanager
     def lock(self, id):
@@ -852,6 +996,7 @@ class Status(models.Model):
     started_time = models.DateTimeField(_("开始时间"), null=True)
     archived_time = models.DateTimeField(_("归档时间"), null=True)
     version = models.CharField(_("版本"), max_length=32)
+    state_refresh_at = models.DateTimeField(_("上次状态更新的时间"), null=True)
 
     objects = StatusManager()
 
@@ -889,26 +1034,42 @@ class DataManager(models.Manager):
 
 class Data(models.Model):
     id = models.CharField(_("节点 ID"), unique=True, primary_key=True, max_length=32)
-    inputs = IOField(verbose_name=_("输入数据"))
-    outputs = IOField(verbose_name=_("输出数据"))
-    ex_data = IOField(verbose_name=_("异常数据"))
+    inputs = IOField(verbose_name=_("输入数据"), default=None)
+    outputs = IOField(verbose_name=_("输出数据"), default=None)
+    ex_data = IOField(verbose_name=_("异常数据"), default=None)
 
     objects = DataManager()
 
 
 class HistoryData(models.Model):
     id = models.BigAutoField(_("ID"), primary_key=True)
-    inputs = IOField(verbose_name=_("输入数据"))
-    outputs = IOField(verbose_name=_("输出数据"))
-    ex_data = IOField(verbose_name=_("异常数据"))
+    inputs = IOField(verbose_name=_("输入数据"), default=None)
+    outputs = IOField(verbose_name=_("输出数据"), default=None)
+    ex_data = IOField(verbose_name=_("异常数据"), default=None)
 
     objects = DataManager()
 
 
+class MultiCallbackData(models.Model):
+    id = models.BigAutoField(_("自增ID"), primary_key=True)
+    schedule_id = models.CharField(_("回调服务ID"), max_length=NAME_MAX_LENGTH)
+    data = IOField(verbose_name=_("回调数据"))
+
+
+DO_NOT_RECORD_WHEN_RERUN = frozenset(
+    {"<class 'pipeline.core.flow.activity.LoopServiceActivity'>"}
+)
+
+
 class HistoryManager(models.Manager):
     def record(self, status, is_rerunning=False):
+        if is_rerunning and status.name in DO_NOT_RECORD_WHEN_RERUN:
+            return None
+
         data = Data.objects.get(id=status.id)
-        history_data = HistoryData.objects.create(inputs=data.inputs, outputs=data.outputs, ex_data=data.ex_data)
+        history_data = HistoryData.objects.create(
+            inputs=data.inputs, outputs=data.outputs, ex_data=data.ex_data
+        )
         return self.create(
             identifier=status.id,
             started_time=status.started_time,
@@ -928,7 +1089,9 @@ class HistoryManager(models.Manager):
                 "history_id": item.id,
                 "started_time": item.started_time,
                 "archived_time": item.archived_time,
-                "elapsed_time": calculate_elapsed_time(item.started_time, item.archived_time),
+                "elapsed_time": calculate_elapsed_time(
+                    item.started_time, item.archived_time
+                ),
                 "inputs": item.data.inputs,
                 "outputs": item.data.outputs,
                 "ex_data": item.data.ex_data,
@@ -956,12 +1119,14 @@ class History(models.Model):
 class ScheduleServiceManager(models.Manager):
     def set_schedule(self, activity_id, service_act, process_id, version, parent_data):
         wait_callback = service_act.service.interval is None
+        multi_callback_enabled = service_act.service.multi_callback_enabled()
         schedule = self.create(
             id="{}{}".format(activity_id, version),
             activity_id=activity_id,
             service_act=service_act,
             process_id=process_id,
             wait_callback=wait_callback,
+            multi_callback_enabled=multi_callback_enabled,
             version=version,
         )
         data_service.set_schedule_data(schedule.id, parent_data)
@@ -985,7 +1150,9 @@ class ScheduleServiceManager(models.Manager):
     def delete_schedule(self, activity_id, version):
         return self.filter(activity_id=activity_id, version=version).delete()
 
-    def update_celery_info(self, id, lock, celery_id, schedule_date, is_scheduling=False):
+    def update_celery_info(
+        self, id, lock, celery_id, schedule_date, is_scheduling=False
+    ):
         return self.filter(id=id, celery_info_lock=lock).update(
             celery_info_lock=models.F("celery_info_lock") + 1,
             celery_id=celery_id,
@@ -997,22 +1164,27 @@ class ScheduleServiceManager(models.Manager):
 class ScheduleService(models.Model):
     SCHEDULE_ID_SPLIT_DIVISION = 32
 
-    id = models.CharField(_("ID 节点ID+version"), max_length=NAME_MAX_LENGTH, unique=True, primary_key=True)
+    id = models.CharField(
+        _("ID 节点ID+version"), max_length=NAME_MAX_LENGTH, unique=True, primary_key=True
+    )
     activity_id = models.CharField(_("节点 ID"), max_length=32, db_index=True)
     process_id = models.CharField(_("Pipeline 进程 ID"), max_length=32)
     schedule_times = models.IntegerField(_("被调度次数"), default=0)
     wait_callback = models.BooleanField(_("是否是回调型调度"), default=False)
+    multi_callback_enabled = models.BooleanField(_("是否支持多次回调"), default=False)
     callback_data = IOField(verbose_name=_("回调数据"), default=None)
     service_act = IOField(verbose_name=_("待调度服务"))
     is_finished = models.BooleanField(_("是否已完成"), default=False)
     version = models.CharField(_("Activity 的版本"), max_length=32, db_index=True)
-    is_scheduling = models.BooleanField(_("是否正在被调度"), default=False)
+    is_scheduling = models.BooleanField(_("是否正在被调度"), default=False, db_index=True)
 
     objects = ScheduleServiceManager()
 
     def set_next_schedule(self):
         if self.wait_callback:
-            raise exceptions.InvalidOperationException("can't set next schedule on callback schedule.")
+            raise exceptions.InvalidOperationException(
+                "can't set next schedule on callback schedule."
+            )
         count_down = self.service_act.service.interval.next()
         self.is_scheduling = False
         self.save()
@@ -1042,13 +1214,37 @@ class ScheduleService(models.Model):
 
     def callback(self, callback_data, process_id):
         if not self.wait_callback:
-            raise exceptions.InvalidOperationException("can't callback a poll schedule.")
+            raise exceptions.InvalidOperationException(
+                "can't callback a poll schedule."
+            )
 
-        self.callback_data = callback_data
-        self.save()
-        valve.send(
-            signals, "schedule_ready", sender=ScheduleService, process_id=process_id, schedule_id=self.id, countdown=0
-        )
+        if self.multi_callback_enabled:
+            callback_data = MultiCallbackData.objects.create(
+                schedule_id=self.id, data=callback_data
+            )
+            valve.send(
+                signals,
+                "schedule_ready",
+                sender=ScheduleService,
+                process_id=process_id,
+                schedule_id=self.id,
+                data_id=callback_data.id,
+                countdown=0,
+            )
+        else:
+            self.callback_data = callback_data
+            self.save()
+            valve.send(
+                signals,
+                "schedule_ready",
+                sender=ScheduleService,
+                process_id=process_id,
+                schedule_id=self.id,
+                countdown=0,
+            )
+
+    def is_one_time_callback(self):
+        return self.wait_callback and not self.multi_callback_enabled
 
 
 class SubProcessRelationshipManager(models.Manager):
@@ -1079,7 +1275,9 @@ class SubProcessRelationship(models.Model):
 
 class ProcessCeleryTaskManager(models.Manager):
     def bind(self, process_id, celery_task_id):
-        rel, created = self.get_or_create(process_id=process_id, defaults={"celery_task_id": celery_task_id})
+        rel, created = self.get_or_create(
+            process_id=process_id, defaults={"celery_task_id": celery_task_id}
+        )
         if not created:
             rel.celery_task_id = celery_task_id
             rel.save()
@@ -1090,8 +1288,17 @@ class ProcessCeleryTaskManager(models.Manager):
     def destroy(self, process_id):
         self.filter(process_id=process_id).delete()
 
-    def start_task(self, process_id, start_func, kwargs):
-        task_id = start_func(**kwargs)
+    def start_task(self, process_id, task, kwargs, record_error=True):
+        if record_error:
+            with SendFailedCeleryTask.watch(
+                name=task.name,
+                kwargs=kwargs,
+                type=SendFailedCeleryTask.TASK_TYPE_PROCESS,
+                extra_kwargs={"process_id": process_id},
+            ):
+                task_id = task.apply_async(**kwargs)
+        else:
+            task_id = task.apply_async(**kwargs)
         self.bind(process_id, task_id)
 
     def revoke(self, process_id, kill=False):
@@ -1103,7 +1310,9 @@ class ProcessCeleryTaskManager(models.Manager):
 
 class ProcessCeleryTask(models.Model):
     id = models.BigAutoField(_("ID"), primary_key=True)
-    process_id = models.CharField(_("pipeline 进程 ID"), max_length=32, unique=True, db_index=True)
+    process_id = models.CharField(
+        _("pipeline 进程 ID"), max_length=32, unique=True, db_index=True
+    )
     celery_task_id = models.CharField(_("celery 任务 ID"), max_length=40, default="")
 
     objects = ProcessCeleryTaskManager()
@@ -1111,7 +1320,9 @@ class ProcessCeleryTask(models.Model):
 
 class ScheduleCeleryTaskManager(models.Manager):
     def bind(self, schedule_id, celery_task_id):
-        rel, created = self.get_or_create(schedule_id=schedule_id, defaults={"celery_task_id": celery_task_id})
+        rel, created = self.get_or_create(
+            schedule_id=schedule_id, defaults={"celery_task_id": celery_task_id}
+        )
         if not created:
             rel.celery_task_id = celery_task_id
             rel.save()
@@ -1122,14 +1333,25 @@ class ScheduleCeleryTaskManager(models.Manager):
     def destroy(self, schedule_id):
         self.filter(schedule_id=schedule_id).delete()
 
-    def start_task(self, schedule_id, start_func, kwargs):
-        task_id = start_func(**kwargs)
+    def start_task(self, schedule_id, task, kwargs, record_error=True):
+        if record_error:
+            with SendFailedCeleryTask.watch(
+                name=task.name,
+                kwargs=kwargs,
+                type=SendFailedCeleryTask.TASK_TYPE_SCHEDULE,
+                extra_kwargs={"schedule_id": schedule_id},
+            ):
+                task_id = task.apply_async(**kwargs)
+        else:
+            task_id = task.apply_async(**kwargs)
         self.bind(schedule_id, task_id)
 
 
 class ScheduleCeleryTask(models.Model):
     id = models.BigAutoField(_("ID"), primary_key=True)
-    schedule_id = models.CharField(_("schedule ID"), max_length=NAME_MAX_LENGTH, unique=True, db_index=True)
+    schedule_id = models.CharField(
+        _("schedule ID"), max_length=NAME_MAX_LENGTH, unique=True, db_index=True
+    )
     celery_task_id = models.CharField(_("celery 任务 ID"), max_length=40, default="")
 
     objects = ScheduleCeleryTaskManager()
@@ -1137,7 +1359,9 @@ class ScheduleCeleryTask(models.Model):
 
 class NodeCeleryTaskManager(models.Manager):
     def bind(self, node_id, celery_task_id):
-        rel, created = self.update_or_create(node_id=node_id, defaults={"celery_task_id": celery_task_id})
+        rel, created = self.update_or_create(
+            node_id=node_id, defaults={"celery_task_id": celery_task_id}
+        )
         if not created:
             rel.celery_task_id = celery_task_id
             rel.save()
@@ -1148,8 +1372,17 @@ class NodeCeleryTaskManager(models.Manager):
     def destroy(self, node_id):
         self.filter(node_id=node_id).delete()
 
-    def start_task(self, node_id, start_func, kwargs):
-        task_id = start_func(**kwargs)
+    def start_task(self, node_id, task, kwargs, record_error=True):
+        if record_error:
+            with SendFailedCeleryTask.watch(
+                name=task.name,
+                kwargs=kwargs,
+                type=SendFailedCeleryTask.TASK_TYPE_NODE,
+                extra_kwargs={"node_id": node_id},
+            ):
+                task_id = task.apply_async(**kwargs)
+        else:
+            task_id = task.apply_async(**kwargs)
         self.bind(node_id, task_id)
 
     def revoke(self, node_id):
@@ -1164,3 +1397,111 @@ class NodeCeleryTask(models.Model):
     celery_task_id = models.CharField(_("celery 任务 ID"), max_length=40, default="")
 
     objects = NodeCeleryTaskManager()
+
+
+class SendFailedCeleryTaskManager(models.Manager):
+    def record(self, name, kwargs, type, extra_kwargs, exec_trace):
+        save_extra_kwargs = extra_kwargs
+        save_kwargs = kwargs
+
+        if not isinstance(save_extra_kwargs, str):
+            save_extra_kwargs = json.dumps(save_extra_kwargs)
+
+        if not isinstance(save_kwargs, str):
+            save_kwargs = json.dumps(save_kwargs)
+
+        return self.create(
+            name=name,
+            kwargs=save_kwargs,
+            type=type,
+            extra_kwargs=save_extra_kwargs,
+            exec_trace=exec_trace,
+        )
+
+    def resend(self, id):
+        self.get(id=id).resend()
+
+
+class SendFailedCeleryTask(models.Model):
+
+    TASK_TYPE_EMPTY = 0
+    TASK_TYPE_PROCESS = 1
+    TASK_TYPE_NODE = 2
+    TASK_TYPE_SCHEDULE = 3
+
+    TASK_TYPE_CHOICES = (
+        (TASK_TYPE_EMPTY, "empty"),
+        (TASK_TYPE_PROCESS, "process"),
+        (TASK_TYPE_NODE, "node"),
+        (TASK_TYPE_SCHEDULE, "schedule"),
+    )
+
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    name = models.CharField(_("任务名"), max_length=1024)
+    kwargs = models.TextField(_("任务参数"))
+    type = models.IntegerField(_("任务类型"), choices=TASK_TYPE_CHOICES)
+    extra_kwargs = models.TextField(_("额外参数"))
+    exec_trace = models.TextField(_("错误信息"))
+    created_at = models.DateTimeField(_("创建时间"), auto_now_add=True)
+
+    objects = SendFailedCeleryTaskManager()
+
+    @property
+    def kwargs_dict(self):
+        return json.loads(self.kwargs)
+
+    @property
+    def extra_kwargs_dict(self):
+        return json.loads(self.extra_kwargs)
+
+    def resend(self):
+        try:
+            task = current_app.tasks[self.name]
+
+            if self.type == self.TASK_TYPE_EMPTY:
+                task.apply_async(**self.kwargs_dict)
+            elif self.type == self.TASK_TYPE_PROCESS:
+                ProcessCeleryTask.objects.start_task(
+                    process_id=self.extra_kwargs_dict["process_id"],
+                    task=task,
+                    kwargs=self.kwargs_dict,
+                    record_error=False,
+                )
+            elif self.type == self.TASK_TYPE_NODE:
+                NodeCeleryTask.objects.start_task(
+                    node_id=self.extra_kwargs_dict["node_id"],
+                    task=task,
+                    kwargs=self.kwargs_dict,
+                    record_error=False,
+                )
+            elif self.type == self.TASK_TYPE_SCHEDULE:
+                ScheduleCeleryTask.objects.start_task(
+                    schedule_id=self.extra_kwargs_dict["schedule_id"],
+                    task=task,
+                    kwargs=self.kwargs_dict,
+                    record_error=False,
+                )
+            else:
+                raise TypeError("unsupport type: {}.".format(self.type))
+        except Exception as e:
+            logger.exception("fail task send replay error.")
+            raise e
+        else:
+            self.delete()
+
+    @classmethod
+    @contextlib.contextmanager
+    def watch(cls, name, kwargs, type, extra_kwargs):
+        try:
+            yield
+        except Exception:
+            logger.exception("celery task({}) watcher catch error.".format(name))
+            cls.objects.record(
+                name=name,
+                kwargs=kwargs,
+                type=type,
+                extra_kwargs=extra_kwargs,
+                exec_trace=traceback.format_exc(),
+            )
+            # raise specific exception to indicate that send fail task have been catched
+            raise exceptions.CeleryFailedTaskCatchException(name)

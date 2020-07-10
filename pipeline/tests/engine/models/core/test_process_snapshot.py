@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.engine.utils import Stack
 from pipeline.engine.models.core import ProcessSnapshot
+from pipeline.engine.utils import Stack
 
 
 class TestProcessSnapshot(TestCase):

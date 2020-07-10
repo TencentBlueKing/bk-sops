@@ -13,11 +13,10 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.exceptions import PipelineException
-from pipeline.engine.models import Status, PipelineProcess
-from pipeline.engine.core import handlers
 from pipeline.core.flow.gateway import ParallelGateway
-
+from pipeline.engine.core import handlers
+from pipeline.engine.models import PipelineProcess, Status
+from pipeline.exceptions import PipelineException
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
 

@@ -13,9 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import importlib
 
+from django.conf import settings
+
 from pipeline_plugins.components.utils.common import *  # noqa
 
-utils_module = importlib.import_module('pipeline_plugins.components.utils.sites.%s.utils' % settings.RUN_VER)
+utils_module = importlib.import_module("pipeline_plugins.components.utils.sites.%s.utils" % settings.RUN_VER)
 
 for util in utils_module.__all__:
     locals()[util] = getattr(utils_module, util)

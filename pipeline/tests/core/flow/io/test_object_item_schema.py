@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 
-from pipeline.core.flow.io import IntItemSchema, StringItemSchema, ArrayItemSchema, ObjectItemSchema
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 
 class ObjectItemSchemaTestCase(TestCase):

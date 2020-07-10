@@ -11,19 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import mock
 import socket
 
+import mock
 from django.test import TestCase
-from redis.exceptions import ConnectionError
 from djcelery.app import current_app
+from redis.exceptions import ConnectionError
 
-from pipeline.engine.exceptions import RabbitMQConnectionError
-from pipeline.engine.core import data
 from pipeline.conf import settings
-from pipeline.engine.core import api
-from pipeline.engine.models import FunctionSwitch
 from pipeline.django_signal_valve import valve
+from pipeline.engine.core import api, data
+from pipeline.engine.exceptions import RabbitMQConnectionError
+from pipeline.engine.models import FunctionSwitch
 
 
 class EngineCoreApiTestCase(TestCase):

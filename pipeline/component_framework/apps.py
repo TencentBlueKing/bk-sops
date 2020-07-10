@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import sys
 import logging
+import sys
 
 from django.apps import AppConfig
 from django.db.utils import InternalError, OperationalError, ProgrammingError
@@ -36,9 +36,15 @@ class ComponentFrameworkConfig(AppConfig):
         @return:
         """
 
-        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD and sys.argv[1] in INIT_PASS_TRIGGER:
-            logger.info("ignore components init for command: {}".format(sys.argv))
-            return
+        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD:
+            try:
+                command = sys.argv[1]
+            except IndexError:
+                return
+            else:
+                if command in INIT_PASS_TRIGGER:
+                    logger.info("ignore components init for command: {}".format(sys.argv))
+                    return
 
         for path in settings.COMPONENT_AUTO_DISCOVER_PATH:
             autodiscover_collections(path)

@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.pipeline import *  # noqa
 from pipeline.core.data.base import DataObject
-from pipeline.core.flow.base import SequenceFlow
 from pipeline.core.flow.activity import ServiceActivity
-from pipeline.core.flow.event import EmptyStartEvent, EmptyEndEvent
+from pipeline.core.flow.base import SequenceFlow
+from pipeline.core.flow.event import EmptyEndEvent, EmptyStartEvent
+from pipeline.core.pipeline import *  # noqa
 
 
 class TestPipeline(TestCase):

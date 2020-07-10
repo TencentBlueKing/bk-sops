@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.core.constants import PE
-from pipeline.builder.flow.data import Var
 from pipeline.builder.flow import ServiceActivity
+from pipeline.builder.flow.data import Var
+from pipeline.core.constants import PE
 
 
 class ServiceActivityTestCase(TestCase):
@@ -37,7 +37,7 @@ class ServiceActivityTestCase(TestCase):
         act.component.code = "http"
         act.component.inputs.parent_data = Var(type=Var.SPLICE, value="${parent_data}")
         act.component.inputs.val = Var(type=Var.PLAIN, value="${val}")
-        act.component.inputs.lazy_val = Var(type=Var.LAZY, value="${val}", source_tag="test_tag")
+        act.component.inputs.lazy_val = Var(type=Var.LAZY, value="${val}", custom_type="test_tag")
 
         cd = act.component_dict()
         self.assertEqual(
@@ -47,7 +47,7 @@ class ServiceActivityTestCase(TestCase):
                 "inputs": {
                     "parent_data": {"type": "splice", "value": "${parent_data}"},
                     "val": {"type": "plain", "value": "${val}"},
-                    "lazy_val": {"type": "lazy", "value": "${val}", "source_tag": "test_tag"},
+                    "lazy_val": {"type": "lazy", "value": "${val}", "custom_type": "test_tag"},
                 },
             },
         )

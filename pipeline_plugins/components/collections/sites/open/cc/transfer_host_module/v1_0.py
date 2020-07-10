@@ -24,12 +24,12 @@ from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
     cc_format_tree_mode_id,
-    cc_list_select_node_inst_id
+    cc_list_select_node_inst_id,
 )
-from pipeline_plugins.components.utils import get_ip_by_regex
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 from gcloud.conf import settings
+from gcloud.utils.ip import get_ip_by_regex
 from gcloud.utils.handlers import handle_api_error
 
 logger = logging.getLogger("celery")
@@ -148,6 +148,7 @@ class CCTransferHostModuleComponent(Component):
     name = _("转移主机模块")
     code = "cc_transfer_host_module"
     bound_service = CCTransferHostModuleService
-    form = '{static_url}components/atoms/cc/transfer_host_module/{ver}.js'.format(static_url=settings.STATIC_URL,
-                                                                                  ver=VERSION.replace('.', '_'))
+    form = "{static_url}components/atoms/cc/transfer_host_module/{ver}.js".format(
+        static_url=settings.STATIC_URL, ver=VERSION.replace(".", "_")
+    )
     version = VERSION

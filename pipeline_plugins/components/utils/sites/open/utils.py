@@ -15,32 +15,25 @@ import re
 import os
 import logging
 
-import ujson as json
 from urllib.parse import urlencode
 from cryptography.fernet import Fernet
-from django.core.cache import cache
 
-from pipeline_plugins.base.utils.inject import supplier_account_inject
-from pipeline_plugins.components.utils import (
-    get_ip_by_regex,
-    ip_re,
-    ip_pattern,
-    format_sundry_ip,
-)
-from pipeline_plugins.cmdb_ip_picker.utils import get_bk_cloud_id_for_host
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+
+from gcloud.utils import cmdb
+from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
+
+__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url"]
+
+JOB_APP_CODE = "bk_job"
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
-
-__all__ = [
-    'cc_get_ips_info_by_str',
-    'cc_get_ip_list_by_biz_and_user',
-    'get_job_instance_url',
-    'get_node_callback_url'
-]
-
-JOB_APP_CODE = "bk_job"
+ip_re = r"((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)"
+plat_ip_reg = re.compile(r"\d+:" + ip_re)
+set_module_ip_reg = re.compile(r"[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|" + ip_re)
+ip_pattern = re.compile(ip_re)
 
 
 def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
@@ -51,54 +44,59 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
     @param ip_str
     @param use_cache
     @note: 需要兼容的ip_str格式有
-        1： IP，IP  这种纯IP格式需要保证IP在业务中唯一，否则报错（需要注意一个IP
-            属于多个集群的情况，要根据平台和IP共同判断是否是同一个IP）
+        1： IP，纯IP格式
         2： 集群名称|模块名称|IP，集群名称|模块名称|IP  这种格式可以唯一定位到一
             个IP（如果业务把相同IP放到同一模块，还是有问题）
-        3： 平台ID:IP，平台ID:IP  这种格式可以唯一定位到一个IP，主要是兼容Job组件
+        3： 云区域ID:IP，云区域ID:IP  这种格式可以唯一定位到一个IP，主要是兼容Job组件
             传参需要和获取Job作业模板步骤参数
     @return: {'result': True or False, 'data': [{'InnerIP': ,'HostID': ,
         'Source': , 'SetID': , 'SetName': , 'ModuleID': , 'ModuleName': },{}]}
     """
-    plat_ip_reg = re.compile(r"\d+:" + ip_re)
-    # 中文字符或者其他字符
-    set_module_ip_reg = re.compile(r"[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|" + ip_re)
+
     ip_input_list = get_ip_by_regex(ip_str)
+
+    supplier_account = supplier_account_for_business(biz_cc_id)
+
+    ip_list = cmdb.get_business_host_topo(
+        username, biz_cc_id, supplier_account, ["bk_host_innerip", "bk_host_id", "bk_cloud_id"]
+    )
     ip_result = []
+
     # 如果是格式2，可以返回IP的集群、模块、平台信息
     if set_module_ip_reg.match(ip_str):
-        set_module_ip = []
+        set_module_ip_list = []
         for match in set_module_ip_reg.finditer(ip_str):
-            set_module_ip.append(match.group())
+            set_module_ip_list.append(match.group())
 
-        ip_list = cc_get_ip_list_by_biz_and_user(
-            username=username, biz_cc_id=biz_cc_id, use_cache=use_cache
-        )
         for ip_info in ip_list:
-            set_dict = {s["bk_set_id"]: s for s in ip_info["set"]}
-            for mod in ip_info["module"]:
-                if (
-                    "%s|%s|%s"
-                    % (
-                        set_dict[mod["bk_set_id"]]["bk_set_name"],
-                        mod["bk_module_name"],
-                        ip_info["host"]["bk_host_innerip"],
+            match = False
+            for parent_set in ip_info["set"]:
+                if match:
+                    break
+
+                for parent_module in ip_info["module"]:
+                    if match:
+                        break
+
+                    topo_ip = "{set}|{module}|{ip}".format(
+                        set=parent_set["bk_set_name"],
+                        module=parent_module["bk_module_name"],
+                        ip=ip_info["host"]["bk_host_innerip"],
                     )
-                    in set_module_ip
-                ):
-                    ip_result.append(
-                        {
-                            "InnerIP": ip_info["host"]["bk_host_innerip"],
-                            "HostID": ip_info["host"]["bk_host_id"],
-                            "Source": get_bk_cloud_id_for_host(
-                                ip_info["host"], "bk_cloud_id"
-                            ),
-                            "SetID": mod["bk_set_id"],
-                            "SetName": set_dict[mod["bk_set_id"]]["bk_set_name"],
-                            "ModuleID": mod["bk_module_id"],
-                            "ModuleName": mod["bk_module_name"],
-                        }
-                    )
+
+                    if topo_ip in set_module_ip_list:
+                        match = True
+                        ip_result.append(
+                            {
+                                "InnerIP": ip_info["host"]["bk_host_innerip"],
+                                "HostID": ip_info["host"]["bk_host_id"],
+                                "Source": ip_info["host"]["bk_cloud_id"],
+                                "SetID": parent_set["bk_set_id"],
+                                "SetName": parent_set["bk_set_name"],
+                                "ModuleID": parent_module["bk_module_id"],
+                                "ModuleName": parent_module["bk_module_name"],
+                            }
+                        )
 
     # 如果是格式3，返回IP的平台信息
     elif plat_ip_reg.match(ip_str):
@@ -106,49 +104,30 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         for match in plat_ip_reg.finditer(ip_str):
             plat_ip.append(match.group())
 
-        ip_list = cc_get_ip_list_by_biz_and_user(
-            username=username, biz_cc_id=biz_cc_id, use_cache=use_cache
-        )
         for ip_info in ip_list:
-            if (
-                "%s:%s"
-                % (
-                    get_bk_cloud_id_for_host(ip_info["host"], "bk_cloud_id"),
-                    ip_info["host"]["bk_host_innerip"],
-                )
-                in plat_ip
-            ):
+            if "%s:%s" % (ip_info["host"]["bk_cloud_id"], ip_info["host"]["bk_host_innerip"],) in plat_ip:
                 ip_result.append(
                     {
                         "InnerIP": ip_info["host"]["bk_host_innerip"],
                         "HostID": ip_info["host"]["bk_host_id"],
-                        "Source": get_bk_cloud_id_for_host(
-                            ip_info["host"], "bk_cloud_id"
-                        ),
+                        "Source": ip_info["host"]["bk_cloud_id"],
                     }
                 )
 
+    # 格式1
     else:
         ip = []
         for match in ip_pattern.finditer(ip_str):
             ip.append(match.group())
 
-        ip_list = cc_get_ip_list_by_biz_and_user(
-            username=username, biz_cc_id=biz_cc_id, use_cache=use_cache
-        )
         host_id_list = []
         for ip_info in ip_list:
-            if (
-                ip_info["host"]["bk_host_innerip"] in ip
-                and ip_info["host"]["bk_host_id"] not in host_id_list
-            ):
+            if ip_info["host"]["bk_host_innerip"] in ip and ip_info["host"]["bk_host_id"] not in host_id_list:
                 ip_result.append(
                     {
                         "InnerIP": ip_info["host"]["bk_host_innerip"],
                         "HostID": ip_info["host"]["bk_host_id"],
-                        "Source": get_bk_cloud_id_for_host(
-                            ip_info["host"], "bk_cloud_id"
-                        ),
+                        "Source": ip_info["host"]["bk_cloud_id"],
                     }
                 )
                 host_id_list.append(ip_info["host"]["bk_host_id"])
@@ -162,61 +141,6 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         "invalid_ip": invalid_ip,
     }
     return result
-
-
-@supplier_account_inject
-def cc_get_ip_list_by_biz_and_user(
-    username, biz_cc_id, supplier_account, use_cache=True
-):
-    """
-    @summary：根据当前用户和业务ID获取IP
-    @note: 由于获取了全业务IP，接口会比较慢，需要加缓存
-    @note: 由于存在单主机多IP问题，需要取第一个IP作为实际值
-    @param-username
-    @param-biz_cc_id
-
-    """
-    cache_key = "cc_get_ip_list_by_biz_and_user_%s_%s" % (username, biz_cc_id)
-    data = cache.get(cache_key)
-    if not data or not use_cache:
-        client = get_client_by_user(username)
-        cc_result = client.cc.search_host(
-            {
-                "bk_supplier_account": supplier_account,
-                "condition": [
-                    {
-                        "bk_obj_id": "biz",
-                        "fields": [],
-                        "condition": [
-                            {
-                                "field": "bk_biz_id",
-                                "operator": "$eq",
-                                "value": biz_cc_id,
-                            }
-                        ],
-                    },
-                    {"bk_obj_id": "module", "fields": [], "condition": []},
-                    {"bk_obj_id": "set", "fields": [], "condition": []},
-                ],
-            }
-        )
-        if cc_result["result"]:
-            data = cc_result["data"]["info"]
-            # 多IP主机处理，取第一个IP
-            for host in data:
-                host["host"]["bk_host_innerip"] = format_sundry_ip(
-                    host["host"]["bk_host_innerip"]
-                )
-            cache.set(cache_key, data, 60)
-        else:
-            logger.warning(
-                "search_host ERROR###biz_cc_id={biz_cc_id}###cc_result={cc_result}".format(
-                    biz_cc_id=biz_cc_id, cc_result=json.dumps(cc_result)
-                )
-            )
-    if not data:
-        return []
-    return data
 
 
 def get_job_instance_url(biz_cc_id, job_instance_id):

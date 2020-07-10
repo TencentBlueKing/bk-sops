@@ -11,24 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
 from datetime import timedelta
 
 import timezone_field
+import ujson as json
+from celery import schedules
+from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import models
 from django.db.models import signals
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import MultipleObjectsReturned, ValidationError
-from celery import schedules
 
-from pipeline.exceptions import InvalidOperationException
-from pipeline.models import Snapshot, PipelineTemplate, PipelineInstance, CompressJSONField
-from pipeline.utils.uniqid import uniqid
-from pipeline.contrib.periodic_task.signals import periodic_task_start_failed
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
+from pipeline.contrib.periodic_task.djcelery import managers
 from pipeline.contrib.periodic_task.djcelery.compat import python_2_unicode_compatible
 from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
-from pipeline.contrib.periodic_task.djcelery import managers
 from pipeline.contrib.periodic_task.djcelery.utils import now
+from pipeline.contrib.periodic_task.signals import periodic_task_start_failed
+from pipeline.exceptions import InvalidOperationException
+from pipeline.models import CompressJSONField, PipelineInstance, PipelineTemplate, Snapshot
+from pipeline.utils.uniqid import uniqid
 
 PERIOD_CHOICES = (
     ("days", _("Days")),
@@ -225,7 +226,19 @@ signals.pre_save.connect(DjCeleryPeriodicTasks.changed, sender=DjCeleryPeriodicT
 
 # Create your models here.
 class PeriodicTaskManager(models.Manager):
-    def create_task(self, name, template, cron, data, creator, timezone=None, extra_info=None, spread=False):
+    def create_task(
+        self,
+        name,
+        template,
+        cron,
+        data,
+        creator,
+        timezone=None,
+        extra_info=None,
+        spread=False,
+        priority=PIPELINE_DEFAULT_PRIORITY,
+        queue="",
+    ):
         snapshot, _ = Snapshot.objects.create_or_get_snapshot(data)
         schedule, _ = CrontabSchedule.objects.get_or_create(
             minute=cron.get("minute", "*"),
@@ -244,6 +257,8 @@ class PeriodicTaskManager(models.Manager):
             cron=schedule.__str__(),
             creator=creator,
             extra_info=extra_info,
+            priority=priority,
+            queue=queue,
         )
 
         kwargs = {"period_task_id": task.id, "spread": spread}
@@ -279,6 +294,8 @@ class PeriodicTask(models.Model):
     total_run_count = models.PositiveIntegerField(_("执行次数"), default=0)
     last_run_at = models.DateTimeField(_("上次运行时间"), null=True)
     creator = models.CharField(_("创建者"), max_length=32, default="")
+    priority = models.IntegerField(_("流程优先级"), default=PIPELINE_DEFAULT_PRIORITY)
+    queue = models.CharField(_("流程使用的队列名"), max_length=512, default="")
     extra_info = CompressJSONField(verbose_name=_("额外信息"), null=True)
 
     objects = PeriodicTaskManager()
@@ -350,6 +367,8 @@ class PeriodicTaskHistoryManager(models.Manager):
             pipeline_instance=pipeline_instance,
             ex_data=ex_data,
             start_success=start_success,
+            priority=periodic_task.priority,
+            queue=periodic_task.queue,
         )
 
         if not start_success:
@@ -373,5 +392,7 @@ class PeriodicTaskHistory(models.Model):
     ex_data = models.TextField(_("异常信息"))
     start_at = models.DateTimeField(_("开始时间"), auto_now_add=True)
     start_success = models.BooleanField(_("是否启动成功"), default=True)
+    priority = models.IntegerField(_("流程优先级"), default=PIPELINE_DEFAULT_PRIORITY)
+    queue = models.CharField(_("流程使用的队列名"), max_length=512, default="")
 
     objects = PeriodicTaskHistoryManager()

@@ -12,7 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import time
+
 from django.test import TestCase
+
 from pipeline.engine.core.data.mysql_backend import MySQLDataBackend
 
 

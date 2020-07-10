@@ -1,7 +1,7 @@
 ![](docs/resource/img/logo_zh.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.5.13-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.5.17-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -50,8 +50,9 @@
 - [标准插件说明](docs/features/plugin_usage.md)
 - [标准插件远程加载](docs/features/remote_plugins.md)
 - [变量引擎](docs/features/variables_engine.md)
-- [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
 - [移动端使用说明](docs/features/mobile.md)
+- [redis 部署模式支持](docs/features/redis_usage.md)
+- [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
 
 ## Version plan
 - [版本日志](docs/release.md)

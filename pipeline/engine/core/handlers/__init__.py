@@ -11,14 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .service_activity import ServiceActivityHandler
-from .subprocess import SubprocessHandler
+from .conditional_parallel import ConditionalParallelGatewayHandler
+from .converge_gateway import ConvergeGatewayHandler
 from .empty_start_event import EmptyStartEventHandler
 from .endevent import EmptyEndEventHandler, ExecutableEndEventHandler
 from .exclusive_gateway import ExclusiveGatewayHandler
 from .parallel_gateway import ParallelGatewayHandler
-from .conditional_parallel import ConditionalParallelGatewayHandler
-from .converge_gateway import ConvergeGatewayHandler
+from .service_activity import ServiceActivityHandler
+from .subprocess import SubprocessHandler
 
 
 class HandlersFactory(object):

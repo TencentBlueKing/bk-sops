@@ -74,8 +74,8 @@ another_app/models.py
 
 import types
 
-from django.db import models
 from django.core.exceptions import ImproperlyConfigured
+from django.db import models
 
 try:
     from django.db.models import get_model

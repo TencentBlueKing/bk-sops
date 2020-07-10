@@ -11,24 +11,33 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .base import SequenceFlow  # noqa
+from .activity import SubProcess  # noqa
+from .activity import AbstractIntervalGenerator  # noqa
 
 from .activity import (  # noqa
+    DefaultIntervalGenerator,
+    LinearIntervalGenerator,
+    NullIntervalGenerator,
     Service,
     ServiceActivity,
-    SubProcess,
-    AbstractIntervalGenerator,
-    DefaultIntervalGenerator,
     SquareIntervalGenerator,
-    NullIntervalGenerator,
-    LinearIntervalGenerator,
     StaticIntervalGenerator,
 )
-
-from .event import StartEvent, EndEvent, EmptyEndEvent, EmptyStartEvent, ExecutableEndEvent  # noqa
-
-from .gateway import ParallelGateway, ConditionalParallelGateway, ExclusiveGateway, ConvergeGateway, Condition  # noqa
-
+from .base import SequenceFlow  # noqa
+from .event import (  # noqa
+    EmptyEndEvent,
+    EmptyStartEvent,
+    EndEvent,
+    ExecutableEndEvent,
+    StartEvent,
+)
+from .gateway import (  # noqa
+    Condition,
+    ConditionalParallelGateway,
+    ConvergeGateway,
+    ExclusiveGateway,
+    ParallelGateway,
+)
 from .signals import post_new_end_event_register
 
 

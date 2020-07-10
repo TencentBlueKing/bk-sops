@@ -13,11 +13,10 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from pipeline.tests.mock import *  # noqa
-
 from pipeline.core.flow.base import SequenceFlow
-from pipeline.core.flow.gateway import ConditionalParallelGateway, Condition
-from pipeline.exceptions import InvalidOperationException, ConditionExhaustedException
+from pipeline.core.flow.gateway import Condition, ConditionalParallelGateway
+from pipeline.exceptions import ConditionExhaustedException, InvalidOperationException
+from pipeline.tests.mock import *  # noqa
 
 
 class ConditionalParallelGatewayTestCase(TestCase):

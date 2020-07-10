@@ -59,7 +59,8 @@ export function errorHandler (error, instance) {
         instance.bkMessageInstance = instance.$bkMessage({
             theme: 'error',
             isSingleLine: false,
-            message: error.message || error.data.msg
+            message: error.message || error.data.msg,
+            ellipsisLine: 2
         })
     }
 }

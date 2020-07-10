@@ -74,6 +74,7 @@ INSTALLED_APPS += (
     "pipeline_plugins.variables",
     "pipeline_web.core",
     "pipeline_web.label",
+    "pipeline_web.plugin_management",
     "data_migration",
     "auth_backend",
     "auth_backend.contrib.consistency",
@@ -143,7 +144,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.5.13"
+STATIC_VERSION = "3.5.17"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -190,7 +191,12 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 # 程序会自动分析访客使用的语言，来显示相应的翻译结果
 LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
-_ = lambda s: s  # noqa
+
+
+def _(s):
+    return s  # noqa
+
+
 LANGUAGES = (
     ("en", _("English")),
     ("zh-hans", _("简体中文")),
@@ -304,18 +310,22 @@ PIPELINE_INSTANCE_CONTEXT = "gcloud.taskflow3.utils.get_instance_context"
 
 PIPELINE_PARSER_CLASS = "pipeline_web.parser.WebPipelineAdapter"
 
-PIPELINE_RERUN_MAX_TIMES = 50
+PIPELINE_RERUN_MAX_TIMES = int(os.getenv("BKAPP_PIPELINE_RERUN_MAX_TIMES", 50))
 
 PIPELINE_RERUN_INDEX_OFFSET = 0
 
-EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY", None)
 # 是否只允许加载远程 https 仓库的插件
 EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE", "1") == "0"
 
 PIPELINE_DATA_BACKEND = os.getenv(
     "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
 )
-PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
+PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
+    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND",
+    "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
+)
+
+PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 ENABLE_EXAMPLE_COMPONENTS = False
 

@@ -19,8 +19,8 @@ from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 adapter_api = importlib.import_module(settings.PIPELINE_ENGINE_ADAPTER_API)
 
 
-def run_pipeline(pipeline, instance_id=None, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
-    return adapter_api.run_pipeline(pipeline, instance_id, check_workers=check_workers, priority=priority)
+def run_pipeline(pipeline, instance_id=None, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY, queue=""):
+    return adapter_api.run_pipeline(pipeline, instance_id, check_workers=check_workers, priority=priority, queue=queue)
 
 
 def pause_pipeline(pipeline_id):
@@ -55,8 +55,8 @@ def skip_exclusive_gateway(gateway_id, flow_id):
     return adapter_api.skip_exclusive_gateway(gateway_id, flow_id)
 
 
-def forced_fail(act_id):
-    return adapter_api.forced_fail(act_id)
+def forced_fail(act_id, ex_data=""):
+    return adapter_api.forced_fail(act_id, ex_data)
 
 
 def get_state(node_id):

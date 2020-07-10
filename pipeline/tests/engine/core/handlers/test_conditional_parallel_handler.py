@@ -13,14 +13,13 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline.core.flow.gateway import ConditionalParallelGateway
+from pipeline.engine.core import handlers
+from pipeline.engine.core.handlers import conditional_parallel
+from pipeline.engine.models import PipelineProcess, Status
+from pipeline.exceptions import ConditionExhaustedException, PipelineException
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
-
-from pipeline.engine.core import handlers
-from pipeline.engine.models import Status, PipelineProcess
-from pipeline.engine.core.handlers import conditional_parallel
-from pipeline.core.flow.gateway import ConditionalParallelGateway
-from pipeline.exceptions import ConditionExhaustedException, PipelineException
 
 handlers.conditional_parallel_handler = handlers.ConditionalParallelGatewayHandler()
 

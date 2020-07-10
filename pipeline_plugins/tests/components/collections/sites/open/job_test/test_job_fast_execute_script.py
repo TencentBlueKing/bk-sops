@@ -105,7 +105,8 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                     "ip_logs": [
                         {
                             "ip": "1.1.1.1",
-                            "log_content": "<SOPS_VAR>key2:value2</SOPS_VAR>\ngsectl<SOPS_VAR>key3:value3</SOPS_VAR>",
+                            "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
+                                           "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
                         },
                     ],
                     "ip_status": 9,
@@ -155,9 +156,7 @@ BASE_INPUTS = {
 
 # manual inputs
 MANUAL_INPUTS = BASE_INPUTS
-MANUAL_INPUTS.update(
-    {"job_script_source": "manual", "job_script_type": "1", "job_content": "echo"}
-)
+MANUAL_INPUTS.update({"job_script_source": "manual", "job_script_type": "1", "job_content": "echo"})
 
 # MANUAL_KWARGS
 MANUAL_KWARGS = {
@@ -211,6 +210,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_CALLBACK_DATA_ERROR_CASE = Component
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
     ],
 )
 
@@ -237,6 +237,7 @@ FAST_EXECUTE_MANUAL_SCRIPT_SUCCESS_SCHEDULE_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_SUCCESS_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
     ],
 )
 
@@ -255,5 +256,6 @@ FAST_EXECUTE_MANUAL_SCRIPT_FAIL_CASE = ComponentTestCase(
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []},),
         Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_EXECUTE_SCRIPT_FAIL_CLIENT),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
     ],
 )

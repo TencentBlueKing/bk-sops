@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
+from pipeline import exceptions
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.utils.utils import has_circle
-from pipeline import exceptions
 
 
 class TestConstantPool(TestCase):

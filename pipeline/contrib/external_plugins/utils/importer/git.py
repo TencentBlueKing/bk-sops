@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-
 import urllib.parse
+
 import requests
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter

@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from pipeline.component_framework.component import Component
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
-from pipeline.component_framework.component import Component
 
 logger = logging.getLogger("celery")
 

@@ -11,9 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock
-
 from django.test import TestCase
+from mock import MagicMock
 
 from pipeline.core.flow.io import InputItem
 

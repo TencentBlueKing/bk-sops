@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import ujson as module_json
 import requests
+import ujson as module_json
 
 logger = logging.getLogger("root")
 

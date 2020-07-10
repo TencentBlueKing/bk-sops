@@ -86,6 +86,9 @@ class ServiceActivityHandlerTestCase(TestCase):
                 else:
                     signals.service_activity_timeout_monitor_start.send.assert_not_called()
 
+                service_act.setup_runtime_attrs.assert_called_once_with(
+                    id=service_act.id, root_pipeline_id=process.root_pipeline_id
+                )
                 service_act.execute.assert_called_once_with(root_pipeline_data)
 
                 self.assertIsNotNone(service_act.data.outputs.ex_data)
@@ -179,6 +182,10 @@ class ServiceActivityHandlerTestCase(TestCase):
                     else:
                         signals.service_activity_timeout_monitor_start.send.assert_not_called()
 
+                    service_act.setup_runtime_attrs.assert_called_once_with(
+                        id=service_act.id, root_pipeline_id=process.root_pipeline_id
+                    )
+
                     service_act.execute.assert_called_once_with(root_pipeline_data)
 
                     service_act.ignore_error.assert_called_once()
@@ -269,6 +276,10 @@ class ServiceActivityHandlerTestCase(TestCase):
                     )
                 else:
                     signals.service_activity_timeout_monitor_start.send.assert_not_called()
+
+                service_act.setup_runtime_attrs.assert_called_once_with(
+                    id=service_act.id, root_pipeline_id=process.root_pipeline_id
+                )
 
                 service_act.execute.assert_called_once_with(root_pipeline_data)
 
@@ -361,6 +372,10 @@ class ServiceActivityHandlerTestCase(TestCase):
                     else:
                         signals.service_activity_timeout_monitor_start.send.assert_not_called()
 
+                    service_act.setup_runtime_attrs.assert_called_once_with(
+                        id=service_act.id, root_pipeline_id=process.root_pipeline_id
+                    )
+
                     service_act.execute.assert_called_once_with(root_pipeline_data)
 
                     service_act.ignore_error.assert_not_called()
@@ -420,6 +435,7 @@ class ServiceActivityHandlerTestCase(TestCase):
                 result_bit=True,
                 data=MockData(get_one_of_outputs_return={"ex_data": ex_data, ServiceActivity.result_bit: False}),
             )
+
             status = MockStatus(loop=loop)
 
             with patch(PIPELINE_STATUS_GET, MagicMock(return_value=status)):
@@ -451,6 +467,10 @@ class ServiceActivityHandlerTestCase(TestCase):
                     )
                 else:
                     signals.service_activity_timeout_monitor_start.send.assert_not_called()
+
+                service_act.setup_runtime_attrs.assert_called_once_with(
+                    id=service_act.id, root_pipeline_id=process.root_pipeline_id
+                )
 
                 service_act.execute.assert_called_once_with(root_pipeline_data)
 
@@ -547,6 +567,10 @@ class ServiceActivityHandlerTestCase(TestCase):
                         )
                     else:
                         signals.service_activity_timeout_monitor_start.send.assert_not_called()
+
+                    service_act.setup_runtime_attrs.assert_called_once_with(
+                        id=service_act.id, root_pipeline_id=process.root_pipeline_id
+                    )
 
                     service_act.execute.assert_called_once_with(root_pipeline_data)
 

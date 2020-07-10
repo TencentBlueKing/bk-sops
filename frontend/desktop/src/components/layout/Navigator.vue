@@ -573,7 +573,8 @@ header {
         .version-log {
             margin-left: 10px;
             & > .common-icon-info {
-                font-size: 18px;
+                margin-top: 16px;
+                font-size: 19px;
             }
         }
         .user-avatar {
