@@ -16,7 +16,6 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
-from pipeline.core.constants import PE
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
@@ -29,17 +28,7 @@ from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
-
-
-def replace_template_id(template_model, pipeline_data, reverse=False):
-    activities = pipeline_data[PE.activities]
-    for act_id, act in list(activities.items()):
-        if act["type"] == PE.SubProcess:
-            if not reverse:
-                act["template_id"] = template_model.objects.get(pk=act["template_id"]).pipeline_template.template_id
-            else:
-                template = template_model.objects.get(pipeline_template__template_id=act["template_id"])
-                act["template_id"] = str(template.pk)
+from gcloud.commons.template.utils import replace_template_id
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
