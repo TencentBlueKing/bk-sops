@@ -24,7 +24,7 @@
             }]"
             v-if="hasParentNode"
             v-bkloading="{ isLoading: loading, opacity: 1 }">
-            <div class="excute-time" v-if="!adminView">
+            <div class="excute-time" v-if="!adminView && setNodeDetail">
                 <span>{{$t('第')}}</span>
                 <bk-select
                     :clearable="false"
@@ -719,7 +719,7 @@
     display: flex;
     height: 100%;
     .nodeTree{
-        border-right: 1px solid #DCDEE5;
+        border-right: 1px solid #dcdee5;
     }
 }
 .code-wrapper {
