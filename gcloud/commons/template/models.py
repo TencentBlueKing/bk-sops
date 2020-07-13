@@ -16,7 +16,6 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
-from pipeline.core.constants import PE
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
@@ -30,17 +29,7 @@ from gcloud.exceptions import FlowExportError
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
-
-
-def replace_template_id(template_model, pipeline_data, reverse=False):
-    activities = pipeline_data[PE.activities]
-    for act_id, act in list(activities.items()):
-        if act["type"] == PE.SubProcess:
-            if not reverse:
-                act["template_id"] = template_model.objects.get(pk=act["template_id"]).pipeline_template.template_id
-            else:
-                template = template_model.objects.get(pipeline_template__template_id=act["template_id"])
-                act["template_id"] = str(template.pk)
+from gcloud.commons.template.utils import replace_template_id
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -56,10 +45,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         pipeline_web_tree = PipelineWebTreeCleaner(pipeline_tree)
         pipeline_web_tree.clean()
 
-        pipeline_template = PipelineTemplate.objects.create_model(
-            pipeline_tree,
-            **pipeline_template_data
-        )
+        pipeline_template = PipelineTemplate.objects.create_model(pipeline_tree, **pipeline_template_data)
 
         # create node in template
         NodeInTemplate.objects.create_nodes_in_template(pipeline_template, pipeline_web_tree.origin_data)
@@ -248,7 +234,7 @@ class BaseTemplate(models.Model):
         # add nodes attr
         pipeline_web_clean = PipelineWebTreeCleaner(tree)
         nodes = NodeInTemplate.objects.filter(template_id=self.pipeline_template.template_id, version=self.version)
-        nodes_attr = NodeAttr.get_nodes_attr(nodes, 'template')
+        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
         pipeline_web_clean.to_web(nodes_attr)
         return tree
 
@@ -349,7 +335,7 @@ class BaseTemplate(models.Model):
         # add nodes attr
         pipeline_web_clean = PipelineWebTreeCleaner(tree)
         nodes = NodeInTemplate.objects.filter(template_id=self.pipeline_template.template_id, version=self.version)
-        nodes_attr = NodeAttr.get_nodes_attr(nodes, 'template')
+        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
         pipeline_web_clean.to_web(nodes_attr)
         return tree
 

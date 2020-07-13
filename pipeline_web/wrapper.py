@@ -29,6 +29,8 @@ from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 
+from gcloud.commons.template.utils import replace_template_id
+
 
 class PipelineTemplateWebWrapper(object):
     SERIALIZE_DATE_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
@@ -71,33 +73,52 @@ class PipelineTemplateWebWrapper(object):
 
     @classmethod
     def unfold_subprocess(cls, pipeline_data, template_model):
+        """展开 pipeline 数据中所有的子流程
+
+        :param pipeline_data: pipeline tree
+        :type pipeline_data: dict
+        :param template_model: 用于获取子流程 tree 的 Model
+        :type template_model: TaskTemplate or CommonTemplate
         """
-        展开 pipeline 数据中所有的子流程
-        @param pipeline_data: pipeline 数据
-        @return:
-        """
-        activities = pipeline_data[PWE.activities]
-        for act_id, act in list(activities.items()):
-            if act[PWE.type] == PWE.SubProcess:
-                subproc_data = template_model.objects.get(
-                    pipeline_template__template_id=act["template_id"]
-                ).get_pipeline_tree_by_version(act.get("version"))
 
-                if "constants" in pipeline_data:
-                    constants_inputs = act.pop("constants")
-                    # replace show constants with inputs
-                    for key, info in list(constants_inputs.items()):
-                        if "form" in info:
-                            info.pop("form")
-                        subproc_data["constants"][key] = info
+        def _unfold_subprocess(pipeline_data, template_model, parent_constatns):
+            """内部递归调用函数
 
-                from gcloud.commons.template.models import replace_template_id
+            :param pipeline_data: pipeline tree
+            :type pipeline_data: dict
+            :param template_model: 用于获取子流程 tree 的 Model
+            :type template_model: TaskTemplate or CommonTemplate
+            :param parent_constatns: 父流程往下传递的 constants
+            :type parent_constatns: [type]
+            """
+            activities = pipeline_data[PWE.activities]
 
-                replace_template_id(template_model, subproc_data)
-                cls.unfold_subprocess(subproc_data, template_model)
+            for act_id, act in list(activities.items()):
+                if act[PWE.type] == PWE.SubProcess:
+                    subproc_data = template_model.objects.get(
+                        pipeline_template__template_id=act["template_id"]
+                    ).get_pipeline_tree_by_version(act.get("version"))
 
-                subproc_data["id"] = act_id
-                act["pipeline"] = subproc_data
+                    if "constants" in pipeline_data:
+                        subproc_inputs = act.pop("constants")
+                        # replace show constants with inputs
+                        subproc_constants = {}
+                        for key, info in subproc_inputs.items():
+                            if "form" in info:
+                                info.pop("form")
+                            subproc_constants[key] = info
+
+                        subproc_data["constants"].update(subproc_constants)
+                        subproc_data["constants"].update(parent_constatns)
+
+                    replace_template_id(template_model, subproc_data)
+                    # 需要将父流程中修改的 constants 传到子流程的 act constants 中
+                    _unfold_subprocess(subproc_data, template_model, subproc_constants)
+
+                    subproc_data["id"] = act_id
+                    act["pipeline"] = subproc_data
+
+        return _unfold_subprocess(pipeline_data, template_model, {})
 
     @classmethod
     def _export_template(cls, template_id, subprocess, refs, root=True):
