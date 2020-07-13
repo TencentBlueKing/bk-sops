@@ -359,7 +359,6 @@ const en = {
     '服务地址': 'Service Address',
     '已导入插件': 'Plugins Imported',
     '根模块': 'Root Module',
-    '已导入模块': 'Modules Imported',
     '插件名': 'Plugin Name',
     '类名': 'Class Name',
     '所属模块': 'Module',
