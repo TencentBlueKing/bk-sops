@@ -22,7 +22,6 @@
                 'loading': loading,
                 'admin-view': adminView
             }]"
-            v-if="hasParentNode"
             v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="excute-time" v-if="!adminView && setNodeDetail">
                 <span>{{$t('第')}}</span>
@@ -73,9 +72,9 @@
                 </table>
                 <NoData v-else></NoData>
             </section>
-            <section class="info-section" v-if="!adminView">
+            <section class="info-section">
                 <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-                <div>
+                <div v-if="!adminView">
                     <RenderForm
                         v-if="!isEmptyParams && !loading"
                         :scheme="renderConfig"
@@ -84,16 +83,13 @@
                     </RenderForm>
                     <NoData v-else></NoData>
                 </div>
-            </section>
-            <section class="info-section" v-else>
-                <h4 class="common-section-title">{{ $t('输入参数') }}</h4>
-                <div class="code-block-wrap">
+                <div class="code-block-wrap" v-else>
                     <VueJsonPretty :data="inputsInfo"></VueJsonPretty>
                 </div>
             </section>
-            <section class="info-section" v-if="!adminView">
+            <section class="info-section">
                 <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-                <table class="operation-table outputs-table">
+                <table class="operation-table outputs-table" v-if="!adminView">
                     <thead>
                         <tr>
                             <th class="output-name">{{ $t('参数名') }}</th>
@@ -111,10 +107,7 @@
                         </tr>
                     </tbody>
                 </table>
-            </section>
-            <section class="info-section" v-else>
-                <h4 class="common-section-title">{{ $t('输出参数') }}</h4>
-                <div class="code-block-wrap">
+                <div class="code-block-wrap" v-else>
                     <VueJsonPretty :data="outputsInfo" v-if="outputsInfo"></VueJsonPretty>
                     <NoData v-else></NoData>
                 </div>
@@ -197,7 +190,6 @@
                 </bk-table>
             </section>
         </div>
-        <NoData v-else>{{noDataMessage}}</NoData>
     </div>
 </template>
 <script>
@@ -440,9 +432,6 @@
             }),
             isEmptyParams () {
                 return this.renderConfig && this.renderConfig.length === 0
-            },
-            noDataMessage () {
-                return i18n.t('请点击标准插件节点查看参数')
             },
             displayStatus () {
                 let state = ''
