@@ -851,7 +851,7 @@
         color: #ff5757;
     }
     .common-icon-dark-circle-shape {
-        color: #979BA5;
+        color: #979ba5;
         font-size: 12px;
     }
     /deep/ .bk-table .bk-table-expanded-cell {

@@ -10,10 +10,10 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="nodeBkTree">
+    <div class="node-bk-tree">
         <bk-tree
             class="node-tree"
-            ref="tree1"
+            ref="bkTree"
             :data="treeData"
             :show-icon="showIcon"
             :node-key="'id'"
@@ -96,7 +96,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-.nodeBkTree{
+.node-bk-tree{
     display: inline-block;
     width: 229px;
     min-width: 229px;

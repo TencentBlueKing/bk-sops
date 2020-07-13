@@ -661,7 +661,7 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id, boolean) {
+            async setNodeDetailConfig (id, performState) {
                 this.hasParentNode = true
                 const nodeActivities = this.pipelineData.activities[id]
                 let subprocessStack = []
@@ -669,7 +669,7 @@
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
                 this.setNodeDetail = true
-                if (boolean) {
+                if (performState) {
                     this.nodeDetailConfig = {
                         component_code: nodeActivities.component.code,
                         version: nodeActivities.component.version || 'legacy',
