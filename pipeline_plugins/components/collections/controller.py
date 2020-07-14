@@ -91,7 +91,7 @@ class SleepTimerService(Service):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         timing = str(data.inputs.bk_timing)
-        force_check = True if str(data.inputs.force_check) == "YES" else False
+        force_check = False if str(data.inputs.force_check) == "NO" else True
 
         # 项目时区获取
         project = Project.objects.get(id=parent_data.inputs.project_id)

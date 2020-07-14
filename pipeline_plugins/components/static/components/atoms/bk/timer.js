@@ -49,7 +49,7 @@
             },
         },
         {
-            tag_code: "force_check_or_not",
+            tag_code: "force_check",
             type: "radio",
             attrs: {
                 name: gettext("是否强制晚于当前时间"),
