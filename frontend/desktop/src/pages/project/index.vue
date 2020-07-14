@@ -302,6 +302,12 @@
                     
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
+                    this.projectList = this.projectList.map(item => {
+                        if (!item.from_cmdb) {
+                            item.bk_biz_id = '--'
+                        }
+                        return item
+                    })
                     this.pagination.count = projectList.meta.total_count
                     this.projectOperations = projectList.meta.auth_operations
                     this.projectResource = projectList.meta.auth_resource
