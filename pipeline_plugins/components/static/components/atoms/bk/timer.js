@@ -47,6 +47,24 @@
                     }
                 ]
             },
+        },
+        {
+            tag_code: "force_check_or_not",
+            type: "radio",
+            attrs: {
+                name: gettext("是否强制晚于当前时间"),
+                hookable: true,
+                items: [
+                    {value: "YES", name: gettext("是")},
+                    {value: "NO", name: gettext("否")}
+                ],
+                default: "YES",
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
         }
     ]
 })();
