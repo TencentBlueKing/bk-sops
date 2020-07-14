@@ -192,7 +192,7 @@
                     key: variableKey,
                     source_info: { [this.nodeId]: [this.hookingVarForm] },
                     value: tools.deepClone(this.formData[this.hookingVarForm]),
-                    formSchema: formSchema.getSchema(this.hookingVarForm, this.scheme)
+                    form_schema: formSchema.getSchema(this.hookingVarForm, this.scheme)
                 }
                 if (this.isSubflow) {
                     const constant = this.subflowForms[this.hookingVarForm]
@@ -229,7 +229,7 @@
                     validation: '',
                     index: len,
                     version: 'legacy',
-                    formSchema: {}
+                    form_schema: {}
                 }
                 const variable = Object.assign({}, defaultOpts, config)
                 this.formData[this.hookingVarForm] = variable.key

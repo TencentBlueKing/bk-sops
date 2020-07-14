@@ -30,7 +30,6 @@
     export default {
         name: 'VariableCitedList',
         props: {
-            constant: Object,
             citedList: Array
         },
         computed: {
