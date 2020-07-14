@@ -97,6 +97,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     if selector == "topo":
         user_select_topo_host = {}
         topo_filter = [[{"field": t["bk_obj_id"], "value": [t["bk_inst_id"]]}] for t in kwargs["topo"]]
+        # 这里需要单独对每个 filter 进行过滤，因为 filter_hosts 过滤的是同时满足所有条件的主机
         for tf in topo_filter:
             user_select_topo_host.update(
                 {host["bk_host_id"]: host for host in filter_hosts(tf, biz_topo_tree, data, "bk_inst_id")}
