@@ -81,15 +81,13 @@ class PipelineTemplateWebWrapper(object):
         :type template_model: TaskTemplate or CommonTemplate
         """
 
-        def _unfold_subprocess(pipeline_data, template_model, parent_constatns):
+        def _unfold_subprocess(pipeline_data, template_model):
             """内部递归调用函数
 
             :param pipeline_data: pipeline tree
             :type pipeline_data: dict
             :param template_model: 用于获取子流程 tree 的 Model
             :type template_model: TaskTemplate or CommonTemplate
-            :param parent_constatns: 父流程往下传递的 constants
-            :type parent_constatns: [type]
             """
             activities = pipeline_data[PWE.activities]
 
@@ -109,16 +107,15 @@ class PipelineTemplateWebWrapper(object):
                             subproc_constants[key] = info
 
                         subproc_data["constants"].update(subproc_constants)
-                        subproc_data["constants"].update(parent_constatns)
 
                     replace_template_id(template_model, subproc_data)
                     # 需要将父流程中修改的 constants 传到子流程的 act constants 中
-                    _unfold_subprocess(subproc_data, template_model, subproc_constants)
+                    _unfold_subprocess(subproc_data, template_model)
 
                     subproc_data["id"] = act_id
                     act["pipeline"] = subproc_data
 
-        return _unfold_subprocess(pipeline_data, template_model, {})
+        return _unfold_subprocess(pipeline_data, template_model)
 
     @classmethod
     def _export_template(cls, template_id, subprocess, refs, root=True):

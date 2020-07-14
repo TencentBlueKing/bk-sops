@@ -144,7 +144,6 @@ class UnfoldSubprocessTestCase(TestCase):
                                         "constants": {
                                             "${param}": {"value": "${parent_param2}"},
                                             "${c2}": {"value": "constant_value_2"},
-                                            "${parent_param2}": {"value": "${parent_param1}"},
                                         },
                                     },
                                 }
@@ -252,7 +251,6 @@ class UnfoldSubprocessTestCase(TestCase):
                                                     "constants": {
                                                         "${param}": {"value": "${parent_param3}"},
                                                         "${c3}": {"value": "constant_value_3"},
-                                                        "${parent_param3}": {"value": "${parent_param2}"},
                                                     },
                                                 },
                                             }
@@ -260,7 +258,6 @@ class UnfoldSubprocessTestCase(TestCase):
                                         "constants": {
                                             "${parent_param3}": {"value": "${parent_param2}"},
                                             "${c2}": {"value": "constant_value_2"},
-                                            "${parent_param2}": {"value": "${parent_param1}"},
                                         },
                                     },
                                 }
