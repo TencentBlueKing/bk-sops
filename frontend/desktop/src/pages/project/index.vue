@@ -294,6 +294,12 @@
                     
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
+                    this.projectList = this.projectList.map(item => {
+                        if (!item.from_cmdb) {
+                            item.bk_biz_id = '--'
+                        }
+                        return item
+                    })
                     this.pagination.count = projectList.meta.total_count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
