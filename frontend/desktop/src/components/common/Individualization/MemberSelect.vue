@@ -12,12 +12,11 @@
 <template>
     <bk-user-selector
         v-model="setValue"
-        :api="api"
+        api="/api/c/compapi/v2/usermanage/fs_list_users/"
         :placeholder="placeholder"
         :disabled="disabled"
-        :search-limit="maxResult"
         :tag-clearable="hasDeleteIcon"
-        :fixed-height="fixedHeight"
+        :fixed-height="false"
         @change="change"
         @select-user="select"
         @remove-selected="remove">
@@ -33,17 +32,6 @@
             event: 'change'
         },
         props: {
-            /**
-             * type
-             * @description
-             * all -人员和邮件组
-             * user -人员
-             * email -邮件组
-             */
-            type: {
-                type: String,
-                default: 'user'
-            },
             value: {
                 type: Array,
                 default: () => ([])
@@ -59,20 +47,6 @@
             hasDeleteIcon: {
                 type: Boolean,
                 default: true
-            },
-            maxData: {
-                type: Number,
-                default: -1
-            },
-            maxResult: {
-                type: Number,
-                default: 5
-            }
-        },
-        data () {
-            return {
-                fixedHeight: false,
-                api: '/api/c/compapi/v2/usermanage/fs_list_users/'
             }
         },
         computed: {
