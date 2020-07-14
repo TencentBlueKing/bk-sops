@@ -10,87 +10,34 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <bk-sideslider
-        :is-show="activeTab !== ''"
-        :width="800"
-        ext-cls="setting-slider"
-        :before-close="beforeClose">
-        <div class="setting-header" slot="header">
-            <span>{{ tabDetail.title }}</span>
-            <template v-if="tabDetail.id === 'globalVariableTab'">
-                <i
-                    class="common-icon-info"
-                    v-bk-tooltips="{
-                        allowHtml: true,
-                        content: '#var-desc',
-                        placement: 'bottom-end',
-                        duration: 0,
-                        width: 400
-                    }">
-                </i>
-                <div id="var-desc">
-                    <div class="tips-item">
-                        <h4>{{ $t('属性：') }}</h4>
-                        <p>
-                            {{ $t('"来源/是否显示"格式，来源是输入类型') }}
-                            <i class="common-icon-show-left" style="color: #219f42"></i>
-                            {{ $t('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型') }}
-                            <i class="common-icon-hide-right" style="color: #de9524"></i>
-                            {{ $t('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，') }}
-                            <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
-                            {{ $t('表示显示，') }}
-                            <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
-                            {{ $t('表示隐藏，输出类型的变量一定是隐藏的。') }}
-                        </p>
-                    </div>
-                    <div class="tips-item">
-                        <h4>{{ $t('输出：') }}</h4>
-                        <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
-                    </div>
-                </div>
-            </template>
-            <i
-                v-if="tabDetail.id === 'tplSnapshootTab'"
-                class="common-icon-info"
-                v-bk-tooltips="{
-                    content: tabDetail.desc,
-                    placement: 'bottom-end',
-                    duration: 0,
-                    width: 400
-                }">
-            </i>
-        </div>
-        <div class="setting-panel" slot="content">
-            <TabGlobalVariables
-                v-if="activeTab === 'globalVariableTab'"
-                :is-fixed-var-menu.sync="isFixedVarMenu"
-                :is-variable-editing="isVariableEditing"
-                :variable-type-list="variableTypeList"
-                @changeVariableEditing="onVariableEditingChange"
-                @variableDataChanged="onVariableDataChange"
-                @onCitedNodeClick="onCitedNodeClick">
-            </TabGlobalVariables>
-            <TabTemplateConfig
-                v-if="activeTab === 'templateConfigTab'"
-                :is-template-config-valid="isTemplateConfigValid"
-                :project-info-loading="projectInfoLoading"
-                @onSelectCategory="onSelectCategory">
-            </TabTemplateConfig>
-            <TabTemplateSnapshoot
-                v-if="activeTab === 'tplSnapshootTab'"
-                :is-show="activeTab === 'tplSnapshootTab'"
-                :snapshoots="snapshoots"
-                @createSnapshoot="$emit('createSnapshoot')"
-                @useSnapshoot="$emit('useSnapshoot', arguments)"
-                @updateSnapshoot="$emit('updateSnapshoot', $event)">
-            </TabTemplateSnapshoot>
-            <TabPipelineTreeEdit
-                v-if="activeTab === 'templateDataEditTab'"
-                @confirm="onDataModify"
-                @close="closeTab">
-            </TabPipelineTreeEdit>
-        </div>
-    </bk-sideslider>
+    <div class="setting-panel">
+        <TabGlobalVariables
+            v-if="activeTab === 'globalVariableTab'"
+            @variableDataChanged="onVariableDataChange"
+            @onCitedNodeClick="onCitedNodeClick"
+            @closeTab="closeTab">
+        </TabGlobalVariables>
+        <TabTemplateConfig
+            v-if="activeTab === 'templateConfigTab'"
+            :is-template-config-valid="isTemplateConfigValid"
+            :project-info-loading="projectInfoLoading"
+            @onSelectCategory="onSelectCategory"
+            @closeTab="closeTab">
+        </TabTemplateConfig>
+        <TabTemplateSnapshoot
+            v-if="activeTab === 'tplSnapshootTab'"
+            :snapshoots="snapshoots"
+            @createSnapshoot="$emit('createSnapshoot')"
+            @useSnapshoot="$emit('useSnapshoot', arguments)"
+            @updateSnapshoot="$emit('updateSnapshoot', $event)"
+            @closeTab="closeTab">
+        </TabTemplateSnapshoot>
+        <TabPipelineTreeEdit
+            v-if="activeTab === 'templateDataEditTab'"
+            @confirm="onDataModify"
+            @closeTab="closeTab">
+        </TabPipelineTreeEdit>
+    </div>
 </template>
 <script>
     import { mapState, mapMutations } from 'vuex'
@@ -114,25 +61,19 @@
             isGlobalVariableUpdate: Boolean,
             isTemplateConfigValid: Boolean,
             isNodeConfigPanelShow: Boolean,
-            variableTypeList: Array,
-            isFixedVarMenu: Boolean,
             activeTab: String,
             snapshoots: Array
         },
         data () {
             return {
                 showPanel: true,
-                isVariableEditing: false,
                 isPipelineTreeDialogShow: false,
                 settingTabs: SETTING_TABS
             }
         },
         computed: {
             ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo,
-                'outputs': state => state.template.outputs,
-                'constants': state => state.template.constants,
-                'timeout': state => state.template.time_out
+                'constants': state => state.template.constants
             }),
             tabDetail () {
                 if (this.activeTab) {
@@ -179,17 +120,10 @@
             onCitedNodeClick (nodeId) {
                 this.$emit('onCitedNodeClick', nodeId)
             },
-            onVariableEditingChange (val) {
-                this.isVariableEditing = val
-            },
             onDataModify (data) {
                 this.isPipelineTreeDialogShow = false
                 this.$emit('modifyTemplateData', data)
                 this.closeTab()
-            },
-            beforeClose () {
-                this.closeTab()
-                return true
             },
             // 关闭面板
             closeTab () {
@@ -198,30 +132,3 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-    .setting-header {
-        display: flex;
-        align-items: center;
-        .common-icon-info {
-            margin-left: 10px;
-            font-size: 16px;
-            color: #c4c6cc;
-            &:hover {
-                color: #f4aa1a;
-            }
-        }
-    }
-    #var-desc {
-        .tips-item {
-            & > h4 {
-                margin: 0;
-            }
-            &:not(:last-child) {
-                margin-bottom: 10px;
-            }
-        }
-    }
-    .setting-panel {
-        height: calc(100vh - 60px);
-    }
-</style>

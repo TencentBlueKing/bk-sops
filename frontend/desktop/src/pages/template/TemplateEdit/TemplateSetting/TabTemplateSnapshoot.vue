@@ -10,89 +10,89 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="template-snapshoot-panel">
-        <!-- <bk-sideslider
-            ext-cls="common-template-setting-sideslider"
-            :width="800"
-            :is-show="isShow"
-            :before-close="onBeforeClose"
-            :quick-close="true">
-            <div slot="header">
-                <span> {{$t('本地快照')}} </span>
-                <i class="common-icon-info snapshoot-tooltip"
-                    v-bk-tooltips="{
-                        allowHtml: true,
-                        content: $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。'),
-                        placement: 'bottom-end',
-                        duration: 0,
-                        width: 400 }">
-                </i>
-            </div>
-            <div class="content-wrap" slot="content"> -->
-        <table class="snapshoot-table">
-            <thead>
-                <tr>
-                    <th class="col-number">{{ $t('序号') }}</th>
-                    <th class="col-name">{{ $t('名称') }}</th>
-                    <th class="col-time">{{ $t('保存时间') }}</th>
-                    <th class="col-operation-group">{{ $t('操作') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr style="background: #f0f1f5">
-                    <td class="col-number">--</td>
-                    <td class="col-name">--</td>
-                    <td class="col-time">--</td>
-                    <td class="col-operation-group">
-                        <bk-button size="small" theme="default" @click="onCreateSnapshoot">{{ $t('新建') }}</bk-button>
-                    </td>
-                </tr>
-                <tr
-                    v-for="(item, index) in snapshoots"
-                    :key="item.timestamp">
-                    <td class="col-number">
-                        <div class="content">{{ snapshoots.length - index }}</div>
-                    </td>
-                    <td
-                        class="col-name"
-                        :title="item.name">
-                        <div class="content">
-                            <bk-input
-                                v-if="editingData.key === item.timestamp"
-                                v-model="editingData.name"
-                                v-focus
-                                v-validate="nameRule"
-                                data-vv-validate-on=" "
-                                class="snapshoot-name-input"
-                                :name="'snapshootName' + item.timestamp"
-                                :placeholder="$t('名称')"
-                                @blur="onSaveName(item)"
-                                @enter="onSaveName(item)" />
-                            <span v-else>{{item.name}}</span>
-                            <i class="common-icon-edit" @click.stop="onEditName(item)"></i>
-                            <span
-                                v-if="errors.first('snapshootName' + item.timestamp)"
-                                class="common-icon-info error-msg"
-                                v-bk-tooltips="{
-                                    content: errors.first('snapshootName' + item.timestamp),
-                                    placements: ['top-end']
-                                }">
-                            </span>
-                        </div>
-                    </td>
-                    <td class="col-time"><div class="content">{{item.timestamp | timestampToDatetime}}</div></td>
-                    <td class="col-operation-group">
-                        <span class="operation-item" @click="onUseSnapshoot(item, snapshoots.length - index)">{{$t('还原')}}</span>
-                    </td>
-                </tr>
-                <tr v-if="!snapshoots.length" class="empty-snapshoot-tip">
-                    <td><NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData></td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- </div> -->
-        <!-- </bk-sideslider> -->
-    </div>
+    <bk-sideslider
+        :is-show="true"
+        :quick-close="true"
+        :width="800"
+        :before-close="closeTab">
+        <div class="setting-header" slot="header">
+            <span>{{ $t('本地快照') }}</span>
+            <i
+                class="common-icon-info"
+                v-bk-tooltips="{
+                    content: $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。'),
+                    placement: 'bottom-end',
+                    duration: 0,
+                    width: 400
+                }">
+            </i>
+        </div>
+        <div class="template-snapshoot-panel" slot="content">
+            <table class="snapshoot-table">
+                <thead>
+                    <tr>
+                        <th class="col-number">{{ $t('序号') }}</th>
+                        <th class="col-name">{{ $t('名称') }}</th>
+                        <th class="col-time">{{ $t('保存时间') }}</th>
+                        <th class="col-operation-group">{{ $t('操作') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #f0f1f5">
+                        <td class="col-number">--</td>
+                        <td class="col-name">--</td>
+                        <td class="col-time">--</td>
+                        <td class="col-operation-group">
+                            <bk-button size="small" theme="default" @click="onCreateSnapshoot">{{ $t('新建') }}</bk-button>
+                        </td>
+                    </tr>
+                    <tr
+                        v-for="(item, index) in snapshoots"
+                        :key="item.timestamp">
+                        <td class="col-number">
+                            <div class="content">{{ snapshoots.length - index }}</div>
+                        </td>
+                        <td
+                            class="col-name"
+                            :title="item.name">
+                            <div class="content">
+                                <bk-input
+                                    v-if="editingData.key === item.timestamp"
+                                    v-model="editingData.name"
+                                    v-focus
+                                    v-validate="nameRule"
+                                    data-vv-validate-on=" "
+                                    class="snapshoot-name-input"
+                                    :name="'snapshootName' + item.timestamp"
+                                    :placeholder="$t('名称')"
+                                    @blur="onSaveName(item)"
+                                    @enter="onSaveName(item)" />
+                                <span v-else>{{item.name}}</span>
+                                <i class="common-icon-edit" @click.stop="onEditName(item)"></i>
+                                <span
+                                    v-if="errors.first('snapshootName' + item.timestamp)"
+                                    class="common-icon-info error-msg"
+                                    v-bk-tooltips="{
+                                        content: errors.first('snapshootName' + item.timestamp),
+                                        placements: ['top-end']
+                                    }">
+                                </span>
+                            </div>
+                        </td>
+                        <td class="col-time"><div class="content">{{item.timestamp | timestampToDatetime}}</div></td>
+                        <td class="col-operation-group">
+                            <span class="operation-item" @click="onUseSnapshoot(item, snapshoots.length - index)">{{$t('还原')}}</span>
+                        </td>
+                    </tr>
+                    <tr v-if="!snapshoots.length" class="empty-snapshoot-tip">
+                        <td><NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData></td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- </div> -->
+            <!-- </bk-sideslider> -->
+        </div>
+    </bk-sideslider>
 </template>
 
 <script>
@@ -143,7 +143,7 @@
             },
             // 保存编辑中的快照名称
             onSaveName (snapshoot) {
-                this.$validator.validateAll().then((result) => {
+                return this.$validator.validateAll().then((result) => {
                     if (!result) {
                         return
                     }
@@ -153,8 +153,12 @@
                     this.editingData.name = ''
                 })
             },
-            onBeforeClose () {
-                this.$emit('onColseTab', 'tplSnapshootTab')
+            async closeTab () {
+                if (this.editingData.key) {
+                    const snapshoot = this.snapshoots.find(item => item.timestamp === this.editingData.key)
+                    await this.onSaveName(snapshoot)
+                }
+                this.$emit('closeTab')
             }
         }
     }
@@ -163,9 +167,19 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-
+.setting-header {
+    .common-icon-info {
+        position: absolute;
+        top: 22px;
+        right: 30px;
+        font-size: 16px;
+        color: #c4c6cc;
+        &:hover {
+            color: #f4aa1a;
+        }
+    }
+}
 .template-snapshoot-panel {
-    height: 100%;
     padding: 20px 30px;
     background: #ffffff;
     overflow: hidden;
@@ -211,7 +225,8 @@
         }
         tbody {
             display: block;
-            height: calc(100% - 62px);
+            min-height: 400px;
+            max-height: calc(100vh - 150px);
             color: #63656e;
             overflow: auto;
             @include scrollbar;

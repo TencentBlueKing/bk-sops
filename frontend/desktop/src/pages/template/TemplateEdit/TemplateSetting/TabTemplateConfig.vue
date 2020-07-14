@@ -10,54 +10,61 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper">
-        <div class="common-form-item">
-            <label class="required">{{ $t('分类') }}</label>
-            <div class="common-form-content">
-                <bk-select
-                    class="category-select"
-                    v-model="category"
-                    @change="onChangeTaskCategories">
-                    <bk-option
-                        v-for="(item, index) in taskCategories"
-                        :key="index"
-                        :id="item.id"
-                        :name="item.name">
-                    </bk-option>
-                </bk-select>
-                <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+    <bk-sideslider
+        :title="$t('基础信息')"
+        :is-show="true"
+        :quick-close="true"
+        :width="800"
+        :before-close="closeTab">
+        <div class="config-wrapper" slot="content">
+            <div class="common-form-item">
+                <label class="required">{{ $t('分类') }}</label>
+                <div class="common-form-content">
+                    <bk-select
+                        class="category-select"
+                        v-model="category"
+                        @change="onChangeTaskCategories">
+                        <bk-option
+                            v-for="(item, index) in taskCategories"
+                            :key="index"
+                            :id="item.id"
+                            :name="item.name">
+                        </bk-option>
+                    </bk-select>
+                    <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+                </div>
             </div>
-        </div>
-        <div class="common-form-item">
-            <label> {{$t('通知方式')}} </label>
-            <div class="common-form-content" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
-                <bk-checkbox-group v-model="notifyType">
-                    <template v-for="item in notifyTypeList">
+            <div class="common-form-item">
+                <label> {{$t('通知方式')}} </label>
+                <div class="common-form-content" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
+                    <bk-checkbox-group v-model="notifyType">
+                        <template v-for="item in notifyTypeList">
+                            <bk-checkbox
+                                v-if="item.is_active"
+                                :key="item.type"
+                                :value="item.type">
+                                <img class="notify-icon" :src="`data:image/png;base64,${item.icon}`" />
+                                <span style="word-break: break-all;">{{item.label}}</span>
+                            </bk-checkbox>
+                        </template>
+                    </bk-checkbox-group>
+                </div>
+            </div>
+            <div class="common-form-item">
+                <label>{{ $t('通知分组') }}</label>
+                <div class="common-form-content">
+                    <bk-checkbox-group v-model="receiverGroup">
                         <bk-checkbox
-                            v-if="item.is_active"
-                            :key="item.type"
-                            :value="item.type">
-                            <img class="notify-icon" :src="`data:image/png;base64,${item.icon}`" />
-                            <span style="word-break: break-all;">{{item.label}}</span>
+                            v-for="item in notifyGroup"
+                            :key="item.id"
+                            :value="item.id">
+                            {{item.name}}
                         </bk-checkbox>
-                    </template>
-                </bk-checkbox-group>
+                    </bk-checkbox-group>
+                </div>
             </div>
         </div>
-        <div class="common-form-item">
-            <label>{{ $t('通知分组') }}</label>
-            <div class="common-form-content">
-                <bk-checkbox-group v-model="receiverGroup">
-                    <bk-checkbox
-                        v-for="item in notifyGroup"
-                        :key="item.id"
-                        :value="item.id">
-                        {{item.name}}
-                    </bk-checkbox>
-                </bk-checkbox-group>
-            </div>
-        </div>
-    </div>
+    </bk-sideslider>
 </template>
 
 <script>
@@ -161,6 +168,9 @@
             },
             onChangeTaskCategories (id) {
                 this.selectedTaskCategory = id
+            },
+            closeTab () {
+                this.$emit('closeTab')
             }
         }
     }
@@ -170,7 +180,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .config-wrapper {
-    height: 100%;
+    height: calc(100vh - 60px);
     background: none;
     border: none;
     .common-form-item {

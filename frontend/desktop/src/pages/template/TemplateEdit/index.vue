@@ -82,7 +82,6 @@
                     :is-global-variable-update="isGlobalVariableUpdate"
                     :project-info-loading="projectInfoLoading"
                     :is-template-config-valid="isTemplateConfigValid"
-                    :variable-type-list="variableTypeList"
                     :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
                     @globalVariableUpdate="globalVariableUpdate"
@@ -161,8 +160,6 @@
                 isLeaveDialogShow: false,
                 nodeMenuOpen: false, // 左侧边栏节点列表菜单是否展开
                 activeSettingTab: '',
-                // isFixedVarMenu: false, // 全局变量面板铆钉
-                variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
                 lastOpenPanelName: '', // 最近一次打开的面板名
@@ -276,8 +273,6 @@
             // 获取流程内置变量
             this.templateDataLoading = true
             this.snapshoots = this.getTplSnapshoots()
-            const result = await this.loadInternalVariable()
-            this.setInternalVariable(result.data || [])
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
@@ -311,7 +306,6 @@
                 'saveTemplateData',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
-                'loadInternalVariable',
                 'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
@@ -334,7 +328,6 @@
                 'setStartpoint',
                 'setEndpoint',
                 'setBranchCondition',
-                'setInternalVariable',
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree'

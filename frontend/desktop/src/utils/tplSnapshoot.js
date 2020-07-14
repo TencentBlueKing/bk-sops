@@ -149,6 +149,7 @@ const tplSnapshoot = {
         const snapshootStorage = this.getSnapshootStorage()
         if (snapshootStorage[username]
             && snapshootStorage[username][id]
+            && snapshootStorage[username][id][tpl]
             && snapshootStorage[username][id][tpl].length > 0
         ) {
             delete snapshootStorage[username][id][tpl]
@@ -166,6 +167,7 @@ const tplSnapshoot = {
         const snapshootStorage = this.getSnapshootStorage()
         if (snapshootStorage[username]
             && snapshootStorage[username][id]
+            && snapshootStorage[username][id][oldTpl]
             && snapshootStorage[username][id][oldTpl].length > 0
         ) {
             snapshootStorage[username][id][newTpl] = snapshootStorage[username][id][oldTpl].slice(0)

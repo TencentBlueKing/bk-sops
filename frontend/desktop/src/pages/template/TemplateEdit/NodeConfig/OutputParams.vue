@@ -11,8 +11,18 @@
 <template>
     <div class="output-params">
         <bk-table :data="list" :border="true">
-            <bk-table-column :label="$t('名称')" :width="250" align="center" prop="name"></bk-table-column>
-            <bk-table-column label="KEY" align="center" prop="key"></bk-table-column>
+            <bk-table-column :label="$t('名称')" :width="180" align="center" prop="name"></bk-table-column>
+            <bk-table-column :label="$t('说明')" align="center">
+                <template slot-scope="props">
+                    <span
+                        v-if="props.row.scheme && (description in props.row.scheme)"
+                        :title="props.row.scheme.description">
+                        {{ props.row.scheme.description }}
+                    </span>
+                    <span v-else>--</span>
+                </template>
+            </bk-table-column>
+            <bk-table-column label="KEY" :width="180" align="center" prop="key"></bk-table-column>
             <bk-table-column :label="$t('引用')" :width="100" align="center">
                 <template slot-scope="props">
                     <bk-checkbox

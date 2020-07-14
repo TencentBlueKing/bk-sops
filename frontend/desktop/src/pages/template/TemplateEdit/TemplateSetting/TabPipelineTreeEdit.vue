@@ -10,23 +10,29 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="pipeline-tree-wrap">
-        <div class="code-wrapper">
-            <code-editor
-                :value="template"
-                :options="{ readOnly: !hasAdminPerm, language: 'json' }"
-                @input="onDataChange">
-            </code-editor>
-            <div class="error-tips" v-if="errorMessage" :title="errorMessage">
-                <i class="common-icon-info"></i>
-                <div class="message">{{ errorMessage }}</div>
+    <bk-sideslider
+        :is-show="true"
+        :width="800"
+        :title="$t('本地快照')"
+        :before-close="closeTab">
+        <div class="pipeline-tree-wrap" slot="content">
+            <div class="code-wrapper">
+                <code-editor
+                    :value="template"
+                    :options="{ readOnly: !hasAdminPerm, language: 'json' }"
+                    @input="onDataChange">
+                </code-editor>
+                <div class="error-tips" v-if="errorMessage" :title="errorMessage">
+                    <i class="common-icon-info"></i>
+                    <div class="message">{{ errorMessage }}</div>
+                </div>
+            </div>
+            <div class="btn-wrap">
+                <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
         </div>
-        <div class="btn-wrap">
-            <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
-            <bk-button theme="default" @click="$emit('close')">{{ $t('取消') }}</bk-button>
-        </div>
-    </div>
+    </bk-sideslider>
 </template>
 
 <script>
@@ -79,6 +85,9 @@
                     }
                     this.$emit('confirm', pipelineData)
                 }
+            },
+            closeTab () {
+                this.$emit('closeTab')
             }
         }
     }
@@ -88,7 +97,7 @@
     @import '@/scss/config.scss';
     @import '@/scss/mixins/scrollbar.scss';
     .pipeline-tree-wrap {
-        height: 100%;
+        height: calc(100vh - 60px);
     }
     .code-wrapper {
         position: relative;
