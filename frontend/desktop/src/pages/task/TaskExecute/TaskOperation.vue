@@ -661,7 +661,7 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id, performState) {
+            async setNodeDetailConfig (id, performState = true) {
                 this.hasParentNode = true
                 const nodeActivities = this.pipelineData.activities[id]
                 let subprocessStack = []
