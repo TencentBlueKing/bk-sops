@@ -60,7 +60,6 @@ def classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params
                 act_outputs.setdefault(source_info[PE.source_act], {}).update({source_info[PE.source_key]: key})
 
         is_param = info.get(PE.is_param, False)
-        info = params.get(key, info) if is_param else info
         if is_subprocess and is_param:
             subprocess_params.update({key: info})
             continue
@@ -267,12 +266,12 @@ class PipelineParser(object):
     def get_act(self, act_id, subprocess_stack=None, root_pipeline_data=None, root_pipeline_context=None):
         if subprocess_stack is None:
             subprocess_stack = []
-        subprocess = self.parse(root_pipeline_data, root_pipeline_context)
+        pipeline = self.parse(root_pipeline_data, root_pipeline_context)
         for sub_id in subprocess_stack:
-            subprocess_act = [x for x in subprocess.spec.activities if x.id == sub_id][0]
+            subprocess_act = [x for x in pipeline.spec.activities if x.id == sub_id][0]
             hydrate_subprocess_context(subprocess_act)
-            subprocess = subprocess_act.pipeline
-        act = [x for x in subprocess.spec.activities if x.id == act_id][0]
+            pipeline = subprocess_act.pipeline
+        act = [x for x in pipeline.spec.activities if x.id == act_id][0]
         return act
 
     def get_act_inputs(self, act_id, subprocess_stack=None, root_pipeline_data=None, root_pipeline_context=None):
