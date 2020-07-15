@@ -158,7 +158,7 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
             }
             return "%s/console/?%s" % (settings.BK_PAAS_HOST, urlencode(query))
     else:
-        url_format = "{}api_execute/{}"
+        url_format = "{}/api_execute/{}"
 
         return url_format.format(settings.BK_JOB_HOST, job_instance_id)
 
