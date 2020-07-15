@@ -34,7 +34,7 @@ class FormInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
-        resources = res_factory.resource_for_flow(template_id)
+        resources = res_factory.resources_for_flow(template_id)
         request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
 
         allowed = iam.is_allowed(request)
