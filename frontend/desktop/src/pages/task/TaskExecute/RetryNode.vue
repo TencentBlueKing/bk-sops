@@ -153,6 +153,7 @@
     .retry-node-container {
         position: relative;
         overflow: hidden;
+        height: 100%;
         .edit-wrapper {
             padding: 20px 20px 0;
             height: calc(100% - 60px);
