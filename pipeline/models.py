@@ -263,7 +263,7 @@ class TemplateManager(models.Manager):
         for act_id, act in list(activities.items()):
             if act[PE.type] == PE.SubProcess:
                 subproc_data = act[PE.pipeline]
-                sub_id_maps = self.unfold_subprocess(subproc_data)
+                sub_id_maps = self.replace_id(subproc_data)
                 # act_id is new id
                 id_maps[PE.subprocess_detail].update({act_id: sub_id_maps})
 
