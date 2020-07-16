@@ -16,6 +16,7 @@
                 <base-title :title="$t('轻应用')"></base-title>
                 <div class="operation-wrapper">
                     <advance-search-form
+                        id="appmakerList"
                         :search-form="searchForm"
                         :search-config="{ placeholder: $t('请输入轻应用名称') }"
                         @onSearchInput="onSearchInput"
@@ -110,7 +111,7 @@
             key: 'updateTime',
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('更新时间'),
-            value: []
+            value: ['', '']
         }
     ]
     export default {

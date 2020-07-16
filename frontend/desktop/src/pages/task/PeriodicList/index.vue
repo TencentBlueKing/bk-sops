@@ -14,6 +14,7 @@
         <div class="list-wrapper">
             <div class="operation-area">
                 <advance-search-form
+                    id="periodicList"
                     :search-config="{ placeholder: $t('请输入任务名称'), value: requestData.flowName }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -229,7 +230,8 @@
             list: [
                 { 'value': 'true', 'name': i18n.t('启动') },
                 { 'value': 'false', 'name': i18n.t('暂停') }
-            ]
+            ],
+            value: ''
         }
     ]
     export default {
