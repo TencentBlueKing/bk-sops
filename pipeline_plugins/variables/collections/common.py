@@ -122,7 +122,6 @@ class CurrentTime(LazyVariable):
             ("second", "%S", ":"),
         ]
         time_format = ""
-        # self.value 形如['year', 'month', 'day', 'hour', 'minute', 'second']
         for idx, time_unit in enumerate(time_units):
             if idx == 3:
                 time_format += " "
