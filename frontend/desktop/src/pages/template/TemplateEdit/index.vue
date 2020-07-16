@@ -791,12 +791,6 @@
              * 打开节点配置面板
              */
             onShowNodeConfig (id, hideSettingPanel = true) {
-                // if (this.isShowConditionEdit) {
-                //     this.$refs.conditionEdit && this.$refs.conditionEdit.closeConditionEdit()
-                // }
-                // if (document.body.clientWidth < 1920 || hideSettingPanel) { // 分辨率 1920 以下关闭 settting 面板，或者手动关闭
-                // this.toggleSettingPanel(false)
-                // }
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
                     this.showConfigPanel(id)
@@ -1138,7 +1132,8 @@
             },
             // 全局变量引用节点点击回调
             onCitedNodeClick (nodeId) {
-                this.moveNodeToView(nodeId)
+                this.activeSettingTab = ''
+                this.showConfigPanel(nodeId)
             },
             /**
              * 移动画布，将节点放到画布左上角

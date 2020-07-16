@@ -13,7 +13,8 @@
     <div class="node-config-wrapper">
         <bk-sideslider
             ref="nodeConfigPanel"
-            :width="710"
+            ext-cls="node-config-panel"
+            :width="800"
             :is-show="isShow"
             :before-close="beforeClose">
             <div slot="header">
@@ -781,31 +782,29 @@
         }
     }
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
-    .node-config-wrapper {
-        height: 100%;
-        background: #ffffff;
-        .go-back.active {
-            color: #3a84ff;
-            cursor: pointer;
+.node-config-panel {
+    height: 100%;
+    .go-back.active {
+        color: #3a84ff;
+        cursor: pointer;
+    }
+    .node-config {
+        height: calc(100vh - 60px);
+        overflow: hidden;
+        .config-form {
+            padding: 20px 30px 0 30px;
+            max-height: calc(100% - 49px);
+            overflow-y: auto;
+            @include scrollbar;
         }
-        .node-config {
-            height: calc(100vh - 60px);
-            overflow: hidden;
-            .config-form {
-                padding: 20px 30px 0 30px;
-                max-height: calc(100% - 49px);
-                overflow-y: auto;
-                @include scrollbar;
-            }
-            .btn-footer {
-                padding: 8px 30px;
-                border-top: 1px solid #cacedb;
-                .bk-button {
-                    margin-right: 10px;
-                    padding: 0 25px;
-                }
+        .btn-footer {
+            padding: 8px 30px;
+            border-top: 1px solid #cacedb;
+            .bk-button {
+                margin-right: 10px;
+                padding: 0 25px;
             }
         }
     }
@@ -825,7 +824,8 @@
             min-height: 80px;
         }
     }
-    /deep/ .bk-sideslider-content {
+    .bk-sideslider-content {
         overflow: initial;
     }
+}
 </style>

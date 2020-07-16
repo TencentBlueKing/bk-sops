@@ -482,12 +482,12 @@
                 return this.$validator.validateAll().then(result => {
                     let formValid = true
             
-                    // 名称、key等校验，renderform表单校验
+                    // renderform表单校验
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
                     }
 
-                    if (!formValid) {
+                    if (!result || !formValid) {
                         return false
                     }
 
