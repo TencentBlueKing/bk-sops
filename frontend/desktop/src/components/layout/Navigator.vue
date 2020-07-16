@@ -148,7 +148,6 @@
             name: i18n.t('项目管理')
         },
         {
-            routerName: 'admin',
             path: '/admin',
             name: i18n.t('管理员入口'),
             children: [
@@ -319,7 +318,9 @@
                     return this.$router.push({ name: 'home' })
                 }
                 const config = this.getNavPath(route)
-                this.$router.push(config)
+                if (config.name) {
+                    this.$router.push(config)
+                }
             },
             /* 打开版本日志 */
             async onOpenVersion () {
