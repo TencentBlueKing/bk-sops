@@ -241,12 +241,13 @@
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
+                    const pid = this.common ? this.selectedProject.id : this.project_id // 公共流程创建任务需要跳转到所选业务
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
-                        this.goToTaskUrl()
+                        this.goToTaskUrl(pid)
                     } else {
-                        this.$emit('onSaveTemplate', saveAndCreate)
+                        this.$emit('onSaveTemplate', saveAndCreate, pid)
                     }
                 })
             },
@@ -276,10 +277,10 @@
                 }
                 return url
             },
-            goToTaskUrl () {
+            goToTaskUrl (pid) {
                 this.$router.push({
                     name: 'taskStep',
-                    params: { step: 'selectnode', project_id: this.project_id },
+                    params: { step: 'selectnode', project_id: pid },
                     query: {
                         template_id: this.template_id,
                         common: this.common || undefined,
