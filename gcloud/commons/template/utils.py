@@ -17,6 +17,8 @@ import logging
 
 import ujson as json
 
+from pipeline.core.constants import PE
+
 from gcloud import err_code
 from gcloud.conf import settings
 
@@ -43,3 +45,14 @@ def read_encoded_template_data(content):
 
 def read_template_data_file(f):
     return read_encoded_template_data(content=f.read())
+
+
+def replace_template_id(template_model, pipeline_data, reverse=False):
+    activities = pipeline_data[PE.activities]
+    for act_id, act in list(activities.items()):
+        if act["type"] == PE.SubProcess:
+            if not reverse:
+                act["template_id"] = template_model.objects.get(pk=act["template_id"]).pipeline_template.template_id
+            else:
+                template = template_model.objects.get(pipeline_template__template_id=act["template_id"])
+                act["template_id"] = str(template.pk)
