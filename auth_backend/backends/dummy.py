@@ -58,7 +58,7 @@ class FreeAuthBackend(AuthBackend):
             resource=resource, action_ids=action_ids, instances=instances, ignore_relate_instance_act=False
         )
         for action in actions:
-            if ["resource_id"] not in action:
+            if "resource_id" not in action:
                 action["resource_id"] = None
 
             action["is_pass"] = True
