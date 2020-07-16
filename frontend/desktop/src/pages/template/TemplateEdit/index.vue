@@ -1052,7 +1052,6 @@
                 }
                 const isAllNodeValid = this.validateAtomNode()
                 const isAllConditionValid = this.checkConditionData(true)
-                debugger
                 if (isAllNodeValid && isAllConditionValid) {
                     if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
                         this.$refs.templateHeader.setProjectSelectDialogShow()
