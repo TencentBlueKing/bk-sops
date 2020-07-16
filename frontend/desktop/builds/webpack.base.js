@@ -163,7 +163,7 @@ module.exports = {
         }),
         new MonacoWebpackPlugin({
             output: path.posix.join(process.env.STATIC_ENV, 'dist/js/'),
-            languages: ['javascript', 'typescript', 'json', 'python']
+            languages: ['javascript', 'typescript', 'json', 'python', 'shell']
         })
     ],
     optimization: {

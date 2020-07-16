@@ -181,6 +181,7 @@
                         case 'datetime':
                         case 'password':
                         case 'member_selector':
+                        case 'codeEditor':
                             val = ''
                             break
                         case 'checkbox':
