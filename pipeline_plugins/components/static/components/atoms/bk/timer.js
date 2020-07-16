@@ -55,10 +55,10 @@
                 name: gettext("是否强制晚于当前时间"),
                 hookable: true,
                 items: [
-                    {value: "YES", name: gettext("是")},
-                    {value: "NO", name: gettext("否")}
+                    {value: true, name: gettext("是")},
+                    {value: false, name: gettext("否")}
                 ],
-                default: "YES",
+                default: true,
                 validation: [
                     {
                         type: "required"
