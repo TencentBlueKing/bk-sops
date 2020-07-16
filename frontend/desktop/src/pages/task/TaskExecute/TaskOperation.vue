@@ -54,9 +54,9 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <transition name="slideRight">
-            <!-- 执行详情 -->
-            <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :show-mask="false">
+            <div slot="header">{{silesLiderTitle}}</div>
+            <div class="node-info-panel" ref="nodeInfoPanel" slot="content">
                 <ViewParams
                     v-if="nodeInfoType === 'viewParams'"
                     :node-data="nodeData"
@@ -95,11 +95,8 @@
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
                 </TaskInfo>
-                <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
-                    <i class="common-icon-double-arrow"></i>
-                </div>
             </div>
-        </transition>
+        </bk-sideslider>
         <gatewaySelectDialog
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
             :gateway-branches="gatewayBranches"
@@ -195,6 +192,7 @@
             })
 
             return {
+                silesLiderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
@@ -700,6 +698,7 @@
             onRetryClick (id) {
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = 'retryNode'
+                this.silesLiderTitle = i18n.t('重试')
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -711,6 +710,7 @@
                 this.nodeTaskSkip(data)
             },
             onModifyTimeClick (id) {
+                this.silesLiderTitle = i18n.t('修改时间')
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = 'modifyTime'
                 this.setNodeDetailConfig(id)
@@ -817,7 +817,8 @@
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             // 查看参数、修改参数
-            onTaskParamsClick (type) {
+            onTaskParamsClick (type, name) {
+                this.silesLiderTitle = i18n.t(name)
                 if (this.nodeInfoType === type) {
                     this.isNodeInfoPanelShow = false
                     this.nodeInfoType = ''
@@ -898,6 +899,7 @@
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
                     this.updateNodeActived(id, true)
+                    this.silesLiderTitle = i18n.t('节点详情')
                 }
             },
             handleSubflowAtomClick (id) {
@@ -1193,37 +1195,11 @@
     }
 
 }
+/deep/.bk-sideslider-content {
+    height: calc(100% - 60px);
+}
 .node-info-panel {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    width: 764px;
-    height: calc(100% - 50px);
-    background: $whiteDefault;
-    border-top: 1px solid #dde4eb;
-    border-left: 1px solid #dde4eb;
-    z-index: 5;
-    .close-node-info-panel {
-        position: absolute;
-        top: -1px;
-        left: -18px;
-        width: 18px;
-        height: 50px;
-        line-height: 50px;
-        font-size: 12px;
-        color: $whiteDefault;
-        text-align: center;
-        background:#3a84ff;
-        border-right: none;
-        border-radius: 4px;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
-        cursor: pointer;
-        &:hover {
-            background: $blueDefault;
-        }
-    }
+    height: 100%;
 }
 
 </style>

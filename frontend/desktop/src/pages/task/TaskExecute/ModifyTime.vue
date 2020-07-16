@@ -11,9 +11,6 @@
 */
 <template>
     <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div class="panel-title">
-            <h3>{{ $t('修改定时时间') }}</h3>
-        </div>
         <div class="edit-wrapper">
             <RenderForm
                 ref="renderForm"
@@ -25,7 +22,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="primary" @click="onModifyTime">{{ $t('确定') }}</bk-button>
+            <bk-button theme="primary" class="first-btn" @click="onModifyTime">{{ $t('确定') }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
@@ -153,27 +150,22 @@
     @import '@/scss/mixins/scrollbar.scss';
     .modify-time-container {
         position: relative;
-        height: 100%;
         overflow: hidden;
-        .panel-title {
-            padding: 20px;
-            h3 {
-                margin: 0;
-                font-size: 22px;
-                font-weight: normal;
-            }
-        }
         .edit-wrapper {
             padding: 20px 20px 0;
-            height: calc(100% - 140px);
+            height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;
         }
         .action-wrapper {
+            margin-top: 30px;
+            padding-left: 55px;
             height: 60px;
             line-height: 60px;
-            text-align: center;
             border-top: 1px solid $commonBorderColor;
+            .first-btn{
+                margin-right: 12px;
+            }
         }
     }
 </style>

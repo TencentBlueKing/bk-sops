@@ -14,9 +14,6 @@
         class="modify-params-container"
         v-bkloading="{ isLoading: loading, opacity: 1 }"
         @click="e => e.stopPropagation()">
-        <div class="panel-title">
-            <h3>{{ $t('修改全局参数') }}</h3>
-        </div>
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
@@ -166,18 +163,7 @@
     @import '@/scss/mixins/scrollbar.scss';
     .modify-params-container {
         position: relative;
-        height: 100%;
         overflow: hidden;
-        .panel-title {
-            margin: 20px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #cacedb;
-            h3 {
-                margin: 0;
-                font-size: 14px;
-                font-weight: bold;
-            }
-        }
         .panel-notice-task-run {
             margin: 20px 20px 10px 20px;
             padding: 0 10px;
@@ -192,14 +178,15 @@
         }
         .edit-wrapper {
             padding: 20px;
-            height: calc(100% - 150px);
+            height: calc(100% - 60px);
             overflow-y: auto;
             @include scrollbar;
         }
         .action-wrapper {
-            height: 90px;
-            line-height: 90px;
-            text-align: center;
+            margin-top: 30px;
+            padding-left: 55px;
+            height: 60px;
+            line-height: 60px;
             border-top: 1px solid $commonBorderColor;
         }
     }
