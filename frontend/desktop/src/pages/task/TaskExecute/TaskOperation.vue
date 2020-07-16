@@ -69,8 +69,6 @@
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo'"
                     :node-data="nodeData"
-                    :has-parent-node="hasParentNode"
-                    :set-node-detail="setNodeDetail"
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
@@ -192,8 +190,6 @@
 
             return {
                 locations: [],
-                setNodeDetail: true,
-                hasParentNode: true,
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
@@ -662,13 +658,11 @@
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             async setNodeDetailConfig (id) {
-                this.hasParentNode = true
                 const nodeActivities = this.pipelineData.activities[id]
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
-                this.setNodeDetail = true
                 this.nodeDetailConfig = {
                     component_code: nodeActivities.component.code,
                     version: nodeActivities.component.version || 'legacy',
