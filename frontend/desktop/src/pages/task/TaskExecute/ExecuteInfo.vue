@@ -23,7 +23,7 @@
                 'admin-view': adminView
             }]"
             v-bkloading="{ isLoading: loading, opacity: 1 }">
-            <div class="excute-time" v-if="!adminView && setNodeDetail">
+            <div class="excute-time" v-if="!adminView && onNodeState">
                 <span>{{$t('第')}}</span>
                 <bk-select
                     :clearable="false"
@@ -49,7 +49,7 @@
             </div>
             <section class="info-section">
                 <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
-                <table class="operation-table" v-if="executeCols && setNodeDetail">
+                <table class="operation-table" v-if="executeCols && onNodeState">
                     <tr v-for="col in executeCols" :key="col.id">
                         <th>{{ col.title }}</th>
                         <td>
@@ -390,14 +390,6 @@
                 default () {
                     return {}
                 }
-            },
-            hasParentNode: {
-                type: Boolean,
-                default: true
-            },
-            setNodeDetail: {
-                type: Boolean,
-                default: true
             }
         },
         data () {
@@ -422,7 +414,8 @@
                 renderConfig: [],
                 renderData: {},
                 loop: 1,
-                theExecuteTime: undefined
+                theExecuteTime: undefined,
+                onNodeState: true
             }
         },
         computed: {
@@ -494,100 +487,75 @@
             ]),
             async loadNodeInfo () {
                 this.loading = true
-                if (this.setNodeDetail) {
-                    try {
-                        const respData = await this.getTaskNodeDetail()
-                        const { execution_info, outputs, inputs, log, history } = respData
-                        const version = this.nodeDetailConfig.version
-                        const componentCode = this.nodeDetailConfig.component_code
-                        // 任务节点需要加载标准插件
-                        if (componentCode) {
-                            this.renderConfig = await this.getNodeConfig(componentCode, version)
+                // if (this.setNodeDetail) {
+                try {
+                    const respData = await this.getTaskNodeDetail()
+                    const { execution_info, outputs, inputs, log, history, state } = respData
+                    this.onNodeState = ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].indexOf(state) > -1
+                    const version = this.nodeDetailConfig.version
+                    const componentCode = this.nodeDetailConfig.component_code
+                    // 任务节点需要加载标准插件
+                    if (componentCode) {
+                        this.renderConfig = await this.getNodeConfig(componentCode, version)
+                    }
+                    if (this.adminView) {
+                        this.executeInfo = execution_info
+                        this.outputsInfo = outputs
+                        this.inputsInfo = inputs
+                        this.logInfo = log
+                        this.historyInfo = history.sort((a, b) => {
+                            if (a.loop === b.loop) {
+                                return b.history_id - a.history_id
+                            } else {
+                                return b.loop - a.loop
+                            }
+                        })
+                    } else {
+                        this.executeInfo = respData
+                        this.inputsInfo = inputs
+                        this.historyInfo = respData.histories
+                        for (const key in this.inputsInfo) {
+                            this.$set(this.renderData, key, this.inputsInfo[key])
                         }
-                        if (this.adminView) {
-                            this.executeInfo = execution_info
-                            this.outputsInfo = outputs
-                            this.inputsInfo = inputs
-                            this.logInfo = log
-                            this.historyInfo = history.sort((a, b) => {
-                                if (a.loop === b.loop) {
-                                    return b.history_id - a.history_id
-                                } else {
-                                    return b.loop - a.loop
+                        
+                        // 兼容 JOB 执行作业输出参数
+                        // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
+                        if (componentCode === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
+                            this.outputsInfo = outputs.filter(output => {
+                                const outputIndex = this.inputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
+                                if (!output.preset && outputIndex === -1) {
+                                    return false
                                 }
+                                return true
                             })
                         } else {
-                            this.executeInfo = respData
-                            this.inputsInfo = inputs
-                            this.historyInfo = respData.histories
-                            for (const key in this.inputsInfo) {
-                                this.$set(this.renderData, key, this.inputsInfo[key])
-                            }
-                            
-                            // 兼容 JOB 执行作业输出参数
-                            // 输出参数 preset 为 true 或者 preset 为 false 但在输出参数的全局变量中存在时，才展示
-                            if (componentCode === 'job_execute_task' && this.inputsInfo.hasOwnProperty('job_global_var')) {
-                                this.outputsInfo = outputs.filter(output => {
-                                    const outputIndex = this.inputsInfo['job_global_var'].findIndex(prop => prop.name === output.key)
-                                    if (!output.preset && outputIndex === -1) {
-                                        return false
-                                    }
-                                    return true
-                                })
-                            } else {
-                                // 普通插件展示 preset 为 true 的输出参数
-                                this.outputsInfo = outputs.filter(output => output.preset)
-                            }
-                            
-                            if (this.theExecuteTime === undefined) {
-                                this.loop = respData.loop
-                                this.theExecuteTime = respData.loop
-                            }
+                            // 普通插件展示 preset 为 true 的输出参数
+                            this.outputsInfo = outputs.filter(output => output.preset)
                         }
-                        this.executeInfo.plugin_version = version
-                        if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
-                            const pluginInfo = this.atomFormInfo[componentCode][version]
-                            this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
+                        
+                        if (this.theExecuteTime === undefined) {
+                            this.loop = respData.loop
+                            this.theExecuteTime = respData.loop
                         }
-                        this.historyInfo.forEach(item => {
-                            item.last_time = this.getLastTime(item.elapsed_time)
-                        })
+                    }
+                    this.executeInfo.plugin_version = version
+                    if (atomFilter.isConfigExists(componentCode, version, this.atomFormInfo)) {
+                        const pluginInfo = this.atomFormInfo[componentCode][version]
+                        this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
+                    }
+                    this.historyInfo.forEach(item => {
+                        item.last_time = this.getLastTime(item.elapsed_time)
+                    })
 
-                        if (this.executeInfo.ex_data && this.executeInfo.ex_data.show_ip_log) {
-                            this.failInfo = this.transformFailInfo(this.executeInfo.ex_data.exception_msg)
-                        } else {
-                            this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
-                        }
-                    } catch (e) {
-                        errorHandler(e, this)
-                    } finally {
-                        this.loading = false
+                    if (this.executeInfo.ex_data && this.executeInfo.ex_data.show_ip_log) {
+                        this.failInfo = this.transformFailInfo(this.executeInfo.ex_data.exception_msg)
+                    } else {
+                        this.failInfo = this.transformFailInfo(this.executeInfo.ex_data)
                     }
-                } else {
-                    try {
-                        const version = this.treeNodeConfig.version
-                        this.nodeInfo = await this.getNodeActInfo(this.treeNodeConfig)
-                        this.renderConfig = await this.getNodeConfig(this.treeNodeConfig.component_code, version)
-                        if (this.nodeInfo.result) {
-                            for (const key in this.nodeInfo.data.inputs) {
-                                this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
-                            }
-                        } else {
-                            errorHandler(this.nodeInfo, this)
-                        }
-                    } catch (e) {
-                        errorHandler(e, this)
-                    } finally {
-                        this.loading = false
-                    }
-                    this.executeInfo = {
-                        state: 'CREATED',
-                        name: this.treeNodeConfig.name
-                    }
-                    this.inputsInfo = {}
-                    this.outputsInfo = []
-                    this.logInfo = ''
-                    this.historyInfo = []
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
             },
             async getTaskNodeDetail () {

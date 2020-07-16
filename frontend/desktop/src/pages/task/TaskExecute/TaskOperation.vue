@@ -661,7 +661,7 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id, performState = true) {
+            async setNodeDetailConfig (id) {
                 this.hasParentNode = true
                 const nodeActivities = this.pipelineData.activities[id]
                 let subprocessStack = []
@@ -669,20 +669,12 @@
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
                 this.setNodeDetail = true
-                if (performState) {
-                    this.nodeDetailConfig = {
-                        component_code: nodeActivities.component.code,
-                        version: nodeActivities.component.version || 'legacy',
-                        node_id: nodeActivities.id,
-                        instance_id: this.instance_id,
-                        subprocess_stack: JSON.stringify(subprocessStack)
-                    }
-                    this.setNodeDetail = true
-                } else {
-                    this.nodeDetailConfig = {
-                        node_id: nodeActivities.id
-                    }
-                    this.setNodeDetail = false
+                this.nodeDetailConfig = {
+                    component_code: nodeActivities.component.code,
+                    version: nodeActivities.component.version || 'legacy',
+                    node_id: nodeActivities.id,
+                    instance_id: this.instance_id,
+                    subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
             handleNodeInfoPanelHide (e) {
@@ -1007,18 +999,7 @@
                     await this.switchCanvasView(this.completePipelineData, true)
                     this.treeNodeConfig = {}
                 }
-                if (nodeType === 'subflow') {
-                    this.hasParentNode = false
-                } else {
-                    const nodeStatus = this.locations.find(item => item.id === selectNodeId)
-                    if (nodeStatus.status) {
-                        this.setNodeDetailConfig(selectNodeId, true)
-                    } else {
-                        const selectNodeDatail = this.completePipelineData.activities[selectNodeId]
-                        this.updataNodeParamsInfo(selectNodeDatail)
-                        this.setNodeDetailConfig(selectNodeId, false)
-                    }
-                }
+                this.setNodeDetailConfig(selectNodeId)
             },
             // 切换画布视图
             async switchCanvasView (nodeActivities, isRootNode = false) {
