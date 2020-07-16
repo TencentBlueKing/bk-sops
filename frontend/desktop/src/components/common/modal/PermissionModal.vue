@@ -135,7 +135,7 @@
                     return
                 }
 
-                openOtherApp('bk_iam_app', this.url)
+                openOtherApp(window.BK_IAM_APP_CODE, this.url)
             },
             onCloseDialog () {
                 this.isModalShow = false
