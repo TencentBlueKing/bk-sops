@@ -22,7 +22,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper">
-            <bk-button theme="primary" class="first-btn" :loading="retrying" @click="onRetryTask">{{ $t('确定') }}</bk-button>
+            <bk-button theme="primary" class="sure-btn" :loading="retrying" @click="onRetryTask">{{ $t('确定') }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
@@ -153,7 +153,6 @@
     .retry-node-container {
         position: relative;
         overflow: hidden;
-        height: 100%;
         .edit-wrapper {
             padding: 20px 20px 0;
             height: calc(100% - 60px);
@@ -166,7 +165,7 @@
             height: 60px;
             line-height: 60px;
             border-top: 1px solid $commonBorderColor;
-            .first-btn{
+            .sure-btn{
                 margin-right: 12px;
             }
         }

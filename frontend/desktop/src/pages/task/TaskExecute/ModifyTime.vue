@@ -22,7 +22,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="primary" class="first-btn" @click="onModifyTime">{{ $t('确定') }}</bk-button>
+            <bk-button theme="primary" class="sure-btn" @click="onModifyTime">{{ $t('确定') }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
@@ -151,7 +151,6 @@
     .modify-time-container {
         position: relative;
         overflow: hidden;
-        height: 100%;
         .edit-wrapper {
             padding: 20px 20px 0;
             height: calc(100% - 60px);
@@ -164,7 +163,7 @@
             height: 60px;
             line-height: 60px;
             border-top: 1px solid $commonBorderColor;
-            .first-btn{
+            .sure-btn{
                 margin-right: 12px;
             }
         }
