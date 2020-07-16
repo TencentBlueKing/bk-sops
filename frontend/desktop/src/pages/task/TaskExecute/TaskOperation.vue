@@ -309,14 +309,12 @@
         },
         mounted () {
             this.loadTaskStatus()
-            window.addEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         beforeDestroy () {
             if (source) {
                 source.cancel('cancelled')
             }
             this.cancelTaskStatusTimer()
-            window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         methods: {
             ...mapActions('task/', [
@@ -671,34 +669,7 @@
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
-            handleNodeInfoPanelHide (e) {
-                if (dom.parentClsContains('canvas-node', e.target)) {
-                    return false
-                }
-                const classList = e.target.classList
-                const isParamsBtn = classList.contains('params-btn')
-                const isTooltipBtn = classList.contains('tooltip-btn')
-                if (!this.isNodeInfoPanelShow
-                    || isParamsBtn
-                    || isTooltipBtn
-                    || e.target.className.indexOf('bk-option') > -1
-                ) {
-                    return
-                }
-                const NodeInfoPanel = document.querySelector('.node-info-panel')
-                if (NodeInfoPanel) {
-                    if (!dom.nodeContains(NodeInfoPanel, e.target)) {
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
-                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                        this.cancelSelectedNode(this.selectedNodeId)
-                    }
-                }
-            },
             onRetryClick (id) {
-                // this.isNodeInfoPanelShow = true
-                // this.nodeInfoType = 'retryNode'
-                // this.sidesLiderTitle = i18n.t('重试')
                 this.onTaskParamsClick('retryNode', true, '重试')
                 this.setNodeDetailConfig(id)
             },
@@ -711,9 +682,6 @@
                 this.nodeTaskSkip(data)
             },
             onModifyTimeClick (id) {
-                // this.sidesLiderTitle = i18n.t('修改时间')
-                // this.isNodeInfoPanelShow = true
-                // this.nodeInfoType = 'modifyTime'
                 this.onTaskParamsClick('modifyTime', true, '修改时间')
                 this.setNodeDetailConfig(id)
             },
