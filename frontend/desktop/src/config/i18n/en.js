@@ -1,6 +1,7 @@
 const en = {
     '': '',
-    '节点详情': 'Node details',
+    '查看节点详情': 'View Node Details',
+    '节点详情': 'Node Details',
     '接口数据返回为空': 'No data returned by API',
     '接口异常，': 'API error, ',
     'HTTP状态码：': 'HTTP Status:',

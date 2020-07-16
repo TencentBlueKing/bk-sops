@@ -63,10 +63,10 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: $t('查看参数'),
+                        content: $t('查看节点详情'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('viewParams', $t('查看参数'))">
+                    @click="onTaskParamsClick('viewParams', $t('节点详情'))">
                 </i>
                 <i
                     :class="[
@@ -174,7 +174,7 @@
                 this.$emit('onOperationClick', action)
             },
             onTaskParamsClick (type, name) {
-                this.$emit('onTaskParamsClick', type, name)
+                this.$emit('onTaskParamsClick', type, true, name)
             },
             onBack () {
                 if (this.view_mode === 'appmaker') {
