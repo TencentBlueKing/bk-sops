@@ -13,6 +13,7 @@
     <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
+                ref="templateHeader"
                 :name="name"
                 :project_id="project_id"
                 :type="type"
@@ -166,6 +167,7 @@
                 templateSaving: false,
                 createTaskSaving: false,
                 saveAndCreate: false,
+                pid: undefined, // 公共流程创建任务需要跳转到所选业务
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
@@ -583,6 +585,7 @@
                     errorHandler(e, this)
                 } finally {
                     this.saveAndCreate = false
+                    this.pid = undefined
                     this.templateSaving = false
                     this.createTaskSaving = false
                 }
@@ -963,7 +966,7 @@
             goToTaskUrl (template_id) {
                 this.$router.push({
                     name: 'taskStep',
-                    params: { step: 'selectnode', project_id: this.project_id },
+                    params: { step: 'selectnode', project_id: this.pid },
                     query: {
                         template_id,
                         common: this.common,
@@ -972,11 +975,12 @@
                 })
             },
             // 点击保存模板按钮回调
-            onSaveTemplate (saveAndCreate) {
+            onSaveTemplate (saveAndCreate, pid) {
                 if (this.templateSaving || this.createTaskSaving) {
                     return
                 }
                 this.saveAndCreate = saveAndCreate
+                this.pid = pid
                 this.checkVariable() // 全局变量是否合法
             },
             // 校验全局变量
@@ -1048,8 +1052,13 @@
                 }
                 const isAllNodeValid = this.validateAtomNode()
                 const isAllConditionValid = this.checkConditionData(true)
+                debugger
                 if (isAllNodeValid && isAllConditionValid) {
-                    this.saveTemplate()
+                    if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
+                        this.$refs.templateHeader.setProjectSelectDialogShow()
+                    } else {
+                        this.saveTemplate()
+                    }
                 }
             },
             onLeaveConfirm () {

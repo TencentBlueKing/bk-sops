@@ -214,11 +214,8 @@
 
                 if (saveAndCreate) {
                     if (this.createTaskBtnActive) {
-                        if (this.common) {
-                            this.isSelectProjectShow = true
-                        } else {
-                            this.saveTemplate(saveAndCreate)
-                        }
+                        // 普通任务直接走模板校验、保存逻辑，公共流程先走模板校验、保存逻辑，然后显示项目选择弹窗
+                        this.saveTemplate(saveAndCreate)
                     } else {
                         if (this.common) {
                             this.applyCreateCommonTplPerm(this.saveAndCreateRequiredPerm)
@@ -241,12 +238,17 @@
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
+                    const pid = this.common ? this.selectedProject.id : this.project_id // 公共流程创建任务需要跳转到所选业务
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
-                        this.goToTaskUrl()
+                        if (this.common && pid === undefined) {
+                            this.setProjectSelectDialogShow()
+                        } else {
+                            this.goToTaskUrl(pid)
+                        }
                     } else {
-                        this.$emit('onSaveTemplate', saveAndCreate)
+                        this.$emit('onSaveTemplate', saveAndCreate, pid)
                     }
                 })
             },
@@ -276,10 +278,10 @@
                 }
                 return url
             },
-            goToTaskUrl () {
+            goToTaskUrl (pid) {
                 this.$router.push({
                     name: 'taskStep',
-                    params: { step: 'selectnode', project_id: this.project_id },
+                    params: { step: 'selectnode', project_id: pid },
                     query: {
                         template_id: this.template_id,
                         common: this.common || undefined,
@@ -376,6 +378,10 @@
                 } finally {
                     this.commonTplCreateTaskPermLoading = false
                 }
+            },
+            // 打开项目选择弹窗
+            setProjectSelectDialogShow () {
+                this.isSelectProjectShow = true
             },
             applyCreateCommonTplPerm () {
                 this.applyForPermission(['common_flow_create'])

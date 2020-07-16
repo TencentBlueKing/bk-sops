@@ -46,10 +46,10 @@
                     <bk-table-column :label="$t('流程模板')" min-width="200">
                         <template slot-scope="props">
                             <a
-                                v-if="!hasPermission(['flow_view'], props.row.auth_actions)"
+                                v-if="!hasPermission(['periodic_task_view'], props.row.auth_actions)"
                                 v-cursor
                                 class="text-permission-disable"
-                                @click="onPeriodicPermissonCheck(['flow_view'], props.row, $event)">
+                                @click="onPeriodicPermissonCheck(['periodic_task_view'], props.row, $event)">
                                 {{props.row.task_template_name}}
                             </a>
                             <router-link
