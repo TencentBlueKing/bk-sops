@@ -214,11 +214,8 @@
 
                 if (saveAndCreate) {
                     if (this.createTaskBtnActive) {
-                        if (this.common) {
-                            this.isSelectProjectShow = true
-                        } else {
-                            this.saveTemplate(saveAndCreate)
-                        }
+                        // 普通任务直接走模板校验、保存逻辑，公共流程先走模板校验、保存逻辑，然后显示项目选择弹窗
+                        this.saveTemplate(saveAndCreate)
                     } else {
                         if (this.common) {
                             this.applyCreateCommonTplPerm(this.saveAndCreateRequiredPerm)
@@ -245,7 +242,11 @@
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
-                        this.goToTaskUrl(pid)
+                        if (this.common && pid === undefined) {
+                            this.setProjectSelectDialogShow()
+                        } else {
+                            this.goToTaskUrl(pid)
+                        }
                     } else {
                         this.$emit('onSaveTemplate', saveAndCreate, pid)
                     }
@@ -377,6 +378,10 @@
                 } finally {
                     this.commonTplCreateTaskPermLoading = false
                 }
+            },
+            // 打开项目选择弹窗
+            setProjectSelectDialogShow () {
+                this.isSelectProjectShow = true
             },
             applyCreateCommonTplPerm () {
                 this.applyForPermission(['common_flow_create'])
