@@ -78,7 +78,7 @@ class SleepTimerService(Service):
             self.InputItem(
                 name=_("是否强制晚于当前时间"),
                 key="force_check",
-                type="string",
+                type="bool",
                 schema=StringItemSchema(description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")),
             ),
         ]
@@ -92,7 +92,6 @@ class SleepTimerService(Service):
 
         timing = str(data.inputs.bk_timing)
         force_check = bool(data.inputs.force_check)
-
         # 项目时区获取
         project = Project.objects.get(id=parent_data.inputs.project_id)
 
