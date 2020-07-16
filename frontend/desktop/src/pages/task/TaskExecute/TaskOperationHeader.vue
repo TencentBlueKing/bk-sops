@@ -55,6 +55,22 @@
                 <i
                     :class="[
                         'params-btn',
+                        'solid-eye',
+                        'common-icon',
+                        'common-icon-solid-eye',
+                        {
+                            actived: nodeInfoType === 'executeInfo'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('查看参数'),
+                        placements: ['bottom']
+                    }"
+                    @click="onTaskParamsClick('executeInfo')">
+                </i>
+                <i
+                    :class="[
+                        'params-btn',
                         'common-icon',
                         'common-icon-edit',
                         {

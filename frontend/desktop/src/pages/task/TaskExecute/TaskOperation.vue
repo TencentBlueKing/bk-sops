@@ -72,6 +72,7 @@
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
+                    :default-active-id="defaultActiveId"
                     :node-detail-config="nodeDetailConfig"
                     @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
@@ -657,8 +658,8 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            async setNodeDetailConfig (id) {
-                const nodeActivities = this.pipelineData.activities[id]
+            async setNodeDetailConfig (id, firstNodeData) {
+                const nodeActivities = firstNodeData || this.pipelineData.activities[id]
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
@@ -817,7 +818,19 @@
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             // 查看参数、修改参数
-            onTaskParamsClick (type) {
+            onTaskParamsClick (type, name) {
+                let nodeData = tools.deepClone(this.nodeData)
+                let firstNodeId = null
+                let firstNodeData = null
+                while (nodeData[0]) {
+                    if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
+                        firstNodeId = nodeData[0].id
+                        firstNodeData = nodeData[0]
+                        nodeData[0] = false
+                    } else {
+                        nodeData = nodeData[0].children
+                    }
+                }
                 if (this.nodeInfoType === type) {
                     this.isNodeInfoPanelShow = false
                     this.nodeInfoType = ''
@@ -825,6 +838,8 @@
                     this.isNodeInfoPanelShow = true
                     this.nodeInfoType = type
                 }
+                this.defaultActiveId = firstNodeId
+                this.setNodeDetailConfig(firstNodeId, firstNodeData)
             },
             
             onToggleNodeInfoPanel () {
@@ -857,6 +872,7 @@
                 this[actionType]()
             },
             onNodeClick (id, type) {
+                this.defaultActiveId = id
                 if (type === 'tasknode') {
                     this.handleSingleNodeClick(id, 'singleAtom')
                 } else if (type === 'subflow') {
@@ -990,10 +1006,14 @@
                     }
                 } else {
                     this.selectedFlowPath = nodePath
-                    await this.switchCanvasView(this.completePipelineData, true)
-                    this.treeNodeConfig = {}
+                    if (nodeType !== 'subflow') {
+                        await this.switchCanvasView(this.completePipelineData, true)
+                        this.treeNodeConfig = {}
+                    }
                 }
-                this.setNodeDetailConfig(selectNodeId)
+                if (nodeType !== 'subflow') {
+                    this.setNodeDetailConfig(selectNodeId)
+                }
             },
             // 切换画布视图
             async switchCanvasView (nodeActivities, isRootNode = false) {
