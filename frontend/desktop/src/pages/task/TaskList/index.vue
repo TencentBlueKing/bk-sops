@@ -231,7 +231,8 @@
             placeholder: i18n.t('请选择状态'),
             list: [
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
-                { 'value': 'runing', 'name': i18n.t('未完成') },
+                { 'value': 'running', 'name': i18n.t('未完成') },
+                { 'value': 'revoke', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
             ]
         }
@@ -351,10 +352,24 @@
                     const { executeTime, category, createMethod, creator, executor, statusSync, flowName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
-                    if (statusSync) {
-                        pipeline_instance__is_started = statusSync !== 'nonExecution'
-                        pipeline_instance__is_finished = statusSync === 'finished'
+                    let pipeline_instance__is_revoked
+                    switch (statusSync) {
+                        case 'nonExecution':
+                            pipeline_instance__is_started = false
+                            break
+                        case 'running':
+                            pipeline_instance__is_started = true
+                            pipeline_instance__is_finished = false
+                            pipeline_instance__is_revoked = false
+                            break
+                        case 'revoked':
+                            pipeline_instance__is_revoked = true
+                            break
+                        case 'finished':
+                            pipeline_instance__is_finished = true
+                            break
                     }
+
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -365,6 +380,7 @@
                         pipeline_instance__name__contains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
+                        pipeline_instance__is_revoked,
                         create_method: createMethod || undefined,
                         project__id: this.project_id
                     }
