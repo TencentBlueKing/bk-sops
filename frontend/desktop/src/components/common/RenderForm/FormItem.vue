@@ -262,7 +262,8 @@
                     case 'datetime':
                     case 'password':
                     case 'memberSelector':
-                    case 'codeEditor':
+                    case 'code_editor':
+                    case 'section':
                         valueFormat = {
                             type: ['String', 'Number', 'Boolean'],
                             value: ''

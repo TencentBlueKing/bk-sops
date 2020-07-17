@@ -421,7 +421,7 @@
 }
 .canvas-content {
     position: relative;
-    height: calc(100% -72px);
+    height: calc(100% - 72px);
     min-height: 500px;
     border-bottom: 1px solid $commonBorderColor;
     overflow: hidden;
