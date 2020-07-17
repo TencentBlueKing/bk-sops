@@ -851,9 +851,6 @@
                     if (this.selectedFlowPath.length > 1) {
                         subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
-                    // this.isNodeInfoPanelShow = true
-                    // this.nodeInfoType = 'executeInfo'
-                    // this.sidesLiderTitle = i18n.t('节点详情')
                     this.onTaskParamsClick('executeInfo', true, '节点参数')
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
