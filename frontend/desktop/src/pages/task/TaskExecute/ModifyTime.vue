@@ -22,7 +22,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button theme="primary" class="sure-btn" @click="onModifyTime">{{ $t('确定') }}</bk-button>
+            <bk-button theme="primary" class="confirm-btn" @click="onModifyTime">{{ $t('确定') }}</bk-button>
             <bk-button theme="default" @click="onCancelRetry">{{ $t('取消') }}</bk-button>
         </div>
     </div>
@@ -163,7 +163,7 @@
             height: 60px;
             line-height: 60px;
             border-top: 1px solid $commonBorderColor;
-            .sure-btn{
+            .confirm-btn{
                 margin-right: 12px;
             }
         }
