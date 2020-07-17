@@ -53,9 +53,9 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true">
-            <div slot="header">{{sidesLiderTitle}}</div>
-            <div class="node-info-panel" ref="nodeInfoPanel" slot="content">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+            <div slot="header">{{sideSliderTitle}}</div>
+            <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ViewParams
                     v-if="nodeInfoType === 'viewParams'"
                     :node-data="nodeData"
@@ -195,7 +195,8 @@
             })
 
             return {
-                sidesLiderTitle: '',
+                quickClose: true,
+                sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
@@ -672,7 +673,7 @@
                 }
             },
             onRetryClick (id) {
-                this.onTaskParamsClick('retryNode', true, '重试')
+                this.onTaskParamsClick('retryNode', true, i18n.t('重试'))
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -684,7 +685,7 @@
                 this.nodeTaskSkip(data)
             },
             onModifyTimeClick (id) {
-                this.onTaskParamsClick('modifyTime', true, '修改时间')
+                this.onTaskParamsClick('modifyTime', true, i18n.t('修改时间'))
                 this.setNodeDetailConfig(id)
             },
             onGatewaySelectionClick (id) {
@@ -791,9 +792,17 @@
             
             // 查看参数、修改参数
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
-                this.sidesLiderTitle = i18n.t(name)
+                this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = isNodeInfoPanelShow
                 this.nodeInfoType = type
+                this.quickClose = true
+                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
+                    if (type === 'modifyParams' && !this.paramsCanBeModify) {
+                        this.quickClose = true
+                    } else {
+                        this.quickClose = false
+                    }
+                }
             },
             
             onToggleNodeInfoPanel () {
@@ -855,7 +864,7 @@
                     if (this.selectedFlowPath.length > 1) {
                         subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
-                    this.onTaskParamsClick('executeInfo', true, '节点参数')
+                    this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
