@@ -72,7 +72,8 @@
                     :instance-resource="instanceResource"
                     :instance-operations="instanceOperations"
                     :instance-name="instanceName"
-                    :instance_id="instance_id">
+                    :instance_id="instance_id"
+                    @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo'"
@@ -1093,6 +1094,10 @@
             unclickableOperation (type) {
                 // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击
                 return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading || !this.isTopTask
+            },
+            packUp () {
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
             }
         }
     }

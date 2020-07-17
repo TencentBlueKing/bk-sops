@@ -109,7 +109,7 @@
                 <VueJsonPretty :data="outputsInfo"></VueJsonPretty>
             </div>
         </section>
-        <section class="info-section" v-if="executeInfo.ex_data">
+        <section class="info-section ex-data-wrap" v-if="executeInfo.ex_data">
             <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
             <div v-html="failInfo"></div>
             <IpLogContent
@@ -121,7 +121,10 @@
         <section class="info-section" v-if="adminView">
             <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
             <div class="code-block-wrap">
-                <VueJsonPretty :data="logInfo"></VueJsonPretty>
+                <code-editor
+                    :value="logInfo"
+                    :options="{ readOnly: readOnly, language: 'javascript' }">
+                </code-editor>
             </div>
         </section>
         <section class="info-section" v-if="historyInfo.length">
@@ -150,7 +153,7 @@
                         </div>
                         <div class="common-form-item" v-if="props.row.ex_data">
                             <label>{{ $t('异常信息') }}</label>
-                            <div class="common-form-content">
+                            <div class="common-form-content ex-data-wrap">
                                 <div v-html="props.row.ex_data"></div>
                             </div>
                         </div>
@@ -193,7 +196,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
-
+    import CodeEditor from '@/components/common/CodeEditor.vue'
     const EXECUTE_INFO_COL = [
         {
             title: i18n.t('开始时间'),
@@ -348,7 +351,8 @@
             VueJsonPretty,
             RenderForm,
             NoData,
-            IpLogContent
+            IpLogContent,
+            CodeEditor
         },
         props: {
             adminView: {
@@ -362,6 +366,7 @@
         },
         data () {
             return {
+                readOnly: true,
                 loading: true,
                 executeInfo: {},
                 inputsInfo: {},
@@ -737,6 +742,11 @@
                 margin-left: 100px;
                 font-size: 12px;
             }
+        }
+    }
+    .ex-data-wrap {
+        /deep/ pre {
+            white-space: pre-wrap;
         }
     }
     .common-icon-dark-circle-ellipsis {

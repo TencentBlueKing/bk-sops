@@ -227,6 +227,50 @@ class GetIPPickerResultTestCase(TestCase):
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2"])
 
+        topo_kwargs = {
+            "bk_biz_id": self.bk_biz_id,
+            "selectors": ["topo"],
+            "topo": [{"bk_obj_id": "biz", "bk_inst_id": 2}],
+            "ip": [],
+            "filters": [],
+            "excludes": [],
+        }
+        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip = [host["bk_host_innerip"] for host in ip_data]
+        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
+    @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
+    def test__select_topo_with_diff_layer(self):
+        mock_get_client_by_user.success = True
+        topo_kwargs = {
+            "bk_biz_id": self.bk_biz_id,
+            "selectors": ["topo"],
+            "topo": [{"bk_obj_id": "set", "bk_inst_id": 2}, {"bk_obj_id": "module", "bk_inst_id": 5}],
+            "ip": [],
+            "filters": [],
+            "excludes": [],
+        }
+        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip = [host["bk_host_innerip"] for host in ip_data]
+        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
+
+        topo_kwargs = {
+            "bk_biz_id": self.bk_biz_id,
+            "selectors": ["topo"],
+            "topo": [
+                {"bk_obj_id": "set", "bk_inst_id": 2},
+                {"bk_obj_id": "module", "bk_inst_id": 5},
+                {"bk_obj_id": "module", "bk_inst_id": 8},
+            ],
+            "ip": [],
+            "filters": [],
+            "excludes": [],
+        }
+        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip = [host["bk_host_innerip"] for host in ip_data]
+        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+
     @patch("pipeline_plugins.cmdb_ip_picker.utils.cmdb", MockCMDB)
     @patch("pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user", mock_get_client_by_user)
     def test__selector_ip(self):

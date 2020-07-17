@@ -20,6 +20,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     ref="advanceSearch"
+                    id="templateList"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
@@ -236,14 +237,15 @@
             key: 'category',
             loading: false,
             placeholder: i18n.t('请选择分类'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'dateRange',
             key: 'queryTime',
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('更新时间'),
-            value: []
+            value: ['', '']
         },
         {
             type: 'select',

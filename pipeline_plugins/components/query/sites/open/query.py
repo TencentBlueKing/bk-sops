@@ -63,9 +63,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result["result"]:
-        message = handle_api_error(
-            "cc", "cc.search_object_attribute", kwargs, cc_result
-        )
+        message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
@@ -73,9 +71,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     obj_property = []
     for item in cc_result["data"]:
         if item["editable"]:
-            obj_property.append(
-                {"value": item["bk_property_id"], "text": item["bk_property_name"]}
-            )
+            obj_property.append({"value": item["bk_property_id"], "text": item["bk_property_name"]})
 
     return JsonResponse({"result": True, "data": obj_property})
 
@@ -86,9 +82,7 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
     kwargs = {"bk_obj_id": obj_id, "bk_supplier_account": supplier_account}
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result["result"]:
-        message = handle_api_error(
-            "cc", "cc.search_object_attribute", kwargs, cc_result
-        )
+        message = handle_api_error("cc", "cc.search_object_attribute", kwargs, cc_result)
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
         return JsonResponse(result)
@@ -136,10 +130,7 @@ def cc_list_service_category(request, biz_cc_id, bk_parent_id, supplier_account)
     for category_untreated in service_categories_untreated:
         if category_untreated["bk_parent_id"] != int(bk_parent_id):
             continue
-        category = {
-            "value": category_untreated["id"],
-            "label": category_untreated["name"]
-        }
+        category = {"value": category_untreated["id"], "label": category_untreated["name"]}
         service_categories.append(category)
     return JsonResponse({"result": True, "data": service_categories, "message": "success"})
 
@@ -177,14 +168,13 @@ def cc_get_service_category_topo(request, biz_cc_id, supplier_account):
     service_categories = list_service_category_return["data"]["info"]
     topo_merged_by_id = {
         sc["id"]: {"value": sc["id"], "label": sc["name"], "children": []}
-        for sc in service_categories if sc["bk_parent_id"] == 0
+        for sc in service_categories
+        if sc["bk_parent_id"] == 0
     }
     for sc in service_categories:
         if sc["bk_parent_id"] not in topo_merged_by_id:
             continue
-        topo_merged_by_id[sc["bk_parent_id"]]["children"].append(
-            {"value": sc["id"], "label": sc["name"]}
-        )
+        topo_merged_by_id[sc["bk_parent_id"]]["children"].append({"value": sc["id"], "label": sc["name"]})
     # 筛选两层结构的拓扑
     service_category_topo = [topo for topo in topo_merged_by_id.values() if topo["children"]]
     return JsonResponse({"result": True, "data": service_category_topo, "message": "success"})
@@ -215,7 +205,7 @@ def cc_list_service_template(request, biz_cc_id, supplier_account):
     for template_untreated in service_templates_untreated:
         template = {
             "value": "{name}_{id}".format(name=template_untreated["name"], id=template_untreated["id"]),
-            "text": template_untreated["name"]
+            "text": template_untreated["name"],
         }
         service_templates.append(template)
     return JsonResponse({"result": True, "data": service_templates, "message": "success"})
@@ -333,10 +323,7 @@ def job_get_own_db_account_list(request, biz_cc_id):
         result = {"result": False, "message": message}
         return JsonResponse(result)
 
-    data = [
-        {"text": item["db_alias"], "value": item["db_account_id"]}
-        for item in job_result["data"]
-    ]
+    data = [{"text": item["db_alias"], "value": item["db_account_id"]} for item in job_result["data"]]
 
     return JsonResponse({"result": True, "data": data})
 
@@ -345,10 +332,7 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_list({"bk_biz_id": biz_cc_id})
     if not job_result["result"]:
-        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"],)
 
         if job_result.get("code", 0) == AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -365,15 +349,10 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
 
 def job_get_job_task_detail(request, biz_cc_id, task_id):
     client = get_client_by_user(request.user.username)
-    job_result = client.job.get_job_detail(
-        {"bk_biz_id": biz_cc_id, "bk_job_id": task_id}
-    )
+    job_result = client.job.get_job_detail({"bk_biz_id": biz_cc_id, "bk_job_id": task_id})
     if not job_result["result"]:
 
-        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
-            biz_cc_id,
-            job_result["message"],
-        )
+        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (biz_cc_id, job_result["message"],)
 
         if job_result.get("code", 0) == AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -394,9 +373,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         elif var["category"] == JOB_VAR_CATEGORY_IP:
             value = ",".join(
                 [
-                    "{plat_id}:{ip}".format(
-                        plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"]
-                    )
+                    "{plat_id}:{ip}".format(plat_id=ip_item["bk_cloud_id"], ip=ip_item["ip"])
                     for ip_item in var.get("ip_list", [])
                 ]
             )
@@ -423,9 +400,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                 "type_name": job_step_type_name.get(info["type"], info["type"]),
             }
         )
-    return JsonResponse(
-        {"result": True, "data": {"global_var": global_var, "steps": steps}}
-    )
+    return JsonResponse({"result": True, "data": {"global_var": global_var, "steps": steps}})
 
 
 @supplier_account_inject
@@ -448,30 +423,20 @@ def cc_get_business(request):
     try:
         business = get_user_business_list(username=request.user.username)
     except APIError as e:
-        message = (
-            "an error occurred when fetch user business: %s" % traceback.format_exc()
-        )
+        message = "an error occurred when fetch user business: %s" % traceback.format_exc()
 
         if e.result and e.result.get("code", 0) == AUTH_FORBIDDEN_CODE:
             logger.warning(message)
             raise AuthFailedException(permissions=e.result.get("permission", []))
 
         logger.error(message)
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "fetch business list failed, please contact administrator",
-            }
-        )
+        return JsonResponse({"result": False, "message": "fetch business list failed, please contact administrator"})
 
     data = []
     for biz in business:
         # archive data filter
         if biz.get("bk_data_status") != "disabled":
-            data.append({
-                "text": biz["bk_biz_name"],
-                "value": int(biz["bk_biz_id"])
-            })
+            data.append({"text": biz["bk_biz_name"], "value": int(biz["bk_biz_id"])})
 
     return JsonResponse({"result": True, "data": data})
 
@@ -488,17 +453,13 @@ def file_upload(request):
     ticket = request.META.get("HTTP_UPLOAD_TICKET", "")
     ok, err = UploadTicket.objects.check_ticket(ticket)
     if not ok:
-        response = JsonResponse(
-            {"result": False, "message": "upload ticket check error: {}".format(err)}
-        )
+        response = JsonResponse({"result": False, "message": "upload ticket check error: {}".format(err)})
         response.status_code = 400
         return response
 
     file_manager_type = EnvironmentVariables.objects.get_var("BKAPP_FILE_MANAGER_TYPE")
     if not file_manager_type:
-        return JsonResponse(
-            {"result": False, "message": _("File Manager 未配置，请联系管理员进行配置")}
-        )
+        return JsonResponse({"result": False, "message": _("File Manager 未配置，请联系管理员进行配置")})
 
     try:
         file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
@@ -512,30 +473,27 @@ def file_upload(request):
 
     logger.info("[FILE_UPLOAD]file_upload POST: {}".format(request.POST))
 
-    bartender = BartenderFactory.get_bartender(
-        manager_type=file_manager_type, manager=file_manager
-    )
+    bartender = BartenderFactory.get_bartender(manager_type=file_manager_type, manager=file_manager)
 
     return bartender.process_request(request)
 
 
 def apply_upload_ticket(request):
 
-    ticket = UploadTicket.objects.apply(
-        request.user.username, request.META.get("REMOTE_ADDR", "")
-    )
+    ticket = UploadTicket.objects.apply(request.user.username, request.META.get("REMOTE_ADDR", ""))
 
     return JsonResponse({"result": True, "data": {"ticket": ticket.code}})
 
 
 def nodeman_get_cloud_area(request):
     client = get_client_by_user(request.user.username)
-    cloud_area_result = client.nodeman.get_cloud()
+    cloud_area_result = client.nodeman.cloud_list()
     if not cloud_area_result["result"]:
-        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.get_cloud", {}, cloud_area_result)
+        message = handle_api_error(_("节点管理(NODEMAN)"), "nodeman.cloud_list", {}, cloud_area_result)
         logger.error(message)
-        return JsonResponse({
-            "result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message})
+        return JsonResponse(
+            {"result": cloud_area_result["result"], "code": cloud_area_result.get("code", "-1"), "message": message}
+        )
 
     data = cloud_area_result["data"]
 
@@ -561,52 +519,48 @@ def nodeman_get_ap_list(request):
     return JsonResponse(ap_list)
 
 
+@supplier_account_inject
+def cc_list_set_template(request, biz_cc_id, supplier_account):
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+
+    set_template_result = client.cc.list_set_template(kwargs)
+
+    if not set_template_result["result"]:
+        message = handle_api_error(
+            "cc", "cc.list_set_template", kwargs, set_template_result
+        )
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+
+    template_list = []
+    for template_info in set_template_result['data']['info']:
+        template_list.append({"value": template_info.get('id'), "text": template_info.get('name')})
+    return JsonResponse({"result": True, "data": template_list})
+
+
 urlpatterns = [
-    url(
-        r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
-        cc_search_object_attribute,
-    ),
-    url(
-        r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$",
-        cc_search_create_object_attribute,
-    ),
-    url(
-        r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$",
-        cc_search_topo,
-    ),
-    url(
-        r"^cc_list_service_category/(?P<biz_cc_id>\w+)/(?P<bk_parent_id>\w+)/$",
-        cc_list_service_category,
-    ),
-    url(
-        r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$",
-        cc_list_service_template,
-    ),
-    url(
-        r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$",
-        cc_get_service_category_topo,
-    ),
+    url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
+    url(r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_create_object_attribute,),
+    url(r"^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_topo,),
+    url(r"^cc_list_service_category/(?P<biz_cc_id>\w+)/(?P<bk_parent_id>\w+)/$", cc_list_service_category,),
+    url(r"^cc_list_service_template/(?P<biz_cc_id>\d+)/$", cc_list_service_template,),
+    url(r"^cc_get_service_category_topo/(?P<biz_cc_id>\d+)/$", cc_get_service_category_topo,),
     url(r"^job_get_script_list/(?P<biz_cc_id>\d+)/$", job_get_script_list),
-    url(
-        r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$",
-        job_get_own_db_account_list,
-    ),
+    url(r"^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$", job_get_own_db_account_list,),
     url(r"^file_upload/$", file_upload),
     url(r"^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$", job_get_job_tasks_by_biz),
-    url(
-        r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$",
-        job_get_job_task_detail,
-    ),
+    url(r"^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$", job_get_job_task_detail,),
     # IP selector
     url(r"^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$", cc_search_topo_tree),
     url(r"^cc_search_host/(?P<biz_cc_id>\d+)/$", cc_search_host),
-    url(
-        r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$",
-        cc_get_mainline_object_topo,
-    ),
+    url(r"^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$", cc_get_mainline_object_topo,),
     url(r"^cc_get_business_list/$", cc_get_business),
     url(r"^apply_upload_ticket/$", apply_upload_ticket),
-
     url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
     url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
+
+    # 查询集群模板
+    url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
 ]

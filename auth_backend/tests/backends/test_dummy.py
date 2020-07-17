@@ -26,133 +26,110 @@ class TestResource(DjangoModelResource):
 
 
 class FreeAuthBackendTestCase(TestCase):
-
     def setUp(self):
         self.backend = FreeAuthBackend()
-        self.principal_type = 'principal_type_token'
-        self.principal_id = 'principal_id_token'
-        self.action_ids = ['1', '2', '3', '4']
+        self.principal_type = "principal_type_token"
+        self.principal_id = "principal_id_token"
+        self.action_ids = ["1", "2", "3", "4"]
 
     def test_register_instance(self):
-        auth_result = self.backend.register_instance(resource=MagicMock(),
-                                                     instance=MagicMock())
+        auth_result = self.backend.register_instance(resource=MagicMock(), instance=MagicMock())
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': {}})
+        self.assertEqual(auth_result, {"result": True, "code": 0, "message": "success", "data": {}})
 
     def test_batch_register_instance(self):
-        auth_result = self.backend.batch_register_instance(resource=MagicMock(),
-                                                           instances=MagicMock())
+        auth_result = self.backend.batch_register_instance(resource=MagicMock(), instances=MagicMock())
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': {}})
+        self.assertEqual(auth_result, {"result": True, "code": 0, "message": "success", "data": {}})
 
     def test_update_instance(self):
-        auth_result = self.backend.update_instance(resource=MagicMock(),
-                                                   instance=MagicMock())
+        auth_result = self.backend.update_instance(resource=MagicMock(), instance=MagicMock())
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': {}})
+        self.assertEqual(auth_result, {"result": True, "code": 0, "message": "success", "data": {}})
 
     def test_delete_instance(self):
-        auth_result = self.backend.delete_instance(resource=MagicMock(),
-                                                   instance=MagicMock())
+        auth_result = self.backend.delete_instance(resource=MagicMock(), instance=MagicMock())
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': {}})
+        self.assertEqual(auth_result, {"result": True, "code": 0, "message": "success", "data": {}})
 
     def test_batch_delete_instance(self):
-        auth_result = self.backend.batch_delete_instance(resource=MagicMock(),
-                                                         instances=MagicMock())
+        auth_result = self.backend.batch_delete_instance(resource=MagicMock(), instances=MagicMock())
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': {}})
+        self.assertEqual(auth_result, {"result": True, "code": 0, "message": "success", "data": {}})
 
     @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_perms_with_none_instance(self):
         resource = MagicMock()
-        auth_result = self.backend.verify_perms(principal_type=self.principal_type,
-                                                principal_id=self.principal_id,
-                                                resource=resource,
-                                                action_ids=self.action_ids)
+        auth_result = self.backend.verify_perms(
+            principal_type=self.principal_type,
+            principal_id=self.principal_id,
+            resource=resource,
+            action_ids=self.action_ids,
+        )
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': [{'is_pass': True}]})
+        self.assertEqual(auth_result, {"result": True, "code": 0, "message": "success", "data": [{"is_pass": True}]})
 
-        utils.resource_actions_for.assert_called_once_with(resource=resource,
-                                                           action_ids=self.action_ids,
-                                                           instances=[],
-                                                           ignore_relate_instance_act=False)
+        utils.resource_actions_for.assert_called_once_with(
+            resource=resource, action_ids=self.action_ids, instances=[], ignore_relate_instance_act=False
+        )
 
     @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_perms_with_instance(self):
         resource = MagicMock()
         instance = MagicMock()
-        auth_result = self.backend.verify_perms(principal_type=self.principal_type,
-                                                principal_id=self.principal_id,
-                                                resource=resource,
-                                                action_ids=self.action_ids,
-                                                instance=instance)
+        auth_result = self.backend.verify_perms(
+            principal_type=self.principal_type,
+            principal_id=self.principal_id,
+            resource=resource,
+            action_ids=self.action_ids,
+            instance=instance,
+        )
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': [{'is_pass': True}]})
+        self.assertEqual(auth_result, {"result": True, "code": 0, "message": "success", "data": [{"is_pass": True}]})
 
-        utils.resource_actions_for.assert_called_once_with(resource=resource,
-                                                           action_ids=self.action_ids,
-                                                           instances=[instance],
-                                                           ignore_relate_instance_act=False)
+        utils.resource_actions_for.assert_called_once_with(
+            resource=resource, action_ids=self.action_ids, instances=[instance], ignore_relate_instance_act=False
+        )
 
     @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_batch_verify_perms_with_none_instance(self):
         resource = MagicMock()
-        auth_result = self.backend.batch_verify_perms(principal_type=self.principal_type,
-                                                      principal_id=self.principal_id,
-                                                      resource=resource,
-                                                      action_ids=self.action_ids)
+        auth_result = self.backend.batch_verify_perms(
+            principal_type=self.principal_type,
+            principal_id=self.principal_id,
+            resource=resource,
+            action_ids=self.action_ids,
+        )
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': [{'is_pass': True}]})
+        self.assertEqual(
+            auth_result,
+            {"result": True, "code": 0, "message": "success", "data": [{"resource_id": None, "is_pass": True}]},
+        )
 
-        utils.resource_actions_for.assert_called_once_with(resource=resource,
-                                                           action_ids=self.action_ids,
-                                                           instances=[],
-                                                           ignore_relate_instance_act=False)
+        utils.resource_actions_for.assert_called_once_with(
+            resource=resource, action_ids=self.action_ids, instances=[], ignore_relate_instance_act=False
+        )
 
     @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_batch_verify_perms_with_instances(self):
         resource = MagicMock()
         instances = [MagicMock()]
-        auth_result = self.backend.batch_verify_perms(principal_type=self.principal_type,
-                                                      principal_id=self.principal_id,
-                                                      resource=resource,
-                                                      action_ids=self.action_ids,
-                                                      instances=instances)
+        auth_result = self.backend.batch_verify_perms(
+            principal_type=self.principal_type,
+            principal_id=self.principal_id,
+            resource=resource,
+            action_ids=self.action_ids,
+            instances=instances,
+        )
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': [{'is_pass': True}]})
+        self.assertEqual(
+            auth_result,
+            {"result": True, "code": 0, "message": "success", "data": [{"resource_id": None, "is_pass": True}]},
+        )
 
-        utils.resource_actions_for.assert_called_once_with(resource=resource,
-                                                           action_ids=self.action_ids,
-                                                           instances=instances,
-                                                           ignore_relate_instance_act=False)
+        utils.resource_actions_for.assert_called_once_with(
+            resource=resource, action_ids=self.action_ids, instances=instances, ignore_relate_instance_act=False
+        )
 
     @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_multiple_resource_perms(self):
@@ -160,108 +137,130 @@ class FreeAuthBackendTestCase(TestCase):
         resource_2 = MagicMock()
         instance_1 = MagicMock()
         instance_2 = None
-        perms_tuples = [(resource_1, self.action_ids, instance_1),
-                        (resource_2, self.action_ids, instance_2)]
+        perms_tuples = [(resource_1, self.action_ids, instance_1), (resource_2, self.action_ids, instance_2)]
 
-        auth_result = self.backend.verify_multiple_resource_perms(principal_type=self.principal_type,
-                                                                  principal_id=self.principal_id,
-                                                                  perms_tuples=perms_tuples)
+        auth_result = self.backend.verify_multiple_resource_perms(
+            principal_type=self.principal_type, principal_id=self.principal_id, perms_tuples=perms_tuples
+        )
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': [{'is_pass': True},
-                                                {'is_pass': True}]})
+        self.assertEqual(
+            auth_result,
+            {"result": True, "code": 0, "message": "success", "data": [{"is_pass": True}, {"is_pass": True}]},
+        )
 
-        utils.resource_actions_for.assert_has_calls([call(resource=resource_1,
-                                                          action_ids=self.action_ids,
-                                                          instances=[instance_1],
-                                                          ignore_relate_instance_act=False),
-                                                     call(resource=resource_2,
-                                                          action_ids=self.action_ids,
-                                                          instances=None,
-                                                          ignore_relate_instance_act=False)
-                                                     ])
+        utils.resource_actions_for.assert_has_calls(
+            [
+                call(
+                    resource=resource_1,
+                    action_ids=self.action_ids,
+                    instances=[instance_1],
+                    ignore_relate_instance_act=False,
+                ),
+                call(resource=resource_2, action_ids=self.action_ids, instances=None, ignore_relate_instance_act=False),
+            ]
+        )
 
     def test_search_authorized_resources_raise_not_implemented(self):
-        self.assertRaises(NotImplementedError, self.backend.search_authorized_resources,
-                          resource=MagicMock(),
-                          principal_type=self.principal_type,
-                          principal_id=self.principal_id,
-                          action_ids=self.action_ids)
+        self.assertRaises(
+            NotImplementedError,
+            self.backend.search_authorized_resources,
+            resource=MagicMock(),
+            principal_type=self.principal_type,
+            principal_id=self.principal_id,
+            action_ids=self.action_ids,
+        )
 
     @patch(DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_search_authorized_resources(self):
-        ids = ['1', '2', '3']
+        ids = ["1", "2", "3"]
         mock_qs = MagicMock()
         mock_qs.values_list = MagicMock(return_value=ids)
 
         resource = TestResource(
-            rtype='test_resource',
-            name='test_resource',
-            scope_type='system',
-            scope_id='test_scope',
-            scope_name='test scope',
+            rtype="test_resource",
+            name="test_resource",
+            scope_type="system",
+            scope_id="test_scope",
+            scope_name="test scope",
             actions=[],
             operations=[],
             inspect=None,
-            id_field='id',
+            id_field="id",
             resource_cls=MagicMock(),
-            backend=self.backend)
+            backend=self.backend,
+        )
         resource.resource_cls.objectest_search_authorized_resourcests = MagicMock()
         resource.resource_cls.objects.all = MagicMock(return_value=mock_qs)
 
-        auth_result = self.backend.search_authorized_resources(resource=resource,
-                                                               principal_type=self.principal_type,
-                                                               principal_id=self.principal_id,
-                                                               action_ids=self.action_ids)
+        auth_result = self.backend.search_authorized_resources(
+            resource=resource,
+            principal_type=self.principal_type,
+            principal_id=self.principal_id,
+            action_ids=self.action_ids,
+        )
 
-        self.assertEqual(auth_result, {'result': True,
-                                       'code': 0,
-                                       'message': 'success',
-                                       'data': [{'resource_ids': [
-                                           [{'resource_type': 'test_resource', 'resource_id': '1'}],
-                                           [{'resource_type': 'test_resource', 'resource_id': '2'}],
-                                           [{'resource_type': 'test_resource', 'resource_id': '3'}]]}]})
+        self.assertEqual(
+            auth_result,
+            {
+                "result": True,
+                "code": 0,
+                "message": "success",
+                "data": [
+                    {
+                        "resource_ids": [
+                            [{"resource_type": "test_resource", "resource_id": "1"}],
+                            [{"resource_type": "test_resource", "resource_id": "2"}],
+                            [{"resource_type": "test_resource", "resource_id": "3"}],
+                        ]
+                    }
+                ],
+            },
+        )
 
-        utils.resource_actions_for.assert_called_once_with(resource=resource,
-                                                           action_ids=self.action_ids,
-                                                           instances=[],
-                                                           ignore_relate_instance_act=False)
+        utils.resource_actions_for.assert_called_once_with(
+            resource=resource, action_ids=self.action_ids, instances=[], ignore_relate_instance_act=False
+        )
 
-    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value='instance_id'))
+    @patch(DUMMY_BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value="instance_id"))
     def test_search_resources_perms_principals(self):
         resource = MagicMock()
-        resource.rtype = 'resource_type_token'
-        action_id_1 = 'action_id_1'
-        action_id_2 = 'action_id_2'
+        resource.rtype = "resource_type_token"
+        action_id_1 = "action_id_1"
+        action_id_2 = "action_id_2"
         instance = MagicMock()
 
-        ids = ['1', '2', '3']
+        ids = ["1", "2", "3"]
         mock_qs = MagicMock()
         mock_qs.values_list = MagicMock(return_value=ids)
         user_model = MagicMock()
         user_model.objects = MagicMock()
         user_model.objects.all = MagicMock(return_value=mock_qs)
 
-        principals = [{'principal_type': 'user', 'principal_id': uid} for uid in ids]
+        principals = [{"principal_type": "user", "principal_id": uid} for uid in ids]
 
         with patch(DUMMY_BACKEND_GET_USER_MODEL, MagicMock(return_value=user_model)):
-            auth_result = self.backend.search_resources_perms_principals(resource=resource,
-                                                                         resources_actions=[
-                                                                             {'action_id': action_id_1,
-                                                                              'instance': None},
-                                                                             {'action_id': action_id_2,
-                                                                              'instance': instance}])
+            auth_result = self.backend.search_resources_perms_principals(
+                resource=resource,
+                resources_actions=[
+                    {"action_id": action_id_1, "instance": None},
+                    {"action_id": action_id_2, "instance": instance},
+                ],
+            )
 
-            self.assertEqual(auth_result, {'result': True,
-                                           'code': 0,
-                                           'message': 'success',
-                                           'data': [{'action_id': 'action_id_1',
-                                                     'resource_type': resource.rtype,
-                                                     'principals': principals},
-                                                    {'action_id': 'action_id_2',
-                                                     'resource_type': resource.rtype,
-                                                     'resource_id': 'instance_id',
-                                                     'principals': principals}
-                                                    ]})
+            self.assertEqual(
+                auth_result,
+                {
+                    "result": True,
+                    "code": 0,
+                    "message": "success",
+                    "data": [
+                        {"action_id": "action_id_1", "resource_type": resource.rtype, "principals": principals},
+                        {
+                            "action_id": "action_id_2",
+                            "resource_type": resource.rtype,
+                            "resource_id": "instance_id",
+                            "principals": principals,
+                        },
+                    ],
+                },
+            )
