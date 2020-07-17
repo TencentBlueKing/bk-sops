@@ -104,3 +104,7 @@ webpack_cache
 static/dev
 static/images
 frontend/desktop/static
+
+scripts/check_commit_message.py
+scripts/check_migrate/
+scripts/check_sensitive_info.sh
