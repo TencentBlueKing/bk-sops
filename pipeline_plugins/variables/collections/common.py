@@ -103,7 +103,7 @@ class CurrentTime(LazyVariable):
     schema = StringItemSchema(description=_("系统当前时间变量"))
 
     def get_value(self):
-        time_units = self.value.get("time_unit", ["year", "month", "day", "hour", "minute", "second"])
+        time_units = self.value.get("time_unit") or ["year", "month", "day", "hour", "minute", "second"]
         time_zone = self.value.get("time_zone", "Asia/Shanghai")
         now = datetime.datetime.now(timezone.pytz.timezone(time_zone))
         current_time = now.strftime(self._generate_time_format(time_units))
@@ -122,13 +122,14 @@ class CurrentTime(LazyVariable):
             ("minute", "%M", ":"),
             ("second", "%S", ":"),
         ]
-        time_format = ""
-        # time_units 形如['year', 'month', 'day', 'hour', 'minute', 'second']
-        for idx, time_unit in enumerate(time_units):
-            if idx == 3:
-                time_format += " "
-            if time_unit[0] in needed_units:
-                if len(time_format) > 0 and time_format[-1] != " ":
-                    time_format += time_unit[2]
-                time_format += time_unit[1]
-        return time_format.strip()
+        final_format = ""
+        # needed_units 形如['year', 'month', 'day', 'hour', 'minute', 'second']
+        for time_unit in time_units:
+            unit, time_format, separator = time_unit[0], time_unit[1], time_unit[2]
+            if unit == "hour":
+                final_format += " "
+            if unit in needed_units:
+                if len(final_format) > 0 and final_format[-1] != " ":
+                    final_format += separator
+                final_format += time_format
+        return final_format.strip()
