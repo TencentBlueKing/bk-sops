@@ -1,0 +1,2 @@
+bugfix:
+    - "renderform并发更新表单参数值丢失问题修复"
