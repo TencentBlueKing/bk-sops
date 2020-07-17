@@ -54,7 +54,7 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="true">
             <div slot="header">{{sidesLiderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" slot="content">
                 <ViewParams
@@ -116,7 +116,6 @@
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ViewParams from './ViewParams.vue'
