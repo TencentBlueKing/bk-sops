@@ -15,6 +15,7 @@
             <base-title :title="$t('职能化中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    id="functionList"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -247,14 +248,15 @@
             key: 'selectedProject',
             loading: false,
             placeholder: i18n.t('请选择项目'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'dateRange',
             key: 'executeTime',
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('提单时间'),
-            value: []
+            value: ['', '']
         },
         {
             type: 'input',
@@ -274,7 +276,8 @@
                 { 'value': 'claimed', 'name': i18n.t('已认领') },
                 { 'value': 'executed', 'name': i18n.t('已执行') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
-            ]
+            ],
+            value: ''
         }
     ]
     export default {

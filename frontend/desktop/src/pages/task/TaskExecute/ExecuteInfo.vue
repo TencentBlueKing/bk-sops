@@ -157,16 +157,16 @@
                             </div>
                             <div class="common-form-item" v-if="props.row.ex_data">
                                 <label>{{ $t('异常信息') }}</label>
-                                <div class="common-form-content">
+                                <div class="common-form-content ex-data-wrap">
                                     <div v-html="props.row.ex_data"></div>
                                 </div>
-                            </div>
-                            <div class="common-form-item" v-if="adminView">
-                                <label>{{ $t('日志') }}</label>
-                                <div class="common-form-content">
-                                    <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
-                                        <div class="code-block-wrap">
-                                            <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
+                                <div class="common-form-item" v-if="adminView">
+                                    <label>{{ $t('日志') }}</label>
+                                    <div class="common-form-content">
+                                        <div v-bkloading="{ isLoading: historyLogLoading[props.row.history_id], opacity: 1 }">
+                                            <div class="code-block-wrap">
+                                                <VueJsonPretty :data="historyLog[props.row.history_id]"></VueJsonPretty>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -487,7 +487,6 @@
             ]),
             async loadNodeInfo () {
                 this.loading = true
-                // if (this.setNodeDetail) {
                 try {
                     const respData = await this.getTaskNodeDetail()
                     const { execution_info, outputs, inputs, log, history, state } = respData
@@ -789,6 +788,11 @@
                 margin-left: 100px;
                 font-size: 12px;
             }
+        }
+    }
+    .ex-data-wrap {
+        /deep/ pre {
+            white-space: pre-wrap;
         }
     }
     .common-icon-dark-circle-ellipsis {

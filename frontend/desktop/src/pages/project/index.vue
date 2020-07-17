@@ -46,6 +46,7 @@
                     @page-change="onPageChange"
                     @page-limit-change="handlePageLimitChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column label="CC_ID" prop="bk_biz_id" width="80"></bk-table-column>
                     <bk-table-column :label="$t('项目名称')" prop="name"></bk-table-column>
                     <bk-table-column :label="$t('项目描述')">
                         <template slot-scope="props">
@@ -301,6 +302,12 @@
                     
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
+                    this.projectList = this.projectList.map(item => {
+                        if (!item.from_cmdb) {
+                            item.bk_biz_id = '--'
+                        }
+                        return item
+                    })
                     this.pagination.count = projectList.meta.total_count
                     this.projectOperations = projectList.meta.auth_operations
                     this.projectResource = projectList.meta.auth_resource

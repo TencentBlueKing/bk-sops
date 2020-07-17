@@ -28,9 +28,8 @@
                 @click.stop="onAppendNode(item.key)">
             </li>
         </ul>
-        <ul class="operate-btns">
+        <ul class="operate-btns" v-if="isShowConfigIcon">
             <li
-                v-if="isShowConfigIcon"
                 v-bk-tooltips="{
                     content: $t('节点配置'),
                     delay: 500
@@ -39,7 +38,6 @@
                 @click.stop="onConfigBtnClick">
             </li>
             <li
-                v-if="isShowConfigIcon"
                 v-bk-tooltips="{
                     content: $t('复制节点'),
                     delay: 500

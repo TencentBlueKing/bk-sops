@@ -519,6 +519,27 @@ def nodeman_get_ap_list(request):
     return JsonResponse(ap_list)
 
 
+@supplier_account_inject
+def cc_list_set_template(request, biz_cc_id, supplier_account):
+    client = get_client_by_user(request.user.username)
+    kwargs = {"bk_biz_id": int(biz_cc_id), "bk_supplier_account": supplier_account}
+
+    set_template_result = client.cc.list_set_template(kwargs)
+
+    if not set_template_result["result"]:
+        message = handle_api_error(
+            "cc", "cc.list_set_template", kwargs, set_template_result
+        )
+        logger.error(message)
+        result = {"result": False, "data": [], "message": message}
+        return JsonResponse(result)
+
+    template_list = []
+    for template_info in set_template_result['data']['info']:
+        template_list.append({"value": template_info.get('id'), "text": template_info.get('name')})
+    return JsonResponse({"result": True, "data": template_list})
+
+
 urlpatterns = [
     url(r"^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_object_attribute,),
     url(r"^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$", cc_search_create_object_attribute,),
@@ -539,4 +560,7 @@ urlpatterns = [
     url(r"^apply_upload_ticket/$", apply_upload_ticket),
     url(r"^nodeman_get_cloud_area/$", nodeman_get_cloud_area),
     url(r"^nodeman_get_ap_list/$", nodeman_get_ap_list),
+
+    # 查询集群模板
+    url(r"^cc_list_set_template/(?P<biz_cc_id>\d+)/$", cc_list_set_template),
 ]

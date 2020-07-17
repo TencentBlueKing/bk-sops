@@ -359,7 +359,6 @@ const en = {
     '服务地址': 'Service Address',
     '已导入插件': 'Plugins Imported',
     '根模块': 'Root Module',
-    '已导入模块': 'Modules Imported',
     '插件名': 'Plugin Name',
     '类名': 'Class Name',
     '所属模块': 'Module',
@@ -407,6 +406,7 @@ const en = {
     '插件统计': 'Standard Plugins',
     '标准插件': 'Standard Plugins',
     '请选择标准插件': 'Standard Plugins',
+    '选择标准插件': 'Select Standard Plugins',
     '降序排列': 'Descending',
     '升序排列': 'Ascending',
     '查看全部': 'All',
@@ -682,7 +682,8 @@ const en = {
     '手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。': 'Manual Skip: you can skip this node manually if it failed.',
     '手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。': 'Manual Retry: you can retry this node manually if it failed.',
     '基础信息': 'Basic Info',
-    '请选择子流程': 'Please select SubProcess',
+    '请选择子流程': 'Please Select SubProcess',
+    '选择子流程': 'Select Subprocess',
     '默认值不符合正则规则：': 'Default value does not match the regular rule: ',
     '引用': 'Refs',
     '复用变量': 'Reuse Variable',
@@ -988,8 +989,10 @@ const en = {
     '快照名称': 'Snapshot name',
     '新建快照': 'New snapshot',
     '可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。': 'It can automatically save the last 50 snapshots, every 5 minutes. Store only in local browser.',
-    '最近快照已保存，并恢复至序号': 'The most recent snapshot has been saved and restored to the serial number',
-    '号的快照': 'Snapshot'
+    '最近快照已保存，并恢复至原序号为': 'The most recent snapshot has been saved and restored to the original number',
+    '的快照': 'snapshot',
+    '历史记录': 'History',
+    '：': ': '
 }
 
 export default en

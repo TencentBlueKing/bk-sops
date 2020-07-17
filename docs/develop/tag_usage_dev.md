@@ -45,6 +45,8 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - upload
 - memberSelector
 - setAllocation
+- TagSection
+- codeEditor
 # Tag 组件属性、方法
 
 标准插件中定义的配置项在页面渲染时，会作为属性传入到 Tag 组件中。Tag 组件根据不同的属性值，可以灵活的扩展多种表单配置，例如 `TagSelect` 组件可以通过 `multiple` 属性来区分下拉框为单选还是多选，`TagUpload` 组件可以通过 `remote_data_init` 属性来自定义加载数据后的处理逻辑。
@@ -413,7 +415,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
-### 17. TagSection
+### 18. TagSection
 
 标准插件表单分隔 Tag，一般在表单项数量较多时用来做分组区分，配置项的 name 属性值会被渲染为分组名称。
 
@@ -425,6 +427,22 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 *none*
 
+### 19. TagCodeEditor
+
+代码编辑器
+
+**属性**
+
+ - `value`：代码字符串
+ - `language`: 编辑器语言，默认为 python，支持 javascript typescript json python shell
+ - `height`: 编辑器高度，默认 100px
+ - `showMiniMap`: 显示小地图，默认 false
+ - `showLanguageSwitch`: 显示语言切换，默认 true
+ - `readOnly`: 只读模式，默认 false
+
+**方法**
+
+*none*
 
 # 标准插件中定义的方法
 

@@ -144,7 +144,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.5.17"
+STATIC_VERSION = "3.5.18"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -269,9 +269,10 @@ IS_AJAX_PLAIN_MODE = True
 # init admin list
 INIT_SUPERUSER = ["admin"]
 
-# cc、job域名
+# cc、job配置
 BK_CC_HOST = os.environ.get("BK_CC_HOST")
 BK_JOB_HOST = os.environ.get("BK_JOB_HOST")
+BK_JOB_VERSION = os.environ.get("BKAPP_BK_JOB_VERSION", "V2")
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"
