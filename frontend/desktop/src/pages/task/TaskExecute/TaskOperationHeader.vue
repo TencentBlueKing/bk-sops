@@ -59,7 +59,7 @@
                         'common-icon',
                         'common-icon-solid-eye',
                         {
-                            actived: nodeInfoType === 'executeInfo'
+                            actived: nodeInfoType === 'viewParams'
                         }
                     ]"
                     v-bk-tooltips="{
