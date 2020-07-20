@@ -57,14 +57,6 @@
         <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
             <div slot="header">{{sideSliderTitle}}</div>
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
-                <ViewParams
-                    v-if="nodeInfoType === 'viewParams'"
-                    :node-data="nodeData"
-                    :selected-flow-path="selectedFlowPath"
-                    :tree-node-config="treeNodeConfig"
-                    :pipeline-data="pipelineData"
-                    @onClickTreeNode="onClickTreeNode">
-                </ViewParams>
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
