@@ -834,8 +834,10 @@
                         this.quickClose = false
                     }
                 }
-                this.defaultActiveId = firstNodeId
-                this.setNodeDetailConfig(firstNodeId, firstNodeData)
+                if (name === i18n.t('节点详情')) {
+                    this.defaultActiveId = firstNodeId
+                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
+                }
             },
             
             onToggleNodeInfoPanel () {
