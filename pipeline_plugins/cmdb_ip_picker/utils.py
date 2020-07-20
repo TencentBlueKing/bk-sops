@@ -74,15 +74,19 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
     for host in host_info:
         host_modules_id = get_modules_id(host["module"])
-        host_innerip = format_sundry_ip(host["host"]["bk_host_innerip"])
-        if selector == "topo" or "{cloud}:{ip}".format(cloud=host["host"]["bk_cloud_id"], ip=host_innerip) in ip_list:
+        host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
+        if (
+            selector == "topo"
+            or "{cloud}:{ip}".format(cloud=host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID), ip=host_innerip)
+            in ip_list
+        ):
             data.append(
                 {
                     "bk_host_id": host["host"]["bk_host_id"],
                     "bk_host_innerip": host_innerip,
-                    "bk_host_outerip": host["host"]["bk_host_outerip"],
-                    "bk_host_name": host["host"]["bk_host_name"],
-                    "bk_cloud_id": host["host"]["bk_cloud_id"],
+                    "bk_host_outerip": host["host"].get("bk_host_outerip", ""),
+                    "bk_host_name": host["host"].get("bk_host_name", ""),
+                    "bk_cloud_id": host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID),
                     "host_modules_id": host_modules_id,
                 }
             )

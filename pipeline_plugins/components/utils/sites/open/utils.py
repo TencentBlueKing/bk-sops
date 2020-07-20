@@ -81,16 +81,16 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
                     topo_ip = "{set}|{module}|{ip}".format(
                         set=parent_set["bk_set_name"],
                         module=parent_module["bk_module_name"],
-                        ip=ip_info["host"]["bk_host_innerip"],
+                        ip=ip_info["host"].get("bk_host_innerip", ""),
                     )
 
                     if topo_ip in set_module_ip_list:
                         match = True
                         ip_result.append(
                             {
-                                "InnerIP": ip_info["host"]["bk_host_innerip"],
+                                "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                                 "HostID": ip_info["host"]["bk_host_id"],
-                                "Source": ip_info["host"]["bk_cloud_id"],
+                                "Source": ip_info["host"].get("bk_cloud_id", -1),
                                 "SetID": parent_set["bk_set_id"],
                                 "SetName": parent_set["bk_set_name"],
                                 "ModuleID": parent_module["bk_module_id"],
@@ -105,12 +105,15 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
             plat_ip.append(match.group())
 
         for ip_info in ip_list:
-            if "%s:%s" % (ip_info["host"]["bk_cloud_id"], ip_info["host"]["bk_host_innerip"],) in plat_ip:
+            if (
+                "%s:%s" % (ip_info["host"].get("bk_cloud_id", -1), ip_info["host"].get("bk_host_innerip", ""),)
+                in plat_ip
+            ):
                 ip_result.append(
                     {
-                        "InnerIP": ip_info["host"]["bk_host_innerip"],
+                        "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                         "HostID": ip_info["host"]["bk_host_id"],
-                        "Source": ip_info["host"]["bk_cloud_id"],
+                        "Source": ip_info["host"].get("bk_cloud_id", -1),
                     }
                 )
 
@@ -122,12 +125,12 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
 
         host_id_list = []
         for ip_info in ip_list:
-            if ip_info["host"]["bk_host_innerip"] in ip and ip_info["host"]["bk_host_id"] not in host_id_list:
+            if ip_info["host"].get("bk_host_innerip", "") in ip and ip_info["host"]["bk_host_id"] not in host_id_list:
                 ip_result.append(
                     {
-                        "InnerIP": ip_info["host"]["bk_host_innerip"],
+                        "InnerIP": ip_info["host"].get("bk_host_innerip", ""),
                         "HostID": ip_info["host"]["bk_host_id"],
-                        "Source": ip_info["host"]["bk_cloud_id"],
+                        "Source": ip_info["host"].get("bk_cloud_id", -1),
                     }
                 )
                 host_id_list.append(ip_info["host"]["bk_host_id"])

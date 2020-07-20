@@ -128,8 +128,8 @@ def cc_format_module_hosts(username, biz_cc_id, module_id_list, supplier_account
                 if mod["bk_module_id"] in module_id_list:
                     module_host_dict.setdefault("module_%s" % mod["bk_module_id"], []).append(
                         {
-                            "id": "%s_%s" % (mod["bk_module_id"], item["host"]["bk_host_innerip"]),
-                            "label": item["host"]["bk_host_innerip"],
+                            "id": "%s_%s" % (mod["bk_module_id"], item["host"].get("bk_host_innerip", "")),
+                            "label": item["host"].get("bk_host_innerip", ""),
                         }
                     )
 
