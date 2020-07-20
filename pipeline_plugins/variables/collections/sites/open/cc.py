@@ -77,7 +77,7 @@ class VarIpPickerVariable(LazyVariable):
             select_ip = set()
 
             for host_info in host_list:
-                select_ip.add(host_info["host"]["bk_host_innerip"])
+                select_ip.add(host_info["host"].get("bk_host_innerip", ""))
 
             for ip_info in cc_ip_list:
                 select_ip.add(ip_info["InnerIP"])
