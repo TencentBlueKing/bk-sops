@@ -56,7 +56,7 @@
             </li>
             <li class="right-icon help-doc">
                 <a
-                    class="common-icon-dark-circle-question"
+                    class="common-icon-help"
                     href="https://bk.tencent.com/docs/document/5.1/3/22"
                     target="_blank"
                     v-bk-tooltips="{
@@ -69,7 +69,7 @@
             </li>
             <li class="right-icon version-log">
                 <i
-                    class="common-icon-info"
+                    class="bk-icon  icon-info-circle-shape"
                     v-bk-tooltips="{
                         content: $t('版本日志'),
                         placement: 'bottom-end',
@@ -476,6 +476,7 @@ header {
             font-size: 16px;
             & > [class^='common-icon'] {
                 margin-top: 17px;
+                font-size: 16px;
                 display: inline-block;
                 color: #63656e;
                 cursor: pointer;
@@ -489,9 +490,15 @@ header {
         }
         .version-log {
             margin-left: 10px;
-            & > .common-icon-info {
-                margin-top: 16px;
-                font-size: 19px;
+            & > .bk-icon{
+                margin-top: 17px;
+                font-size: 16px;
+                display: inline-block;
+                color: #63656e;
+                cursor: pointer;
+                &:hover {
+                    color: #616d7d;
+                }
             }
         }
         .user-avatar {
