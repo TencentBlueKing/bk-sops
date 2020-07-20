@@ -54,10 +54,14 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.get_client_by_user"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.cc_get_ips_info_by_str"
-GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.job.get_node_callback_url"
-GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.get_job_instance_url"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_client_by_user"
+CC_GET_IPS_INFO_BY_STR = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.cc_get_ips_info_by_str"
+)
+GET_NODE_CALLBACK_URL = (
+    "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_node_callback_url"
+)
+GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_job_instance_url"
 
 
 EXECUTE_SUCCESS_GET_LOG_RETURN = {
@@ -87,7 +91,7 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                         {
                             "ip": "1.1.1.1",
                             "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
-                                           "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
+                            "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
                         },
                     ],
                     "ip_status": 9,
@@ -547,7 +551,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "client": GET_VAR_ERROR_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
-            "log_outputs": {}
+            "log_outputs": {},
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),

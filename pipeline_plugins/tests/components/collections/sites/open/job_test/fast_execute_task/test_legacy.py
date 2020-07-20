@@ -55,11 +55,21 @@ class MockClient(object):
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.job.get_client_by_user"
-GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.job.get_node_callback_url"
-CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.collections.sites.open.job.cc_get_ips_info_by_str"
-JOB_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.job.job_handle_api_error"
-GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.get_job_instance_url"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.get_client_by_user"
+)
+GET_NODE_CALLBACK_URL = (
+    "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.get_node_callback_url"
+)
+CC_GET_IPS_INFO_BY_STR = (
+    "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.cc_get_ips_info_by_str"
+)
+JOB_HANDLE_API_ERROR = (
+    "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.job_handle_api_error"
+)
+GET_JOB_INSTANCE_URL = (
+    "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy.get_job_instance_url"
+)
 
 # success result
 SUCCESS_RESULT = {
@@ -106,7 +116,7 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                         {
                             "ip": "1.1.1.1",
                             "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
-                                           "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
+                            "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
                         },
                     ],
                     "ip_status": 9,

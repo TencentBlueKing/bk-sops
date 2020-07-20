@@ -24,7 +24,7 @@ from gcloud.utils import cmdb
 from gcloud.utils.ip import get_ip_by_regex
 from gcloud.conf import settings
 
-__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url"]
+__all__ = ["cc_get_ips_info_by_str", "get_job_instance_url", "get_node_callback_url", "plat_ip_reg"]
 
 JOB_APP_CODE = "bk_job"
 
