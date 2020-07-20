@@ -63,10 +63,10 @@
                         }
                     ]"
                     v-bk-tooltips="{
-                        content: $t('查看参数'),
+                        content: $t('查看节点详情'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('viewParams')">
+                    @click="onTaskParamsClick('viewParams', $t('节点详情'))">
                 </i>
                 <i
                     :class="[
@@ -81,7 +81,7 @@
                         content: $t('修改参数'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('modifyParams')">
+                    @click="onTaskParamsClick('modifyParams', $t('修改参数'))">
                 </i>
                 <router-link
                     v-if="isShowViewProcess"
@@ -174,8 +174,8 @@
             onOperationClick (action) {
                 this.$emit('onOperationClick', action)
             },
-            onTaskParamsClick (type) {
-                this.$emit('onTaskParamsClick', type)
+            onTaskParamsClick (type, name) {
+                this.$emit('onTaskParamsClick', type, true, name)
             },
             onBack () {
                 if (this.view_mode === 'appmaker') {
