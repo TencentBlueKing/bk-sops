@@ -625,6 +625,7 @@
             // 子流程分组
             handleSubflowGroup (data) {
                 const tplList = data.objects
+                const reqPermssion = this.common ? ['common_flow_view'] : ['flow_view']
                 const groups = this.projectBaseInfo.task_categories.map(item => {
                     return {
                         type: item.value,
@@ -637,7 +638,7 @@
                     if (item.id !== Number(this.template_id)) {
                         const group = groups.find(tpl => tpl.type === item.category)
                         if (group) {
-                            item.hasPermission = this.hasPermission(['flow_view'], item.auth_actions)
+                            item.hasPermission = this.hasPermission(reqPermssion, item.auth_actions)
                             group.list.push(item)
                         }
                     }
