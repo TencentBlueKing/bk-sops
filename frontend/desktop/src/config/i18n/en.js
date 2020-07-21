@@ -717,6 +717,7 @@ const en = {
     '输出': 'Output',
     '复制': 'Copy',
     '全局变量': 'Global Variable',
+    '查看全局变量': 'View Global Variable',
     '隐藏系统变量': 'Hide SYS-VARS',
     '直接引用全局变量的节点数量，点击数字查看引用详情': 'The number of nodes directly quoting the global variable, click on the number to view the details of the quotation',
     '输出：': 'Output: ',
