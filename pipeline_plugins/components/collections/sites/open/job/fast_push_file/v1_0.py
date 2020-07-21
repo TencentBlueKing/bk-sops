@@ -88,7 +88,7 @@ class JobFastPushFileService(JobService):
 
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
         original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
-        across_biz = data.get_one_of_inputs("across_biz_or_not", False)
+        across_biz = data.get_one_of_inputs("job_across_biz", False)
         file_source = []
         for item in original_source_files:
             if across_biz:
@@ -102,7 +102,7 @@ class JobFastPushFileService(JobService):
                         cloud_id, inner_ip = ip.strip().split(":")
                         ip_info["ip_result"].append({"InnerIP": inner_ip, "Source": cloud_id})
                 else:
-                    message = _("允许跨域时IP格式需满足：【云区域ID:IP】")
+                    message = _("允许跨业务时IP格式需满足：【云区域ID:IP】")
                     self.logger.error(message)
                     data.set_outputs("ex_data", message)
                     return False

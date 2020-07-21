@@ -39,7 +39,7 @@
             }
         },
         {
-            tag_code: "across_biz_or_not",
+            tag_code: "job_across_biz",
             type: "radio",
             attrs: {
                 name: gettext("是否允许跨业务"),
