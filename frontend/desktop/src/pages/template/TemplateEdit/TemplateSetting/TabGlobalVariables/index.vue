@@ -49,7 +49,7 @@
                 </div>
             </div>
         </div>
-        <div class="global-variable-panel" slot="content" v-bkloading="{ isLoading: systemVarsLoading, opacity: 1 }">
+        <div class="global-variable-panel" slot="content">
             <template v-if="!variableData">
                 <div class="add-variable">
                     <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
@@ -127,7 +127,6 @@
 <script>
     import draggable from 'vuedraggable'
     import { mapMutations, mapState, mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
@@ -146,7 +145,6 @@
                 isHideSystemVar: false,
                 variableList: [], // 变量列表，包含系统内置变量和用户变量
                 variableData: null, // 编辑中的变量
-                systemVarsLoading: true,
                 deleteConfirmDialogShow: false,
                 deleteVarKey: ''
             }
@@ -162,34 +160,22 @@
             constants () {
                 // 增加、删除变量后，更新变量列表
                 this.setVariableList()
+            },
+            systemConstants () {
+                this.setVariableList()
             }
         },
         created () {
-            this.getSystemVars()
+            this.setVariableList()
         },
         methods: {
             ...mapActions('template', [
-                'loadInternalVariable'
             ]),
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
-                'setInternalVariable',
                 'setOutputs'
             ]),
-            // 加载系统内置变量
-            async getSystemVars () {
-                try {
-                    this.systemVarsLoading = true
-                    const result = await this.loadInternalVariable()
-                    this.setInternalVariable(result.data)
-                    this.setVariableList()
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.systemVarsLoading = false
-                }
-            },
             setVariableList () {
                 const userVars = Object.keys(this.constants)
                     .map(key => tools.deepClone(this.constants[key]))

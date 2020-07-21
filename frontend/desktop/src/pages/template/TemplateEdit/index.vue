@@ -270,6 +270,7 @@
         async created () {
             this.initTemplateData()
             // 获取流程内置变量
+            this.getSystemVars()
             this.templateDataLoading = true
             this.snapshoots = this.getTplSnapshoots()
             if (this.type === 'edit' || this.type === 'clone') {
@@ -300,7 +301,8 @@
                 'saveTemplateData',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
-                'getLayoutedPipeline'
+                'getLayoutedPipeline',
+                'loadInternalVariable'
             ]),
             ...mapActions('atomForm/', [
                 'loadSingleAtomList',
@@ -324,7 +326,8 @@
                 'setBranchCondition',
                 'replaceTemplate',
                 'replaceLineAndLocation',
-                'setPipelineTree'
+                'setPipelineTree',
+                'setInternalVariable'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -481,6 +484,20 @@
                     this.setActivities({ type: 'edit', location: activities })
                 } catch (e) {
                     errorHandler(e, this)
+                }
+            },
+            /**
+             * 加载系统内置变量
+             */
+            async getSystemVars () {
+                try {
+                    this.systemVarsLoading = true
+                    const result = await this.loadInternalVariable()
+                    this.setInternalVariable(result.data)
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.systemVarsLoading = false
                 }
             },
             /**

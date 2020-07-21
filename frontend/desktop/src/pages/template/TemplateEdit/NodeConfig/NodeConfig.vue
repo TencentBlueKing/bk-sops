@@ -17,7 +17,7 @@
             :width="800"
             :is-show="isShow"
             :before-close="beforeClose">
-            <div slot="header">
+            <div class="config-header" slot="header">
                 <span
                     :class="['go-back', {
                         'active': isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)
@@ -32,6 +32,42 @@
                     <i class="common-icon-angle-right"></i>
                     {{ selectorTitle }}
                 </span>
+                <div class="view-variable">
+                    <bk-popover
+                        v-if="!isSelectorPanelShow"
+                        ext-cls="variable-popover"
+                        placement="bottom-end">
+                        <div style="padding-right: 30px;">{{ $t('查看全局变量') }}</div>
+                        <div class="variable-list" slot="content">
+                            <bk-table :data="variableList" :max-height="400">
+                                <bk-table-column :label="$t('名称')" prop="name" width="165"></bk-table-column>
+                                <bk-table-column label="KEY">
+                                    <template slot-scope="props" width="165">
+                                        <div class="key">{{ props.row.key }}</div>
+                                    </template>
+                                </bk-table-column>
+                                <bk-table-column :label="$t('属性')" width="80">
+                                    <div class="icon-wrap" slot-scope="props">
+                                        <i
+                                            :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
+                                            v-bk-tooltips="{
+                                                content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
+                                                placements: ['bottom']
+                                            }">
+                                        </i>
+                                        <i
+                                            :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
+                                            v-bk-tooltips="{
+                                                content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
+                                                placements: ['bottom']
+                                            }">
+                                        </i>
+                                    </div>
+                                </bk-table-column>
+                            </bk-table>
+                        </div>
+                    </bk-popover>
+                </div>
             </div>
             <template slot="content">
                 <template v-if="!isSelectorPanelShow">
@@ -171,6 +207,9 @@
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output
             }),
+            variableList () {
+                return Object.keys(this.constants).map(key => this.constants[key])
+            },
             isSubflow () {
                 return this.nodeConfig.type !== 'ServiceActivity'
             },
@@ -796,9 +835,20 @@
 @import '@/scss/mixins/scrollbar.scss';
 .node-config-panel {
     height: 100%;
-    .go-back.active {
-        color: #3a84ff;
-        cursor: pointer;
+    .config-header {
+        position: relative;
+        .go-back.active {
+            color: #3a84ff;
+            cursor: pointer;
+        }
+        .view-variable {
+            position: absolute;
+            top: 24px;
+            right: 30px;
+            font-size: 12px;
+            color: #3a84ff;
+            line-height: 1;
+        }
     }
     .node-config {
         height: calc(100vh - 60px);
@@ -838,4 +888,27 @@
         overflow: initial;
     }
 }
+</style>
+<style lang="scss">
+    .variable-popover {
+        .tippy-tooltip {
+            padding: 0;
+            .tippy-arrow {
+                border: none;
+            }
+        }
+        .variable-list {
+            width: 410px;
+            .icon-wrap {
+                i {
+                    margin-right: 4px;
+                    color: #219f42;
+                    font-size: 14px;
+                }
+                .color-org {
+                    color: #de9524;
+                }
+            }
+        }
+    }
 </style>
