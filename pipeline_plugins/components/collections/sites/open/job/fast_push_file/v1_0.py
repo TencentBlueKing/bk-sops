@@ -17,11 +17,7 @@ from copy import deepcopy
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-)
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
@@ -45,6 +41,12 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 class JobFastPushFileService(JobService):
     def inputs_format(self):
         return [
+            self.InputItem(
+                name=_("是否允许跨业务"),
+                key="job_across_biz",
+                type="bool",
+                schema=BooleanItemSchema(description=_("是否允许跨业务，如果允许，源文件IP格式需为【云区域ID:IP】")),
+            ),
             self.InputItem(
                 name=_("源文件"),
                 key="job_source_files",
