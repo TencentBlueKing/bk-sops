@@ -417,9 +417,9 @@
                 this.projectInfoLoading = true
                 this.categoryLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(data)
-                    this.searchForm[0].list = data.task_categories
+                    const res = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(res.data)
+                    this.searchForm[0].list = res.data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

@@ -398,9 +398,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories
-                    this.setProjectBaseInfo(projectBasicInfo)
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories
+                    this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)

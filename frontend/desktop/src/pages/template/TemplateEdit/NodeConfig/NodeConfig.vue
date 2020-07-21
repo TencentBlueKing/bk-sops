@@ -331,7 +331,7 @@
                         params.version = version
                     }
                     const resp = await this.loadSubflowConfig({ ...params })
-                    this.subflowForms = resp.form
+                    this.subflowForms = resp.data.form
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
                     this.updateBasicInfo({ version: resp.version })
 
