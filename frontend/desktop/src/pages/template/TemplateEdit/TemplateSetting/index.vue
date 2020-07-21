@@ -14,7 +14,7 @@
         <TabGlobalVariables
             v-if="activeTab === 'globalVariableTab'"
             @variableDataChanged="onVariableDataChange"
-            @onCitedNodeClick="onCitedNodeClick"
+            @onCitedNodeClick="$emit('onCitedNodeClick', $event)"
             @closeTab="closeTab">
         </TabGlobalVariables>
         <TabTemplateConfig
@@ -116,9 +116,6 @@
             },
             onSelectCategory (value) {
                 this.$emit('onSelectCategory', value)
-            },
-            onCitedNodeClick (nodeId) {
-                this.$emit('onCitedNodeClick', nodeId)
             },
             onDataModify (data) {
                 this.isPipelineTreeDialogShow = false

@@ -97,7 +97,7 @@
         <VariableCitedList
             v-if="showCitedList"
             :cited-list="citedList"
-            @onCitedNodeClick="onCitedNodeClick">
+            @onCitedNodeClick="$emit('onCitedNodeClick', $event)">
         </VariableCitedList>
     </div>
 </template>
@@ -208,9 +208,6 @@
             },
             onEditVariable (key, index) {
                 this.$emit('onEditVariable', key, index)
-            },
-            onCitedNodeClick (nodeId) {
-                this.$emit('onCitedNodeClick', nodeId)
             }
         }
     }

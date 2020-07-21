@@ -85,14 +85,16 @@
                             handle=".col-item-drag"
                             :list="variableList"
                             @end="onDragEnd($event)">
-                            <VariableItem
+                            <variable-item
                                 v-for="constant in variableList"
                                 :key="constant.key"
                                 :outputed="outputs.indexOf(constant.key) > -1"
                                 :variable-data="constant"
                                 @onEditVariable="onEditVariable"
                                 @onChangeVariableOutput="onChangeVariableOutput"
-                                @onDeleteVariable="onDeleteVariable" />
+                                @onDeleteVariable="onDeleteVariable"
+                                @onCitedNodeClick="$emit('onCitedNodeClick', $event)">
+                            </variable-item>
                         </draggable>
                         <div v-if="variableList.length === 0" class="empty-variable-tips">
                             <NoData>
@@ -423,7 +425,7 @@
     }
     .variable-list {
         width: 100%;
-        min-height: 360px;
+        min-height: 340px;
         max-height: calc(100vh - 214px);
         border-top: none;
         overflow-y: auto;

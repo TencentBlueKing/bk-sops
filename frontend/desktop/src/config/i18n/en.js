@@ -1,5 +1,6 @@
 const en = {
     '': '',
+    '（': '(',
     '接口数据返回为空': 'No data returned by API',
     '接口异常，': 'API error, ',
     'HTTP状态码：': 'HTTP Status:',
@@ -704,7 +705,7 @@ const en = {
     '保存并新建任务': 'Save And NewTask',
     '说明': 'Description',
     '引用节点': 'Refers',
-    '未命名节点': 'Unnamed node',
+    '引用变量的节点': 'Variable Reference Nodes',
     '显示': 'Show',
     '隐藏': 'Hide',
     '默认值': 'Default',
