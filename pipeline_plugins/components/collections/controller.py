@@ -20,7 +20,7 @@ from django.utils import translation, timezone
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
-from pipeline.core.flow.io import StringItemSchema
+from pipeline.core.flow.io import StringItemSchema, BooleanItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.core.models import Project
@@ -79,7 +79,7 @@ class SleepTimerService(Service):
                 name=_("是否强制晚于当前时间"),
                 key="force_check",
                 type="bool",
-                schema=StringItemSchema(description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")),
+                schema=BooleanItemSchema(description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")),
             ),
         ]
 
