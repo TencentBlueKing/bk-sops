@@ -22,23 +22,43 @@
                 </template>
             </bk-table-column>
         </bk-table>
-        <on-hook-dialog
-            :is-show="isShow"
-            :data="formData"
-            @confirm="onConfirmReuseVar"
-            @cancel="onCancelReuseVar">
-        </on-hook-dialog>
+        <bk-dialog
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :render-directive="'if'"
+            :header-position="'left'"
+            :title="$t('新建变量')"
+            :auto-close="false"
+            :value="isShow"
+            width="600"
+            @confirm="onConfirm"
+            @cancel="onCancel">
+            <div class="reuse-variable-dialog">
+                <bk-form
+                    ref="form"
+                    :model="formData"
+                    :rules="rules">
+                    <template>
+                        <bk-form-item :label="$t('变量名称')" property="name" :required="true">
+                            <bk-input name="variableName" v-model="formData.name"></bk-input>
+                        </bk-form-item>
+                        <bk-form-item :label="$t('变量KEY')" property="key" :required="true">
+                            <bk-input name="variableKey" v-model="formData.key"></bk-input>
+                        </bk-form-item>
+                    </template>
+                </bk-form>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations } from 'vuex'
-    import onHookDialog from './onHookDialog'
+    import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
     export default {
         name: 'OutputParams',
-        components: {
-            onHookDialog
-        },
         props: {
             params: Array,
             isSubflow: Boolean,
@@ -47,22 +67,76 @@
         },
         data () {
             const list = this.getOutputsList(this.params)
+            const $this = this
             return {
                 list,
                 isShow: false,
+                rowData: {},
                 formData: {},
                 selectIndex: '',
-                propsInfo: {}
+                propsInfo: {},
+                rules: {
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                            message: i18n.t('变量名称长度不能超过') + STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: NAME_REG,
+                            message: i18n.t('变量名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    key: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
+                            message: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
+                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator (val) {
+                                const value = /^\$\{\w+\}$/.test(val) ? val : `\${${val}}`
+                                if (value in $this.constants) {
+                                    return false
+                                }
+                                return true
+                            },
+                            message: i18n.t('变量KEY值已存在'),
+                            trigger: 'blur'
+                        }
+                    ]
+                }
             }
         },
         computed: {
             ...mapState({
-                'constants': state => state.template.constants
+                constants: state => state.template.constants
             })
         },
         watch: {
             params (val) {
                 this.list = this.getOutputsList(val)
+            },
+            isShow (val) {
+                this.formData.name = this.rowData.name
+                this.formData.key = this.rowData.key
             }
         },
         methods: {
@@ -76,21 +150,19 @@
                 const varKeys = Object.keys(constants)
                 this.params.forEach(param => {
                     let key = param.key
-                    let name = param.name
                     const isHooked = varKeys.some(item => {
                         const varItem = constants[item]
                         if (varItem.source_type === 'component_outputs') {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
                                 key = item
-                                name = varItem.name
                                 return true
                             }
                         }
                     })
                     list.push({
                         key,
-                        name,
+                        name: param.name,
                         version: param.version,
                         hooked: isHooked
                     })
@@ -103,7 +175,7 @@
             onHookChange (props, val) {
                 if (val) {
                     this.isShow = true
-                    this.formData = props.row
+                    this.rowData = props.row
                     this.selectIndex = props.$index
                     this.propsInfo = props
                 } else {
@@ -112,28 +184,29 @@
                     this.list[props.$index].name = this.params[props.$index].name
                 }
             },
-            onConfirmReuseVar (type, data) {
-                this.isShow = false
-                const version = this.isSubflow ? this.propsInfo.version : this.version
-                const config = {
-                    name: data.name,
-                    key: `\$\{${data.key}\}`,
-                    source_info: {
-                        [this.nodeId]: [this.formData.key]
-                    },
-                    version
-                }
-                this.list[this.selectIndex].name = data.name
-                this.list[this.selectIndex].key = `\$\{${data.key}\}`
-                this.createVariable(config)
+            onConfirm ($event) {
+                this.$refs.form.validate().then(result => {
+                    if (result) {
+                        const { name, key } = this.formData
+                        this.isShow = false
+                        const version = this.isSubflow ? this.propsInfo.version : this.version
+                        const config = {
+                            name: name,
+                            key: `\$\{${key}\}`,
+                            source_info: {
+                                [this.nodeId]: [this.rowData.key]
+                            },
+                            version
+                        }
+                        this.list[this.selectIndex].name = name
+                        this.list[this.selectIndex].key = `\$\{${key}\}`
+                        this.createVariable(config)
+                    }
+                })
             },
-            /**
-             * 取消复用变量回调
-             */
-            onCancelReuseVar (key) {
+            onCancel () {
                 this.isShow = false
                 this.list[this.selectIndex].hooked = false
-                console.log(this.list[this.selectIndex])
             },
             createVariable (variableOpts) {
                 const len = Object.keys(this.constants).length
@@ -157,3 +230,18 @@
         }
     }
 </script>
+<style lang="scss" scoped>
+    .reuse-variable-dialog {
+        padding: 30px;
+        .new-var-notice {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #ea3636;
+        }
+        .bk-form:not(.bk-form-vertical) {
+            /deep/ .bk-form-content {
+                margin-right: 30px;
+            }
+        }
+    }
+</style>
