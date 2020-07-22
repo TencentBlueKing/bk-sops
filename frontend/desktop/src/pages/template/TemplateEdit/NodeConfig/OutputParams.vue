@@ -74,7 +74,6 @@
                 isShow: false,
                 formData: {},
                 selectIndex: '',
-                propsInfo: {},
                 rules: {
                     name: [
                         {
@@ -152,7 +151,6 @@
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
                                 key = item
-                                // name = varItem.name
                                 return true
                             }
                         }
@@ -175,7 +173,6 @@
                     this.isShow = true
                     this.formData = tools.deepClone(props.row)
                     this.selectIndex = index
-                    // this.propsInfo = props
                 } else {
                     this.deleteVariable(props.row.key)
                     this.list[index].key = this.params[index].key
