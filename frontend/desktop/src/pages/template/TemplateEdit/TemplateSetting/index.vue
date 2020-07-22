@@ -40,7 +40,6 @@
     </div>
 </template>
 <script>
-    import { mapState, mapMutations } from 'vuex'
     import TabGlobalVariables from './TabGlobalVariables/index.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabTemplateSnapshoot from './TabTemplateSnapshoot.vue'
@@ -71,46 +70,7 @@
                 settingTabs: SETTING_TABS
             }
         },
-        computed: {
-            ...mapState({
-                'constants': state => state.template.constants
-            }),
-            tabDetail () {
-                if (this.activeTab) {
-                    return SETTING_TABS.find(item => item.id === this.activeTab)
-                }
-                return {}
-            },
-            variableData () {
-                if (this.theKeyOfEditing) {
-                    return this.constants[this.theKeyOfEditing]
-                } else {
-                    return {
-                        custom_type: 'input',
-                        desc: '',
-                        key: '',
-                        name: '',
-                        show_type: 'show',
-                        source_info: {},
-                        source_tag: '',
-                        source_type: 'custom',
-                        validation: '^.+$',
-                        validator: [],
-                        value: ''
-                    }
-                }
-            }
-        },
         methods: {
-            ...mapMutations('template/', [
-                'editVariable',
-                'deleteVariable',
-                'setOutputs',
-                'setReceiversGroup',
-                'setNotifyType',
-                'setOvertime',
-                'setCategory'
-            ]),
             onVariableDataChange () {
                 this.$emit('variableDataChanged')
             },

@@ -411,7 +411,7 @@
     }
     .variable-list {
         width: 100%;
-        min-height: 340px;
+        min-height: 300px;
         max-height: calc(100vh - 214px);
         border-top: none;
         overflow-y: auto;

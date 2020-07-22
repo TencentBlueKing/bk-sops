@@ -40,10 +40,11 @@
                         <div style="padding-right: 30px;">{{ $t('查看全局变量') }}</div>
                         <div class="variable-list" slot="content">
                             <bk-table :data="variableList" :max-height="400">
-                                <bk-table-column :label="$t('名称')" prop="name" width="165"></bk-table-column>
-                                <bk-table-column label="KEY">
+                                <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
+                                <bk-table-column label="KEY" :show-overflow-tooltip="true">
                                     <template slot-scope="props" width="165">
                                         <div class="key">{{ props.row.key }}</div>
+                                        <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
                                     </template>
                                 </bk-table-column>
                                 <bk-table-column :label="$t('属性')" width="80">
@@ -105,7 +106,8 @@
                                             :subflow-forms="subflowForms"
                                             :value="inputsParamValue"
                                             :is-subflow="isSubflow"
-                                            @globalVariableUpdate="$emit('globalVariableUpdate', true)"
+                                            :constants="localConstants"
+                                            @hookChange="onHookChange"
                                             @update="updateInputsValue">
                                         </input-params>
                                         <no-data v-else></no-data>
@@ -121,8 +123,7 @@
                                             v-if="outputs.length"
                                             :params="outputs"
                                             :version="basicInfo.version"
-                                            :node-id="nodeId"
-                                            @globalVariableUpdate="$emit('globalVariableUpdate', true)">
+                                            :node-id="nodeId">
                                         </output-params>
                                         <no-data v-else></no-data>
                                     </template>
@@ -196,19 +197,23 @@
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow // 是否显示选择插件(子流程)面板
+                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
+                localConstants: {} // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
             }
         },
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'systemConstants': state => state.template.systemConstants,
                 'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output
             }),
             variableList () {
-                return Object.keys(this.constants).map(key => this.constants[key])
+                const systemVars = Object.keys(this.systemConstants).map(key => this.systemConstants[key])
+                const userVars = Object.keys(this.constants).map(key => this.constants[key])
+                return [...systemVars, ...userVars]
             },
             isSubflow () {
                 return this.nodeConfig.type !== 'ServiceActivity'
@@ -224,6 +229,11 @@
             },
             selectorTitle () {
                 return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
+            }
+        },
+        watch: {
+            constants (val) {
+                this.localConstants = tools.deepClone(val)
             }
         },
         created () {
@@ -271,6 +281,7 @@
                     this.outputs = outputs
                 }
             })
+            this.localConstants = tools.deepClone(this.constants)
         },
         mounted () {
             this.initData()
@@ -284,7 +295,10 @@
                 'setVariableSourceInfo',
                 'setSubprocessUpdated',
                 'setActivities',
-                'deleteVariable'
+                'addVariable',
+                'deleteVariable',
+                'setContants',
+                'setOutputs'
             ]),
             // 初始化节点数据
             async initData () {
@@ -536,12 +550,35 @@
                     return sourceInfo && sourceInfo.includes(form.tag_code)
                 })
             },
+            /**
+             * 变量 key 复制
+             */
+            onCopyKey (key) {
+                this.copyText = key
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            /**
+             * 复制操作回调函数
+             */
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
+            },
             // 由标准插件(子流程)选择面板返回配置面板
             goBackToConfig () {
                 if (this.isSelectorPanelShow && (this.basicInfo.plugin || this.basicInfo.tpl)) {
                     this.isSelectorPanelShow = false
                 }
             },
+            
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
@@ -742,6 +779,57 @@
                 const { href } = this.$router.resolve(pathData)
                 window.open(href, '_blank')
             },
+            // 输入、输出参数勾选状态变化
+            onHookChange (type, data) {
+                if (type === 'create') {
+                    this.$set(this.localConstants, data.key, data)
+                } else {
+                    this.setVariableSourceInfo(data)
+                }
+            },
+            // 更新全局变量的 source_info
+            setVariableSourceInfo (data) {
+                const { type, id, key, tagCode } = data
+                const constant = this.localConstants[key]
+                if (!constant) return
+                const sourceInfo = constant.source_info
+                if (type === 'add') {
+                    if (sourceInfo[id]) {
+                        sourceInfo[id].push(tagCode)
+                    } else {
+                        this.$set(sourceInfo, id, [tagCode])
+                    }
+                } else if (type === 'delete') {
+                    if (sourceInfo[id].length <= 1) {
+                        this.$delete(sourceInfo, id)
+                    } else {
+                        let atomIndex
+                        sourceInfo[id].some((item, index) => {
+                            if (item === tagCode) {
+                                atomIndex = index
+                                return true
+                            }
+                        })
+                        sourceInfo[id].splice(atomIndex, 1)
+                    }
+                    if (!Object.keys(sourceInfo).length) {
+                        this.deleteVariable(key)
+                    }
+                }
+            },
+            // 删除全局变量
+            deleteVariable (key) {
+                const constant = this.localConstants[key]
+
+                for (const key in this.localConstants) {
+                    const varItem = this.localConstants[key]
+                    if (varItem.index > constant.index) {
+                        varItem.index = varItem.index - 1
+                    }
+                }
+
+                this.$delete(this.localConstants, key)
+            },
             // 节点配置面板表单校验，基础信息和输入参数
             validate () {
                 return this.$refs.basicInfo.validate().then(validator => {
@@ -810,9 +898,27 @@
                 this.nodeConfig = config
                 this.setActivities({ type: 'edit', location: config })
             },
-            // 由父组件调用，获取节点基础信息
-            getBasicInfo () {
-                return this.basicInfo
+            handleVariableChange () {
+                // 如果变量已删除，需要删除变量是否输出的勾选状态
+                this.outputs.forEach(key => {
+                    if (!(key in this.localConstants)) {
+                        this.setOutputs({ changeType: 'delete', key })
+                    }
+                })
+                // 设置全局变量面板icon小红点
+                const localConstantKeys = Object.keys(this.localConstants)
+                if (Object.keys(this.constants).length !== localConstantKeys) {
+                    this.$emit('globalVariableUpdate', true)
+                } else {
+                    localConstantKeys.some(key => {
+                        if (!(key in this.constants)) {
+                            this.$emit('globalVariableUpdate', true)
+                            return true
+                        }
+                    })
+                }
+
+                this.setContants(this.localConstants)
             },
             beforeClose () {
                 this.$emit('update:isShow', false)
@@ -823,8 +929,10 @@
                     if (result) {
                         console.log('result', result)
                         const { skippable, retryable, selectable: optional } = this.basicInfo
-                        this.syncActivity() // @todo 更新节点状态
+                        this.syncActivity()
+                        this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
                         this.$emit('updateNodeInfo', this.nodeId, { status: '', skippable, retryable, optional })
+                        this.$emit('variableDataChanged')
                         this.$emit('close')
                     }
                 })
@@ -909,6 +1017,25 @@
                 .color-org {
                     color: #de9524;
                 }
+            }
+        }
+        td {
+            position: relative;
+            &:hover {
+                .copy-icon {
+                    display: inline-block;
+                }
+            }
+        }
+        .copy-icon {
+            display: none;
+            position: absolute;
+            top: 14px;
+            right: 2px;
+            font-size: 14px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
             }
         }
     }
