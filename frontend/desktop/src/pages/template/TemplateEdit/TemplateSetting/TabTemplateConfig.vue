@@ -13,55 +13,61 @@
     <bk-sideslider
         :title="$t('基础信息')"
         :is-show="true"
-        :quick-close="true"
+        :quick-close="false"
         :width="800"
         :before-close="closeTab">
         <div class="config-wrapper" slot="content">
-            <div class="common-form-item">
-                <label class="required">{{ $t('分类') }}</label>
-                <div class="common-form-content">
-                    <bk-select
-                        class="category-select"
-                        v-model="category"
-                        @change="onChangeTaskCategories">
-                        <bk-option
-                            v-for="(item, index) in taskCategories"
-                            :key="index"
-                            :id="item.id"
-                            :name="item.name">
-                        </bk-option>
-                    </bk-select>
-                    <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+            <div class="form-area">
+                <div class="common-form-item">
+                    <label class="required">{{ $t('分类') }}</label>
+                    <div class="common-form-content">
+                        <bk-select
+                            class="category-select"
+                            v-model="category"
+                            @change="onChangeTaskCategories">
+                            <bk-option
+                                v-for="(item, index) in taskCategories"
+                                :key="index"
+                                :id="item.id"
+                                :name="item.name">
+                            </bk-option>
+                        </bk-select>
+                        <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="common-form-item">
-                <label> {{$t('通知方式')}} </label>
-                <div class="common-form-content" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
-                    <bk-checkbox-group v-model="notifyType">
-                        <template v-for="item in notifyTypeList">
+                <div class="common-form-item">
+                    <label> {{$t('通知方式')}} </label>
+                    <div class="common-form-content" v-bkloading="{ isLoading: notifyTypeLoading, opacity: 1 }">
+                        <bk-checkbox-group v-model="notifyType">
+                            <template v-for="item in notifyTypeList">
+                                <bk-checkbox
+                                    v-if="item.is_active"
+                                    :key="item.type"
+                                    :value="item.type">
+                                    <img class="notify-icon" :src="`data:image/png;base64,${item.icon}`" />
+                                    <span style="word-break: break-all;">{{item.label}}</span>
+                                </bk-checkbox>
+                            </template>
+                        </bk-checkbox-group>
+                    </div>
+                </div>
+                <div class="common-form-item">
+                    <label>{{ $t('通知分组') }}</label>
+                    <div class="common-form-content">
+                        <bk-checkbox-group v-model="receiverGroup">
                             <bk-checkbox
-                                v-if="item.is_active"
-                                :key="item.type"
-                                :value="item.type">
-                                <img class="notify-icon" :src="`data:image/png;base64,${item.icon}`" />
-                                <span style="word-break: break-all;">{{item.label}}</span>
+                                v-for="item in notifyGroup"
+                                :key="item.id"
+                                :value="item.id">
+                                {{item.name}}
                             </bk-checkbox>
-                        </template>
-                    </bk-checkbox-group>
+                        </bk-checkbox-group>
+                    </div>
                 </div>
             </div>
-            <div class="common-form-item">
-                <label>{{ $t('通知分组') }}</label>
-                <div class="common-form-content">
-                    <bk-checkbox-group v-model="receiverGroup">
-                        <bk-checkbox
-                            v-for="item in notifyGroup"
-                            :key="item.id"
-                            :value="item.id">
-                            {{item.name}}
-                        </bk-checkbox>
-                    </bk-checkbox-group>
-                </div>
+            <div class="btn-wrap">
+                <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
         </div>
     </bk-sideslider>
@@ -143,7 +149,6 @@
         },
         methods: {
             ...mapMutations('template/', [
-                'setOutputs',
                 'setReceiversGroup',
                 'setNotifyType',
                 'setOvertime',
@@ -169,6 +174,7 @@
             onChangeTaskCategories (id) {
                 this.selectedTaskCategory = id
             },
+            onConfirm () {},
             closeTab () {
                 this.$emit('closeTab')
             }
@@ -183,8 +189,22 @@
     height: calc(100vh - 60px);
     background: none;
     border: none;
+    .form-area {
+        padding: 30px 30px 0;
+        height: calc(100% - 49px);
+        overflow-y: auto;
+        @include scrollbar;
+    }
+    .btn-wrap {
+        padding: 8px 30px;
+        border-top: 1px solid #cacedb;
+        .bk-button {
+            margin-right: 10px;
+            padding: 0 25px;
+        }
+    }
     .common-form-item {
-       margin: 20px
+       margin: 0 20px 20px;
     }
     .common-form-item > label {
         margin-top: 0;

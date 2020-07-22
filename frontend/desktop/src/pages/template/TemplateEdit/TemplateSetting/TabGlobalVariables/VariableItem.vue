@@ -79,10 +79,6 @@
             </span>
             <span class="col-item col-operation">
                 <span class="col-operation-item"
-                    v-bk-tooltips.click="{
-                        content: $t('已复制'),
-                        placements: ['bottom']
-                    }"
                     @click.stop="onCopyKey(variableData.key)">
                     {{ $t('复制') }}
                 </span>
@@ -102,8 +98,10 @@
     </div>
 </template>
 <script>
+    import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
     import VariableCitedList from './VariableCitedList.vue'
+
     export default {
         name: 'VariableItem',
         components: {
@@ -189,9 +187,13 @@
              * 复制操作回调函数
              */
             copyHandler (e) {
+                e.preventDefault()
                 e.clipboardData.setData('text/html', this.copyText)
                 e.clipboardData.setData('text/plain', this.copyText)
-                e.preventDefault()
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
             },
             // 查看引用节点信息
             onViewCitedList () {

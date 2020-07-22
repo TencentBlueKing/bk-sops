@@ -115,7 +115,6 @@
                     this.list[index].key = this.params[index].key
                     this.deleteVariable(key)
                 }
-                this.$emit('globalVariableUpdate')
             },
             // 随机生成变量 key，长度为 14，不可重复
             generateRandomKey (key) {

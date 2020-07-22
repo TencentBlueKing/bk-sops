@@ -18,14 +18,16 @@
                 :type="type"
                 :common="common"
                 :template_id="template_id"
+                :is-global-variable-update="isGlobalVariableUpdate"
                 :is-template-data-changed="isTemplateDataChanged"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
-                :active-tab.sync="activeSettingTab"
+                :active-tab="activeSettingTab"
                 :tpl-resource="tplResource"
                 :tpl-actions="tplActions"
                 :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
+                @onChangePanel="onChangeSettingPanel"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <SubflowUpdateTips
@@ -71,6 +73,7 @@
                     :node-id="idOfNodeInConfigPanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
+                    @variableDataChanged="variableDataChanged"
                     @close="closeConfigPanel">
                 </node-config>
                 <condition-edit
@@ -80,13 +83,10 @@
                     @onCloseConditionEdit="onCloseConditionEdit">
                 </condition-edit>
                 <template-setting
-                    ref="templateSetting"
-                    :is-global-variable-update="isGlobalVariableUpdate"
                     :project-info-loading="projectInfoLoading"
                     :is-template-config-valid="isTemplateConfigValid"
                     :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
-                    @globalVariableUpdate="globalVariableUpdate"
                     @variableDataChanged="variableDataChanged"
                     @onSelectCategory="onSelectCategory"
                     @onCitedNodeClick="onCitedNodeClick"
@@ -614,7 +614,6 @@
              * @param {String} id 节点uuid
              */
             showConfigPanel (id) {
-                this.variableDataChanged()
                 this.isNodeConfigPanelShow = true
                 this.idOfNodeInConfigPanel = id
             },
@@ -873,6 +872,13 @@
                 this.variableDataChanged()
                 this.setTemplateName(name)
             },
+            // 选择侧滑面板
+            onChangeSettingPanel (val) {
+                this.activeSettingTab = val
+                if (this.isGlobalVariableUpdate && val === 'globalVariableTab') {
+                    this.isGlobalVariableUpdate = false
+                }
+            },
             // 基础属性-->模板分类修改
             onSelectCategory (value) {
                 if (value) {
@@ -901,13 +907,12 @@
             },
             // 校验基础属性
             checkBasicProperty () {
-                const templateSetting = this.$refs.templateSetting
                 // 模板分类是否选择
                 if (!this.category) {
                     this.isTemplateConfigValid = false
                     this.templateSaving = false
                     this.createTaskSaving = false
-                    templateSetting.setErrorTab('templateConfigTab')
+                    this.activeSettingTab = 'templateConfigTab'
                     return
                 }
                 this.checkNodeAndSaveTemplate()

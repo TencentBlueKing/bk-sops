@@ -38,9 +38,10 @@
                     v-for="tab in settingTabs"
                     :key="tab.id"
                     :class="['setting-item', {
-                        'active': activeTab === tab.id
+                        'active': activeTab === tab.id,
+                        'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
                     }]"
-                    @click="$emit('update:activeTab', tab.id)">
+                    @click="$emit('onChangePanel', tab.id)">
                     <i :class="tab.icon" :title="tab.title"></i>
                 </span>
             </div>
@@ -99,10 +100,8 @@
             templateSaving: Boolean,
             createTaskSaving: Boolean,
             activeTab: String,
-            isTemplateDataChanged: {
-                type: Boolean,
-                default: false
-            },
+            isGlobalVariableUpdate: Boolean,
+            isTemplateDataChanged: Boolean,
             tplResource: {
                 type: Object,
                 default () {
@@ -383,15 +382,27 @@
             line-height: 32px;
             border-right: 1px solid #dcdee5;
             .setting-item {
+                position: relative;
                 margin-right: 20px;
                 font-size: 16px;
                 color: #546a9e;
                 cursor: pointer;
-                &:hover {
+                &:hover,
+                &.active {
                     color: #3a84ff;
                 }
                 &:last-child {
                     margin-right: 0;
+                }
+                &.update::before {
+                    content: '';
+                    position: absolute;
+                    right: -6px;
+                    top: -6px;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #ff5757;
                 }
             }
         }
