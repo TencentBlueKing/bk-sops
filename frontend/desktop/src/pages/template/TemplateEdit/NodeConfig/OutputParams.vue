@@ -34,7 +34,7 @@
             width="600"
             @confirm="onConfirm"
             @cancel="onCancel">
-            <div class="reuse-variable-dialog">
+            <div class="variable-dialog">
                 <bk-form
                     ref="form"
                     :model="formData"
@@ -55,6 +55,7 @@
 <script>
     import '@/utils/i18n.js'
     import i18n from '@/config/i18n/index.js'
+    import tools from '@/utils/tools.js'
     import { mapState, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
     export default {
@@ -71,7 +72,6 @@
             return {
                 list,
                 isShow: false,
-                rowData: {},
                 formData: {},
                 selectIndex: '',
                 propsInfo: {},
@@ -133,10 +133,6 @@
         watch: {
             params (val) {
                 this.list = this.getOutputsList(val)
-            },
-            isShow (val) {
-                this.formData.name = this.rowData.name
-                this.formData.key = this.rowData.key
             }
         },
         methods: {
@@ -156,6 +152,7 @@
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
                                 key = item
+                                // name = varItem.name
                                 return true
                             }
                         }
@@ -173,15 +170,16 @@
              * 输出参数勾选切换
              */
             onHookChange (props, val) {
+                const index = props.$index
                 if (val) {
                     this.isShow = true
-                    this.rowData = props.row
-                    this.selectIndex = props.$index
-                    this.propsInfo = props
+                    this.formData = tools.deepClone(props.row)
+                    this.selectIndex = index
+                    // this.propsInfo = props
                 } else {
                     this.deleteVariable(props.row.key)
-                    this.list[props.$index].key = this.params[props.$index].key
-                    this.list[props.$index].name = this.params[props.$index].name
+                    this.list[index].key = this.params[index].key
+                    this.list[index].name = this.params[index].name
                 }
             },
             onConfirm ($event) {
@@ -189,17 +187,24 @@
                     if (result) {
                         const { name, key } = this.formData
                         this.isShow = false
-                        const version = this.isSubflow ? this.propsInfo.version : this.version
+                        console.log(this.params)
+                        const version = this.isSubflow ? this.list[this.selectIndex].version : this.version
+                        let setKey = ''
+                        if ((/^\$\{((?!\{).)*\}$/).test(key)) {
+                            this.list[this.selectIndex].key = key
+                            setKey = key
+                        } else {
+                            this.list[this.selectIndex].key = `\$\{${key}\}`
+                            setKey = `\$\{${key}\}`
+                        }
                         const config = {
                             name: name,
-                            key: `\$\{${key}\}`,
+                            key: setKey,
                             source_info: {
-                                [this.nodeId]: [this.rowData.key]
+                                [this.nodeId]: [this.params[this.selectIndex].key]
                             },
                             version
                         }
-                        this.list[this.selectIndex].name = name
-                        this.list[this.selectIndex].key = `\$\{${key}\}`
                         this.createVariable(config)
                     }
                 })
@@ -231,7 +236,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    .reuse-variable-dialog {
+    .variable-dialog {
         padding: 30px;
         .new-var-notice {
             margin-bottom: 10px;
