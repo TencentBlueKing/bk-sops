@@ -40,10 +40,11 @@
                         <div style="padding-right: 30px;">{{ $t('查看全局变量') }}</div>
                         <div class="variable-list" slot="content">
                             <bk-table :data="variableList" :max-height="400">
-                                <bk-table-column :label="$t('名称')" prop="name" width="165"></bk-table-column>
-                                <bk-table-column label="KEY">
+                                <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
+                                <bk-table-column label="KEY" :show-overflow-tooltip="true">
                                     <template slot-scope="props" width="165">
                                         <div class="key">{{ props.row.key }}</div>
+                                        <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
                                     </template>
                                 </bk-table-column>
                                 <bk-table-column :label="$t('属性')" width="80">
@@ -106,6 +107,7 @@
                                             :value="inputsParamValue"
                                             :is-subflow="isSubflow"
                                             @globalVariableUpdate="$emit('globalVariableUpdate', true)"
+                                            @hookChange="onHookChange"
                                             @update="updateInputsValue">
                                         </input-params>
                                         <no-data v-else></no-data>
@@ -196,19 +198,27 @@
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow // 是否显示选择插件(子流程)面板
+                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
+                variablesChangeMap: { // 全局变量变化(新增、删除、更新 source_info 字段)映射表，输入、输出参数勾选和反勾选时更新
+                    createVars: {},
+                    delVars: {},
+                    updateVars: {}
+                }
             }
         },
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'systemConstants': state => state.template.systemConstants,
                 'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output
             }),
             variableList () {
-                return Object.keys(this.constants).map(key => this.constants[key])
+                const systemVars = Object.keys(this.systemConstants).map(key => this.systemConstants[key])
+                const userVars = Object.keys(this.constants).map(key => this.constants[key])
+                return [...systemVars, ...userVars]
             },
             isSubflow () {
                 return this.nodeConfig.type !== 'ServiceActivity'
@@ -284,6 +294,7 @@
                 'setVariableSourceInfo',
                 'setSubprocessUpdated',
                 'setActivities',
+                'addVariable',
                 'deleteVariable'
             ]),
             // 初始化节点数据
@@ -535,12 +546,35 @@
                     return sourceInfo && sourceInfo.includes(form.tag_code)
                 })
             },
+            /**
+             * 变量 key 复制
+             */
+            onCopyKey (key) {
+                this.copyText = key
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            /**
+             * 复制操作回调函数
+             */
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
+            },
             // 由标准插件(子流程)选择面板返回配置面板
             goBackToConfig () {
                 if (this.isSelectorPanelShow && (this.basicInfo.plugin || this.basicInfo.tpl)) {
                     this.isSelectorPanelShow = false
                 }
             },
+            
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
@@ -741,6 +775,10 @@
                 const { href } = this.$router.resolve(pathData)
                 window.open(href, '_blank')
             },
+            // 输入、输出参数勾选状态变化
+            onHookChange (type, form, data) {
+                this.$set(this.variablesChangeMap[type], form, data)
+            },
             // 节点配置面板表单校验，基础信息和输入参数
             validate () {
                 return this.$refs.basicInfo.validate().then(validator => {
@@ -809,6 +847,18 @@
                 this.nodeConfig = config
                 this.setActivities({ type: 'edit', location: config })
             },
+            handleVariableChange () {
+                const { createVars, delVars, updateVars } = this.variablesChangeMap
+                for (const key in createVars) {
+                    this.addVariable(createVars[key])
+                }
+                for (const key in delVars) {
+                    this.setVariableSourceInfo(delVars[key])
+                }
+                for (const key in updateVars) {
+                    this.setVariableSourceInfo(updateVars[key])
+                }
+            },
             // 由父组件调用，获取节点基础信息
             getBasicInfo () {
                 return this.basicInfo
@@ -823,6 +873,7 @@
                         console.log('result', result)
                         const { skippable, retryable, selectable: optional } = this.basicInfo
                         this.syncActivity() // @todo 更新节点状态
+                        this.handleVariableChange() // 更新全局变量列表
                         this.$emit('updateNodeInfo', this.nodeId, { status: '', skippable, retryable, optional })
                         this.$emit('close')
                     }
@@ -908,6 +959,25 @@
                 .color-org {
                     color: #de9524;
                 }
+            }
+        }
+        td {
+            position: relative;
+            &:hover {
+                .copy-icon {
+                    display: inline-block;
+                }
+            }
+        }
+        .copy-icon {
+            display: none;
+            position: absolute;
+            top: 14px;
+            right: 2px;
+            font-size: 14px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
             }
         }
     }

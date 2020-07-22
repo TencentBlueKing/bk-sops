@@ -33,7 +33,7 @@
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import ReuseVarDialog from './ReuseVarDialog.vue'
-    import { mapState, mapMutations } from 'vuex'
+    import { mapState } from 'vuex'
 
     const varKeyReg = /^\$\{(\w+)\}$/
 
@@ -55,6 +55,7 @@
         data () {
             return {
                 formData: tools.deepClone(this.value),
+                hooked: {},
                 hookingVarForm: '', // 正被勾选的表单项
                 isKeyExist: false, // 勾选的表单生成的 key 是否在全局变量列表中存在
                 isReuseDialogShow: false,
@@ -70,8 +71,18 @@
         computed: {
             ...mapState({
                 'constants': state => state.template.constants
-            }),
-            hooked () {
+            })
+        },
+        watch: {
+            value (val) {
+                this.formData = tools.deepClone(val)
+            }
+        },
+        created () {
+            this.hooked = this.getFormsHookState()
+        },
+        methods: {
+            getFormsHookState () {
                 const hooked = {}
                 const keys = Object.keys(this.constants)
                 this.scheme.forEach(form => {
@@ -85,24 +96,10 @@
                             }
                         }
                     })
-                    // 勾选中的状态，变量复用弹窗出现时
-                    const isHooking = this.hookingVarForm === form.tag_code
-                    hooked[form.tag_code] = isHooked || isHooking
+                    hooked[form.tag_code] = isHooked
                 })
                 return hooked
-            }
-        },
-        watch: {
-            value (val) {
-                this.formData = tools.deepClone(val)
-            }
-        },
-        methods: {
-            ...mapMutations('template/', [
-                'addVariable',
-                'deleteVariable',
-                'setVariableSourceInfo'
-            ]),
+            },
             onInputsValChange (val) {
                 this.$emit('update', tools.deepClone(val))
             },
@@ -131,6 +128,7 @@
                 const version = this.isSubflow ? this.subflowForms[form].version : this.version
                 let isKeyInVariables = false
                 this.hookingVarForm = form
+                this.hooked[form] = true
 
                 Object.keys(this.constants).forEach(keyItem => {
                     const constant = this.constants[keyItem]
@@ -174,14 +172,16 @@
                 const variableKey = this.formData[form]
                 const constant = this.constants[variableKey]
                 if (constant) { // 标准插件里(如：job_execute_task)可能会修改表单的勾选状态，需要做一个兼容处理
-                    this.formData[form] = tools.deepClone(constant.value)
-                    this.$emit('update', tools.deepClone(this.formData))
-                    this.setVariableSourceInfo({
+                    const config = ({
                         type: 'delete',
                         id: this.nodeId,
                         key: variableKey,
                         tagCode: form
                     })
+                    this.formData[form] = tools.deepClone(constant.value)
+                    this.hooked[form] = false
+                    this.$emit('update', tools.deepClone(this.formData))
+                    this.$emit('hookChange', 'delVars', form, config)
                     this.$emit('globalVariableUpdate')
                 }
             },
@@ -233,10 +233,10 @@
                 }
                 const variable = Object.assign({}, defaultOpts, config)
                 this.formData[this.hookingVarForm] = variable.key
-                this.hookingVarForm = ''
-                this.addVariable(variable)
+                this.$emit('hookChange', 'createVars', this.hookingVarForm, variable)
                 this.$emit('update', tools.deepClone(this.formData))
                 this.$emit('globalVariableUpdate')
+                this.hookingVarForm = ''
             },
             /**
              * 复用变量弹窗点击确认回调
@@ -252,13 +252,14 @@
                     this.createVariable(config)
                 } else { // 复用已有全局变量
                     const variableKey = data
-                    this.setVariableSourceInfo({
+                    const config = {
                         type: 'add',
                         id: this.nodeId,
                         key: variableKey,
                         tagCode: this.hookingVarForm
-                    })
+                    }
                     this.formData[this.hookingVarForm] = variableKey
+                    this.$emit('hookChange', 'updateVars', this.hookingVarForm, config)
                     this.$emit('update', tools.deepClone(this.formData))
                     this.hookingVarForm = ''
                 }
