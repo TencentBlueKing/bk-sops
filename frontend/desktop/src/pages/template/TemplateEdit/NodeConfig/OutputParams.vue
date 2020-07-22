@@ -109,6 +109,7 @@
                 } else {
                     this.deleteVariable(props.row.key)
                     this.list[props.$index].key = this.params[props.$index].key
+                    this.list[props.$index].name = this.params[props.$index].name
                 }
             },
             onConfirmReuseVar (type, data) {
