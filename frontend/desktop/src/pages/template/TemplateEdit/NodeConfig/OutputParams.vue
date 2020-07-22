@@ -16,20 +16,29 @@
             <bk-table-column :label="$t('引用')" :width="100" align="center">
                 <template slot-scope="props">
                     <bk-checkbox
-                        :value="props.row.hooked"
+                        v-model="props.row.hooked"
                         @change="onHookChange(props, $event)">
                     </bk-checkbox>
                 </template>
             </bk-table-column>
         </bk-table>
+        <on-hook-dialog
+            :is-show="isShow"
+            :data="formData"
+            @confirm="onConfirmReuseVar"
+            @cancel="onCancelReuseVar">
+        </on-hook-dialog>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
-    import { random4 } from '@/utils/uuid.js'
+    import onHookDialog from './onHookDialog'
     export default {
         name: 'OutputParams',
+        components: {
+            onHookDialog
+        },
         props: {
             params: Array,
             isSubflow: Boolean,
@@ -39,7 +48,11 @@
         data () {
             const list = this.getOutputsList(this.params)
             return {
-                list
+                list,
+                isShow: false,
+                formData: {},
+                selectIndex: '',
+                propsInfo: {}
             }
         },
         computed: {
@@ -63,19 +76,21 @@
                 const varKeys = Object.keys(constants)
                 this.params.forEach(param => {
                     let key = param.key
+                    let name = param.name
                     const isHooked = varKeys.some(item => {
                         const varItem = constants[item]
                         if (varItem.source_type === 'component_outputs') {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
                                 key = item
+                                name = varItem.name
                                 return true
                             }
                         }
                     })
                     list.push({
                         key,
-                        name: param.name,
+                        name,
                         version: param.version,
                         hooked: isHooked
                     })
@@ -86,34 +101,38 @@
              * 输出参数勾选切换
              */
             onHookChange (props, val) {
-                const { key, name } = props.row
-                const version = this.isSubflow ? props.version : this.version
-                const index = props.$index
-                const variableKey = this.generateRandomKey(key)
-                if (val) { // 勾选到全局变量，不同节点间的相同变量没有复用逻辑，每次勾选用生成新的随机数拼接
-                    const config = {
-                        name,
-                        key: variableKey,
-                        source_info: {
-                            [this.nodeId]: [key]
-                        },
-                        version
-                    }
-                    this.list[index].key = variableKey
-                    this.createVariable(config)
-                } else { // 取消勾选
-                    this.list[index].key = this.params[index].key
-                    this.deleteVariable(key)
+                if (val) {
+                    this.isShow = true
+                    this.formData = props.row
+                    this.selectIndex = props.$index
+                    this.propsInfo = props
+                } else {
+                    this.deleteVariable(props.row.key)
+                    this.list[props.$index].key = this.params[props.$index].key
                 }
-                this.$emit('globalVariableUpdate')
             },
-            // 随机生成变量 key，长度为 14，不可重复
-            generateRandomKey (key) {
-                let variableKey = key.replace(/^\$\{/, '').replace(/(\}$)/, '').slice(0, 14)
-                do {
-                    variableKey = '${' + variableKey + '_' + random4() + '}'
-                } while (this.constants[variableKey])
-                return variableKey
+            onConfirmReuseVar (type, data) {
+                this.isShow = false
+                const version = this.isSubflow ? this.propsInfo.version : this.version
+                const config = {
+                    name: data.name,
+                    key: `\$\{${data.key}\}`,
+                    source_info: {
+                        [this.nodeId]: [this.formData.key]
+                    },
+                    version
+                }
+                this.list[this.selectIndex].name = data.name
+                this.list[this.selectIndex].key = `\$\{${data.key}\}`
+                this.createVariable(config)
+            },
+            /**
+             * 取消复用变量回调
+             */
+            onCancelReuseVar (key) {
+                this.isShow = false
+                this.list[this.selectIndex].hooked = false
+                console.log(this.list[this.selectIndex])
             },
             createVariable (variableOpts) {
                 const len = Object.keys(this.constants).length
