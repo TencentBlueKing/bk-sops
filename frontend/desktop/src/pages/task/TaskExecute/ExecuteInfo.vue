@@ -131,7 +131,7 @@
                     <NoData v-else></NoData>
                 </div>
             </section>
-            <section class="info-section" v-if="historyInfo.length">
+            <section class="info-section" v-if="historyInfo && historyInfo.length">
                 <h4 class="common-section-title">{{ $t('执行记录') }}</h4>
                 <bk-table
                     class="retry-table"
@@ -542,10 +542,11 @@
                         const pluginInfo = this.atomFormInfo[componentCode][version]
                         this.executeInfo.plugin_name = `${pluginInfo.group_name}-${pluginInfo.name}`
                     }
-                    this.historyInfo.forEach(item => {
-                        item.last_time = this.getLastTime(item.elapsed_time)
-                    })
-
+                    if (this.historyInfo) {
+                        this.historyInfo.forEach(item => {
+                            item.last_time = this.getLastTime(item.elapsed_time)
+                        })
+                    }
                     if (this.executeInfo.ex_data && this.executeInfo.ex_data.show_ip_log) {
                         this.failInfo = this.transformFailInfo(this.executeInfo.ex_data.exception_msg)
                     } else {
