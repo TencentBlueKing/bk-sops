@@ -432,9 +432,9 @@
                 this.projectInfoLoading = true
                 this.categoryLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(data)
-                    this.templateCategoryList = data.task_categories
+                    const res = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(res.data)
+                    this.templateCategoryList = res.data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

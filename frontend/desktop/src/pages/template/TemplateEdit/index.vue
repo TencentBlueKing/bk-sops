@@ -422,7 +422,7 @@
                 this.projectInfoLoading = true
                 try {
                     const resp = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(resp)
+                    this.setProjectBaseInfo(resp.data)
                     this.getSubflowList()
                 } catch (e) {
                     errorHandler(e, this)
@@ -521,8 +521,8 @@
             },
             async getSubflowConfig (location) { // get subflow constants and add node
                 try {
-                    const subflowConfig = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
-                    const constants = tools.deepClone(subflowConfig.form)
+                    const res = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
+                    const constants = tools.deepClone(res.data.form)
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
