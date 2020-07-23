@@ -133,11 +133,16 @@ class TaskFlowInstanceResource(GCloudModelResource):
             request.user.username, [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_TASK_ACTION], templates_id
         )
 
-        template_info = TaskTemplate.objects.filter(id__in=templates_id).values("id", "pipeline_template__name")
-        template_names = {t["id"]: t["pipeline_template__name"] for t in template_info}
+        template_info = TaskTemplate.objects.filter(id__in=templates_id).values(
+            "id", "pipeline_template__name", "is_deleted"
+        )
+        template_info_map = {
+            str(t["id"]): {"name": t["pipeline_template__name"], "is_deleted": t["is_deleted"]} for t in template_info
+        }
 
         for bundle in data["objects"]:
-            bundle.data["template_name"] = template_names.get(bundle.obj.template_id)
+            bundle.data["template_name"] = template_info_map.get(bundle.obj.template_id, {}).get("name")
+            bundle.data["template_deleted"] = template_info_map.get(bundle.obj.template_id, {}).get("is_deleted", True)
             for act, allowed in templates_allowed_actions.get(str(bundle.obj.template_id), {}).items():
                 if allowed:
                     bundle.data["auth_actions"].append(act)
