@@ -357,7 +357,7 @@
                     const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                     const res = await this.queryUserPermission({
                         action: 'common_flow_create_task',
-                        resoures: [
+                        resources: [
                             {
                                 system: bkSops.id,
                                 type: 'project',

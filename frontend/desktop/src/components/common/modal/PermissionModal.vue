@@ -113,13 +113,13 @@
                 this.isModalShow = true
                 this.permissionData = data
             },
-            getResource (resoures) {
-                if (resoures.length === 0) {
+            getResource (resources) {
+                if (resources.length === 0) {
                     return ['--']
                 }
 
                 const data = []
-                resoures.forEach(resource => {
+                resources.forEach(resource => {
                     if (resource.instances.length > 0) {
                         const instances = resource.instances.map(instanceItem => {
                             return instanceItem.map(item => item.name).join('，')
