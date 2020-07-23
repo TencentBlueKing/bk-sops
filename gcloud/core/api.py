@@ -98,7 +98,7 @@ def get_basic_info(request):
         "notify_group": notify_group,
         "notify_type_list": notify_type_list,
     }
-    return JsonResponse(ctx, safe=False)
+    return JsonResponse({"result": True, "data": ctx})
 
 
 @require_GET
