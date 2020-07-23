@@ -359,12 +359,12 @@
                     let resourceData = {}
                     if (this.isCreateNewApp) {
                         const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
-                        resourceData = [{
+                        resourceData = {
                             flow: [{
                                 id: this.appData.appTemplate,
                                 name: templateName
                             }]
-                        }]
+                        }
                     } else {
                         resourceData = {
                             mini_app: [{
