@@ -122,7 +122,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account="", bk_supplier_id=
             if "module" in fields:
                 host_detail["module"] = host["module"]
             if "cloud" in fields or "agent" in fields:
-                cloud_id = host["host"]["bk_cloud_id"]
+                cloud_id = host["host"].get("bk_cloud_id")
                 host_detail["cloud"] = [
                     {"id": str(cloud_id), "bk_inst_name": cloud_area_dict.get(cloud_id, {}).get("bk_cloud_name", "")}
                 ]
