@@ -120,7 +120,7 @@
         </section>
         <section class="info-section" v-if="adminView">
             <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
-            <div class="code-block-wrap">
+            <div class="code-block-wrap code-editor">
                 <code-editor
                     :value="logInfo"
                     :options="{ readOnly: readOnly, language: 'javascript' }">
@@ -656,6 +656,9 @@
     }
     /deep/ .vjs-tree {
         font-size: 12px;
+    }
+    /deep/ .code-editor {
+        height: 300px;
     }
     .excute-time {
         margin-bottom: 40px;
