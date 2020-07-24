@@ -79,7 +79,7 @@ def status(request, project_id):
         ctx = {"result": True, "data": task_status}
     # subprocess pipeline has not executed
     except exceptions.InvalidOperationException:
-        ctx = {"result": True, "data": {"state": states.CREATED}}
+        ctx = {"result": True, "data": {"state": states.READY}}
     except Exception as e:
         message = "taskflow[id=%s] get status error: %s" % (instance_id, e)
         logger.error(message)
