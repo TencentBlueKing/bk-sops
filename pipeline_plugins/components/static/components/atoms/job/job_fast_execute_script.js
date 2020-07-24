@@ -128,7 +128,8 @@
                 hookable: true,
                 placeholder: gettext("填写执行脚本内容"),
                 language: "shell",
-                height: "200px",
+                showLanguageSwitch: false,
+                height: "400px",
                 validation: [
                     {
                         type: "custom",
