@@ -71,5 +71,6 @@ def migrate_pipeline_parent_data(request):
     for key in pipeline_data_keys:
         value = _backend.get_object(key)
         _candidate_backend.set_object(key, value)
+        r.expire(key, 60 * 60 * 24)  # expire in 1 day
 
     return JsonResponse({"result": True, "code": err_code.SUCCESS.code, "data": pipeline_data_keys})
