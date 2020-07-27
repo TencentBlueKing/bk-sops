@@ -106,6 +106,10 @@
             },
             readOnly () {
                 this.onLanguageChange()
+            },
+            language (val) {
+                this.language = val
+                this.$refs.tagCodeEditor && this.$refs.tagCodeEditor.updateOptions()
             }
         },
         methods: {
