@@ -36,6 +36,7 @@
                 :class="{
                     'btn-permission-disable': !hasSavePermission
                 }"
+                :loading="btnLoading"
                 v-cursor="{ active: !hasSavePermission }"
                 @click="onModifyParams">
                 {{ $t('保存') }}
@@ -61,6 +62,7 @@
         props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'instanceOperations', 'instanceResource'],
         data () {
             return {
+                btnLoading: false,
                 bkMessageInstance: null,
                 constants: [],
                 cntLoading: true, // 全局变量加载
@@ -107,6 +109,7 @@
                 }
             },
             async onModifyParams () {
+                this.btnLoading = true
                 if (!this.hasSavePermission) {
                     const resourceData = {
                         id: this.instance_id,
@@ -151,6 +154,7 @@
                     errorHandler(e, this)
                 } finally {
                     this.pending = false
+                    this.btnLoading = false
                 }
             },
             onChangeConfigLoading (val) {
