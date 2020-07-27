@@ -227,7 +227,8 @@
             list: [
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
                 { 'value': 'runing', 'name': i18n.t('未完成') },
-                { 'value': 'finished', 'name': i18n.t('完成') }
+                { 'value': 'finished', 'name': i18n.t('完成') },
+                { 'value': 'Revoke', 'name': i18n.t('撤销') }
             ],
             value: ''
         }
