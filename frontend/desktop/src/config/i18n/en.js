@@ -1,6 +1,8 @@
 const en = {
     '': '',
     '（': '(',
+    '查看节点详情': 'View Node Details',
+    '节点详情': 'Node Details',
     '接口数据返回为空': 'No data returned by API',
     '接口异常，': 'API error, ',
     'HTTP状态码：': 'HTTP Status:',
@@ -360,7 +362,6 @@ const en = {
     '服务地址': 'Service Address',
     '已导入插件': 'Plugins Imported',
     '根模块': 'Root Module',
-    '已导入模块': 'Modules Imported',
     '插件名': 'Plugin Name',
     '类名': 'Class Name',
     '所属模块': 'Module',
@@ -993,7 +994,9 @@ const en = {
     '新建快照': 'New snapshot',
     '可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。': 'It can automatically save the last 50 snapshots, every 5 minutes. Store only in local browser.',
     '最近快照已保存，并恢复至原序号为': 'The most recent snapshot has been saved and restored to the original number',
-    '的快照': 'snapshot'
+    '的快照': 'snapshot',
+    '历史记录': 'History',
+    '：': ': '
 }
 
 export default en

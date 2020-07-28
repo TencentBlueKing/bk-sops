@@ -50,7 +50,7 @@
                                 <bk-table-column :label="$t('属性')" width="80">
                                     <div class="icon-wrap" slot-scope="props">
                                         <i
-                                            :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-show-right color-org']"
+                                            :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-hide-right color-org']"
                                             v-bk-tooltips="{
                                                 content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
                                                 placements: ['bottom']
@@ -121,9 +121,11 @@
                                     <template v-if="!outputLoading">
                                         <output-params
                                             v-if="outputs.length"
+                                            :constants="localConstants"
                                             :params="outputs"
                                             :version="basicInfo.version"
-                                            :node-id="nodeId">
+                                            :node-id="nodeId"
+                                            @hookChange="onHookChange">
                                         </output-params>
                                         <no-data v-else></no-data>
                                     </template>

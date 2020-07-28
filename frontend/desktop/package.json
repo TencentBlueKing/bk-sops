@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@blueking/user-selector": "^1.0.5-beta.2",
     "ajv": "^6.10.2",
     "art-template": "^4.13.0",
     "axios": "^0.18.0",

@@ -26,36 +26,112 @@
             <bk-table-column :label="$t('引用')" :width="100" align="center">
                 <template slot-scope="props">
                     <bk-checkbox
-                        :value="props.row.hooked"
+                        v-model="props.row.hooked"
                         @change="onHookChange(props, $event)">
                     </bk-checkbox>
                 </template>
             </bk-table-column>
         </bk-table>
+        <bk-dialog
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :render-directive="'if'"
+            :header-position="'left'"
+            :title="$t('新建变量')"
+            :auto-close="false"
+            :value="isShow"
+            width="600"
+            @confirm="onConfirm"
+            @cancel="onCancel">
+            <div class="variable-dialog">
+                <bk-form
+                    ref="form"
+                    :model="formData"
+                    :rules="rules">
+                    <template>
+                        <bk-form-item :label="$t('变量名称')" property="name" :required="true">
+                            <bk-input name="variableName" v-model="formData.name"></bk-input>
+                        </bk-form-item>
+                        <bk-form-item :label="$t('变量KEY')" property="key" :required="true">
+                            <bk-input name="variableKey" v-model="formData.key"></bk-input>
+                        </bk-form-item>
+                    </template>
+                </bk-form>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
-    import { mapState, mapMutations } from 'vuex'
-    import { random4 } from '@/utils/uuid.js'
+    import i18n from '@/config/i18n/index.js'
+    import tools from '@/utils/tools.js'
+    import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
     export default {
         name: 'OutputParams',
         props: {
             params: Array,
+            constants: Object,
             isSubflow: Boolean,
             nodeId: String,
             version: String // 标准插件版本或子流程版本
         },
         data () {
             const list = this.getOutputsList(this.params)
+            const $this = this
             return {
-                list
+                list,
+                isShow: false,
+                formData: {},
+                selectIndex: '',
+                rules: {
+                    name: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                            message: i18n.t('变量名称长度不能超过') + STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            regex: NAME_REG,
+                            message: i18n.t('变量名称不能包含') + INVALID_NAME_CHAR + i18n.t('非法字符'),
+                            trigger: 'blur'
+                        }
+                    ],
+                    key: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        },
+                        {
+                            max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
+                            message: i18n.t('变量KEY值长度不能超过') + STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH + i18n.t('个字符'),
+                            trigger: 'blur'
+                        },
+                        {
+                            // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
+                            regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/,
+                            message: i18n.t('变量KEY由英文字母、数字、下划线组成，且不能以数字开头'),
+                            trigger: 'blur'
+                        },
+                        {
+                            validator (val) {
+                                const value = /^\$\{\w+\}$/.test(val) ? val : `\${${val}}`
+                                if (value in $this.constants) {
+                                    return false
+                                }
+                                return true
+                            },
+                            message: i18n.t('变量KEY值已存在'),
+                            trigger: 'blur'
+                        }
+                    ]
+                }
             }
-        },
-        computed: {
-            ...mapState({
-                'constants': state => state.template.constants
-            })
         },
         watch: {
             params (val) {
@@ -63,18 +139,13 @@
             }
         },
         methods: {
-            ...mapMutations('template/', [
-                'addVariable',
-                'deleteVariable'
-            ]),
             getOutputsList () {
                 const list = []
-                const constants = this.$store.state.template.constants
-                const varKeys = Object.keys(constants)
+                const varKeys = Object.keys(this.constants)
                 this.params.forEach(param => {
                     let key = param.key
                     const isHooked = varKeys.some(item => {
-                        const varItem = constants[item]
+                        const varItem = this.constants[item]
                         if (varItem.source_type === 'component_outputs') {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
@@ -96,33 +167,52 @@
              * 输出参数勾选切换
              */
             onHookChange (props, val) {
-                const { key, name } = props.row
-                const version = this.isSubflow ? props.version : this.version
                 const index = props.$index
-                const variableKey = this.generateRandomKey(key)
-                if (val) { // 勾选到全局变量，不同节点间的相同变量没有复用逻辑，每次勾选用生成新的随机数拼接
-                    const config = {
-                        name,
-                        key: variableKey,
-                        source_info: {
-                            [this.nodeId]: [key]
-                        },
-                        version
-                    }
-                    this.list[index].key = variableKey
-                    this.createVariable(config)
-                } else { // 取消勾选
+                if (val) {
+                    this.isShow = true
+                    this.formData = tools.deepClone(props.row)
+                    this.selectIndex = index
+                } else {
+                    const config = ({
+                        type: 'delete',
+                        id: this.nodeId,
+                        key: props.row.key,
+                        tagCode: props.row.key
+                    })
+                    this.$emit('hookChange', 'delete', config)
                     this.list[index].key = this.params[index].key
-                    this.deleteVariable(key)
+                    this.list[index].name = this.params[index].name
                 }
             },
-            // 随机生成变量 key，长度为 14，不可重复
-            generateRandomKey (key) {
-                let variableKey = key.replace(/^\$\{/, '').replace(/(\}$)/, '').slice(0, 14)
-                do {
-                    variableKey = '${' + variableKey + '_' + random4() + '}'
-                } while (this.constants[variableKey])
-                return variableKey
+            onConfirm ($event) {
+                this.$refs.form.validate().then(result => {
+                    if (result) {
+                        const { name, key } = this.formData
+                        this.isShow = false
+                        const version = this.isSubflow ? this.list[this.selectIndex].version : this.version
+                        let setKey = ''
+                        if ((/^\$\{((?!\{).)*\}$/).test(key)) {
+                            this.list[this.selectIndex].key = key
+                            setKey = key
+                        } else {
+                            this.list[this.selectIndex].key = `\$\{${key}\}`
+                            setKey = `\$\{${key}\}`
+                        }
+                        const config = {
+                            name: name,
+                            key: setKey,
+                            source_info: {
+                                [this.nodeId]: [this.params[this.selectIndex].key]
+                            },
+                            version
+                        }
+                        this.createVariable(config)
+                    }
+                })
+            },
+            onCancel () {
+                this.isShow = false
+                this.list[this.selectIndex].hooked = false
             },
             createVariable (variableOpts) {
                 const len = Object.keys(this.constants).length
@@ -141,8 +231,23 @@
                     version: ''
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
-                this.addVariable(variable)
+                this.$emit('hookChange', 'create', variable)
             }
         }
     }
 </script>
+<style lang="scss" scoped>
+    .variable-dialog {
+        padding: 30px;
+        .new-var-notice {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #ea3636;
+        }
+        .bk-form:not(.bk-form-vertical) {
+            /deep/ .bk-form-content {
+                margin-right: 30px;
+            }
+        }
+    }
+</style>

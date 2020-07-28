@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import sys
 
 from django.test import TestCase
+from django.conf import settings
 
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
@@ -61,7 +62,10 @@ class PluginPathTestCase(TestCase):
                 "CCCreateModuleComponent",
                 "CCCreateModuleService",
             ],
-            "pipeline.components.collections.sites.community.bk": ["NotifyComponent", "NotifyService"],
+            "pipeline.components.collections.sites.{}.bk".format(settings.OPEN_VER): [
+                "NotifyComponent",
+                "NotifyService",
+            ],
             "pipeline_plugins.components.collections.common": ["HttpComponent", "HttpRequestService"],
             "pipeline_plugins.components.collections.sites.open.cc.transfer_host_module.v1_0": [
                 "CCTransferHostModuleComponent",
@@ -92,7 +96,7 @@ class PluginPathTestCase(TestCase):
                 "CmdbTransferHostResourceModuleComponent",
                 "CmdbTransferHostResourceModuleService",
             ],
-            "pipeline_plugins.components.collections.sites.community.cc": [
+            "pipeline_plugins.components.collections.sites.{}.cc".format(settings.OPEN_VER): [
                 "CCBatchDeleteSetComponent",
                 "CCBatchDeleteSetService",
                 "CCCreateSetComponent",
@@ -118,7 +122,7 @@ class PluginPathTestCase(TestCase):
                 "CmdbTransferHostResourceModuleComponent",
                 "CmdbTransferHostResourceModuleService",
             ],
-            "pipeline_plugins.components.collections.sites.community.job": [
+            "pipeline_plugins.components.collections.sites.{}.job".format(settings.OPEN_VER): [
                 "JobCronTaskComponent",
                 "JobCronTaskService",
                 "JobExecuteTaskComponent",
@@ -151,7 +155,10 @@ class PluginPathTestCase(TestCase):
                 "CCUpdateModuleComponent",
                 "CCUpdateModuleService",
             ],
-            "pipeline_plugins.components.collections.sites.community.bk": ["NotifyComponent", "NotifyService"],
+            "pipeline_plugins.components.collections.sites.{}.bk".format(settings.OPEN_VER): [
+                "NotifyComponent",
+                "NotifyService",
+            ],
             "pipeline_plugins.components.collections.sites.open.cc.batch_delete_set.v1_0": [
                 "CCBatchDeleteSetComponent",
                 "CCBatchDeleteSetService",
@@ -175,7 +182,7 @@ class PluginPathTestCase(TestCase):
                 "CCEmptySetHostsService",
             ],
             "pipeline_plugins.components.collections.http.v1_0": ["HttpComponent", "HttpRequestService"],
-            "pipeline.components.collections.sites.community.job": [
+            "pipeline.components.collections.sites.{}.job".format(settings.OPEN_VER): [
                 "JobCronTaskComponent",
                 "JobCronTaskService",
                 "JobExecuteTaskComponent",
@@ -226,7 +233,7 @@ class PluginPathTestCase(TestCase):
                 "NodemanCreateTaskComponent",
                 "NodemanCreateTaskService",
             ],
-            "pipeline.components.collections.sites.community.cc": [
+            "pipeline.components.collections.sites.{}.cc".format(settings.OPEN_VER): [
                 "CCBatchDeleteSetComponent",
                 "CCBatchDeleteSetService",
                 "CCCreateSetComponent",

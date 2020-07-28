@@ -89,8 +89,6 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- </div> -->
-            <!-- </bk-sideslider> -->
         </div>
     </bk-sideslider>
 </template>
