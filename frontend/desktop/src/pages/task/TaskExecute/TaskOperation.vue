@@ -790,26 +790,7 @@
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             
-            // 查看参数、修改参数
-            // onTaskParamsClick (type, name) {
-            //     let nodeData = tools.deepClone(this.nodeData)
-            //     let firstNodeId = null
-            //     let firstNodeData = null
-            //     while (nodeData[0]) {
-            //         if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
-            //             firstNodeId = nodeData[0].id
-            //             firstNodeData = nodeData[0]
-            //             nodeData[0] = false
-            //         } else {
-            //             nodeData = nodeData[0].children
-            //         }
-            //     }
-            //     if (this.nodeInfoType === type) {
-            //         this.isNodeInfoPanelShow = false
-            //         this.nodeInfoType = ''
-            //     } else {
-            //         this.isNodeInfoPanelShow = true
-            //         this.nodeInfoType = type
+            // 查看参数、修改参
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
                 let nodeData = tools.deepClone(this.nodeData)
                 let firstNodeId = null
