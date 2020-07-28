@@ -13,7 +13,7 @@
     <div class="setting-panel">
         <TabGlobalVariables
             v-if="activeTab === 'globalVariableTab'"
-            @variableDataChanged="onVariableDataChange"
+            @templateDataChanged="$emit('templateDataChanged')"
             @onCitedNodeClick="$emit('onCitedNodeClick', $event)"
             @closeTab="closeTab">
         </TabGlobalVariables>
@@ -21,7 +21,7 @@
             v-if="activeTab === 'templateConfigTab'"
             :is-template-config-valid="isTemplateConfigValid"
             :project-info-loading="projectInfoLoading"
-            @onSelectCategory="onSelectCategory"
+            @templateDataChanged="$emit('templateDataChanged')"
             @closeTab="closeTab">
         </TabTemplateConfig>
         <TabTemplateSnapshoot
@@ -44,7 +44,6 @@
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabTemplateSnapshoot from './TabTemplateSnapshoot.vue'
     import TabPipelineTreeEdit from './TabPipelineTreeEdit.vue'
-    import SETTING_TABS from '../SettingTabs.js'
 
     export default {
         name: 'TemplateSetting',
@@ -56,32 +55,11 @@
         },
         props: {
             projectInfoLoading: Boolean,
-            businessInfoLoading: Boolean,
-            isGlobalVariableUpdate: Boolean,
             isTemplateConfigValid: Boolean,
-            isNodeConfigPanelShow: Boolean,
             activeTab: String,
             snapshoots: Array
         },
-        data () {
-            return {
-                showPanel: true,
-                isPipelineTreeDialogShow: false,
-                settingTabs: SETTING_TABS
-            }
-        },
         methods: {
-            onVariableDataChange () {
-                this.$emit('variableDataChanged')
-            },
-            onSelectCategory (value) {
-                this.$emit('onSelectCategory', value)
-            },
-            onDataModify (data) {
-                this.isPipelineTreeDialogShow = false
-                this.$emit('modifyTemplateData', data)
-                this.closeTab()
-            },
             // 关闭面板
             closeTab () {
                 this.$emit('update:activeTab', '')

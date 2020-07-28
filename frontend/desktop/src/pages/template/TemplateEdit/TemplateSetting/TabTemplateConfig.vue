@@ -23,8 +23,9 @@
                     <div class="common-form-content">
                         <bk-select
                             class="category-select"
-                            v-model="category"
-                            @change="onChangeTaskCategories">
+                            :clearable="false"
+                            v-model="selectedTaskCategory"
+                            @change="isCategoryEmpty = false">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
@@ -32,7 +33,7 @@
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
-                        <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+                        <span v-show="isCategoryEmpty" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -66,7 +67,7 @@
                 </div>
             </div>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                <bk-button class="save-btn" theme="primary" :disable="notifyTypeLoading" @click="onConfirm">{{ $t('保存') }}</bk-button>
                 <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
             </div>
         </div>
@@ -85,10 +86,14 @@
             isShow: Boolean
         },
         data () {
+            const { category, notify_type, notify_receivers } = this.$store.state.template
             return {
-                selectedTaskCategory: '',
+                selectedTaskCategory: category,
+                receiverGroup: notify_receivers.receiver_group.slice(0),
+                notifyType: notify_type.slice(0),
                 notifyTypeLoading: false,
-                notifyTypeList: []
+                notifyTypeList: [],
+                isCategoryEmpty: !this.isTemplateConfigValid
             }
         },
         computed: {
@@ -117,31 +122,11 @@
                     })
                 }
                 return []
-            },
-            receiverGroup: {
-                get () {
-                    return this.$store.state.template.notify_receivers.receiver_group
-                },
-                set (value) {
-                    this.setReceiversGroup(value)
-                }
-            },
-            notifyType: {
-                get () {
-                    return this.$store.state.template.notify_type
-                },
-                set (value) {
-                    this.setNotifyType(value)
-                }
-            },
-            category: {
-                get () {
-                    return this.$store.state.template.category
-                },
-                set (value) {
-                    this.setCategory(value)
-                    this.$emit('onSelectCategory', value)
-                }
+            }
+        },
+        watch: {
+            isTemplateConfigValid (val) {
+                this.isCategoryEmpty = !val
             }
         },
         created () {
@@ -171,10 +156,17 @@
             onChangeTimeout (val) {
                 this.setOvertime(val)
             },
-            onChangeTaskCategories (id) {
-                this.selectedTaskCategory = id
+            onConfirm () {
+                if (!this.selectedTaskCategory) {
+                    this.isCategoryEmpty = true
+                    return
+                }
+                this.setCategory(this.selectedTaskCategory)
+                this.setReceiversGroup(this.receiverGroup)
+                this.setNotifyType(this.notifyType)
+                this.closeTab()
+                this.$emit('templateDataChanged')
             },
-            onConfirm () {},
             closeTab () {
                 this.$emit('closeTab')
             }
@@ -219,20 +211,18 @@
         line-height: 32px;
     }
     .bk-form-checkbox {
-        margin: 14px 30px 0 0;
+        margin-right: 20px;
+        margin-bottom: 6px;
         min-width: 96px;
         /deep/ .bk-checkbox-text {
             color: $greyDefault;
             font-size: 12px;
         }
-        &:nth-child(-n + 4) {
-            margin-top: 0;
-        }
     }
     /deep/ .bk-checkbox-text {
         display: inline-flex;
         align-items: center;
-        width: 110px;
+        width: 100px;
     }
     .notify-icon {
         margin-right: 4px;

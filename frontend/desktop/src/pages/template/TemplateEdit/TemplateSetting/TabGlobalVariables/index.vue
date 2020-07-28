@@ -214,7 +214,7 @@
                     value: '',
                     version: 'legacy'
                 }
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
             },
             // 显示/隐藏系统变量
             onToggleSystemVar (val) {
@@ -245,7 +245,7 @@
              */
             onEditVariable (key) {
                 this.variableData = tools.deepClone(this.constants[key] || this.systemConstants[key])
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
             },
             /**
              * 变量输出勾选
@@ -253,7 +253,7 @@
             onChangeVariableOutput ({ key, checked }) {
                 const changeType = checked ? 'add' : 'delete'
                 this.setOutputs({ changeType, key })
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
             },
             /**
              * 显示删除变量弹窗
@@ -267,7 +267,7 @@
                 this.deleteConfirmDialogShow = false
                 this.deleteVariable(this.deleteVarKey)
                 this.deleteVarKey = ''
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
             },
             // 取消删除
             onDeleteCancel () {

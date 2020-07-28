@@ -52,7 +52,7 @@
                 :node-memu-open.sync="nodeMenuOpen"
                 @hook:mounted="canvasMounted"
                 @onConditionClick="onOpenConditionEdit"
-                @variableDataChanged="variableDataChanged"
+                @templateDataChanged="templateDataChanged"
                 @onNodeMousedown="onNodeMousedown"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
@@ -73,7 +73,7 @@
                     :node-id="idOfNodeInConfigPanel"
                     @globalVariableUpdate="globalVariableUpdate"
                     @updateNodeInfo="onUpdateNodeInfo"
-                    @variableDataChanged="variableDataChanged"
+                    @templateDataChanged="templateDataChanged"
                     @close="closeConfigPanel">
                 </node-config>
                 <condition-edit
@@ -87,8 +87,7 @@
                     :is-template-config-valid="isTemplateConfigValid"
                     :active-tab.sync="activeSettingTab"
                     :snapshoots="snapshoots"
-                    @variableDataChanged="variableDataChanged"
-                    @onSelectCategory="onSelectCategory"
+                    @templateDataChanged="templateDataChanged"
                     @onCitedNodeClick="onCitedNodeClick"
                     @modifyTemplateData="modifyTemplateData"
                     @createSnapshoot="onCreateSnapshoot"
@@ -627,7 +626,7 @@
             /**
              * 设置流程模板为修改状态
              */
-            variableDataChanged () {
+            templateDataChanged () {
                 this.isTemplateDataChanged = true
             },
             /**
@@ -782,7 +781,7 @@
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
                             this.$refs.templateCanvas.onResetPosition()
-                            this.variableDataChanged()
+                            this.templateDataChanged()
                             this.$bkMessage({
                                 message: i18n.t('排版完成，原内容在本地快照中'),
                                 theme: 'success'
@@ -869,7 +868,7 @@
             },
             // 流程名称修改
             onChangeName (name) {
-                this.variableDataChanged()
+                this.templateDataChanged()
                 this.setTemplateName(name)
             },
             // 选择侧滑面板
@@ -877,12 +876,6 @@
                 this.activeSettingTab = val
                 if (this.isGlobalVariableUpdate && val === 'globalVariableTab') {
                     this.isGlobalVariableUpdate = false
-                }
-            },
-            // 基础属性-->模板分类修改
-            onSelectCategory (value) {
-                if (value) {
-                    this.isTemplateConfigValid = true
                 }
             },
             // 跳转到节点选择页面
