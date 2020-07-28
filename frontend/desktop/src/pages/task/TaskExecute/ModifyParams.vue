@@ -79,8 +79,9 @@
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
             }
         },
-        created () {
-            this.getTaskData()
+        async created () {
+            await this.getTaskData()
+            this.$emit('hasBtn', !this.isParamsEmpty && this.paramsCanBeModify)
         },
         methods: {
             ...mapActions('task/', [
