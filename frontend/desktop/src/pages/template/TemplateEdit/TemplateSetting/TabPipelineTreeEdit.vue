@@ -83,7 +83,7 @@
                         this.errorMessage = validateResult.message
                         return
                     }
-                    this.$emit('confirm', pipelineData)
+                    this.$emit('modifyTemplateData', pipelineData)
                 }
             },
             closeTab () {

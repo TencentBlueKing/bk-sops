@@ -932,7 +932,7 @@
                         this.syncActivity()
                         this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
                         this.$emit('updateNodeInfo', this.nodeId, { status: '', skippable, retryable, optional })
-                        this.$emit('variableDataChanged')
+                        this.$emit('templateDataChanged')
                         this.$emit('close')
                     }
                 })
