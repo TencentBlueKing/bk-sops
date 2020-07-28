@@ -182,7 +182,8 @@ const routers = new VueRouter({
                             props: (route) => ({
                                 project_id: route.params.project_id,
                                 common: route.query.common,
-                                create_method: route.query.create_method
+                                create_method: route.query.create_method,
+                                create_info: route.query.create_info
                             }),
                             meta: { project: true }
                         },
