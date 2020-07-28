@@ -136,7 +136,8 @@
         computed: {
             ...mapState({
                 'permissionMeta': state => state.permissionMeta,
-                'hasAdminPerm': state => state.hasAdminPerm
+                'hasAdminPerm': state => state.hasAdminPerm,
+                'isFirstLoadAtTemplatePanel': state => state.isFirstLoadAtTemplatePanel
             }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
@@ -268,11 +269,11 @@
                 return { resourceData, actions }
             },
             getHomeUrl () {
-                if (window.history.length > 1) {
-                    this.$router.go(-1)
-                } else {
+                if (this.isFirstLoadAtTemplatePanel) {
                     const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
                     this.$router.push(url)
+                } else {
+                    this.$router.back()
                 }
             },
             goToTaskUrl (pid) {

@@ -459,6 +459,11 @@ const routers = new VueRouter({
 })
 
 routers.beforeEach((to, from, next) => {
+    // 页面首次加载时，访问的是模板编辑页面
+    if (to.name === 'templatePanel' && from.name === null) {
+        store.commit('setFirstLoadPage')
+    }
+
     // 生产环境 404 页面头部导航跳转统一设置为首页
     if (process.env.NODE_ENV === 'production' && to.name === 'notFoundPage') {
         store.commit('setNotFoundPage', true)
