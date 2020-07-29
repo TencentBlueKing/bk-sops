@@ -142,6 +142,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'isFirstLoadAtTemplatePanel': state => state.isFirstLoadAtTemplatePanel
+            }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
@@ -276,11 +279,11 @@
                 return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
-                if (window.history.length > 1) {
-                    this.$router.go(-1)
-                } else {
+                if (this.isFirstLoadAtTemplatePanel) {
                     const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
                     this.$router.push(url)
+                } else {
+                    this.$router.back()
                 }
             },
             goToTaskUrl () {

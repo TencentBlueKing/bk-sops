@@ -227,7 +227,7 @@
             list: [
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
                 { 'value': 'running', 'name': i18n.t('未完成') },
-                { 'value': 'revoke', 'name': i18n.t('撤销') },
+                { 'value': 'revoked', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
             ],
             value: ''
@@ -254,6 +254,10 @@
             },
             create_method: {
                 type: String,
+                default: ''
+            },
+            create_info: {
+                type: [String, Number],
                 default: ''
             }
         },
@@ -283,6 +287,7 @@
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
+                createInfo: this.create_info || '',
                 requestData: {
                     executeTime: [],
                     category: '',
@@ -372,7 +377,7 @@
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         category: category || undefined,
-                        template_id: this.templateId,
+                        template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
                         pipeline_instance__name__contains: flowName || undefined,
@@ -380,6 +385,7 @@
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
                         create_method: createMethod || undefined,
+                        create_info: this.createInfo || undefined,
                         project__id: this.project_id
                     }
 
@@ -552,6 +558,9 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.pagination.current = 1
+                // 高级搜索手动点击时，清空 createInfo、templateId 筛选条件
+                this.createInfo = ''
+                this.templateId = ''
                 this.getTaskList()
             },
             handlePageLimitChange (val) {
