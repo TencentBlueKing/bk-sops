@@ -720,6 +720,10 @@ const template = {
                 Vue.set(state, 'end_event', {})
             }
         },
+        // 更新全局变量
+        setContants (state, data) {
+            state.constants = tools.deepClone(data)
+        },
         // 全局变量勾选是否为输出
         setOutputs (state, payload) {
             const { changeType, key } = payload

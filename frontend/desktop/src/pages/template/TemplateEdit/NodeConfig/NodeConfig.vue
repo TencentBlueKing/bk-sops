@@ -13,81 +13,133 @@
     <div class="node-config-wrapper">
         <bk-sideslider
             ref="nodeConfigPanel"
-            :ext-cls="getSliderCls"
-            :width="710"
-            :is-show="true"
-            :quick-close="true"
+            ext-cls="node-config-panel"
+            :width="800"
+            :is-show="isShow"
             :before-close="beforeClose">
-            <div slot="header">
-                <span>{{ basicInfo.name }}</span>
+            <div class="config-header" slot="header">
+                <span
+                    :class="['go-back', {
+                        'active': isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)
+                    }]"
+                    @click="goBackToConfig">
+                    {{ $t('节点配置') }}
+                </span>
                 <!-- 选择面板展开，并且标准插件或子流程不为空时，显示 -->
-                <div
+                <span
                     v-if="isSelectorPanelShow && (basicInfo.plugin || basicInfo.tpl)"
-                    class="go-back"
-                    @click="isSelectorPanelShow = false">
-                    <i class="common-icon-arrow-left"></i>
+                    class="go-back">
+                    <i class="common-icon-angle-right"></i>
+                    {{ selectorTitle }}
+                </span>
+                <div class="view-variable">
+                    <bk-popover
+                        v-if="!isSelectorPanelShow"
+                        ext-cls="variable-popover"
+                        placement="bottom-end">
+                        <div style="padding-right: 30px;">{{ $t('查看全局变量') }}</div>
+                        <div class="variable-list" slot="content">
+                            <bk-table :data="variableList" :max-height="400">
+                                <bk-table-column :label="$t('名称')" prop="name" width="165" :show-overflow-tooltip="true"></bk-table-column>
+                                <bk-table-column label="KEY" :show-overflow-tooltip="true">
+                                    <template slot-scope="props" width="165">
+                                        <div class="key">{{ props.row.key }}</div>
+                                        <i class="copy-icon common-icon-double-paper-2" @click="onCopyKey(props.row.key)"></i>
+                                    </template>
+                                </bk-table-column>
+                                <bk-table-column :label="$t('属性')" width="80">
+                                    <div class="icon-wrap" slot-scope="props">
+                                        <i
+                                            :class="[props.row.source_type !== 'component_outputs' ? 'common-icon-show-left' : 'common-icon-hide-right color-org']"
+                                            v-bk-tooltips="{
+                                                content: props.row.source_type !== 'component_outputs' ? $t('输入') : $t('输出'),
+                                                placements: ['bottom']
+                                            }">
+                                        </i>
+                                        <i
+                                            :class="[props.row.show_type === 'show' ? 'common-icon-eye-show' : 'common-icon-eye-hide color-org']"
+                                            v-bk-tooltips="{
+                                                content: props.row.show_type === 'show' ? $t('显示') : $t('隐藏'),
+                                                placements: ['bottom']
+                                            }">
+                                        </i>
+                                    </div>
+                                </bk-table-column>
+                            </bk-table>
+                        </div>
+                    </bk-popover>
                 </div>
             </div>
             <template slot="content">
-                <div v-show="!isSelectorPanelShow" class="node-config-content">
-                    <!-- 基础信息 -->
-                    <section class="config-section">
-                        <h3>{{$t('基础信息')}}</h3>
-                        <basic-info
-                            ref="basicInfo"
-                            :basic-info="basicInfo"
-                            :node-config="nodeConfig"
-                            :version-list="versionList"
-                            :is-subflow="isSubflow"
-                            :input-loading="inputLoading"
-                            @openSelectorPanel="isSelectorPanelShow = true"
-                            @versionChange="versionChange"
-                            @viewSubflow="onViewSubflow"
-                            @updateSubflowVersion="updateSubflowVersion"
-                            @update="updateBasicInfo">
-                        </basic-info>
-                    </section>
-                    <!-- 输入参数 -->
-                    <section class="config-section">
-                        <h3>{{$t('输入参数')}}</h3>
-                        <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
-                            <template v-if="!inputLoading">
-                                <input-params
-                                    v-if="inputs.length > 0"
-                                    ref="inputParams"
-                                    :node-id="nodeId"
-                                    :scheme="inputs"
-                                    :plugin="basicInfo.plugin"
-                                    :version="basicInfo.version"
-                                    :subflow-forms="subflowForms"
-                                    :value="inputsParamValue"
+                <template v-if="!isSelectorPanelShow">
+                    <div class="node-config">
+                        <div class="config-form">
+                            <!-- 基础信息 -->
+                            <section class="config-section">
+                                <h3>{{$t('基础信息')}}</h3>
+                                <basic-info
+                                    ref="basicInfo"
+                                    :basic-info="basicInfo"
+                                    :node-config="nodeConfig"
+                                    :version-list="versionList"
                                     :is-subflow="isSubflow"
-                                    @globalVariableUpdate="$emit('globalVariableUpdate', true)"
-                                    @update="updateInputsValue">
-                                </input-params>
-                                <no-data v-else></no-data>
-                            </template>
+                                    :input-loading="inputLoading"
+                                    @openSelectorPanel="isSelectorPanelShow = true"
+                                    @versionChange="versionChange"
+                                    @viewSubflow="onViewSubflow"
+                                    @updateSubflowVersion="updateSubflowVersion"
+                                    @update="updateBasicInfo">
+                                </basic-info>
+                            </section>
+                            <!-- 输入参数 -->
+                            <section class="config-section">
+                                <h3>{{$t('输入参数')}}</h3>
+                                <div class="inputs-wrapper" v-bkloading="{ isLoading: inputLoading }">
+                                    <template v-if="!inputLoading">
+                                        <input-params
+                                            v-if="inputs.length > 0"
+                                            ref="inputParams"
+                                            :node-id="nodeId"
+                                            :scheme="inputs"
+                                            :plugin="basicInfo.plugin"
+                                            :version="basicInfo.version"
+                                            :subflow-forms="subflowForms"
+                                            :value="inputsParamValue"
+                                            :is-subflow="isSubflow"
+                                            :constants="localConstants"
+                                            @hookChange="onHookChange"
+                                            @update="updateInputsValue">
+                                        </input-params>
+                                        <no-data v-else></no-data>
+                                    </template>
+                                </div>
+                            </section>
+                            <!-- 输出参数 -->
+                            <section class="config-section">
+                                <h3>{{$t('输出参数')}}</h3>
+                                <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
+                                    <template v-if="!outputLoading">
+                                        <output-params
+                                            v-if="outputs.length"
+                                            :constants="localConstants"
+                                            :params="outputs"
+                                            :version="basicInfo.version"
+                                            :node-id="nodeId"
+                                            @hookChange="onHookChange">
+                                        </output-params>
+                                        <no-data v-else></no-data>
+                                    </template>
+                                </div>
+                            </section>
                         </div>
-                    </section>
-                    <!-- 输出参数 -->
-                    <section class="config-section">
-                        <h3>{{$t('输出参数')}}</h3>
-                        <div class="outputs-wrapper" v-bkloading="{ isLoading: outputLoading }">
-                            <template v-if="!outputLoading">
-                                <output-params
-                                    v-if="outputs.length"
-                                    :params="outputs"
-                                    :version="basicInfo.version"
-                                    :node-id="nodeId"
-                                    @globalVariableUpdate="$emit('globalVariableUpdate', true)">
-                                </output-params>
-                                <no-data v-else></no-data>
-                            </template>
+                        <div class="btn-footer">
+                            <bk-button theme="primary" @click="onSaveConfig">{{ $t('保存') }}</bk-button>
+                            <bk-button theme="default" @click="$emit('update:isShow', false)">{{ $t('取消') }}</bk-button>
                         </div>
-                    </section>
-                </div>
+                    </div>
+                </template>
                 <selector-panel
-                    v-if="isSelectorPanelShow"
+                    v-else
                     :is-subflow="isSubflow"
                     :atom-type-list="atomTypeList"
                     :basic-info="basicInfo"
@@ -124,7 +176,7 @@
         props: {
             project_id: [String, Number],
             nodeId: String,
-            settingActiveTab: String,
+            isShow: Boolean,
             atomList: Array,
             subflowList: Array,
             atomTypeList: Object,
@@ -147,17 +199,24 @@
                 inputsParamValue: {}, // 输入参数值
                 outputs: [], // 输出参数
                 subflowForms: {}, // 子流程输入参数
-                isSelectorPanelShow // 是否显示选择插件(子流程)面板
+                isSelectorPanelShow, // 是否显示选择插件(子流程)面板
+                localConstants: {} // 全局变量列表，用来维护当前面板勾选、反勾选后全局变量的变化情况，保存时更新到 store
             }
         },
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'systemConstants': state => state.template.systemConstants,
                 'locations': state => state.template.location,
                 'pluginConfigs': state => state.atomForm.config,
                 'pluginOutput': state => state.atomForm.output
             }),
+            variableList () {
+                const systemVars = Object.keys(this.systemConstants).map(key => this.systemConstants[key])
+                const userVars = Object.keys(this.constants).map(key => this.constants[key])
+                return [...systemVars, ...userVars]
+            },
             isSubflow () {
                 return this.nodeConfig.type !== 'ServiceActivity'
             },
@@ -170,27 +229,13 @@
             outputLoading () {
                 return this.pluginLoading || this.subflowLoading
             },
-            getSliderCls () { // 动态设置面板的 class
-                let base = 'common-template-setting-sideslider node-config-base'
-                if (this.isSettingPanelShow) {
-                    switch (this.settingActiveTab) {
-                        case 'globalVariableTab':
-                            base += ' position-right-var'
-                            break
-                        case 'templateConfigTab':
-                            base += ' position-right-basic-info'
-                            break
-                        case 'localDraftTab':
-                            base += ' position-right-cache'
-                            break
-                        case 'templateDataEditTab':
-                            base += ' position-right-template-data'
-                    }
-                }
-                if (this.isSelectorPanelShow) {
-                    base += ' position-right-choose-plugin'
-                }
-                return base
+            selectorTitle () {
+                return this.isSubflow ? i18n.t('选择子流程') : i18n.t('选择标准插件')
+            }
+        },
+        watch: {
+            constants (val) {
+                this.localConstants = tools.deepClone(val)
             }
         },
         created () {
@@ -238,6 +283,7 @@
                     this.outputs = outputs
                 }
             })
+            this.localConstants = tools.deepClone(this.constants)
         },
         mounted () {
             this.initData()
@@ -251,7 +297,10 @@
                 'setVariableSourceInfo',
                 'setSubprocessUpdated',
                 'setActivities',
-                'deleteVariable'
+                'addVariable',
+                'deleteVariable',
+                'setContants',
+                'setOutputs'
             ]),
             // 初始化节点数据
             async initData () {
@@ -502,6 +551,35 @@
                     return sourceInfo && sourceInfo.includes(form.tag_code)
                 })
             },
+            /**
+             * 变量 key 复制
+             */
+            onCopyKey (key) {
+                this.copyText = key
+                document.addEventListener('copy', this.copyHandler)
+                document.execCommand('copy')
+                document.removeEventListener('copy', this.copyHandler)
+                this.copyText = ''
+            },
+            /**
+             * 复制操作回调函数
+             */
+            copyHandler (e) {
+                e.preventDefault()
+                e.clipboardData.setData('text/html', this.copyText)
+                e.clipboardData.setData('text/plain', this.copyText)
+                this.$bkMessage({
+                    message: i18n.t('已复制'),
+                    theme: 'success'
+                })
+            },
+            // 由标准插件(子流程)选择面板返回配置面板
+            goBackToConfig () {
+                if (this.isSelectorPanelShow && (this.basicInfo.plugin || this.basicInfo.tpl)) {
+                    this.isSelectorPanelShow = false
+                }
+            },
+            
             // 标准插件（子流程）选择面板切换插件（子流程）
             onPluginOrTplChange (val) {
                 this.isSelectorPanelShow = false
@@ -702,6 +780,57 @@
                 const { href } = this.$router.resolve(pathData)
                 window.open(href, '_blank')
             },
+            // 输入、输出参数勾选状态变化
+            onHookChange (type, data) {
+                if (type === 'create') {
+                    this.$set(this.localConstants, data.key, data)
+                } else {
+                    this.setVariableSourceInfo(data)
+                }
+            },
+            // 更新全局变量的 source_info
+            setVariableSourceInfo (data) {
+                const { type, id, key, tagCode } = data
+                const constant = this.localConstants[key]
+                if (!constant) return
+                const sourceInfo = constant.source_info
+                if (type === 'add') {
+                    if (sourceInfo[id]) {
+                        sourceInfo[id].push(tagCode)
+                    } else {
+                        this.$set(sourceInfo, id, [tagCode])
+                    }
+                } else if (type === 'delete') {
+                    if (sourceInfo[id].length <= 1) {
+                        this.$delete(sourceInfo, id)
+                    } else {
+                        let atomIndex
+                        sourceInfo[id].some((item, index) => {
+                            if (item === tagCode) {
+                                atomIndex = index
+                                return true
+                            }
+                        })
+                        sourceInfo[id].splice(atomIndex, 1)
+                    }
+                    if (!Object.keys(sourceInfo).length) {
+                        this.deleteVariable(key)
+                    }
+                }
+            },
+            // 删除全局变量
+            deleteVariable (key) {
+                const constant = this.localConstants[key]
+
+                for (const key in this.localConstants) {
+                    const varItem = this.localConstants[key]
+                    if (varItem.index > constant.index) {
+                        varItem.index = varItem.index - 1
+                    }
+                }
+
+                this.$delete(this.localConstants, key)
+            },
             // 节点配置面板表单校验，基础信息和输入参数
             validate () {
                 return this.$refs.basicInfo.validate().then(validator => {
@@ -770,65 +899,82 @@
                 this.nodeConfig = config
                 this.setActivities({ type: 'edit', location: config })
             },
-            // 由父组件调用，获取节点基础信息
-            getBasicInfo () {
-                return this.basicInfo
+            handleVariableChange () {
+                // 如果变量已删除，需要删除变量是否输出的勾选状态
+                this.outputs.forEach(key => {
+                    if (!(key in this.localConstants)) {
+                        this.setOutputs({ changeType: 'delete', key })
+                    }
+                })
+                // 设置全局变量面板icon小红点
+                const localConstantKeys = Object.keys(this.localConstants)
+                if (Object.keys(this.constants).length !== localConstantKeys) {
+                    this.$emit('globalVariableUpdate', true)
+                } else {
+                    localConstantKeys.some(key => {
+                        if (!(key in this.constants)) {
+                            this.$emit('globalVariableUpdate', true)
+                            return true
+                        }
+                    })
+                }
+
+                this.setContants(this.localConstants)
             },
             beforeClose () {
-                this.$emit('hide')
+                this.$emit('update:isShow', false)
+                return true
+            },
+            onSaveConfig () {
+                this.validate().then(result => {
+                    if (result) {
+                        console.log('result', result)
+                        const { skippable, retryable, selectable: optional } = this.basicInfo
+                        this.syncActivity()
+                        this.handleVariableChange() // 更新全局变量列表、全局变量输出列表、全局变量面板icon小红点
+                        this.$emit('updateNodeInfo', this.nodeId, { status: '', skippable, retryable, optional })
+                        this.$emit('templateDataChanged')
+                        this.$emit('close')
+                    }
+                })
             }
         }
     }
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
-    .node-config-wrapper {
-        height: 100%;
-        background: #ffffff;
-        .go-back {
-            position: absolute;
-            top: 0;
-            right: 20px;
-            font-size: 16px;
+.node-config-panel {
+    height: 100%;
+    .config-header {
+        position: relative;
+        .go-back.active {
+            color: #3a84ff;
             cursor: pointer;
-            &:hover {
-                color: #3a84ff;
-            }
         }
-        .node-config-content {
-            padding: 30px 20px;
-            height: 100%;
+        .view-variable {
+            position: absolute;
+            top: 24px;
+            right: 30px;
+            font-size: 12px;
+            color: #3a84ff;
+            line-height: 1;
+        }
+    }
+    .node-config {
+        height: calc(100vh - 60px);
+        overflow: hidden;
+        .config-form {
+            padding: 20px 30px 0 30px;
+            max-height: calc(100% - 49px);
             overflow-y: auto;
             @include scrollbar;
         }
-        .node-config-base {
-            /deep/ .bk-sideslider-wrapper {
-                transition: right .3s ease-in-out;
-                right: 56px;
-            }
-            &.position-right-var {
-                /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
-                    border-right: 1px solid #dcdee5;
-                }
-            }
-            &.position-right-basic-info{
-                /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
-                    border-right: 1px solid #dcdee5;
-                }
-            }
-            &.position-right-cache {
-                /deep/ .bk-sideslider-wrapper {
-                    right: 856px;
-                    border-right: 1px solid #dcdee5;
-                }
-            }
-            &.position-right-template-data {
-                /deep/ .bk-sideslider-wrapper {
-                    right: 896px;
-                    border-right: 1px solid #dcdee5;
-                }
+        .btn-footer {
+            padding: 8px 30px;
+            border-top: 1px solid #cacedb;
+            .bk-button {
+                margin-right: 10px;
+                padding: 0 25px;
             }
         }
     }
@@ -846,6 +992,52 @@
         .inputs-wrapper,
         .outputs-wrapper {
             min-height: 80px;
+        }
+    }
+    .bk-sideslider-content {
+        overflow: initial;
+    }
+}
+</style>
+<style lang="scss">
+    .variable-popover {
+        .tippy-tooltip {
+            padding: 0;
+            .tippy-arrow {
+                border: none;
+            }
+        }
+        .variable-list {
+            width: 410px;
+            .icon-wrap {
+                i {
+                    margin-right: 4px;
+                    color: #219f42;
+                    font-size: 14px;
+                }
+                .color-org {
+                    color: #de9524;
+                }
+            }
+        }
+        td {
+            position: relative;
+            &:hover {
+                .copy-icon {
+                    display: inline-block;
+                }
+            }
+        }
+        .copy-icon {
+            display: none;
+            position: absolute;
+            top: 14px;
+            right: 2px;
+            font-size: 14px;
+            cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
     }
 </style>

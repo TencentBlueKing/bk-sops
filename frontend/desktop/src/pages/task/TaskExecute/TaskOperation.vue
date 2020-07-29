@@ -54,17 +54,9 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <transition name="slideRight">
-            <!-- 执行详情 -->
-            <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
-                <ViewParams
-                    v-if="nodeInfoType === 'viewParams'"
-                    :node-data="nodeData"
-                    :selected-flow-path="selectedFlowPath"
-                    :tree-node-config="treeNodeConfig"
-                    :pipeline-data="pipelineData"
-                    @onClickTreeNode="onClickTreeNode">
-                </ViewParams>
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+            <div slot="header">{{sideSliderTitle}}</div>
+            <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
@@ -73,12 +65,18 @@
                     :instance-operations="instanceOperations"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
+                    @cancelQuickClose="cancelQuickClose"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType === 'executeInfo'"
+                    :node-data="nodeData"
+                    :selected-flow-path="selectedFlowPath"
+                    :tree-node-config="treeNodeConfig"
                     :admin-view="adminView"
-                    :node-detail-config="nodeDetailConfig">
+                    :default-active-id="defaultActiveId"
+                    :node-detail-config="nodeDetailConfig"
+                    @onClickTreeNode="onClickTreeNode">
                 </ExecuteInfo>
                 <RetryNode
                     v-if="nodeInfoType === 'retryNode'"
@@ -96,11 +94,8 @@
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
                 </TaskInfo>
-                <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
-                    <i class="common-icon-double-arrow"></i>
-                </div>
             </div>
-        </transition>
+        </bk-sideslider>
         <gatewaySelectDialog
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
             :gateway-branches="gatewayBranches"
@@ -120,10 +115,8 @@
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
-    import ViewParams from './ViewParams.vue'
     import ModifyParams from './ModifyParams.vue'
     import ExecuteInfo from './ExecuteInfo.vue'
     import RetryNode from './RetryNode.vue'
@@ -170,7 +163,6 @@
         name: 'TaskOperation',
         components: {
             TemplateCanvas,
-            ViewParams,
             ModifyParams,
             ExecuteInfo,
             RetryNode,
@@ -196,6 +188,10 @@
             })
 
             return {
+                defaultActiveId: '',
+                locations: [],
+                quickClose: true,
+                sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
@@ -264,6 +260,8 @@
                 return [{
                     id: this.instance_id,
                     name: this.instanceName,
+                    title: this.instanceName,
+                    expanded: true,
                     children: this.getOrderedTree(this.completePipelineData)
                 }]
             },
@@ -312,14 +310,12 @@
         },
         mounted () {
             this.loadTaskStatus()
-            window.addEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         beforeDestroy () {
             if (source) {
                 source.cancel('cancelled')
             }
             this.cancelTaskStatusTimer()
-            window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         methods: {
             ...mapActions('task/', [
@@ -333,7 +329,8 @@
                 'instanceNodeSkip',
                 'instanceBranchSkip',
                 'skipExclusiveGateway',
-                'pauseNodeResume'
+                'pauseNodeResume',
+                'getNodeActInfo'
             ]),
             ...mapActions('admin/', [
                 'taskflowNodeForceFail'
@@ -629,10 +626,10 @@
                     this.timer = null
                 }
             },
-            updateTaskStatus (id) {
+            async updateTaskStatus (id) {
                 this.taskId = id
                 this.setCanvasData()
-                this.loadTaskStatus()
+                await this.loadTaskStatus()
             },
             // 更新节点状态
             updateNodeInfo () {
@@ -660,8 +657,8 @@
             setTaskNodeStatus (id, data) {
                 this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
-            setNodeDetailConfig (id) {
-                const nodeActivities = this.pipelineData.activities[id]
+            async setNodeDetailConfig (id, firstNodeData) {
+                const nodeActivities = firstNodeData || this.pipelineData.activities[id]
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
@@ -674,33 +671,8 @@
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
-            handleNodeInfoPanelHide (e) {
-                if (dom.parentClsContains('canvas-node', e.target)) {
-                    return false
-                }
-                const classList = e.target.classList
-                const isParamsBtn = classList.contains('params-btn')
-                const isTooltipBtn = classList.contains('tooltip-btn')
-                if (!this.isNodeInfoPanelShow
-                    || isParamsBtn
-                    || isTooltipBtn
-                    || e.target.className.indexOf('bk-option') > -1
-                ) {
-                    return
-                }
-                const NodeInfoPanel = document.querySelector('.node-info-panel')
-                if (NodeInfoPanel) {
-                    if (!dom.nodeContains(NodeInfoPanel, e.target)) {
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
-                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                        this.cancelSelectedNode(this.selectedNodeId)
-                    }
-                }
-            },
             onRetryClick (id) {
-                this.isNodeInfoPanelShow = true
-                this.nodeInfoType = 'retryNode'
+                this.onTaskParamsClick('retryNode', true, i18n.t('重试'))
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -712,8 +684,7 @@
                 this.nodeTaskSkip(data)
             },
             onModifyTimeClick (id) {
-                this.isNodeInfoPanelShow = true
-                this.nodeInfoType = 'modifyTime'
+                this.onTaskParamsClick('modifyTime', true, i18n.t('修改时间'))
                 this.setNodeDetailConfig(id)
             },
             onGatewaySelectionClick (id) {
@@ -800,6 +771,8 @@
                                 activity.children = this.getOrderedTree(activity.pipeline)
                             }
                             activity.level = level
+                            activity.title = activity.name
+                            activity.expanded = activity.pipeline
                             ordered.push(activity)
                         }
                     }
@@ -817,17 +790,37 @@
             updateNodeActived (id, isActived) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
-            // 查看参数、修改参数
-            onTaskParamsClick (type) {
-                if (this.nodeInfoType === type) {
-                    this.isNodeInfoPanelShow = false
-                    this.nodeInfoType = ''
-                } else {
-                    this.isNodeInfoPanelShow = true
-                    this.nodeInfoType = type
+            
+            // 查看参数、修改参数 （侧滑组件 标题 点击遮罩关闭）
+            onTaskParamsClick (type, isNodeInfoPanelShow, name) {
+                let nodeData = tools.deepClone(this.nodeData)
+                let firstNodeId = null
+                let firstNodeData = null
+                while (nodeData[0]) {
+                    if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
+                        firstNodeId = nodeData[0].id
+                        firstNodeData = nodeData[0]
+                        nodeData[0] = false
+                    } else {
+                        nodeData = nodeData[0].children
+                    }
+                }
+                this.sideSliderTitle = name
+                this.isNodeInfoPanelShow = isNodeInfoPanelShow
+                this.nodeInfoType = type
+                this.quickClose = true
+                if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
+                    this.quickClose = false
+                }
+                if (name === i18n.t('节点详情')) {
+                    this.defaultActiveId = firstNodeId
+                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
             },
-            
+            // 取消侧滑点击遮罩自动关闭
+            cancelQuickClose () {
+                this.quickClose = false
+            },
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
@@ -858,6 +851,7 @@
                 this[actionType]()
             },
             onNodeClick (id, type) {
+                this.defaultActiveId = id
                 if (type === 'tasknode') {
                     this.handleSingleNodeClick(id, 'singleAtom')
                 } else if (type === 'subflow') {
@@ -886,8 +880,7 @@
                     if (this.selectedFlowPath.length > 1) {
                         subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
-                    this.isNodeInfoPanelShow = true
-                    this.nodeInfoType = 'executeInfo'
+                    this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
@@ -941,7 +934,7 @@
                 this.cancelTaskStatusTimer()
                 this.updateTaskStatus(id)
             },
-            onClickTreeNode (nodeHeirarchy, nodeType) {
+            async onClickTreeNode (nodeHeirarchy, selectNodeId, nodeType) {
                 let nodeActivities
                 let parentNodeActivities
                 const nodePath = [{
@@ -949,7 +942,8 @@
                     name: this.instanceName,
                     nodeId: this.completePipelineData.id
                 }]
-                const heirarchyList = nodeHeirarchy.split('.').splice(1)
+               
+                const heirarchyList = nodeHeirarchy.split('.').reverse().splice(1)
                 if (heirarchyList.length) { // not root node
                     nodeActivities = this.completePipelineData.activities
                     heirarchyList.forEach((key, index) => {
@@ -964,16 +958,16 @@
                             parentNodeActivities = nodeActivities
                         }
                     })
-
+                    
                     this.selectedFlowPath = nodePath
                     if (nodeActivities.type === 'SubProcess') {
-                        this.switchCanvasView(nodeActivities)
+                        await this.switchCanvasView(nodeActivities)
                         this.treeNodeConfig = {}
                     } else {
                         if (parentNodeActivities && parentNodeActivities.id !== this.taskId) { // 不在当前 taskId 的任务中
-                            this.switchCanvasView(parentNodeActivities)
+                            await this.switchCanvasView(parentNodeActivities)
                         } else if (!parentNodeActivities && this.taskId !== this.instance_id) { // 属于第二级任务
-                            this.switchCanvasView(this.completePipelineData, true)
+                            await this.switchCanvasView(this.completePipelineData, true)
                         }
                         let subprocessStack = []
                         if (this.selectedFlowPath.length > 1) {
@@ -990,17 +984,23 @@
                     }
                 } else {
                     this.selectedFlowPath = nodePath
-                    this.switchCanvasView(this.completePipelineData, true)
-                    this.treeNodeConfig = {}
+                    if (nodeType !== 'subflow') {
+                        await this.switchCanvasView(this.completePipelineData, true)
+                        this.treeNodeConfig = {}
+                    }
+                }
+                if (nodeType !== 'subflow') {
+                    this.setNodeDetailConfig(selectNodeId)
                 }
             },
             // 切换画布视图
-            switchCanvasView (nodeActivities, isRootNode = false) {
+            async switchCanvasView (nodeActivities, isRootNode = false) {
                 const id = isRootNode ? this.instance_id : nodeActivities.id
                 this.nodeSwitching = true
                 this.pipelineData = isRootNode ? nodeActivities : nodeActivities.pipeline
                 this.cancelTaskStatusTimer()
-                this.updateTaskStatus(id)
+                await this.updateTaskStatus(id)
+                this.locations = this.canvasData.locations
             },
             // 更新节点的参数面板信息
             updataNodeParamsInfo (nodeActivities) {
@@ -1013,7 +1013,8 @@
                     version: nodeActivities.component.version || 'legacy',
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
-                    subprocess_stack: JSON.stringify(subprocessStack)
+                    subprocess_stack: JSON.stringify(subprocessStack),
+                    name: nodeActivities.name
                 }
                 this.cancelSelectedNode(this.selectedNodeId)
                 this.addSelectedNode(nodeActivities.id)
@@ -1198,37 +1199,11 @@
     }
 
 }
+/deep/.bk-sideslider-content {
+    height: calc(100% - 60px);
+}
 .node-info-panel {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    width: 764px;
-    height: calc(100% - 50px);
-    background: $whiteDefault;
-    border-top: 1px solid #dde4eb;
-    border-left: 1px solid #dde4eb;
-    z-index: 5;
-    .close-node-info-panel {
-        position: absolute;
-        top: -1px;
-        left: -18px;
-        width: 18px;
-        height: 50px;
-        line-height: 50px;
-        font-size: 12px;
-        color: $whiteDefault;
-        text-align: center;
-        background:#3a84ff;
-        border-right: none;
-        border-radius: 4px;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
-        cursor: pointer;
-        &:hover {
-            background: $blueDefault;
-        }
-    }
+    height: 100%;
 }
 
 </style>
