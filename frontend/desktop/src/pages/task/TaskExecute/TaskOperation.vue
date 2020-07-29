@@ -70,7 +70,7 @@
                     :instance-actions="instanceActions"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
-                    @hasBtn="hideOperateBtn"
+                    @hideOperateBtn="hideOperateBtn"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo

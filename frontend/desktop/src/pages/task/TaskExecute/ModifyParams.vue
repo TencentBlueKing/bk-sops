@@ -84,7 +84,7 @@
         },
         async created () {
             await this.getTaskData()
-            this.$emit('hasBtn', !this.isParamsEmpty && this.paramsCanBeModify)
+            this.$emit('hideOperateBtn', !this.isParamsEmpty && this.paramsCanBeModify)
         },
         methods: {
             ...mapActions('task/', [
