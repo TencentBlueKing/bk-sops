@@ -105,6 +105,7 @@
                     errorHandler(e, this)
                 } finally {
                     this.cntLoading = false
+                    this.$emit('hideOperateBtn', !this.isParamsEmpty && this.paramsCanBeModify)
                 }
             },
             async onModifyParams () {
@@ -131,7 +132,6 @@
                         formData[key] = variables[key].value
                     }
                 }
-
                 const data = {
                     instance_id: this.instance_id,
                     constants: JSON.stringify(formData)

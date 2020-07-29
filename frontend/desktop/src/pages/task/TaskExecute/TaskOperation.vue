@@ -65,6 +65,7 @@
                     :instance-operations="instanceOperations"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
+                    @hideOperateBtn="hideOperateBtn"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -809,16 +810,16 @@
                 this.nodeInfoType = type
                 this.quickClose = true
                 if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    if (type === 'modifyParams' && !this.paramsCanBeModify) {
-                        this.quickClose = true
-                    } else {
-                        this.quickClose = false
-                    }
+                    this.quickClose = false
                 }
                 if (name === i18n.t('节点详情')) {
                     this.defaultActiveId = firstNodeId
                     this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
+            },
+
+            hideOperateBtn (val) {
+                this.quickClose = !val
             },
             
             onToggleNodeInfoPanel () {
