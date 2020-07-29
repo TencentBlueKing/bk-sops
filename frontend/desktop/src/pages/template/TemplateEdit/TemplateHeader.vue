@@ -66,7 +66,7 @@
                 @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{$t('返回')}}</router-link>
+            <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
         </div>
         <ProjectSelectorModal
             :is-new-task="false"
@@ -274,11 +274,12 @@
                 return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
-                const url = { name: 'process', params: { project_id: this.project_id } }
-                if (this.common) {
-                    url.name = 'commonProcessList'
+                if (window.history.length > 1) {
+                    this.$router.go(-1)
+                } else {
+                    const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
+                    this.$router.push(url)
                 }
-                return url
             },
             goToTaskUrl () {
                 this.$router.push({

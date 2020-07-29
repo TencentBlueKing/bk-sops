@@ -596,7 +596,7 @@
                 this.template.disabled = true
             },
             onTaskPermissonCheck (required, template, event) {
-                this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
+                this.applyForPermission(required, template, this.tplAuthOperations, this.tplAuthResource)
                 event.preventDefault()
             },
             onSearchFormSubmit (data) {
