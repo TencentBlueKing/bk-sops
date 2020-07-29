@@ -790,7 +790,7 @@
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             
-            // 查看参数、修改参
+            // 查看参数、修改参数 （侧滑组件 标题 点击遮罩关闭）
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
                 let nodeData = tools.deepClone(this.nodeData)
                 let firstNodeId = null
