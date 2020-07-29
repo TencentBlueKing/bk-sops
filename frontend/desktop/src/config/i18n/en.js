@@ -232,6 +232,7 @@ const en = {
     '提示': 'Prompt',
     '未执行': 'Created',
     '执行中': 'Executing',
+    '排队中': 'Queuing',
     '节点暂停': 'Node Suspended',
     '失败': 'Failed',
     '完成': 'Finished',
