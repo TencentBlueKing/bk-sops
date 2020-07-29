@@ -13,6 +13,7 @@ import i18n from '@/config/i18n/index.js'
 const TASK_STATE_DICT = {
     'CREATED': i18n.t('未执行'),
     'RUNNING': i18n.t('执行中'),
+    'READY': i18n.t('排队中'),
     'SUSPENDED': i18n.t('暂停'),
     'NODE_SUSPENDED': i18n.t('节点暂停'),
     'FAILED': i18n.t('失败'),
