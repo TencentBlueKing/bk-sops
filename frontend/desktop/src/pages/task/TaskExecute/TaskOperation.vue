@@ -65,7 +65,7 @@
                     :instance-operations="instanceOperations"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
-                    @hasBtn="judgeMaskClose"
+                    @hasBtn="hideOperateBtn"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -837,7 +837,7 @@
                 }
             },
 
-            judgeMaskClose (val) {
+            hideOperateBtn (val) {
                 this.quickClose = !val
             },
             
