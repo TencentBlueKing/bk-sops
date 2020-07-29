@@ -213,7 +213,7 @@
     width: 300px;
 }
 .list-wrapper {
-    height: calc(100vh - 170px);
+    height: calc(100vh - 60px);
 }
 .group-area {
     float: left;

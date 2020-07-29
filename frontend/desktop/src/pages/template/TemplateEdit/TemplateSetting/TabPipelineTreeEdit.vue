@@ -10,32 +10,29 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="pipeline-tree-wrap">
-        <bk-sideslider
-            ext-cls="common-template-setting-sideslider pipeline-tree-edit"
-            :width="840"
-            :is-show="isShow"
-            :before-close="onBeforeClose"
-            :quick-close="true">
-            <div slot="header">
-                <span>{{$t('流程模板数据')}}</span>
-            </div>
-            <div style="height: 100%" slot="content">
-                <div class="code-wrapper">
-                    <code-editor
-                        :value="template"
-                        :options="{ readOnly: !hasAdminPerm, language: 'json' }"
-                        @input="onDataChange">
-                    </code-editor>
-                    <div class="error-tips" v-if="errorMessage" :title="errorMessage">
-                        <i class="common-icon-info"></i>
-                        <div class="message">{{ errorMessage }}</div>
-                    </div>
-                    <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+    <bk-sideslider
+        :is-show="true"
+        :width="800"
+        :title="$t('本地快照')"
+        :before-close="closeTab">
+        <div class="pipeline-tree-wrap" slot="content">
+            <div class="code-wrapper">
+                <code-editor
+                    :value="template"
+                    :options="{ readOnly: !hasAdminPerm, language: 'json' }"
+                    @input="onDataChange">
+                </code-editor>
+                <div class="error-tips" v-if="errorMessage" :title="errorMessage">
+                    <i class="common-icon-info"></i>
+                    <div class="message">{{ errorMessage }}</div>
                 </div>
             </div>
-        </bk-sideslider>
-    </div>
+            <div class="btn-wrap">
+                <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
+            </div>
+        </div>
+    </bk-sideslider>
 </template>
 
 <script>
@@ -50,7 +47,7 @@
         props: ['isShow'],
         data () {
             return {
-                template: '',
+                template: this.transPipelineTreeStr(),
                 errorMessage: ''
             }
         },
@@ -58,13 +55,6 @@
             ...mapState({
                 hasAdminPerm: state => state.hasAdminPerm
             })
-        },
-        watch: {
-            isShow (val) {
-                if (val) {
-                    this.template = this.transPipelineTreeStr()
-                }
-            }
         },
         methods: {
             ...mapGetters('template/', [
@@ -93,24 +83,26 @@
                         this.errorMessage = validateResult.message
                         return
                     }
-                    this.$emit('confirm', pipelineData)
+                    this.$emit('modifyTemplateData', pipelineData)
                 }
             },
-            onBeforeClose () {
-                this.$emit('onColseTab', 'templateDataEditTab')
+            closeTab () {
+                this.$emit('closeTab')
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-@import '@/scss/mixins/scrollbar.scss';
-.pipeline-tree-edit {
+    @import '@/scss/config.scss';
+    @import '@/scss/mixins/scrollbar.scss';
+    .pipeline-tree-wrap {
+        height: calc(100vh - 60px);
+    }
     .code-wrapper {
         position: relative;
-        margin: 20px 20px;
-        height: calc(100% - 94px);
+        padding: 20px;
+        height: calc(100% - 49px);
     }
     .error-tips {
         display: flex;
@@ -135,10 +127,8 @@
             -webkit-box-orient: vertical;
         }
     }
-    .save-btn {
-        position: absolute;
-        left: 0;
-        bottom: -44px;
+    .btn-wrap {
+        padding: 8px 20px;
+        border-top: 1px solid #cacedb;
     }
-}
 </style>
