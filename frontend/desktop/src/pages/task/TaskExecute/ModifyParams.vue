@@ -82,9 +82,8 @@
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
             }
         },
-        async created () {
-            await this.getTaskData()
-            this.$emit('hideOperateBtn', !this.isParamsEmpty && this.paramsCanBeModify)
+        created () {
+            this.getTaskData()
         },
         methods: {
             ...mapActions('task/', [
@@ -108,6 +107,7 @@
                     errorHandler(e, this)
                 } finally {
                     this.cntLoading = false
+                    this.$emit('hideOperateBtn', !this.isParamsEmpty && this.paramsCanBeModify)
                 }
             },
             async onModifyParams () {
@@ -136,7 +136,6 @@
                         formData[key] = variables[key].value
                     }
                 }
-
                 const data = {
                     instance_id: this.instance_id,
                     constants: formData
