@@ -101,11 +101,13 @@
                         }
                     })
                     this.constants = constants
+                    if (Object.keys(constants).length > 0 && this.paramsCanBeModify) {
+                        this.$emit('cancelQuickClose')
+                    }
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.cntLoading = false
-                    this.$emit('hideOperateBtn', !this.isParamsEmpty && this.paramsCanBeModify)
                 }
             },
             async onModifyParams () {

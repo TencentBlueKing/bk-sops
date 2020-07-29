@@ -65,7 +65,7 @@
                     :instance-operations="instanceOperations"
                     :instance-name="instanceName"
                     :instance_id="instance_id"
-                    @hideOperateBtn="hideOperateBtn"
+                    @cancelQuickClose="cancelQuickClose"
                     @packUp="packUp">
                 </ModifyParams>
                 <ExecuteInfo
@@ -817,11 +817,10 @@
                     this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
             },
-
-            hideOperateBtn (val) {
-                this.quickClose = !val
+            // 取消侧滑点击遮罩自动关闭
+            cancelQuickClose () {
+                this.quickClose = false
             },
-            
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
