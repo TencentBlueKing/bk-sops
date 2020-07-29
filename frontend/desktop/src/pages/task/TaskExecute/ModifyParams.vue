@@ -39,6 +39,7 @@
                 :class="{
                     'btn-permission-disable': !hasSavePermission
                 }"
+                :loading="pending"
                 v-cursor="{ active: !hasSavePermission }"
                 @click="onModifyParams">
                 {{ $t('保存') }}
