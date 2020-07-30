@@ -135,6 +135,30 @@ class PluginPathTestCase(TestCase):
                 "JobPushLocalFilesService",
                 "JobService",
             ],
+            "pipeline_plugins.components.collections.sites.open.job.fast_push_file.v1_0": [
+                "JobFastPushFileService",
+                "JobFastPushFileComponent",
+            ],
+            "pipeline_plugins.components.collections.sites.open.job.fast_push_file.legacy": [
+                "JobFastPushFileService",
+                "JobFastPushFileComponent",
+            ],
+            "pipeline_plugins.components.collections.sites.open.job.push_local_files.v1_0_0": [
+                "JobPushLocalFilesService",
+                "JobPushLocalFilesComponent",
+            ],
+            "pipeline_plugins.components.collections.sites.open.job.cron_task.legacy": [
+                "JobCronTaskService",
+                "JobCronTaskComponent",
+            ],
+            "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy": [
+                "JobExecuteTaskService",
+                "JobExecuteTaskComponent",
+            ],
+            "pipeline_plugins.components.collections.sites.open.job.fast_execute_script.legacy": [
+                "JobFastExecuteScriptService",
+                "JobFastExecuteScriptComponent",
+            ],
             "pipeline_plugins.components.collections.sites.open.cc.empty_set_hosts.legacy": [
                 "CCEmptySetHostsComponent",
                 "CCEmptySetHostsService",
