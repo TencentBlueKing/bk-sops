@@ -24,7 +24,7 @@ from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
-from pipeline.engine import exceptions
+from pipeline.engine import exceptions as engine_exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
 from pipeline.parser.context import get_pipeline_context
@@ -53,6 +53,7 @@ from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.signals import taskflow_started
+from gcloud.taskflow3 import exceptions as taskflow_exceptions
 from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
@@ -216,7 +217,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             refs = cons_pool.get_reference_info(strict=False)
             for keys in list(refs.values()):
                 for key in keys:
-                    # ad d outputs keys later
+                    # add outputs keys later
                     if key in constants and key not in referenced_keys:
                         referenced_keys.append(key)
                         data.update({key: constants[key]})
@@ -225,13 +226,16 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         # keep outputs constants
         def is_outputs(value):
-            check_type = value["source_type"] == "component_outputs"
-            if not check_type:
-                return False
-            return list(value["source_info"].keys())[0] not in exclude_task_nodes_id
+            return value["source_type"] == "component_outputs"
 
         outputs_keys = [key for key, value in list(constants.items()) if is_outputs(value)]
         referenced_keys = list(set(referenced_keys + outputs_keys))
+        referenced_output = set(outputs_keys).intersection(referenced_keys)
+        if referenced_output:
+            raise taskflow_exceptions.InvalidOperationException(
+                "can not remove nodes make {} outputs".format(referenced_output)
+            )
+
         pipeline_tree[PE.outputs] = [key for key in pipeline_tree[PE.outputs] if key in referenced_keys]
 
         # rebuild constants index
@@ -518,7 +522,7 @@ class TaskFlowInstance(models.Model):
     def raw_state(self):
         try:
             state = pipeline_api.get_status_tree(self.pipeline_instance.instance_id)["state"]
-        except exceptions.InvalidOperationException:
+        except engine_exceptions.InvalidOperationException:
             return None
 
         return state
@@ -578,7 +582,7 @@ class TaskFlowInstance(models.Model):
         outputs = {}
         try:
             detail = pipeline_api.get_status_tree(node_id)
-        except exceptions.InvalidOperationException:
+        except engine_exceptions.InvalidOperationException:
             act_started = False
         else:
             # 最新 loop 执行记录，直接通过接口获取
@@ -670,31 +674,50 @@ class TaskFlowInstance(models.Model):
         # 首先获取最新一次执行详情
         try:
             detail = pipeline_api.get_status_tree(node_id)
-        except exceptions.InvalidOperationException as e:
-            return {"result": False, "message": str(e), "data": {}, "code": err_code.INVALID_OPERATION.code}
-        TaskFlowInstance.format_pipeline_status(detail)
-        # 默认只请求最后一次循环结果
-        if loop is None or int(loop) >= detail["loop"]:
-            loop = detail["loop"]
-            detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
-        # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
+        except engine_exceptions.InvalidOperationException:
+            act_start = False
+
+        if not act_start:
+            instance_data = self.pipeline_instance.execution_data
+            try:
+                act = WebPipelineAdapter(instance_data).get_act(
+                    act_id=node_id,
+                    subprocess_stack=subprocess_stack,
+                    root_pipeline_data=get_pipeline_context(
+                        self.pipeline_instance, obj_type="instance", data_type="data", username=username
+                    ),
+                    root_pipeline_context=get_pipeline_context(
+                        self.pipeline_instance, obj_type="instance", data_type="context", username=username
+                    ),
+                )
+                detail.update({"name": act.name, "error_ignorable": act.error_ignorable, "state": states.READY})
+            except Exception as e:
+                logger.exception(traceback.format_exc())
+                error_message = "parser pipeline tree error: %s" % e
+                return {"result": False, "message": error_message, "data": {}, "code": err_code.INVALID_OPERATION.code}
         else:
-            histories = pipeline_api.get_activity_histories(node_id, loop)
-            # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
-            current_loop = histories[-1]
-            current_loop["state"] = states.FINISHED
-            # 循环只有成功才会继续任务
-            TaskFlowInstance.format_pipeline_status(current_loop)
-            detail.update(
-                {
-                    "start_time": current_loop["start_time"],
-                    "finish_time": current_loop["finish_time"],
-                    "elapsed_time": current_loop["elapsed_time"],
-                    "loop": current_loop["loop"],
-                    "skip": current_loop["skip"],
-                    "state": current_loop["state"],
-                }
-            )
+            TaskFlowInstance.format_pipeline_status(detail)
+            # 默认只请求最后一次循环结果
+            if loop is None or int(loop) >= detail["loop"]:
+                loop = detail["loop"]
+                detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
+            # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
+            else:
+                histories = pipeline_api.get_activity_histories(node_id, loop)
+                # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
+                current_loop = histories[-1]
+                current_loop["state"] = states.FINISHED
+                TaskFlowInstance.format_pipeline_status(current_loop)
+                detail.update(
+                    {
+                        "start_time": current_loop["start_time"],
+                        "finish_time": current_loop["finish_time"],
+                        "elapsed_time": current_loop["elapsed_time"],
+                        "loop": current_loop["loop"],
+                        "skip": current_loop["skip"],
+                        "state": current_loop["state"],
+                    }
+                )
             # index 非 -1 表示当前 loop 的重试记录
             detail["histories"] = histories[1:]
 
