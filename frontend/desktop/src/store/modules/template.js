@@ -618,6 +618,7 @@ const template = {
                     }
                 })
             } else if (type === 'delete') {
+                Vue.delete(state.activities, location.id)
                 for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
@@ -625,11 +626,10 @@ const template = {
                         if (Object.keys(sourceInfo).length > 1) {
                             Vue.delete(sourceInfo, location.id)
                         } else {
-                            Vue.delete(state.constants, constant.key)
+                            this.commit('template/deleteVariable', cKey)
                         }
                     }
                 }
-                Vue.delete(state.activities, location.id)
             } else if (type === 'copy') { // 复制节点
                 const oldSouceId = location.oldSouceId
                 const newActivitie = tools.deepClone(state.activities[oldSouceId])
