@@ -63,15 +63,14 @@
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
-    import { mapState, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH, INVALID_NAME_CHAR } from '@/constants/index.js'
     export default {
         name: 'OutputParams',
         props: {
             params: Array,
+            constants: Object,
             isSubflow: Boolean,
             nodeId: String,
             version: String // 标准插件版本或子流程版本
@@ -134,29 +133,19 @@
                 }
             }
         },
-        computed: {
-            ...mapState({
-                constants: state => state.template.constants
-            })
-        },
         watch: {
             params (val) {
                 this.list = this.getOutputsList(val)
             }
         },
         methods: {
-            ...mapMutations('template/', [
-                'addVariable',
-                'deleteVariable'
-            ]),
             getOutputsList () {
                 const list = []
-                const constants = this.$store.state.template.constants
-                const varKeys = Object.keys(constants)
+                const varKeys = Object.keys(this.constants)
                 this.params.forEach(param => {
                     let key = param.key
                     const isHooked = varKeys.some(item => {
-                        const varItem = constants[item]
+                        const varItem = this.constants[item]
                         if (varItem.source_type === 'component_outputs') {
                             const sourceInfo = varItem.source_info[this.nodeId]
                             if (sourceInfo && sourceInfo.includes(param.key)) {
@@ -184,7 +173,13 @@
                     this.formData = tools.deepClone(props.row)
                     this.selectIndex = index
                 } else {
-                    this.deleteVariable(props.row.key)
+                    const config = ({
+                        type: 'delete',
+                        id: this.nodeId,
+                        key: props.row.key,
+                        tagCode: props.row.key
+                    })
+                    this.$emit('hookChange', 'delete', config)
                     this.list[index].key = this.params[index].key
                     this.list[index].name = this.params[index].name
                 }
@@ -194,7 +189,6 @@
                     if (result) {
                         const { name, key } = this.formData
                         this.isShow = false
-                        console.log(this.params)
                         const version = this.isSubflow ? this.list[this.selectIndex].version : this.version
                         let setKey = ''
                         if ((/^\$\{((?!\{).)*\}$/).test(key)) {
@@ -237,7 +231,7 @@
                     version: ''
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
-                this.addVariable(variable)
+                this.$emit('hookChange', 'create', variable)
             }
         }
     }

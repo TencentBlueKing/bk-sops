@@ -121,9 +121,11 @@
                                     <template v-if="!outputLoading">
                                         <output-params
                                             v-if="outputs.length"
+                                            :constants="localConstants"
                                             :params="outputs"
                                             :version="basicInfo.version"
-                                            :node-id="nodeId">
+                                            :node-id="nodeId"
+                                            @hookChange="onHookChange">
                                         </output-params>
                                         <no-data v-else></no-data>
                                     </template>
