@@ -719,11 +719,7 @@
             /**
              * 打开节点配置面板
              */
-<<<<<<< HEAD
             onShowNodeConfig (id) {
-=======
-            onShowNodeConfig (id, hideSettingPanel = true) {
->>>>>>> 6e08faf9fa34c83e56b02bedc9ce9f22c3081961
                 const location = this.locations.find(item => item.id === id)
                 if (['tasknode', 'subflow'].includes(location.type)) {
                     this.showConfigPanel(id)
