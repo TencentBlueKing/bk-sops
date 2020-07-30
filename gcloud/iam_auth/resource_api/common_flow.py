@@ -67,7 +67,7 @@ class CommonFlowResourceProvider(ResourceProvider):
 
         return ListResult(results=results, count=count)
 
-    def fetch_instance_info(self, filter, page, **options):
+    def fetch_instance_info(self, filter, **options):
         """
         common_flow 没有定义属性，只处理 filter 中的 ids 字段
         """

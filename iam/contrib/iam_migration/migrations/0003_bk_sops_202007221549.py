@@ -11,21 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from tastypie.exceptions import Unauthorized
+import os
+import json
+import codecs
 
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.authorization_helpers.base import EmptyEnvIAMAuthorizationHelper
+from django.db import migrations
+from django.conf import settings
+
+from iam.contrib.iam_migration.migrator import IAMMigrator
 
 
-class ProjectIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
-    def get_create_detail_resources(self, bundle):
-        raise Unauthorized()
+def forward_func(apps, schema_editor):
 
-    def get_read_detail_resources(self, bundle):
-        return res_factory.resources_for_project_obj(bundle.obj)
+    migrator = IAMMigrator(Migration.migration_json)
+    migrator.migrate()
 
-    def get_update_detail_resources(self, bundle):
-        return res_factory.resources_for_project_obj(bundle.obj)
 
-    def get_delete_detail_resources(self, bundle):
-        raise Unauthorized()
+class Migration(migrations.Migration):
+    migration_json = "03_add_related_actions.json"
+
+    dependencies = [("iam_migration", "0002_bk_sops_202007091136")]
+
+    operations = [migrations.RunPython(forward_func)]

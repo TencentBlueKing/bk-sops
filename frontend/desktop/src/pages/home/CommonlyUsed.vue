@@ -36,7 +36,7 @@
         </div>
         <panel-nodata v-else>
             <span>{{ $t('项目，项目集的权限请前往') }}</span>
-            <span class="link-text" @click="jumpToOther('bk_iam_app')">{{ $t('权限中心') }}</span>
+            <span class="link-text" @click="jumpToOther('bk_iam')">{{ $t('权限中心') }}</span>
             <span>{{ $t('进行申请；如需新建项目，项目集请前往') }}</span>
             <span class="link-text" @click="jumpToOther('bk_cmdb')">{{ $t('配置平台') }}</span>
         </panel-nodata>
@@ -117,11 +117,12 @@
             },
             // 这里统一直接用后端提供的 host 跳转
             jumpToOther (name) {
+                const code = name === 'bk_iam' ? window.BK_IAM_APP_CODE : name
                 const HOST_MAP = {
-                    'bk_iam_app': window.BK_IAM_SAAS_HOST,
+                    'bk_iam': window.BK_IAM_SAAS_HOST,
                     'bk_cmdb': window.BK_CC_HOST
                 }
-                openOtherApp(name, HOST_MAP[name])
+                openOtherApp(code, HOST_MAP[name])
             },
             onSwitchBusiness (id) {
                 this.setProjectId(id)

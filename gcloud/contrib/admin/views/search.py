@@ -20,7 +20,7 @@ from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor
+from gcloud.iam_auth.view_interceptors.admin import AdminViewViewInterceptor
 
 
 class AdminSearchMatcher(object):
@@ -70,7 +70,7 @@ class AdminSearchMatcher(object):
 
 
 @require_POST
-@iam_intercept(AdminEditViewInterceptor())
+@iam_intercept(AdminViewViewInterceptor())
 def search(request):
     data = json.loads(request.body)
     keyword = data.get("keyword", "")

@@ -330,8 +330,8 @@
             async getProjectBaseInfo () {
                 this.taskBasicInfoLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.taskCategory = data.task_categories.map(m => ({ name: m.name, value: m.value }))
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories.map(m => ({ name: m.name, value: m.value }))
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

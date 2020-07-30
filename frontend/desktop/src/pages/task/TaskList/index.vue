@@ -98,8 +98,9 @@
                         <template slot-scope="props">
                             <div class="task-operation">
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                 <a
-                                    v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
+                                    v-else-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable task-operation-btn"
                                     @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
@@ -419,9 +420,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories
-                    this.setProjectBaseInfo(projectBasicInfo)
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories
+                    this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -625,6 +626,10 @@
             padding: 5px;
             color: #3a84ff;
             font-size: 12px;
+            &.disabled {
+                color: #cccccc;
+                cursor: not-allowed;
+            }
         }
     }
     .empty-data {

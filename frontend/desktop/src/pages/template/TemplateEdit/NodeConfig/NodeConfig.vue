@@ -331,20 +331,21 @@
                         params.version = version
                     }
                     const resp = await this.loadSubflowConfig({ ...params })
-                    this.subflowForms = resp.form
+                    const data = resp.data
+                    this.subflowForms = data.form
                     // 子流程模板版本更新时，未带版本信息，需要请求接口后获取最新版本
-                    this.updateBasicInfo({ version: resp.version })
+                    this.updateBasicInfo({ version: data.version })
 
                     // 输出变量
-                    this.outputs = Object.keys(resp.outputs).map(item => {
-                        const output = resp.outputs[item]
+                    this.outputs = Object.keys(data.outputs).map(item => {
+                        const output = data.outputs[item]
                         return {
                             name: output.name,
                             key: output.key,
                             version: output.hasOwnProperty('version') ? output.version : 'legacy'
                         }
                     })
-                    return resp
+                    return data
                 } catch (error) {
                     errorHandler(error, this)
                 } finally {
