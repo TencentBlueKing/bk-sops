@@ -107,8 +107,9 @@ const routers = new VueRouter({
                     name: 'commonProcessList',
                     pathToRegexpOptions: { strict: true },
                     component: CommonTemplateList,
-                    props: () => ({
-                        common: '1'
+                    props: (route) => ({
+                        common: '1',
+                        page: route.query.page
                     })
                 },
                 {
@@ -141,7 +142,8 @@ const routers = new VueRouter({
                     props: (route) => ({
                         project_id: route.params.project_id,
                         common: route.query.common,
-                        common_template: route.query.common_template
+                        common_template: route.query.common_template,
+                        page: route.query.page
                     }),
                     meta: { project: true }
                 },

@@ -109,8 +109,8 @@
                     ]
                 },
                 {
-                    "name": "common_flow",
-                    "name_en": "公共流程",
+                    "name": "公共流程",
+                    "name_en": "Common Flow",
                     "actions": [
                         {
                             "id": "common_flow_create"

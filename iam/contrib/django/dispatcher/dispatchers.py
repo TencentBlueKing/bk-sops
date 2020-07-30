@@ -171,15 +171,14 @@ class DjangoBasicResourceApiDispatcher(ResourceApiDispatcher):
         options = self._get_options(request)
 
         filter_obj = get_filter_obj(data.get("filter"), ["ids", "attrs"])
-        page_obj = get_page_obj(data.get("page"))
 
         provider = self._provider[data["type"]]
 
         pre_process = getattr(provider, "pre_fetch_instance_info", None)
         if pre_process and callable(pre_process):
-            pre_process(filter_obj, page_obj, **options)
+            pre_process(filter_obj, **options)
 
-        result = provider.fetch_instance_info(filter_obj, page_obj, **options)
+        result = provider.fetch_instance_info(filter_obj, **options)
 
         return success_response(result.to_list(), request_id)
 

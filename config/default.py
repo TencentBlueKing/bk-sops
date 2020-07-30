@@ -75,6 +75,7 @@ INSTALLED_APPS += (
     "pipeline_plugins.variables",
     "pipeline_web.core",
     "pipeline_web.label",
+    "pipeline_web.plugin_management",
     "data_migration",
     "weixin.core",
     "weixin",
@@ -269,9 +270,10 @@ IS_AJAX_PLAIN_MODE = True
 # init admin list
 INIT_SUPERUSER = ["admin"]
 
-# cc、job域名
+# cc、job配置
 BK_CC_HOST = os.environ.get("BK_CC_HOST")
 BK_JOB_HOST = os.environ.get("BK_JOB_HOST")
+BK_JOB_VERSION = os.environ.get("BKAPP_BK_JOB_VERSION", "V2")
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = "v2"

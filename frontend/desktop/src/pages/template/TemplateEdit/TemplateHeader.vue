@@ -54,7 +54,7 @@
                 @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{$t('返回')}}</router-link>
+            <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
         </div>
         <SelectProjectModal
             :title="$t('创建任务')"
@@ -214,11 +214,8 @@
 
                 if (saveAndCreate) {
                     if (this.createTaskBtnActive) {
-                        if (this.common) {
-                            this.isSelectProjectShow = true
-                        } else {
-                            this.saveTemplate(saveAndCreate)
-                        }
+                        // 普通任务直接走模板校验、保存逻辑，公共流程先走模板校验、保存逻辑，然后显示项目选择弹窗
+                        this.saveTemplate(saveAndCreate)
                     } else {
                         if (this.common) {
                             this.applyCreateCommonTplPerm(this.saveAndCreateRequiredPerm)
@@ -241,12 +238,17 @@
             saveTemplate (saveAndCreate = false) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
+                    const pid = this.common ? this.selectedProject.id : this.project_id // 公共流程创建任务需要跳转到所选业务
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
-                        this.goToTaskUrl()
+                        if (this.common && pid === undefined) {
+                            this.setProjectSelectDialogShow()
+                        } else {
+                            this.goToTaskUrl(pid)
+                        }
                     } else {
-                        this.$emit('onSaveTemplate', saveAndCreate)
+                        this.$emit('onSaveTemplate', saveAndCreate, pid)
                     }
                 })
             },
@@ -270,16 +272,17 @@
                 return { resourceData, actions }
             },
             getHomeUrl () {
-                const url = { name: 'process', params: { project_id: this.project_id } }
-                if (this.common) {
-                    url.name = 'commonProcessList'
+                if (window.history.length > 1) {
+                    this.$router.go(-1)
+                } else {
+                    const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
+                    this.$router.push(url)
                 }
-                return url
             },
-            goToTaskUrl () {
+            goToTaskUrl (pid) {
                 this.$router.push({
                     name: 'taskStep',
-                    params: { step: 'selectnode', project_id: this.project_id },
+                    params: { step: 'selectnode', project_id: pid },
                     query: {
                         template_id: this.template_id,
                         common: this.common || undefined,
@@ -355,7 +358,7 @@
                     const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                     const res = await this.queryUserPermission({
                         action: 'common_flow_create_task',
-                        resoures: [
+                        resources: [
                             {
                                 system: bkSops.id,
                                 type: 'project',
@@ -376,6 +379,10 @@
                 } finally {
                     this.commonTplCreateTaskPermLoading = false
                 }
+            },
+            // 打开项目选择弹窗
+            setProjectSelectDialogShow () {
+                this.isSelectProjectShow = true
             },
             applyCreateCommonTplPerm () {
                 this.applyForPermission(['common_flow_create'])

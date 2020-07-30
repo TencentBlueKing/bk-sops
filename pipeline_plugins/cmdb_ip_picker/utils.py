@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import logging
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -20,6 +21,7 @@ from gcloud.utils.handlers import handle_api_error
 
 from .constants import NO_ERROR, ERROR_CODES
 
+logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 DEFAULT_BK_CLOUD_ID = "-1"
 
@@ -45,6 +47,12 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         ["bk_host_id", "bk_host_innerip", "bk_host_outerip", "bk_host_name", "bk_cloud_id"],
     )
 
+    logger.info(
+        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} cmdb.get_business_host_topo return: {host_info}".format(  # noqa
+            bk_biz_id=bk_biz_id, kwargs=kwargs, host_info=host_info
+        )
+    )
+
     if not host_info:
         return {
             "result": False,
@@ -66,28 +74,56 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
     for host in host_info:
         host_modules_id = get_modules_id(host["module"])
-        host_innerip = format_sundry_ip(host["host"]["bk_host_innerip"])
-        if selector == "topo" or "{cloud}:{ip}".format(cloud=host["host"]["bk_cloud_id"], ip=host_innerip) in ip_list:
+        host_innerip = format_sundry_ip(host["host"].get("bk_host_innerip", ""))
+        if (
+            selector == "topo"
+            or "{cloud}:{ip}".format(cloud=host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID), ip=host_innerip)
+            in ip_list
+        ):
             data.append(
                 {
                     "bk_host_id": host["host"]["bk_host_id"],
                     "bk_host_innerip": host_innerip,
-                    "bk_host_outerip": host["host"]["bk_host_outerip"],
-                    "bk_host_name": host["host"]["bk_host_name"],
-                    "bk_cloud_id": host["host"]["bk_cloud_id"],
+                    "bk_host_outerip": host["host"].get("bk_host_outerip", ""),
+                    "bk_host_name": host["host"].get("bk_host_name", ""),
+                    "bk_cloud_id": host["host"].get("bk_cloud_id", DEFAULT_BK_CLOUD_ID),
                     "host_modules_id": host_modules_id,
                 }
             )
 
+    logger.info(
+        "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} filter data collect: {data}".format(
+            bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
+        )
+    )
+
     # 先把不在用户选择拓扑中的主机过滤掉
     if selector == "topo":
-        topo_filter = [{"field": t["bk_obj_id"], "value": [t["bk_inst_id"]]} for t in kwargs["topo"]]
-        data = filter_hosts(topo_filter, biz_topo_tree, data, "bk_inst_id")
+        user_select_topo_host = {}
+        topo_filter = [[{"field": t["bk_obj_id"], "value": [t["bk_inst_id"]]}] for t in kwargs["topo"]]
+        # 这里需要单独对每个 filter 进行过滤，因为 filter_hosts 过滤的是同时满足所有条件的主机
+        for tf in topo_filter:
+            user_select_topo_host.update(
+                {host["bk_host_id"]: host for host in filter_hosts(tf, biz_topo_tree, data, "bk_inst_id")}
+            )
+        data = user_select_topo_host.values()
+
+        logger.info(
+            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data topo filter: {data}".format(
+                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
+            )
+        )
 
     # 筛选条件
     filters = kwargs["filters"]
     if filters:
         data = filter_hosts(filters, biz_topo_tree, data, "bk_inst_name")
+
+        logger.info(
+            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data condition filter: {data}".format(
+                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
+            )
+        )
 
     # 过滤条件
     excludes = kwargs["excludes"]
@@ -98,11 +134,30 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         new_data = [host for host in data if host["bk_host_innerip"] not in exclude_host_ip_list]
         data = new_data
 
+        logger.info(
+            "[get_ip_picker_result(biz_id: {bk_biz_id})] kwargs: {kwargs} data condition excludes: {data}".format(
+                bk_biz_id=bk_biz_id, kwargs=kwargs, data=data
+            )
+        )
+
     result = {"result": True, "code": NO_ERROR, "data": data, "message": ""}
     return result
 
 
 def filter_hosts(filters, biz_topo_tree, hosts, comp_key):
+    """筛选出同时满足所有过滤条件的主机
+
+    :param filters: 过滤条件
+    :type filters: list
+    :param biz_topo_tree: 业务拓扑
+    :type biz_topo_tree: dict
+    :param hosts: 筛选主机列表
+    :type hosts: list
+    :param comp_key: 过滤条件值在业务拓扑 biz_topo_tree 中所属的字段
+    :type comp_key: str
+    :return: 在 hosts 上筛选后的主机列表
+    :rtype: list
+    """
     filters_dct = format_condition_dict(filters)
     filter_host = set(filters_dct.pop("host", []))
 

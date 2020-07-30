@@ -1,0 +1,2 @@
+bugfix:
+    - "编辑公共流程引用子流程时需要判断common_flow_view权限"

@@ -13,6 +13,7 @@
     <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
+                ref="templateHeader"
                 :name="name"
                 :project_id="project_id"
                 :type="type"
@@ -160,6 +161,7 @@
                 templateSaving: false,
                 createTaskSaving: false,
                 saveAndCreate: false,
+                pid: undefined, // 公共流程创建任务需要跳转到所选业务
                 isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
@@ -386,7 +388,7 @@
                 this.projectInfoLoading = true
                 try {
                     const resp = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(resp)
+                    this.setProjectBaseInfo(resp.data)
                     this.getSubflowList()
                 } catch (e) {
                     errorHandler(e, this)
@@ -485,8 +487,8 @@
             },
             async getSubflowConfig (location) { // get subflow constants and add node
                 try {
-                    const subflowConfig = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
-                    const constants = tools.deepClone(subflowConfig.form)
+                    const res = await this.loadSubflowConfig({ templateId: location.atomId, version: location.atomVersion, common: this.common })
+                    const constants = tools.deepClone(res.data.form)
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
@@ -546,6 +548,7 @@
                     errorHandler(e, this)
                 } finally {
                     this.saveAndCreate = false
+                    this.pid = undefined
                     this.templateSaving = false
                     this.createTaskSaving = false
                 }
@@ -585,6 +588,7 @@
             // 子流程分组
             handleSubflowGroup (data) {
                 const tplList = data.objects
+                const reqPermssion = this.common ? ['common_flow_view'] : ['flow_view']
                 const groups = this.projectBaseInfo.task_categories.map(item => {
                     return {
                         type: item.value,
@@ -597,7 +601,7 @@
                     if (item.id !== Number(this.template_id)) {
                         const group = groups.find(tpl => tpl.type === item.category)
                         if (group) {
-                            item.hasPermission = this.hasPermission(['flow_view'], item.auth_actions)
+                            item.hasPermission = this.hasPermission(reqPermssion, item.auth_actions)
                             group.list.push(item)
                         }
                     }
@@ -926,7 +930,7 @@
             goToTaskUrl (template_id) {
                 this.$router.push({
                     name: 'taskStep',
-                    params: { step: 'selectnode', project_id: this.project_id },
+                    params: { step: 'selectnode', project_id: this.pid },
                     query: {
                         template_id,
                         common: this.common,
@@ -935,11 +939,12 @@
                 })
             },
             // 点击保存模板按钮回调
-            onSaveTemplate (saveAndCreate) {
+            onSaveTemplate (saveAndCreate, pid) {
                 if (this.templateSaving || this.createTaskSaving) {
                     return
                 }
                 this.saveAndCreate = saveAndCreate
+                this.pid = pid
                 this.checkVariable() // 全局变量是否合法
             },
             // 校验全局变量
@@ -1012,7 +1017,11 @@
                 const isAllNodeValid = this.validateAtomNode()
                 const isAllConditionValid = this.checkConditionData(true)
                 if (isAllNodeValid && isAllConditionValid) {
-                    this.saveTemplate()
+                    if (this.common && this.saveAndCreate && this.pid === undefined) { // 公共流程保存并创建任务，没有选择项目
+                        this.$refs.templateHeader.setProjectSelectDialogShow()
+                    } else {
+                        this.saveTemplate()
+                    }
                 }
             },
             onLeaveConfirm () {

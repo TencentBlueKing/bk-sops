@@ -360,7 +360,6 @@ const en = {
     '服务地址': 'Service Address',
     '已导入插件': 'Plugins Imported',
     '根模块': 'Root Module',
-    '已导入模块': 'Modules Imported',
     '插件名': 'Plugin Name',
     '类名': 'Class Name',
     '所属模块': 'Module',
@@ -441,6 +440,7 @@ const en = {
     '修改轻应用': 'Update Mini-APP',
     '使用权限': 'Permissions',
     '新建轻应用': 'New Mini-APP',
+    '编辑轻应用': 'Edit Mini-APP',
     '应用名称': 'App Name',
     '执行方案': 'Execution Scheme',
     '当流程模板包含可选节点时，用户可以在新建任务时添加执行方案。这里选择执行方案后，创建的轻应用只能按照固定执行方案新建任务。': 'You can add schemes when creating a task if the flow contains optional nodes.After selecting a scheme, you can only create tasks according to the fixed execution scheme with this Mini-APP.',
@@ -991,8 +991,10 @@ const en = {
     '快照名称': 'Snapshot name',
     '新建快照': 'New snapshot',
     '可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。': 'It can automatically save the last 50 snapshots, every 5 minutes. Store only in local browser.',
-    '最近快照已保存，并恢复至原序号为': 'The most recent snapshot has been saved and restored to the original number',
-    '的快照': 'snapshot'
+    '最近快照已保存，并恢复至序号': 'The most recent snapshot has been saved and restored to the serial number',
+    '号的快照': 'Snapshot',
+    '历史记录': 'History',
+    '：': ': '
 }
 
 export default en

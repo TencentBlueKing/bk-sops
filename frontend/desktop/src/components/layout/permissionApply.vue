@@ -111,7 +111,7 @@
                     return
                 }
                 
-                openOtherApp('bk_iam_app', this.url)
+                openOtherApp(window.BK_IAM_APP_CODE, this.url)
             },
             goToCreateProject () {
                 if (!this.hasPermission(['project_create'], this.authActions)) {
