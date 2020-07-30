@@ -144,7 +144,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.5.20"
+STATIC_VERSION = "3.5.21"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -322,8 +322,7 @@ PIPELINE_DATA_BACKEND = os.getenv(
     "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
 )
 PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
-    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND",
-    "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
+    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND", "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
 )
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
