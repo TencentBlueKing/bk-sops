@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="local-draft-panel">
+    <div class="template-snapshoot-panel">
         <bk-sideslider
             ext-cls="common-template-setting-sideslider"
             :width="800"
@@ -19,7 +19,7 @@
             :quick-close="true">
             <div slot="header">
                 <span> {{$t('本地快照')}} </span>
-                <i class="common-icon-info draft-tooltip"
+                <i class="common-icon-info snapshoot-tooltip"
                     v-bk-tooltips="{
                         content: $t('可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。'),
                         placement: 'bottom-end',
@@ -28,8 +28,8 @@
                 </i>
             </div>
             <div class="content-wrap" slot="content">
-                <div class="local-draft-content">
-                    <table class="draft-table">
+                <div class="local-snapshoot-content">
+                    <table class="snapshoot-table">
                         <thead>
                             <tr>
                                 <th class="col-number">{{ $t('序号') }}</th>
@@ -40,52 +40,52 @@
                         </thead>
                         <tbody>
                             <tr style="background: #f0f1f5">
-                                <td class="col-number">{{ draftArray.length + 1 }}</td>
-                                <td class="col-name">—</td>
-                                <td class="col-time">—</td>
+                                <td class="col-number">--</td>
+                                <td class="col-name">--</td>
+                                <td class="col-time">--</td>
                                 <td class="col-operation-group">
-                                    <bk-button size="small" theme="default" @click="onNewDraft">{{ $t('新建') }}</bk-button>
+                                    <bk-button size="small" theme="default" @click="onCreateSnapshoot">{{ $t('新建') }}</bk-button>
                                 </td>
                             </tr>
                             <tr
-                                v-for="(draft, index) in draftArray"
-                                :key="draft.key">
+                                v-for="(item, index) in snapshoots"
+                                :key="item.timestamp">
                                 <td class="col-number">
-                                    <div class="content">{{ draftArray.length - index }}</div>
+                                    <div class="content">{{ snapshoots.length - index }}</div>
                                 </td>
                                 <td
                                     class="col-name"
-                                    :title="draft.data.description.message">
+                                    :title="item.name">
                                     <div class="content">
                                         <bk-input
-                                            v-if="editingDraf.key === draft.key"
-                                            v-model="editingDraf.name"
+                                            v-if="editingData.key === item.timestamp"
+                                            v-model="editingData.name"
                                             v-focus
-                                            v-validate="draftNameRule"
+                                            v-validate="nameRule"
                                             data-vv-validate-on=" "
-                                            class="draft-name-input"
-                                            :name="'draftName' + draft.key"
+                                            class="snapshoot-name-input"
+                                            :name="'snapshootName' + item.timestamp"
                                             :placeholder="$t('名称')"
-                                            @blur="saveDraftnName(draft)"
-                                            @enter="saveDraftnName(draft)" />
-                                        <span v-else>{{draft.data.description.message}}</span>
-                                        <i class="common-icon-edit" @click.stop="onEditDraftnName(draft)"></i>
+                                            @blur="onSaveName(item)"
+                                            @enter="onSaveName(item)" />
+                                        <span v-else>{{item.name}}</span>
+                                        <i class="common-icon-edit" @click.stop="onEditName(item)"></i>
                                         <span
-                                            v-if="errors.first('draftName' + draft.key)"
+                                            v-if="errors.first('snapshootName' + item.timestamp)"
                                             class="common-icon-info error-msg"
                                             v-bk-tooltips="{
-                                                content: errors.first('draftName' + draft.key),
+                                                content: errors.first('snapshootName' + item.timestamp),
                                                 placements: ['top-end']
                                             }">
                                         </span>
                                     </div>
                                 </td>
-                                <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
+                                <td class="col-time"><div class="content">{{item.timestamp | timestampToDatetime}}</div></td>
                                 <td class="col-operation-group">
-                                    <span class="operation-item" @click="onReplaceTemplate(draft.data.template, draftArray.length - index)">{{$t('还原')}}</span>
+                                    <span class="operation-item" @click="onUseSnapshoot(item, snapshoots.length - index)">{{$t('还原')}}</span>
                                 </td>
                             </tr>
-                            <tr v-if="!draftArray.length" class="empty-draft-tip">
+                            <tr v-if="!snapshoots.length" class="empty-snapshoot-tip">
                                 <td><NoData><p>{{$t('无数据，请手动添加快照或等待自动保存')}}</p></NoData></td>
                             </tr>
                         </tbody>
@@ -97,29 +97,31 @@
 </template>
 
 <script>
-    import i18n from '@/config/i18n/index.js'
-    import tools from '@/utils/tools.js'
+    import moment from 'moment'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
-        name: 'TabLocalDraft',
+        name: 'TabTemplateSnapshoot',
         components: {
             NoData
         },
+        filters: {
+            timestampToDatetime (val) {
+                return moment.unix(val / 1000).format('YYYY-MM-DD HH:mm:ss')
+            }
+        },
         props: {
-            draftArray: Array,
-            isShow: Boolean
+            isShow: Boolean,
+            snapshoots: Array
         },
         data () {
             return {
-                editingDraf: {
+                editingData: {
                     key: null,
                     name: ''
                 },
-                replaceData: null,
-                newDraftShow: false,
-                draftNameRule: {
+                nameRule: {
                     required: true,
                     max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
                     regex: NAME_REG
@@ -128,47 +130,32 @@
         },
         methods: {
             // 新建快照
-            onNewDraft () {
-                this.$emit('hideConfigPanel')
-                this.$emit('onNewDraft', i18n.t('新建快照'))
+            onCreateSnapshoot () {
+                this.$emit('createSnapshoot')
             },
             // 还原快照
-            onReplaceTemplate (templateData, index) {
-                if (!this.isClickDraft) {
-                    this.$emit('updateLocalTemplateData')
-                }
-                const data = {
-                    templateData: templateData,
-                    type: 'replace',
-                    index: index
-                }
-                this.$emit('onReplaceTemplate', data)
-                this.$emit('hideConfigPanel')
+            onUseSnapshoot (snapshoot, index) {
+                this.$emit('useSnapshoot', snapshoot.template, index)
             },
-            // 删除快照
-            onDeleteDraft (key) {
-                this.$emit('onDeleteDraft', key)
+            // 点击编辑快照名称
+            onEditName (snapshoot) {
+                this.editingData.key = snapshoot.timestamp
+                this.editingData.name = snapshoot.name
             },
-            // 点击编辑快照
-            onEditDraftnName (draft) {
-                this.editingDraf.key = draft.key
-                this.editingDraf.name = draft.data.description.message
-            },
-            // 保存编辑后的快照
-            saveDraftnName (draft) {
+            // 保存编辑中的快照名称
+            onSaveName (snapshoot) {
                 this.$validator.validateAll().then((result) => {
                     if (!result) {
                         return
                     }
-                    const newData = tools.deepClone(draft.data)
-                    newData.description.message = this.editingDraf.name
-                    this.$emit('updateDraft', this.editingDraf.key, newData)
-                    this.editingDraf.key = null
-                    this.editingDraf.name = ''
+                    const data = { ...snapshoot, name: this.editingData.name }
+                    this.$emit('updateSnapshoot', data)
+                    this.editingData.key = null
+                    this.editingData.name = ''
                 })
             },
             onBeforeClose () {
-                this.$emit('onColseTab', 'localDraftTab')
+                this.$emit('onColseTab', 'tplSnapshootTab')
             }
         }
     }
@@ -178,12 +165,12 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 
-.local-draft-panel {
+.template-snapshoot-panel {
     height: 100%;
     .content-wrap {
         height: 100%;
     }
-    .draft-tooltip {
+    .snapshoot-tooltip {
         display: inline-block;
         vertical-align: middle;
         margin-left: 6px;
@@ -193,12 +180,12 @@
             color: #f4aa1a;
         }
     }
-    .local-draft-content {
+    .local-snapshoot-content {
         padding: 26px 28px;
         padding-bottom: 0;
         height: 100%;
     }
-    .draft-table {
+    .snapshoot-table {
         width: 100%;
         height: 100%;
         color: #313238;
@@ -235,7 +222,7 @@
             color: #63656e;
             overflow: auto;
             @include scrollbar;
-            tr:not(.empty-draft-tip):hover {
+            tr:not(.empty-snapshoot-tip):hover {
                 background: $blueStatus;
                 .col-name .common-icon-edit {
                     display: inline-block;
@@ -274,7 +261,7 @@
                 cursor: pointer;
             }
         }
-        .empty-draft-tip {
+        .empty-snapshoot-tip {
             td {
                 width: 742px;
                 border-bottom: none;
