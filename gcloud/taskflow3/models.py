@@ -24,7 +24,7 @@ from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
 from pipeline.models import PipelineInstance
-from pipeline.engine import exceptions
+from pipeline.engine import exceptions as engine_exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
 from pipeline.parser.context import get_pipeline_context
@@ -55,6 +55,7 @@ from gcloud.taskflow3.mixins import TaskFlowStatisticsMixin
 from gcloud.tasktmpl3.constants import NON_COMMON_TEMPLATE_TYPES
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, TEMPLATE_SOURCE, PROJECT, ONETIME
 from gcloud.taskflow3.signals import taskflow_started
+from gcloud.taskflow3 import exceptions as taskflow_exceptions
 from gcloud.shortcuts.cmdb import get_business_group_members
 
 logger = logging.getLogger("root")
@@ -218,7 +219,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             refs = cons_pool.get_reference_info(strict=False)
             for keys in list(refs.values()):
                 for key in keys:
-                    # ad d outputs keys later
+                    # add outputs keys later
                     if key in constants and key not in referenced_keys:
                         referenced_keys.append(key)
                         data.update({key: constants[key]})
@@ -227,13 +228,16 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
 
         # keep outputs constants
         def is_outputs(value):
-            check_type = value["source_type"] == "component_outputs"
-            if not check_type:
-                return False
-            return list(value["source_info"].keys())[0] not in exclude_task_nodes_id
+            return value["source_type"] == "component_outputs"
 
         outputs_keys = [key for key, value in list(constants.items()) if is_outputs(value)]
         referenced_keys = list(set(referenced_keys + outputs_keys))
+        referenced_output = set(outputs_keys).intersection(referenced_keys)
+        if referenced_output:
+            raise taskflow_exceptions.InvalidOperationException(
+                "can not remove nodes make {} outputs".format(referenced_output)
+            )
+
         pipeline_tree[PE.outputs] = [key for key in pipeline_tree[PE.outputs] if key in referenced_keys]
 
         # rebuild constants index
@@ -504,7 +508,7 @@ class TaskFlowInstance(models.Model):
     def raw_state(self):
         try:
             state = pipeline_api.get_status_tree(self.pipeline_instance.instance_id)["state"]
-        except exceptions.InvalidOperationException:
+        except engine_exceptions.InvalidOperationException:
             return None
 
         return state
@@ -564,7 +568,7 @@ class TaskFlowInstance(models.Model):
         outputs = {}
         try:
             detail = pipeline_api.get_status_tree(node_id)
-        except exceptions.InvalidOperationException:
+        except engine_exceptions.InvalidOperationException:
             act_started = False
         else:
             # 最新 loop 执行记录，直接通过接口获取
@@ -658,7 +662,7 @@ class TaskFlowInstance(models.Model):
         # 首先获取最新一次执行详情
         try:
             detail = pipeline_api.get_status_tree(node_id)
-        except exceptions.InvalidOperationException:
+        except engine_exceptions.InvalidOperationException:
             act_start = False
 
         if not act_start:
