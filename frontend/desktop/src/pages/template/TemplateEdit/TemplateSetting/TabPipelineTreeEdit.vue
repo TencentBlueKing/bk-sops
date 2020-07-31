@@ -14,6 +14,7 @@
         :is-show="true"
         :width="800"
         :title="$t('本地快照')"
+        :quick-close="!hasAdminPerm"
         :before-close="closeTab">
         <div class="pipeline-tree-wrap" slot="content">
             <div class="code-wrapper">
@@ -28,8 +29,11 @@
                 </div>
             </div>
             <div class="btn-wrap">
-                <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
-                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
+                <template v-if="hasAdminPerm">
+                    <bk-button class="save-btn" theme="primary" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                    <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
+                </template>
+                <bk-button v-else theme="primary" @click="closeTab">{{ $t('关闭') }}</bk-button>
             </div>
         </div>
     </bk-sideslider>
@@ -84,6 +88,7 @@
                         return
                     }
                     this.$emit('modifyTemplateData', pipelineData)
+                    this.closeTab()
                 }
             },
             closeTab () {

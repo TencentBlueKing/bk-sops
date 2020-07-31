@@ -34,7 +34,7 @@
         </TabTemplateSnapshoot>
         <TabPipelineTreeEdit
             v-if="activeTab === 'templateDataEditTab'"
-            @confirm="onDataModify"
+            @modifyTemplateData="$emit('modifyTemplateData', $event)"
             @closeTab="closeTab">
         </TabPipelineTreeEdit>
     </div>
