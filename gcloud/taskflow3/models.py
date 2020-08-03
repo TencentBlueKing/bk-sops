@@ -227,17 +227,8 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
                 break
 
         # keep outputs constants
-        def is_outputs(value):
-            return value["source_type"] == "component_outputs"
-
-        outputs_keys = [key for key, value in list(constants.items()) if is_outputs(value)]
+        outputs_keys = [key for key, value in list(constants.items()) if value["source_type"] == "component_outputs"]
         referenced_keys = list(set(referenced_keys + outputs_keys))
-        referenced_output = set(outputs_keys).intersection(referenced_keys)
-        if referenced_output:
-            raise taskflow_exceptions.InvalidOperationException(
-                "can not remove nodes make {} outputs".format(referenced_output)
-            )
-
         pipeline_tree[PE.outputs] = [key for key in pipeline_tree[PE.outputs] if key in referenced_keys]
 
         # rebuild constants index
@@ -361,6 +352,19 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
     def preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
+
+        # 检测是否移除了勾选了输出变量的节点
+        nodes_have_ouputs = set()
+        for constant_data in pipeline_tree.get("constants", {}).values():
+            if constant_data["source_type"] == "component_outputs":
+                for output_node in constant_data["source_info"]:
+                    nodes_have_ouputs.add(output_node)
+
+        can_not_rm_nodes = nodes_have_ouputs.intersection(set(exclude_task_nodes_id))
+        if can_not_rm_nodes:
+            raise taskflow_exceptions.InvalidOperationException(
+                "can not remove nodes({}) that make outputs".format(can_not_rm_nodes)
+            )
 
         locations = {item["id"]: item for item in pipeline_tree.get("location", [])}
         lines = {item["id"]: item for item in pipeline_tree.get("line", [])}
