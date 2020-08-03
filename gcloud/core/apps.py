@@ -39,6 +39,7 @@ class CoreConfig(AppConfig):
                     "service_name": EnvironmentVariables.objects.get_var("BKAPP_REDIS_SERVICE_NAME"),
                     "mode": EnvironmentVariables.objects.get_var("BKAPP_REDIS_MODE"),
                     "db": EnvironmentVariables.objects.get_var("BKAPP_REDIS_DB"),
+                    "sentinel_password": EnvironmentVariables.objects.get_var("BKAPP_REDIS_SENTINEL_PASSWORD"),
                 }
             except Exception:
                 logger.warning(traceback.format_exc())
@@ -51,4 +52,5 @@ class CoreConfig(AppConfig):
                         "service_name": os.getenv("BKAPP_REDIS_SERVICE_NAME"),
                         "mode": os.getenv("BKAPP_REDIS_MODE"),
                         "db": os.getenv("BKAPP_REDIS_DB"),
+                        "sentinel_password": os.getenv("BKAPP_REDIS_SENTINEL_PASSWORD"),
                     }
