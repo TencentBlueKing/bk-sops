@@ -58,6 +58,7 @@ class PipelineInstanceResource(GCloudModelResource):
         filtering = {
             'name': ALL,
             'is_finished': ALL,
+            'is_revoked': ALL,
             'creator': ALL,
             'category': ALL,
             'subprocess_has_update': ALL,

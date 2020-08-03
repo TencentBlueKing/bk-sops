@@ -99,7 +99,7 @@
                 <bk-switcher
                     :value="formData.selectable"
                     theme="primary"
-                    size="min"
+                    size="small"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
@@ -142,7 +142,7 @@
                 <bk-switcher
                     :value="formData.selectable"
                     theme="primary"
-                    size="min"
+                    size="small"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>

@@ -73,6 +73,7 @@ class PipelineElement(object):
     lazy = "lazy"
     version = "version"
     subprocess_detail = "subprocess_detail"
+    custom_type = "custom_type"
 
 
 PE = PipelineElement()

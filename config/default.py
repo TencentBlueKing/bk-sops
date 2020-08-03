@@ -74,6 +74,7 @@ INSTALLED_APPS += (
     "pipeline_plugins.variables",
     "pipeline_web.core",
     "pipeline_web.label",
+    "pipeline_web.plugin_management",
     "data_migration",
     "auth_backend",
     "auth_backend.contrib.consistency",
@@ -320,7 +321,12 @@ EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOUR
 PIPELINE_DATA_BACKEND = os.getenv(
     "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
 )
-PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
+PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
+    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND",
+    "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
+)
+
+PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 ENABLE_EXAMPLE_COMPONENTS = False
 

@@ -1211,6 +1211,12 @@
                 display: inline-block;
             }
         }
+        &:not(.editable) {
+            .jtk-endpoint circle{
+                fill: transparent;
+                stroke: transparent;
+            }
+        }
         &.tool-wrapper-telescopic {
             .tool-panel-wrap {
                 top: 20px;

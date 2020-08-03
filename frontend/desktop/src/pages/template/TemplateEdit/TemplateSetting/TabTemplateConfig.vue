@@ -10,24 +10,22 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper">
-        <bk-sideslider
-            ext-cls="common-template-setting-sideslider"
-            :width="800"
-            :is-show="isShow"
-            :before-close="onBeforeClose"
-            :quick-close="true">
-            <div slot="header">
-                <span>{{$t('基础信息')}}</span>
-            </div>
-            <div slot="content" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
+    <bk-sideslider
+        :title="$t('基础信息')"
+        :is-show="true"
+        :quick-close="false"
+        :width="800"
+        :before-close="closeTab">
+        <div class="config-wrapper" slot="content">
+            <div class="form-area">
                 <div class="common-form-item">
                     <label class="required">{{ $t('分类') }}</label>
                     <div class="common-form-content">
                         <bk-select
                             class="category-select"
-                            v-model="category"
-                            @change="onChangeTaskCategories">
+                            :clearable="false"
+                            v-model="selectedTaskCategory"
+                            @change="isCategoryEmpty = false">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
                                 :key="index"
@@ -35,7 +33,7 @@
                                 :name="item.name">
                             </bk-option>
                         </bk-select>
-                        <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
+                        <span v-show="isCategoryEmpty" class="common-error-tip error-msg">{{ $t('必填项')}}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -54,12 +52,6 @@
                         </bk-checkbox-group>
                     </div>
                 </div>
-                <div class="common-form-item hide">
-                    <label>{{ $t('超时时间(分钟)') }}</label>
-                    <div class="common-form-content">
-                        <bk-input :value="timeout" @input="onChangeTimeout" />
-                    </div>
-                </div>
                 <div class="common-form-item">
                     <label>{{ $t('通知分组') }}</label>
                     <div class="common-form-content">
@@ -74,8 +66,12 @@
                     </div>
                 </div>
             </div>
-        </bk-sideslider>
-    </div>
+            <div class="btn-wrap">
+                <bk-button class="save-btn" theme="primary" :disable="notifyTypeLoading" @click="onConfirm">{{ $t('保存') }}</bk-button>
+                <bk-button theme="default" @click="closeTab">{{ $t('取消') }}</bk-button>
+            </div>
+        </div>
+    </bk-sideslider>
 </template>
 
 <script>
@@ -90,10 +86,14 @@
             isShow: Boolean
         },
         data () {
+            const { category, notify_type, notify_receivers } = this.$store.state.template
             return {
-                selectedTaskCategory: '',
+                selectedTaskCategory: category,
+                receiverGroup: notify_receivers.receiver_group.slice(0),
+                notifyType: notify_type.slice(0),
                 notifyTypeLoading: false,
-                notifyTypeList: []
+                notifyTypeList: [],
+                isCategoryEmpty: !this.isTemplateConfigValid
             }
         },
         computed: {
@@ -122,31 +122,11 @@
                     })
                 }
                 return []
-            },
-            receiverGroup: {
-                get () {
-                    return this.$store.state.template.notify_receivers.receiver_group
-                },
-                set (value) {
-                    this.setReceiversGroup(value)
-                }
-            },
-            notifyType: {
-                get () {
-                    return this.$store.state.template.notify_type
-                },
-                set (value) {
-                    this.setNotifyType(value)
-                }
-            },
-            category: {
-                get () {
-                    return this.$store.state.template.category
-                },
-                set (value) {
-                    this.setCategory(value)
-                    this.$emit('onSelectCategory', value)
-                }
+            }
+        },
+        watch: {
+            isTemplateConfigValid (val) {
+                this.isCategoryEmpty = !val
             }
         },
         created () {
@@ -154,7 +134,6 @@
         },
         methods: {
             ...mapMutations('template/', [
-                'setOutputs',
                 'setReceiversGroup',
                 'setNotifyType',
                 'setOvertime',
@@ -177,11 +156,19 @@
             onChangeTimeout (val) {
                 this.setOvertime(val)
             },
-            onChangeTaskCategories (id) {
-                this.selectedTaskCategory = id
+            onConfirm () {
+                if (!this.selectedTaskCategory) {
+                    this.isCategoryEmpty = true
+                    return
+                }
+                this.setCategory(this.selectedTaskCategory)
+                this.setReceiversGroup(this.receiverGroup)
+                this.setNotifyType(this.notifyType)
+                this.closeTab()
+                this.$emit('templateDataChanged')
             },
-            onBeforeClose () {
-                this.$emit('onColseTab', 'templateConfigTab')
+            closeTab () {
+                this.$emit('closeTab')
             }
         }
     }
@@ -191,11 +178,25 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .config-wrapper {
-    height: 100%;
+    height: calc(100vh - 60px);
     background: none;
     border: none;
+    .form-area {
+        padding: 30px 30px 0;
+        height: calc(100% - 49px);
+        overflow-y: auto;
+        @include scrollbar;
+    }
+    .btn-wrap {
+        padding: 8px 30px;
+        border-top: 1px solid #cacedb;
+        .bk-button {
+            margin-right: 10px;
+            padding: 0 25px;
+        }
+    }
     .common-form-item {
-       margin: 20px
+       margin: 0 20px 20px;
     }
     .common-form-item > label {
         margin-top: 0;
@@ -210,27 +211,22 @@
         line-height: 32px;
     }
     .bk-form-checkbox {
-        margin: 14px 30px 0 0;
+        margin-right: 20px;
+        margin-bottom: 6px;
         min-width: 96px;
         /deep/ .bk-checkbox-text {
             color: $greyDefault;
             font-size: 12px;
         }
-        &:nth-child(-n + 4) {
-            margin-top: 0;
-        }
     }
     /deep/ .bk-checkbox-text {
         display: inline-flex;
         align-items: center;
-        width: 110px;
+        width: 100px;
     }
     .notify-icon {
         margin-right: 4px;
         width: 18px;
-    }
-    .hide {
-        display: none;
     }
 }
 </style>

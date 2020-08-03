@@ -262,6 +262,8 @@
                     case 'datetime':
                     case 'password':
                     case 'memberSelector':
+                    case 'code_editor':
+                    case 'section':
                         valueFormat = {
                             type: ['String', 'Number', 'Boolean'],
                             value: ''
@@ -432,7 +434,7 @@
         line-height: 20px;
         width: 100%;
     }
-    .el-input {
+    .el-input:not(.el-input--mini) {
         .el-input__inner {
             height: 32px;
             line-height: 32px;
@@ -454,7 +456,7 @@
             }
         }
     }
-    .el-select {
+    .el-select:not(.el-select--mini) {
         .el-input__suffix {
             .el-input__icon {
                 line-height: 32px;

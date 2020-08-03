@@ -14,9 +14,10 @@
         <header class="set-form">
             <span class="title">{{ i18n.title }}</span>
             <div class="btns">
-                <bk-button theme="primary" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
+                <bk-button theme="primary" size="small" :loading="pending.host" @click="onConfigConfirm">{{ i18n.confirm }}</bk-button>
                 <bk-button
                     theme="default"
+                    size="small"
                     @click="$emit('update:showFilter', false)">
                     {{ i18n.cancel }}
                 </bk-button>
@@ -104,7 +105,7 @@
                                 <bk-switcher
                                     v-model="formData.modules[moduleIndex].isReuse"
                                     theme="primary"
-                                    size="min"
+                                    size="small"
                                     @change="onChangeReuse($event, formData.modules[moduleIndex])">
                                 </bk-switcher>
                             </bk-form-item>
@@ -752,13 +753,10 @@
         }
         .btns {
             float: right;
-            .bk-button {
-                font-size: 12px;
-            }
+            margin-top: 4px;
         }
     }
     .module-form {
-        padding: 20px;
         border-radius: 2px;
         .module-wrapper {
             margin-top: 20px;

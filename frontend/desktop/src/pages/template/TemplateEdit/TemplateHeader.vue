@@ -33,6 +33,18 @@
             <span class="name-error common-error-tip error-msg">{{ errors.first('templateName') }}</span>
         </div>
         <div class="button-area">
+            <div class="setting-tab-wrap">
+                <span
+                    v-for="tab in settingTabs"
+                    :key="tab.id"
+                    :class="['setting-item', {
+                        'active': activeTab === tab.id,
+                        'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+                    }]"
+                    @click="$emit('onChangePanel', tab.id)">
+                    <i :class="tab.icon" :title="tab.title"></i>
+                </span>
+            </div>
             <bk-button
                 theme="primary"
                 :class="[
@@ -54,7 +66,7 @@
                 @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{$t('返回')}}</router-link>
+            <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
         </div>
         <ProjectSelectorModal
             :is-new-task="false"
@@ -70,6 +82,8 @@
     import permission from '@/mixins/permission.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import ProjectSelectorModal from '@/components/common/modal/ProjectSelectorModal.vue'
+    import SETTING_TABS from './SettingTabs.js'
+
     export default {
         name: 'TemplateHeader',
         components: {
@@ -78,38 +92,16 @@
         },
         mixins: [permission],
         props: {
-            type: {
-                type: String,
-                default: 'edit'
-            },
-            name: {
-                type: String,
-                default: ''
-            },
-            template_id: {
-                type: [String, Number],
-                default: ''
-            },
-            project_id: {
-                type: [String, Number],
-                default: ''
-            },
-            common: {
-                type: String,
-                default: ''
-            },
-            templateSaving: {
-                type: Boolean,
-                default: false
-            },
-            createTaskSaving: {
-                type: Boolean,
-                default: false
-            },
-            isTemplateDataChanged: {
-                type: Boolean,
-                default: false
-            },
+            type: String,
+            name: String,
+            template_id: [String, Number],
+            project_id: [String, Number],
+            common: String,
+            templateSaving: Boolean,
+            createTaskSaving: Boolean,
+            activeTab: String,
+            isGlobalVariableUpdate: Boolean,
+            isTemplateDataChanged: Boolean,
             tplResource: {
                 type: Object,
                 default () {
@@ -142,6 +134,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'hasAdminPerm': state => state.hasAdminPerm
+            }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
@@ -149,6 +144,9 @@
             }),
             title () {
                 return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
+            },
+            settingTabs () {
+                return this.hasAdminPerm ? SETTING_TABS.slice(0) : SETTING_TABS.slice(0, -1)
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
@@ -276,11 +274,12 @@
                 return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
-                const url = { name: 'process', params: { project_id: this.project_id } }
-                if (this.common) {
-                    url.name = 'commonProcessList'
+                if (window.history.length > 1) {
+                    this.$router.go(-1)
+                } else {
+                    const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
+                    this.$router.push(url)
                 }
-                return url
             },
             goToTaskUrl () {
                 this.$router.push({
@@ -339,7 +338,7 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 430px;
+            width: 354px;
             text-align: center;
         }
         .name-show-mode {
@@ -375,6 +374,38 @@
             top: 6px;
             font-size: 12px;
             white-space: nowrap;
+        }
+        .setting-tab-wrap {
+            display: inline-block;
+            margin-right: 20px;
+            padding-right: 24px;
+            height: 32px;
+            line-height: 32px;
+            border-right: 1px solid #dcdee5;
+            .setting-item {
+                position: relative;
+                margin-right: 20px;
+                font-size: 16px;
+                color: #546a9e;
+                cursor: pointer;
+                &:hover,
+                &.active {
+                    color: #3a84ff;
+                }
+                &:last-child {
+                    margin-right: 0;
+                }
+                &.update::before {
+                    content: '';
+                    position: absolute;
+                    right: -6px;
+                    top: -6px;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: #ff5757;
+                }
+            }
         }
         .task-btn {
             margin-right: 5px;
