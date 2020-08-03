@@ -16,8 +16,8 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.conf.urls import url
 
-from auth_backend.constants import AUTH_FORBIDDEN_CODE
-from auth_backend.exceptions import AuthFailedException
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+from iam.exceptions import RawAuthFailedException
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
@@ -101,9 +101,9 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
     if not job_result["result"]:
         message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (biz_cc_id, job_result["message"],)
 
-        if job_result.get("code", 0) == AUTH_FORBIDDEN_CODE:
+        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
-            raise AuthFailedException(permissions=job_result.get("permission", []))
+            raise RawAuthFailedException(permissions=job_result.get("permission", {}))
 
         logger.error(message)
         result = {"result": False, "data": [], "message": message}
@@ -121,9 +121,9 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 
         message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (biz_cc_id, job_result["message"],)
 
-        if job_result.get("code", 0) == AUTH_FORBIDDEN_CODE:
+        if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
-            raise AuthFailedException(permissions=job_result.get("permission", []))
+            raise RawAuthFailedException(permissions=job_result.get("permission", {}))
 
         logger.error(message)
         result = {"result": False, "data": [], "message": message}

@@ -17,8 +17,8 @@ import traceback
 from django.http import JsonResponse
 from django.conf.urls import url
 
-from auth_backend.constants import AUTH_FORBIDDEN_CODE
-from auth_backend.exceptions import AuthFailedException
+from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
+from iam.exceptions import RawAuthFailedException
 
 from pipeline_plugins.base.utils.inject import (
     supplier_account_inject,
@@ -274,9 +274,9 @@ def cc_get_business(request):
     except APIError as e:
         message = "an error occurred when fetch user business: %s" % traceback.format_exc()
 
-        if e.result and e.result.get("code", 0) == AUTH_FORBIDDEN_CODE:
+        if e.result and e.result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
-            raise AuthFailedException(permissions=e.result.get("permission", []))
+            raise RawAuthFailedException(permissions=e.result.get("permission", {}))
 
         logger.error(message)
         return JsonResponse({"result": False, "message": "fetch business list failed, please contact administrator"})
