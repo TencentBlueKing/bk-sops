@@ -285,6 +285,8 @@ BK_IAM_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
 BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
 # 权限中心 SaaS host
 BK_IAM_SAAS_HOST = os.environ.get("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_APP_CODE))
+# 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
+API_PREFIX = SITE_URL + "apigw"
 
 AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
 
