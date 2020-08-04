@@ -667,41 +667,62 @@ class TaskFlowInstance(models.Model):
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack, loop)
+        act_start = True
+        detail = {}
         # 首先获取最新一次执行详情
         try:
             detail = pipeline_api.get_status_tree(node_id)
-        except exceptions.InvalidOperationException as e:
-            return {"result": False, "message": str(e), "data": {}, "code": err_code.INVALID_OPERATION.code}
-        TaskFlowInstance.format_pipeline_status(detail)
-        # 默认只请求最后一次循环结果
-        if loop is None or int(loop) >= detail["loop"]:
-            loop = detail["loop"]
-            detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
-        # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
-        else:
-            histories = pipeline_api.get_activity_histories(node_id, loop)
-            # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
-            current_loop = histories[-1]
-            current_loop["state"] = states.FINISHED
-            # 循环只有成功才会继续任务
-            TaskFlowInstance.format_pipeline_status(current_loop)
-            detail.update(
-                {
-                    "start_time": current_loop["start_time"],
-                    "finish_time": current_loop["finish_time"],
-                    "elapsed_time": current_loop["elapsed_time"],
-                    "loop": current_loop["loop"],
-                    "skip": current_loop["skip"],
-                    "state": current_loop["state"],
-                }
-            )
-            # index 非 -1 表示当前 loop 的重试记录
-            detail["histories"] = histories[1:]
+        except exceptions.InvalidOperationException:
+            act_start = False
 
-        for his in detail["histories"]:
-            # 重试记录必然是因为失败才重试
-            his.setdefault("state", states.FAILED)
-            TaskFlowInstance.format_pipeline_status(his)
+        if not act_start:
+            instance_data = self.pipeline_instance.execution_data
+            try:
+                act = WebPipelineAdapter(instance_data).get_act(
+                    act_id=node_id,
+                    subprocess_stack=subprocess_stack,
+                    root_pipeline_data=get_pipeline_context(
+                        self.pipeline_instance, obj_type="instance", data_type="data", username=username
+                    ),
+                    root_pipeline_context=get_pipeline_context(
+                        self.pipeline_instance, obj_type="instance", data_type="context", username=username
+                    ),
+                )
+                detail.update({"name": act.name, "error_ignorable": act.error_ignorable, "state": states.READY})
+            except Exception as e:
+                logger.exception(traceback.format_exc())
+                error_message = "parser pipeline tree error: %s" % e
+                return {"result": False, "message": error_message, "data": {}, "code": err_code.INVALID_OPERATION.code}
+        else:
+            TaskFlowInstance.format_pipeline_status(detail)
+            # 默认只请求最后一次循环结果
+            if loop is None or int(loop) >= detail["loop"]:
+                loop = detail["loop"]
+                detail["histories"] = pipeline_api.get_activity_histories(node_id, loop)
+            # 如果用户传了 loop 参数，并且 loop 小于当前节点已循环次数 detail['loop']，则从历史数据获取结果
+            else:
+                histories = pipeline_api.get_activity_histories(node_id, loop)
+                # index 为 -1 表示当前 loop 的最新一次重试执行，历史 loop 最终状态一定是 FINISHED
+                current_loop = histories[-1]
+                current_loop["state"] = states.FINISHED
+                TaskFlowInstance.format_pipeline_status(current_loop)
+                detail.update(
+                    {
+                        "start_time": current_loop["start_time"],
+                        "finish_time": current_loop["finish_time"],
+                        "elapsed_time": current_loop["elapsed_time"],
+                        "loop": current_loop["loop"],
+                        "skip": current_loop["skip"],
+                        "state": current_loop["state"],
+                    }
+                )
+                # index 非 -1 表示当前 loop 的重试记录
+                detail["histories"] = histories[1:]
+
+            for his in detail["histories"]:
+                # 重试记录必然是因为失败才重试
+                his.setdefault("state", states.FAILED)
+                TaskFlowInstance.format_pipeline_status(his)
         detail.update(ret_data["data"])
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
 
