@@ -21,9 +21,9 @@ class IAMAuthFailedResponse(JsonResponse):
         kwargs["data"] = {
             "result": False,
             "code": HTTP_AUTH_FORBIDDEN_CODE,
-            "message": "you have no permission to opearte",
+            "message": "you have no permission to operate",
             "data": None,
             "permission": exc.perms_apply_data(),
         }
-        kwargs["status"] = 499
+        kwargs["status"] = kwargs.get("status", 499)
         super(IAMAuthFailedResponse, self).__init__(*args, **kwargs)
