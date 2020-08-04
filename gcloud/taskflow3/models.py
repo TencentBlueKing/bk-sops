@@ -675,6 +675,8 @@ class TaskFlowInstance(models.Model):
             return {"result": False, "message": message, "data": {}, "code": err_code.REQUEST_PARAM_INVALID.code}
 
         ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack, loop)
+        act_start = True
+        detail = {}
         # 首先获取最新一次执行详情
         try:
             detail = pipeline_api.get_status_tree(node_id)
@@ -722,13 +724,13 @@ class TaskFlowInstance(models.Model):
                         "state": current_loop["state"],
                     }
                 )
-            # index 非 -1 表示当前 loop 的重试记录
-            detail["histories"] = histories[1:]
+                # index 非 -1 表示当前 loop 的重试记录
+                detail["histories"] = histories[1:]
 
-        for his in detail["histories"]:
-            # 重试记录必然是因为失败才重试
-            his.setdefault("state", states.FAILED)
-            TaskFlowInstance.format_pipeline_status(his)
+            for his in detail["histories"]:
+                # 重试记录必然是因为失败才重试
+                his.setdefault("state", states.FAILED)
+                TaskFlowInstance.format_pipeline_status(his)
         detail.update(ret_data["data"])
         return {"result": True, "data": detail, "message": "", "code": err_code.SUCCESS.code}
 
