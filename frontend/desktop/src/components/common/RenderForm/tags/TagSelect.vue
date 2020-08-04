@@ -18,6 +18,7 @@
                 clearable
                 filterable
                 popper-class="tag-select-popperover"
+                :allow-create="allowCreate"
                 :disabled="!editable || disabled"
                 :remote="remote"
                 :multiple-limit="multiple_limit"
@@ -96,6 +97,12 @@
             required: false,
             default: 0,
             desc: 'limit of selected items when multiple is true'
+        },
+        allowCreate: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'create value in input field'
         },
         remote: {
             type: Boolean,
