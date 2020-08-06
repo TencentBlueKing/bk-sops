@@ -45,13 +45,13 @@ class FlowResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = TaskTemplate.objects.all()
+            queryset = TaskTemplate.objects.filter(is_deleted=False)
         elif filter.parent:
             parent_id = filter.parent["id"]
             if parent_id:
-                queryset = TaskTemplate.objects.filter(project_id=str(parent_id))
+                queryset = TaskTemplate.objects.filter(project_id=str(parent_id), is_deleted=False)
             else:
-                queryset = TaskTemplate.objects.all()
+                queryset = TaskTemplate.objects.filter(is_deleted=False)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
@@ -60,7 +60,7 @@ class FlowResourceProvider(ResourceProvider):
             flow_keywords = filter.search.get("flow", [])
 
             project_filter = Q()
-            flow_filter = Q()
+            flow_filter = Q(is_deleted=False)
 
             for keyword in project_keywords:
                 project_filter |= Q(name__icontains=keyword)

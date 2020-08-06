@@ -39,14 +39,14 @@ class CommonFlowResourceProvider(ResourceProvider):
         with_path = False
 
         if not (filter.parent or filter.search or filter.resource_type_chain):
-            queryset = CommonTemplate.objects.all()
+            queryset = CommonTemplate.objects.filter(is_deleted=False)
         elif filter.search and filter.resource_type_chain:
             # 返回结果需要带上资源拓扑路径信息
             with_path = True
             # 过滤 common_flow 名称
             common_flow_keywords = filter.search.get("common_flow", [])
 
-            common_flow_filter = Q()
+            common_flow_filter = Q(is_deleted=False)
 
             for keyword in common_flow_keywords:
                 common_flow_filter |= Q(pipeline_template__name__icontains=keyword)  # TODO 优化
