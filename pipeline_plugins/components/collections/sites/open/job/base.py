@@ -43,7 +43,6 @@ from pipeline.core.flow.io import (
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 
-
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
 JOB_SUCCESS = {3}
@@ -52,13 +51,12 @@ JOB_VAR_TYPE_IP = 2
 # 全局变量标签中key-value分隔符
 LOG_VAR_SEPARATOR = ":"
 
+
 # 全局变量标签匹配正则（<>字符已转义），用于提取key{separator}value
-LOG_VAR_LABEL_ESCAPE_RE = r"&lt;SOPS_VAR&gt;([\S]+{separator}[\S]+)&lt;/SOPS_VAR&gt;".format(
-    separator=LOG_VAR_SEPARATOR
-)
+LOG_VAR_LABEL_ESCAPE_RE = r"&lt;SOPS_VAR&gt;(.+?)&lt;/SOPS_VAR&gt;"
 
 # 全局变量标签匹配正则，用于提取key{separator}value
-LOG_VAR_LABEL_RE = r"<SOPS_VAR>([\S]+{separator}[\S]+)</SOPS_VAR>".format(separator=LOG_VAR_SEPARATOR)
+LOG_VAR_LABEL_RE = r"<SOPS_VAR>(.+?)</SOPS_VAR>"
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -85,7 +83,10 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
         sops_key_val_list.extend(re.findall(LOG_VAR_LABEL_ESCAPE_RE, log_line))
         if len(sops_key_val_list) == 0:
             continue
-        sops_var_dict.update(dict([sops_key_val.split(LOG_VAR_SEPARATOR) for sops_key_val in sops_key_val_list]))
+        for sops_key_val in sops_key_val_list:
+            if LOG_VAR_SEPARATOR not in sops_key_val:
+                continue
+            sops_var_dict.update(dict([sops_key_val.split(LOG_VAR_SEPARATOR, 1)]))
         service_logger.info(
             _("[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]").format(group=__group_name__, index=index, line=log_line)
         )
@@ -236,7 +237,7 @@ class JobService(Service):
                 "ex_data",
                 {
                     "exception_msg": _("任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>")
-                    % data.outputs.job_inst_url,
+                                     % data.outputs.job_inst_url,
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
                 },

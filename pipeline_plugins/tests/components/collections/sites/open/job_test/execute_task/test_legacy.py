@@ -63,7 +63,6 @@ GET_NODE_CALLBACK_URL = (
 )
 GET_JOB_INSTANCE_URL = "pipeline_plugins.components.collections.sites.open.job.execute_task.legacy.get_job_instance_url"
 
-
 EXECUTE_SUCCESS_GET_LOG_RETURN = {
     "code": 0,
     "result": True,
@@ -75,7 +74,12 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                 {
                     "tag": "",
                     "ip_logs": [
-                        {"ip": "1.1.1.1", "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"},
+                        {
+                            "ip": "1.1.1.1",
+                            "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"
+                                           "<SOPS_VAR>key4:   v   </SOPS_VAR><SOPS_VAR>key5:  </SOPS_VAR>"
+                                           "<SOPS_VAR>key6:v:v</SOPS_VAR><SOPS_VAR>key empty</SOPS_VAR>"
+                        },
                         {"ip": "1.1.1.2", "log_content": ""},
                     ],
                     "ip_status": 9,
@@ -91,7 +95,10 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                         {
                             "ip": "1.1.1.1",
                             "log_content": "&lt;SOPS_VAR&gt;key2:value2&lt;/SOPS_VAR&gt;\n"
-                            "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;",
+                                           "dfg&lt;SOPS_VAR&gt;key3:value3&lt;/SOPS_VAR&gt;"
+                                           "&lt;SOPS_VAR&gt;k: v  &lt;/SOPS_VAR&gt;"
+                                           "&lt;SOPS_VAR&gt;k1: :v  &lt;/SOPS_VAR&gt;"
+                                           "&lt;SOPS_VAR&gt;k1      &lt;/SOPS_VAR&gt;"
                         },
                     ],
                     "ip_status": 9,
@@ -102,7 +109,6 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
 }
 
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
-
 
 # mock clients
 EXECUTE_JOB_CALL_FAIL_CLIENT = MockClient(execute_job_return={"result": False, "message": "message token"})
@@ -474,7 +480,16 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "client": EXECUTE_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
-            "log_outputs": {"key1": "value1", "key2": "value2", "key3": "value3"},
+            "log_outputs": {
+                "key1": "value1",
+                "key2": "value2",
+                "key3": "value3",
+                "key4": "   v   ",
+                "k": " v  ",
+                "key5": "  ",
+                "key6": "v:v",
+                "k1": " :v  "
+            },
         },
         callback_data={"job_instance_id": 56789, "status": 3},
     ),
@@ -597,7 +612,6 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
 )
-
 
 INVALID_IP_CASE = ComponentTestCase(
     name="invalid ip case",
