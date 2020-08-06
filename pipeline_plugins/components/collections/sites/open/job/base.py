@@ -51,7 +51,6 @@ JOB_VAR_TYPE_IP = 2
 # 全局变量标签中key-value分隔符
 LOG_VAR_SEPARATOR = ":"
 
-
 # 全局变量标签匹配正则（<>字符已转义），用于提取key{separator}value
 LOG_VAR_LABEL_ESCAPE_RE = r"&lt;SOPS_VAR&gt;(.+?)&lt;/SOPS_VAR&gt;"
 
@@ -236,8 +235,9 @@ class JobService(Service):
             data.set_outputs(
                 "ex_data",
                 {
-                    "exception_msg": _("任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>")
-                                     % data.outputs.job_inst_url,
+                    "exception_msg": _("任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
+                         job_inst_url=data.outputs.job_inst_url
+                    ),
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
                 },
