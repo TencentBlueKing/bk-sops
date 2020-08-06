@@ -85,7 +85,11 @@ def get_sops_var_dict_from_log_text(log_text, service_logger):
         for sops_key_val in sops_key_val_list:
             if LOG_VAR_SEPARATOR not in sops_key_val:
                 continue
-            sops_var_dict.update(dict([sops_key_val.split(LOG_VAR_SEPARATOR, 1)]))
+            sops_key, sops_val = sops_key_val.split(LOG_VAR_SEPARATOR, 1)
+            # 限制变量名不为空
+            if len(sops_key) == 0:
+                continue
+            sops_var_dict.update({sops_key: sops_val})
         service_logger.info(
             _("[{group}]提取日志中全局变量，匹配行[{index}]：[{line}]").format(group=__group_name__, index=index, line=log_line)
         )

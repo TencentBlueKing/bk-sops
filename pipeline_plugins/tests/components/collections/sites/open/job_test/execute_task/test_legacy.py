@@ -79,6 +79,7 @@ EXECUTE_SUCCESS_GET_LOG_RETURN = {
                             "log_content": "<SOPS_VAR>key1:value1</SOPS_VAR>\ngsectl\n-rwxr-xr-x 1\n"
                                            "<SOPS_VAR>key4:   v   </SOPS_VAR><SOPS_VAR>key5:  </SOPS_VAR>"
                                            "<SOPS_VAR>key6:v:v</SOPS_VAR><SOPS_VAR>key empty</SOPS_VAR>"
+                                           "<SOPS_VAR>:1</SOPS_VAR><SOPS_VAR>:1   fgdshgdsh</SOPS_VAR>"
                         },
                         {"ip": "1.1.1.2", "log_content": ""},
                     ],
