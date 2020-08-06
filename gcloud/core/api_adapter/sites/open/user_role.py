@@ -27,14 +27,20 @@ def is_user_functor(request):
     """
     判断是否是职能化人员
     """
-    return is_user_role(request.user.username, IAMMeta.FUNCTION_VIEW_ACTION)
+    username = request.user.username
+    if not username:
+        return False
+    return is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION)
 
 
 def is_user_auditor(request):
     """
     判断是否是审计人员
     """
-    return is_user_role(request.user.username, IAMMeta.AUDIT_VIEW_ACTION)
+    username = request.user.username
+    if not username:
+        return False
+    return is_user_role(username, IAMMeta.AUDIT_VIEW_ACTION)
 
 
 def is_user_role(username, role_action):

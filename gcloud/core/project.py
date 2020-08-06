@@ -87,6 +87,9 @@ def sync_projects_from_cmdb(username, use_cache=True):
 def get_default_project_for_user(username):
     project = None
 
+    if not username:
+        return project
+
     try:
         project = UserDefaultProject.objects.get(username=username).default_project
     except UserDefaultProject.DoesNotExist:
