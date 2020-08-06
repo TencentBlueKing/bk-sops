@@ -17,6 +17,7 @@ import factory
 from django.test import TestCase
 from django.db.models import signals
 
+from pipeline.celery.settings import PERIODIC_TASK_QUEUE_NAME
 from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
@@ -124,6 +125,7 @@ class PeriodicTaskTestCase(TestCase):
                 "template_num_id": self.template.id,
             },
             spread=True,
+            queue=PERIODIC_TASK_QUEUE_NAME,
         )
 
     @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
