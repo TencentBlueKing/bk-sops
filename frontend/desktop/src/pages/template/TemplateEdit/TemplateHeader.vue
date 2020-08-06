@@ -124,6 +124,7 @@
         data () {
             return {
                 tName: this.name.trim(),
+                settingTabs: SETTING_TABS.slice(0),
                 templateNameRule: {
                     required: true,
                     max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
@@ -134,9 +135,6 @@
             }
         },
         computed: {
-            ...mapState({
-                'hasAdminPerm': state => state.hasAdminPerm
-            }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
@@ -144,9 +142,6 @@
             }),
             title () {
                 return this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
-            },
-            settingTabs () {
-                return this.hasAdminPerm ? SETTING_TABS.slice(0) : SETTING_TABS.slice(0, -1)
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged === true || this.type === 'new' || this.type === 'clone'
