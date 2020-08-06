@@ -236,7 +236,7 @@ class JobService(Service):
                 "ex_data",
                 {
                     "exception_msg": _("任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
-                         job_inst_url=data.outputs.job_inst_url
+                        job_inst_url=data.outputs.job_inst_url
                     ),
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
