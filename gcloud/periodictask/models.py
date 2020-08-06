@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
+from pipeline.celery.settings import PERIODIC_TASK_QUEUE_NAME
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline.models import PipelineTemplate
@@ -92,6 +93,7 @@ class PeriodicTaskManager(models.Manager):
             timezone=project.time_zone,
             extra_info=extra_info,
             spread=True,
+            queue=PERIODIC_TASK_QUEUE_NAME,
         )
 
 
