@@ -95,13 +95,6 @@ class QueueResolver(object):
         return "{}_{}".format(ScalableQueues.routing_key_for(self.queue), default_key)
 
 
-# 通过api gateway调用的任务队列
-API_TASK_QUEUE_NAME = "api_task_queue"
-ScalableQueues.add(name=API_TASK_QUEUE_NAME)
-# 周期任务的任务队列
-PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
-ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
-
 USER_QUEUES = []
 
 for name, queue in ScalableQueues.queues().items():
