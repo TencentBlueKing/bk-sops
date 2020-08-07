@@ -19,7 +19,6 @@ import ujson as json
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
-
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
@@ -748,6 +747,12 @@ class TaskFlowInstance(models.Model):
                     self.save()
         return result
 
+    def _get_task_celery_queue(self):
+        queue = ""
+        if self.create_method == "api":
+            queue = settings.API_TASK_QUEUE_NAME
+        return queue
+
     def task_action(self, action, username):
         if self.current_flow != "execute_task":
             return {
@@ -759,7 +764,8 @@ class TaskFlowInstance(models.Model):
             return {"result": False, "message": "task action is invalid", "code": err_code.INVALID_OPERATION.code}
         if action == "start":
             try:
-                action_result = self.pipeline_instance.start(username)
+                queue = self._get_task_celery_queue()
+                action_result = self.pipeline_instance.start(executor=username, queue=queue)
                 if action_result.result:
                     taskflow_started.send(sender=self, username=username)
                 return {
