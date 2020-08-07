@@ -61,6 +61,7 @@ INSTALLED_APPS += (
     "gcloud.periodictask",
     "gcloud.external_plugins",
     "gcloud.contrib.admin",
+    "gcloud.iam_auth",
     "pipeline",
     "pipeline.component_framework",
     "pipeline.variable_framework",

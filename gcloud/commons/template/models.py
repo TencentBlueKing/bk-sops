@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.db.models.signals import post_save
 
 from blueapps.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
@@ -160,6 +161,11 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         if not override:
             self.model.objects.bulk_create(new_objects)
+
+            create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
+            # send_signal
+            if create_templates:
+                post_save.send(self.model, instance=create_templates, created=True, creator=operator)
 
         return {
             "result": True,
