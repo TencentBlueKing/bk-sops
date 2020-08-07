@@ -30,10 +30,12 @@ def task_template_creat_related_actions_handler(sender, instance, created, **kwa
 
         ok, message = iam.grant_batch_resource_creator_actions(application, bk_username=kwargs["creator"])
         if not ok:
-            logging.error("Failed to batch register resources for 'FLOW',resources info:%s." % application)
+            logging.error("Failed to batch register resources for 'FLOW',resources info:%s, response message:%s" % (
+                application, message))
     else:
         application = common_flow_params(instance, IAMMeta.FLOW_RESOURCE, ancestors=True)
 
         ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
         if not ok:
-            logging.error("Failed to register resource for 'FLOW',resources info:%s." % application)
+            logging.error("Failed to register resource for 'FLOW',resources info:%s, response message:%s" % (
+                application, message))

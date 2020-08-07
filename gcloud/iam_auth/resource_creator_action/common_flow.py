@@ -30,10 +30,13 @@ def common_template_single_creat_related_actions_handler(sender, instance, creat
 
         ok, message = iam.grant_batch_resource_creator_actions(application, bk_username=kwargs["creator"])
         if not ok:
-            logging.error("Failed to batch register resources for 'COMMON_FLOW',info:%s." % application)
+            logging.error(
+                "Failed to batch register resources for 'COMMON_FLOW',resources info:%s,response message:%s" % (
+                    application, message))
     else:
         application = common_flow_params(instance, IAMMeta.COMMON_FLOW_RESOURCE)
 
         ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
         if not ok:
-            logging.error("Failed to register resource for 'COMMON_FLOW',resources info:%s." % application)
+            logging.error("Failed to register resource for 'COMMON_FLOW',resources info:%s, response message:%s " % (
+                application, message))

@@ -18,6 +18,6 @@ class IamAuthConfig(AppConfig):
     name = "gcloud.iam_auth"
 
     def ready(self):
-        from gcloud.iam_auth.resource_creator_action import (
+        from gcloud.iam_auth.resource_creator_action import ( # noqa
             common_flow, flow, mini_app, periodic_task, task
         )

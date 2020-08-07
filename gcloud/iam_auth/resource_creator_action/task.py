@@ -28,4 +28,5 @@ def common_template_creat_related_actions_handler(sender, instance, created, **k
 
     ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
     if not ok:
-        logging.error("Failed to register resource for 'TASK_RESOURCE',resources info:%s." % application)
+        logging.error("Failed to register resource for 'TASK_RESOURCE',resources info:%s, response message:%s" % (
+            application, message))
