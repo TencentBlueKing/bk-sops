@@ -19,8 +19,6 @@ import ujson as json
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
-
-from pipeline.celery.settings import API_TASK_QUEUE_NAME
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
 from pipeline.component_framework.constant import ConstantPool
@@ -730,7 +728,7 @@ class TaskFlowInstance(models.Model):
     def _get_task_celery_queue(self):
         queue = ""
         if self.create_method == "api":
-            queue = API_TASK_QUEUE_NAME
+            queue = settings.API_TASK_QUEUE_NAME
         return queue
 
     def task_action(self, action, username):

@@ -15,6 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
+from pipeline.celery.queues import ScalableQueues
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
@@ -322,8 +323,7 @@ PIPELINE_DATA_BACKEND = os.getenv(
     "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
 )
 PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
-    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND",
-    "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
+    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND", "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
 )
 
 PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
@@ -331,6 +331,14 @@ PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 ENABLE_EXAMPLE_COMPONENTS = False
 
 UUID_DIGIT_STARTS_SENSITIVE = True
+
+# 添加通过api gateway调用的celery任务队列
+API_TASK_QUEUE_NAME = "api_task_queue"
+ScalableQueues.add(name=API_TASK_QUEUE_NAME)
+
+# 添加周期任务的celery任务队列
+PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
+ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
 from pipeline.celery.settings import *  # noqa
 
