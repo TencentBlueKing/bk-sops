@@ -10,14 +10,15 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from django.dispatch import receiver
-from django.db.models.signals import post_save
+from django.dispatch import Signal
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_actions
+# defining custom signal
+batch_create = Signal(providing_args=["instance_list", "creator"])
 
 
-@receiver(post_save, sender=TaskFlowInstance)
-def task_resource_creator_action_handler(sender, instance, created, **kwargs):
-    register_grant_resource_creator_actions(instance, IAMMeta.TASK_RESOURCE, with_ancestors=True)
+def callback(sender, **kwargs):
+    return sender, kwargs
+
+
+# register signal
+batch_create.connect(callback)

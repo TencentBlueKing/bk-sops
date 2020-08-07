@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.signals import post_save
 
 from blueapps.utils import managermixins
 from pipeline.exceptions import SubprocessExpiredError
@@ -30,6 +29,7 @@ from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
 from gcloud.commons.template.utils import replace_template_id
+from gcloud.iam_auth.resource_creator_action.custom_signal import batch_create
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -165,7 +165,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
             # send_signal
             if create_templates:
-                post_save.send(self.model, instance=create_templates, created=True, creator=operator)
+                batch_create.send(self.model, instance=create_templates, creator=operator)
 
         return {
             "result": True,

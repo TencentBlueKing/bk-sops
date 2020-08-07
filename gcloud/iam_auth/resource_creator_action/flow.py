@@ -10,32 +10,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import logging
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_creator_action.base import common_flow_params, batch_common_params
-
-logger = logging.getLogger("root")
-iam = get_iam_client()
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.resource_creator_action.custom_signal import batch_create
+from gcloud.iam_auth.resource_creator_action.utils import (
+    register_grant_resource_creator_actions, register_batch_grant_resource_creator_actions
+)
 
 
 @receiver(post_save, sender=TaskTemplate)
-def task_template_creat_related_actions_handler(sender, instance, created, **kwargs):
+def flow_resource_creator_action_handler(sender, instance, created, **kwargs):
+    register_grant_resource_creator_actions(instance, IAMMeta.FLOW_RESOURCE, with_ancestors=True)
+
+
+@receiver(batch_create, sender=TaskTemplate)
+def flow_batch_resource_creator_action_handler(sender, instance, creator, **kwargs):
     if isinstance(instance, list):
         #  batch register
-        application = batch_common_params(instance, IAMMeta.FLOW_RESOURCE, kwargs["creator"], ancestors=True)
-
-        ok, message = iam.grant_batch_resource_creator_actions(application, bk_username=kwargs["creator"])
-        if not ok:
-            logging.error("Failed to batch register resources for 'FLOW',resources info:%s, response message:%s" % (
-                application, message))
-    else:
-        application = common_flow_params(instance, IAMMeta.FLOW_RESOURCE, ancestors=True)
-
-        ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
-        if not ok:
-            logging.error("Failed to register resource for 'FLOW',resources info:%s, response message:%s" % (
-                application, message))
+        register_batch_grant_resource_creator_actions(instance, IAMMeta.FLOW_RESOURCE, creator, with_ancestors=True)

@@ -10,24 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-import logging
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
-from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth import IAMMeta
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.iam_auth.resource_creator_action.base import common_flow_params
-
-logger = logging.getLogger("root")
-iam = get_iam_client()
+from gcloud.iam_auth.resource_creator_action.utils import register_grant_resource_creator_actions
 
 
 @receiver(post_save, sender=AppMaker)
-def common_template_creat_related_actions_handler(sender, instance, created, **kwargs):
-    application = common_flow_params(instance, IAMMeta.MINI_APP_RESOURCE, ancestors=True)
-
-    ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
-    if not ok:
-        logging.error("Failed to register resource for 'MINI_APP',info:%s, response message:%s" % (
-            application, message))
+def mini_app_resource_creator_action_handler(sender, instance, created, **kwargs):
+    register_grant_resource_creator_actions(instance, IAMMeta.MINI_APP_RESOURCE, with_ancestors=True)

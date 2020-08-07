@@ -10,33 +10,24 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import logging
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 from gcloud.commons.template.models import CommonTemplate
-from gcloud.iam_auth import IAMMeta, get_iam_client
-from gcloud.iam_auth.resource_creator_action.base import common_flow_params, batch_common_params
-
-logger = logging.getLogger("root")
-iam = get_iam_client()
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.resource_creator_action.custom_signal import batch_create
+from gcloud.iam_auth.resource_creator_action.utils import (
+    register_grant_resource_creator_actions, register_batch_grant_resource_creator_actions
+)
 
 
 @receiver(post_save, sender=CommonTemplate)
-def common_template_single_creat_related_actions_handler(sender, instance, created, **kwargs):
+def common_flow_resource_creator_action_handler(sender, instance, created, **kwargs):
+    register_grant_resource_creator_actions(instance, IAMMeta.COMMON_FLOW_RESOURCE)
+
+
+@receiver(batch_create, sender=CommonTemplate)
+def common_flow_batch_resource_creator_action_handler(sender, instance, creator, **kwargs):
     if isinstance(instance, list):
         #  batch register
-        application = batch_common_params(instance, IAMMeta.COMMON_FLOW_RESOURCE, kwargs["creator"])
-
-        ok, message = iam.grant_batch_resource_creator_actions(application, bk_username=kwargs["creator"])
-        if not ok:
-            logging.error(
-                "Failed to batch register resources for 'COMMON_FLOW',resources info:%s,response message:%s" % (
-                    application, message))
-    else:
-        application = common_flow_params(instance, IAMMeta.COMMON_FLOW_RESOURCE)
-
-        ok, message = iam.grant_resource_creator_actions(application, bk_username=instance.creator)
-        if not ok:
-            logging.error("Failed to register resource for 'COMMON_FLOW',resources info:%s, response message:%s " % (
-                application, message))
+        register_batch_grant_resource_creator_actions(instance, IAMMeta.COMMON_FLOW_RESOURCE, creator)
