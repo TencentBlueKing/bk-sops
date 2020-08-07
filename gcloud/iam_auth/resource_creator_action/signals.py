@@ -14,11 +14,3 @@ from django.dispatch import Signal
 
 # defining custom signal
 batch_create = Signal(providing_args=["instance_list", "creator"])
-
-
-def callback(sender, **kwargs):
-    return sender, kwargs
-
-
-# register signal
-batch_create.connect(callback)

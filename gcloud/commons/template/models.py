@@ -29,7 +29,7 @@ from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
 from gcloud.commons.template.utils import replace_template_id
-from gcloud.iam_auth.resource_creator_action.custom_signal import batch_create
+from gcloud.iam_auth.resource_creator_action.signals import batch_create
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):

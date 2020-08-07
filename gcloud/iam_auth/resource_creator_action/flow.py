@@ -15,7 +15,7 @@ from django.db.models.signals import post_save
 
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth.resource_creator_action.custom_signal import batch_create
+from gcloud.iam_auth.resource_creator_action.signals import batch_create
 from gcloud.iam_auth.resource_creator_action.utils import (
     register_grant_resource_creator_actions, register_batch_grant_resource_creator_actions
 )
