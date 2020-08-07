@@ -29,6 +29,7 @@ from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
 from gcloud.commons.template.utils import replace_template_id
+from gcloud.iam_auth.resource_creator_action.signals import batch_create
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -160,6 +161,11 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         if not override:
             self.model.objects.bulk_create(new_objects)
+
+            create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
+            # send_signal
+            if create_templates:
+                batch_create.send(self.model, instance=create_templates, creator=operator)
 
         return {
             "result": True,
