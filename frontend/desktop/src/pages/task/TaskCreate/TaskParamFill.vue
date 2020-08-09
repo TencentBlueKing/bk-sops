@@ -91,7 +91,7 @@
                     :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
                     :task-message-loading="taskMessageLoading"
-                    @onParameterInfoLoading="onParameterInfoLoading">
+                    @paramsLoadingChange="paramsLoadingChange">
                 </ParameterInfo>
             </div>
         </div>
@@ -106,7 +106,8 @@
                     'btn-permission-disable': common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
-                :loading="common ? commonTplCreateTaskPermLoading : isSubmit"
+                :loading="common ? commonTplCreateTaskPermLoading : paramsLoading && isSubmit"
+                :disabled="paramsLoading || nextBtnDisable"
                 v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 @click="onCreateTask">
                 {{$t('下一步')}}
@@ -161,6 +162,8 @@
                 taskMessageLoading: true,
                 hasCommonTplCreateTaskPerm: false,
                 commonTplCreateTaskPermLoading: false,
+                paramsLoading: false,
+                nextBtnDisable: false,
                 disabledButton: true,
                 tplActions: []
             }
@@ -269,7 +272,9 @@
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
                     if (templateData.result === false) {
-                        throw (templateData)
+                        errorHandler(templateData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
 
                     this.tplActions = templateData.auth_actions
@@ -284,7 +289,9 @@
                     }
                     const previewData = await this.loadPreviewNodeData(params)
                     if (previewData.result === false) {
-                        throw (previewData)
+                        errorHandler(previewData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
                     this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
@@ -498,10 +505,8 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            onParameterInfoLoading (val) {
-                if (this.taskMessageLoading === false && val === false) {
-                    this.disabledButton = false
-                }
+            paramsLoadingChange (val) {
+                this.paramsLoading = val
             }
         }
     }
