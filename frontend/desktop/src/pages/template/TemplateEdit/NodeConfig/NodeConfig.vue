@@ -314,7 +314,7 @@
                         paramsVal[key] = val
                     })
                     this.inputsParamValue = paramsVal
-                    this.getPluginDetail()
+                    await this.getPluginDetail()
                 } else {
                     const { tpl, version } = this.basicInfo
                     const forms = {}
@@ -328,6 +328,7 @@
                     this.inputs = await this.getSubflowInputsConfig()
                     this.inputsParamValue = this.getSubflowInputsValue(forms)
                 }
+                this.setNodeOptional(this.constants)
                 // 节点参数错误时，配置项加载完成后，执行校验逻辑，提示用户错误信息
                 const location = this.locations.find(item => item.id === this.nodeConfig.id)
                 if (location && location.status === 'FAILED') {
@@ -474,7 +475,8 @@
                         // 这里取值做兼容处理，新旧数据不可能同时存在，优先取旧数据字段
                         skippable: isSkipped === undefined ? skippable : isSkipped,
                         retryable: can_retry === undefined ? retryable : can_retry,
-                        selectable: optional
+                        selectable: optional,
+                        selectableDisable: false
                     }
                 } else {
                     const { template_id, name, labels, optional } = config
@@ -496,6 +498,7 @@
                         nodeName: name,
                         nodeLabel: labels || [], // 兼容旧数据，节点标签字段为后面新增
                         selectable: optional,
+                        selectableDisable: false,
                         version: config.hasOwnProperty('version') ? config.version : '' // 子流程版本，区别于标准插件版本
                     }
                 }
@@ -528,7 +531,7 @@
                     if (variable.show_type === 'show') {
                         let canReuse = false
                         const oldVariable = oldForms[cur]
-                        const isHooked = this.isParamsInConstants(variable)
+                        const isHooked = this.isInputParamsInConstants(variable)
                         if (oldVariable && !isHooked) { // 旧版本中存在相同key的表单项，且不是勾选状态
                             if (variable.custom_type || oldVariable.custom_type) {
                                 canReuse = variable.custom_type === oldVariable.custom_type
@@ -543,13 +546,37 @@
                     return acc
                 }, {})
             },
-            // 输入参数是否勾选
-            isParamsInConstants (form) {
+            // 输入参数是否已被勾选到全局变量
+            isInputParamsInConstants (form) {
                 return Object.keys(this.constants).some(key => {
                     const varItem = this.constants[key]
                     const sourceInfo = varItem.source_info[this.nodeId]
                     return sourceInfo && sourceInfo.includes(form.tag_code)
                 })
+            },
+            // 是否有输出参数为勾选状态
+            isSomeOutputParamHooked (constants) {
+                return Object.keys(constants).some(key => {
+                    const varItem = constants[key]
+                    const sourceInfo = varItem.source_info[this.nodeId]
+                    if (sourceInfo) {
+                        return this.outputs.some(item => sourceInfo.includes(item.key))
+                    }
+                    return false
+                })
+            },
+            /**
+             * 设置节点是否可选
+             * 当节点输出参数有被勾选到全局变量时，节点可选项需要禁用并设置为不可选择
+             * @param {Object} constants 全局变量列表
+             *
+             */
+            setNodeOptional (constants) {
+                if (this.isSomeOutputParamHooked(constants)) {
+                    this.updateBasicInfo({ selectable: false, selectableDisable: true })
+                } else {
+                    this.updateBasicInfo({ selectableDisable: false })
+                }
             },
             /**
              * 变量 key 复制
@@ -610,7 +637,8 @@
                     ignorable: false,
                     skippable: true,
                     retryable: true,
-                    selectable: false
+                    selectable: false,
+                    selectableDisable: false
                 }
                 this.updateBasicInfo(config)
                 this.inputsParamValue = {}
@@ -625,6 +653,7 @@
                 this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
+                this.setNodeOptional(this.constants)
             },
             /**
              * 子流程切换
@@ -641,7 +670,8 @@
                     tpl: id,
                     nodeName: name,
                     nodeLabel: [],
-                    selectable: false
+                    selectable: false,
+                    selectableDisable: false
                 }
                 this.updateBasicInfo(config)
                 await this.getSubflowDetail(id, version)
@@ -672,6 +702,7 @@
                 this.inputs = await this.getSubflowInputsConfig()
                 this.inputsParamValue = this.getSubflowInputsValue(this.subflowForms, oldForms)
                 this.subflowUpdateParamsChange()
+                this.setNodeOptional(this.constants)
                 this.setSubprocessUpdated({
                     subprocess_node_id: this.nodeConfig.id
                 })
@@ -787,6 +818,7 @@
                 } else {
                     this.setVariableSourceInfo(data)
                 }
+                this.setNodeOptional(this.localConstants)
             },
             // 更新全局变量的 source_info
             setVariableSourceInfo (data) {
