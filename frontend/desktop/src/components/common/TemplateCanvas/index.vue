@@ -96,9 +96,17 @@
             @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
+        <div class="picture-download-btn" @click="onDownloadCanvas">
+            <div class="btn-wrapper" v-bkloading="{ isLoading: canvasImgDownloading, size: 'mini', opacity: 1 }">
+                <i class="bk-icon icon-download"></i>
+            </div>
+        </div>
     </div>
 </template>
 <script>
+    // import html2canvas from 'html2canvas'
+    import domtoimage from 'dom-to-image'
+    // import htmltoimage from 'html-to-image'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
@@ -191,6 +199,7 @@
                 })
             }
             return {
+                canvasImgDownloading: false,
                 idOfNodeShortcutPanel: '',
                 showNodeMenu: false,
                 isDisableStartPoint: false,
@@ -218,8 +227,8 @@
                     x: 0,
                     y: 0
                 },
-                flowData,
                 endpointOptions: combinedEndpointOptions,
+                flowData,
                 connectorOptions
             }
         },
@@ -1115,12 +1124,55 @@
                 } else {
                     this.$refs.jsFlow.setCanvasPosition(x, y)
                 }
+            },
+            // 下载画布图片
+            onDownloadCanvas () {
+                // html2canvas(document.querySelector('#canvas-flow')).then(canvas => {
+                //     debugger
+                //     const imgEl = document.createElement('a')
+                //     imgEl.download = 'bk_sops_template.png'
+                //     imgEl.href = canvas.toDataURL('image/jpeg')
+                //     imgEl.click()
+                // })
+                if (this.canvasImgDownloading) {
+                    return
+                }
+                this.canvasImgDownloading = true
+                const canvasEl = document.querySelector('#canvas-flow')
+                domtoimage.toJpeg(canvasEl, {
+                    bgcolor: '#ffffff'
+                }).then(dataURL => {
+                    const imgEl = document.createElement('a')
+                    imgEl.download = `bk_sops_template_${+new Date()}.png`
+                    imgEl.href = dataURL
+                    imgEl.click()
+                    this.canvasImgDownloading = false
+                }).catch(error => {
+                    console.error(error)
+                    this.canvasImgDownloading = false
+                })
+                
+                // const canvasEl = document.querySelector('#canvas-flow')
+                // canvasEl.style.overflow = 'scroll'
+                // htmltoimage.toJpeg(canvasEl, {
+                //     backgroundColor: '#ffffff'
+                // }).then(dataURL => {
+                //     const imgEl = document.createElement('a')
+                //     imgEl.download = `bk_sops_template_${+new Date()}.png`
+                //     imgEl.href = dataURL
+                //     imgEl.click()
+                //     this.canvasImgDownloading = false
+                // }).catch(error => {
+                //     console.error(error)
+                //     this.canvasImgDownloading = false
+                // })
             }
         }
     }
 </script>
 <style lang="scss">
     .canvas-container {
+        position: relative;
         width: 100%;
         height: 100%;
     }
@@ -1140,6 +1192,9 @@
             z-index: 5;
             transition: all 0.5s ease;
             user-select: none;
+        }
+        .canvas-flow-wrap {
+            margin-left: 60px;
         }
         .jtk-endpoint {
             z-index: 3;
@@ -1254,6 +1309,21 @@
             border-top: 4px solid transparent;
             border-left: 8px solid #979ba5;
             border-bottom: 4px solid transparent;
+        }
+    }
+    .picture-download-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        font-size: 16px;
+        background: #ffffff;
+        border-radius: 2px;
+        cursor: pointer;
+        .btn-wrapper {
+            padding: 8px 10px;
+        }
+        &:hover {
+            color: #3a84ff;
         }
     }
 </style>
