@@ -1,0 +1,2 @@
+improvement:
+    - "去掉 pipeline.models.Snapshot 相同数据引用逻辑，不再根据数据md5值进行判断，直接创建新数据"
