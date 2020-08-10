@@ -194,7 +194,7 @@ class PipelineTemplateWebWrapper(object):
         @param include_str_id: 数据中是否包括模板 ID
         @return: 关键字参数字典
         """
-        snapshot, __ = Snapshot.objects.create_or_get_snapshot(template_dict["tree"])
+        snapshot = Snapshot.objects.create_snapshot(template_dict["tree"])
         defaults = {
             "name": template_dict["name"],
             "create_time": datetime.datetime.strptime(template_dict["create_time"], cls.SERIALIZE_DATE_FORMAT),
