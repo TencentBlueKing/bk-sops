@@ -63,3 +63,9 @@ class ProjectCounterAdmin(admin.ModelAdmin):
     list_display = ["username", "project", "count"]
     search_fields = ["username"]
     list_filter = ["username"]
+
+
+@admin.register(models.ProjectConfig)
+class ProjectConfigAdmin(admin.ModelAdmin):
+    list_display = ["project_id"]
+    search_fields = ["project_id", "executor_proxy"]
