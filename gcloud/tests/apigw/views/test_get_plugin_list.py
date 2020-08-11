@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -34,10 +33,7 @@ class GetPluginListAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID,
-                name=TEST_PROJECT_NAME,
-                bk_biz_id=TEST_BIZ_CC_ID,
-                from_cmdb=True,
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
             )
         ),
     )
@@ -52,13 +48,12 @@ class GetPluginListAPITest(APITest):
             group_name="group_name",
         )
 
-        with mock.patch(
-            APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER,
-            MagicMock(return_value=[comp_model]),
-        ):
+        mock_exclude = MagicMock()
+        mock_exclude.exclude = MagicMock(return_value=[comp_model])
+        mock_filter = MagicMock(return_value=mock_exclude)
+        with mock.patch(APIGW_GET_PLUGIN_LIST_COMPONENT_MODEL_FILTER, mock_filter):
             with mock.patch(
-                APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS,
-                MagicMock(return_value=comp),
+                APIGW_GET_PLUGIN_LIST_COMPONENT_LIBRARY_GET_COMPONENT_CLS, MagicMock(return_value=comp),
             ):
                 assert_data = [
                     {
@@ -68,13 +63,11 @@ class GetPluginListAPITest(APITest):
                         "code": comp.code,
                         "name": comp.name,
                         "group_name": comp.group_name,
-                        "version": comp.version
+                        "version": comp.version,
                     }
                 ]
 
-                response = self.client.get(
-                    path=self.url().format(project_id=TEST_PROJECT_ID)
-                )
+                response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID))
 
                 self.assertEqual(response.status_code, 200)
 
