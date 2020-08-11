@@ -189,6 +189,8 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
   - `placeholder`：占位文本
   - `disabled`：设置是否禁用组件
+  - `type`：日期选择器显示类型，默认为 datetime，可选值包括：date、datetime、datetimerange、daterange 等
+  - `format`：选中的时间以及展示的值，默认为 yyyy-MM-dd HH:mm:ss，参考[日期格式](https://element.eleme.cn/#/zh-CN/component/date-picker#ri-qi-ge-shi)
   - `value`：时间值
 
 **方法**
