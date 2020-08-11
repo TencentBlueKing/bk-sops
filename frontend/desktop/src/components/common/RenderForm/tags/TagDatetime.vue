@@ -45,7 +45,7 @@
         type: {
             type: String,
             required: false,
-            default: 'date',
+            default: 'datetime',
             desc: gettext('日期选择器显示类型')
         },
         format: {
