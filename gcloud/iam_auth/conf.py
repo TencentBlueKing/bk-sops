@@ -23,12 +23,12 @@ SYSTEM_INFO = [
 ]
 
 RESOURCES = [
-    {"id": "project", "name": _("项目")},
-    {"id": "flow", "name": _("流程模板")},
-    {"id": "task", "name": _("任务实例")},
-    {"id": "common_flow", "name": _("公共流程")},
-    {"id": "mini_app", "name": _("轻应用")},
-    {"id": "periodic_task", "name": _("周期任务")},
+    {"id": "project", "name": _("项目"), "parent_id": None},
+    {"id": "flow", "name": _("流程模板"), "parent_id": "project"},
+    {"id": "task", "name": _("任务实例"), "parent_id": "project"},
+    {"id": "common_flow", "name": _("公共流程"), "parent_id": None},
+    {"id": "mini_app", "name": _("轻应用"), "parent_id": "project"},
+    {"id": "periodic_task", "name": _("周期任务"), "parent_id": "project"},
 ]
 
 ACTIONS = [
