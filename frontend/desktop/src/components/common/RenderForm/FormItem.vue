@@ -292,6 +292,19 @@
                             }
                         }
                         break
+                    case 'time':
+                        if (this.scheme.attrs.isRange) {
+                            valueFormat = {
+                                type: 'Array',
+                                value: ['00:00:00', '23:59:59']
+                            }
+                        } else {
+                            valueFormat = {
+                                type: 'String',
+                                value: ''
+                            }
+                        }
+                        break
                     case 'int':
                         valueFormat = {
                             type: 'Number',

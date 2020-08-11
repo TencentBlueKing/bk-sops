@@ -10,19 +10,20 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-datetime">
+    <div class="tag-time">
         <div v-if="formMode">
-            <el-date-picker
-                v-model="dateValue"
-                :type="type"
-                :format="format"
+            <el-time-picker
+                v-model="timeValue"
+                :is-range="isRange"
                 :value-format="format"
+                :start-placeholder="startPlaceholder"
+                :end-placeholder="endPlaceholder"
                 :disabled="!editable || disabled"
                 :placeholder="placeholder">
-            </el-date-picker>
+            </el-time-picker>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
-        <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
+        <span v-else class="rf-view-value">{{viewValue}}</span>
     </div>
 </template>
 <script>
@@ -33,8 +34,20 @@
         placeholder: {
             type: String,
             required: false,
-            default: gettext('请选择日期时间'),
+            default: gettext('请选择时间'),
             desc: 'placeholder'
+        },
+        startPlaceholder: {
+            type: String,
+            required: false,
+            default: gettext('请选择开始时间'),
+            desc: gettext('开始时间 placeholder')
+        },
+        endPlaceholder: {
+            type: String,
+            required: false,
+            default: gettext('请选择结束时间'),
+            desc: gettext('结束时间 placeholder')
         },
         disabled: {
             type: Boolean,
@@ -42,46 +55,68 @@
             default: false,
             desc: gettext('禁用选择器')
         },
-        type: {
+        isRange: {
             type: String,
             required: false,
-            default: 'datetime',
-            desc: gettext('日期选择器显示类型')
+            default: false,
+            desc: gettext('是否为选择时间范围')
         },
         format: {
             type: String,
             required: false,
-            default: 'yyyy-MM-dd HH:mm:ss',
+            default: 'HH:mm:ss',
             desc: gettext('选中的时间以及展示的值')
         },
         value: {
-            type: String,
+            type: [String, Array],
             required: false,
             default: gettext('选中的时间')
         }
     }
     export default {
-        name: 'TagDatetime',
+        name: 'TagTime',
         mixins: [getFormMixins(attrs)],
         computed: {
-            dateValue: {
+            timeValue: {
                 get () {
                     return this.value
                 },
                 set (val) {
                     this.updateForm(val)
                 }
+            },
+            viewValue () {
+                if (Array.isArray(this.timeValue)) { // 多选
+                    if (!this.timeValue.length) {
+                        return '--'
+                    }
+                    return this.timeValue.join('-')
+                } else { // 单选
+                    return this.timeValue || '--'
+                }
             }
         }
     }
 </script>
 <style lang="scss" scoped>
-.tag-datetime {
+.tag-time {
     /deep/ .el-date-editor {
         width: 100%;
+        .el-range-input {
+            font-size: 12px;
+        }
+        &.el-input__inner {
+            padding: 0 32px;
+            height: 32px;
+            line-height: 32px;
+        }
         &.el-input {
             .el-input__inner {
-                padding: 0 30px;
+                height: 32px;
+                line-height: 32px;
+            }
+            .el-input__prefix .el-input__icon {
+                line-height: 32px;
             }
         }
     }
