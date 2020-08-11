@@ -15,6 +15,7 @@
             <base-title :title="$t('审计中心')"></base-title>
             <div class="operation-area clearfix">
                 <advance-search-form
+                    id="auditList"
                     :search-config="{ placeholder: $t('请输入任务名称') }"
                     :search-form="searchForm"
                     @onSearchInput="onSearchInput"
@@ -129,14 +130,15 @@
             key: 'selectedProject',
             loading: false,
             placeholder: i18n.t('请选择所属项目'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'dateRange',
             key: 'executeTime',
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('执行开始'),
-            value: []
+            value: ['', '']
         },
         {
             type: 'select',
@@ -144,7 +146,8 @@
             key: 'category',
             loading: false,
             placeholder: i18n.t('请选择分类'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'input',
@@ -168,9 +171,11 @@
             placeholder: i18n.t('请选择状态'),
             list: [
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
-                { 'value': 'runing', 'name': i18n.t('未完成') },
+                { 'value': 'running', 'name': i18n.t('未完成') },
+                { 'value': 'revoked', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
-            ]
+            ],
+            value: ''
         }
     ]
     export default {
@@ -252,10 +257,24 @@
                     const { selectedProject, executeTime, category, creator, executor, statusSync, flowName } = this.requestData
                     let pipeline_instance__is_started
                     let pipeline_instance__is_finished
-                    if (statusSync) {
-                        pipeline_instance__is_started = statusSync !== 'nonExecution'
-                        pipeline_instance__is_finished = statusSync === 'finished'
+                    let pipeline_instance__is_revoked
+                    switch (statusSync) {
+                        case 'nonExecution':
+                            pipeline_instance__is_started = false
+                            break
+                        case 'running':
+                            pipeline_instance__is_started = true
+                            pipeline_instance__is_finished = false
+                            pipeline_instance__is_revoked = false
+                            break
+                        case 'revoked':
+                            pipeline_instance__is_revoked = true
+                            break
+                        case 'finished':
+                            pipeline_instance__is_finished = true
+                            break
                     }
+
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -264,6 +283,7 @@
                         audit__pipeline_instance__name__contains: flowName || undefined,
                         pipeline_instance__is_started,
                         pipeline_instance__is_finished,
+                        pipeline_instance__is_revoked,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined
                     }

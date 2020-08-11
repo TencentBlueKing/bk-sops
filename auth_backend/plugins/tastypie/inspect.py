@@ -19,11 +19,14 @@ from builtins import object
 
 
 class ResourceInspect(object):
-
     @abstractmethod
     def scope_id(self, bundle):
         raise NotImplementedError()
 
     @abstractmethod
     def resource_id(self, bundle):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def instance(self, bundle):
         raise NotImplementedError()

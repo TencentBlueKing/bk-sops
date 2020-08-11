@@ -125,7 +125,6 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
-    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     export default {
         name: 'TaskParamFill',
@@ -217,8 +216,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData',
-                'getLayoutedPipeline'
+                'loadTemplateData'
             ]),
             ...mapActions('task/', [
                 'loadPreviewNodeData',
@@ -264,14 +262,7 @@
                     if (previewData.result === false) {
                         throw (previewData)
                     }
-
-                    const pipelineTree = previewData.data.pipeline_tree
-                    if (this.excludeNode.length > 0) {
-                        const layoutedData = await this.getLayoutedPosition(pipelineTree)
-                        pipelineTree.line = layoutedData.line
-                        pipelineTree.location = layoutedData.location
-                    }
-                    this.pipelineData = pipelineTree
+                    this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
@@ -281,31 +272,6 @@
                     errorHandler(e, this)
                 } finally {
                     this.taskMessageLoading = false
-                }
-            },
-            /**
-             * 从接口获取编排后的画布数据
-             * @params {Object} data pipeline_tree 数据
-             */
-            async getLayoutedPosition (data) {
-                try {
-                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
-                    const width = document.body.scrollWidth - 90
-                    const res = await this.getLayoutedPipeline({
-                        canvas_width: width,
-                        pipeline_tree: data,
-                        activity_size: ACTIVITY_SIZE,
-                        event_size: EVENT_SIZE,
-                        gateway_size: GATEWAY_SIZE,
-                        start: START_POSITION
-                    })
-                    if (res.result) {
-                        return res.data.pipeline_tree
-                    } else {
-                        errorHandler(res, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
                 }
             },
             getDefaultTaskName () {

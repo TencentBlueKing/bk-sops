@@ -20,6 +20,7 @@
             <div class="operation-area clearfix">
                 <advance-search-form
                     ref="advanceSearch"
+                    id="templateList"
                     :search-form="searchForm"
                     :search-config="{ placeholder: $t('请输入流程名称') }"
                     @onSearchInput="onSearchInput"
@@ -236,14 +237,15 @@
             key: 'category',
             loading: false,
             placeholder: i18n.t('请选择分类'),
-            list: []
+            list: [],
+            value: ''
         },
         {
             type: 'dateRange',
             key: 'queryTime',
             placeholder: i18n.t('选择日期时间范围'),
             label: i18n.t('更新时间'),
-            value: []
+            value: ['', '']
         },
         {
             type: 'select',
@@ -276,7 +278,10 @@
             NoData
         },
         mixins: [permission],
-        props: ['project_id'],
+        props: {
+            project_id: [String, Number],
+            page: [String, Number]
+        },
         data () {
             return {
                 listLoading: true,
@@ -308,7 +313,7 @@
                 },
                 totalPage: 1,
                 pagination: {
-                    current: 1,
+                    current: Number(this.page) || 1,
                     count: 0,
                     limit: 15,
                     'limit-list': [15, 20, 30]
@@ -337,6 +342,14 @@
                 'authResource': state => state.authResource,
                 'projectName': state => state.projectName
             })
+        },
+        watch: {
+            page (val, oldVal) {
+                if (val !== oldVal) {
+                    this.pagination.current = Number(val) || 1
+                    this.getTemplateList()
+                }
+            }
         },
         created () {
             this.getTemplateList()
@@ -527,6 +540,7 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.$router.push({ name: 'process', query: { page: page } })
                 this.getTemplateList()
             },
             /**

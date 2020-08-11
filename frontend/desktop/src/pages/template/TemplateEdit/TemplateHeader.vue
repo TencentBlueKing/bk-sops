@@ -54,7 +54,7 @@
                 @click.stop="onSaveClick(true)">
                 {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{$t('返回')}}</router-link>
+            <bk-button theme="default" @click="getHomeUrl">{{$t('返回')}}</bk-button>
         </div>
         <ProjectSelectorModal
             :is-new-task="false"
@@ -142,6 +142,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'isFirstLoadAtTemplatePanel': state => state.isFirstLoadAtTemplatePanel
+            }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
@@ -276,11 +279,12 @@
                 return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
-                const url = { name: 'process', params: { project_id: this.project_id } }
-                if (this.common) {
-                    url.name = 'commonProcessList'
+                if (this.isFirstLoadAtTemplatePanel) {
+                    const url = this.common ? { name: 'commonProcessList' } : { name: 'process', params: { project_id: this.project_id } }
+                    this.$router.push(url)
+                } else {
+                    this.$router.back()
                 }
-                return url
             },
             goToTaskUrl () {
                 this.$router.push({

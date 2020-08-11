@@ -12,5 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 
-def fetch_business_location(username, bk_biz_ids=None):
-    return []
+from django.contrib import admin
+
+from pipeline_web.plugin_management import models
+
+
+@admin.register(models.DeprecatedPlugin)
+class DeprecatedPluginAdmin(admin.ModelAdmin):
+    list_display = ["id", "code", "version", "type", "phase"]
+    search_fields = ["code", "version", "phase"]

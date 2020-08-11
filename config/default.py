@@ -74,6 +74,7 @@ INSTALLED_APPS += (
     "pipeline_plugins.variables",
     "pipeline_web.core",
     "pipeline_web.label",
+    "pipeline_web.plugin_management",
     "data_migration",
     "auth_backend",
     "auth_backend.contrib.consistency",
@@ -143,7 +144,7 @@ LOGGING = get_logging_config_dict(locals())
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = "3.5.20"
+STATIC_VERSION = "3.5.22"
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
@@ -320,7 +321,11 @@ EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv("BKAPP_EXTERNAL_PLUGINS_SOUR
 PIPELINE_DATA_BACKEND = os.getenv(
     "BKAPP_PIPELINE_DATA_BACKEND", "pipeline.engine.core.data.redis_backend.RedisDataBackend"
 )
-PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv("BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND")
+PIPELINE_DATA_CANDIDATE_BACKEND = os.getenv(
+    "BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND", "pipeline.engine.core.data.mysql_backend.MySQLDataBackend"
+)
+
+PIPELINE_DATA_BACKEND_AUTO_EXPIRE = True
 
 ENABLE_EXAMPLE_COMPONENTS = False
 

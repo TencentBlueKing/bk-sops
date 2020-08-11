@@ -402,7 +402,7 @@ class TaskFlowInstance(models.Model):
     template_id = models.CharField(_("创建任务所用的模板ID"), max_length=255, blank=True)
     template_source = models.CharField(_("流程模板来源"), max_length=32, choices=TEMPLATE_SOURCE, default=PROJECT)
     create_method = models.CharField(_("创建方式"), max_length=30, choices=TASK_CREATE_METHOD, default="app")
-    create_info = models.CharField(_("创建任务额外信息（App maker ID或者APP CODE）"), max_length=255, blank=True)
+    create_info = models.CharField(_("创建任务额外信息（App maker ID或APP CODE或周期任务ID）"), max_length=255, blank=True)
     flow_type = models.CharField(_("任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common")
     current_flow = models.CharField(_("当前任务流程阶段"), max_length=255)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
