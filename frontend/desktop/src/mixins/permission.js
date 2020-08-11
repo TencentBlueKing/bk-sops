@@ -46,7 +46,7 @@ const permission = {
          * 组装 actions 数据，权限之间可能有相互依赖关系需要递归处理
          * @param {Arrau} reqPermission 需要的申请的权限
          * @param {Array} curPermission 当前拥有的权限
-         * @param {Object} resourceData 资源数据
+         * @param {Object} resourceData 资源实例数据
          * @param {Array} actions 系统中所有需要鉴权的操作相关信息
          * @param {Array} resources 系统中资源信息
          * @param {String} systemId 系统 id
@@ -65,24 +65,13 @@ const permission = {
                     const relateResources = []
                     permActionData.relate_resources.forEach(reItem => {
                         const resourceMap = resources.find(item => item.id === reItem)
-                        const instanceMap = resourceData[reItem]
-                        if (!resourceMap || !instanceMap) {
-                            return
-                        }
-                        const instances = [instanceMap.map(item => {
-                            return {
-                                type: resourceMap.id,
-                                type_name: resourceMap.name,
-                                id: item.id,
-                                name: item.name
-                            }
-                        })]
+                        const instances = this.assembleInstances(resources, resourceMap, resourceData)
                         relateResources.push({
                             system_id: systemId,
                             system_name: systemName,
                             type: resourceMap.id,
                             type_name: resourceMap.name,
-                            instances
+                            instances: [instances]
                         })
                     })
                     actionsData.push({
@@ -110,6 +99,29 @@ const permission = {
                 }
             })
             return actionsData
+        },
+        /**
+         * 拼接权限所关联的资源实例信息
+         * @param {Object} resources 系统中资源信息
+         * @param {Object} resourceMap 当前资源详情
+         * @param {Object} resourceData 资源实例数据
+         */
+        assembleInstances (resources, resourceMap, resourceData) {
+            let data = []
+            if (resourceMap.parent_id) {
+                const parentMap = resources.find(item => item.id === resourceMap.parent_id)
+                data = data.concat(this.assembleInstances(resources, parentMap, resourceData))
+            }
+            const instanceData = resourceData[resourceMap.id]
+            instanceData.forEach(item => {
+                data.push({
+                    type: resourceMap.id,
+                    type_name: resourceMap.name,
+                    id: Number(item.id),
+                    name: item.name
+                })
+            })
+            return data
         },
         /**
          * 打开权限申请弹窗

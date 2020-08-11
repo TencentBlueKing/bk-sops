@@ -277,6 +277,10 @@
                     task: [{
                         id: task.id,
                         name: task.name
+                    }],
+                    project: [{
+                        id: task.project.id,
+                        name: task.project.name
                     }]
                 }
                 this.applyForPermission(['task_view'], task.auth_actions, resourceData)

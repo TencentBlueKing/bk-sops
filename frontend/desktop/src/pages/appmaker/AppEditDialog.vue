@@ -178,7 +178,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
@@ -235,6 +235,10 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             dialogTitle () {
                 return this.isCreateNewApp ? i18n.t('新建轻应用') : i18n.t('编辑轻应用')
             },
@@ -356,7 +360,12 @@
                     return
                 }
                 if (!this.hasConfirmPerm) {
-                    let resourceData = {}
+                    let resourceData = {
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
+                        }]
+                    }
                     if (this.isCreateNewApp) {
                         const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
                         resourceData = {

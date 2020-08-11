@@ -48,7 +48,7 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -72,6 +72,10 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'projectId': state => state.project_id,
+                'projectName': state => state.projectName
+            }),
             isParamsEmpty () {
                 return !Object.keys(this.constants).length
             },
@@ -115,6 +119,10 @@
                         task: [{
                             id: this.instance_id,
                             name: this.instanceName
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
                         }]
                     }
                     this.applyForPermission(['task_edit'], this.instanceActions, resourceData)

@@ -379,12 +379,16 @@
              * @params {Object} periodic 模板数据对象
              */
             onPeriodicPermissonCheck (required, periodic) {
-                const { id, name, task_template_name, template_id } = periodic
+                const { id, name, task_template_name, template_id, project } = periodic
                 const resourceData = {
                     periodic_task: [{ id, name }],
                     flow: [{
                         id: template_id,
                         name: task_template_name
+                    }],
+                    project: [{
+                        id: project.id,
+                        name: project.name
                     }]
                 }
                 this.applyForPermission(required, periodic.auth_actions, resourceData)

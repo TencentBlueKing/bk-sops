@@ -527,7 +527,11 @@
              * @params {Object} template 模板数据对象
              */
             onTemplatePermissonCheck (required, template) {
-                this.applyForPermission(required, this.authActions, { flow: [template] })
+                const project = {
+                    id: this.project_id,
+                    name: this.projectName
+                }
+                this.applyForPermission(required, this.authActions, { flow: [template], project: [project] })
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return

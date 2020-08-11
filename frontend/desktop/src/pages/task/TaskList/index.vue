@@ -426,6 +426,10 @@
                     flow: [{
                         id: task.template_id,
                         name: task.template_name
+                    }],
+                    project: [{
+                        id: task.project.id,
+                        name: task.project.name
                     }]
                 }
                 this.applyForPermission(required, task.auth_actions, resourceData)

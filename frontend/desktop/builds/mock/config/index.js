@@ -64,9 +64,9 @@ module.exports = {
     //     method: 'GET',
     //     data: './data.js'
     // }
-    '/o/bk_sops/iam/api/meta/': {
-        type: 'json',
-        method: 'GET',
-        data: permission
-    }
+    // '/o/bk_sops/iam/api/meta/': {
+    //     type: 'json',
+    //     method: 'GET',
+    //     data: permission
+    // }
 }

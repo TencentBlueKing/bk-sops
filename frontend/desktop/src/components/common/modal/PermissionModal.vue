@@ -121,11 +121,11 @@
                 const data = []
                 resources.forEach(resource => {
                     if (resource.instances.length > 0) {
-                        const instances = resource.instances.map(instanceItem => {
-                            return instanceItem.map(item => item.name).join('，')
-                        }).join('，')
-                        const resourceItemData = resource.type_name + `：` + instances
-                        data.push(resourceItemData)
+                        resource.instances.forEach(instanceItem => {
+                            instanceItem.forEach(item => {
+                                data.push(`${item.type_name}：${item.name}`)
+                            })
+                        })
                     }
                 })
                 return data

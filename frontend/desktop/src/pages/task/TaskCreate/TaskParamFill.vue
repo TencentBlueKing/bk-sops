@@ -380,6 +380,10 @@
                             mini_app: [{
                                 id: this.app_id,
                                 name: this.appmakerDetail.name
+                            }],
+                            project: [{
+                                id: this.project_id,
+                                name: this.projectName
                             }]
                         }
                     } else {
@@ -399,6 +403,10 @@
                                 flow: [{
                                     id: this.template_id,
                                     name: this.templateName
+                                }],
+                                project: [{
+                                    id: this.project_id,
+                                    name: this.projectName
                                 }]
                             }
                         }

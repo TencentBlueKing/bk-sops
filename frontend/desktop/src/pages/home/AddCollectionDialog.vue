@@ -360,6 +360,12 @@
                     const resources = {
                         [this.listItemType]: [item]
                     }
+                    if (this.listItemType !== 'common_flow') {
+                        resources.project = [{
+                            id: item.project.id,
+                            name: item.project.name
+                        }]
+                    }
                     this.applyForPermission([this.viewPermission], item.auth_actions, resources)
                 }
             },
