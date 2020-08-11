@@ -459,7 +459,12 @@
                 this.getSearchResult()
             },
             onApplyPerm (required, data, type) {
-                const resourceData = {}
+                const resourceData = {
+                    project: [{
+                        id: data.project.id,
+                        name: data.project.name
+                    }]
+                }
                 const reItem = { id: data.id, name: data.name }
                 if (type === 'tpl') {
                     resourceData.flow = [reItem]

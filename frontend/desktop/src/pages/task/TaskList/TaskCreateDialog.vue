@@ -79,7 +79,7 @@
                                                 'permission-disable': selectedTplType === 'businessProcess' && !hasPermission(action, template.auth_actions)
                                             }
                                         ]"
-                                        @click="onSelectTask(template)">
+                                        @click="onSelectTpl(template)">
                                         <div class="task-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
                                         <div class="task-item-name-box">
                                             <div class="task-item-name">{{template.name}}</div>
@@ -262,6 +262,7 @@
                         atomGrouped[index].children.push({
                             id: item.id,
                             name: item.name,
+                            project: item.project,
                             auth_actions: item.auth_actions
                         })
                     }
@@ -310,7 +311,7 @@
                 this.selectError = false
                 this.$emit('onCreateTaskCancel')
             },
-            onSelectTask (template) {
+            onSelectTpl (template) {
                 if (this.selectedTplType === 'businessProcess') {
                     if (this.hasPermission(this.action, template.auth_actions)) {
                         this.selectError = false
@@ -320,6 +321,10 @@
                             flow: [{
                                 id: template.id,
                                 name: template.name
+                            }],
+                            project: [{
+                                id: template.project.id,
+                                name: template.project.name
                             }]
                         }
                         this.applyForPermission(this.action, template.auth_actions, resourceData)

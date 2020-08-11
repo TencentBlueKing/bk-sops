@@ -90,13 +90,6 @@
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template>
-                                    <!-- <a
-                                        v-if="!hasPermission(['common_flow_create_task'], props.row.auth_actions)"
-                                        v-cursor
-                                        class="text-permission-disable"
-                                        @click="onTemplatePermissonCheck(['common_flow_create_task'], props.row)">
-                                        {{$t('新建任务')}}
-                                    </a> -->
                                     <a
                                         class="template-operate-btn"
                                         @click.prevent="handleCreateTaskClick(props.row)">
@@ -545,12 +538,6 @@
                     common_flow: [{
                         id: template.id,
                         name: template.name
-                    }]
-                }
-                if (required.includes('common_flow_create_task')) {
-                    permissionData.project = [{
-                        id: '需要项目信息',
-                        name: '需要项目信息'
                     }]
                 }
                 this.applyForPermission(required, curPermission, permissionData)

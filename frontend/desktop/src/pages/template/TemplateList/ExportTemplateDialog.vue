@@ -297,6 +297,10 @@
                         flow: [{
                             id: template.id,
                             name: template.name
+                        }],
+                        project: [{
+                            id: template.project.id,
+                            name: template.project.name
                         }]
                     }
                     this.applyForPermission(this.reqPerm, template.auth_actions, permissionData)

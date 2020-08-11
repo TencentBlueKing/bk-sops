@@ -261,6 +261,10 @@
                     flow: [{
                         id: tpl.id,
                         name: tpl.name
+                    }],
+                    project: [{
+                        id: tpl.project.id,
+                        name: tpl.project.name
                     }]
                 }
                 this.applyForPermission(['flow_view'], [], resourceData)

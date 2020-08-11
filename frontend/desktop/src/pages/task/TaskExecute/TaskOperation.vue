@@ -235,6 +235,10 @@
                 view_mode: state => state.view_mode,
                 hasAdminPerm: state => state.hasAdminPerm
             }),
+            ...mapState('project', {
+                projectId: state => state.project_id,
+                projectName: state => state.projectName
+            }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
             },
@@ -844,6 +848,10 @@
                         task: [{
                             id: this.instance_id,
                             name: this.instanceName
+                        }],
+                        project: [{
+                            id: this.projectId,
+                            name: this.projectName
                         }]
                     }
                     this.applyForPermission(['task_operate'], this.instanceActions, resourceData)

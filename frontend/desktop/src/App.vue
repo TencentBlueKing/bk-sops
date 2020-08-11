@@ -56,7 +56,7 @@
                 permissinApplyShow: false,
                 permissionData: {
                     type: 'project', // 无权限类型: project、other
-                    permission: []
+                    permission: null
                 },
                 isRouterAlive: false,
                 adminPermLoading: false, // 管理员权限加载
@@ -238,7 +238,7 @@
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
                         this.permissinApplyShow = false
                         this.getProjectDetail()
-                    } else { // 需要项目id页面，id为空是显示无权限页面，申请按钮跳转到项目管理页面
+                    } else { // 需要项目id页面，id为空时，显示无权限页面，申请按钮跳转到项目管理页面
                         this.permissinApplyShow = true
                     }
                 }
