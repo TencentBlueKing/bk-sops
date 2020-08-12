@@ -10,55 +10,51 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="global-variable-panel">
-        <bk-sideslider
-            ext-cls="common-template-setting-sideslider"
-            :width="800"
-            :is-show="isShow"
-            :before-close="onBeforeClose"
-            :quick-close="true">
-            <div slot="header">
-                <span class="close-panel-icon"></span>
-                <span class="global-variable-text">{{$t('全局变量')}}</span>
-                <i
-                    class="common-icon-info global-variable-tootip"
-                    v-bk-tooltips="{
-                        allowHtml: true,
-                        content: '#var-desc',
-                        placement: 'bottom-end',
-                        duration: 0,
-                        width: 400
-                    }">
-                </i>
-                <div id="var-desc">
-                    <div class="tips-item">
-                        <h4>{{ $t('属性：') }}</h4>
-                        <p>
-                            {{ $t('"来源/是否显示"格式，来源是输入类型') }}
-                            <i class="common-icon-show-left" style="color: #219f42"></i>
-                            {{ $t('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型') }}
-                            <i class="common-icon-hide-right" style="color: #de9524"></i>
-                            {{ $t('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，') }}
-                            <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
-                            {{ $t('表示显示，') }}
-                            <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
-                            {{ $t('表示隐藏，输出类型的变量一定是隐藏的。') }}
-                        </p>
-                    </div>
-                    <div class="tips-item">
-                        <h4>{{ $t('输出：') }}</h4>
-                        <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
-                    </div>
+    <bk-sideslider
+        :is-show="true"
+        :width="800"
+        :quick-close="!variableData"
+        :before-close="closeTab">
+        <div class="setting-header" slot="header">
+            <span :class="[variableData ? 'active' : '']" @click="onBackToList">{{ $t('全局变量') }}</span>
+            <span v-if="variableData"> > {{ variableData.source_type !== 'system' ? (variableData.key ? $t('编辑') : $t('新建')) : $t('查看') }}</span>
+            <i
+                class="common-icon-info"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    content: '#var-desc',
+                    placement: 'bottom-end',
+                    duration: 0,
+                    width: 400
+                }">
+            </i>
+            <div id="var-desc">
+                <div class="tips-item">
+                    <h4>{{ $t('属性：') }}</h4>
+                    <p>
+                        {{ $t('"来源/是否显示"格式，来源是输入类型') }}
+                        <i class="common-icon-show-left" style="color: #219f42"></i>
+                        {{ $t('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型') }}
+                        <i class="common-icon-hide-right" style="color: #de9524"></i>
+                        {{ $t('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，') }}
+                        <i class="common-icon-eye-show" style="color: #219f42;vertical-align: middle;"></i>
+                        {{ $t('表示显示，') }}
+                        <i class="common-icon-eye-hide" style="color: #de9524;vertical-align: middle;"></i>
+                        {{ $t('表示隐藏，输出类型的变量一定是隐藏的。') }}
+                    </p>
                 </div>
-                <div :class="['panel-fixed-pin', { 'actived': isFixedVarMenu }]" @click.stop="onClickVarPin">
-                    <i class="common-icon-pin"></i>
+                <div class="tips-item">
+                    <h4>{{ $t('输出：') }}</h4>
+                    <p>{{ $t('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。') }}</p>
                 </div>
             </div>
-            <template slot="content">
+        </div>
+        <div class="global-variable-panel" slot="content">
+            <template v-if="!variableData">
                 <div class="add-variable">
                     <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ $t('新建') }}</bk-button>
                     <div class="toggle-system-var">
-                        <bk-checkbox v-model="isHideSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
+                        <bk-checkbox :value="isHideSystemVar" @change="onToggleSystemVar">{{ $t('隐藏系统变量') }}</bk-checkbox>
                     </div>
                 </div>
                 <div class="global-variable-content">
@@ -83,75 +79,59 @@
                         <span class="col-operation t-head">{{ $t('操作') }}</span>
                         <span class="col-delete t-head"></span>
                     </div>
-                    <div v-if="isVarTipsShow" class="variable-operating-tips">{{ varOperatingTips }}</div>
-                    <ul class="variable-list" ref="variableList">
-                        <draggable class="variable-drag" :list="variableList" handle=".col-item-drag" @end="onDragEnd($event)">
-                            <VariableItem
+                    <div class="variable-list">
+                        <draggable
+                            class="variable-drag"
+                            handle=".col-item-drag"
+                            :list="variableList"
+                            @end="onDragEnd($event)">
+                            <variable-item
                                 v-for="constant in variableList"
-                                :ref="`variableKey_${constant.key}`"
                                 :key="constant.key"
                                 :outputed="outputs.indexOf(constant.key) > -1"
-                                :is-variable-editing="isVariableEditing"
-                                :constant="constant"
-                                :variable-data="variableData"
-                                :variable-type-list="variableTypeList"
-                                :the-key-of-editing="theKeyOfEditing"
-                                :the-key-of-view-cited="theKeyOfViewCited"
-                                :is-hide-system-var="isHideSystemVar"
-                                :system-constants="systemConstants"
-                                :var-operating-tips="varOperatingTips"
-                                @onChangeEdit="onChangeEdit"
-                                @onCitedNodeClick="onCitedNodeClick"
+                                :variable-data="constant"
                                 @onEditVariable="onEditVariable"
-                                @onViewCitedList="onViewCitedList"
                                 @onChangeVariableOutput="onChangeVariableOutput"
-                                @onDeleteVariable="onDeleteVariable" />
+                                @onDeleteVariable="onDeleteVariable"
+                                @onCitedNodeClick="$emit('onCitedNodeClick', $event)">
+                            </variable-item>
                         </draggable>
-                        <!-- 新建变量 -->
-                        <li v-if="isVariableEditing && theKeyOfEditing === ''">
-                            <VariableEdit
-                                ref="addVariablePanel"
-                                :system-constants="systemConstants"
-                                :variable-data="variableData"
-                                :variable-type-list="variableTypeList"
-                                :is-new-variable="true"
-                                :var-operating-tips="varOperatingTips"
-                                @scrollPanelToView="scrollPanelToView"
-                                @onChangeEdit="onChangeEdit">
-                            </VariableEdit>
-                        </li>
-                        <li v-if="isShowNodata" class="empty-variable-tip">
+                        <div v-if="variableList.length === 0" class="empty-variable-tips">
                             <NoData>
                                 <p>{{$t('无数据，请手动新增变量或者勾选标准插件参数自动生成')}}</p>
                             </NoData>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
-                <bk-dialog
-                    width="400"
-                    ext-cls="common-dialog delete-variable-dialog"
-                    :theme="'primary'"
-                    :mask-close="false"
-                    :header-position="'left'"
-                    :title="$t('删除变量')"
-                    :value="deleteConfirmDialogShow"
-                    @confirm="onConfirm"
-                    @cancel="onCancel">
-                    <div>{{ $t('确认删除该变量？') }}</div>
-                </bk-dialog>
             </template>
-        </bk-sideslider>
-    </div>
+            <variable-edit
+                v-else
+                :variable-data="variableData"
+                @closeEditingPanel="closeEditingPanel">
+            </variable-edit>
+            <bk-dialog
+                width="400"
+                ext-cls="common-dialog delete-variable-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :header-position="'left'"
+                :title="$t('删除变量')"
+                :value="deleteConfirmDialogShow"
+                @confirm="onDeleteConfirm"
+                @cancel="onDeleteCancel">
+                <div>{{ $t('确认删除该变量？') }}</div>
+            </bk-dialog>
+        </div>
+    </bk-sideslider>
 </template>
-
 <script>
-    import i18n from '@/config/i18n/index.js'
-    import { mapMutations, mapState } from 'vuex'
-    import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
+    import { mapMutations, mapState, mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
     import VariableEdit from './VariableEdit.vue'
     import VariableItem from './VariableItem.vue'
     import NoData from '@/components/common/base/NoData.vue'
+
     export default {
         name: 'TabGlobalVariables',
         components: {
@@ -160,197 +140,112 @@
             draggable,
             NoData
         },
-        props: ['isVariableEditing', 'variableTypeList', 'isShow', 'isFixedVarMenu'],
         data () {
             return {
                 isHideSystemVar: false,
-                theKeyOfEditing: '',
-                theKeyOfViewCited: '',
-                constantsArray: [],
+                variableList: [], // 变量列表，包含系统内置变量和用户变量
+                variableData: null, // 编辑中的变量
                 deleteConfirmDialogShow: false,
-                deleteVarKey: '',
-                isVarTipsShow: false
+                deleteVarKey: ''
             }
         },
         computed: {
             ...mapState({
-                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
-                'activities': state => state.template.activities,
-                'systemConstants': state => state.template.systemConstants,
-                'timeout': state => state.template.time_out
-            }),
-            variableData () {
-                if (this.theKeyOfEditing) {
-                    return this.constants[this.theKeyOfEditing] || this.systemConstants[this.theKeyOfEditing]
-                } else {
-                    return {
-                        custom_type: 'input',
-                        desc: '',
-                        key: '',
-                        name: '',
-                        show_type: 'show',
-                        source_info: {},
-                        source_tag: 'input.input',
-                        source_type: 'custom',
-                        validation: '^.+$',
-                        validator: [],
-                        value: ''
-                    }
-                }
-            },
-            isShowNodata () {
-                if (this.isVariableEditing) {
-                    return false
-                }
-                return this.constantsArray.length === 0 ? (this.isHideSystemVar || this.systemConstants.length === 0) : false
-            },
-            /**
-             * 变量列表（系统变量+普通变量）
-             * 系统变量：index范围 （-1 => -n）
-             * 普通变量：index范围 （0 => n）
-             */
-            variableList () {
-                if (this.isHideSystemVar) {
-                    return this.getConstantsArray(this.constants)
-                }
-                return [
-                    ...this.getConstantsArray(this.systemConstants),
-                    ...this.getConstantsArray(this.constants)
-                ]
-            },
-            // 操作变量提示 title
-            varOperatingTips () {
-                if (this.theKeyOfEditing) {
-                    return i18n.t('编辑') + i18n.t('全局变量')
-                }
-                return i18n.t('新建') + i18n.t('全局变量')
-            },
-            systemConstantsList () {
-                const list = []
-                Object.keys(this.systemConstants).forEach(key => {
-                    list.push(this.systemConstants[key])
-                })
-                list.sort((a, b) => b.index - a.index)
-                return list
-            }
-                
+                'systemConstants': state => state.template.systemConstants
+            })
         },
         watch: {
-            constants: {
-                handler () {
-                    this.theKeyOfEditing = ''
-                    this.constantsArray = this.getConstantsArray(this.constants)
-                    this.onChangeEdit(false)
-                },
-                deep: true
+            constants () {
+                // 增加、删除变量后，更新变量列表
+                this.setVariableList()
+            },
+            systemConstants () {
+                this.setVariableList()
             }
         },
         created () {
-            this.constantsArray = this.getConstantsArray(this.constants)
+            this.setVariableList()
         },
         methods: {
+            ...mapActions('template', [
+            ]),
             ...mapMutations('template/', [
                 'editVariable',
                 'deleteVariable',
                 'setOutputs'
             ]),
-            getConstantsArray (obj) {
-                const arrayList = []
-                for (const cKey in obj) {
-                    const constant = tools.deepClone(obj[cKey])
-                    arrayList.push(constant)
-                }
-                const sortedList = arrayList.sort((a, b) => a.index - b.index)
-                return sortedList
-            },
-            saveVariable () {
-                if (this.theKeyOfEditing) {
-                    const target = `variableKey_${this.theKeyOfEditing}`
-                    const targetComponent = this.$refs[target][0].$refs.editVariablePanel
-                    return targetComponent && targetComponent.saveVariable()
-                }
-
-                return this.$refs.addVariablePanel.saveVariable()
-            },
-            // 滚动到可视区域
-            scrollPanelToView (index) {
-                if (index > 0) {
-                    this.$nextTick(() => {
-                        const itemHeight = document.querySelector('.variable-content').offsetHeight
-                        this.$refs.variableList.scrollTop = itemHeight * (index + 1)
-                    })
-                }
-            },
-            /**
-             * 获取变量在 variableList 中的 index
-             * 注意:非 item.index
-             * @param {String} key 变量的 key
-             */
-            getSortIndex (key) {
-                return this.variableList.findIndex(m => m.key === key)
-            },
-            /**
-             * 编辑变量
-             * @param {String} key 变量key值
-             * @param {String} version 变量版本
-             */
-            onEditVariable (key, index, version) {
-                if (key === this.theKeyOfEditing && this.isVariableEditing) {
-                    this.onChangeEdit(false)
+            setVariableList () {
+                const userVars = Object.keys(this.constants)
+                    .map(key => tools.deepClone(this.constants[key]))
+                    .sort((a, b) => a.index - b.index)
+                if (this.isHideSystemVar) {
+                    this.variableList = userVars
                 } else {
-                    this.onChangeEdit(true)
-                    this.theKeyOfEditing = key
-                    this.theVersionOfEditing = version
+                    const sysVars = Object.keys(this.systemConstants)
+                        .map(key => tools.deepClone(this.systemConstants[key]))
+                        .sort((a, b) => a.index - b.index)
+                    this.variableList = [...sysVars, ...userVars]
                 }
-                this.$emit('variableDataChanged')
-
-                const sortIndex = this.getSortIndex(key)
-                this.scrollPanelToView(sortIndex)
             },
-            /**
-             * 变量顺序拖拽
-             */
-            onDragEnd (event) {
-                let { newIndex, oldIndex } = event
-                if (!this.isHideSystemVar) {
-                    newIndex = newIndex - this.systemConstantsList.length
-                    oldIndex = oldIndex - this.systemConstantsList.length
+            // 点击面包屑返回变量列表
+            onBackToList () {
+                if (this.variableData) {
+                    this.closeEditingPanel()
                 }
-                const varItem = this.constantsArray[oldIndex]
-
-                let start, end, delta
-                if (newIndex > oldIndex) { // 从上往下拖
-                    start = oldIndex
-                    end = newIndex + 1
-                    delta = -1
-                } else {
-                    start = newIndex
-                    end = oldIndex + 1
-                    delta = 1
-                }
-                const indexChangedVariable = this.constantsArray.slice(start, end)
-                indexChangedVariable.forEach((item, index) => {
-                    if (item.key === varItem.key) {
-                        item.index = newIndex
-                    } else {
-                        item.index = item.index + delta
-                    }
-                    this.editVariable({ key: item.key, variable: item })
-                })
-                this.$emit('variableDataChanged')
             },
             /**
              * 新增变量
              */
             onAddVariable () {
-                this.onChangeEdit(true)
-                this.theKeyOfEditing = ''
-                this.$emit('variableDataChanged')
-                // 滚到到底部
-                const allVarLen = this.variableList.length - 1
-                this.scrollPanelToView(allVarLen)
+                this.variableData = {
+                    custom_type: 'input',
+                    desc: '',
+                    form_schema: {},
+                    index: Object.keys(this.constants).length + 1,
+                    key: '',
+                    name: '',
+                    show_type: 'show',
+                    source_info: {},
+                    source_tag: 'input.input',
+                    source_type: 'custom',
+                    validation: '^.+$',
+                    value: '',
+                    version: 'legacy'
+                }
+                this.$emit('templateDataChanged')
+            },
+            // 显示/隐藏系统变量
+            onToggleSystemVar (val) {
+                this.isHideSystemVar = val
+                this.setVariableList()
+            },
+            // 变量拖拽，改变顺序
+            onDragEnd (event) {
+                const { newIndex, oldIndex } = event
+                if (newIndex === oldIndex) {
+                    return
+                }
+
+                const start = Math.min(newIndex, oldIndex)
+                const end = Math.max(newIndex, oldIndex) + 1
+                const delta = this.isHideSystemVar ? start : start - Object.keys(this.systemConstants).length
+                const indexChangedVar = this.variableList.slice(start, end)
+                
+                indexChangedVar.forEach((item, index) => {
+                    item.index = index + delta
+                    console.log(item.index)
+                    this.editVariable({ key: item.key, variable: tools.deepClone(item) })
+                })
+            },
+            /**
+             * 编辑变量
+             * @param {String} key 变量key值
+             */
+            onEditVariable (key) {
+                this.variableData = tools.deepClone(this.constants[key] || this.systemConstants[key])
+                this.$emit('templateDataChanged')
             },
             /**
              * 变量输出勾选
@@ -358,111 +253,71 @@
             onChangeVariableOutput ({ key, checked }) {
                 const changeType = checked ? 'add' : 'delete'
                 this.setOutputs({ changeType, key })
-                this.$emit('variableDataChanged')
+                this.$emit('templateDataChanged')
             },
             /**
-             *  删除变量
+             * 显示删除变量弹窗
              */
             onDeleteVariable (key) {
                 this.deleteVarKey = key
                 this.deleteConfirmDialogShow = true
             },
-            onConfirm () {
+            // 确认删除
+            onDeleteConfirm () {
                 this.deleteConfirmDialogShow = false
                 this.deleteVariable(this.deleteVarKey)
-                this.$emit('variableDataChanged')
                 this.deleteVarKey = ''
+                this.$emit('templateDataChanged')
             },
-            onCancel () {
+            // 取消删除
+            onDeleteCancel () {
                 this.deleteConfirmDialogShow = false
                 this.deleteVarKey = ''
             },
-            // 添加滚动监听
-            addContentScroll () {
-                const variableList = document.querySelector('.global-variable-content .variable-list')
-                variableList && variableList.addEventListener('scroll', this.handleVariableListScroll)
+            // 关闭变量编辑面板
+            closeEditingPanel () {
+                this.variableData = null
             },
-            // 移除滚动监听
-            removeContentScroll () {
-                const variableList = document.querySelector('.global-variable-content .variable-list')
-                variableList && variableList.removeEventListener('scroll', this.handleVariableListScroll)
-            },
-            // 变量列表滚动监听
-            handleVariableListScroll (event) {
-                setTimeout(() => {
-                    const item = document.querySelector('.global-variable-content .variable-item .variable-content')
-                    if (!item) {
-                        return
-                    }
-                    const itemHeight = item.getBoundingClientRect().height
-                    let sortIndex = 0
-                    if (!this.theKeyOfEditing) { // new var
-                        sortIndex = this.variableList.length
-                    } else { // edit var
-                        this.variableList.forEach((m, i) => {
-                            if (m.key === this.variableData.key) {
-                                sortIndex = i + 1
-                                return true
-                            }
-                        })
-                    }
-                    this.isVarTipsShow = event.srcElement.scrollTop > sortIndex * itemHeight
-                }, 100)
-            },
-            onChangeEdit (val) {
-                this.$emit('changeVariableEditing', val)
-                // 编辑变量、新建变量监听滚动判断是否显示浮动 title
-                if (val) {
-                    this.theKeyOfViewCited = ''
-                    this.addContentScroll()
-                } else {
-                    this.isVarTipsShow = false
-                    this.removeContentScroll()
-                }
-            },
-            onBeforeClose () {
-                this.$emit('onColseTab', 'globalVariableTab')
-            },
-            onCitedNodeClick (nodeId) {
-                this.$emit('onCitedNodeClick', nodeId)
-            },
-            /**
-             * 展示引用节点列表
-             * @param {String} key 变量 key
-             */
-            onViewCitedList (key) {
-                if (this.theKeyOfViewCited === key) {
-                    this.theKeyOfViewCited = ''
-                } else {
-                    this.theKeyOfViewCited = key
-                }
-            },
-            onClickVarPin () {
-                this.$emit('onClickVarPin', !this.isFixedVarMenu)
+            // 关闭全局变量侧滑
+            closeTab () {
+                this.$emit('closeTab')
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-$localBorderColor: #dcdee5;
-/deep/ .common-dialog .bk-dialog-body{
-    padding: 20px;
-}
-.tips-item {
-    & > h4 {
-        margin: 0;
+.setting-header {
+    & > span.active {
+        color: #3a84ff;
+        cursor: pointer;
     }
-    &:not(:last-child) {
-        margin-bottom: 10px;
+    .common-icon-info {
+        position: absolute;
+        top: 22px;
+        right: 30px;
+        font-size: 16px;
+        color: #c4c6cc;
+        &:hover {
+            color: #f4aa1a;
+        }
+    }
+    #var-desc {
+        .tips-item {
+            & > h4 {
+                margin: 0;
+            }
+            &:not(:last-child) {
+                margin-bottom: 10px;
+            }
+        }
     }
 }
 .global-variable-panel {
-    height: 100%;
+    height: calc(100vh - 60px);
     .add-variable {
-        margin: 30px 30px 20px 28px;
+        padding: 30px 30px 20px;
         .add-variable-btn {
             width: 90px;
         }
@@ -483,31 +338,10 @@ $localBorderColor: #dcdee5;
             margin-left: 0px;
         }
     }
-    .panel-fixed-pin {
-        position: absolute;
-        top: 14px;
-        right: 30px;
-        padding: 7px 8px 8px;
-        line-height: 1;
-        border: 1px solid #c4c6cc;
-        border-radius: 2px;
-        font-size: 14px;
-        text-align: center;
-        color: #999999;
-        cursor: pointer;
-        z-index: 1;
-        &:hover {
-            color: #707379;
-        }
-        &.actived {
-            color: #52699d;
-        }
-    }
     .global-variable-content {
         position: relative;
-        margin: 0 28px 30px;
-        height: calc(100% - 82px);
-        border: 1px solid $localBorderColor;
+        margin: 0 30px;
+        border: 1px solid #dcdee5;
     }
     .variable-header, .variable-list {
         position: relative;
@@ -554,7 +388,7 @@ $localBorderColor: #dcdee5;
         height: 42px;
         line-height: 42px;
         background: #fafbfd;
-        border-bottom: 1px solid $localBorderColor;
+        border-bottom: 1px solid #dcdee5;
         .t-head {
             float: left;
             height: 40px;
@@ -577,16 +411,20 @@ $localBorderColor: #dcdee5;
     }
     .variable-list {
         width: 100%;
-        height: calc(100% - 50px);
-        overflow-x: hidden;
+        min-height: 300px;
+        max-height: calc(100vh - 214px);
+        border-top: none;
         overflow-y: auto;
         @include scrollbar;
     }
-    .empty-variable-tip {
+    .empty-variable-tips {
         margin-top: 120px;
         /deep/ .no-data-wording {
             font-size: 12px;
         }
     }
+}
+/deep/ .delete-variable-dialog .bk-dialog-body {
+    padding: 20px;
 }
 </style>

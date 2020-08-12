@@ -306,7 +306,9 @@
             },
             onResetForm () {
                 Object.keys(this.formData).forEach(key => {
-                    this.$set(this.formData, key, '')
+                    const form = this.searchForm.find(item => item.key === key)
+                    const val = form.type === 'dateRange' ? [] : ''
+                    this.$set(this.formData, key, val)
                 })
                 this.$emit('submit', this.formData)
             }

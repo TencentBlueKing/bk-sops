@@ -38,6 +38,7 @@ const store = new Vuex.Store({
         isSuperUser: window.IS_SUPERUSER === 1,
         v1_import_flag: window.IMPORT_V1_FLAG,
         rsa_pub_key: window.RSA_PUB_KEY,
+        isFirstLoadAtTemplatePanel: false, // 页面首次加载是否是渲染的模板编辑页面
         permissionMeta: {
             system: [],
             resources: [],
@@ -59,6 +60,9 @@ const store = new Vuex.Store({
         },
         setViewMode (state, mode) {
             state.view_mode = mode
+        },
+        setFirstLoadPage (state) {
+            state.isFirstLoadAtTemplatePanel = true
         },
         setNotFoundPage (state, val) {
             state.notFoundPage = val
