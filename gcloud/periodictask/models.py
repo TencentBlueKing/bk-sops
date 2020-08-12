@@ -16,6 +16,7 @@ import logging
 import ujson as json
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
@@ -92,6 +93,7 @@ class PeriodicTaskManager(models.Manager):
             timezone=project.time_zone,
             extra_info=extra_info,
             spread=True,
+            queue=settings.PERIODIC_TASK_QUEUE_NAME,
         )
 
 

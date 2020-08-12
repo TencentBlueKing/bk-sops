@@ -139,6 +139,28 @@ class Client(object):
         ok, message, data = self._call_iam_api(http_delete, path, data)
         return ok, message
 
+    # register create association permission action.
+    def add_resource_creator_actions(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/resource_creator_actions".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_post, path, data)
+        return ok, message
+
+    # update create association permission action.
+    def update_resource_creator_actions(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/resource_creator_actions".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_put, path, data)
+        return ok, message
+
+    # return resource instance creator to iam, esb needed.
+    def grant_resource_creator_actions(self, bk_token, bk_username, data):
+        path = "/api/c/compapi/v2/iam/authorization/resource_creator_action/"
+
+        ok, message, _data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
+        if not ok:
+            return False, message
+
+        return True, "success"
+
     # ---------- action-topology
     def add_action_topology(self, system_id, action_type, data):
         path = "/api/v1/model/systems/{system_id}/action-topologies/{action_type}".format(
@@ -244,3 +266,17 @@ class Client(object):
             return False, message, ""
 
         return True, "success", _data.get("url", "")
+
+    def instance_authorization(self, bk_token, bk_username, data):
+        path = "/api/c/compapi/v2/iam/authorization/instance/"
+        ok, message, _data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
+        if not ok:
+            return False, message, ""
+        return True, "success", _data.get("token", "")
+
+    def path_authorization(self, bk_token, bk_username, data):
+        path = "/api/c/compapi/v2/iam/authorization/path/"
+        ok, message, _data = self._call_esb_api(http_post, path, data, bk_token, bk_username, timeout=5)
+        if not ok:
+            return False, message, ""
+        return True, "success", _data.get("token", "")

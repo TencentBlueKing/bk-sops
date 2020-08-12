@@ -61,6 +61,10 @@ class TaskTemplateManager(BaseTemplateManager, TaskTmplStatisticsMixin):
 
         can_override = not (is_multiple_relate or is_across_override or has_common_template)
 
+        # 以文件中设定的禁止覆盖设定为最高优先级
+        if template_data.get("override_forbidden", False):
+            can_override = False
+
         if not can_override:
             data["override_template"] = []
 
