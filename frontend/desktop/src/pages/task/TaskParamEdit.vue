@@ -161,21 +161,12 @@
                 const variables = tools.deepClone(this.constants)
                 for (const key in variables) {
                     const variable = variables[key]
+                    if (variable.show_type !== 'show') {
+                        continue
+                    }
                     if (key in this.renderData) {
                         variable.value = this.renderData[key]
                         variable.meta = this.metaConfig[key]
-                    } else if (variable.is_meta) {
-                        const sourceTag = variable.source_tag
-                        const [atomType, tagCode] = sourceTag.split('.')
-                        const atomVersion = variable.version || 'legacy'
-                        if (!atomFilter.isConfigExists(atomType, atomVersion, this.atomFormConfig)) {
-                            this.loadAtomConfig({ atom: atomType, version: atomVersion })
-                        }
-                        const atomConfig = this.atomFormConfig[atomType]
-                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                        variable.meta = tools.deepClone(variable)
-                        variable.value = currentFormConfig.attrs.value
                     }
                 }
                 return variables

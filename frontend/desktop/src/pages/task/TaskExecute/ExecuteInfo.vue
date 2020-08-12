@@ -48,6 +48,23 @@
                     </div>
                 </div>
             </div>
+            <section class="info-section ex-data-wrap" v-if="executeInfo.ex_data">
+                <h4 class="common-section-title">{{ $t('异常信息') }}</h4>
+                <div v-html="failInfo"></div>
+                <IpLogContent
+                    v-if="executeInfo.ex_data.show_ip_log"
+                    :project-id="renderData.biz_cc_id"
+                    :node-info="executeInfo">
+                </IpLogContent>
+            </section>
+            <section class="info-section" v-if="adminView">
+            <h4 class="common-section-title">{{ $t('节点日志') }}</h4>
+            <div class="code-block-wrap code-editor">
+                <code-editor
+                    :value="logInfo"
+                    :options="{ readOnly: readOnly, language: 'javascript' }">
+                </code-editor>
+            </div>
             <section class="info-section">
                 <h4 class="common-section-title">{{ $t('执行信息') }}</h4>
                 <table class="operation-table" v-if="executeCols && onNodeState">
@@ -706,6 +723,9 @@
     }
     /deep/ .vjs-tree {
         font-size: 12px;
+    }
+    /deep/ .code-editor {
+        height: 300px;
     }
     .excute-time {
         margin-bottom: 40px;

@@ -1,0 +1,2 @@
+improvement:
+    - "任务节点有输出参数时增加节点不可选逻辑，preview_task_tree接口报错时不可创建任务优化"

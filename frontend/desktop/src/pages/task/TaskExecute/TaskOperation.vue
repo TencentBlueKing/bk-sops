@@ -1135,7 +1135,8 @@
                 color: #2dcb56;
             }
         }
-        &.RUNNING {
+        &.RUNNING,
+        &.READY {
             background-color: #cfdffb;
             border-top: 1px solid #c0d4f8;
             border-bottom: 1px solid #c0d4f8;

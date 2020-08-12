@@ -235,6 +235,7 @@ const en = {
     '提示': 'Prompt',
     '未执行': 'Created',
     '执行中': 'Executing',
+    '排队中': 'Queuing',
     '节点暂停': 'Node Suspended',
     '失败': 'Failed',
     '完成': 'Finished',
@@ -995,7 +996,7 @@ const en = {
     '可自动保存最近的50次快照，每5分钟一次。仅在本地浏览器存储。': 'It can automatically save the last 50 snapshots, every 5 minutes. Store only in local browser.',
     '最近快照已保存，并恢复至原序号为': 'The most recent snapshot has been saved and restored to the original number',
     '的快照': 'snapshot',
-    '历史记录': 'History',
+    '历史搜索记录': 'Search History',
     '：': ': '
 }
 

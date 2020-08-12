@@ -91,7 +91,7 @@
                     :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
                     :task-message-loading="taskMessageLoading"
-                    @onParameterInfoLoading="onParameterInfoLoading">
+                    @paramsLoadingChange="paramsLoadingChange">
                 </ParameterInfo>
             </div>
         </div>
@@ -106,7 +106,8 @@
                     'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
                 }]"
                 theme="primary"
-                :loading="isSubmit"
+                :loading="paramsLoading && isSubmit"
+                :disabled="paramsLoading || nextBtnDisable"
                 v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
                 {{$t('下一步')}}
@@ -125,7 +126,6 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
-    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     export default {
         name: 'TaskParamFill',
@@ -160,6 +160,8 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
+                paramsLoading: false,
+                nextBtnDisable: false,
                 disabledButton: true,
                 tplActions: [],
                 tplOperations: [],
@@ -217,8 +219,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData',
-                'getLayoutedPipeline'
+                'loadTemplateData'
             ]),
             ...mapActions('task/', [
                 'loadPreviewNodeData',
@@ -245,7 +246,9 @@
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
                     if (templateData.result === false) {
-                        throw (templateData)
+                        errorHandler(templateData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
 
                     this.tplActions = templateData.auth_actions
@@ -262,16 +265,11 @@
                     }
                     const previewData = await this.loadPreviewNodeData(params)
                     if (previewData.result === false) {
-                        throw (previewData)
+                        errorHandler(previewData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
-
-                    const pipelineTree = previewData.data.pipeline_tree
-                    if (this.excludeNode.length > 0) {
-                        const layoutedData = await this.getLayoutedPosition(pipelineTree)
-                        pipelineTree.line = layoutedData.line
-                        pipelineTree.location = layoutedData.location
-                    }
-                    this.pipelineData = pipelineTree
+                    this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
@@ -281,31 +279,6 @@
                     errorHandler(e, this)
                 } finally {
                     this.taskMessageLoading = false
-                }
-            },
-            /**
-             * 从接口获取编排后的画布数据
-             * @params {Object} data pipeline_tree 数据
-             */
-            async getLayoutedPosition (data) {
-                try {
-                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
-                    const width = document.body.scrollWidth - 90
-                    const res = await this.getLayoutedPipeline({
-                        canvas_width: width,
-                        pipeline_tree: data,
-                        activity_size: ACTIVITY_SIZE,
-                        event_size: EVENT_SIZE,
-                        gateway_size: GATEWAY_SIZE,
-                        start: START_POSITION
-                    })
-                    if (res.result) {
-                        return res.data.pipeline_tree
-                    } else {
-                        errorHandler(res, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
                 }
             },
             getDefaultTaskName () {
@@ -475,10 +448,8 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            onParameterInfoLoading (val) {
-                if (this.taskMessageLoading === false && val === false) {
-                    this.disabledButton = false
-                }
+            paramsLoadingChange (val) {
+                this.paramsLoading = val
             }
         }
     }

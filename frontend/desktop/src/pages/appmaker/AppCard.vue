@@ -40,7 +40,7 @@
                 <router-link
                     class="common-icon-clock-reload operate-btn"
                     :title="$t('执行历史')"
-                    :to="getExecuteHistoryUrl(appData.template_id)">
+                    :to="getExecuteHistoryUrl(appData)">
                 </router-link>
                 <bk-popover
                     theme="light"
@@ -172,11 +172,11 @@
                 openOtherApp(this.appData.code, this.appData.link)
             },
             // 查询执行记录
-            getExecuteHistoryUrl (id) {
+            getExecuteHistoryUrl (data) {
                 return {
                     name: 'taskList',
                     params: { project_id: this.project_id },
-                    query: { template_id: id, create_method: 'app_maker' }
+                    query: { template_id: data.template_id, create_method: 'app_maker', create_info: data.id }
                 }
             },
             // 添加/取消收藏模板
