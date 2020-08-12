@@ -55,7 +55,10 @@
         },
         computed: {
             ...mapState({
-                'atomFormConfig': state => state.atomForm.config
+                atomFormConfig: state => state.atomForm.config
+            }),
+            ...mapState('project', {
+                project_id: state => state.project_id
             })
         },
         watch: {
@@ -115,7 +118,7 @@
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
                     if (!atomFilter.isConfigExists(atom, version, this.atomFormConfig)) {
-                        await this.loadAtomConfig({ name, atom, classify, version })
+                        await this.loadAtomConfig({ name, atom, classify, version, project_id: this.project_id })
                     }
                     const atomConfig = this.atomFormConfig[atom][version]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
