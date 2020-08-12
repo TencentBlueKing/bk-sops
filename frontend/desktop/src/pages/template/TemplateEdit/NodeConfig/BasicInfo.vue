@@ -97,9 +97,10 @@
             </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
-                    :value="formData.selectable"
                     theme="primary"
-                    size="min"
+                    size="small"
+                    :value="formData.selectable"
+                    :disabled="formData.selectableDisable"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
@@ -140,9 +141,10 @@
             </bk-form-item>
             <bk-form-item :label="$t('是否可选')">
                 <bk-switcher
-                    :value="formData.selectable"
                     theme="primary"
-                    size="min"
+                    size="small"
+                    :value="formData.selectable"
+                    :disabled="formData.selectableDisable"
                     @change="onSelectableChange">
                 </bk-switcher>
             </bk-form-item>
