@@ -384,7 +384,7 @@
                     const pipelineData = tools.deepClone(this.pipelineData)
                     // 取最新参数
                     if (paramEditComp) {
-                        const formData = paramEditComp.getVariableData()
+                        const formData = await paramEditComp.getVariableData()
                         pipelineData.constants = formData
                         formValid = paramEditComp.validate()
                     }

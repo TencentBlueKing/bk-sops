@@ -110,11 +110,11 @@
                 if (!loopRule.check) return
                 this.dialogFooterData[0].loading = true
                 const paramEditComp = this.$refs.TaskParamEdit
-                this.$validator.validateAll().then((result) => {
+                this.$validator.validateAll().then(async (result) => {
                     let formValid = true
                     let periodicConstants = ''
                     if (paramEditComp) {
-                        const formData = paramEditComp.getVariableData()
+                        const formData = await paramEditComp.getVariableData()
                         periodicConstants = formData
                         formValid = paramEditComp.validate()
                     }
