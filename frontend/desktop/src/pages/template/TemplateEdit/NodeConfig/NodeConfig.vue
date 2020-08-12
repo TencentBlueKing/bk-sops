@@ -354,12 +354,13 @@
              * 优先取 store 里的缓存
              */
             async getAtomConfig (plugin, version, classify, name) {
+                const project_id = this.common ? undefined : this.project_id
                 const pluginGroup = this.pluginConfigs[plugin]
                 if (pluginGroup && pluginGroup[version]) {
                     return pluginGroup[version]
                 }
                 try {
-                    await this.loadAtomConfig({ atom: plugin, version, classify, name })
+                    await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     const config = $.atoms[plugin]
                     return config
                 } catch (error) {
