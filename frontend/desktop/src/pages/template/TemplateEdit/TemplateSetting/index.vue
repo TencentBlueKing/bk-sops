@@ -13,6 +13,7 @@
     <div class="setting-panel">
         <TabGlobalVariables
             v-if="activeTab === 'globalVariableTab'"
+            :common="common"
             @templateDataChanged="$emit('templateDataChanged')"
             @onCitedNodeClick="$emit('onCitedNodeClick', $event)"
             @closeTab="closeTab">
@@ -57,7 +58,8 @@
             projectInfoLoading: Boolean,
             isTemplateConfigValid: Boolean,
             activeTab: String,
-            snapshoots: Array
+            snapshoots: Array,
+            common: [String, Number]
         },
         methods: {
             // 关闭面板
