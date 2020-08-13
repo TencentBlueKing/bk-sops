@@ -280,6 +280,8 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
   - `remote_data_init`：远程加载后的数据处理函数
   - `placeholder`：占位文本
   - `empty_text`：无数据提示
+  - `hasGroup`：选项是否分组
+  - `allowCreate`：是否支持输入框创建选项
   - `disabled`：设置是否禁用组件
   - `value`：选中项的 value，多选框的值以英文逗号 `,` 分隔
 

@@ -25,7 +25,7 @@ class ProjectIAMAuthorizationHelper(EmptyEnvIAMAuthorizationHelper):
         return res_factory.resources_for_project_obj(bundle.obj)
 
     def get_update_detail_resources(self, bundle):
-        raise Unauthorized()
+        return res_factory.resources_for_project_obj(bundle.obj)
 
     def get_delete_detail_resources(self, bundle):
         raise Unauthorized()

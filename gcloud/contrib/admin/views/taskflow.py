@@ -32,11 +32,18 @@ from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor, Ad
 SERIALIZE_DATE_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 
 
+def format_variables_value(var_value):
+    if isinstance(var_value, TaskContext):
+        return var_value.__dict__
+
+    return var_value
+
+
 def format_variables(variables):
     _vars = {}
     for key, var in variables.items():
         if isinstance(var, Variable):
-            _vars[key] = {"name": var.name, "value": var.value}
+            _vars[key] = {"name": var.name, "value": format_variables_value(var.value)}
         elif isinstance(var, TaskContext):
             _vars[key] = {"name": key, "value": var.__dict__}
         else:

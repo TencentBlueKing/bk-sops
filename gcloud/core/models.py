@@ -229,18 +229,57 @@ class ProjectCounterManager(models.Manager):
 
 
 class ProjectCounter(models.Model):
-    username = models.CharField(_(u"用户名"), max_length=255)
-    project = models.ForeignKey(verbose_name=_(u"项目"), to=Project)
-    count = models.IntegerField(_(u"项目访问次数"), default=1)
+    username = models.CharField(_("用户名"), max_length=255)
+    project = models.ForeignKey(verbose_name=_("项目"), to=Project)
+    count = models.IntegerField(_("项目访问次数"), default=1)
 
     objects = ProjectCounterManager()
 
     class Meta:
-        verbose_name = _(u"用户访问项目计数 ProjectCounter")
-        verbose_name_plural = _(u"用户访问项目计数 ProjectCounter")
+        verbose_name = _("用户访问项目计数 ProjectCounter")
+        verbose_name_plural = _("用户访问项目计数 ProjectCounter")
 
     def __unicode__(self):
         return "%s_%s_%s" % (self.username, self.project, self.count)
 
     def __str__(self):
         return "%s_%s_%s" % (self.username, self.project, self.count)
+
+
+class ProjectConfigManager(models.Manager):
+    def task_executor_for_project(self, project_id, executor):
+        """获取项目下的任务执行者
+
+        :param project_id: 项目 ID
+        :type project_id: int
+        :param executor: 当前任务执行者
+        :type executor: str
+        """
+        qs = self.filter(project_id=project_id).values("executor_proxy", "executor_proxy_exempts")
+        if not qs.exists():
+            return executor
+
+        executor_proxy = qs[0]["executor_proxy"].strip()
+        executor_proxy_exempts = set(qs[0]["executor_proxy_exempts"].split(","))
+
+        # 没有设置执行代理人，使用原执行人
+        if not executor_proxy:
+            return executor
+
+        # 当前执行人在代理豁免人名单中，使用原执行人
+        if executor in executor_proxy_exempts:
+            return executor
+
+        return executor_proxy
+
+
+class ProjectConfig(models.Model):
+    project_id = models.IntegerField(_("项目 ID"))
+    executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
+    executor_proxy_exempts = models.TextField(_("不使用执行人代理的用户列表"), default="", blank=True)
+
+    objects = ProjectConfigManager()
+
+    class Meta:
+        verbose_name = _("项目配置 ProjectConfig")
+        verbose_name_plural = _("项目配置 ProjectConfig")
