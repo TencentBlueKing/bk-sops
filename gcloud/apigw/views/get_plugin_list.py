@@ -19,6 +19,7 @@ from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.decorators import project_inject
+from gcloud.core.models import ProjectBasedComponent
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 
@@ -34,7 +35,10 @@ except ImportError:
 @mark_request_whether_is_trust
 @project_inject
 def get_plugin_list(request, project_id):
-    components = ComponentModel.objects.filter(status=True)
+    project_id = request.project.id
+
+    exclude_component_codes = ProjectBasedComponent.objects.get_components_with_project(project_id)
+    components = ComponentModel.objects.filter(status=True).exclude(code__in=exclude_component_codes)
 
     data = []
     for comp_model in components:
@@ -47,7 +51,7 @@ def get_plugin_list(request, project_id):
                 "code": comp.code,
                 "name": comp.name,
                 "group_name": comp.group_name,
-                "version": comp.version
+                "version": comp.version,
             }
         )
 
