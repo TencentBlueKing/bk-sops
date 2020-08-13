@@ -133,3 +133,27 @@ class CurrentTime(LazyVariable):
                     final_format += separator
                 final_format += time_format
         return final_format.strip()
+
+
+class Date(CommonPlainVariable):
+    code = "date"
+    name = _("日期")
+    type = "general"
+    tag = "date.date"
+    form = "%svariables/%s.js" % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_("日期变量"))
+
+
+class Time(LazyVariable):
+    code = "time"
+    name = _("时间")
+    type = "general"
+    tag = "time.time"
+    form = "%svariables/%s.js" % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_("时间变量"))
+
+    def get_value(self):
+        """
+        由于用户需要，这里的时间格式由“小时:分钟:秒”处理成“小时:分钟”
+        """
+        return ":".join(self.value.split(":")[0:2])
