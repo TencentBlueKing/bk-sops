@@ -106,12 +106,13 @@
             font-size: 12px;
         }
         &.el-input__inner {
-            padding: 0 32px;
+            padding: 0 30px;
             height: 32px;
             line-height: 32px;
         }
         &.el-input {
             .el-input__inner {
+                padding: 0 30px;
                 height: 32px;
                 line-height: 32px;
             }
