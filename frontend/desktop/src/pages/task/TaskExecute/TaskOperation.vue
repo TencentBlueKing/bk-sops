@@ -53,9 +53,17 @@
                 </TemplateCanvas>
             </div>
         </div>
-        <transition name="slideRight">
-            <!-- 执行详情 -->
-            <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
+        <bk-sideslider :is-show.sync="isNodeInfoPanelShow" :width="798" :quick-close="quickClose">
+            <div slot="header">{{sideSliderTitle}}</div>
+            <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow" slot="content">
+                <ViewParams
+                    v-if="nodeInfoType === 'viewParams'"
+                    :node-data="nodeData"
+                    :selected-flow-path="selectedFlowPath"
+                    :tree-node-config="treeNodeConfig"
+                    :pipeline-data="pipelineData"
+                    @onClickTreeNode="onClickTreeNode">
+                </ViewParams>
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
@@ -91,11 +99,8 @@
                     v-if="nodeInfoType === 'taskExecuteInfo'"
                     :task-id="instance_id">
                 </TaskInfo>
-                <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
-                    <i class="common-icon-double-arrow"></i>
-                </div>
             </div>
-        </transition>
+        </bk-sideslider>
         <gatewaySelectDialog
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
             :gateway-branches="gatewayBranches"
@@ -115,7 +120,6 @@
     import axios from 'axios'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ModifyParams from './ModifyParams.vue'
@@ -198,6 +202,8 @@
                 locations: [],
                 setNodeDetail: true,
                 hasParentNode: true,
+                quickClose: true,
+                sideSliderTitle: '',
                 taskId: this.instance_id,
                 isNodeInfoPanelShow: false,
                 nodeInfoType: '',
@@ -315,14 +321,12 @@
         },
         mounted () {
             this.loadTaskStatus()
-            window.addEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         beforeDestroy () {
             if (source) {
                 source.cancel('cancelled')
             }
             this.cancelTaskStatusTimer()
-            window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         methods: {
             ...mapActions('task/', [
@@ -688,33 +692,8 @@
                     this.setNodeDetail = false
                 }
             },
-            handleNodeInfoPanelHide (e) {
-                if (dom.parentClsContains('canvas-node', e.target)) {
-                    return false
-                }
-                const classList = e.target.classList
-                const isParamsBtn = classList.contains('params-btn')
-                const isTooltipBtn = classList.contains('tooltip-btn')
-                if (!this.isNodeInfoPanelShow
-                    || isParamsBtn
-                    || isTooltipBtn
-                    || e.target.className.indexOf('bk-option') > -1
-                ) {
-                    return
-                }
-                const NodeInfoPanel = document.querySelector('.node-info-panel')
-                if (NodeInfoPanel) {
-                    if (!dom.nodeContains(NodeInfoPanel, e.target)) {
-                        this.isNodeInfoPanelShow = false
-                        this.nodeInfoType = ''
-                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                        this.cancelSelectedNode(this.selectedNodeId)
-                    }
-                }
-            },
             onRetryClick (id) {
-                this.isNodeInfoPanelShow = true
-                this.nodeInfoType = 'retryNode'
+                this.onTaskParamsClick('retryNode', true, i18n.t('重试'))
                 this.setNodeDetailConfig(id)
             },
             onSkipClick (id) {
@@ -726,8 +705,7 @@
                 this.nodeTaskSkip(data)
             },
             onModifyTimeClick (id) {
-                this.isNodeInfoPanelShow = true
-                this.nodeInfoType = 'modifyTime'
+                this.onTaskParamsClick('modifyTime', true, i18n.t('修改时间'))
                 this.setNodeDetailConfig(id)
             },
             onGatewaySelectionClick (id) {
@@ -853,11 +831,7 @@
                 this.nodeInfoType = type
                 this.quickClose = true
                 if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    if (type === 'modifyParams' && !this.paramsCanBeModify) {
-                        this.quickClose = true
-                    } else {
-                        this.quickClose = false
-                    }
+                    this.quickClose = true
                 }
                 if (name === i18n.t('节点详情')) {
                     this.defaultActiveId = firstNodeId
@@ -924,8 +898,7 @@
                     if (this.selectedFlowPath.length > 1) {
                         subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                     }
-                    this.isNodeInfoPanelShow = true
-                    this.nodeInfoType = 'executeInfo'
+                    this.onTaskParamsClick('executeInfo', true, i18n.t('节点参数'))
                     if (this.nodeDetailConfig.node_id) {
                         this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
@@ -1252,37 +1225,11 @@
     }
 
 }
+/deep/.bk-sideslider-content {
+    height: calc(100% - 60px);
+}
 .node-info-panel {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    width: 798px;
-    height: calc(100% - 50px);
-    background: $whiteDefault;
-    border-top: 1px solid #dde4eb;
-    border-left: 1px solid #dde4eb;
-    z-index: 5;
-    .close-node-info-panel {
-        position: absolute;
-        top: -1px;
-        left: -18px;
-        width: 18px;
-        height: 50px;
-        line-height: 50px;
-        font-size: 12px;
-        color: $whiteDefault;
-        text-align: center;
-        background:#3a84ff;
-        border-right: none;
-        border-radius: 4px;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
-        cursor: pointer;
-        &:hover {
-            background: $blueDefault;
-        }
-    }
+    height: 100%;
 }
 
 </style>

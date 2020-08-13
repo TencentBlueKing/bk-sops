@@ -55,6 +55,22 @@
                 <i
                     :class="[
                         'params-btn',
+                        'solid-eye',
+                        'common-icon',
+                        'common-icon-solid-eye',
+                        {
+                            actived: nodeInfoType === 'viewParams'
+                        }
+                    ]"
+                    v-bk-tooltips="{
+                        content: $t('查看节点详情'),
+                        placements: ['bottom']
+                    }"
+                    @click="onTaskParamsClick('viewParams', $t('节点详情'))">
+                </i>
+                <i
+                    :class="[
+                        'params-btn',
                         'common-icon',
                         'common-icon-edit',
                         {
@@ -65,7 +81,7 @@
                         content: $t('修改参数'),
                         placements: ['bottom']
                     }"
-                    @click="onTaskParamsClick('modifyParams')">
+                    @click="onTaskParamsClick('modifyParams', $t('修改参数'))">
                 </i>
                 <router-link
                     v-if="isShowViewProcess"
@@ -157,8 +173,8 @@
             onOperationClick (action) {
                 this.$emit('onOperationClick', action)
             },
-            onTaskParamsClick (type) {
-                this.$emit('onTaskParamsClick', type)
+            onTaskParamsClick (type, name) {
+                this.$emit('onTaskParamsClick', type, true, name)
             },
             onBack () {
                 if (this.view_mode === 'appmaker') {
