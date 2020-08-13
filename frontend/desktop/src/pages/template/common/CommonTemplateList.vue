@@ -279,6 +279,9 @@
             NoData
         },
         mixins: [permission],
+        props: {
+            page: [String, Number]
+        },
         data () {
             return {
                 listLoading: true,
@@ -313,7 +316,7 @@
                 },
                 totalPage: 1,
                 pagination: {
-                    current: 1,
+                    current: Number(this.page) || 1,
                     count: 0,
                     limit: 15,
                     'limit-list': [15, 20, 30]
@@ -345,6 +348,14 @@
                 value[0].list = this.templateCategoryList
                 value[0].loading = this.categoryLoading
                 return searchForm
+            }
+        },
+        watch: {
+            page (val, oldVal) {
+                if (val !== oldVal) {
+                    this.pagination.current = Number(val) || 1
+                    this.getTemplateList()
+                }
             }
         },
         created () {
@@ -435,9 +446,9 @@
                 this.projectInfoLoading = true
                 this.categoryLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.setProjectBaseInfo(data)
-                    this.templateCategoryList = data.task_categories
+                    const res = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(res.data)
+                    this.templateCategoryList = res.data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -535,6 +546,7 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
+                this.$router.push({ name: 'commonProcessList', query: { page: page } })
                 this.getTemplateList()
             },
             /**

@@ -17,11 +17,9 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 
-from pipeline.engine.core.data.api import _backend, _candidate_backend
-from pipeline.engine.core.data.redis_backend import RedisDataBackend
-
 from gcloud import err_code
 from gcloud.core.decorators import check_is_superuser
+from gcloud.core.tasks import migrate_pipeline_parent_data_task
 
 
 @check_is_superuser()
@@ -49,27 +47,5 @@ def migrate_pipeline_parent_data(request):
     @param request:
     @return:
     """
-    if not isinstance(_backend, RedisDataBackend):
-        return JsonResponse(
-            {"result": False, "code": err_code.OPERATION_FAIL.code, "message": "_backend should be RedisDataBackend"}
-        )
-
-    if _candidate_backend is None:
-        return JsonResponse(
-            {
-                "result": False,
-                "code": err_code.ENV_ERROR.code,
-                "message": (
-                    "_candidate_backend is None, please set "
-                    "env variable(BKAPP_PIPELINE_DATA_CANDIDATE_BACKEND) first"
-                ),
-            }
-        )
-
-    r = settings.redis_inst
-    pipeline_data_keys = list(r.scan_iter("*_schedule_parent_data"))
-    for key in pipeline_data_keys:
-        value = _backend.get_object(key)
-        _candidate_backend.set_object(key, value)
-
-    return JsonResponse({"result": True, "code": err_code.SUCCESS.code, "data": pipeline_data_keys})
+    migrate_pipeline_parent_data_task.apply_async()
+    return JsonResponse({"reuslt": True, "data": None, "message": "migrte start."})

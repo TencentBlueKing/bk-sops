@@ -174,7 +174,7 @@
                 statusList: [
                     { 'value': 'nonExecution', 'name': i18n.t('未执行') },
                     { 'value': 'running', 'name': i18n.t('未完成') },
-                    { 'value': 'revoke', 'name': i18n.t('撤销') },
+                    { 'value': 'revoked', 'name': i18n.t('撤销') },
                     { 'value': 'finished', 'name': i18n.t('完成') }
                 ],
                 requestData: {
@@ -274,9 +274,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ value: m.value, name: m.name }))
-                    this.setProjectBaseInfo(projectBasicInfo)
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories.map(m => ({ value: m.value, name: m.name }))
+                    this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)

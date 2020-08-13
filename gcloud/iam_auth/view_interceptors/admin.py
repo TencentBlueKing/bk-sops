@@ -35,7 +35,7 @@ class AdminSingleActionViewInpterceptor(ViewInterceptor):
 
 
 class AdminViewViewInterceptor(AdminSingleActionViewInpterceptor):
-    action = IAMMeta.ADMIN_EDIT_ACTION
+    action = IAMMeta.ADMIN_VIEW_ACTION
 
 
 class AdminEditViewInterceptor(AdminSingleActionViewInpterceptor):

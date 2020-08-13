@@ -172,7 +172,7 @@
             list: [
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
                 { 'value': 'running', 'name': i18n.t('未完成') },
-                { 'value': 'revoke', 'name': i18n.t('撤销') },
+                { 'value': 'revoked', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
             ],
             value: ''
@@ -330,8 +330,8 @@
             async getProjectBaseInfo () {
                 this.taskBasicInfoLoading = true
                 try {
-                    const data = await this.loadProjectBaseInfo()
-                    this.taskCategory = data.task_categories.map(m => ({ name: m.name, value: m.value }))
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories.map(m => ({ name: m.name, value: m.value }))
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

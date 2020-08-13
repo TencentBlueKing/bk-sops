@@ -21,7 +21,7 @@ from .api.client import Client
 from .eval.expression import make_expression
 from .eval.object import ObjectSet
 from .contrib.converter.queryset import DjangoQuerySetConverter
-from .auth.models import Request, MultiActionRequest, Resource
+from .auth.models import Request, MultiActionRequest, Resource, ApiAuthRequest
 from .exceptions import AuthAPIError, AuthInvalidRequest, AuthInvalidParam
 from .apply.models import Application
 
@@ -405,3 +405,46 @@ class IAM(object):
 
         # bool, message, url
         return self._client.get_apply_url(bk_token, bk_username, data)
+
+    def grant_resource_creator_actions(self, application, bk_token=None, bk_username=None):
+        if isinstance(application, dict):
+            data = application
+        else:
+            raise AuthInvalidRequest("application should be instance of dict")
+
+        if not (bk_token or bk_username):
+            raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
+
+        # bool, message, url
+        return self._client.grant_resource_creator_actions(bk_token, bk_username, data)
+
+    def grant_or_revoke_instance_permission(self, request, bk_token=None, bk_username=None):
+        if not isinstance(request, ApiAuthRequest):
+            raise AuthInvalidRequest("request should be a instance of iam.auth.models.ApiAuthRequest")
+
+        self._validate_request(request)
+        data = request.to_dict()
+
+        logger.debug("the request: %s", data)
+        if not (bk_token or bk_username):
+            raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
+
+        ok, message, policies = self._client.instance_authorization(bk_token, bk_username, data)
+        if not ok:
+            raise AuthAPIError(message)
+        return policies
+
+    def grant_or_revoke_path_permission(self, request, bk_token=None, bk_username=None):
+        if not isinstance(request, ApiAuthRequest):
+            raise AuthInvalidRequest("request should be a instance of iam.auth.models.ApiAuthRequest")
+        self._validate_request(request)
+        data = request.to_dict()
+
+        logger.debug("the request: %s", data)
+        if not (bk_token or bk_username):
+            raise AuthInvalidRequest("bk_token and bk_username can not both be empty")
+
+        ok, message, policies = self._client.path_authorization(bk_token, bk_username, data)
+        if not ok:
+            raise AuthAPIError(message)
+        return policies

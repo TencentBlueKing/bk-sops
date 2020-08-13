@@ -790,18 +790,30 @@
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             
-            // 查看参数、修改参数
+            // 查看参数、修改参数（侧滑组件 标题 点击遮罩隐藏）
             onTaskParamsClick (type, isNodeInfoPanelShow, name) {
+                let nodeData = tools.deepClone(this.nodeData)
+                let firstNodeId = null
+                let firstNodeData = null
+                while (nodeData[0]) {
+                    if (nodeData[0].type && nodeData[0].type === 'ServiceActivity') {
+                        firstNodeId = nodeData[0].id
+                        firstNodeData = nodeData[0]
+                        nodeData[0] = false
+                    } else {
+                        nodeData = nodeData[0].children
+                    }
+                }
                 this.sideSliderTitle = name
                 this.isNodeInfoPanelShow = isNodeInfoPanelShow
                 this.nodeInfoType = type
                 this.quickClose = true
                 if (['retryNode', 'modifyTime', 'modifyParams'].includes(type)) {
-                    if (type === 'modifyParams' && !this.paramsCanBeModify) {
-                        this.quickClose = true
-                    } else {
-                        this.quickClose = false
-                    }
+                    this.quickClose = true
+                }
+                if (name === i18n.t('节点详情')) {
+                    this.defaultActiveId = firstNodeId
+                    this.setNodeDetailConfig(firstNodeId, firstNodeData)
                 }
             },
             
@@ -1111,7 +1123,8 @@
                 color: #2dcb56;
             }
         }
-        &.RUNNING {
+        &.RUNNING,
+        &.READY {
             background-color: #cfdffb;
             border-top: 1px solid #c0d4f8;
             border-bottom: 1px solid #c0d4f8;

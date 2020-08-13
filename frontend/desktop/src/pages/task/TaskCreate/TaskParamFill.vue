@@ -91,7 +91,7 @@
                     :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
                     :task-message-loading="taskMessageLoading"
-                    @onParameterInfoLoading="onParameterInfoLoading">
+                    @paramsLoadingChange="paramsLoadingChange">
                 </ParameterInfo>
             </div>
         </div>
@@ -103,11 +103,12 @@
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
-                    'btn-permission-disable': !hasPermission(nextStepPerm, actions)
+                    'btn-permission-disable': common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions)
                 }]"
                 theme="primary"
-                :loading="isSubmit"
-                v-cursor="{ active: !hasPermission(nextStepPerm, actions) }"
+                :loading="common ? commonTplCreateTaskPermLoading : paramsLoading && isSubmit"
+                :disabled="paramsLoading || nextBtnDisable"
+                v-cursor="{ active: common ? !hasCommonTplCreateTaskPerm : !hasPermission(nextStepPerm, actions) }"
                 @click="onCreateTask">
                 {{$t('下一步')}}
             </bk-button>
@@ -125,7 +126,6 @@
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
-    import { NODES_SIZE_POSITION } from '@/constants/nodes.js'
 
     export default {
         name: 'TaskParamFill',
@@ -160,6 +160,10 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
+                hasCommonTplCreateTaskPerm: false,
+                commonTplCreateTaskPermLoading: false,
+                paramsLoading: false,
+                nextBtnDisable: false,
                 disabledButton: true,
                 tplActions: []
             }
@@ -168,7 +172,8 @@
             ...mapState({
                 'templateName': state => state.template.name,
                 'viewMode': state => state.view_mode,
-                'app_id': state => state.app_id
+                'app_id': state => state.app_id,
+                'permissionMeta': state => state.permissionMeta
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -202,28 +207,59 @@
                 return this.common || this.viewMode === 'appmaker' || (['periodicTask', 'taskflow', 'function'].indexOf(this.entrance) > -1)
             }
         },
-        mounted () {
+        created () {
+            if (this.entrance === 'periodicTask') {
+                this.isStartNow = false
+            }
+            if (this.common) {
+                this.queryCommonTplCreateTaskPerm()
+            }
             this.loadData()
-            this.period()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('template/', [
-                'loadTemplateData',
-                'getLayoutedPipeline'
+                'loadTemplateData'
             ]),
             ...mapActions('task/', [
                 'loadPreviewNodeData',
                 'createTask'
             ]),
-            ...mapMutations('template/', [
-                'setTemplateData'
-            ]),
             ...mapActions('periodic/', [
                 'createPeriodic'
             ]),
-            period () {
-                if (this.entrance === 'periodicTask') {
-                    this.isStartNow = false
+            ...mapMutations('template/', [
+                'setTemplateData'
+            ]),
+            async queryCommonTplCreateTaskPerm () {
+                try {
+                    this.commonTplCreateTaskPermLoading = true
+                    const bkSops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
+                    const data = {
+                        action: 'common_flow_create_task',
+                        resources: [
+                            {
+                                system: bkSops.id,
+                                type: 'project',
+                                id: this.project_id,
+                                attributes: {}
+                            },
+                            {
+                                system: bkSops.id,
+                                type: 'common_flow',
+                                id: this.template_id,
+                                attributes: {}
+                            }
+                        ]
+                    }
+                    const res = await this.queryUserPermission(data)
+                    this.hasCommonTplCreateTaskPerm = res.data.is_allow
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.commonTplCreateTaskPermLoading = false
                 }
             },
             async loadData () {
@@ -236,7 +272,9 @@
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
                     if (templateData.result === false) {
-                        throw (templateData)
+                        errorHandler(templateData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
 
                     this.tplActions = templateData.auth_actions
@@ -251,16 +289,11 @@
                     }
                     const previewData = await this.loadPreviewNodeData(params)
                     if (previewData.result === false) {
-                        throw (previewData)
+                        errorHandler(previewData, this)
+                        this.nextBtnDisable = true
+                        return
                     }
-
-                    const pipelineTree = previewData.data.pipeline_tree
-                    if (this.excludeNode.length > 0) {
-                        const layoutedData = await this.getLayoutedPosition(pipelineTree)
-                        pipelineTree.line = layoutedData.line
-                        pipelineTree.location = layoutedData.location
-                    }
-                    this.pipelineData = pipelineTree
+                    this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
@@ -270,31 +303,6 @@
                     errorHandler(e, this)
                 } finally {
                     this.taskMessageLoading = false
-                }
-            },
-            /**
-             * 从接口获取编排后的画布数据
-             * @params {Object} data pipeline_tree 数据
-             */
-            async getLayoutedPosition (data) {
-                try {
-                    const { ACTIVITY_SIZE, EVENT_SIZE, GATEWAY_SIZE, START_POSITION } = NODES_SIZE_POSITION
-                    const width = document.body.scrollWidth - 90
-                    const res = await this.getLayoutedPipeline({
-                        canvas_width: width,
-                        pipeline_tree: data,
-                        activity_size: ACTIVITY_SIZE,
-                        event_size: EVENT_SIZE,
-                        gateway_size: GATEWAY_SIZE,
-                        start: START_POSITION
-                    })
-                    if (res.result) {
-                        return res.data.pipeline_tree
-                    } else {
-                        errorHandler(res, this)
-                    }
-                } catch (error) {
-                    errorHandler(error, this)
                 }
             },
             getDefaultTaskName () {
@@ -329,7 +337,16 @@
                 this.$router.push(url)
             },
             onCreateTask () {
-                if (!this.hasPermission(this.nextStepPerm, this.actions)) {
+                let hasNextPermission = false
+                if (this.common) {
+                    if (this.commonTplCreateTaskPermLoading) {
+                        return
+                    }
+                    hasNextPermission = this.hasCommonTplCreateTaskPerm
+                } else {
+                    hasNextPermission = this.hasPermission(this.nextStepPerm, this.actions)
+                }
+                if (!hasNextPermission) {
                     let resourceData = {}
                     if (this.viewMode === 'appmaker') {
                         resourceData = {
@@ -488,10 +505,8 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            onParameterInfoLoading (val) {
-                if (this.taskMessageLoading === false && val === false) {
-                    this.disabledButton = false
-                }
+            paramsLoadingChange (val) {
+                this.paramsLoading = val
             }
         }
     }

@@ -98,8 +98,9 @@
                         <template slot-scope="props">
                             <div class="task-operation">
                                 <!-- 事后鉴权，后续对接新版权限中心 -->
+                                <a v-if="props.row.template_deleted" class="task-operation-btn disabled">{{$t('再创建')}}</a>
                                 <a
-                                    v-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
+                                    v-else-if="!hasPermission(['flow_create_task'], props.row.auth_actions)"
                                     v-cursor
                                     class="text-permission-disable task-operation-btn"
                                     @click="onTaskPermissonCheck(['flow_create_task'], props.row)">
@@ -235,7 +236,7 @@
             list: [
                 { 'value': 'nonExecution', 'name': i18n.t('未执行') },
                 { 'value': 'running', 'name': i18n.t('未完成') },
-                { 'value': 'revoke', 'name': i18n.t('撤销') },
+                { 'value': 'revoked', 'name': i18n.t('撤销') },
                 { 'value': 'finished', 'name': i18n.t('完成') }
             ],
             value: ''
@@ -263,6 +264,10 @@
             create_method: {
                 type: String,
                 default: ''
+            },
+            create_info: {
+                type: [String, Number],
+                default: ''
             }
         },
         data () {
@@ -289,6 +294,7 @@
                 taskBasicInfoLoading: true,
                 taskCreateMethodList: [],
                 createMethod: this.create_method || '',
+                createInfo: this.create_info || '',
                 requestData: {
                     executeTime: [],
                     category: '',
@@ -378,7 +384,7 @@
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         category: category || undefined,
-                        template_id: this.templateId,
+                        template_id: this.templateId || undefined,
                         pipeline_instance__creator__contains: creator || undefined,
                         pipeline_instance__executor__contains: executor || undefined,
                         pipeline_instance__name__contains: flowName || undefined,
@@ -386,6 +392,7 @@
                         pipeline_instance__is_finished,
                         pipeline_instance__is_revoked,
                         create_method: createMethod || undefined,
+                        create_info: this.createInfo || undefined,
                         project__id: this.project_id
                     }
 
@@ -419,9 +426,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories
-                    this.setProjectBaseInfo(projectBasicInfo)
+                    const res = await this.loadProjectBaseInfo()
+                    this.taskCategory = res.data.task_categories
+                    this.setProjectBaseInfo(res.data)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -564,6 +571,9 @@
             onSearchFormSubmit (data) {
                 this.requestData = data
                 this.pagination.current = 1
+                // 高级搜索手动点击时，清空 createInfo、templateId 筛选条件
+                this.createInfo = ''
+                this.templateId = ''
                 this.getTaskList()
             },
             handlePageLimitChange (val) {
@@ -625,6 +635,10 @@
             padding: 5px;
             color: #3a84ff;
             font-size: 12px;
+            &.disabled {
+                color: #cccccc;
+                cursor: not-allowed;
+            }
         }
     }
     .empty-data {
